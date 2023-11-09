@@ -1,6 +1,8 @@
 
-.DSStore
+/.DSStore
 /build
 /Newton.xcodeproj/xcuserdata/
 doc/
 NS/Converted Files/
+/ROMData/ResMaker.xcodeproj/xcuserdata/
+/ROMData/ResMaker.xcodeproj/project.xcworkspace/xcshareddata
