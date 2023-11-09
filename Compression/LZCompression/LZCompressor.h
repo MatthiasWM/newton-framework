@@ -11,7 +11,7 @@
 #define __LZCOMPRESSOR_H
 
 #include "Newton.h"
-#include "Compression.h"
+#include "Compression/Compression.h"
 #include "PushPopBits.h"
 
 

@@ -9,7 +9,7 @@
 #if !defined(__STOREPACKAGES_H)
 #define __STOREPACKAGES_H 1
 
-#include "Compression.h"
+#include "Compression/Compression.h"
 
 /*------------------------------------------------------------------------------
 	C S t o r e P a c k a g e W r i t e r

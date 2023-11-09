@@ -799,7 +799,6 @@ Ref FBootSucceeded(RefArg rcvr);
 Ref FGetMeetingIcon(RefArg rcvr);
 }
 
-
 Ref AddBookmark(RefArg rcvr) { return NILREF; }
 Ref AddHistory(RefArg rcvr) { return NILREF; }
 Ref AddInkMarks(RefArg rcvr) { return NILREF; }

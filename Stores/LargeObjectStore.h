@@ -12,7 +12,7 @@
 #include "Objects.h"
 #include "Store.h"
 #include "StoreRootObjects.h"
-#include "Compression.h"
+#include "Compression/Compression.h"
 #include "Pipes.h"
 
 

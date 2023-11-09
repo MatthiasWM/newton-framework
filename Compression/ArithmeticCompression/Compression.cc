@@ -7,7 +7,7 @@
 */
 
 #include "Newton.h"
-#include "Compression.h"
+#include "Compression/Compression.h"
 
 
 PROTOCOL CArithmeticCompressor : public CCallbackCompressor

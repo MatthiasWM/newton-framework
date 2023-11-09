@@ -10,7 +10,7 @@
 #if !defined(__LZDECOMPRESSOR_H)
 #define __LZDECOMPRESSOR_H
 
-#include "Compression.h"
+#include "Compression/Compression.h"
 #include "PushPopBits.h"
 
 

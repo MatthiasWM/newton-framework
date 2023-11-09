@@ -336,10 +336,10 @@ printf("image=NULL -- ");
 void
 CMainDisplayDriver::blitLandscape(BlitRec * inBlit)	// 007A6070
 {
-	register int * srcPtr = (int *)inBlit->srcAddr;
-	register int * dstPtr = (int *)inBlit->dstAddr;
-	register int mode = inBlit->mode;
-	register ArrayIndex numOfLongs = inBlit->numOfBytes / 4;	// do 32 bits at a time
+	int * srcPtr = (int *)inBlit->srcAddr;
+	int * dstPtr = (int *)inBlit->dstAddr;
+	int mode = inBlit->mode;
+	ArrayIndex numOfLongs = inBlit->numOfBytes / 4;	// do 32 bits at a time
 
 	for (ArrayIndex row = inBlit->numOfRows; row > 0; row--)
 	{
@@ -356,11 +356,11 @@ CMainDisplayDriver::blitLandscape(BlitRec * inBlit)	// 007A6070
 void
 CMainDisplayDriver::blitLandscapeFlip(BlitRec * inBlit)	// 007A60E8
 {
-	register int * srcPtr = (int *)inBlit->srcAddr;
-	register int * dstPtr = (int *)inBlit->dstAddr;
-	register int mode = inBlit->mode;
-	register ArrayIndex numOfLongs = inBlit->numOfBytes / 4;
-	register ULong src, flipper;
+	int * srcPtr = (int *)inBlit->srcAddr;
+	int * dstPtr = (int *)inBlit->dstAddr;
+	int mode = inBlit->mode;
+	ArrayIndex numOfLongs = inBlit->numOfBytes / 4;
+	ULong src, flipper;
 
 	for (ArrayIndex row = inBlit->numOfRows; row > 0; row--)
 	{

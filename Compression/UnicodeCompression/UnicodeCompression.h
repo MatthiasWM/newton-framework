@@ -9,7 +9,7 @@
 #if !defined(__UNICODECOMPRESSION_H)
 #define __UNICODECOMPRESSION_H 1
 
-#include "Compression.h"
+#include "Compression/Compression.h"
 
 enum CompressionType
 {

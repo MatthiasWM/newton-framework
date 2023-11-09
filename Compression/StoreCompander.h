@@ -12,7 +12,7 @@
 #include "Newton.h"
 #include "Store.h"
 #include "StoreRootObjects.h"
-#include "Compression.h"
+#include "Compression/Compression.h"
 #include "Relocation.h"
 
 

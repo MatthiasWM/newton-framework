@@ -7,6 +7,7 @@
 */
 
 #include "Newton.h"
+#include "Compression/Compression.h"
 #include "UnicodeCompression.h"
 #include "OSErrors.h"
 

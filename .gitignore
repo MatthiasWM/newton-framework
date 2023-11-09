@@ -1,3 +1,6 @@
 
+.DSStore
+/build
+/Newton.xcodeproj/xcuserdata/
 doc/
 NS/Converted Files/
