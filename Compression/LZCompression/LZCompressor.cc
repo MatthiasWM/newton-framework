@@ -11,6 +11,8 @@
 #include "LZCompressionData-j.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
 
 extern void	InitLZDecompression(void);
 
@@ -397,6 +399,9 @@ InsertANode(unsigned char index, TTNode * inNode1, TTNode * inNode2, TTNode * in
 const CClassInfo *
 CLZCompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -427,6 +432,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN13CLZCompressor23estimatedCompressedSizeEPvm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZCompressor)

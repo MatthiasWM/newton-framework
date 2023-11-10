@@ -16,6 +16,10 @@
 #include "FlashStore.h"
 #include "FlashIterator.h"
 #include "OSErrors.h"
+
+#include <cassert>
+
+
 extern void DumpHex(void * inBuf, size_t inLen);
 
 extern CROMDomainManager1K * gROMStoreDomainManager;
@@ -122,6 +126,9 @@ CeilLog2(ULong inX)
 const CClassInfo *
 CFlashStore::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -192,6 +199,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN11CFlashStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CFlashStore)

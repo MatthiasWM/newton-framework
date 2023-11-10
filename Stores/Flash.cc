@@ -18,6 +18,7 @@
 
 #include <sys/fcntl.h>
 #include <sys/mman.h>
+#include <cassert>
 
 extern void			PowerOffAndReboot(NewtonErr inError);
 extern "C" NewtonErr	AddNewSecPNJT(VAddr inVAddr, PAddr inPhysAddr, ULong inDomain, Perm inPerm, bool inCacheable);
@@ -110,6 +111,9 @@ ClobberInternalFlash(void)
 const CClassInfo *
 CNewInternalFlash::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -174,6 +178,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN17CNewInternalFlash8isVirginEjm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CNewInternalFlash)

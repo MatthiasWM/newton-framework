@@ -11,6 +11,8 @@
 #include "UnicodeCompression.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
 extern	void		ThrowOSErr(NewtonErr err);
 
 unsigned char gUnicodeLookupTable[32] =
@@ -70,6 +72,9 @@ private:
 const CClassInfo *
 CUnicodeCompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -101,6 +106,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18CUnicodeCompressor5flushEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeCompressor)
@@ -280,6 +286,9 @@ private:
 const CClassInfo *
 CUnicodeDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -310,6 +319,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN20CUnicodeDecompressor9readChunkEPvPmPb - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeDecompressor)

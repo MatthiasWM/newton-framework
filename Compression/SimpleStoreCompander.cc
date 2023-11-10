@@ -10,6 +10,9 @@
 #include "SimpleStoreCompander.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
+
 extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId inId, PSSId, int, bool);
 
 
@@ -24,6 +27,9 @@ extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId inId, PSSId, int
 const CClassInfo *
 CSimpleStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -53,6 +59,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN24CSimpleStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleStoreDecompressor)
@@ -117,6 +124,9 @@ CSimpleStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VA
 const CClassInfo *
 CSimpleRelocStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -146,6 +156,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN29CSimpleRelocStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleRelocStoreDecompressor)
@@ -215,6 +226,9 @@ CSimpleRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLe
 const CClassInfo *
 CSimpleStoreCompander::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -248,6 +262,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN21CSimpleStoreCompander10isReadOnlyEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleStoreCompander)

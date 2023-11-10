@@ -9,6 +9,8 @@
 #include "MuxStore.h"
 #include "VirtualMemory.h"
 
+#include <cassert>
+
 // Most of the CMuxStore wrappers just need to lock ivar access
 // -- but hold on, isn’t this what the monitor is supposed to do?
 // #beltandbraces
@@ -62,6 +64,9 @@ CanCreateLargeObjectsOnStore(CStore * inStore)
 const CClassInfo *
 CMuxStore::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -132,6 +137,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN9CMuxStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMuxStore)
@@ -630,6 +636,9 @@ CMuxStore::getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned 
 const CClassInfo *
 CMuxStoreMonitor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -685,6 +694,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN16CMuxStoreMonitor12newXIPObjectEPjm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMuxStoreMonitor)

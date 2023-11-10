@@ -11,7 +11,9 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-using namespace std;
+#include <cassert>
+
+using namespace std;  // FIXME: no!
 
 #include "Objects.h"
 #include "RefMemory.h"
@@ -2062,6 +2064,9 @@ DumpObject(RefArg obj)
 const CClassInfo *
 PStringOutTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -2102,6 +2107,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN20PStringOutTranslator6stringEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PStringOutTranslator *

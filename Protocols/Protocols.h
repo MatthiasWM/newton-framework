@@ -170,6 +170,7 @@ public:
 	const char *	interfaceName(void)			const;	// name of public interface
 	const char *	signature(void)				const;	// signature (actually, capability list)
 	size_t			size(void)						const;	// instance size
+  void        makeAt(const void *)      const;  // construct an instance at the address
 	EntryProcPtr	entryProc(void)				const;	// return address of monitor entry proc
 	AllocProcPtr	allocProc(void)				const;	// return address of OperatorNew() proc, or nil
 	FreeProcPtr		freeProc(void)					const;	// return address of OperatorDelete() proc, or nil
@@ -178,7 +179,6 @@ public:
 	NewtonErr		registerProtocol(void)		const;	// register with protocol-server
 	NewtonErr		deregisterProtocol(void)	const;	// de-register with protocol-server
 	CProtocol *		make(void)						const;	// was New(); make an instance
-	void				makeAt(const void *)			const;	// construct an instance at the address
 	void				destroy(CProtocol *)			const;	// destroy an instance at the address
 	CodeProcPtr		selector(void)					const;	// return address of selector proc
 	const char *	getCapability(const char * inKey)	const;	// test if protocol has a specific capability, return it

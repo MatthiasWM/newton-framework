@@ -14,6 +14,8 @@
 #include "Unicode.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
 
 /*------------------------------------------------------------------------------
 	D a t a
@@ -109,6 +111,9 @@ FGetPackageStore(RefArg inRcvr, RefArg inName)
 const CClassInfo *
 CPackageStore::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -178,6 +183,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN13CPackageStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPackageStore)

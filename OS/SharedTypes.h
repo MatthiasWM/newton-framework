@@ -152,6 +152,13 @@ enum TaskRegisters
 	kCopyFromBuf			= 22,
 	kCopySize				= 23
 };
+#else
+
+enum TaskRegisters
+{
+  kNumOfRegisters    = 0,
+};
+
 #endif
 
 enum TaskPriorities

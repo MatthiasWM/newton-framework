@@ -9,6 +9,8 @@
 #include "LZStoreCompander.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
 extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId inId, PSSId, int, bool);
 
 
@@ -97,6 +99,9 @@ ReleaseSharedLZObjects(CCompressor * inCompressor, CDecompressor * inDecompresso
 const CClassInfo *
 CLZStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -126,6 +131,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN20CLZStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreDecompressor)
@@ -210,6 +216,9 @@ CLZStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr 
 const CClassInfo *
 CLZRelocStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -239,6 +248,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN25CLZRelocStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZRelocStoreDecompressor)
@@ -329,6 +339,9 @@ CLZRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, V
 const CClassInfo *
 CLZStoreCompander::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -362,6 +375,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN17CLZStoreCompander10isReadOnlyEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreCompander)

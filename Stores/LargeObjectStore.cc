@@ -16,6 +16,10 @@
 #include "ROMResources.h"
 #include "Funcs.h"
 #include "OSErrors.h"
+
+#include <cassert>
+
+
 extern void DumpHex(void * inBuf, size_t inLen);
 
 
@@ -1059,6 +1063,9 @@ LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, bool)
 const CClassInfo *
 CLOPackageStore::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -1101,6 +1108,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN15CLOPackageStore6backupEP5CPipeP6CStorejbP11CLOCallback - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLOPackageStore)

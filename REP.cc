@@ -15,6 +15,8 @@
 #include "Funcs.h"
 #include "ROMResources.h"
 
+#include <cassert>
+
 /*----------------------------------------------------------------------
 	D e c l a r a t i o n s
 ----------------------------------------------------------------------*/
@@ -565,6 +567,9 @@ CreateHammerInTranslator(PInTranslator ** outTranslator)
 const CClassInfo *
 PHammerInTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -596,6 +601,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN19PHammerInTranslator12produceFrameEi - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerInTranslator)
@@ -701,6 +707,9 @@ CreateHammerOutTranslator(POutTranslator ** outTranslator)
 const CClassInfo *
 PHammerOutTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -740,6 +749,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN20PHammerOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerOutTranslator)
@@ -901,6 +911,9 @@ CreateNullInTranslator(PInTranslator ** outTranslator)
 const CClassInfo *
 PNullInTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -932,6 +945,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN17PNullInTranslator12produceFrameEi - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullInTranslator)
@@ -995,6 +1009,9 @@ CreateNullOutTranslator(POutTranslator ** outTranslator)
 const CClassInfo *
 PNullOutTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -1034,6 +1051,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18PNullOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullOutTranslator)
@@ -1137,6 +1155,9 @@ CreateStdioInTranslator(PInTranslator ** outTranslator)
 const CClassInfo *
 PStdioInTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -1168,6 +1189,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18PStdioInTranslator12produceFrameEi - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioInTranslator)
@@ -1264,6 +1286,9 @@ CreateStdioOutTranslator(POutTranslator ** outTranslator)
 const CClassInfo *
 PStdioOutTranslator::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -1303,6 +1328,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN19PStdioOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioOutTranslator)

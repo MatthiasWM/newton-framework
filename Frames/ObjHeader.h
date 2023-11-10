@@ -18,8 +18,13 @@
 ----------------------------------------------------------------------*/
 
 #define OBJHEADER \
-	uint32_t size  : 24; \
-	uint32_t flags :  8; \
+  union { \
+    struct { \
+      uint32_t size  : 24; \
+      uint32_t flags :  8; \
+    }; \
+    Ref alignment_helper; \
+  }; \
 	union { \
 		struct { \
 			uint32_t	locks :  8; \
@@ -27,7 +32,7 @@
 		} count; \
 		Ref stuff; \
 		Ref destRef; \
-	}gc;
+	} gc;
 
 struct ObjHeader
 {

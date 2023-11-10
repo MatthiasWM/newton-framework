@@ -12,6 +12,8 @@
 #include "CopyOffset_bin.h"
 #include "LZCompressionData-j.h"
 
+#include <cassert>
+
 void
 InitLZDecompression(void)
 {
@@ -31,6 +33,9 @@ InitLZDecompression(void)
 const CClassInfo *
 CLZDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -60,6 +65,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN15CLZDecompressor10decompressEPmPvmS1_m - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZDecompressor)

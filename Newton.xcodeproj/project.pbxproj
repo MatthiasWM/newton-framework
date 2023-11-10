@@ -733,7 +733,7 @@
 		66393E2A04C7F0F400A80002 /* NewtonExceptions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtonExceptions.h; sourceTree = SOURCE_ROOT; };
 		66393E2C04C7F0F400A80002 /* NewtonMemory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtonMemory.h; sourceTree = SOURCE_ROOT; };
 		66393E2D04C7F0F400A80002 /* NewtonTime.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 3; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = NewtonTime.h; sourceTree = SOURCE_ROOT; tabWidth = 3; };
-		66393E2E04C7F0F400A80002 /* NewtonTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtonTypes.h; sourceTree = SOURCE_ROOT; };
+		66393E2E04C7F0F400A80002 /* NewtonTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 3; lastKnownFileType = sourcecode.c.h; path = NewtonTypes.h; sourceTree = SOURCE_ROOT; tabWidth = 3; usesTabs = 0; };
 		66393E2F04C7F0F400A80002 /* NewtonWidgets.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtonWidgets.h; sourceTree = SOURCE_ROOT; };
 		66393E3204C7F0F400A80002 /* Boot.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Boot.cc; sourceTree = "<group>"; };
 		66393E3304C7F0F400A80002 /* BusyBox.cc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; lineEnding = 0; name = BusyBox.cc; path = Views/BusyBox.cc; sourceTree = SOURCE_ROOT; };
@@ -1093,7 +1093,7 @@
 		F4A58FB318BB685F008B0832 /* Protocols.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Protocols.cc; sourceTree = "<group>"; tabWidth = 3; };
 		F4A58FB418BB685F008B0832 /* Protocols.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Protocols.h; sourceTree = "<group>"; tabWidth = 3; };
 		F4A58FB518BB685F008B0832 /* ProtoMacro.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = ProtoMacro.s; sourceTree = "<group>"; };
-		F4A58FC318BB6A81008B0832 /* NTK.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = NTK.cc; path = NTK/NTK.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		F4A58FC318BB6A81008B0832 /* NTK.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = NTK.cc; path = NTK/NTK.cc; sourceTree = "<group>"; };
 		F4A58FC418BB6A81008B0832 /* NTK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NTK.h; path = NTK/NTK.h; sourceTree = "<group>"; };
 		F4A58FC518BB6A81008B0832 /* NTKProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NTKProtocol.h; path = NTK/NTKProtocol.h; sourceTree = "<group>"; };
 		F4A58FC618BB6A81008B0832 /* protoProtoEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = protoProtoEditor.h; path = NTK/protoProtoEditor.h; sourceTree = "<group>"; };
@@ -1225,7 +1225,7 @@
 		F4D8666106D6596100BE7C2B /* RecDomain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RecDomain.h; sourceTree = "<group>"; };
 		F4D867D606D77CAD00BE7C2B /* RecArea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RecArea.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		F4D867F006D77F1300BE7C2B /* RecObject.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RecObject.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		F4D8680306D77FE600BE7C2B /* RecArea.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RecArea.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		F4D8680306D77FE600BE7C2B /* RecArea.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RecArea.cc; sourceTree = "<group>"; };
 		F4D8699D06D7AB4700BE7C2B /* Controller.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = Controller.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		F4D86A5A06D7C07000BE7C2B /* RecDomain.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RecDomain.cc; sourceTree = "<group>"; };
 		F4D86AF906D89CAE00BE7C2B /* RecType.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RecType.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };

@@ -10,6 +10,8 @@
 #include "SoundErrors.h"
 #include <math.h>
 
+#include <cassert>
+
 #define k2Pi 6.2831853
 #define kDegreesToRadians 0.0174532925
 
@@ -25,6 +27,9 @@
 const CClassInfo *
 CDTMFCodec::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -59,6 +64,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN10CDTMFCodec15bufferCompletedEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CDTMFCodec)

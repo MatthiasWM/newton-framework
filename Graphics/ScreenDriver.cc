@@ -13,6 +13,8 @@
 #include "QDDrawing.h"
 #include "NewtonGestalt.h"
 
+#include <cassert>
+
 
 /* -----------------------------------------------------------------------------
 	S c r e e n   P a r a m e t e r s
@@ -55,6 +57,9 @@ struct BlitRec
 const CClassInfo *
 CMainDisplayDriver::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -94,6 +99,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18CMainDisplayDriver12exitIdleModeEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMainDisplayDriver)

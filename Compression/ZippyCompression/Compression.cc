@@ -13,6 +13,8 @@
 void	InitZippyCompression(void);
 void	InitZippyDecompression(void);
 
+#include <cassert>
+
 
 PROTOCOL CZippyCallbackCompressor : public CCallbackCompressor
 	PROTOCOLVERSION(1.0)
@@ -67,6 +69,9 @@ private:
 const CClassInfo *
 CZippyDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -96,6 +101,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18CZippyDecompressor10decompressEPmPvmS1_m - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyDecompressor)
@@ -389,6 +395,9 @@ CZippyDecompressor::finish(void*, size_t)
 const CClassInfo *
 CZippyStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -418,6 +427,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN23CZippyStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyStoreDecompressor)
@@ -499,6 +509,9 @@ CZippyStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAd
 const CClassInfo *
 CZippyRelocStoreDecompressor::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -528,6 +541,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN28CZippyRelocStoreDecompressor4readEjPcmm - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyRelocStoreDecompressor)

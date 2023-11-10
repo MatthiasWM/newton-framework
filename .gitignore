@@ -1,5 +1,8 @@
 
 /.DSStore
+xcshareddata
+Xcuserdata
+.DSStore
 /build
 /Newton.xcodeproj/xcuserdata/
 doc/

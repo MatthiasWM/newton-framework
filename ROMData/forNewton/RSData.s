@@ -6,7 +6,7 @@
 	Written by:	Newton Research Group, 2016.
 */
 		.data
-		.align	2
+		.align	8
 
 #if __LP64__
 /* Refs are 64-bit */

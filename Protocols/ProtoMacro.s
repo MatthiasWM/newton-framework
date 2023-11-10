@@ -7,6 +7,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 #if __LP64__
 /* ----------------------------------------------------------------
 	Firstly, for protocol dispatch.
@@ -205,3 +207,6 @@ MonCall:
 .endmacro
 
 #endif
+
+#endif
+

@@ -16,7 +16,8 @@ set ( SRCFILES
   Cards/CardEvents.cc
   Compression/ArithmeticCompression/Compression.cc
   Compression/Compression.cc
-  Compression/CompressionProto.s
+  Compression/CompressionProto.cc
+# Compression/CompressionProto.s
   Compression/LZCompression/CopyOffset_bin.cc
   Compression/LZCompression/LZCompressionData-j.cc
   Compression/LZCompression/LZCompressor.cc
@@ -75,12 +76,14 @@ set ( SRCFILES
   Graphics/QDDrawing.cc
   Graphics/Screen.cc
   Graphics/ScreenDriver.cc
-  Graphics/ScreenDriverProto.s
+  Graphics/ScreenDriverProto.cc
+#  Graphics/ScreenDriverProto.s
   IA.cc
   Locales.cc
   Memory\ Manager/FakePointers.cc
   NTK/NTK.cc
-  NTK/TranslatorProto.s
+  NTK/TranslatorProto.cc
+#  NTK/TranslatorProto.s
   NTKStubs.cc
   NewtonPackage.cc
   OS/PhysicalMemory.cc
@@ -90,14 +93,16 @@ set ( SRCFILES
   Packages/Packages.cc
   Power.cc
   Preference.cc
-  Protocols/ProtoMacro.s
-  Protocols/ProtocolProto.s
+  Protocols/ProtoMacro.cc
+#  Protocols/ProtoMacro.s
+  Protocols/ProtocolProto.cc
+#  Protocols/ProtocolProto.s
   Protocols/Protocols.cc
   REP.cc
-#  ROMData/forNewton/RSData.s
-#  ROMData/forNewton/RSSymbols.s
-#  ROMData/forNewton/RefData.s
-#  ROMData/forNewton/RefSymbols.s
+  ROMData/forNewton/RSData.s
+  ROMData/forNewton/RSSymbols.s
+  ROMData/forNewton/RefData.s
+  ROMData/forNewton/RefSymbols.s
   Recognition/Array.cc
   Recognition/InkGeometry.cc
   Recognition/RecArea.cc
@@ -106,7 +111,8 @@ set ( SRCFILES
   Recognition/RecType.cc
   Recognition/Transformations.cc
   SerialNumber.cc
-  Sound/Codecs/CodecProto.s
+  Sound/Codecs/CodecProto.cc
+#  Sound/Codecs/CodecProto.s
   Sound/Codecs/DTMFCodec.cc
   Sound/Sound.cc
   Stores/CachedReadStore.cc
@@ -118,7 +124,8 @@ set ( SRCFILES
   Stores/FlashCache.cc
   Stores/FlashDriver.cc
   Stores/FlashIterator.cc
-  Stores/FlashProto.s
+  Stores/FlashProto.cc
+#  Stores/FlashProto.s
   Stores/FlashRange.cc
   Stores/FlashStore.cc
   Stores/FlashTracker.cc
@@ -133,9 +140,11 @@ set ( SRCFILES
   Stores/PlainSoup.cc
   Stores/Soups.cc
   Stores/StoreDriver.cc
-  Stores/StoreMonitorProto.s
+  Stores/StoreMonitorProto.cc
+#  Stores/StoreMonitorProto.s
   Stores/StoreObjRef.cc
-  Stores/StoreProto.s
+  Stores/StoreProto.cc
+#  Stores/StoreProto.s
 #  Stores/Store.cc
   Stores/StoreStreamObjects.cc
   Stores/StoreWrapper.cc

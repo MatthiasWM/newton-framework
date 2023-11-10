@@ -46,6 +46,9 @@
 #include "Protocols.h"
 #include "UserMonitor.h"
 
+#include <cassert>
+
+
 size_t			PrivateClassInfoSize(const CClassInfo * inClass);
 void				PrivateClassInfoMakeAt(const CClassInfo * inClass, const void * instance);
 const char *	PrivateClassInfoInterfaceName(const CClassInfo * inClass);
@@ -367,6 +370,9 @@ GetProtocolRegistry(void)
 const CClassInfo *
 CClassInfoRegistryImpl::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -403,6 +409,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN22CClassInfoRegistryImpl16getInstanceCountEPK10CClassInfo - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CClassInfoRegistryImpl)

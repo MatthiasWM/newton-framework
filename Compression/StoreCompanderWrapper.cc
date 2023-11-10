@@ -9,6 +9,9 @@
 #include "StoreCompander.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
+
 extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, bool);
 
 
@@ -23,6 +26,9 @@ extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, boo
 const CClassInfo *
 CStoreCompanderWrapper::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -56,6 +62,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN22CStoreCompanderWrapper10isReadOnlyEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CStoreCompanderWrapper)

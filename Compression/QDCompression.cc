@@ -11,6 +11,8 @@
 #include "LargeObjectStore.h"
 #include "OSErrors.h"
 
+#include <cassert>
+
 
 void
 InitQDCompression(void)
@@ -31,6 +33,9 @@ InitQDCompression(void)
 const CClassInfo *
 CPixelMapCompander::classInfo(void)
 {
+  assert(0);
+  return nullptr;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -66,6 +71,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN18CPixelMapCompander10isReadOnlyEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPixelMapCompander)
