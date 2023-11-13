@@ -108,82 +108,91 @@ FGetPackageStore(RefArg inRcvr, RefArg inName)
 	CPackageStore implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCPackageStore() {
+  return new CPackageStore();
+}
+
 const CClassInfo *
 CPackageStore::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN13CPackageStore6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN13CPackageStore4makeEv - 0b	\n"
-"		.long		__ZN13CPackageStore7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CPackageStore\"	\n"
-"2:	.asciz	\"CStore\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN13CPackageStore9classInfoEv - 4b	\n"
-"		.long		__ZN13CPackageStore4makeEv - 4b	\n"
-"		.long		__ZN13CPackageStore7destroyEv - 4b	\n"
-"		.long		__ZN13CPackageStore4initEPvmjjjS0_ - 4b	\n"
-"		.long		__ZN13CPackageStore11needsFormatEPb - 4b	\n"
-"		.long		__ZN13CPackageStore6formatEv - 4b	\n"
-"		.long		__ZN13CPackageStore9getRootIdEPj - 4b	\n"
-"		.long		__ZN13CPackageStore9newObjectEPjm - 4b	\n"
-"		.long		__ZN13CPackageStore11eraseObjectEj - 4b	\n"
-"		.long		__ZN13CPackageStore12deleteObjectEj - 4b	\n"
-"		.long		__ZN13CPackageStore13setObjectSizeEjm - 4b	\n"
-"		.long		__ZN13CPackageStore13getObjectSizeEjPm - 4b	\n"
-"		.long		__ZN13CPackageStore5writeEjmPvm - 4b	\n"
-"		.long		__ZN13CPackageStore4readEjmPvm - 4b	\n"
-"		.long		__ZN13CPackageStore12getStoreSizeEPmS0_ - 4b	\n"
-"		.long		__ZN13CPackageStore10isReadOnlyEPb - 4b	\n"
-"		.long		__ZN13CPackageStore9lockStoreEv - 4b	\n"
-"		.long		__ZN13CPackageStore11unlockStoreEv - 4b	\n"
-"		.long		__ZN13CPackageStore5abortEv - 4b	\n"
-"		.long		__ZN13CPackageStore4idleEPbS0_ - 4b	\n"
-"		.long		__ZN13CPackageStore10nextObjectEjPj - 4b	\n"
-"		.long		__ZN13CPackageStore14checkIntegrityEPj - 4b	\n"
-"		.long		__ZN13CPackageStore8setBuddyEP6CStore - 4b	\n"
-"		.long		__ZN13CPackageStore10ownsObjectEj - 4b	\n"
-"		.long		__ZN13CPackageStore7addressEj - 4b	\n"
-"		.long		__ZN13CPackageStore9storeKindEv - 4b	\n"
-"		.long		__ZN13CPackageStore8setStoreEP6CStorej - 4b	\n"
-"		.long		__ZN13CPackageStore11isSameStoreEPvm - 4b	\n"
-"		.long		__ZN13CPackageStore8isLockedEv - 4b	\n"
-"		.long		__ZN13CPackageStore5isROMEv - 4b	\n"
-"		.long		__ZN13CPackageStore6vppOffEv - 4b	\n"
-"		.long		__ZN13CPackageStore5sleepEv - 4b	\n"
-"		.long		__ZN13CPackageStore20newWithinTransactionEPjm - 4b	\n"
-"		.long		__ZN13CPackageStore23startTransactionAgainstEj - 4b	\n"
-"		.long		__ZN13CPackageStore15separatelyAbortEj - 4b	\n"
-"		.long		__ZN13CPackageStore23addToCurrentTransactionEj - 4b	\n"
-"		.long		__ZN13CPackageStore21inSeparateTransactionEj - 4b	\n"
-"		.long		__ZN13CPackageStore12lockReadOnlyEv - 4b	\n"
-"		.long		__ZN13CPackageStore14unlockReadOnlyEb - 4b	\n"
-"		.long		__ZN13CPackageStore13inTransactionEv - 4b	\n"
-"		.long		__ZN13CPackageStore9newObjectEPjPvm - 4b	\n"
-"		.long		__ZN13CPackageStore13replaceObjectEjPvm - 4b	\n"
-"		.long		__ZN13CPackageStore17calcXIPObjectSizeEllPl - 4b	\n"
-"		.long		__ZN13CPackageStore12newXIPObjectEPjm - 4b	\n"
-"		.long		__ZN13CPackageStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CPackageStore";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStore";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN13CPackageStore6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCPackageStore;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN13CPackageStore4makeEv - 0b	\n"
+//"		.long		__ZN13CPackageStore7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CPackageStore\"	\n"
+//"2:	.asciz	\"CStore\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN13CPackageStore9classInfoEv - 4b	\n"
+//"		.long		__ZN13CPackageStore4makeEv - 4b	\n"
+//"		.long		__ZN13CPackageStore7destroyEv - 4b	\n"
+//"		.long		__ZN13CPackageStore4initEPvmjjjS0_ - 4b	\n"
+//"		.long		__ZN13CPackageStore11needsFormatEPb - 4b	\n"
+//"		.long		__ZN13CPackageStore6formatEv - 4b	\n"
+//"		.long		__ZN13CPackageStore9getRootIdEPj - 4b	\n"
+//"		.long		__ZN13CPackageStore9newObjectEPjm - 4b	\n"
+//"		.long		__ZN13CPackageStore11eraseObjectEj - 4b	\n"
+//"		.long		__ZN13CPackageStore12deleteObjectEj - 4b	\n"
+//"		.long		__ZN13CPackageStore13setObjectSizeEjm - 4b	\n"
+//"		.long		__ZN13CPackageStore13getObjectSizeEjPm - 4b	\n"
+//"		.long		__ZN13CPackageStore5writeEjmPvm - 4b	\n"
+//"		.long		__ZN13CPackageStore4readEjmPvm - 4b	\n"
+//"		.long		__ZN13CPackageStore12getStoreSizeEPmS0_ - 4b	\n"
+//"		.long		__ZN13CPackageStore10isReadOnlyEPb - 4b	\n"
+//"		.long		__ZN13CPackageStore9lockStoreEv - 4b	\n"
+//"		.long		__ZN13CPackageStore11unlockStoreEv - 4b	\n"
+//"		.long		__ZN13CPackageStore5abortEv - 4b	\n"
+//"		.long		__ZN13CPackageStore4idleEPbS0_ - 4b	\n"
+//"		.long		__ZN13CPackageStore10nextObjectEjPj - 4b	\n"
+//"		.long		__ZN13CPackageStore14checkIntegrityEPj - 4b	\n"
+//"		.long		__ZN13CPackageStore8setBuddyEP6CStore - 4b	\n"
+//"		.long		__ZN13CPackageStore10ownsObjectEj - 4b	\n"
+//"		.long		__ZN13CPackageStore7addressEj - 4b	\n"
+//"		.long		__ZN13CPackageStore9storeKindEv - 4b	\n"
+//"		.long		__ZN13CPackageStore8setStoreEP6CStorej - 4b	\n"
+//"		.long		__ZN13CPackageStore11isSameStoreEPvm - 4b	\n"
+//"		.long		__ZN13CPackageStore8isLockedEv - 4b	\n"
+//"		.long		__ZN13CPackageStore5isROMEv - 4b	\n"
+//"		.long		__ZN13CPackageStore6vppOffEv - 4b	\n"
+//"		.long		__ZN13CPackageStore5sleepEv - 4b	\n"
+//"		.long		__ZN13CPackageStore20newWithinTransactionEPjm - 4b	\n"
+//"		.long		__ZN13CPackageStore23startTransactionAgainstEj - 4b	\n"
+//"		.long		__ZN13CPackageStore15separatelyAbortEj - 4b	\n"
+//"		.long		__ZN13CPackageStore23addToCurrentTransactionEj - 4b	\n"
+//"		.long		__ZN13CPackageStore21inSeparateTransactionEj - 4b	\n"
+//"		.long		__ZN13CPackageStore12lockReadOnlyEv - 4b	\n"
+//"		.long		__ZN13CPackageStore14unlockReadOnlyEb - 4b	\n"
+//"		.long		__ZN13CPackageStore13inTransactionEv - 4b	\n"
+//"		.long		__ZN13CPackageStore9newObjectEPjPvm - 4b	\n"
+//"		.long		__ZN13CPackageStore13replaceObjectEjPvm - 4b	\n"
+//"		.long		__ZN13CPackageStore17calcXIPObjectSizeEllPl - 4b	\n"
+//"		.long		__ZN13CPackageStore12newXIPObjectEPjm - 4b	\n"
+//"		.long		__ZN13CPackageStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPackageStore)

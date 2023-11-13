@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2007.
 */
 
+#include "Newton.h"
+
 #include "Quartz.h"
 #include "Geometry.h"
 #include "Objects.h"

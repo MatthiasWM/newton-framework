@@ -15,24 +15,24 @@ size_t PrivateClassInfoSize(const CClassInfo * inClass) {
   return 0;
 }
 
-void PrivateClassInfoMakeAt(const CClassInfo * inClass, const void * instance) {
-  assert(0);
-}
+//void PrivateClassInfoMakeAt(const CClassInfo * inClass, const void * instance) {
+//  assert(0);
+//}
 
-const char *  PrivateClassInfoSignature(const CClassInfo * inClass) {
-  assert(0);
-  return 0;
-}
+//const char *  PrivateClassInfoSignature(const CClassInfo * inClass) {
+//  assert(0);
+//  return 0;
+//}
 
-const char *  PrivateClassInfoInterfaceName(const CClassInfo * inClass){
-  assert(0);
-  return 0;
-}
+//const char *  PrivateClassInfoInterfaceName(const CClassInfo * inClass){
+//  assert(0);
+//  return 0;
+//}
 
-const char *  PrivateClassInfoImplementationName(const CClassInfo * inClass) {
-  assert(0);
-  return 0;
-}
+//const char *  PrivateClassInfoImplementationName(const CClassInfo * inClass) {
+//  assert(0);
+//  return 0;
+//}
 
 // --------
 
@@ -45,10 +45,10 @@ void      CClassInfoRegistry::destroy(void) {
   assert(0);
 }
 
-NewtonErr  CClassInfoRegistry::registerProtocol(const CClassInfo *, ULong refCon) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CClassInfoRegistry::registerProtocol(const CClassInfo *, ULong refCon) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CClassInfoRegistry::deregisterProtocol(const CClassInfo *, bool specific) {
   assert(0);
@@ -60,10 +60,10 @@ bool      CClassInfoRegistry::isProtocolRegistered(const CClassInfo *, bool spec
   return true;
 }
 
-const CClassInfo *  CClassInfoRegistry::satisfy(const char * intf, const char * impl, ULong version) const {
-  assert(0);
-  return nullptr;
-}
+//const CClassInfo *  CClassInfoRegistry::satisfy(const char * intf, const char * impl, ULong version) const {
+//  assert(0);
+//  return nullptr;
+//}
 
 const CClassInfo *  CClassInfoRegistry::satisfy(const char * intf, const char * impl, const char * capability) const {
   assert(0);
@@ -80,9 +80,9 @@ const CClassInfo *  CClassInfoRegistry::satisfy(const char * intf, const char * 
   return nullptr;
 }
 
-void      CClassInfoRegistry::updateInstanceCount(const CClassInfo * classinfo, int adjustment) {
-  assert(0);
-}
+//void      CClassInfoRegistry::updateInstanceCount(const CClassInfo * classinfo, int adjustment) {
+//  assert(0);
+//}
 
 ArrayIndex  CClassInfoRegistry::getInstanceCount(const CClassInfo * classinfo) {
   assert(0);
@@ -162,7 +162,7 @@ __Z34PrivateClassInfoImplementationNamePK10CClassInfo:
 
 		.globl	__Z29PrivateClassInfoInterfaceNamePK10CClassInfo
 __Z29PrivateClassInfoInterfaceNamePK10CClassInfo:
-		movl		8(%rdi), %eax		# inClass->fInterfaceDelta
+movl	/Users/matt/dev/newton-framework/Protocols/ProtocolProto.cc:    return (const char *)inClass + offsetof(CClassInfo, fInterfaceDelta) + inClass->fInterfaceDelta;	8(%rdi), %eax		# inClass->fInterfaceDelta
 		addl		$8, %eax				# + offset
 		addq		%rdi, %rax			# + inClass
 		ret

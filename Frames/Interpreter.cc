@@ -2917,6 +2917,50 @@ CInterpreter::callCFuncPtr(CFunction cfunc, ArrayIndex numArgs)
 	RefStruct * arg = dataStack.xBase + stackIndex - numArgs;
 
 	// despatch to function with right number of args
+
+#if 1
+  switch (numArgs)
+  {
+    case 0: {
+      typedef Ref (*Fn0)(RefArg);
+      Fn0 fn0 = (Fn0)cfunc;
+      result = fn0(rcvr);
+    } break;
+    case 1: {
+      typedef Ref (*Fn1)(RefArg, RefArg);
+      Fn1 fn1 = (Fn1)cfunc;
+      result = fn1(rcvr, arg[0]);
+    } break;
+    case 2: {
+      typedef Ref (*Fn2)(RefArg, RefArg, RefArg);
+      Fn2 fn2 = (Fn2)cfunc;
+      result = fn2(rcvr, arg[0], arg[1]);
+    } break;
+    case 3: {
+      typedef Ref (*Fn3)(RefArg, RefArg, RefArg, RefArg);
+      Fn3 fn3 = (Fn3)cfunc;
+      result = fn3(rcvr, arg[0], arg[1], arg[2]);
+    } break;
+    case 4: {
+      typedef Ref (*Fn4)(RefArg, RefArg, RefArg, RefArg, RefArg);
+      Fn4 fn4 = (Fn4)cfunc;
+      result = fn4(rcvr, arg[0], arg[1], arg[2], arg[3]);
+    } break;
+    case 5: {
+      typedef Ref (*Fn5)(RefArg, RefArg, RefArg, RefArg, RefArg, RefArg);
+      Fn5 fn5 = (Fn5)cfunc;
+      result = fn5(rcvr, arg[0], arg[1], arg[2], arg[3], arg[4]);
+    } break;
+    case 6: {
+      typedef Ref (*Fn6)(RefArg, RefArg, RefArg, RefArg, RefArg, RefArg, RefArg);
+      Fn6 fn6 = (Fn6)cfunc;
+      result = fn6(rcvr, arg[0], arg[1], arg[2], arg[3], arg[4], arg[5]);
+    } break;
+    default:
+      result = NILREF;  // placate the compiler
+      ThrowErr(exInterpreter, kNSErrTooManyArgs);
+  }
+#else // don't use varargs in C++17
 	switch (numArgs)
 	{
 	case 0:
@@ -2944,6 +2988,7 @@ CInterpreter::callCFuncPtr(CFunction cfunc, ArrayIndex numArgs)
 		result = NILREF;	// placate the compiler
 		ThrowErr(exInterpreter, kNSErrTooManyArgs);
 	}
+#endif
 
 	return result;
 }

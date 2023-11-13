@@ -29,43 +29,43 @@ PROTOCOL CStore : public CProtocol
 // However, if the store is not registered on the PSSManager, the large binaries function
 // will consider this store as non-valid.
 public:
-	static CStore *	make(const char * inName);
+	static CStore *make(const char * inName);
 	void			destroy(void);
 
-	NewtonErr	init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inPSSInfo);
+	virtual NewtonErr	init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inPSSInfo) = 0;
 				// Initializes the store with the SPSSInfo (inPSSInfo)
 				// Flags are used by TFlashStore to determine if the store is on SRAM, Flash card or Internal Flash
-	NewtonErr	needsFormat(bool * outNeedsFormat);
+	virtual NewtonErr	needsFormat(bool * outNeedsFormat) = 0;
 				// Tests if the store needs to be formatted. If so, a dialog will be shown to offer to format it.
-	NewtonErr	format(void);
+	virtual NewtonErr	format(void) = 0;
 				// Formats the card. Should create an empty object of the ID rootID.
 
-	NewtonErr	getRootId(PSSId * outRootId);
+	virtual NewtonErr	getRootId(PSSId * outRootId) = 0;
 				// There is a root object from which every other object is linked.
-	NewtonErr	newObject(PSSId * outObjectId, size_t inSize);
+  virtual NewtonErr	newObject(PSSId * outObjectId, size_t inSize) = 0;
 				// Creates a new object. TFlashStore interface calls NewObject( NULL, inSize, outObjectID );
-	NewtonErr	eraseObject(PSSId inObjectId);
+  virtual NewtonErr	eraseObject(PSSId inObjectId) = 0;
 				// TFlashStore returns noErr without doing anything.
-	NewtonErr	deleteObject(PSSId inObjectId);
+  virtual NewtonErr	deleteObject(PSSId inObjectId) = 0;
 				// Removes the object
-	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize);
+  virtual NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize) = 0;
 				// Changes the size of an object.
 				// Returns kStoreErrObjectNotFound if the object cannot be found.
-	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize);
+	virtual NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize) = 0;
 				// Returns the size of an object.
 				// Returns kStoreErrObjectNotFound if the object cannot be found.
 
-	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength);
+	virtual NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength) = 0;
 				// Writes the data for an object from inStartOffset for inLength bytes.
-	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength);
+	virtual NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength) = 0;
 				// Reads the data for an object from inStartOffset for inLength bytes.
 
-	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize);
+  virtual NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize) = 0;
 				// Returns the total size and the used size for the store.
-	NewtonErr	isReadOnly(bool * outIsReadOnly);
+	virtual NewtonErr	isReadOnly(bool * outIsReadOnly) = 0;
 				// Physical ReadOnly
-	NewtonErr	lockStore(void);
-	NewtonErr	unlockStore(void);
+  virtual NewtonErr	lockStore(void) = 0;
+  virtual NewtonErr	unlockStore(void) = 0;
 				// There is normally a lock store counter.
 				// This counter is increased with LockStore and decreased with UnlockStore.
 
@@ -91,14 +91,14 @@ public:
 				// TMuxStore calls inherited. Both TFlashStore and TPackageStore return 0.
 	const char * storeKind(void);
 				// Returns a CString representation of the store kind (e.g. "Internal", "Package")
-	NewtonErr	setStore(CStore * inStore, ObjectId inEnvironment);
+	virtual NewtonErr	setStore(CStore * inStore, ObjectId inEnvironment) = 0;
 				// TMuxStore only. Both TFlashStore and TPackageStore return noErr
 
-	bool			isSameStore(void * inData, size_t inSize);
+	virtual bool isSameStore(void * inData, size_t inSize) = 0;
 				// TPackageStore returns false. More complex with TFlashStore.
-	bool			isLocked(void);
+  virtual bool isLocked(void) = 0;
 				// Returns (the counter of [Un]LockStore is not null)
-	bool			isROM(void);
+	virtual bool isROM(void) = 0;
 				// A ROM Flash Card is an application card. TPackageStore returns true.
 
 // Power management
@@ -124,9 +124,9 @@ public:
 
 // The following entries are not in the jumptable, hence you can't call them (but the system may rely on them)
 
-	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize);
+	virtual NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize) = 0;
 				// TFlashStore::NewObject( long, unsigned long* ) calls this one with NULL as first arg
-	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize);
+	virtual NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize) = 0;
 
 //	eXecute-In-Place
 	NewtonErr	calcXIPObjectSize(long inArg1, long inArg2, long * outArg3);

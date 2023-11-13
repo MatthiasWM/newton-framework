@@ -24,11 +24,13 @@ extern ObjHeader * ObjectPtr1(Ref inObj, long inTag, bool inDoFaultCheck);
 const MagicPointerTable gROMMagicPointerTable = {872, Ref,...};
 ------------------------------------------------------------------------------*/
 
-struct MagicPointerTable
+typedef struct MagicPointerTable
 {
-	ArrayIndex	numOfPointers;
+  ArrayIndex numOfPointers;
+  ArrayIndex pad;
 	Ref			magicPointer[872];
-}__attribute__((packed));
+} MagicPointerTable;
+
 extern MagicPointerTable gROMMagicPointerTable;
 
 #define kMPTableShift	12

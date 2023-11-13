@@ -21,10 +21,10 @@ void      PInTranslator::destroy(void){
   return kNSErrInternalError;
 }
 
-NewtonErr  PInTranslator::init(void * inContext){
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  PInTranslator::init(void * inContext){
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 Timeout    PInTranslator::idle(void){
   assert(0);
@@ -52,33 +52,33 @@ void      POutTranslator::destroy(void){
   assert(0);
 }
 
-NewtonErr  POutTranslator::init(void * inContext){
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  POutTranslator::init(void * inContext){
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 Timeout    POutTranslator::idle(void){
   assert(0);
   return 0;
 }
 
-void      POutTranslator::consumeFrame(RefArg inObj, int inDepth, int indent){
-  assert(0);
-}
+//void      POutTranslator::consumeFrame(RefArg inObj, int inDepth, int indent){
+//  assert(0);
+//}
 
-void      POutTranslator::prompt(int inLevel){
-  assert(0);
-}
+//void      POutTranslator::prompt(int inLevel){
+//  assert(0);
+//}
 
-int      POutTranslator::print(const char * inFormat, ...){
-  assert(0);
-  return -1;
-}
+//int      POutTranslator::print(const char * inFormat, ...){
+//  assert(0);
+//  return -1;
+//}
 
-int      POutTranslator::vprint(const char * inFormat, va_list args){
-  assert(0);
-  return -1;
-}
+//int      POutTranslator::vprint(const char * inFormat, va_list args){
+//  assert(0);
+//  return -1;
+//}
 
 int      POutTranslator::putc(int inCh){
   assert(0);

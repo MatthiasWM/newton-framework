@@ -108,77 +108,86 @@ ClobberInternalFlash(void)
 	CNewInternalFlash implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCNewInternalFlash() {
+  return new CNewInternalFlash();
+}
+
 const CClassInfo *
 CNewInternalFlash::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN17CNewInternalFlash6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN17CNewInternalFlash4makeEv - 0b	\n"
-"		.long		__ZN17CNewInternalFlash7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CNewInternalFlash\"	\n"
-"2:	.asciz	\"CFlash\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN17CNewInternalFlash9classInfoEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash4makeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash7destroyEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash4readEjmPc - 4b	\n"
-"		.long		__ZN17CNewInternalFlash5writeEjmPc - 4b	\n"
-"		.long		__ZN17CNewInternalFlash5eraseEm - 4b	\n"
-"		.long		__ZN17CNewInternalFlash12suspendEraseEjjj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash11resumeEraseEj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash9deepSleepEj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash6wakeupEj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash6statusEj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash9resetCardEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash16acknowledgeResetEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash15getPhysResourceEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash18registerClientInfoEj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash17getWriteProtectedEPb - 4b	\n"
-"		.long		__ZN17CNewInternalFlash20getWriteErrorAddressEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13getAttributesEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13getDataOffsetEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash12getTotalSizeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash12getGroupSizeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash18getEraseRegionSizeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash16getChipsPerGroupEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash21getBlocksPerPartitionEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash22getMaxConcurrentVppOpsEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash21getEraseRegionCurrentEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash21getWriteRegionCurrentEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash18getEraseRegionTimeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash18getWriteAccessTimeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash17getReadAccessTimeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13getVendorInfoEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash15getSocketNumberEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash9vppStatusEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13vppRisingTimeEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13flashSpecificEjPvj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash10initializeEP11CCardSocketP11CCardPCMCIAjj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash14suspendServiceEv - 4b	\n"
-"		.long		__ZN17CNewInternalFlash13resumeServiceEP11CCardSocketP11CCardPCMCIAj - 4b	\n"
-"		.long		__ZN17CNewInternalFlash4copyEjjm - 4b	\n"
-"		.long		__ZN17CNewInternalFlash8isVirginEjm - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CNewInternalFlash";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CFlash";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN17CNewInternalFlash6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCNewInternalFlash;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN17CNewInternalFlash4makeEv - 0b	\n"
+//"		.long		__ZN17CNewInternalFlash7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CNewInternalFlash\"	\n"
+//"2:	.asciz	\"CFlash\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN17CNewInternalFlash9classInfoEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash4makeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash7destroyEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash4readEjmPc - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash5writeEjmPc - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash5eraseEm - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash12suspendEraseEjjj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash11resumeEraseEj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash9deepSleepEj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash6wakeupEj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash6statusEj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash9resetCardEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash16acknowledgeResetEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash15getPhysResourceEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash18registerClientInfoEj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash17getWriteProtectedEPb - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash20getWriteErrorAddressEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13getAttributesEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13getDataOffsetEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash12getTotalSizeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash12getGroupSizeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash18getEraseRegionSizeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash16getChipsPerGroupEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash21getBlocksPerPartitionEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash22getMaxConcurrentVppOpsEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash21getEraseRegionCurrentEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash21getWriteRegionCurrentEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash18getEraseRegionTimeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash18getWriteAccessTimeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash17getReadAccessTimeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13getVendorInfoEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash15getSocketNumberEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash9vppStatusEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13vppRisingTimeEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13flashSpecificEjPvj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash10initializeEP11CCardSocketP11CCardPCMCIAjj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash14suspendServiceEv - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash13resumeServiceEP11CCardSocketP11CCardPCMCIAj - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash4copyEjjm - 4b	\n"
+//"		.long		__ZN17CNewInternalFlash8isVirginEjm - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CNewInternalFlash)

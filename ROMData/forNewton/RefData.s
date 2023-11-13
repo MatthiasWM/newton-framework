@@ -14,31 +14,28 @@
 
 #if __LP64__
 /* Refs are 64-bit, object header is long size|flags, quad gcStuff, quad class */
+/* Matt: clang interpretes the ';' inside the macro as the start of a comment */
+/* and since macros are always expanded into a single line, we only emit the */
+/* first Ref (fixed, but see below) */
 #define Ref .quad
 #define kHeaderSize 24
 #define ArrayObj(_len,_class) \
-		Ref		kHeaderSize + (_len<<3) + kFlagsArray ;\
-		Ref		0, _class
+		Ref		kHeaderSize + (_len<<3) + kFlagsArray, 0, _class
 #define FrameMapObj(_len) \
-		Ref		kHeaderSize + ((_len+1)<<3) + kFlagsArray ;\
-		Ref		0
+		Ref		kHeaderSize + ((_len+1)<<3) + kFlagsArray, 0
 #define FrameObj(_len, _map) \
-		Ref		kHeaderSize + (_len<<3) + kFlagsFrame ;\
-		Ref		0, MAKEPTR(_map)
+		Ref		kHeaderSize + (_len<<3) + kFlagsFrame, 0, MAKEPTR(_map)
 
 #else
 /* Refs are 32-bit, object header is long size|flags, long gcStuff, long class */
 #define Ref .long
 #define kHeaderSize 12
 #define ArrayObj(_len,_class) \
-		Ref		kHeaderSize + (_len<<2) + kFlagsArray ;\
-		Ref		0, _class
+		Ref		kHeaderSize + (_len<<2) + kFlagsArray, 0, _class
 #define FrameMapObj(_len) \
-		Ref		kHeaderSize + ((_len+1)<<2) + kFlagsArray ;\
-		Ref		0
+		Ref		kHeaderSize + ((_len+1)<<2) + kFlagsArray, 0
 #define FrameObj(_len, _map) \
-		Ref		kHeaderSize + (_len<<2) + kFlagsFrame ;\
-		Ref		0, MAKEPTR(_map)
+		Ref		kHeaderSize + (_len<<2) + kFlagsFrame, 0, MAKEPTR(_map)
 #endif
 
 #define NILREF 2

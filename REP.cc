@@ -563,45 +563,53 @@ CreateHammerInTranslator(PInTranslator ** outTranslator)
 /* ----------------------------------------------------------------
 	PHammerInTranslator implementation class info.
 ---------------------------------------------------------------- */
+static CProtocol *newPHammerInTranslator() {
+  return new PHammerInTranslator();
+}
 
 const CClassInfo *
 PHammerInTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN19PHammerInTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN19PHammerInTranslator4makeEv - 0b	\n"
-"		.long		__ZN19PHammerInTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PHammerInTranslator\"	\n"
-"2:	.asciz	\"PInTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN19PHammerInTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator4makeEv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator7destroyEv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator4initEPv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator4idleEv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator14frameAvailableEv - 4b	\n"
-"		.long		__ZN19PHammerInTranslator12produceFrameEi - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PHammerInTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "PInTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN19PHammerInTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPHammerInTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN19PHammerInTranslator4makeEv - 0b	\n"
+//"		.long		__ZN19PHammerInTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PHammerInTranslator\"	\n"
+//"2:	.asciz	\"PInTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN19PHammerInTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator4makeEv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator4initEPv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator4idleEv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator14frameAvailableEv - 4b	\n"
+//"		.long		__ZN19PHammerInTranslator12produceFrameEi - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerInTranslator)
@@ -704,52 +712,61 @@ CreateHammerOutTranslator(POutTranslator ** outTranslator)
 	PHammerOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newPHammerOutTranslator() {
+  return new PHammerOutTranslator();
+}
+
 const CClassInfo *
 PHammerOutTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN20PHammerOutTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN20PHammerOutTranslator4makeEv - 0b	\n"
-"		.long		__ZN20PHammerOutTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PHammerOutTranslator\"	\n"
-"2:	.asciz	\"POutTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN20PHammerOutTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator4makeEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator7destroyEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator4initEPv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator4idleEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator6promptEi - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator5printEPKcz - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator4putcEi - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator5flushEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator14enterBreakLoopEi - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator13exitBreakLoopEv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator10stackTraceEPv - 4b	\n"
-"		.long		__ZN20PHammerOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PHammerOutTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "POutTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN20PHammerOutTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPHammerOutTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN20PHammerOutTranslator4makeEv - 0b	\n"
+//"		.long		__ZN20PHammerOutTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PHammerOutTranslator\"	\n"
+//"2:	.asciz	\"POutTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN20PHammerOutTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator4makeEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator4initEPv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator4idleEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator6promptEi - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator5printEPKcz - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator4putcEi - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator5flushEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator14enterBreakLoopEi - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator13exitBreakLoopEv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator10stackTraceEPv - 4b	\n"
+//"		.long		__ZN20PHammerOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerOutTranslator)
@@ -908,44 +925,53 @@ CreateNullInTranslator(PInTranslator ** outTranslator)
 	PNullInTranslator implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newPNullInTranslator() {
+  return new PNullInTranslator();
+}
+
 const CClassInfo *
 PNullInTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN17PNullInTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN17PNullInTranslator4makeEv - 0b	\n"
-"		.long		__ZN17PNullInTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PNullInTranslator\"	\n"
-"2:	.asciz	\"PInTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN17PNullInTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN17PNullInTranslator4makeEv - 4b	\n"
-"		.long		__ZN17PNullInTranslator7destroyEv - 4b	\n"
-"		.long		__ZN17PNullInTranslator4initEPv - 4b	\n"
-"		.long		__ZN17PNullInTranslator4idleEv - 4b	\n"
-"		.long		__ZN17PNullInTranslator14frameAvailableEv - 4b	\n"
-"		.long		__ZN17PNullInTranslator12produceFrameEi - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PNullInTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "PInTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN17PNullInTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPNullInTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN17PNullInTranslator4makeEv - 0b	\n"
+//"		.long		__ZN17PNullInTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PNullInTranslator\"	\n"
+//"2:	.asciz	\"PInTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN17PNullInTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator4makeEv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator4initEPv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator4idleEv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator14frameAvailableEv - 4b	\n"
+//"		.long		__ZN17PNullInTranslator12produceFrameEi - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullInTranslator)
@@ -1006,52 +1032,61 @@ CreateNullOutTranslator(POutTranslator ** outTranslator)
 	PNullOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newPNullOutTranslator() {
+  return new PNullOutTranslator();
+}
+
 const CClassInfo *
 PNullOutTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN18PNullOutTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN18PNullOutTranslator4makeEv - 0b	\n"
-"		.long		__ZN18PNullOutTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PNullOutTranslator\"	\n"
-"2:	.asciz	\"POutTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN18PNullOutTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator4makeEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator7destroyEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator4initEPv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator4idleEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
-"		.long		__ZN18PNullOutTranslator6promptEi - 4b	\n"
-"		.long		__ZN18PNullOutTranslator5printEPKcz - 4b	\n"
-"		.long		__ZN18PNullOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
-"		.long		__ZN18PNullOutTranslator4putcEi - 4b	\n"
-"		.long		__ZN18PNullOutTranslator5flushEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator14enterBreakLoopEi - 4b	\n"
-"		.long		__ZN18PNullOutTranslator13exitBreakLoopEv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator10stackTraceEPv - 4b	\n"
-"		.long		__ZN18PNullOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PNullOutTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "POutTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN18PNullOutTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPNullOutTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN18PNullOutTranslator4makeEv - 0b	\n"
+//"		.long		__ZN18PNullOutTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PNullOutTranslator\"	\n"
+//"2:	.asciz	\"POutTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN18PNullOutTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator4makeEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator4initEPv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator4idleEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator6promptEi - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator5printEPKcz - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator4putcEi - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator5flushEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator14enterBreakLoopEi - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator13exitBreakLoopEv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator10stackTraceEPv - 4b	\n"
+//"		.long		__ZN18PNullOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullOutTranslator)
@@ -1152,44 +1187,53 @@ CreateStdioInTranslator(PInTranslator ** outTranslator)
 	PStdioInTranslator implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newPStdioInTranslator() {
+  return new PStdioInTranslator();
+}
+
 const CClassInfo *
 PStdioInTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN18PStdioInTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN18PStdioInTranslator4makeEv - 0b	\n"
-"		.long		__ZN18PStdioInTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PStdioInTranslator\"	\n"
-"2:	.asciz	\"PInTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN18PStdioInTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator4makeEv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator7destroyEv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator4initEPv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator4idleEv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator14frameAvailableEv - 4b	\n"
-"		.long		__ZN18PStdioInTranslator12produceFrameEi - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PStdioInTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "PInTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN18PStdioInTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPStdioInTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN18PStdioInTranslator4makeEv - 0b	\n"
+//"		.long		__ZN18PStdioInTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PStdioInTranslator\"	\n"
+//"2:	.asciz	\"PInTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN18PStdioInTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator4makeEv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator4initEPv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator4idleEv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator14frameAvailableEv - 4b	\n"
+//"		.long		__ZN18PStdioInTranslator12produceFrameEi - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioInTranslator)
@@ -1283,52 +1327,61 @@ CreateStdioOutTranslator(POutTranslator ** outTranslator)
 	PStdioOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newPStdioOutTranslator() {
+  return new PStdioOutTranslator();
+}
+
 const CClassInfo *
 PStdioOutTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN19PStdioOutTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN19PStdioOutTranslator4makeEv - 0b	\n"
-"		.long		__ZN19PStdioOutTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PStdioOutTranslator\"	\n"
-"2:	.asciz	\"POutTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN19PStdioOutTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator4makeEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator7destroyEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator4initEPv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator4idleEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator6promptEi - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator5printEPKcz - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator4putcEi - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator5flushEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator14enterBreakLoopEi - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator13exitBreakLoopEv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator10stackTraceEPv - 4b	\n"
-"		.long		__ZN19PStdioOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PStdioOutTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "POutTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN19PStdioOutTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPStdioOutTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN19PStdioOutTranslator4makeEv - 0b	\n"
+//"		.long		__ZN19PStdioOutTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PStdioOutTranslator\"	\n"
+//"2:	.asciz	\"POutTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN19PStdioOutTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator4makeEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator4initEPv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator4idleEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator6promptEi - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator5printEPKcz - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator4putcEi - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator5flushEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator14enterBreakLoopEi - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator13exitBreakLoopEv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator10stackTraceEPv - 4b	\n"
+//"		.long		__ZN19PStdioOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioOutTranslator)

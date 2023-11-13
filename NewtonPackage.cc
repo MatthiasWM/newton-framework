@@ -7,6 +7,8 @@
 	Written by:	Newton Research Group, 2015.
 */
 
+#include "Newton.h"
+
 #include "Objects.h"
 #include "NewtonPackage.h"
 #include "PackageTypes.h"

@@ -101,8 +101,9 @@ InitUnicode(void)
 	ArrayIndex	count;
 	if (NOTNIL(tables) && (count = Length(tables)) > 0)
 	{
-		for (ArrayIndex i = 0; i < count; ++i)
-			gSortTables.addSortTable((const CSortingTable *)BinaryData(GetArraySlot(tables, i)), false);
+    for (ArrayIndex i = 0; i < count; ++i) {
+      gSortTables.addSortTable((const CSortingTable *)BinaryData(GetArraySlot(tables, i)), false);
+    }
 	}
 
 	gASCIIBreakTable = BinaryData(RA(asciiBreak));
@@ -146,7 +147,7 @@ AllocateEarlyStuff(void)
 Ref
 InstallBuiltInEncodings(void)
 {
-	RefVar		encodings(GetFrameSlot(RA(unicode), SYMA(charEncodings)));
+	RefVar		encodings(GetFrameSlot(RA(unicode), SYMA(charEncodings))); // MP0283
 	ArrayIndex	count = Length(encodings);
 	for (ArrayIndex i = 0; i < count; ++i)
 	{

@@ -1063,52 +1063,62 @@ LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, bool)
 const CClassInfo *
 CLOPackageStore::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN15CLOPackageStore6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN15CLOPackageStore4makeEv - 0b	\n"
-"		.long		__ZN15CLOPackageStore7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CLOPackageStore\"	\n"
-"2:	.asciz	\"CLrgObjStore\"	\n"
-"3:	.asciz	\"CZippyRelocStoreDecompressor\", \"\"	\n"
-"		.asciz	\"CZippyStoreDecompressor\", \"\"	\n"
-"		.asciz	\"CLZRelocStoreDecompressor\", \"\"	\n"
-"		.asciz	\"CLZStoreDecompressor\", \"\"	\n"
-"		.asciz	\"CSimpleRelocStoreDecompressor\", \"\"	\n"
-"		.asciz	\"CSimpleStoreDecompressor\", \"\"	\n"
-"		.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN15CLOPackageStore9classInfoEv - 4b	\n"
-"		.long		__ZN15CLOPackageStore4makeEv - 4b	\n"
-"		.long		__ZN15CLOPackageStore7destroyEv - 4b	\n"
-"		.long		__ZN15CLOPackageStore4initEv - 4b	\n"
-"		.long		__ZN15CLOPackageStore6createEPjP6CStoreP5CPipembPKcPvmP11CLOCallback - 4b	\n"
-"		.long		__ZN15CLOPackageStore20createFromCompressedEPjP6CStoreP5CPipembPKcPvmP11CLOCallback - 4b	\n"
-"		.long		__ZN15CLOPackageStore12deleteObjectEP6CStorej - 4b	\n"
-"		.long		__ZN15CLOPackageStore9duplicateEPjP6CStorejS2_ - 4b	\n"
-"		.long		__ZN15CLOPackageStore6resizeEP6CStorejm - 4b	\n"
-"		.long		__ZN15CLOPackageStore11storageSizeEP6CStorej - 4b	\n"
-"		.long		__ZN15CLOPackageStore12sizeOfStreamEP6CStorejb - 4b	\n"
-"		.long		__ZN15CLOPackageStore6backupEP5CPipeP6CStorejbP11CLOCallback - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CLOPackageStore";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CLrgObjStore";
+//"		.long		3f - .	\n"
+    classInfo->fSignature =
+      "CZippyRelocStoreDecompressor\0"
+      "CZippyStoreDecompressor\0"
+      "CLZRelocStoreDecompressor\0"
+      "CLZStoreDecompressor\0"
+      "CSimpleRelocStoreDecompressor\0"
+      "CSimpleStoreDecompressor\0\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN15CLOPackageStore6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN15CLOPackageStore4makeEv - 0b	\n"
+//"		.long		__ZN15CLOPackageStore7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CLOPackageStore\"	\n"
+//"2:	.asciz	\"CLrgObjStore\"	\n"
+//"3:	.asciz	\"CZippyRelocStoreDecompressor\", \"\"	\n"
+//"		.asciz	\"CZippyStoreDecompressor\", \"\"	\n"
+//"		.asciz	\"CLZRelocStoreDecompressor\", \"\"	\n"
+//"		.asciz	\"CLZStoreDecompressor\", \"\"	\n"
+//"		.asciz	\"CSimpleRelocStoreDecompressor\", \"\"	\n"
+//"		.asciz	\"CSimpleStoreDecompressor\", \"\"	\n"
+//"		.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN15CLOPackageStore9classInfoEv - 4b	\n"
+//"		.long		__ZN15CLOPackageStore4makeEv - 4b	\n"
+//"		.long		__ZN15CLOPackageStore7destroyEv - 4b	\n"
+//"		.long		__ZN15CLOPackageStore4initEv - 4b	\n"
+//"		.long		__ZN15CLOPackageStore6createEPjP6CStoreP5CPipembPKcPvmP11CLOCallback - 4b	\n"
+//"		.long		__ZN15CLOPackageStore20createFromCompressedEPjP6CStoreP5CPipembPKcPvmP11CLOCallback - 4b	\n"
+//"		.long		__ZN15CLOPackageStore12deleteObjectEP6CStorej - 4b	\n"
+//"		.long		__ZN15CLOPackageStore9duplicateEPjP6CStorejS2_ - 4b	\n"
+//"		.long		__ZN15CLOPackageStore6resizeEP6CStorejm - 4b	\n"
+//"		.long		__ZN15CLOPackageStore11storageSizeEP6CStorej - 4b	\n"
+//"		.long		__ZN15CLOPackageStore12sizeOfStreamEP6CStorejb - 4b	\n"
+//"		.long		__ZN15CLOPackageStore6backupEP5CPipeP6CStorejbP11CLOCallback - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLOPackageStore)

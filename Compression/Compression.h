@@ -37,12 +37,12 @@ PROTOCOL CCallbackCompressor : public CProtocol
 {
 public:
 	static CCallbackCompressor *	make(const char * inName);
-	void			destroy(void);
+	virtual void			destroy(void) = 0;
 
 	NewtonErr	init(void *);
 	void			reset(void);
-	NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen);
-	NewtonErr	flush(void);
+	virtual NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen) = 0;
+	virtual NewtonErr	flush(void) = 0;
 };
 
 
@@ -57,7 +57,7 @@ public:
 	static CDecompressor *	make(const char * inName);
 	void			destroy(void);
 
-	NewtonErr	init(void *);
+	virtual NewtonErr	init(void *) = 0;
 	NewtonErr	decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
 };
 
@@ -71,7 +71,7 @@ PROTOCOL CCallbackDecompressor : public CProtocol
 {
 public:
 	static CCallbackDecompressor *	make(const char * inName);
-	void			destroy(void);
+	virtual void destroy(void) = 0;
 
 	NewtonErr	init(void *);
 	void			reset(void);

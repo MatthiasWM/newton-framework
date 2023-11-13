@@ -66,34 +66,35 @@ NewtonErr CLrgObjStore::backup(CPipe * inPipe, CStore * inStore, PSSId inId, boo
 
 // --------
 
-CStore *  CStore::make(const char * inName) {
-  assert(0);
-  return nullptr;
+CStore *CStore::make(const char * inName) {
+  CProtocol *p = AllocInstanceByName("CStore", inName);
+  if (p) p->make();
+  return (CStore*)p;
 }
 
 void      CStore::destroy(void) {
   assert(0);
 }
 
-NewtonErr  CStore::init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inPSSInfo) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inPSSInfo) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::needsFormat(bool * outNeedsFormat) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::needsFormat(bool * outNeedsFormat) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::format(void) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::format(void) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::getRootId(PSSId * outRootId) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::getRootId(PSSId * outRootId) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CStore::newObject(PSSId * outObjectId, size_t inSize) {
   assert(0);
@@ -115,10 +116,10 @@ NewtonErr  CStore::setObjectSize(PSSId inObjectId, size_t inSize) {
   return kNSErrInternalError;
 }
 
-NewtonErr  CStore::getObjectSize(PSSId inObjectId, size_t * outSize) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::getObjectSize(PSSId inObjectId, size_t * outSize) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CStore::write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength) {
   assert(0);
@@ -130,25 +131,25 @@ NewtonErr  CStore::read(PSSId inObjectId, size_t inStartOffset, void * outBuffer
   return kNSErrInternalError;
 }
 
-NewtonErr  CStore::getStoreSize(size_t * outTotalSize, size_t * outUsedSize) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::getStoreSize(size_t * outTotalSize, size_t * outUsedSize) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::isReadOnly(bool * outIsReadOnly) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::isReadOnly(bool * outIsReadOnly) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::lockStore(void) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::lockStore(void) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CStore::unlockStore(void) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::unlockStore(void) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CStore::abort(void) {
   assert(0);
@@ -190,25 +191,25 @@ const char * CStore::storeKind(void) {
   return nullptr;
 }
 
-NewtonErr  CStore::setStore(CStore * inStore, ObjectId inEnvironment) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::setStore(CStore * inStore, ObjectId inEnvironment) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-bool      CStore::isSameStore(void * inData, size_t inSize) {
-  assert(0);
-  return false;
-}
+//bool      CStore::isSameStore(void * inData, size_t inSize) {
+//  assert(0);
+//  return false;
+//}
 
-bool      CStore::isLocked(void) {
-  assert(0);
-  return false;
-}
+//bool      CStore::isLocked(void) {
+//  assert(0);
+//  return false;
+//}
 
-bool      CStore::isROM(void) {
-  assert(0);
-  return false;
-}
+//bool      CStore::isROM(void) {
+//  assert(0);
+//  return false;
+//}
 
 NewtonErr  CStore::vppOff(void) {
   assert(0);
@@ -265,10 +266,10 @@ NewtonErr  CStore::newObject(PSSId * outObjectId, void * inData, size_t inSize) 
   return kNSErrInternalError;
 }
 
-NewtonErr  CStore::replaceObject(PSSId inObjectId, void * inData, size_t inSize) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStore::replaceObject(PSSId inObjectId, void * inData, size_t inSize) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CStore::calcXIPObjectSize(long inArg1, long inArg2, long * outArg3) {
   assert(0);

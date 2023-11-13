@@ -12,8 +12,9 @@
 #include <cassert>
 
 CStoreMonitor *  CStoreMonitor::make(const char * inName) {
-  assert(0);
-  return NULL;
+  CProtocol *p = AllocInstanceByName("CStoreMonitor", inName);
+  if (p) p->make();
+  return (CStoreMonitor*)p;
 }
 
 void      CStoreMonitor::destroy(void) {

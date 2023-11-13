@@ -1115,13 +1115,13 @@ CObjectHeap::CObjectHeap(size_t inSize, bool allocateInTempMemory)
 {
 	size_t heapSize;
 
-	mem = (char *)malloc(inSize + 4);		// to long-align
-	heapBase = (ObjHeader *)LONGALIGN(mem);
-	heapSize = TRUNC(inSize, 4);
+	mem = (char *)malloc(inSize + sizeof(Ref));		// to long-align
+	heapBase = (ObjHeader *)MEMALIGN(mem);
+	heapSize = TRUNC(inSize, sizeof(Ref));
 	heapLimit = INC(heapBase, heapSize);
 	makeFreeBlock(heapBase, heapSize);
 	splitBlock(heapBase, heapBase->size - sizeof(RefHandleBlock));
-	refHBlock = (RefHandleBlock *)((Ptr) heapBase + LONGALIGN(heapBase->size));
+	refHBlock = (RefHandleBlock *)((Ptr) heapBase + MEMALIGN(heapBase->size));
 	refHBlock->size = sizeof(RefHandleBlock);
 	refHBlock->flags = kArrayObject;
 	refHBlockSize = sizeof(RefHandleBlock);
@@ -1238,7 +1238,7 @@ CObjectHeap::expandObjectTable(RefHandle * inRefHandle)
 		REPprintf(">>>> expanding RefHandle block ");
 	}
 	size_t originalSize = refHBlock->size;
-	refHBlockSize = LONGALIGN(originalSize + kIncrHandlesInBlock * sizeof(RefHandle));
+	refHBlockSize = MEMALIGN(originalSize + kIncrHandlesInBlock * sizeof(RefHandle));
 	GC();
 	// if size hasn't changed then there wasn't enough memory
 	if ((refHBlock->size - originalSize) / sizeof(RefHandle) == 0) {
@@ -1285,14 +1285,14 @@ CObjectHeap::coalesceFreeBlocks(ObjHeader * freeObj, size_t reqSize)
 	if ((freeObj->flags & kObjFree) == 0)
 		return 0;
 
-	size_t freeSize = LONGALIGN(freeObj->size);
+	size_t freeSize = MEMALIGN(freeObj->size);
 	if (freeSize < reqSize)
 	{
 		size_t nextSize;
 		ObjHeader * nextObj;
 		for (nextObj = INC(freeObj, freeSize); nextObj < heapLimit && (nextObj->flags & kObjFree) != 0; nextObj = INC(nextObj, nextSize))
 		{
-			nextSize = LONGALIGN(nextObj->size);
+			nextSize = MEMALIGN(nextObj->size);
 			freeSize += nextSize;
 		}
 		freeObj->size = freeSize;
@@ -1317,7 +1317,7 @@ CObjectHeap::findFreeBlock(size_t reqSize)
 		size_t freeSize = coalesceFreeBlocks(freeObj, reqSize);
 		if (freeSize >= reqSize)
 			return freeObj;
-		freeObj = INC(freeObj, LONGALIGN(freeObj->size));
+		freeObj = INC(freeObj, MEMALIGN(freeObj->size));
 		if (freeObj >= heapLimit)
 			freeObj = heapBase;
 	} while (freeObj != freeHeap);
@@ -1335,12 +1335,13 @@ CObjectHeap::makeFreeBlock(ObjHeader * obj, size_t newSize)
 {
 if (newSize == 0)
   printf("CObjectHeap::makeFreeBlock(#%p, %lu)\n", obj, newSize);
-	obj->size = LONGALIGN(newSize);
+	obj->size = MEMALIGN(newSize);
 	obj->flags = kObjFree;
-	if (newSize > 8)
+	if (newSize >= 16)
 		obj->gc.stuff = 0;
-	else if (newSize > 4)
-		*(ULong *)&obj->gc = 0;
+// Matt: the code below does pretty much what the line above does (but why 4?)
+//	else if (newSize > 4)
+//		*(ULong *)&obj->gc = 0;
 }
 
 
@@ -1351,17 +1352,17 @@ if (newSize == 0)
 void
 CObjectHeap::splitBlock(ObjHeader * obj, size_t newSize)
 {
-	size_t alignedNewSize = LONGALIGN(newSize);
-	long dSize = LONGALIGN(obj->size) - alignedNewSize;
+	size_t alignedNewSize = MEMALIGN(newSize);
+	long dSize = MEMALIGN(obj->size) - alignedNewSize;
 
-	if (dSize >= 4)
+	if (dSize >= 8) // was 4
 		makeFreeBlock(INC(obj, alignedNewSize), dSize);
 if (newSize == 0)
   printf("CObjectHeap::splitBlock(#%p, %lu)\n", obj, newSize);
 	obj->size = newSize;
 	if (obj == freeHeap)
 	{
-		freeHeap = INC(obj, LONGALIGN(obj->size));
+		freeHeap = INC(obj, MEMALIGN(obj->size));
 		if (freeHeap >= heapLimit)
 			freeHeap = heapBase;
 	}
@@ -1377,8 +1378,8 @@ ObjHeader *
 CObjectHeap::resizeBlock(ObjHeader * obj, size_t newSize)
 {
 	size_t objSize = obj->size;
-	size_t alignedObjSize = LONGALIGN(objSize);
-	size_t alignedNewSize = LONGALIGN(newSize);
+	size_t alignedObjSize = MEMALIGN(objSize);
+	size_t alignedNewSize = MEMALIGN(newSize);
 	long dSize = alignedNewSize - alignedObjSize;
 if (newSize == 0)
   printf("CObjectHeap::resizeBlock(#%p, %lu)\n", obj, newSize);
@@ -1442,7 +1443,7 @@ CObjectHeap::allocateBlock(size_t inSize, unsigned char flags)
 
 if (obj->size == 0)
   printf("CObjectHeap::allocateBlock(%lu, %d) creates block of zero size\n", inSize, flags);
-	freeHeap = INC(obj, LONGALIGN(obj->size));
+	freeHeap = INC(obj, MEMALIGN(obj->size));
 	if (freeHeap >= heapLimit)
 		freeHeap = heapBase;
 
@@ -1772,7 +1773,7 @@ ENTER_FUNC
 	// Update all refs in heap
 	for (obj = (SlottedObject *)heapBase;
 		  obj < (SlottedObject *)heapLimit;
-		  obj = (SlottedObject *)INC(obj, LONGALIGN(obj->size)))
+		  obj = (SlottedObject *)INC(obj, MEMALIGN(obj->size)))
 	{
 		p = obj->slot;
 		count = (obj->flags & kObjSlotted) != 0 ? SLOTCOUNT(obj) : 1;
@@ -2238,7 +2239,7 @@ ENTER_FUNC
 		  obj < (ObjHeader *)refHBlock;						// exclude the ref handles block
 		  obj = INC(obj, objSize))
 	{
-		objSize = LONGALIGN(obj->size);
+		objSize = MEMALIGN(obj->size);
 		objFlags = obj->flags;
 //printf(" #%lX[%d] ", obj, obj->size);
 		if ((objFlags & kObjMarked) != 0 && (objFlags & kObjForward) == 0)
@@ -2266,7 +2267,7 @@ ENTER_FUNC
 						obj->gc.count.slots = a[0].size;		// just remember the free size available
 					}
 				}
-				a[0].block = INC(obj, LONGALIGN(obj->size));
+				a[0].block = INC(obj, MEMALIGN(obj->size));
 				a[0].size = 0;										// point free block on to next
 			}
 			else
@@ -2293,7 +2294,7 @@ ENTER_FUNC
 		{
 			// object isn’t marked
 			// so expand the free block
-			a[0].size += LONGALIGN(obj->size);
+			a[0].size += MEMALIGN(obj->size);
 //printf("! #%lX[%d] \n", a[0].block, a[0].size);
 		}
 /*
@@ -2323,7 +2324,7 @@ printf(" %s%s%s%s%s%s\n",
 	}
 
 	// Expand RefHandles block if requested
-	currentRefHBlockSize = LONGALIGN(refHBlock->size);
+	currentRefHBlockSize = MEMALIGN(refHBlock->size);
 	refHDelta = refHBlockSize - currentRefHBlockSize;
 	if (refHDelta != 0)
 	{
@@ -2346,7 +2347,7 @@ PRINTF(("updating heap objects\n"));
 		  obj < heapLimit;						// include the ref handles block
 		  obj = INC(obj, objSize))
 	{
-		objSize = LONGALIGN(obj->size);
+		objSize = MEMALIGN(obj->size);
 		objFlags = obj->flags;
 		if ((objFlags & kObjMarked) != 0 && (objFlags & kObjForward) == 0)
 		{
@@ -2396,7 +2397,7 @@ PRINTF(("compacting the heap\n"));
 		  obj < heapLimit;
 		  obj = INC(obj, objSize))
 	{
-		objSize = LONGALIGN(obj->size);
+		objSize = MEMALIGN(obj->size);
 		objFlags = obj->flags;
 		if ((objFlags & kObjMarked) != 0 && (objFlags & kObjForward) == 0)
 		{
@@ -2484,8 +2485,8 @@ CObjectHeap::heapStatistics(size_t * outFree, size_t * outLargest)
 	*outFree = *outLargest = 0;
 	for (ObjHeader * obj = heapBase; obj < heapLimit; obj = INC(obj, objSize))
 	{
-		objSize = LONGALIGN(obj->size);
-if (obj->size < 4 || obj->size > kHeapSize)
+		objSize = MEMALIGN(obj->size);
+if (obj->size < 8 || obj->size > kHeapSize)
 	printf("CObjectHeap::heapStatistics() object has wacko size %ld\n", objSize);
 		if ((obj->flags & kObjFree) != 0)
 		{
@@ -2555,7 +2556,7 @@ CObjectHeap::uriah(void)
 
 	for ( ; obj < objLimit; obj = INC(obj, objSize))
 	{
-		objSize = LONGALIGN(obj->size);
+		objSize = MEMALIGN(obj->size);
 		if (objSize == 0 || INC(obj, objSize) > objLimit)
 		{
 			fprintf(f, "#%p wacko size %lu!\n", obj, objSize);
@@ -2630,7 +2631,7 @@ if (objSize > 32000)
 				if (NOTNIL(instr))
 				{
 					functionCount++;
-					instructionSize += LONGALIGN(ObjectPtr(instr)->size);
+					instructionSize += MEMALIGN(ObjectPtr(instr)->size);
 					if (NOTNIL(litrl))
 						literalSize += Length(litrl) * sizeof(Ref);
 					functionSize += objSize;
@@ -2735,7 +2736,7 @@ CObjectHeap::uriahBinaryObjects(bool doSaveOutput)
 		objLimit = heapLimit;
 	}
 
-	for ( ; obj->size > 0 && obj < objLimit; obj = INC(obj, LONGALIGN(obj->size)))
+	for ( ; obj->size > 0 && obj < objLimit; obj = INC(obj, MEMALIGN(obj->size)))
 	{
 		unsigned objFlags = obj->flags;
 		if ((objFlags & kObjSlotted) == 0
@@ -2743,7 +2744,7 @@ CObjectHeap::uriahBinaryObjects(bool doSaveOutput)
 		&&  (objFlags & kObjForward) == 0)
 		{
 			Ref	r;
-			objSize = LONGALIGN(obj->size);
+			objSize = MEMALIGN(obj->size);
 			className = ClassOf(MAKEPTR(obj));
 			totalThisClass = GetFrameSlot(totalsFrame, className);
 			if (ISNIL(totalThisClass))

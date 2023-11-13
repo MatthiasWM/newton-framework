@@ -2061,53 +2061,62 @@ DumpObject(RefArg obj)
 }
 
 
+static CProtocol *newPStringOutTranslator() {
+  return new PStringOutTranslator();
+}
+
 const CClassInfo *
 PStringOutTranslator::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN20PStringOutTranslator6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN20PStringOutTranslator4makeEv - 0b	\n"
-"		.long		__ZN20PStringOutTranslator7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"PStringOutTranslator\"	\n"
-"2:	.asciz	\"POutTranslator\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN20PStringOutTranslator9classInfoEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator4makeEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator7destroyEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator4initEPv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator4idleEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
-"		.long		__ZN20PStringOutTranslator6promptEi - 4b	\n"
-"		.long		__ZN20PStringOutTranslator5printEPKcz - 4b	\n"
-"		.long		__ZN20PStringOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
-"		.long		__ZN20PStringOutTranslator4putcEi - 4b	\n"
-"		.long		__ZN20PStringOutTranslator5flushEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator14enterBreakLoopEi - 4b	\n"
-"		.long		__ZN20PStringOutTranslator13exitBreakLoopEv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator10stackTraceEPv - 4b	\n"
-"		.long		__ZN20PStringOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
-"		.long		__ZN20PStringOutTranslator6stringEv - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "PStringOutTranslator";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "POutTranslator";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN20PStringOutTranslator6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newPStringOutTranslator;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN20PStringOutTranslator4makeEv - 0b	\n"
+//"		.long		__ZN20PStringOutTranslator7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"PStringOutTranslator\"	\n"
+//"2:	.asciz	\"POutTranslator\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN20PStringOutTranslator9classInfoEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator4makeEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator7destroyEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator4initEPv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator4idleEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator6promptEi - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator5printEPKcz - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator4putcEi - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator5flushEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator14enterBreakLoopEi - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator13exitBreakLoopEv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator10stackTraceEPv - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
+//"		.long		__ZN20PStringOutTranslator6stringEv - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PStringOutTranslator *

@@ -36,7 +36,7 @@ public:
 	static PInTranslator *	make(const char * inName);
 	void			destroy(void);
 
-	NewtonErr	init(void * inContext);
+	virtual NewtonErr	init(void * inContext) = 0;
 	Timeout		idle(void);
 	bool			frameAvailable(void);
 	Ref			produceFrame(int inLevel);
@@ -130,14 +130,14 @@ public:
 	static POutTranslator *	make(const char * inName);
 	void			destroy(void);
 
-	NewtonErr	init(void * inContext);
+	virtual NewtonErr	init(void * inContext) = 0;
 	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);	// not in original, but required for REPprintf
+	virtual void consumeFrame(RefArg inObj, int inDepth, int indent) = 0;
+	virtual void prompt(int inLevel) = 0;
+  virtual int print(const char * inFormat, ...) = 0;
+	virtual int	vprint(const char * inFormat, va_list args) = 0;	// not in original, but required for REPprintf
 	int			putc(int inCh);
-	void			flush(void);
+	virtual void flush(void) = 0;
 
 	void			enterBreakLoop(int);
 	void			exitBreakLoop(void);

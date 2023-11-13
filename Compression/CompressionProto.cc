@@ -37,10 +37,10 @@ void      CDecompressor::destroy(void) {
   assert(0);
 }
 
-NewtonErr  CDecompressor::init(void *) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CDecompressor::init(void *) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CDecompressor::decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) {
   assert(0);
@@ -116,9 +116,9 @@ CCallbackCompressor *CCallbackCompressor::make(const char * inName) {
   return nullptr;
 }
 
-void      CCallbackCompressor::destroy(void) {
-  assert(0);
-}
+//void      CCallbackCompressor::destroy(void) {
+//  assert(0);
+//}
 
 NewtonErr  CCallbackCompressor::init(void *) {
   assert(0);
@@ -129,15 +129,15 @@ void      CCallbackCompressor::reset(void) {
   assert(0);
 }
 
-NewtonErr  CCallbackCompressor::writeChunk(void * inSrcBuf, size_t inSrcLen) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CCallbackCompressor::writeChunk(void * inSrcBuf, size_t inSrcLen) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CCallbackCompressor::flush(void) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CCallbackCompressor::flush(void) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 // --------
 
@@ -146,9 +146,9 @@ CCallbackDecompressor *CCallbackDecompressor::make(const char * inName) {
   return nullptr;
 }
 
-void      CCallbackDecompressor::destroy(void) {
-  assert(0);
-}
+//void      CCallbackDecompressor::destroy(void) {
+//  assert(0);
+//}
 
 NewtonErr  CCallbackDecompressor::init(void *) {
   assert(0);

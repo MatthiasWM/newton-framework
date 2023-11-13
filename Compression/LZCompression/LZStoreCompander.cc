@@ -99,39 +99,43 @@ ReleaseSharedLZObjects(CCompressor * inCompressor, CDecompressor * inDecompresso
 const CClassInfo *
 CLZStoreDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN20CLZStoreDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN20CLZStoreDecompressor4makeEv - 0b	\n"
-"		.long		__ZN20CLZStoreDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CLZStoreDecompressor\"	\n"
-"2:	.asciz	\"CStoreDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN20CLZStoreDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN20CLZStoreDecompressor4makeEv - 4b	\n"
-"		.long		__ZN20CLZStoreDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN20CLZStoreDecompressor4initEP6CStorejPc - 4b	\n"
-"		.long		__ZN20CLZStoreDecompressor4readEjPcmm - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CLZStoreDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN20CLZStoreDecompressor6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN20CLZStoreDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN20CLZStoreDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CLZStoreDecompressor\"	\n"
+//"2:	.asciz	\"CStoreDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN20CLZStoreDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN20CLZStoreDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN20CLZStoreDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN20CLZStoreDecompressor4initEP6CStorejPc - 4b	\n"
+//"		.long		__ZN20CLZStoreDecompressor4readEjPcmm - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreDecompressor)
@@ -216,39 +220,43 @@ CLZStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr 
 const CClassInfo *
 CLZRelocStoreDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN25CLZRelocStoreDecompressor4makeEv - 0b	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CLZRelocStoreDecompressor\"	\n"
-"2:	.asciz	\"CStoreDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN25CLZRelocStoreDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor4makeEv - 4b	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor4initEP6CStorejPc - 4b	\n"
-"		.long		__ZN25CLZRelocStoreDecompressor4readEjPcmm - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CLZRelocStoreDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CLZRelocStoreDecompressor\"	\n"
+//"2:	.asciz	\"CStoreDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor4initEP6CStorejPc - 4b	\n"
+//"		.long		__ZN25CLZRelocStoreDecompressor4readEjPcmm - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZRelocStoreDecompressor)
@@ -339,43 +347,47 @@ CLZRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, V
 const CClassInfo *
 CLZStoreCompander::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN17CLZStoreCompander6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN17CLZStoreCompander4makeEv - 0b	\n"
-"		.long		__ZN17CLZStoreCompander7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CLZStoreCompander\"	\n"
-"2:	.asciz	\"CStoreCompander\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN17CLZStoreCompander9classInfoEv - 4b	\n"
-"		.long		__ZN17CLZStoreCompander4makeEv - 4b	\n"
-"		.long		__ZN17CLZStoreCompander7destroyEv - 4b	\n"
-"		.long		__ZN17CLZStoreCompander4initEP6CStorejjbb - 4b	\n"
-"		.long		__ZN17CLZStoreCompander9blockSizeEv - 4b	\n"
-"		.long		__ZN17CLZStoreCompander4readEmPcmm - 4b	\n"
-"		.long		__ZN17CLZStoreCompander5writeEmPcmm - 4b	\n"
-"		.long		__ZN17CLZStoreCompander20doTransactionAgainstEij - 4b	\n"
-"		.long		__ZN17CLZStoreCompander10isReadOnlyEv - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CLZStoreCompander";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreCompander";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN17CLZStoreCompander6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN17CLZStoreCompander4makeEv - 0b	\n"
+//"		.long		__ZN17CLZStoreCompander7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CLZStoreCompander\"	\n"
+//"2:	.asciz	\"CStoreCompander\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN17CLZStoreCompander9classInfoEv - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander4makeEv - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander7destroyEv - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander4initEP6CStorejjbb - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander9blockSizeEv - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander4readEmPcmm - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander5writeEmPcmm - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander20doTransactionAgainstEij - 4b	\n"
+//"		.long		__ZN17CLZStoreCompander10isReadOnlyEv - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreCompander)

@@ -23,7 +23,7 @@ public:
 	CLZDecompressor *	make(void);
 	void				destroy(void);
 
-	NewtonErr		init(void * inContext);
+	NewtonErr init(void * inContext) override;
 	NewtonErr		decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
 
 private:

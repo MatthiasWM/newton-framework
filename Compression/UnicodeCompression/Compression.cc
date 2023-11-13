@@ -33,7 +33,6 @@ PROTOCOL CUnicodeCompressor : public CCallbackCompressor
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CUnicodeCompressor)
-
 	CUnicodeCompressor *	make(void);
 	void			destroy(void);
 
@@ -69,44 +68,53 @@ private:
 	CUnicodeCompressor implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCUnicodeCompressor() {
+  return new CUnicodeCompressor();
+}
+
 const CClassInfo *
 CUnicodeCompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN18CUnicodeCompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN18CUnicodeCompressor4makeEv - 0b	\n"
-"		.long		__ZN18CUnicodeCompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CUnicodeCompressor\"	\n"
-"2:	.asciz	\"CCallbackCompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN18CUnicodeCompressor9classInfoEv - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor4makeEv - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor7destroyEv - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor4initEPv - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor5resetEv - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor10writeChunkEPvm - 4b	\n"
-"		.long		__ZN18CUnicodeCompressor5flushEv - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CUnicodeCompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CCallbackCompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN18CUnicodeCompressor6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCUnicodeCompressor;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN18CUnicodeCompressor4makeEv - 0b	\n"
+//"		.long		__ZN18CUnicodeCompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CUnicodeCompressor\"	\n"
+//"2:	.asciz	\"CCallbackCompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN18CUnicodeCompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor4makeEv - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor7destroyEv - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor4initEPv - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor5resetEv - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor10writeChunkEPvm - 4b	\n"
+//"		.long		__ZN18CUnicodeCompressor5flushEv - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeCompressor)
@@ -283,43 +291,52 @@ private:
 	CUnicodeDecompressor implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCUnicodeDecompressor() {
+  return new CUnicodeDecompressor();
+}
+
 const CClassInfo *
 CUnicodeDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN20CUnicodeDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN20CUnicodeDecompressor4makeEv - 0b	\n"
-"		.long		__ZN20CUnicodeDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CUnicodeDecompressor\"	\n"
-"2:	.asciz	\"CCallbackDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN20CUnicodeDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN20CUnicodeDecompressor4makeEv - 4b	\n"
-"		.long		__ZN20CUnicodeDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN20CUnicodeDecompressor4initEPv - 4b	\n"
-"		.long		__ZN20CUnicodeDecompressor5resetEv - 4b	\n"
-"		.long		__ZN20CUnicodeDecompressor9readChunkEPvPmPb - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CUnicodeDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CCallbackDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN20CUnicodeDecompressor6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCUnicodeDecompressor;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN20CUnicodeDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN20CUnicodeDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CUnicodeDecompressor\"	\n"
+//"2:	.asciz	\"CCallbackDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN20CUnicodeDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN20CUnicodeDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN20CUnicodeDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN20CUnicodeDecompressor4initEPv - 4b	\n"
+//"		.long		__ZN20CUnicodeDecompressor5resetEv - 4b	\n"
+//"		.long		__ZN20CUnicodeDecompressor9readChunkEPvPmPb - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeDecompressor)

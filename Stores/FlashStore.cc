@@ -123,83 +123,92 @@ CeilLog2(ULong inX)
 	CFlashStore implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCFlashStore() {
+  return new CFlashStore();
+}
+
 const CClassInfo *
 CFlashStore::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN11CFlashStore6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN11CFlashStore4makeEv - 0b	\n"
-"		.long		__ZN11CFlashStore7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CFlashStore\"	\n"
-"2:	.asciz	\"CStore\"	\n"
-"3:	.asciz	\"LOBJ\", \"\"	\n"
-"		.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN11CFlashStore9classInfoEv - 4b	\n"
-"		.long		__ZN11CFlashStore4makeEv - 4b	\n"
-"		.long		__ZN11CFlashStore7destroyEv - 4b	\n"
-"		.long		__ZN11CFlashStore4initEPvmjjjS0_ - 4b	\n"
-"		.long		__ZN11CFlashStore11needsFormatEPb - 4b	\n"
-"		.long		__ZN11CFlashStore6formatEv - 4b	\n"
-"		.long		__ZN11CFlashStore9getRootIdEPj - 4b	\n"
-"		.long		__ZN11CFlashStore9newObjectEPjm - 4b	\n"
-"		.long		__ZN11CFlashStore11eraseObjectEj - 4b	\n"
-"		.long		__ZN11CFlashStore12deleteObjectEj - 4b	\n"
-"		.long		__ZN11CFlashStore13setObjectSizeEjm - 4b	\n"
-"		.long		__ZN11CFlashStore13getObjectSizeEjPm - 4b	\n"
-"		.long		__ZN11CFlashStore5writeEjmPvm - 4b	\n"
-"		.long		__ZN11CFlashStore4readEjmPvm - 4b	\n"
-"		.long		__ZN11CFlashStore12getStoreSizeEPmS0_ - 4b	\n"
-"		.long		__ZN11CFlashStore10isReadOnlyEPb - 4b	\n"
-"		.long		__ZN11CFlashStore9lockStoreEv - 4b	\n"
-"		.long		__ZN11CFlashStore11unlockStoreEv - 4b	\n"
-"		.long		__ZN11CFlashStore5abortEv - 4b	\n"
-"		.long		__ZN11CFlashStore4idleEPbS0_ - 4b	\n"
-"		.long		__ZN11CFlashStore10nextObjectEjPj - 4b	\n"
-"		.long		__ZN11CFlashStore14checkIntegrityEPj - 4b	\n"
-"		.long		__ZN11CFlashStore8setBuddyEP6CStore - 4b	\n"
-"		.long		__ZN11CFlashStore10ownsObjectEj - 4b	\n"
-"		.long		__ZN11CFlashStore7addressEj - 4b	\n"
-"		.long		__ZN11CFlashStore9storeKindEv - 4b	\n"
-"		.long		__ZN11CFlashStore8setStoreEP6CStorej - 4b	\n"
-"		.long		__ZN11CFlashStore11isSameStoreEPvm - 4b	\n"
-"		.long		__ZN11CFlashStore8isLockedEv - 4b	\n"
-"		.long		__ZN11CFlashStore5isROMEv - 4b	\n"
-"		.long		__ZN11CFlashStore6vppOffEv - 4b	\n"
-"		.long		__ZN11CFlashStore5sleepEv - 4b	\n"
-"		.long		__ZN11CFlashStore20newWithinTransactionEPjm - 4b	\n"
-"		.long		__ZN11CFlashStore23startTransactionAgainstEj - 4b	\n"
-"		.long		__ZN11CFlashStore15separatelyAbortEj - 4b	\n"
-"		.long		__ZN11CFlashStore23addToCurrentTransactionEj - 4b	\n"
-"		.long		__ZN11CFlashStore21inSeparateTransactionEj - 4b	\n"
-"		.long		__ZN11CFlashStore12lockReadOnlyEv - 4b	\n"
-"		.long		__ZN11CFlashStore14unlockReadOnlyEb - 4b	\n"
-"		.long		__ZN11CFlashStore13inTransactionEv - 4b	\n"
-"		.long		__ZN11CFlashStore9newObjectEPjPvm - 4b	\n"
-"		.long		__ZN11CFlashStore13replaceObjectEjPvm - 4b	\n"
-"		.long		__ZN11CFlashStore17calcXIPObjectSizeEllPl - 4b	\n"
-"		.long		__ZN11CFlashStore12newXIPObjectEPjm - 4b	\n"
-"		.long		__ZN11CFlashStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CFlashStore";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStore";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "LOBJ\0\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN11CFlashStore6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCFlashStore;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN11CFlashStore4makeEv - 0b	\n"
+//"		.long		__ZN11CFlashStore7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CFlashStore\"	\n"
+//"2:	.asciz	\"CStore\"	\n"
+//"3:	.asciz	\"LOBJ\", \"\"	\n"
+//"		.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN11CFlashStore9classInfoEv - 4b	\n"
+//"		.long		__ZN11CFlashStore4makeEv - 4b	\n"
+//"		.long		__ZN11CFlashStore7destroyEv - 4b	\n"
+//"		.long		__ZN11CFlashStore4initEPvmjjjS0_ - 4b	\n"
+//"		.long		__ZN11CFlashStore11needsFormatEPb - 4b	\n"
+//"		.long		__ZN11CFlashStore6formatEv - 4b	\n"
+//"		.long		__ZN11CFlashStore9getRootIdEPj - 4b	\n"
+//"		.long		__ZN11CFlashStore9newObjectEPjm - 4b	\n"
+//"		.long		__ZN11CFlashStore11eraseObjectEj - 4b	\n"
+//"		.long		__ZN11CFlashStore12deleteObjectEj - 4b	\n"
+//"		.long		__ZN11CFlashStore13setObjectSizeEjm - 4b	\n"
+//"		.long		__ZN11CFlashStore13getObjectSizeEjPm - 4b	\n"
+//"		.long		__ZN11CFlashStore5writeEjmPvm - 4b	\n"
+//"		.long		__ZN11CFlashStore4readEjmPvm - 4b	\n"
+//"		.long		__ZN11CFlashStore12getStoreSizeEPmS0_ - 4b	\n"
+//"		.long		__ZN11CFlashStore10isReadOnlyEPb - 4b	\n"
+//"		.long		__ZN11CFlashStore9lockStoreEv - 4b	\n"
+//"		.long		__ZN11CFlashStore11unlockStoreEv - 4b	\n"
+//"		.long		__ZN11CFlashStore5abortEv - 4b	\n"
+//"		.long		__ZN11CFlashStore4idleEPbS0_ - 4b	\n"
+//"		.long		__ZN11CFlashStore10nextObjectEjPj - 4b	\n"
+//"		.long		__ZN11CFlashStore14checkIntegrityEPj - 4b	\n"
+//"		.long		__ZN11CFlashStore8setBuddyEP6CStore - 4b	\n"
+//"		.long		__ZN11CFlashStore10ownsObjectEj - 4b	\n"
+//"		.long		__ZN11CFlashStore7addressEj - 4b	\n"
+//"		.long		__ZN11CFlashStore9storeKindEv - 4b	\n"
+//"		.long		__ZN11CFlashStore8setStoreEP6CStorej - 4b	\n"
+//"		.long		__ZN11CFlashStore11isSameStoreEPvm - 4b	\n"
+//"		.long		__ZN11CFlashStore8isLockedEv - 4b	\n"
+//"		.long		__ZN11CFlashStore5isROMEv - 4b	\n"
+//"		.long		__ZN11CFlashStore6vppOffEv - 4b	\n"
+//"		.long		__ZN11CFlashStore5sleepEv - 4b	\n"
+//"		.long		__ZN11CFlashStore20newWithinTransactionEPjm - 4b	\n"
+//"		.long		__ZN11CFlashStore23startTransactionAgainstEj - 4b	\n"
+//"		.long		__ZN11CFlashStore15separatelyAbortEj - 4b	\n"
+//"		.long		__ZN11CFlashStore23addToCurrentTransactionEj - 4b	\n"
+//"		.long		__ZN11CFlashStore21inSeparateTransactionEj - 4b	\n"
+//"		.long		__ZN11CFlashStore12lockReadOnlyEv - 4b	\n"
+//"		.long		__ZN11CFlashStore14unlockReadOnlyEb - 4b	\n"
+//"		.long		__ZN11CFlashStore13inTransactionEv - 4b	\n"
+//"		.long		__ZN11CFlashStore9newObjectEPjPvm - 4b	\n"
+//"		.long		__ZN11CFlashStore13replaceObjectEjPvm - 4b	\n"
+//"		.long		__ZN11CFlashStore17calcXIPObjectSizeEllPl - 4b	\n"
+//"		.long		__ZN11CFlashStore12newXIPObjectEPjm - 4b	\n"
+//"		.long		__ZN11CFlashStore16getXIPObjectInfoEjPmS0_S0_ - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CFlashStore)

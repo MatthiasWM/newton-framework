@@ -6,6 +6,7 @@
 	Written by:	Newton Research Group, 2010.
 */
 
+#include "Newton.h"
 #include "Objects.h"
 #include "ObjHeader.h"
 #include "Relocation.h"

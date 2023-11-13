@@ -26,43 +26,47 @@ extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, boo
 const CClassInfo *
 CStoreCompanderWrapper::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN22CStoreCompanderWrapper6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN22CStoreCompanderWrapper4makeEv - 0b	\n"
-"		.long		__ZN22CStoreCompanderWrapper7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CStoreCompanderWrapper\"	\n"
-"2:	.asciz	\"CStoreCompander\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN22CStoreCompanderWrapper9classInfoEv - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper4makeEv - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper7destroyEv - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper4initEP6CStorejjbb - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper9blockSizeEv - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper4readEmPcmm - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper5writeEmPcmm - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper20doTransactionAgainstEij - 4b	\n"
-"		.long		__ZN22CStoreCompanderWrapper10isReadOnlyEv - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CStoreCompanderWrapper";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreCompander";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN22CStoreCompanderWrapper6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN22CStoreCompanderWrapper4makeEv - 0b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CStoreCompanderWrapper\"	\n"
+//"2:	.asciz	\"CStoreCompander\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN22CStoreCompanderWrapper9classInfoEv - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper4makeEv - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper7destroyEv - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper4initEP6CStorejjbb - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper9blockSizeEv - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper4readEmPcmm - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper5writeEmPcmm - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper20doTransactionAgainstEij - 4b	\n"
+//"		.long		__ZN22CStoreCompanderWrapper10isReadOnlyEv - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CStoreCompanderWrapper)

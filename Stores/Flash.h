@@ -54,8 +54,8 @@ public:
 	static CFlash *	make(const char * inName);
 	void			destroy(void);
 
-	NewtonErr	read(ZAddr inAddr, size_t inLength, char * inBuffer);
-	NewtonErr	write(ZAddr inAddr, size_t inLength, char * inBuffer);
+	virtual NewtonErr	read(ZAddr inAddr, size_t inLength, char * inBuffer) = 0;
+	virtual NewtonErr	write(ZAddr inAddr, size_t inLength, char * inBuffer) = 0;
 
 	NewtonErr	erase(ZAddr);
 	void			suspendErase(ULong, ULong, ULong);
@@ -66,17 +66,17 @@ public:
 	NewtonErr	status(ULong);
 
 	void			resetCard(void);
-	void			acknowledgeReset(void);
+	virtual void acknowledgeReset(void) = 0;
 	void			getPhysResource(void);
 	void			registerClientInfo(ULong);
 
 	void			getWriteProtected(bool * outWP);
 	void			getWriteErrorAddress(void);
-	ULong			getAttributes(void);
+	virtual ULong getAttributes(void) = 0;
 	ULong			getDataOffset(void);
-	size_t		getTotalSize(void);
+	virtual size_t getTotalSize(void) = 0;
 	size_t		getGroupSize(void);
-	size_t		getEraseRegionSize(void);
+	virtual size_t getEraseRegionSize(void) = 0;
 
 	ULong			getChipsPerGroup(void);
 	ULong			getBlocksPerPartition(void);
@@ -100,8 +100,8 @@ public:
 	NewtonErr	suspendService(void);
 	NewtonErr	resumeService(CCardSocket*, CCardPCMCIA*, ULong);
 
-	NewtonErr	copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength);
-	bool			isVirgin(ZAddr inAddr, size_t inLength);
+  virtual NewtonErr	copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength) = 0;
+  virtual bool isVirgin(ZAddr inAddr, size_t inLength) = 0;
 };
 
 

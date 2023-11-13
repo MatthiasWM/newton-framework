@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2014.
 */
 
+#include "Newton.h"
+
 #include "FlashDriver.h"
 #include "OSErrors.h"
 

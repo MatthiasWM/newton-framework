@@ -43,6 +43,8 @@
 
 */
 
+#include "Newton.h"
+
 #include "Protocols.h"
 #include "UserMonitor.h"
 
@@ -50,10 +52,10 @@
 
 
 size_t			PrivateClassInfoSize(const CClassInfo * inClass);
-void				PrivateClassInfoMakeAt(const CClassInfo * inClass, const void * instance);
-const char *	PrivateClassInfoInterfaceName(const CClassInfo * inClass);
-const char *	PrivateClassInfoImplementationName(const CClassInfo * inClass);
-const char *	PrivateClassInfoSignature(const CClassInfo * inClass);
+//void				PrivateClassInfoMakeAt(const CClassInfo * inClass, const void * instance);
+//const char *	PrivateClassInfoInterfaceName(const CClassInfo * inClass);
+//const char *	PrivateClassInfoImplementationName(const CClassInfo * inClass);
+//const char *	PrivateClassInfoSignature(const CClassInfo * inClass);
 
 
 /*------------------------------------------------------------------------------
@@ -78,9 +80,10 @@ CProtocol::become(ObjectId inMonitorId)
 const CClassInfo *
 CProtocol::classInfo(void) const
 {
-	typedef const CClassInfo * (*ClassInfoProc)(void);
-	ClassInfoProc classInfoProc = (ClassInfoProc) ((char *)fRealThis->fBTable + (long)fRealThis->fBTable[1]);
-	return classInfoProc();
+//	typedef const CClassInfo * (*ClassInfoProc)(void);
+//  ClassInfoProc classInfoProc = (ClassInfoProc) ((char *)fRealThis->fBTable + (long)fRealThis->fBTable[1]);
+//	return classInfoProc();
+  return fRealThis->GetClassInfo();
 }
 
 
@@ -305,19 +308,19 @@ class CClassInfoRegistryImpl : public CClassInfoRegistry
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CClassInfoRegistryImpl)
 
-	CClassInfoRegistry * make(void);		// was New()
+	CClassInfoRegistry *make(void) override;		// was New()
 	void				destroy(void);			// was Delete()
 
-	NewtonErr		registerProtocol(const CClassInfo * inClass, ULong refCon = 0);
+	NewtonErr		registerProtocol(const CClassInfo * inClass, ULong refCon = 0) override;
 	NewtonErr		deregisterProtocol(const CClassInfo * inClass, bool specific = false);
 	bool				isProtocolRegistered(const CClassInfo * inClass, bool specific = false) const;
 
-	const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const;
+  const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const override;
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const;
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const;
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const;
 
-	void				updateInstanceCount(const CClassInfo * inClass, int inAdjustment);
+	void updateInstanceCount(const CClassInfo * inClass, int inAdjustment) override;
 	ArrayIndex		getInstanceCount(const CClassInfo * inClass);
 
 private:
@@ -367,49 +370,65 @@ GetProtocolRegistry(void)
 	CClassInfoRegistryImpl implementation class info.
 ---------------------------------------------------------------- */
 
-const CClassInfo *
-CClassInfoRegistryImpl::classInfo(void)
+static CProtocol *newCClassInfoRegistryImpl() {
+  return new CClassInfoRegistryImpl();
+}
+
+/**
+ Return a pointer to an information block about this class.
+
+ In classic NewtonOS, this returns pretty much what a vtable would be in
+ modern C++. So here we try to implement the class info by using virtual
+ functions and inheritance.
+ */
+const CClassInfo *CClassInfoRegistryImpl::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN22CClassInfoRegistryImpl6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN22CClassInfoRegistryImpl4makeEv - 0b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CClassInfoRegistryImpl\"	\n"
-"2:	.asciz	\"CClassInfoRegistry\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN22CClassInfoRegistryImpl9classInfoEv - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl4makeEv - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl7destroyEv - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl16registerProtocolEPK10CClassInfoj - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl18deregisterProtocolEPK10CClassInfob - 4b	\n"
-"		.long		__ZNK22CClassInfoRegistryImpl20isProtocolRegisteredEPK10CClassInfob - 4b	\n"
-"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_j - 4b	\n"
-"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_S1_ - 4b	\n"
-"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_S1_S1_ - 4b	\n"
-"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_ii - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl19updateInstanceCountEPK10CClassInfoi - 4b	\n"
-"		.long		__ZN22CClassInfoRegistryImpl16getInstanceCountEPK10CClassInfo - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CClassInfoRegistryImpl";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CClassInfoRegistry";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCClassInfoRegistryImpl;
+//"		.long		0			\n"
+//"		.long		0			\n"
+    // virtual
+//"		.long		__ZN22CClassInfoRegistryImpl4makeEv - 0b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl7destroyEv - 0b	\n"
+//"		.long		0			\n"  // Version
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CClassInfoRegistryImpl\"	\n"
+//"2:	.asciz	\"CClassInfoRegistry\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN22CClassInfoRegistryImpl9classInfoEv - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl4makeEv - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl7destroyEv - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl16registerProtocolEPK10CClassInfoj - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl18deregisterProtocolEPK10CClassInfob - 4b	\n"
+//"		.long		__ZNK22CClassInfoRegistryImpl20isProtocolRegisteredEPK10CClassInfob - 4b	\n"
+//"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_j - 4b	\n"
+//"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_S1_ - 4b	\n"
+//"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_S1_S1_ - 4b	\n"
+//"		.long		__ZNK22CClassInfoRegistryImpl7satisfyEPKcS1_ii - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl19updateInstanceCountEPK10CClassInfoi - 4b	\n"
+//"		.long		__ZN22CClassInfoRegistryImpl16getInstanceCountEPK10CClassInfo - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CClassInfoRegistryImpl)
@@ -716,7 +735,8 @@ CClassInfo::size(void) const
 AllocProcPtr
 CClassInfo::allocProc(void) const
 {
-	return fAllocBranch != 0 ? (AllocProcPtr)((char *)this + fAllocBranch) : NULL;
+//	return fAllocBranch != 0 ? (AllocProcPtr)((char *)this + fAllocBranch) : NULL;
+  return fAllocProc;
 }
 
 FreeProcPtr
@@ -753,14 +773,17 @@ CClassInfo::make(void) const
 	AllocProcPtr allocFn;
 	if ((allocFn = allocProc()) != NULL)
 		instance = (CProtocol *)(*allocFn)();
-	else
-		instance = (CProtocol *)NewPtr(size());
+  else {
+    assert(0);
+    instance = (CProtocol *)NewPtr(size());
+  }
 	if (instance != NULL)
 	{
 		makeAt(instance);
-		NewProcPtr maker = (NewProcPtr)((char *)this + fDefaultNewBranch);
+//		NewProcPtr maker = (NewProcPtr)((char *)this + fDefaultNewBranch);
 //		(instance->*maker)();
-		(*maker)(instance);
+//		(*maker)(instance);
+    instance->make();
 		if (gProtocolRegistry)
 			gProtocolRegistry->updateInstanceCount(this, 1);
 	}
@@ -768,9 +791,12 @@ CClassInfo::make(void) const
 }
 
 void
-CClassInfo::makeAt(const void * instance) const
+CClassInfo::makeAt(CProtocol *p) const
 {
-	PrivateClassInfoMakeAt(this, instance);
+  p->fRuntime = NULL;
+  p->fRealThis = p;
+  p->fBTable = nullptr; //(void **)((char *)inClass + inClass->fBTableDelta);
+  p->fMonitorId = 0;  // kNoId
 }
 
 void
@@ -839,20 +865,20 @@ CClassInfo::hasInstances(ArrayIndex * outCount) const
 const char *
 CClassInfo::implementationName(void) const
 {
-	return PrivateClassInfoImplementationName(this);
+  return fName;
 }
 
 const char *
 CClassInfo::interfaceName(void) const
 {
-	return PrivateClassInfoInterfaceName(this);
+  return fInterfaceName;
 }
 
 // signature is key-value pairs of null-terminated capability strings
 const char *
 CClassInfo::signature(void) const
 {
-	return PrivateClassInfoSignature(this);
+  return fSignature;
 }
 
 

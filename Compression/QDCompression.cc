@@ -30,48 +30,59 @@ InitQDCompression(void)
 	CPixelMapCompander implementation class info.
 ---------------------------------------------------------------- */
 
+static CProtocol *newCPixelMapCompander() {
+  return new CPixelMapCompander();
+}
+
 const CClassInfo *
 CPixelMapCompander::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN18CPixelMapCompander6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN18CPixelMapCompander4makeEv - 0b	\n"
-"		.long		__ZN18CPixelMapCompander7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CPixelMapCompander\"	\n"
-"2:	.asciz	\"CStoreCompander\"	\n"
-"3:	.asciz	\"CLZDecompressor\", \"\"	\n"
-"		.asciz	\"CLZCompressor\", \"\"	\n"
-"		.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN18CPixelMapCompander9classInfoEv - 4b	\n"
-"		.long		__ZN18CPixelMapCompander4makeEv - 4b	\n"
-"		.long		__ZN18CPixelMapCompander7destroyEv - 4b	\n"
-"		.long		__ZN18CPixelMapCompander4initEP6CStorejjbb - 4b	\n"
-"		.long		__ZN18CPixelMapCompander9blockSizeEv - 4b	\n"
-"		.long		__ZN18CPixelMapCompander4readEmPcmm - 4b	\n"
-"		.long		__ZN18CPixelMapCompander5writeEmPcmm - 4b	\n"
-"		.long		__ZN18CPixelMapCompander20doTransactionAgainstEij - 4b	\n"
-"		.long		__ZN18CPixelMapCompander10isReadOnlyEv - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CPixelMapCompander";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreCompander";
+//"		.long		3f - .	\n"
+    classInfo->fSignature =
+      "CLZDecompressor\0"
+      "CLZCompressor\0\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN18CPixelMapCompander6sizeOfEv - 0b	\n"
+    classInfo->fAllocProc = newCPixelMapCompander;
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN18CPixelMapCompander4makeEv - 0b	\n"
+//"		.long		__ZN18CPixelMapCompander7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CPixelMapCompander\"	\n"
+//"2:	.asciz	\"CStoreCompander\"	\n"
+//"3:	.asciz	\"CLZDecompressor\", \"\"	\n"
+//"		.asciz	\"CLZCompressor\", \"\"	\n"
+//"		.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN18CPixelMapCompander9classInfoEv - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander4makeEv - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander7destroyEv - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander4initEP6CStorejjbb - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander9blockSizeEv - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander4readEmPcmm - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander5writeEmPcmm - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander20doTransactionAgainstEij - 4b	\n"
+//"		.long		__ZN18CPixelMapCompander10isReadOnlyEv - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPixelMapCompander)

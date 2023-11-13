@@ -9,6 +9,8 @@
 #if !defined(__NEWTONWIDGETS_H)
 #define __NEWTONWIDGETS_H 1
 
+#include "ConfigGlobal.h"
+
 #if !defined(__NEWTONTYPES_H)
 #include "NewtonTypes.h"
 #endif
@@ -127,13 +129,16 @@ void ByteSwap(void * p, int count, int swapSize);
 //
 //	LONGALIGN(amount)			round 'amount' up to a multiple of four
 //
+//  MEMALIGN(amount)      align memeory so that Refs are at CPU word boundary
+//
 //	PAGEALIGN(amount)			ditto, for 4K and 1K (ARM)
 //	SUBPAGEALIGN(amount)
 
 #define TRUNC(N,B)			(((long)(N)) & ~((long)(B)-1L))
 #define ALIGN(N,B)			((((long)(N))+(long)(B)-1)&~((long)(B)-1L))
 #define WORDALIGN(n)			ALIGN((n),2L)
-#define LONGALIGN(n)			ALIGN((n),4L)
+#define LONGALIGN(n)      ALIGN((n),4L)
+#define MEMALIGN(n)       ALIGN((n),8L)
 #define PAGEALIGN(n)			ALIGN((n),kPageSize)
 #define SUBPAGEALIGN(n)		ALIGN((n),kSubPageSize)
 #define ALIGNED(n,B)			(((long)(n)) == ALIGN(((long)(n)),(long)(B)))

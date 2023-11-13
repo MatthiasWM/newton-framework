@@ -69,39 +69,44 @@ private:
 const CClassInfo *
 CZippyDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN18CZippyDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN18CZippyDecompressor4makeEv - 0b	\n"
-"		.long		__ZN18CZippyDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CZippyDecompressor\"	\n"
-"2:	.asciz	\"CDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN18CZippyDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN18CZippyDecompressor4makeEv - 4b	\n"
-"		.long		__ZN18CZippyDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN18CZippyDecompressor4initEPv - 4b	\n"
-"		.long		__ZN18CZippyDecompressor10decompressEPmPvmS1_m - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//#if 0
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CZippyDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN18CZippyDecompressor6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN18CZippyDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN18CZippyDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CZippyDecompressor\"	\n"
+//"2:	.asciz	\"CDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN18CZippyDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN18CZippyDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN18CZippyDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN18CZippyDecompressor4initEPv - 4b	\n"
+//"		.long		__ZN18CZippyDecompressor10decompressEPmPvmS1_m - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyDecompressor)
@@ -395,39 +400,43 @@ CZippyDecompressor::finish(void*, size_t)
 const CClassInfo *
 CZippyStoreDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN23CZippyStoreDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN23CZippyStoreDecompressor4makeEv - 0b	\n"
-"		.long		__ZN23CZippyStoreDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CZippyStoreDecompressor\"	\n"
-"2:	.asciz	\"CStoreDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN23CZippyStoreDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN23CZippyStoreDecompressor4makeEv - 4b	\n"
-"		.long		__ZN23CZippyStoreDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN23CZippyStoreDecompressor4initEP6CStorejPc - 4b	\n"
-"		.long		__ZN23CZippyStoreDecompressor4readEjPcmm - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CZippyStoreDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN23CZippyStoreDecompressor6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN23CZippyStoreDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN23CZippyStoreDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CZippyStoreDecompressor\"	\n"
+//"2:	.asciz	\"CStoreDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN23CZippyStoreDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN23CZippyStoreDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN23CZippyStoreDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN23CZippyStoreDecompressor4initEP6CStorejPc - 4b	\n"
+//"		.long		__ZN23CZippyStoreDecompressor4readEjPcmm - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyStoreDecompressor)
@@ -509,39 +518,43 @@ CZippyStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAd
 const CClassInfo *
 CZippyRelocStoreDecompressor::classInfo(void)
 {
-  assert(0);
-  return nullptr;
-#if 0
-__asm__ (
-CLASSINFO_BEGIN
-"		.long		0			\n"
-"		.long		1f - .	\n"
-"		.long		2f - .	\n"
-"		.long		3f - .	\n"
-"		.long		4f - .	\n"
-"		.long		5f - .	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor6sizeOfEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor4makeEv - 0b	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor7destroyEv - 0b	\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		0			\n"
-"		.long		6f - 0b	\n"
-"1:	.asciz	\"CZippyRelocStoreDecompressor\"	\n"
-"2:	.asciz	\"CStoreDecompressor\"	\n"
-"3:	.byte		0			\n"
-"		.align	2			\n"
-"4:	.long		0			\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor9classInfoEv - 4b	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor4makeEv - 4b	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor7destroyEv - 4b	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor4initEP6CStorejPc - 4b	\n"
-"		.long		__ZN28CZippyRelocStoreDecompressor4readEjPcmm - 4b	\n"
-CLASSINFO_END
-);
-#endif
+  static CClassInfo *classInfo = nullptr;
+  if (!classInfo) {
+    classInfo = new CClassInfo();
+//__asm__ (
+//CLASSINFO_BEGIN
+//"		.long		0			\n"
+//"		.long		1f - .	\n"
+    classInfo->fName = "CZippyRelocStoreDecompressor";
+//"		.long		2f - .	\n"
+    classInfo->fInterfaceName = "CStoreDecompressor";
+//"		.long		3f - .	\n"
+    classInfo->fSignature = "\0";
+//"		.long		4f - .	\n"
+//"		.long		5f - .	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor6sizeOfEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor4makeEv - 0b	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor7destroyEv - 0b	\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		0			\n"
+//"		.long		6f - 0b	\n"
+//"1:	.asciz	\"CZippyRelocStoreDecompressor\"	\n"
+//"2:	.asciz	\"CStoreDecompressor\"	\n"
+//"3:	.byte		0			\n"
+//"		.align	2			\n"
+//"4:	.long		0			\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor9classInfoEv - 4b	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor4makeEv - 4b	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor7destroyEv - 4b	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor4initEP6CStorejPc - 4b	\n"
+//"		.long		__ZN28CZippyRelocStoreDecompressor4readEjPcmm - 4b	\n"
+//CLASSINFO_END
+//);
+  }
+  return classInfo;
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyRelocStoreDecompressor)

@@ -11,23 +11,24 @@
 #include <cassert>
 
 CFlash *  CFlash::make(const char * inName) {
-  assert(0);
-  return nullptr;
+  CProtocol *p = AllocInstanceByName("CFlash", inName);
+  if (p) p->make();
+  return (CFlash*)p;
 }
 
 void      CFlash::destroy(void) {
   assert(0);
 }
 
-NewtonErr  CFlash::read(ZAddr inAddr, size_t inLength, char * inBuffer) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::read(ZAddr inAddr, size_t inLength, char * inBuffer) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CFlash::write(ZAddr inAddr, size_t inLength, char * inBuffer) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::write(ZAddr inAddr, size_t inLength, char * inBuffer) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 NewtonErr  CFlash::erase(ZAddr) {
   assert(0);
@@ -59,9 +60,9 @@ void      CFlash::resetCard(void) {
   assert(0);
 }
 
-void      CFlash::acknowledgeReset(void) {
-  assert(0);
-}
+//void      CFlash::acknowledgeReset(void) {
+//  assert(0);
+//}
 
 void      CFlash::getPhysResource(void) {
   assert(0);
@@ -79,30 +80,30 @@ void      CFlash::getWriteErrorAddress(void) {
   assert(0);
 }
 
-ULong      CFlash::getAttributes(void) {
-  assert(0);
-  return 0;
-}
+//ULong      CFlash::getAttributes(void) {
+//  assert(0);
+//  return 0;
+//}
 
 ULong      CFlash::getDataOffset(void) {
   assert(0);
   return 0;
 }
 
-size_t    CFlash::getTotalSize(void) {
-  assert(0);
-  return 0;
-}
+//size_t    CFlash::getTotalSize(void) {
+//  assert(0);
+//  return 0;
+//}
 
 size_t    CFlash::getGroupSize(void) {
   assert(0);
   return 0;
 }
 
-size_t    CFlash::getEraseRegionSize(void) {
-  assert(0);
-  return 0;
-}
+//size_t    CFlash::getEraseRegionSize(void) {
+//  assert(0);
+//  return 0;
+//}
 
 ULong      CFlash::getChipsPerGroup(void) {
   assert(0);
@@ -144,54 +145,54 @@ ULong      CFlash::getReadAccessTime(void) {
   return 0;
 }
 
-ULong      CFlash::getVendorInfo(void) {
-  assert(0);
-  return 0;
-}
+//ULong      CFlash::getVendorInfo(void) {
+//  assert(0);
+//  return 0;
+//}
 
-int      CFlash::getSocketNumber(void) {
-  assert(0);
-  return 0;
-}
+//int      CFlash::getSocketNumber(void) {
+//  assert(0);
+//  return 0;
+//}
 
-ULong      CFlash::vppStatus(void) {
-  assert(0);
-  return 0;
-}
+//ULong      CFlash::vppStatus(void) {
+//  assert(0);
+//  return 0;
+//}
 
-ULong      CFlash::vppRisingTime(void) {
-  assert(0);
-  return 0;
-}
+//ULong      CFlash::vppRisingTime(void) {
+//  assert(0);
+//  return 0;
+//}
 
-void      CFlash::flashSpecific(ULong, void*, ULong) {
-  assert(0);
-}
+//void      CFlash::flashSpecific(ULong, void*, ULong) {
+//  assert(0);
+//}
 
-NewtonErr  CFlash::initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CFlash::suspendService(void) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::suspendService(void) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CFlash::resumeService(CCardSocket*, CCardPCMCIA*, ULong) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::resumeService(CCardSocket*, CCardPCMCIA*, ULong) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-NewtonErr  CFlash::copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CFlash::copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-bool      CFlash::isVirgin(ZAddr inAddr, size_t inLength) {
-  assert(0);
-  return false;
-}
+//bool      CFlash::isVirgin(ZAddr inAddr, size_t inLength) {
+//  assert(0);
+//  return false;
+//}
 
 
 

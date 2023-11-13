@@ -57,7 +57,7 @@ class CClassInfo;
 MONITOR CClassInfoRegistry;
 
 
-typedef void * (*AllocProcPtr)(void);
+typedef class CProtocol* (*AllocProcPtr)();
 typedef void (*FreeProcPtr)(void *);
 typedef int (*EntryProcPtr)(void);
 
@@ -75,6 +75,11 @@ typedef void * (*CodeProcPtr)(int selector, ...);
 class CProtocol
 {
 public:
+  /// The protocol is already created by CClassInfo::make(), use this to
+  /// initialize the instance
+  virtual CProtocol *make() = 0;
+  virtual const CClassInfo *GetClassInfo() const = 0;
+
 	void			become(const CProtocol * instance);	// forward to an instance
 	void			become(ObjectId inMonitorId);			// forward to a monitor (via kernel id)
 	ObjectId		getMonitorId() const;					// ==> monitor id, or zero
@@ -133,7 +138,8 @@ inline CProtocol::operator ObjectId()
 #else
 #define	PROTOCOL_IMPL_HEADER_MACRO(name) \
 	static size_t sizeOf(void); \
-	static const CClassInfo * classInfo(void);
+	static const CClassInfo * classInfo(void); \
+  const CClassInfo *GetClassInfo() const override { return name::classInfo(); }
 #endif /*forARM*/
 
 /*
@@ -170,7 +176,7 @@ public:
 	const char *	interfaceName(void)			const;	// name of public interface
 	const char *	signature(void)				const;	// signature (actually, capability list)
 	size_t			size(void)						const;	// instance size
-  void        makeAt(const void *)      const;  // construct an instance at the address
+  void        makeAt(CProtocol*) const;  // construct an instance at the address
 	EntryProcPtr	entryProc(void)				const;	// return address of monitor entry proc
 	AllocProcPtr	allocProc(void)				const;	// return address of OperatorNew() proc, or nil
 	FreeProcPtr		freeProc(void)					const;	// return address of OperatorDelete() proc, or nil
@@ -185,7 +191,7 @@ public:
 	const char *	getCapability(ULong inIdentifier)	const;	// test if protocol has a specific capability, return it
 	bool				hasInstances(ArrayIndex * outCount)	const; 	// return true if instances of this protocol exist, count = number of them
 
-private:
+//private:
 	friend class CProtocol;
 	friend size_t PrivateClassInfoSize(const CClassInfo *);	// for pre jump table use
 	friend void PrivateClassInfoMakeAt(const CClassInfo *, const void * proto);
@@ -200,13 +206,17 @@ private:
 	*/
 #if __LP64__
 	int32_t			fReserved1;					// (reserved for future use, zero for now)
-	int32_t			fNameDelta;					// SRO (Self-Relative-Offset) to asciz implementation name
-	int32_t			fInterfaceDelta;			// SRO to asciz protocol name
-	int32_t			fSignatureDelta;			// SRO to asciz signature
+  const char *fName = nullptr;
+//	int32_t			fNameDelta;					// SRO (Self-Relative-Offset) to asciz implementation name
+  const char *fInterfaceName = nullptr;
+//	int32_t			fInterfaceDelta;			// SRO to asciz protocol name
+  const char *fSignature = nullptr;
+//	int32_t			fSignatureDelta;			// SRO to asciz signature
 	int32_t			fBTableDelta;				// SRO to dispatch table
 	int32_t			fEntryProcDelta;			// SRO to monitor entry (valid only for monitors)
 	uint32_t			fSizeofBranch;				// offset to sizeof-code
-	uint32_t			fAllocBranch;				// offset to alloc-code, or zero
+  //  uint32_t      fAllocBranch;        // offset to alloc-code, or zero
+  AllocProcPtr  fAllocProc = nullptr;
 	uint32_t			fFreeBranch;				// offset to OperatorDelete code, or zero
 	uint32_t			fDefaultNewBranch;		// offset to New(void), or MOV PC,LK
 	uint32_t			fDefaultDeleteBranch;	// offset to Delete(void), or MOV PC,LK
@@ -270,7 +280,7 @@ public:
 	static CClassInfoRegistry * make(const char * inName);	// was New()
 	void			destroy(void);											// was Delete()
 
-	NewtonErr	registerProtocol(const CClassInfo *, ULong refCon = 0);
+  virtual NewtonErr	registerProtocol(const CClassInfo *, ULong refCon = 0) = 0;
 	NewtonErr	deregisterProtocol(const CClassInfo *, bool specific = false);
 	bool			isProtocolRegistered(const CClassInfo *, bool specific = false) const;
 #if defined(correct)
@@ -279,13 +289,13 @@ public:
 	const CClassInfo *	next(int seed, const CClassInfo * from, ULong * pRefCon=0) const;
 	const CClassInfo *	find(const char * intf, const char * impl, int skipCount, ULong * pRefCon=0) const;
 #endif
-	const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const;
+  virtual const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const = 0;
 	//	2.0 calls
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const;
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const;
 	const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const;
 
-	void			updateInstanceCount(const CClassInfo * classinfo, int adjustment);
+  virtual void updateInstanceCount(const CClassInfo * classinfo, int adjustment) = 0;
 	ArrayIndex	getInstanceCount(const CClassInfo * classinfo);
 };
 
