@@ -599,6 +599,7 @@ PHammerInTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN19PHammerInTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN19PHammerInTranslator4makeEv - 4b	\n"
 //"		.long		__ZN19PHammerInTranslator7destroyEv - 4b	\n"
@@ -748,6 +749,7 @@ PHammerOutTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN20PHammerOutTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN20PHammerOutTranslator4makeEv - 4b	\n"
 //"		.long		__ZN20PHammerOutTranslator7destroyEv - 4b	\n"
@@ -961,6 +963,7 @@ PNullInTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN17PNullInTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN17PNullInTranslator4makeEv - 4b	\n"
 //"		.long		__ZN17PNullInTranslator7destroyEv - 4b	\n"
@@ -1068,6 +1071,7 @@ PNullOutTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN18PNullOutTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN18PNullOutTranslator4makeEv - 4b	\n"
 //"		.long		__ZN18PNullOutTranslator7destroyEv - 4b	\n"
@@ -1223,6 +1227,7 @@ PStdioInTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN18PStdioInTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN18PStdioInTranslator4makeEv - 4b	\n"
 //"		.long		__ZN18PStdioInTranslator7destroyEv - 4b	\n"
@@ -1363,6 +1368,7 @@ PStdioOutTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // override:
 //"		.long		__ZN19PStdioOutTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN19PStdioOutTranslator4makeEv - 4b	\n"
 //"		.long		__ZN19PStdioOutTranslator7destroyEv - 4b	\n"

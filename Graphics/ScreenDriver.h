@@ -55,8 +55,8 @@ public:
 	PROTOCOL_IMPL_HEADER_MACRO(CMainDisplayDriver)
 	CAPABILITIES( "four" "" )
 
-	CMainDisplayDriver *	make(void);
-	void			destroy(void);
+	CMainDisplayDriver *	make(void) override;
+	void			destroy(void) override;
 
 	void	screenSetup(void);
 	void	getScreenInfo(ScreenInfo * outInfo);

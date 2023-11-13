@@ -52,53 +52,53 @@ PROTOCOL CFlash : public CProtocol
 {
 public:
 	static CFlash *	make(const char * inName);
-	void			destroy(void);
+	virtual void			destroy(void) = 0;
 
 	virtual NewtonErr	read(ZAddr inAddr, size_t inLength, char * inBuffer) = 0;
 	virtual NewtonErr	write(ZAddr inAddr, size_t inLength, char * inBuffer) = 0;
 
-	NewtonErr	erase(ZAddr);
-	void			suspendErase(ULong, ULong, ULong);
-	void			resumeErase(ULong);
+	virtual NewtonErr	erase(ZAddr) = 0;
+  virtual void			suspendErase(ULong, ULong, ULong) = 0;
+  virtual void			resumeErase(ULong) = 0;
 
-	void			deepSleep(ULong);
-	void			wakeup(ULong);
-	NewtonErr	status(ULong);
+	virtual void			deepSleep(ULong) = 0;
+	virtual void			wakeup(ULong) = 0;
+	virtual NewtonErr	status(ULong) = 0;
 
-	void			resetCard(void);
+	virtual void			resetCard(void) = 0;
 	virtual void acknowledgeReset(void) = 0;
-	void			getPhysResource(void);
-	void			registerClientInfo(ULong);
+	virtual void			getPhysResource(void) = 0;
+	virtual void			registerClientInfo(ULong) = 0;
 
-	void			getWriteProtected(bool * outWP);
-	void			getWriteErrorAddress(void);
+  virtual void			getWriteProtected(bool * outWP) = 0;
+  virtual void			getWriteErrorAddress(void) = 0;
 	virtual ULong getAttributes(void) = 0;
-	ULong			getDataOffset(void);
+  virtual ULong			getDataOffset(void) = 0;
 	virtual size_t getTotalSize(void) = 0;
-	size_t		getGroupSize(void);
+  virtual size_t		getGroupSize(void) = 0;
 	virtual size_t getEraseRegionSize(void) = 0;
 
-	ULong			getChipsPerGroup(void);
-	ULong			getBlocksPerPartition(void);
+	virtual ULong			getChipsPerGroup(void) = 0;
+	virtual ULong			getBlocksPerPartition(void) = 0;
 
-	ULong			getMaxConcurrentVppOps(void);
-	ULong			getEraseRegionCurrent(void);
-	ULong			getWriteRegionCurrent(void);
-	ULong			getEraseRegionTime(void);
-	ULong			getWriteAccessTime(void);
-	ULong			getReadAccessTime(void);
+  virtual ULong			getMaxConcurrentVppOps(void) = 0;
+  virtual ULong			getEraseRegionCurrent(void) = 0;
+  virtual ULong			getWriteRegionCurrent(void) = 0;
+  virtual ULong			getEraseRegionTime(void) = 0;
+  virtual ULong			getWriteAccessTime(void) = 0;
+  virtual ULong			getReadAccessTime(void) = 0;
 
-	ULong			getVendorInfo(void);
-	int			getSocketNumber(void);
+	virtual ULong			getVendorInfo(void) = 0;
+	virtual int			getSocketNumber(void) = 0;
 
-	ULong			vppStatus(void);
-	ULong			vppRisingTime(void);
+  virtual ULong			vppStatus(void) = 0;
+  virtual ULong			vppRisingTime(void) = 0;
 
-	void			flashSpecific(ULong, void*, ULong);
+  virtual void			flashSpecific(ULong, void*, ULong) = 0;
 
-	NewtonErr	initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong);
-	NewtonErr	suspendService(void);
-	NewtonErr	resumeService(CCardSocket*, CCardPCMCIA*, ULong);
+  virtual NewtonErr	initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong) = 0;
+  virtual NewtonErr	suspendService(void) = 0;
+  virtual NewtonErr	resumeService(CCardSocket*, CCardPCMCIA*, ULong) = 0;
 
   virtual NewtonErr	copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength) = 0;
   virtual bool isVirgin(ZAddr inAddr, size_t inLength) = 0;
@@ -115,10 +115,10 @@ PROTOCOL CNewInternalFlash : public CFlash
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CNewInternalFlash)
-
-	CNewInternalFlash *	make(void);
-	void			destroy(void);
+	CNewInternalFlash *	make(void) override;
+	void			destroy(void) override;
 
 // ---- initialization
 	enum eInitHWOption
@@ -132,61 +132,72 @@ public:
 		kEraseSync
 	};
 
+    // -- inherited from CFlash
+
+    //"    .long    __ZN17CNewInternalFlash9vppStatusEv - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash13vppRisingTimeEv - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash13flashSpecificEjPvj - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash10initializeEP11CCardSocketP11CCardPCMCIAjj - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash14suspendServiceEv - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash13resumeServiceEP11CCardSocketP11CCardPCMCIAj - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash4copyEjjm - 4b  \n"
+    //"    .long    __ZN17CNewInternalFlash8isVirginEjm - 4b  \n"
+    NewtonErr  read(ZAddr inAddr, size_t inLength, char * inBuffer) override;
+    NewtonErr  write(ZAddr inAddr, size_t inLength, char * inBuffer) override;
+
+    NewtonErr  erase(ZAddr) override;
+    void      suspendErase(ULong, ULong, ULong) override;
+    void      resumeErase(ULong) override;
+
+    void      deepSleep(ULong) override;
+    void      wakeup(ULong) override;
+    NewtonErr  status(ULong) override;
+
+    void      resetCard(void) override;
+    void      acknowledgeReset(void) override;
+    void      getPhysResource(void) override;
+    void      registerClientInfo(ULong) override;
+
+    void      getWriteProtected(bool * outWP) override;
+    void      getWriteErrorAddress(void) override;
+    ULong      getAttributes(void) override;
+    ULong      getDataOffset(void) override;
+    size_t    getTotalSize(void) override;
+    size_t    getGroupSize(void) override;
+    size_t    getEraseRegionSize(void) override;
+
+    ULong      getChipsPerGroup(void) override;
+    ULong      getBlocksPerPartition(void) override;
+
+    ULong      getMaxConcurrentVppOps(void) override;
+    ULong      getEraseRegionCurrent(void) override;
+    ULong      getWriteRegionCurrent(void) override;
+    ULong      getEraseRegionTime(void) override;
+    ULong      getWriteAccessTime(void) override;
+    ULong      getReadAccessTime(void) override;
+
+    ULong      getVendorInfo(void) override;
+    int      getSocketNumber(void) override;
+
+    ULong      vppStatus(void) override;
+    ULong      vppRisingTime(void) override;
+
+    void      flashSpecific(ULong, void*, ULong) override;
+
+    NewtonErr  initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong) override;
+    NewtonErr  suspendService(void) override;
+    NewtonErr  resumeService(CCardSocket*, CCardPCMCIA*, ULong) override;
+
+    NewtonErr  copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength) override;
+    bool      isVirgin(ZAddr inAddr, size_t inLength) override;
+    // -- end of protocol
+
 	NewtonErr	init(CMemoryAllocator * inAllocator);
 	NewtonErr	internalInit(CMemoryAllocator * inAllocator, eInitHWOption inOptions);
 	NewtonErr	initializeState(CMemoryAllocator * inAllocator, eInitHWOption inOptions);
-// ----
-
-	NewtonErr	read(ZAddr inAddr, size_t inLength, char * inBuffer);
-	NewtonErr	write(ZAddr inAddr, size_t inLength, char * inBuffer);
 
 	void			clobber(void);
 	void			cleanUp(void);
-	NewtonErr	erase(PAddr);
-	void			suspendErase(ULong, ULong, ULong);
-	void			resumeErase(ULong);
-
-	void			deepSleep(ULong);
-	void			wakeup(ULong);
-	NewtonErr	status(ULong);
-
-	void			resetCard(void);
-	void			acknowledgeReset(void);
-	void			getPhysResource(void);
-	void			registerClientInfo(ULong);
-
-	void			getWriteProtected(bool * outWP);
-	void			getWriteErrorAddress(void);
-	ULong			getAttributes(void);
-	ULong			getDataOffset(void);
-	size_t		getTotalSize(void);
-	size_t		getGroupSize(void);
-	size_t		getEraseRegionSize(void);
-
-	ULong			getChipsPerGroup(void);
-	ULong			getBlocksPerPartition(void);
-
-	ULong			getMaxConcurrentVppOps(void);
-	ULong			getEraseRegionCurrent(void);
-	ULong			getWriteRegionCurrent(void);
-	ULong			getEraseRegionTime(void);
-	ULong			getWriteAccessTime(void);
-	ULong			getReadAccessTime(void);
-
-	ULong			getVendorInfo(void);
-	int			getSocketNumber(void);
-
-	ULong			vppStatus(void);
-	ULong			vppRisingTime(void);
-
-	void			flashSpecific(ULong, void*, ULong);
-
-	NewtonErr	initialize(CCardSocket*, CCardPCMCIA*, ULong, ULong);
-	NewtonErr	suspendService(void);
-	NewtonErr	resumeService(CCardSocket*, CCardPCMCIA*, ULong);
-
-	NewtonErr	copy(ZAddr inFromAddr, ZAddr inToAddr, size_t inLength);
-	bool			isVirgin(ZAddr inAddr, size_t inLength);
 
 private:
 	friend class CFlashRange;

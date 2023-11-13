@@ -144,6 +144,7 @@ CNewInternalFlash::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN17CNewInternalFlash9classInfoEv - 4b	\n"
 //"		.long		__ZN17CNewInternalFlash4makeEv - 4b	\n"
 //"		.long		__ZN17CNewInternalFlash7destroyEv - 4b	\n"
@@ -940,7 +941,7 @@ CNewInternalFlash::syncErasePhysicalBlock(PAddr inAddr)
 
 
 NewtonErr
-CNewInternalFlash::erase(PAddr inAddr)
+CNewInternalFlash::erase(ZAddr inAddr)
 {
 //	CULockingSemaphoreGrabber grab(fSemaphore);
 	NewtonErr err;

@@ -38,10 +38,10 @@ PROTOCOL PUnflattenPtr : public PFrameSource
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PUnflattenPtr)
 
-	PUnflattenPtr *	make(void);
-	void			destroy(void);
+	PUnflattenPtr *	make(void) override;
+	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback);
+	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct UnflattenPtrParms
@@ -62,10 +62,10 @@ PROTOCOL PUnflattenRef : public PFrameSource
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PUnflattenRef)
 
-	PUnflattenRef *	make(void);
-	void			destroy(void);
+	PUnflattenRef *	make(void) override;
+	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback);
+	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct UnflattenRefParms
@@ -86,10 +86,10 @@ PROTOCOL PStreamInRef : public PFrameSource
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PStreamInRef)
 
-	PStreamInRef *	make(void);
-	void			destroy(void);
+	PStreamInRef *	make(void) override;
+	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback);
+	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 class CEndpoint;
@@ -137,10 +137,10 @@ PROTOCOL PFlattenPtr : public PFrameSink
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PFlattenPtr)
 
-	PFlattenPtr *	make(void);
-	void			destroy(void);
+	PFlattenPtr *	make(void) override;
+	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback);
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct FlattenPtrParms
@@ -164,10 +164,10 @@ PROTOCOL PFlattenRef : public PFrameSink
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PFlattenRef)
 
-	PFlattenRef *	make(void);
-	void			destroy(void);
+	PFlattenRef *	make(void) override;
+	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback);
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct FlattenRefParms
@@ -187,10 +187,10 @@ PROTOCOL PStreamOutRef : public PFrameSink
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PStreamOutRef)
 
-	PStreamOutRef *	make(void);
-	void			destroy(void);
+	PStreamOutRef *	make(void) override;
+	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback);
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct StreamOutParms

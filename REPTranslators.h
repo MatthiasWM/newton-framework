@@ -34,12 +34,13 @@ PROTOCOL PInTranslator : public CProtocol
 {
 public:
 	static PInTranslator *	make(const char * inName);
+  // -- inherited for CProtocol
 	void			destroy(void);
-
+  // -- added for PInTranslator
 	virtual NewtonErr	init(void * inContext) = 0;
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	virtual Timeout		idle(void) = 0;
+	virtual bool			frameAvailable(void) = 0;
+	virtual Ref			produceFrame(int inLevel) = 0;
 };
 
 
@@ -52,15 +53,16 @@ PROTOCOL PHammerInTranslator : public PInTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PHammerInTranslator)
-
-	PHammerInTranslator *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	PHammerInTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited PInTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	bool			frameAvailable(void) override;
+	Ref			produceFrame(int inLevel) override;
+    // -- end of protocol
 
 private:
 	FILE *	fileRef;
@@ -80,15 +82,15 @@ PROTOCOL PNullInTranslator : public PInTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PNullInTranslator)
-
-	PNullInTranslator *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	PNullInTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from PInTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	bool			frameAvailable(void) override;
+	Ref			produceFrame(int inLevel) override;
 };
 
 
@@ -101,15 +103,16 @@ PROTOCOL PStdioInTranslator : public PInTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PStdioInTranslator)
-
-	PStdioInTranslator *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	PStdioInTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from PInTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	bool			frameAvailable(void) override;
+	Ref			produceFrame(int inLevel) override;
+    // -- end of protocol
 
 private:
 	FILE *	fileRef;
@@ -128,22 +131,22 @@ PROTOCOL POutTranslator : public CProtocol
 {
 public:
 	static POutTranslator *	make(const char * inName);
-	void			destroy(void);
+	void			destroy(void) override;
 
 	virtual NewtonErr	init(void * inContext) = 0;
-	Timeout		idle(void);
+	virtual Timeout		idle(void) = 0;
 	virtual void consumeFrame(RefArg inObj, int inDepth, int indent) = 0;
 	virtual void prompt(int inLevel) = 0;
   virtual int print(const char * inFormat, ...) = 0;
 	virtual int	vprint(const char * inFormat, va_list args) = 0;	// not in original, but required for REPprintf
-	int			putc(int inCh);
+	virtual int			putc(int inCh) = 0;
 	virtual void flush(void) = 0;
 
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
+	virtual void			enterBreakLoop(int) = 0;
+	virtual void			exitBreakLoop(void) = 0;
 
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	virtual void			stackTrace(void * interpreter) = 0;
+	virtual void			exceptionNotify(Exception * inException) = 0;
 };
 
 
@@ -156,25 +159,26 @@ PROTOCOL PHammerOutTranslator : public POutTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PHammerOutTranslator)
+	PHammerOutTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from POutTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+	void			prompt(int inLevel) override;
+	int			print(const char * inFormat, ...) override;
+	int			vprint(const char * inFormat, va_list args) override;
+	int			putc(int inCh) override;
+	void			flush(void) override;
 
-	PHammerOutTranslator *	make(void);
-	void			destroy(void);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
-	void			flush(void);
-
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
-
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
+    // -- end of protocol
 
 private:
 	FILE *	fileRef;
@@ -191,25 +195,27 @@ PROTOCOL PNullOutTranslator : public POutTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inhertied from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PNullOutTranslator)
+	PNullOutTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from POutTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+  void      prompt(int inLevel) override;
+  int      print(const char * inFormat, ...) override;
+  int      vprint(const char * inFormat, va_list args) override;
+  int      putc(int inCh) override;
 
-	PNullOutTranslator *	make(void);
-	void			destroy(void);
+	void			flush(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			flush(void);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
-
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
+    // -- end of protocol
 
 private:
 
@@ -226,25 +232,26 @@ PROTOCOL PStdioOutTranslator : public POutTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- override from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PStdioOutTranslator)
+	PStdioOutTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- override from POutTranslator
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+	void			prompt(int inLevel) override;
+	int			print(const char * inFormat, ...) override;
+	int			vprint(const char * inFormat, va_list args) override;
+	int			putc(int inCh) override;
+	void			flush(void) override;
 
-	PStdioOutTranslator *	make(void);
-	void			destroy(void);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
-	void			flush(void);
-
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
-
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
+    // -- end of protocol
 
 private:
 	FILE *	fileRef;

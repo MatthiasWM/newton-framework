@@ -32,14 +32,16 @@ PROTOCOL CUnicodeCompressor : public CCallbackCompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited forom CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CUnicodeCompressor)
-	CUnicodeCompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void *);
-	void			reset(void);
-	NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen);
-	NewtonErr	flush(void);
+	CUnicodeCompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CCallbackCompressor
+	NewtonErr	init(void *) override;
+	void			reset(void) override;
+	NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen) override;
+	NewtonErr	flush(void) override;
+    // -- and of protocol
 
 private:
 	NewtonErr	writeRun(void);
@@ -104,6 +106,7 @@ CUnicodeCompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN18CUnicodeCompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN18CUnicodeCompressor4makeEv - 4b	\n"
 //"		.long		__ZN18CUnicodeCompressor7destroyEv - 4b	\n"
@@ -261,14 +264,15 @@ PROTOCOL CUnicodeDecompressor : public CCallbackDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CUnicodeDecompressor)
-
-	CUnicodeDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void * inContext);
-	void			reset(void);
-	NewtonErr	readChunk(void * inDstBuf, size_t * outDstLen, bool * outDone);
+	CUnicodeDecompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CCallbackDecompressor
+	NewtonErr	init(void * inContext) override;
+	void			reset(void) override;
+	NewtonErr	readChunk(void * inDstBuf, size_t * outDstLen, bool * outDone) override;
+    // -- end of protocol
 
 private:
 	friend CCallbackDecompressor * NewDecompressor(CompressionType inCompression, ReadProcPtr inReader, VAddr instance);
@@ -327,6 +331,7 @@ CUnicodeDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified;
 //"		.long		__ZN20CUnicodeDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN20CUnicodeDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN20CUnicodeDecompressor7destroyEv - 4b	\n"

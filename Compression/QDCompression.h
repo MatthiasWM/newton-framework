@@ -31,19 +31,18 @@ PROTOCOL CPixelMapCompander : public CStoreCompander
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CPixelMapCompander)
-	CAPABILITIES( "CLZDecompressor" ""
-					  "CLZCompressor" "" )
-
-	CPixelMapCompander *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(CStore * inStore, PSSId inRootId, PSSId inParmsId, bool inShared, bool inArg5);
-	size_t		blockSize(void);
-	NewtonErr	read(size_t inOffset, char * outBuf, size_t inBufLen, VAddr inArg4);
-	NewtonErr	write(size_t inOffset, char * inBuf, size_t inBufLen, VAddr inArg4);
-	NewtonErr	doTransactionAgainst(int, ULong);
-	bool			isReadOnly(void);
+	CPixelMapCompander *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreCompander
+	NewtonErr	init(CStore * inStore, PSSId inRootId, PSSId inParmsId, bool inShared, bool inArg5) override;
+	size_t		blockSize(void) override;
+	NewtonErr	read(size_t inOffset, char * outBuf, size_t inBufLen, VAddr inArg4) override;
+	NewtonErr	write(size_t inOffset, char * inBuf, size_t inBufLen, VAddr inArg4) override;
+	NewtonErr	doTransactionAgainst(int, ULong) override;
+	bool			isReadOnly(void) override;
+    // -- end of protocol
 
 private:
 	void			disposeAllocations(void);

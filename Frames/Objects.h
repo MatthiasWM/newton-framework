@@ -66,7 +66,8 @@ enum
 	O b j e c t   T a g   F u n c t i o n s
 ------------------------------------------------------------------------------*/
 
-#define	MAKEINT(i)				(((long) (i)) << kRefTagBits)
+// CLANG: Shifting a negative signed value is undefined
+#define MAKEINT(i)          ((Ref)(((unsigned long)i)<<kRefTagBits))
 #define	MAKEIMMED(t, v)		((((((long) (v)) << kRefImmedBits) | ((long) (t))) << kRefTagBits) | kTagImmed)
 #define	MAKECHAR(c)				MAKEIMMED(kImmedChar, (unsigned) c)
 #define	MAKEBOOLEAN(b)			(b ? TRUEREF : FALSEREF)
@@ -98,10 +99,10 @@ enum
 #define	FUNCKIND(r)		(((unsigned) r) >> 8)
 
 #define	RTAG(r)			(((Ref) (r)) & kRefTagMask)
-#define	RVALUE(r)		(((Ref) (r)) >> kRefTagBits)
+#define RVALUE(r)           (((long)r)/(1<<kRefTagBits))
 #define	RIMMEDTAG(r)	(RVALUE(r) & ~kRefImmedMask)
 #define	RIMMEDVALUE(r)	(RVALUE(r) >> kRefImmedBits)
-#define	ISINT(r)			(RTAG(r) == kTagInteger)
+#define	ISINT(r)            (RTAG(r) == kTagInteger)
 #define	NOTINT(r)		(RTAG(r) != kTagInteger)
 #define	ISPTR(r)			((((Ref) (r)) & kTagPointer) != 0)
 #define	ISREALPTR(r)	(RTAG(r) == kTagPointer)

@@ -54,16 +54,15 @@ PROTOCOL CSoundCodec : public CProtocol
 {
 public:
 	static CSoundCodec *	make(const char * inName);
-	void			destroy(void);
+	void			destroy(void) override;
 
-	NewtonErr	init(CodecBlock * inParms);
-	NewtonErr	reset(CodecBlock * inParms);
-	NewtonErr	produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, CodecBlock * ioParms);
-	NewtonErr	consume(const void * inBuf, size_t * ioBufSize, size_t * outDataSize, const CodecBlock * inParms);
-	void			start(void);
-	void			stop(int);
-	bool			bufferCompleted(void);
+	virtual NewtonErr	init(CodecBlock * inParms) = 0;
+  virtual NewtonErr	reset(CodecBlock * inParms) = 0;
+	virtual NewtonErr	produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, CodecBlock * ioParms) = 0;
+	virtual NewtonErr	consume(const void * inBuf, size_t * ioBufSize, size_t * outDataSize, const CodecBlock * inParms) = 0;
+	virtual void			start(void) = 0;
+	virtual void			stop(int) = 0;
+	virtual bool			bufferCompleted(void) = 0;
 };
-
 
 #endif	/* __SOUNDCODEC_H */

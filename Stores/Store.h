@@ -30,8 +30,9 @@ PROTOCOL CStore : public CProtocol
 // will consider this store as non-valid.
 public:
 	static CStore *make(const char * inName);
-	void			destroy(void);
-
+  // -- inherited for CProtocol
+	void			destroy(void) override;
+  // -- added for CStore
 	virtual NewtonErr	init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inPSSInfo) = 0;
 				// Initializes the store with the SPSSInfo (inPSSInfo)
 				// Flags are used by TFlashStore to determine if the store is on SRAM, Flash card or Internal Flash
@@ -69,27 +70,27 @@ public:
 				// There is normally a lock store counter.
 				// This counter is increased with LockStore and decreased with UnlockStore.
 
-	NewtonErr	abort(void);
+  virtual NewtonErr	abort(void) = 0;
 				// Aborts the current transaction.
-	NewtonErr	idle(bool * outArg1, bool * outArg2);
+  virtual NewtonErr	idle(bool * outArg1, bool * outArg2) = 0;
 				// TFlashStore does nothing.
 
-	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId);
+  virtual NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId) = 0;
 				// Suspect PSSIds are actually VAddrs
 				// TPackageStore sets outNextObjectId to 0.
 				// Both TFlashStore (which does not set *outObject) and TPackageStore return noErr.
 				// This isn't really implemented anywhere.
-	NewtonErr	checkIntegrity(ULong * inArg1);
+  virtual NewtonErr	checkIntegrity(ULong * inArg1) = 0;
 				//	Both TFlashStore and TPackageStore return noErr
 				// This isn't really implemented anywhere.
 
-	NewtonErr	setBuddy(CStore * inStore);
+  virtual NewtonErr	setBuddy(CStore * inStore) = 0;
 				// TMuxStore calls inherited. Both TFlashStore and TPackageStore return noErr
-	bool			ownsObject(PSSId inObjectId);
+  virtual bool			ownsObject(PSSId inObjectId) = 0;
 				// TMuxStore only. Both TFlashStore and TPackageStore return true.
-	VAddr			address(PSSId inObjectId);
+  virtual VAddr			address(PSSId inObjectId) = 0;
 				// TMuxStore calls inherited. Both TFlashStore and TPackageStore return 0.
-	const char * storeKind(void);
+  virtual const char * storeKind(void) = 0;
 				// Returns a CString representation of the store kind (e.g. "Internal", "Package")
 	virtual NewtonErr	setStore(CStore * inStore, ObjectId inEnvironment) = 0;
 				// TMuxStore only. Both TFlashStore and TPackageStore return noErr
@@ -102,25 +103,25 @@ public:
 				// A ROM Flash Card is an application card. TPackageStore returns true.
 
 // Power management
-	NewtonErr	vppOff(void);
+  virtual NewtonErr	vppOff(void) = 0;
 				// TFlashStore powers off the card, whatever the power level is.
-	NewtonErr	sleep(void);
+  virtual NewtonErr	sleep(void) = 0;
 				// TMuxStore calls inherited. Both TFlashStore and TPackageStore return noErr
 
-	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize);
+  virtual NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize) = 0;
 				// TPackageStore calls NewObject.
 				// Starts a transaction against this new object.
-	NewtonErr	startTransactionAgainst(PSSId inObjectId);
+  virtual NewtonErr	startTransactionAgainst(PSSId inObjectId) = 0;
 				// Start a transaction against the given object.
-	NewtonErr	separatelyAbort(PSSId inObjectId);
-	NewtonErr	addToCurrentTransaction(PSSId inObjectId);
-	bool			inSeparateTransaction(PSSId inObjectId);
+  virtual NewtonErr	separatelyAbort(PSSId inObjectId) = 0;
+  virtual NewtonErr	addToCurrentTransaction(PSSId inObjectId) = 0;
+  virtual bool			inSeparateTransaction(PSSId inObjectId) = 0;
 
-	NewtonErr	lockReadOnly(void);
+  virtual NewtonErr	lockReadOnly(void) = 0;
 				// TFlashStore increases a counter. TPackageStore returns noErr
-	NewtonErr	unlockReadOnly(bool inReset);
+  virtual NewtonErr	unlockReadOnly(bool inReset) = 0;
 				// TFlashStore decreases a counter or resets it to zero if inReset. TPackageStore returns noErr
-	bool			inTransaction(void);
+  virtual bool			inTransaction(void) = 0;
 
 // The following entries are not in the jumptable, hence you can't call them (but the system may rely on them)
 
@@ -129,9 +130,9 @@ public:
 	virtual NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize) = 0;
 
 //	eXecute-In-Place
-	NewtonErr	calcXIPObjectSize(long inArg1, long inArg2, long * outArg3);
-	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize);
-	NewtonErr	getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned long * outArg3, unsigned long * outArg4);
+  virtual NewtonErr	calcXIPObjectSize(long inArg1, long inArg2, long * outArg3) = 0;
+  virtual NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize) = 0;
+  virtual NewtonErr	getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned long * outArg3, unsigned long * outArg4) = 0;
 
 };
 

@@ -128,27 +128,42 @@ PROTOCOL PStringOutTranslator : public POutTranslator
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(PStringOutTranslator)
+	PStringOutTranslator *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from POutTranslator
+    //"    .long    __ZN20PStringOutTranslator4initEPv - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator4idleEv - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator12consumeFrameERK6RefVarii - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator6promptEi - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator5printEPKcz - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator6vprintEPKcP13__va_list_tag - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator4putcEi - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator5flushEv - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator14enterBreakLoopEi - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator13exitBreakLoopEv - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator10stackTraceEPv - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator15exceptionNotifyEP9Exception - 4b  \n"
+    //"    .long    __ZN20PStringOutTranslator6stringEv - 4b  \n"
 
-	PStringOutTranslator *	make(void);
-	void			destroy(void);
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+	void			prompt(int inLevel) override;
+	int			print(const char * inFormat, ...) override;
+	int			vprint(const char * inFormat, va_list args) override;
+	int			putc(int inCh) override;
+	void			flush(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
-	void			flush(void);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
-
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
-
-	const char * string(void);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
+    // -- new for PStringOutTranslator
+	virtual const char * string(void);
+    // -- end of protocol
 
 private:
 	void			realloc(void);
@@ -2097,6 +2112,7 @@ PStringOutTranslator::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN20PStringOutTranslator9classInfoEv - 4b	\n"
 //"		.long		__ZN20PStringOutTranslator4makeEv - 4b	\n"
 //"		.long		__ZN20PStringOutTranslator7destroyEv - 4b	\n"

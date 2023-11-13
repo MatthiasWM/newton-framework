@@ -19,16 +19,17 @@ void	InitZippyDecompression(void);
 PROTOCOL CZippyCallbackCompressor : public CCallbackCompressor
 	PROTOCOLVERSION(1.0)
 {
-public:
-	PROTOCOL_IMPL_HEADER_MACRO(CZippyCallbackCompressor)
+  public:
+    PROTOCOL_IMPL_HEADER_MACRO(CZippyCallbackCompressor)
 
-	CZippyCallbackCompressor *	make(void);
-	void			destroy(void);
+    CZippyCallbackCompressor *	make(void) override;
+    void			destroy(void) override;
 
-	NewtonErr	init(void *);
-	void			reset(void);
-	NewtonErr	writeChunk(void*, long);
-	NewtonErr	flush(void);
+    NewtonErr	init(void *) override;
+    void			reset(void) override;
+    NewtonErr	flush(void) override;
+
+    NewtonErr  writeChunk(void*, long);
 };
 
 
@@ -40,12 +41,12 @@ PROTOCOL CZippyCompressor : public CCompressor
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CZippyCompressor)
 
-	CZippyCompressor *	make(void);
-	void			destroy(void);
+	CZippyCompressor *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void *);
-	NewtonErr	compress(size_t *, void*, size_t, void*, size_t);
-	size_t		estimatedCompressedSize(void*, size_t);
+	NewtonErr	init(void *) override;
+	NewtonErr	compress(size_t *, void*, size_t, void*, size_t) override;
+	size_t		estimatedCompressedSize(void*, size_t) override;
 
 private:
 	NewtonErr	initCache(void);
@@ -98,6 +99,7 @@ CZippyDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified
 //"		.long		__ZN18CZippyDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN18CZippyDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN18CZippyDecompressor7destroyEv - 4b	\n"
@@ -428,6 +430,7 @@ CZippyStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified
 //"		.long		__ZN23CZippyStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN23CZippyStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN23CZippyStoreDecompressor7destroyEv - 4b	\n"
@@ -546,6 +549,7 @@ CZippyRelocStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN28CZippyRelocStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN28CZippyRelocStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN28CZippyRelocStoreDecompressor7destroyEv - 4b	\n"

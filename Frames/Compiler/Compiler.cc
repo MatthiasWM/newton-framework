@@ -1038,7 +1038,7 @@ case 116:
 							if (EQRef(iter.value(), yyvsp[0]))
 							{
 								Str255	str;
-								sprintf(str, "Duplicate argument name: %s\n", SymbolName(yyvsp[0]));
+								snprintf(str, 255, "Duplicate argument name: %s\n", SymbolName(yyvsp[0]));
 								warning(str);
 								break;
 							}
@@ -1056,7 +1056,7 @@ case 117:
 							if (EQRef(iter.value(), yyvsp[-1]))
 							{
 								Str255	str;
-								sprintf(str, "Duplicate argument name: %s\n", SymbolName(yyvsp[-1]));
+								snprintf(str, 255, "Duplicate argument name: %s\n", SymbolName(yyvsp[-1]));
 								warning(str);
 								break;
 							}
@@ -1095,7 +1095,7 @@ case 120:
 							if (EQRef(iter.value(), yyvsp[0]))
 							{
 								Str255	str;
-								sprintf(str, "Duplicate variable name: %s\n", SymbolName(yyvsp[0]));
+								snprintf(str, 255, "Duplicate variable name: %s\n", SymbolName(yyvsp[0]));
 								warning(str);
 								break;
 							}
@@ -1112,7 +1112,7 @@ case 121:
 							if (EQRef(iter.value(), yyvsp[-2]))
 							{
 								Str255	str;
-								sprintf(str, "Duplicate variable name: %s\n", SymbolName(yyvsp[-2]));
+								snprintf(str, 255, "Duplicate variable name: %s\n", SymbolName(yyvsp[-2]));
 								warning(str);
 								break;
 							}
@@ -1158,7 +1158,7 @@ case 130:
 						if (FrameHasSlot(yyval, yyvsp[-2]))
 						{
 							Str255	str;
-							sprintf(str, "duplicate slot name: %s", SymbolName(yyvsp[-2]));
+							snprintf(str, 255, "duplicate slot name: %s", SymbolName(yyvsp[-2]));
 							warning(str);
 						}
 						SetFrameSlot(yyval, yyvsp[-2], yyvsp[0]); }
@@ -1216,7 +1216,7 @@ case 150:
 						if (FrameHasSlot(yyval, yyvsp[-2]))
 						{
 							Str255	str;
-							sprintf(str, "duplicate slot name: %s", SymbolName(yyvsp[-2]));
+							snprintf(str, 255, "duplicate slot name: %s", SymbolName(yyvsp[-2]));
 							warning(str);
 						}
 						SetFrameSlot(yyval, yyvsp[-2], yyvsp[0]); }
@@ -3080,14 +3080,14 @@ CCompiler::syntaxError(const char * msg)
 			what = "illegal symbol";
 
 		if (yychar == TOKENsymbol)
-			sprintf(offender, "%s", SymbolName(theToken.value.ref));
+			snprintf(offender, 63, "%s", SymbolName(theToken.value.ref));
 		else if (yychar == TOKENinteger)
-			sprintf(offender, "%ld", RINT(theToken.value.ref));
+			snprintf(offender, 63, "%ld", RINT(theToken.value.ref));
 		else if (yychar == TOKENreal)
-			sprintf(offender, "%#g", CDouble(theToken.value.ref));
+			snprintf(offender, 63, "%#g", CDouble(theToken.value.ref));
 		else
 			offender[0] = 0;
-		s += sprintf(s, "%s -- read %s %s, but wanted ", msg, what, offender);
+		s += snprintf(s, 511, "%s -- read %s %s, but wanted ", msg, what, offender);
 
 		int r0, expectedCount = 0;
 		for (ArrayIndex i = 0; i <= YYMAXTOKEN; ++i)
@@ -3100,8 +3100,8 @@ CCompiler::syntaxError(const char * msg)
 			   && i == yycheck[r0]))
 			{
 				if (expectedCount++ > 0)
-					s += sprintf(s, ", ");
-				s += sprintf(s, "%s", yyname[i]);
+					s += snprintf(s, 511, ", ");
+				s += snprintf(s, 511, "%s", yyname[i]);
 			}
 		}
 		*s = 0;

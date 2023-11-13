@@ -30,14 +30,15 @@ PROTOCOL CLZCompressor : public CCompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CLZCompressor)
-
-	CLZCompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void * inContext);
-	NewtonErr	compress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
-	size_t		estimatedCompressedSize(void * inSrcBuf, size_t inSrcLen);
+	CLZCompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CCompressor
+	NewtonErr	init(void * inContext) override;
+	NewtonErr	compress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) override;
+	size_t		estimatedCompressedSize(void * inSrcBuf, size_t inSrcLen) override;
+    // -- end of protocol
 
 private:
 	NewtonErr	setHeader(void * inBuf, size_t inBufLen);

@@ -160,6 +160,7 @@ CFlashStore::classInfo(void)
 //"		.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN11CFlashStore9classInfoEv - 4b	\n"
 //"		.long		__ZN11CFlashStore4makeEv - 4b	\n"
 //"		.long		__ZN11CFlashStore7destroyEv - 4b	\n"

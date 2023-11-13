@@ -49,16 +49,16 @@ PROTOCOL CDTMFCodec : public CSoundCodec
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CDTMFCodec)
 
-	CSoundCodec *	make(void);
-	void			destroy(void);
+	CSoundCodec *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(CodecBlock * inParms);
-	NewtonErr	reset(CodecBlock * inParms);
-	NewtonErr	produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, CodecBlock * ioParms);
-	NewtonErr	consume(const void * inBuf, size_t * ioBufSize, size_t * outDataSize, const CodecBlock * inParms);
-	void			start(void);
-	void			stop(int);
-	bool			bufferCompleted(void);
+	NewtonErr	init(CodecBlock * inParms) override;
+	NewtonErr	reset(CodecBlock * inParms) override;
+	NewtonErr	produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, CodecBlock * ioParms) override;
+	NewtonErr	consume(const void * inBuf, size_t * ioBufSize, size_t * outDataSize, const CodecBlock * inParms) override;
+	void			start(void) override;
+	void			stop(int) override;
+	bool			bufferCompleted(void) override;
 
 private:
 	float			fSampleInterval;					// +10	seconds per sample

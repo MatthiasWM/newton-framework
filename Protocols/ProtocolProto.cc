@@ -36,29 +36,29 @@ size_t PrivateClassInfoSize(const CClassInfo * inClass) {
 
 // --------
 
-CClassInfoRegistry * CClassInfoRegistry::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
-
-void      CClassInfoRegistry::destroy(void) {
-  assert(0);
-}
+//CClassInfoRegistry * CClassInfoRegistry::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
+//
+//void      CClassInfoRegistry::destroy(void) {
+//  assert(0);
+//}
 
 //NewtonErr  CClassInfoRegistry::registerProtocol(const CClassInfo *, ULong refCon) {
 //  assert(0);
 //  return kNSErrInternalError;
 //}
 
-NewtonErr  CClassInfoRegistry::deregisterProtocol(const CClassInfo *, bool specific) {
-  assert(0);
-  return kNSErrInternalError;
-}
-
-bool      CClassInfoRegistry::isProtocolRegistered(const CClassInfo *, bool specific) const {
-  assert(0);
-  return true;
-}
+//NewtonErr  CClassInfoRegistry::deregisterProtocol(const CClassInfo *, bool specific) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
+//
+//bool      CClassInfoRegistry::isProtocolRegistered(const CClassInfo *, bool specific) const {
+//  assert(0);
+//  return true;
+//}
 
 //const CClassInfo *  CClassInfoRegistry::satisfy(const char * intf, const char * impl, ULong version) const {
 //  assert(0);

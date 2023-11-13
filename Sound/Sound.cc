@@ -48,6 +48,9 @@ Ref	FSoundPlayEnabled(RefArg inRcvr, RefArg inSound);
 	S o u n d
 ------------------------------------------------------------------------------*/
 
+void CSoundCodec::destroy(void) {
+}
+
 void
 InitSound(void)
 { /* this really does nothing */ }

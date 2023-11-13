@@ -55,6 +55,7 @@ CSimpleStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN24CSimpleStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN24CSimpleStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN24CSimpleStoreDecompressor7destroyEv - 4b	\n"
@@ -156,6 +157,7 @@ CSimpleRelocStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN29CSimpleRelocStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN29CSimpleRelocStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN29CSimpleRelocStoreDecompressor7destroyEv - 4b	\n"
@@ -262,6 +264,7 @@ CSimpleStoreCompander::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN21CSimpleStoreCompander9classInfoEv - 4b	\n"
 //"		.long		__ZN21CSimpleStoreCompander4makeEv - 4b	\n"
 //"		.long		__ZN21CSimpleStoreCompander7destroyEv - 4b	\n"

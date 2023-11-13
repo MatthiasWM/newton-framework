@@ -37,7 +37,7 @@ DumpHex(void * inBuf, size_t inLen)
 	{
 		int x;
 		for (x = 0; x < 32 && y + x < inLen; x++)
-			sprintf(str+x*3, "%02X ", ((unsigned char *)inBuf)[y+x]);
+			snprintf(str+x*3, sizeof(str)-1, "%02X ", ((unsigned char *)inBuf)[y+x]);
 		if (x > 0)
 		{
 			str[x*3] = 0;

@@ -20,13 +20,14 @@ PROTOCOL CSimpleStoreDecompressor : public CStoreDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CSimpleStoreDecompressor)
-
-	CSimpleStoreDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr		init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL);	// original has no inLZWBuffer
-	NewtonErr		read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr);
+	CSimpleStoreDecompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreDecompressor
+	NewtonErr		init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL) override;	// original has no inLZWBuffer
+	NewtonErr		read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) override;
+    // -- end of protocol
 
 private:
 	char *				f10;
@@ -42,13 +43,14 @@ PROTOCOL CSimpleRelocStoreDecompressor : public CStoreDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CSimpleRelocStoreDecompressor)
-
-	CSimpleRelocStoreDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr		init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL);	// original has no inLZWBuffer
-	NewtonErr		read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr);
+	CSimpleRelocStoreDecompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreDecompressor
+	NewtonErr		init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL) override;	// original has no inLZWBuffer
+	NewtonErr		read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) override;
+    // -- end of protocol
 
 private:
 	CStore *				fStore;
@@ -63,17 +65,18 @@ PROTOCOL CSimpleStoreCompander : public CStoreCompander
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CSimpleStoreCompander)
-
-	CSimpleStoreCompander *	make(void);		// constructor
-	void			destroy(void);				// destructor
-
-	NewtonErr	init(CStore * inStore, PSSId inRootId, PSSId inParmsId, bool inShared, bool inArg5);
-	size_t		blockSize(void);
-	NewtonErr	read(size_t inOffset, char * outBuf, size_t inBufLen, VAddr inBaseAddr);
-	NewtonErr	write(size_t inOffset, char * inBuf, size_t inBufLen, VAddr inBaseAddr);
-	NewtonErr	doTransactionAgainst(int, ULong);
-	bool			isReadOnly(void);
+	CSimpleStoreCompander *	make(void) override;		// constructor
+	void			destroy(void) override;				// destructor
+    // -- inherited from CStoreCompander
+	NewtonErr	init(CStore * inStore, PSSId inRootId, PSSId inParmsId, bool inShared, bool inArg5) override;
+	size_t		blockSize(void) override;
+	NewtonErr	read(size_t inOffset, char * outBuf, size_t inBufLen, VAddr inBaseAddr) override;
+	NewtonErr	write(size_t inOffset, char * inBuf, size_t inBufLen, VAddr inBaseAddr) override;
+	NewtonErr	doTransactionAgainst(int, ULong) override;
+	bool			isReadOnly(void) override;
+    // -- end of protocol
 
 private:
 //												// +00	CProtocol fields

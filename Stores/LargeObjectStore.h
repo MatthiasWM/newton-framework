@@ -64,17 +64,18 @@ PROTOCOL CLrgObjStore : public CProtocol
 {
 public:
 	static CLrgObjStore *	make(const char * inName);
-	void			destroy(void);
-
-	NewtonErr	init(void);
-	NewtonErr	create(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback);
-	NewtonErr	createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback);
-	NewtonErr	deleteObject(CStore * inStore, PSSId inId);
-	NewtonErr	duplicate(PSSId * outId, CStore * inStore, PSSId inId, CStore * intoStore);
-	NewtonErr	resize(CStore * inStore, PSSId inId, size_t inSize);
-	size_t		storageSize(CStore * inStore, PSSId inId);
-	size_t		sizeOfStream(CStore * inStore, PSSId inId, bool inCompressed);
-	NewtonErr	backup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed, CLOCallback * inCallback);
+  // -- inherited from CProtocol
+	void			destroy(void) override;
+  // -- added for CLrgObjStore
+	virtual NewtonErr	init(void) = 0;
+	virtual NewtonErr	create(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback) = 0;
+	virtual NewtonErr	createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback) = 0;
+	virtual NewtonErr	deleteObject(CStore * inStore, PSSId inId) = 0;
+	virtual NewtonErr	duplicate(PSSId * outId, CStore * inStore, PSSId inId, CStore * intoStore) = 0;
+	virtual NewtonErr	resize(CStore * inStore, PSSId inId, size_t inSize) = 0;
+	virtual size_t		storageSize(CStore * inStore, PSSId inId) = 0;
+	virtual size_t		sizeOfStream(CStore * inStore, PSSId inId, bool inCompressed) = 0;
+	virtual NewtonErr	backup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed, CLOCallback * inCallback) = 0;
 };
 
 
@@ -85,23 +86,21 @@ public:
 PROTOCOL CLOPackageStore : public CLrgObjStore
 {
 public:
+  // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CLOPackageStore)
-	CAPABILITIES( "CZippyRelocStoreDecompressor" "" "CZippyStoreDecompressor" ""
-					  "CLZRelocStoreDecompressor" "" "CLZStoreDecompressor" ""
-					  "CSimpleRelocStoreDecompressor" "" "CSimpleStoreDecompressor" "" )
-
-	CLOPackageStore *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void);
-	NewtonErr	create(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback);
-	NewtonErr	createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback);
-	NewtonErr	deleteObject(CStore * inStore, PSSId inId);
-	NewtonErr	duplicate(PSSId * outId, CStore * inStore, PSSId inId, CStore * intoStore);
-	NewtonErr	resize(CStore * inStore, PSSId inId, size_t inSize);
-	size_t		storageSize(CStore * inStore, PSSId inId);
-	size_t		sizeOfStream(CStore * inStore, PSSId inId, bool inCompressed);
-	NewtonErr	backup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed, CLOCallback * inCallback);
+	CLOPackageStore *	make(void) override;
+	void			destroy(void) override;
+  // -- inherited from CLrgObjStore
+	NewtonErr	init(void) override;
+	NewtonErr	create(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback) override;
+	NewtonErr	createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, size_t inStreamSize, bool inReadOnly, const char * inCompanderName, void * inCompanderParms, size_t inCompanderParmSize, CLOCallback * inCallback) override;
+	NewtonErr	deleteObject(CStore * inStore, PSSId inId) override;
+	NewtonErr	duplicate(PSSId * outId, CStore * inStore, PSSId inId, CStore * intoStore) override;
+	NewtonErr	resize(CStore * inStore, PSSId inId, size_t inSize) override;
+	size_t		storageSize(CStore * inStore, PSSId inId) override;
+	size_t		sizeOfStream(CStore * inStore, PSSId inId, bool inCompressed) override;
+	NewtonErr	backup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed, CLOCallback * inCallback) override;
+  // end of protocol
 };
 
 // also CXIPPackageStore

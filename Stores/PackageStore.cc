@@ -144,6 +144,7 @@ CPackageStore::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN13CPackageStore9classInfoEv - 4b	\n"
 //"		.long		__ZN13CPackageStore4makeEv - 4b	\n"
 //"		.long		__ZN13CPackageStore7destroyEv - 4b	\n"

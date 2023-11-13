@@ -427,6 +427,7 @@ CLZCompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN13CLZCompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN13CLZCompressor4makeEv - 4b	\n"
 //"		.long		__ZN13CLZCompressor7destroyEv - 4b	\n"

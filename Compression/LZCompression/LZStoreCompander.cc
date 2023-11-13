@@ -127,6 +127,7 @@ CLZStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN20CLZStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN20CLZStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN20CLZStoreDecompressor7destroyEv - 4b	\n"
@@ -248,6 +249,7 @@ CLZRelocStoreDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN25CLZRelocStoreDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN25CLZRelocStoreDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN25CLZRelocStoreDecompressor7destroyEv - 4b	\n"
@@ -375,6 +377,7 @@ CLZStoreCompander::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified
 //"		.long		__ZN17CLZStoreCompander9classInfoEv - 4b	\n"
 //"		.long		__ZN17CLZStoreCompander4makeEv - 4b	\n"
 //"		.long		__ZN17CLZStoreCompander7destroyEv - 4b	\n"

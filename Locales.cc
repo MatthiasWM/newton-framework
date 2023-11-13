@@ -727,7 +727,7 @@ NumberStringSpec(double inNum, UniChar * outStr, ArrayIndex inStrLen, ULong inFm
 		inNum *= 100.0;
 
 //	numOfDecimals = _fp_display(r12, inNum, &sp04, 0x0110, &sp0C, &sp08, &sp04, &sp00);
-	numOfDecimals = sprintf(str, "%#g", inNum);
+	numOfDecimals = snprintf(str, sizeof(str), "%#g", inNum);
 //	str[numOfDecimals] = kEndOfString;
 
 	isNegative = (str[0] == '-');

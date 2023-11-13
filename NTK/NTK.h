@@ -33,13 +33,13 @@ PROTOCOL PSerialInTranslator : public PInTranslator
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PSerialInTranslator)
 
-	PSerialInTranslator *	make(void);
-	void			destroy(void);
+	PSerialInTranslator *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	bool			frameAvailable(void) override;
+	Ref			produceFrame(int inLevel) override;
 
 private:
 	CTaskSafeRingBuffer *	fRingBuf;
@@ -59,23 +59,23 @@ PROTOCOL PSerialOutTranslator : public POutTranslator
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PSerialOutTranslator)
 
-	PSerialOutTranslator *	make(void);
-	void			destroy(void);
+	PSerialOutTranslator *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
-	void			flush(void);
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+	void			prompt(int inLevel) override;
+	int			print(const char * inFormat, ...) override;
+	int			vprint(const char * inFormat, va_list args) override;
+	int			putc(int inCh) override;
+	void			flush(void) override;
 
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
 
 private:
 	CTaskSafeRingBuffer *	fRingBuf;
@@ -104,13 +104,14 @@ PROTOCOL PNTKInTranslator : public PInTranslator
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PNTKInTranslator)
 
-	PNTKInTranslator *	make(void);
-	void			destroy(void);
+	PNTKInTranslator *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	bool			frameAvailable(void);
-	Ref			produceFrame(int inLevel);
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	bool			frameAvailable(void) override;
+	Ref			produceFrame(int inLevel) override;
+
 	void			readHeader(EventType*, size_t*);
 	void			readData(void * inData, size_t inLength);
 	NewtonErr	loadPackage(void);
@@ -136,23 +137,23 @@ PROTOCOL PNTKOutTranslator : public POutTranslator
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PNTKOutTranslator)
 
-	PNTKOutTranslator *	make(void);
-	void			destroy(void);
+	PNTKOutTranslator *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void * inContext);
-	Timeout		idle(void);
-	void			consumeFrame(RefArg inObj, int inDepth, int indent);
-	void			prompt(int inLevel);
-	int			print(const char * inFormat, ...);
-	int			vprint(const char * inFormat, va_list args);
-	int			putc(int inCh);
-	void			flush(void);
+	NewtonErr	init(void * inContext) override;
+	Timeout		idle(void) override;
+	void			consumeFrame(RefArg inObj, int inDepth, int indent) override;
+	void			prompt(int inLevel) override;
+	int			print(const char * inFormat, ...) override;
+	int			vprint(const char * inFormat, va_list args) override;
+	int			putc(int inCh) override;
+	void			flush(void) override;
 
-	void			enterBreakLoop(int);
-	void			exitBreakLoop(void);
+	void			enterBreakLoop(int) override;
+	void			exitBreakLoop(void) override;
 
-	void			stackTrace(void * interpreter);
-	void			exceptionNotify(Exception * inException);
+	void			stackTrace(void * interpreter) override;
+	void			exceptionNotify(Exception * inException) override;
 
 private:
 	friend class CNTKNub;

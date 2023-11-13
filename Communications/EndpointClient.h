@@ -87,10 +87,10 @@ PROTOCOL PScriptDataIn : public PFrameSource
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PScriptDataIn)
 
-	PScriptDataIn *	make(void);
-	void			destroy(void);
+	PScriptDataIn *	make(void) override;
+	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback);
+	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
 
 private:
 	Ref			parseInput(FormType inType, long, long, UChar * inBuf, RefArg, NewtonErr * outErr);
@@ -116,10 +116,10 @@ PROTOCOL POptionDataIn : public PFrameSource
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(POptionDataIn)
 
-	POptionDataIn *	make(void);
-	void			destroy(void);
+	POptionDataIn *	make(void) override;
+	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback);
+	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct OptionDataInParms
@@ -140,10 +140,10 @@ PROTOCOL PScriptDataOut : public PFrameSink
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PScriptDataOut)
 
-	PScriptDataOut *	make(void);
-	void			destroy(void);
+	PScriptDataOut *	make(void) override;
+	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback);
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
 
 private:
 	NewtonErr	parseOutputLength(RefArg, FormType, long, long*);
@@ -170,10 +170,10 @@ PROTOCOL POptionDataOut : public PFrameSink
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(POptionDataOut)
 
-	POptionDataOut *	make(void);
-	void			destroy(void);
+	POptionDataOut *	make(void) override;
+	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback);
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
 };
 
 struct OptionDataOutParms

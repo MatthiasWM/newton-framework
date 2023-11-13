@@ -111,7 +111,7 @@ CArray::dump(CMsg * outMsg)
 {
 	char  buf[100];
 
-	sprintf(buf, "\n\tes: %ld  cnt: %d  free: %d", fElementSize, fSize, fFree);
+	snprintf(buf, 99, "\n\tes: %ld  cnt: %d  free: %d", fElementSize, fSize, fFree);
 	outMsg->msgStr(buf);
 	outMsg->msgLF();
 }

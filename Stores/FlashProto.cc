@@ -10,6 +10,7 @@
 
 #include <cassert>
 
+// Don't erase this!
 CFlash *  CFlash::make(const char * inName) {
   CProtocol *p = AllocInstanceByName("CFlash", inName);
   if (p) p->make();

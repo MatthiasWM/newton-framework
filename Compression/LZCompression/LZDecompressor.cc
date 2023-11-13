@@ -66,6 +66,7 @@ CLZDecompressor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN15CLZDecompressor9classInfoEv - 4b	\n"
 //"		.long		__ZN15CLZDecompressor4makeEv - 4b	\n"
 //"		.long		__ZN15CLZDecompressor7destroyEv - 4b	\n"

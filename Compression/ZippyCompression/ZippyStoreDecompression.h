@@ -34,13 +34,14 @@ PROTOCOL CZippyDecompressor : public CDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CZippyDecompressor)
-
-	CZippyDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(void *);
-	NewtonErr	decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
+	CZippyDecompressor *make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CDecompressor
+	NewtonErr	init(void *) override;
+	NewtonErr	decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) override;
+    // -- end of protocol
 
 private:
 	void			initCache(void);
@@ -65,13 +66,14 @@ PROTOCOL CZippyStoreDecompressor : public CStoreDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CZippyStoreDecompressor)
-
-	CZippyStoreDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL);	// original has no inLZWBuffer
-	NewtonErr	read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr);
+	CZippyStoreDecompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreDecompressor
+	NewtonErr	init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL) override;	// original has no inLZWBuffer
+	NewtonErr	read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) override;
+    // -- end of protocol
 
 private:
 	char *		fBuffer;
@@ -88,13 +90,14 @@ PROTOCOL CZippyRelocStoreDecompressor : public CStoreDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CZippyRelocStoreDecompressor)
-
-	CZippyRelocStoreDecompressor *	make(void);
-	void			destroy(void);
-
-	NewtonErr	init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL);	// original has no inLZWBuffer
-	NewtonErr	read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr);
+	CZippyRelocStoreDecompressor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreDecompressor
+	NewtonErr	init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer = NULL) override;	// original has no inLZWBuffer
+	NewtonErr	read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) override;
+    // -- end of protocol
 
 private:
 	char *		fBuffer;

@@ -70,6 +70,7 @@ CPixelMapCompander::classInfo(void)
 //"		.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified
 //"		.long		__ZN18CPixelMapCompander9classInfoEv - 4b	\n"
 //"		.long		__ZN18CPixelMapCompander4makeEv - 4b	\n"
 //"		.long		__ZN18CPixelMapCompander7destroyEv - 4b	\n"

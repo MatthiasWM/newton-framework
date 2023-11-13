@@ -75,9 +75,11 @@ typedef void * (*CodeProcPtr)(int selector, ...);
 class CProtocol
 {
 public:
+  virtual ~CProtocol();
   /// The protocol is already created by CClassInfo::make(), use this to
   /// initialize the instance
   virtual CProtocol *make() = 0;
+  virtual void      destroy(void) = 0;
   virtual const CClassInfo *GetClassInfo() const = 0;
 
 	void			become(const CProtocol * instance);	// forward to an instance
@@ -277,12 +279,12 @@ enum
 MONITOR CClassInfoRegistry : public CProtocol
 {
 public:
-	static CClassInfoRegistry * make(const char * inName);	// was New()
-	void			destroy(void);											// was Delete()
-
+  // -- inherited from CProtocol
+	void			destroy(void) override = 0;											// was Delete()
+  // -- new for CClassInfoRegistry
   virtual NewtonErr	registerProtocol(const CClassInfo *, ULong refCon = 0) = 0;
-	NewtonErr	deregisterProtocol(const CClassInfo *, bool specific = false);
-	bool			isProtocolRegistered(const CClassInfo *, bool specific = false) const;
+	virtual NewtonErr	deregisterProtocol(const CClassInfo *, bool specific = false) = 0;
+	virtual bool			isProtocolRegistered(const CClassInfo *, bool specific = false) const = 0;
 #if defined(correct)
 	int						seed() const;
 	const CClassInfo *	first(int seed, ULong * pRefCon=0) const;
@@ -291,12 +293,12 @@ public:
 #endif
   virtual const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const = 0;
 	//	2.0 calls
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const;
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const;
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const;
+	virtual const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const = 0;
+	virtual const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const = 0;
+	virtual const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const = 0;
 
   virtual void updateInstanceCount(const CClassInfo * classinfo, int adjustment) = 0;
-	ArrayIndex	getInstanceCount(const CClassInfo * classinfo);
+	virtual ArrayIndex	getInstanceCount(const CClassInfo * classinfo) = 0;
 };
 
 

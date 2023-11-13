@@ -63,6 +63,9 @@ size_t			PrivateClassInfoSize(const CClassInfo * inClass);
 	Base class for protocols and protocol monitors.
 ------------------------------------------------------------------------------*/
 
+CProtocol::~CProtocol() {
+}
+
 void
 CProtocol::become(const CProtocol * instance)
 {
@@ -306,22 +309,23 @@ CClassInfoComparator::compareKeys(const void * inKey1, const void * inKey2) cons
 class CClassInfoRegistryImpl : public CClassInfoRegistry
 {
 public:
+  // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CClassInfoRegistryImpl)
-
 	CClassInfoRegistry *make(void) override;		// was New()
-	void				destroy(void);			// was Delete()
-
+	void				destroy(void) override;			// was Delete()
+  // -- inherited from CClassInfoRegistry
 	NewtonErr		registerProtocol(const CClassInfo * inClass, ULong refCon = 0) override;
-	NewtonErr		deregisterProtocol(const CClassInfo * inClass, bool specific = false);
-	bool				isProtocolRegistered(const CClassInfo * inClass, bool specific = false) const;
+	NewtonErr		deregisterProtocol(const CClassInfo * inClass, bool specific = false) override;
+	bool				isProtocolRegistered(const CClassInfo * inClass, bool specific = false) const override;
 
   const CClassInfo *	satisfy(const char * intf, const char * impl, ULong version) const override;
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const;
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const;
-	const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const;
+	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability) const override;
+	const CClassInfo *	satisfy(const char * intf, const char * impl, const char * capability, const char * capabilityValue) const override;
+	const CClassInfo *	satisfy(const char * intf, const char * impl, const int capability, const int capabilityValue = 0) const override;
 
 	void updateInstanceCount(const CClassInfo * inClass, int inAdjustment) override;
-	ArrayIndex		getInstanceCount(const CClassInfo * inClass);
+	ArrayIndex		getInstanceCount(const CClassInfo * inClass) override;
+    // -- end of protocol
 
 private:
 	ProtocolEntry *	find(const CClassInfo * inClass) const;
@@ -413,6 +417,7 @@ const CClassInfo *CClassInfoRegistryImpl::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN22CClassInfoRegistryImpl9classInfoEv - 4b	\n"
 //"		.long		__ZN22CClassInfoRegistryImpl4makeEv - 4b	\n"
 //"		.long		__ZN22CClassInfoRegistryImpl7destroyEv - 4b	\n"

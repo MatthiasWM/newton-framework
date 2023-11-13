@@ -20,11 +20,10 @@ PROTOCOL CCompressor : public CProtocol
 {
 public:
 	static CCompressor *	make(const char * inName);
-	void			destroy(void);
-
-	NewtonErr	init(void *);
-	NewtonErr	compress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
-	size_t		estimatedCompressedSize(void * inSrcBuf, size_t inSrcLen);
+	void			destroy(void) override;
+	virtual NewtonErr	init(void *) = 0;
+	virtual NewtonErr	compress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) = 0;
+	virtual size_t estimatedCompressedSize(void * inSrcBuf, size_t inSrcLen) = 0;
 };
 
 
@@ -33,14 +32,14 @@ public:
 	P-class interface.
 ------------------------------------------------------------------------------*/
 
+/** Pure virtual class */
 PROTOCOL CCallbackCompressor : public CProtocol
 {
 public:
-	static CCallbackCompressor *	make(const char * inName);
-	virtual void			destroy(void) = 0;
-
-	NewtonErr	init(void *);
-	void			reset(void);
+	//static CCallbackCompressor *	make(const char * inName);
+  // -- new methods for CCallbackCompressor
+	virtual NewtonErr	init(void *) = 0;
+	virtual void			reset(void) = 0;
 	virtual NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen) = 0;
 	virtual NewtonErr	flush(void) = 0;
 };
@@ -51,14 +50,15 @@ public:
 	P-class interface.
 ------------------------------------------------------------------------------*/
 
+/** Pure virtual class. */
 PROTOCOL CDecompressor : public CProtocol
 {
 public:
-	static CDecompressor *	make(const char * inName);
-	void			destroy(void);
-
+  // -- inherited from CProtocol
+	void			destroy(void) override = 0;
+  // -- new for CDecompressor
 	virtual NewtonErr	init(void *) = 0;
-	NewtonErr	decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
+	virtual NewtonErr	decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) = 0;
 };
 
 
@@ -67,15 +67,16 @@ public:
 	P-class interface.
 ------------------------------------------------------------------------------*/
 
+/** Pure virtual class. */
 PROTOCOL CCallbackDecompressor : public CProtocol
 {
 public:
-	static CCallbackDecompressor *	make(const char * inName);
+  // -- inherited from CProtocol
 	virtual void destroy(void) = 0;
-
-	NewtonErr	init(void *);
-	void			reset(void);
-	NewtonErr	readChunk(void * inDstBuf, size_t * outBufLen, bool * outUnderflow);
+  // -- new for CCallbackDecompressor
+	virtual NewtonErr	init(void *) = 0;
+	virtual void			reset(void) = 0;
+	virtual NewtonErr	readChunk(void * inDstBuf, size_t * outBufLen, bool * outUnderflow) = 0;
 };
 
 

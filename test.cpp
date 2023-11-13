@@ -16,51 +16,12 @@ extern void Disassemble(RefArg inFunc);
 extern Ref MakeStringFromCString(const char * str);
 extern void PrintCode(RefArg obj);
 
+//  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CEndpointPipe * inPipe, ObjectId * outPackageId, bool inWillRemove = true);
+//  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CPipe * inPipe, ObjectId * outPackageId, bool inWillRemove = true);
+//  ./Packages/PartHandler.h:NewtonErr  LoadPackage(Ptr buffer, SourceType inType, ObjectId * outPackageId);
+//  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CEndpointPipe * inPipe, SourceType inType, ObjectId * outPackageId);
+//  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CPipe * inPipe, SourceType inType , ObjectId * outPackageId);
 
-void hex16(void *src) {
-  int n = 16;
-  uint8_t *s = (uint8_t*)src;
-  printf("%016llx: ", s);
-  for (int i=0; i<n; i++) {
-    printf("%02x ", s[i]);
-    if (i==7) printf(" ");
-  }
-  printf(" ");
-  for (int i=0; i<n; i++) {
-    uint8_t c = s[i];
-    if (c<32 || c>126) c = '.';
-    printf("%c", c);
-  }
-  printf("\n");
-}
-
-void hex(void *src, int n) {
-  for (int i=0; i<n; i+=16) {
-    hex16(((uint8_t*)src) + i);
-  }
-}
-
-void hexref(Ref r) {
-  printf("====\n");
-  hex(&r, 16);
-  if (IsInt(r)) printf("int: %d\n", RefToInt(r));
-  if (IsPtr(r)) {
-    printf("----\n");
-    ObjHeader *p = ObjectPtr(r);
-    printf("size: %d, flags: %02x, locks: %d, slots: %d\n",
-           p->size, p->flags, p->gc.count.locks, p->gc.count.slots);
-    if (ISLARGEBINARY(p)) printf("Large Binary\n");
-    if (ISSLOTTED(p)) printf("Is slotted\n");
-    if (ISARRAY(p)) printf("Is an array\n");
-    if (ISFRAME(p)) printf("Is a frame\n");
-    hex(p, 64);
-  }
-}
-
-void hexarg(RefArg ra) {
-  Ref r = ra;
-  hexref(r);
-}
 
 //bool  IsInt(Ref r) { return ISINT(r); }
 //bool  IsChar(Ref r) { return ISCHAR(r); }
@@ -73,10 +34,6 @@ extern Ref *RSSYMviewer;
 
 int main(int argc, char **argv)
 {
-
-  Ref r = *RSSYMviewer;
-  hexref(r);
-
   InitObjectSystem();
   printf("Hello world\n");
 //  DefGlobalVar(SYMA(printDepth), MAKEINT(7));

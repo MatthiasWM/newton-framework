@@ -108,7 +108,7 @@ struct ArrayObject
 
 	Ref		objClass;
 	Ref		slot[];
-}__attribute__((packed));
+}; //__attribute__((packed)); // TODO: no need to pack this as all members are (and must be) native word aligned
 
 #define SIZEOF_ARRAYOBJECT(_n) (sizeof(ObjHeader) + sizeof(Ref) + _n*sizeof(Ref))
 

@@ -24,65 +24,65 @@ PROTOCOL CMuxStore : public CStore
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CMuxStore)
+	CMuxStore *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStore
+	NewtonErr	init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inArg6) override;
+	NewtonErr	needsFormat(bool * outNeedsFormat) override;
+	NewtonErr	format(void) override;
 
-	CMuxStore *	make(void);
-	void			destroy(void);
+	NewtonErr	getRootId(PSSId * outRootId) override;
+	NewtonErr	newObject(PSSId * outObjectId, size_t inSize) override;
+	NewtonErr	eraseObject(PSSId inObjectId) override;
+	NewtonErr	deleteObject(PSSId inObjectId) override;
+	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize) override;
+	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize) override;
 
-	NewtonErr	init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayIndex inSocketNumber, ULong inFlags, void * inArg6);
-	NewtonErr	needsFormat(bool * outNeedsFormat);
-	NewtonErr	format(void);
+	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength) override;
+	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength) override;
 
-	NewtonErr	getRootId(PSSId * outRootId);
-	NewtonErr	newObject(PSSId * outObjectId, size_t inSize);
-	NewtonErr	eraseObject(PSSId inObjectId);
-	NewtonErr	deleteObject(PSSId inObjectId);
-	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize);
-	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize);
+	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize) override;
+	NewtonErr	isReadOnly(bool * outIsReadOnly) override;
+	NewtonErr	lockStore(void) override;
+	NewtonErr	unlockStore(void) override;
 
-	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength);
-	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength);
+	NewtonErr	abort(void) override;
+	NewtonErr	idle(bool * outArg1, bool * outArg2) override;
 
-	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize);
-	NewtonErr	isReadOnly(bool * outIsReadOnly);
-	NewtonErr	lockStore(void);
-	NewtonErr	unlockStore(void);
+	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId) override;
+	NewtonErr	checkIntegrity(ULong * inArg1) override;
 
-	NewtonErr	abort(void);
-	NewtonErr	idle(bool * outArg1, bool * outArg2);
+	NewtonErr	setBuddy(CStore * inStore) override;
+	bool			ownsObject(PSSId inObjectId) override;
+	VAddr			address(PSSId inObjectId) override;
+	const char * storeKind(void) override;
+	NewtonErr	setStore(CStore * inStore, PSSId inEnvironment) override;
 
-	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId);
-	NewtonErr	checkIntegrity(ULong * inArg1);
+	bool			isSameStore(void * inData, size_t inSize) override;
+	bool			isLocked(void) override;
+	bool			isROM(void) override;
 
-	NewtonErr	setBuddy(CStore * inStore);
-	bool			ownsObject(PSSId inObjectId);
-	VAddr			address(PSSId inObjectId);
-	const char * storeKind(void);
-	NewtonErr	setStore(CStore * inStore, PSSId inEnvironment);
+	NewtonErr	vppOff(void) override;
+	NewtonErr	sleep(void) override;
 
-	bool			isSameStore(void * inData, size_t inSize);
-	bool			isLocked(void);
-	bool			isROM(void);
+	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize) override;
+	NewtonErr	startTransactionAgainst(PSSId inObjectId) override;
+	NewtonErr	separatelyAbort(PSSId inObjectId) override;
+	NewtonErr	addToCurrentTransaction(PSSId inObjectId) override;
+	bool			inSeparateTransaction(PSSId inObjectId) override;
 
-	NewtonErr	vppOff(void);
-	NewtonErr	sleep(void);
+	NewtonErr	lockReadOnly(void) override;
+	NewtonErr	unlockReadOnly(bool inReset) override;
+	bool			inTransaction(void) override;
 
-	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize);
-	NewtonErr	startTransactionAgainst(PSSId inObjectId);
-	NewtonErr	separatelyAbort(PSSId inObjectId);
-	NewtonErr	addToCurrentTransaction(PSSId inObjectId);
-	bool			inSeparateTransaction(PSSId inObjectId);
+	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize) override;
+	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize) override;
 
-	NewtonErr	lockReadOnly(void);
-	NewtonErr	unlockReadOnly(bool inReset);
-	bool			inTransaction(void);
-
-	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize);
-	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize);
-
-	NewtonErr	calcXIPObjectSize(long inArg1, long inArg2, long * outArg3);
-	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize);
-	NewtonErr	getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned long * outArg3, unsigned long * outArg4);
+	NewtonErr	calcXIPObjectSize(long inArg1, long inArg2, long * outArg3) override;
+	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize) override;
+	NewtonErr	getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned long * outArg3, unsigned long * outArg4) override;
 
 	CStore *		getStore(void) const;
 
@@ -109,49 +109,50 @@ MONITOR CMuxStoreMonitor : public CStoreMonitor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CMuxStoreMonitor)
+	CMuxStoreMonitor *	make(void) override;
+	void			destroy(void) override;
+    // -- inherited from CStoreMonitor
+	NewtonErr	init(CStore * inStore) override;
+	NewtonErr	needsFormat(bool * outNeedsFormat) override;
+	NewtonErr	format(void) override;
 
-	CMuxStoreMonitor *	make(void);
-	void			destroy(void);
+	NewtonErr	getRootId(PSSId * outRootId) override;
+	NewtonErr	newObject(PSSId * outObjectId, size_t inSize) override;
+	NewtonErr	eraseObject(PSSId inObjectId) override;
+	NewtonErr	deleteObject(PSSId inObjectId) override;
+	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize) override;
+	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize) override;
 
-	NewtonErr	init(CStore * inStore);
-	NewtonErr	needsFormat(bool * outNeedsFormat);
-	NewtonErr	format(void);
+	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength) override;
+	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength) override;
 
-	NewtonErr	getRootId(PSSId * outRootId);
-	NewtonErr	newObject(PSSId * outObjectId, size_t inSize);
-	NewtonErr	eraseObject(PSSId inObjectId);
-	NewtonErr	deleteObject(PSSId inObjectId);
-	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize);
-	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize);
+	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize) override;
+	NewtonErr	isReadOnly(bool * outIsReadOnly) override;
+	NewtonErr	lockStore(void) override;
+	NewtonErr	unlockStore(void) override;
 
-	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength);
-	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength);
+	NewtonErr	abort(void) override;
+	NewtonErr	idle(bool * outArg1, bool * outArg2) override;
 
-	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize);
-	NewtonErr	isReadOnly(bool * outIsReadOnly);
-	NewtonErr	lockStore(void);
-	NewtonErr	unlockStore(void);
+	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId) override;
+	NewtonErr	checkIntegrity(ULong * inArg1) override;
 
-	NewtonErr	abort(void);
-	NewtonErr	idle(bool * outArg1, bool * outArg2);
-	
-	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId);
-	NewtonErr	checkIntegrity(ULong * inArg1);
+	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize) override;
+	NewtonErr	startTransactionAgainst(PSSId inObjectId) override;
+	NewtonErr	separatelyAbort(PSSId inObjectId) override;
+	NewtonErr	addToCurrentTransaction(PSSId inObjectId) override;
 
-	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize);
-	NewtonErr	startTransactionAgainst(PSSId inObjectId);
-	NewtonErr	separatelyAbort(PSSId inObjectId);
-	NewtonErr	addToCurrentTransaction(PSSId inObjectId);
+	NewtonErr	lockReadOnly(void) override;
+	NewtonErr	unlockReadOnly(bool inReset) override;
 
-	NewtonErr	lockReadOnly(void);
-	NewtonErr	unlockReadOnly(bool inReset);
+	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize) override;
+	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize) override;
 
-	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize);
-	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize);
-
-	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize);
-
+	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize) override;
+    // -- end of protocol
+    
 private:
 	CStore *		fStore;	//+10
 //size+20

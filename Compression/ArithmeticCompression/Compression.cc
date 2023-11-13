@@ -16,13 +16,13 @@ PROTOCOL CArithmeticCompressor : public CCallbackCompressor
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CArithmeticCompressor)
 
-	CArithmeticCompressor *	make(void);
-	void			destroy(void);
+	CArithmeticCompressor *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void *);
-	void			reset(void);
-	NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen);
-	NewtonErr	flush(void);
+	NewtonErr	init(void *) override;
+	void			reset(void) override;
+	NewtonErr	writeChunk(void * inSrcBuf, size_t inSrcLen) override;
+	NewtonErr	flush(void) override;
 
 private:
 /*	NewtonErr	narrowRegion(int);
@@ -42,12 +42,12 @@ PROTOCOL CArithmeticDecompressor : public CCallbackDecompressor
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CArithmeticDecompressor)
 
-	CArithmeticDecompressor *	make(void);
-	void			destroy(void);
+	CArithmeticDecompressor *	make(void) override;
+	void			destroy(void) override;
 
-	NewtonErr	init(void *);
-	void			reset(void);
-	NewtonErr	readChunk(void * inDstBuf, size_t * outBufLen, bool * outArg3);
+	NewtonErr	init(void *) override;
+	void			reset(void) override;
+	NewtonErr	readChunk(void * inDstBuf, size_t * outBufLen, bool * outArg3) override;
 
 private:
 /*	NewtonErr	narrowRegion(int);

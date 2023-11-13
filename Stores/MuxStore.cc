@@ -98,6 +98,7 @@ CMuxStore::classInfo(void)
 //"		.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN9CMuxStore9classInfoEv - 4b	\n"
 //"		.long		__ZN9CMuxStore4makeEv - 4b	\n"
 //"		.long		__ZN9CMuxStore7destroyEv - 4b	\n"
@@ -678,6 +679,7 @@ CMuxStoreMonitor::classInfo(void)
 //"3:	.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN16CMuxStoreMonitor9classInfoEv - 4b	\n"
 //"		.long		__ZN16CMuxStoreMonitor4makeEv - 4b	\n"
 //"		.long		__ZN16CMuxStoreMonitor7destroyEv - 4b	\n"

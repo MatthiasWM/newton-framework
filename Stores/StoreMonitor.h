@@ -23,45 +23,46 @@ MONITOR CStoreMonitor : public CProtocol
 {
 public:
 	static CStoreMonitor *	make(const char * inName);
-	void			destroy(void);
+  // -- inherited from CProtocol
+	void			destroy(void) override;
+  // -- added to CStoreMonitor
+	virtual NewtonErr	init(CStore * inStore) = 0;
+  virtual NewtonErr	needsFormat(bool * outNeedsFormat) = 0;
+  virtual NewtonErr	format(void) = 0;
 
-	NewtonErr	init(CStore * inStore);
-	NewtonErr	needsFormat(bool * outNeedsFormat);
-	NewtonErr	format(void);
+  virtual NewtonErr	getRootId(PSSId * outRootId) = 0;
+  virtual NewtonErr	newObject(PSSId * outObjectId, size_t inSize) = 0;
+  virtual NewtonErr	eraseObject(PSSId inObjectId) = 0;
+  virtual NewtonErr	deleteObject(PSSId inObjectId) = 0;
+  virtual NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize) = 0;
+  virtual NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize) = 0;
 
-	NewtonErr	getRootId(PSSId * outRootId);
-	NewtonErr	newObject(PSSId * outObjectId, size_t inSize);
-	NewtonErr	eraseObject(PSSId inObjectId);
-	NewtonErr	deleteObject(PSSId inObjectId);
-	NewtonErr	setObjectSize(PSSId inObjectId, size_t inSize);
-	NewtonErr	getObjectSize(PSSId inObjectId, size_t * outSize);
+  virtual NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength) = 0;
+  virtual NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength) = 0;
 
-	NewtonErr	write(PSSId inObjectId, size_t inStartOffset, void * inBuffer, size_t inLength);
-	NewtonErr	read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t inLength);
+  virtual NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize) = 0;
+  virtual NewtonErr	isReadOnly(bool * outIsReadOnly) = 0;
+  virtual NewtonErr	lockStore(void) = 0;
+  virtual NewtonErr	unlockStore(void) = 0;
 
-	NewtonErr	getStoreSize(size_t * outTotalSize, size_t * outUsedSize);
-	NewtonErr	isReadOnly(bool * outIsReadOnly);
-	NewtonErr	lockStore(void);
-	NewtonErr	unlockStore(void);
+  virtual NewtonErr	abort(void) = 0;
+  virtual NewtonErr	idle(bool * outArg1, bool * outArg2) = 0;
 
-	NewtonErr	abort(void);
-	NewtonErr	idle(bool * outArg1, bool * outArg2);
-	
-	NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId);
-	NewtonErr	checkIntegrity(ULong * inArg1);
+  virtual NewtonErr	nextObject(PSSId inObjectId, PSSId * outNextObjectId) = 0;
+  virtual NewtonErr	checkIntegrity(ULong * inArg1) = 0;
 
-	NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize);
-	NewtonErr	startTransactionAgainst(PSSId inObjectId);
-	NewtonErr	separatelyAbort(PSSId inObjectId);
-	NewtonErr	addToCurrentTransaction(PSSId inObjectId);
+  virtual NewtonErr	newWithinTransaction(PSSId * outObjectId, size_t inSize) = 0;
+  virtual NewtonErr	startTransactionAgainst(PSSId inObjectId) = 0;
+  virtual NewtonErr	separatelyAbort(PSSId inObjectId) = 0;
+  virtual NewtonErr	addToCurrentTransaction(PSSId inObjectId) = 0;
 
-	NewtonErr	lockReadOnly(void);
-	NewtonErr	unlockReadOnly(bool inReset);
+  virtual NewtonErr	lockReadOnly(void) = 0;
+  virtual NewtonErr	unlockReadOnly(bool inReset) = 0;
 
-	NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize);
-	NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize);
+  virtual NewtonErr	newObject(PSSId * outObjectId, void * inData, size_t inSize) = 0;
+  virtual NewtonErr	replaceObject(PSSId inObjectId, void * inData, size_t inSize) = 0;
 
-	NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize);
+  virtual NewtonErr	newXIPObject(PSSId * outObjectId, size_t inSize) = 0;
 };
 
 #endif	/* __STOREMONITOR_H */

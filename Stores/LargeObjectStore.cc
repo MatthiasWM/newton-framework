@@ -1103,6 +1103,7 @@ CLOPackageStore::classInfo(void)
 //"		.byte		0			\n"
 //"		.align	2			\n"
 //"4:	.long		0			\n"
+    // verified:
 //"		.long		__ZN15CLOPackageStore9classInfoEv - 4b	\n"
 //"		.long		__ZN15CLOPackageStore4makeEv - 4b	\n"
 //"		.long		__ZN15CLOPackageStore7destroyEv - 4b	\n"

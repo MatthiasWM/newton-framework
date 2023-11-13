@@ -18,13 +18,14 @@ PROTOCOL CLZDecompressor : public CDecompressor
 	PROTOCOLVERSION(1.0)
 {
 public:
+    // -- inherited from CProtocol
 	PROTOCOL_IMPL_HEADER_MACRO(CLZDecompressor)
-
-	CLZDecompressor *	make(void);
-	void				destroy(void);
-
+	CLZDecompressor *	make(void) override;
+	void				destroy(void) override;
+    // -- inherited from CDecompressor
 	NewtonErr init(void * inContext) override;
-	NewtonErr		decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);
+	NewtonErr		decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) override;
+    // -- end of protocol
 
 private:
 	void				decompressChunk(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen);

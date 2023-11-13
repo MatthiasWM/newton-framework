@@ -28,31 +28,31 @@ NewtonErr  CCompressor::compress(size_t * outSize, void * inDstBuf, size_t inDst
 
 // --------
 
-CDecompressor *  CDecompressor::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
+//CDecompressor *  CDecompressor::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
 
-void      CDecompressor::destroy(void) {
-  assert(0);
-}
+//void      CDecompressor::destroy(void) {
+//  assert(0);
+//}
 
 //NewtonErr  CDecompressor::init(void *) {
 //  assert(0);
 //  return kNSErrInternalError;
 //}
 
-NewtonErr  CDecompressor::decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CDecompressor::decompress(size_t * outSize, void * inDstBuf, size_t inDstLen, void * inSrcBuf, size_t inSrcLen) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 // --------
 
-CStoreCompander *  CStoreCompander::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
+//CStoreCompander *  CStoreCompander::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
 
 void      CStoreCompander::destroy(void) {
   assert(0);
@@ -90,44 +90,41 @@ bool      CStoreCompander::isReadOnly(void) {
 
 // --------
 
-CStoreDecompressor *  CStoreDecompressor::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
+//CStoreDecompressor *  CStoreDecompressor::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
 
-void      CStoreDecompressor::destroy(void) {
-  assert(0);
-}
+//void      CStoreDecompressor::destroy(void) {
+//  assert(0);
+//}
 
-NewtonErr  CStoreDecompressor::init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer) {
-assert(0);
-return kNSErrInternalError;
-}
+//NewtonErr  CStoreDecompressor::init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer) {
+//assert(0);
+//return kNSErrInternalError;
+//}
 
-NewtonErr  CStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr inBaseAddr) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 // --------
 
-CCallbackCompressor *CCallbackCompressor::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
+//CCallbackCompressor *CCallbackCompressor::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
 
 //void      CCallbackCompressor::destroy(void) {
 //  assert(0);
 //}
 
-NewtonErr  CCallbackCompressor::init(void *) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CCallbackCompressor::init(void *) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-void      CCallbackCompressor::reset(void) {
-  assert(0);
-}
 
 //NewtonErr  CCallbackCompressor::writeChunk(void * inSrcBuf, size_t inSrcLen) {
 //  assert(0);
@@ -141,28 +138,28 @@ void      CCallbackCompressor::reset(void) {
 
 // --------
 
-CCallbackDecompressor *CCallbackDecompressor::make(const char * inName) {
-  assert(0);
-  return nullptr;
-}
+//CCallbackDecompressor *CCallbackDecompressor::make(const char * inName) {
+//  assert(0);
+//  return nullptr;
+//}
 
 //void      CCallbackDecompressor::destroy(void) {
 //  assert(0);
 //}
 
-NewtonErr  CCallbackDecompressor::init(void *) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CCallbackDecompressor::init(void *) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
-void      CCallbackDecompressor::reset(void) {
-  assert(0);
-}
+//void      CCallbackDecompressor::reset(void) {
+//  assert(0);
+//}
 
-NewtonErr  CCallbackDecompressor::readChunk(void * inDstBuf, size_t * outBufLen, bool * outUnderflow) {
-  assert(0);
-  return kNSErrInternalError;
-}
+//NewtonErr  CCallbackDecompressor::readChunk(void * inDstBuf, size_t * outBufLen, bool * outUnderflow) {
+//  assert(0);
+//  return kNSErrInternalError;
+//}
 
 
 
