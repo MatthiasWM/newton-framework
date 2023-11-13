@@ -18,7 +18,6 @@ PInTranslator *PInTranslator::make(const char * inName){
 
 void      PInTranslator::destroy(void){
   assert(0);
-  return kNSErrInternalError;
 }
 
 //NewtonErr  PInTranslator::init(void * inContext){

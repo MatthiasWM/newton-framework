@@ -1,0 +1,3 @@
+/Users/matt/dev/newton-framework/tt/CMakeFiles/test.dir
+/Users/matt/dev/newton-framework/tt/CMakeFiles/edit_cache.dir
+/Users/matt/dev/newton-framework/tt/CMakeFiles/rebuild_cache.dir
