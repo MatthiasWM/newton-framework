@@ -13,6 +13,19 @@ set (CMAKE_CXX_STANDARD 17)
 
 set ( SRCFILES
   test.cpp
+  Dates.cc
+  Dictionaries.cc
+  ErrorString.m
+  IA.cc
+  Locales.cc
+  NTKStubs.cc
+  NewtonPackage.cc
+  ObjectSystem.cc
+  Power.cc
+  Preference.cc
+  REP.cc
+  SerialNumber.cc
+  Stubs.cc
   Cards/CardEvents.cc
   Compression/ArithmeticCompression/Compression.cc
   Compression/Compression.cc
@@ -30,9 +43,6 @@ set ( SRCFILES
   Compression/StoreCompanderWrapper.cc
   Compression/UnicodeCompression/Compression.cc
   Compression/ZippyCompression/Compression.cc
-  Dates.cc
-  Dictionaries.cc
-  ErrorString.m
   Frames/Arrays.cc
   Frames/CObjectBinaries.cc
   Frames/Compiler/Codegen.cc
@@ -78,27 +88,19 @@ set ( SRCFILES
   Graphics/ScreenDriver.cc
   Graphics/ScreenDriverProto.cc
 #  Graphics/ScreenDriverProto.s
-  IA.cc
-  Locales.cc
   Memory\ Manager/FakePointers.cc
   NTK/NTK.cc
   NTK/TranslatorProto.cc
 #  NTK/TranslatorProto.s
-  NTKStubs.cc
-  NewtonPackage.cc
   OS/PhysicalMemory.cc
   OS/ROMDomainManager.cc
   OS/Timers.cc
-  ObjectSystem.cc
   Packages/Packages.cc
-  Power.cc
-  Preference.cc
   Protocols/ProtoMacro.cc
 #  Protocols/ProtoMacro.s
   Protocols/ProtocolProto.cc
 #  Protocols/ProtocolProto.s
   Protocols/Protocols.cc
-  REP.cc
   ROMData/forNewton/RSData.s
   ROMData/forNewton/RSSymbols.s
   ROMData/forNewton/RefData.s
@@ -110,7 +112,6 @@ set ( SRCFILES
   Recognition/RecObject.cc
   Recognition/RecType.cc
   Recognition/Transformations.cc
-  SerialNumber.cc
   Sound/Codecs/CodecProto.cc
 #  Sound/Codecs/CodecProto.s
   Sound/Codecs/DTMFCodec.cc
@@ -151,7 +152,6 @@ set ( SRCFILES
   Stores/Stores.cc
   Stores/Tags.cc
   Stores/UnionSoup.cc
-  Stubs.cc
   Testing/TestAgent.cc
   Toolbox/Maths.cc
   Utilities/DataStuffing.cc
@@ -161,6 +161,131 @@ set ( SRCFILES
   UtilityClasses/List.cc
   UtilityClasses/NArray.cc
   UtilityClasses/Queues.cc
+)
+
+set ( HEADERFILES
+  test.cpp
+  Dates.cc
+  Dictionaries.cc
+  ErrorString.m
+  IA.cc
+  Locales.cc
+  NTKStubs.cc
+  NewtConfig.h
+  Newton.h
+  NewtonDebug.h
+  NewtonErrors.h
+  NewtonExceptions.h
+  NewtonMemory.h
+  NewtonPackage.h
+  NewtonTime.h
+  NewtonTypes.h
+  NewtonWidgets.h
+  ObjectSystem.cc
+  Power.cc
+  Preference.cc
+  REP.cc
+  SerialNumber.cc
+  Stubs.cc
+  Cards/CardEvents.h
+  Compression/Compression.h
+  Compression/LZCompression/CopyOffset_bin.h
+  Compression/LZCompression/LZCompressionData-j.h
+  Compression/LZCompression/LZCompressor.h
+  Compression/LZCompression/LZDecompressor.h
+  Compression/LZCompression/LZStoreCompander.h
+  Compression/LZCompression/PushPopBits.h
+  Compression/QDCompression.h
+  Compression/Relocation.h
+  Compression/SimpleStoreCompander.h
+  Compression/StoreCompander.h
+  Compression/UnicodeCompression/UnicodeCompression.h
+  Compression/ZippyCompression/ZippyStoreDecompression.h
+  Frames/Arrays.h
+  Frames/CObjectBinaries.h
+  Frames/Compiler/Compiler.h
+  Frames/Compiler/InputStreams.h
+  Frames/Compiler/y.tab.h
+  Frames/DebugAPI.h
+  Frames/Frames.h
+  Frames/Funcs.h
+  Frames/Globals.h
+  Frames/Interpreter.h
+  Frames/Iterators.h
+  Frames/LargeBinaries.h
+  Frames/Lookup.h
+  Frames/MagicPointers.h
+  Frames/NewtonScript.h
+  Frames/ObjectHeap.h
+  Frames/Objects.h
+  Frames/Pipes.h
+  Frames/RefIO.h
+  Frames/RefMemory.h
+  Frames/RefVar.h
+  Frames/RichStrings.h
+  Frames/StreamObjects.h
+  Frames/Strings.h
+  Frames/Symbols.h
+  Graphics/DrawShape.h
+  Graphics/DrawText.h
+  Graphics/Geometry.h
+  Graphics/Ink.h
+  Graphics/QDDrawing.h
+  Graphics/Screen.h
+  Graphics/ScreenDriver.h
+  Memory\ Manager/MemMgr.h
+  NTK/NTK.h
+  OS/PhysicalMemory.h
+  OS/Timers.h
+  Packages/PackageEvents.h
+  Packages/PackageManager.h
+  Packages/PackageParts.h
+  Packages/PackageTypes.h
+  Packages/PartHandler.h
+  Packages/PartPipe.h
+  Protocols/Protocols.h
+  Recognition/InkGeometry.h
+  Recognition/RecArea.h
+  Recognition/RecDomain.h
+  Recognition/RecObject.h
+  Recognition/Transformations.h
+  Sound/Codecs/DTMFCodec.h
+  Sound/Sound.h
+  Stores/CachedReadStore.h
+  Stores/Cursors.h
+  Stores/Entries.h
+  Stores/FaultBlocks.h
+  Stores/Flash.h
+  Stores/FlashBlock.h
+  Stores/FlashCache.h
+  Stores/FlashDriver.h
+  Stores/FlashIterator.h
+  Stores/FlashRange.h
+  Stores/FlashStore.h
+  Stores/FlashTracker.h
+  Stores/Hints.h
+  Stores/Indexes.h
+  Stores/LargeObjectStore.h
+  Stores/LargeObjects.h
+  Stores/MuxStore.h
+  Stores/NodeCache.h
+  Stores/PSSManager.h
+  Stores/PackageStore.h
+  Stores/PlainSoup.h
+  Stores/Soups.h
+  Stores/StoreDriver.h
+  Stores/StoreStreamObjects.h
+  Stores/StoreWrapper.h
+  Stores/Stores.h
+  Stores/UnionSoup.h
+  Testing/TestAgent.h
+  Toolbox/Maths.h
+  Utilities/DataStuffing.h
+  Utilities/UStringUtils.h
+  Utilities/Unicode.h
+  UtilityClasses/DynamicArray.h
+  UtilityClasses/List.h
+  UtilityClasses/NArray.h
 )
 
 SET ( UNUSED_SRC_FILES
@@ -192,7 +317,7 @@ SET ( UNUSED_SRC_FILES
 #  Frames/Compiler/Compiler (original).cc
 #  Frames/Compiler/CompilerSupport (original).cc
   Frames/Funcs.cc
-  Frames/MagicPointers.s
+#  Frames/MagicPointers.s
   Graphics/NewtQD.cc
   Graphics/Quartz.cc
   Graphics/Regions.cc
@@ -404,11 +529,10 @@ SET ( UNUSED_SRC_FILES
 source_group(
   TREE "${CMAKE_CURRENT_SOURCE_DIR}"
   PREFIX "Source Files"
-  FILES ${SRCFILES}
+  FILES ${SRCFILES} ${HEADERFILES}
 )
 
-
-add_executable (test ${SRCFILES})
+add_executable (test ${SRCFILES} ${HEADERFILES})
 target_compile_definitions(test PRIVATE forMac forFramework)
 target_include_directories ( test PRIVATE
   ${CMAKE_SOURCE_DIR}

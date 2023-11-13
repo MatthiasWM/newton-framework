@@ -1217,8 +1217,8 @@ Ref
 FStrMunger(RefArg inRcvr, RefArg s1, RefArg s1start, RefArg s1count,
 								  RefArg s2, RefArg s2start, RefArg s2count)
 {
-	StrMunger(s1, RINT(s1start), NOTNIL(s1count) ? RINT(s1count) : kIndexNotFound,
-				 s2, RINT(s2start), NOTNIL(s2count) ? RINT(s2count) : kIndexNotFound);
+	StrMunger(s1, RINDEX(s1start), NOTNIL(s1count) ? RINDEX(s1count) : kIndexNotFound,
+				 s2, RINDEX(s2start), NOTNIL(s2count) ? RINDEX(s2count) : kIndexNotFound);
 	return s1;
 }
 
@@ -1235,13 +1235,13 @@ FStrPos(RefArg inRcvr, RefArg inStr, RefArg inSubstr, RefArg inStart)
 Ref
 FStrReplace(RefArg inRcvr, RefArg inStr, RefArg inSubstr, RefArg inReplacement, RefArg inCount)
 {
-	return MAKEINT(StrReplace(inStr, inSubstr, inReplacement, NOTNIL(inCount) ? RINT(inCount) : kIndexNotFound));
+	return MAKEINT(StrReplace(inStr, inSubstr, inReplacement, NOTNIL(inCount) ? RINDEX(inCount) : kIndexNotFound));
 }
 
 Ref
 FSubStr(RefArg inRcvr, RefArg inStr, RefArg inStart, RefArg inCount)
 {
-	return Substring(inStr, RINT(inStart), NOTNIL(inCount) ? RINT(inCount) : kIndexNotFound);
+	return Substring(inStr, RINT(inStart), NOTNIL(inCount) ? RINDEX(inCount) : kIndexNotFound);
 }
 
 Ref
@@ -1312,7 +1312,7 @@ StrHexDump(RefArg inData, RefArg inWidth)
 {
 	CDataPtr data(inData);
 	UChar * srcPtr = (UChar *)(char *)data;
-	ArrayIndex width = NOTNIL(inWidth) ? RINT(inWidth) : 0;
+	ArrayIndex width = NOTNIL(inWidth) ? RINDEX(inWidth) : 0;
 	ArrayIndex dataLen = Length(inData);
 	ArrayIndex strLen = (dataLen * 2 + 1) * sizeof(UniChar);
 	if (width != 0)

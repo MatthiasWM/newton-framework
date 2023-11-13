@@ -1198,7 +1198,7 @@ DumpCode(RefArg inFunc)
 	if (!EQ(ClassOf(debugInfo), SYMA(dbg1))) {
 		debugInfo = NILREF;
 	}
-	ArrayIndex argCount = RINT(GetArraySlot(inFunc, kFunctionNumArgsIndex));
+	ArrayIndex argCount = RINDEX(GetArraySlot(inFunc, kFunctionNumArgsIndex));
 	ArrayIndex localCount = argCount >> 16;
 	argCount &= 0xFF;
 
@@ -1209,7 +1209,7 @@ DumpCode(RefArg inFunc)
 		varNames.push_back("_parent");
 		varNames.push_back("_implementor");
 		if (NOTNIL(debugInfo)) {
-			ArrayIndex debugNamesBaseIndex = 1 + RINT(GetArraySlot(debugInfo, 0));
+			ArrayIndex debugNamesBaseIndex = 1 + RINDEX(GetArraySlot(debugInfo, 0));
 			for (ArrayIndex i = debugNamesBaseIndex, count = Length(debugInfo); i < count; ++i) {
 				string litrl = DumpObject(GetArraySlot(debugInfo, i));
 				if (litrl[0] == '\'') {

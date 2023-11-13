@@ -154,9 +154,9 @@ ForEachLoopNext(RefArg iter)
 	RefVar iterMap;
 	Ref	 proto;
 	bool	 isDeep, isMore;
-	ArrayIndex	 numOfSlots = RINT(GetArraySlot(iter, kIterNumOfSlotsIndex));
+	ArrayIndex	 numOfSlots = RINDEX(GetArraySlot(iter, kIterNumOfSlotsIndex));
 	ArrayIndex	 numOfObjSlots = Length(obj);
-	ArrayIndex	 slotIndex = RINT(GetArraySlot(iter, kIterSlotIndex));
+	ArrayIndex	 slotIndex = RINDEX(GetArraySlot(iter, kIterSlotIndex));
 
 	if (numOfObjSlots >= numOfSlots)
 		SetArraySlotRef(iter, kIterSlotIndex, MAKEINT(++slotIndex));
@@ -198,8 +198,8 @@ ForEachLoopNext(RefArg iter)
 static bool
 ForEachLoopDone(RefArg iter)
 {
-	ArrayIndex	currentIndex = RINT(GetArraySlot(iter, kIterSlotIndex));
-	ArrayIndex	lastIndex = RINT(GetArraySlot(iter, kIterNumOfSlotsIndex));
+	ArrayIndex	currentIndex = RINDEX(GetArraySlot(iter, kIterSlotIndex));
+	ArrayIndex	lastIndex = RINDEX(GetArraySlot(iter, kIterNumOfSlotsIndex));
 	if (NOTNIL(GetArraySlot(iter, kIterDeepNumOfSlotsIndex))
 	 && NOTNIL(GetArraySlot(iter, kIterMapIndex)))
 	{
@@ -647,11 +647,11 @@ GetFunctionArgCount(Ref fn)
 	else if (fnClass == kPlainCFunctionClass)
 		argCount = RVALUE(((ArrayObject *)ObjectPtr(fn))->slot[kPlainCFunctionNumArgsIndex]);
 	else if (fnClass == kBinCFunctionClass)
-		argCount = RINT(GetArraySlotRef(fn, kCFunctionNumArgsIndex));
+		argCount = RINDEX(GetArraySlotRef(fn, kCFunctionNumArgsIndex));
 	else if (EQ(fnClass, SYMA(CodeBlock)))
-		argCount = RINT(GetArraySlotRef(fn, kFunctionNumArgsIndex));
+		argCount = RINDEX(GetArraySlotRef(fn, kFunctionNumArgsIndex));
 	else if (EQ(fnClass, SYMA(binCFunction)))
-		argCount = RINT(GetFrameSlot(fn, SYMA(numArgs)));
+		argCount = RINDEX(GetFrameSlot(fn, SYMA(numArgs)));
 
 	return argCount;
 }
@@ -2076,7 +2076,7 @@ extern "C"
 Ref
 FAref(RefArg inRcvr, RefArg inObj, RefArg index)
 {
-	ArrayIndex i = RINT(index);
+	ArrayIndex i = RINDEX(index);
 
 	// object we are indexing into must be an array…
 	if ((ObjectFlags(inObj) & kObjMask) == kArrayObject)
@@ -2106,7 +2106,7 @@ extern "C"
 Ref
 FSetAref(RefArg inRcvr, RefArg inObj, RefArg index, RefArg inValue)
 {
-	ArrayIndex i = RINT(index);
+	ArrayIndex i = RINDEX(index);
 
 	if ((ObjectFlags(inObj) & kObjMask) == kArrayObject)
 		SetArraySlot(inObj, i, inValue);
@@ -2209,11 +2209,11 @@ CInterpreter::controlPosition(void)
 void
 CInterpreter::setLocalOnStack(RefArg index, RefArg tag, RefArg value)
 {
-	VMState * vms = stackFrameAt(RINT(index));
+	VMState * vms = stackFrameAt(RINDEX(index));
 
 	if (ISINT(tag))	// SetVar
 	{
-		ArrayIndex	localIndex = RINT(tag);
+		ArrayIndex	localIndex = RINDEX(tag);
 		Ref	fn = vms->func;
 		Ref	fnClass = ClassOf(fn);
 		ArrayIndex	stackIndex;
@@ -2259,11 +2259,11 @@ Ref
 CInterpreter::getLocalFromStack(RefArg index, RefArg tag)
 {
 	Ref		 var = NILREF;
-	VMState * vms = stackFrameAt(RINT(index));
+	VMState * vms = stackFrameAt(RINDEX(index));
 
 	if (ISINT(tag))	// GetVar
 	{
-		ArrayIndex	localIndex = RINT(tag);
+		ArrayIndex	localIndex = RINDEX(tag);
 		Ref	fn = vms->func;
 		Ref	fnClass = ClassOf(fn);
 		ArrayIndex	stackIndex;
@@ -2312,7 +2312,7 @@ CInterpreter::getLocalFromStack(RefArg index, RefArg tag)
 Ref
 CInterpreter::getSelfFromStack(Ref index)
 {
-	return stackFrameAt(RINT(index))->rcvr;
+	return stackFrameAt(RINDEX(index))->rcvr;
 }
 
 
@@ -2814,9 +2814,9 @@ CInterpreter::callCFunction(RefArg func, ArrayIndex numArgs, bool isUnordered)
 
 	if (isUnordered)
 	{
-		numArgsExpected = RINT(GetFrameSlot(func, SYMA(numArgs)));
+		numArgsExpected = RINDEX(GetFrameSlot(func, SYMA(numArgs)));
 		closure = GetFrameSlot(func, SYMA(closure));
-		offset = RINT(GetFrameSlot(func, SYMA(offset)));
+		offset = RINDEX(GetFrameSlot(func, SYMA(offset)));
 		code = (CFunction) (BinaryData(GetFrameSlot(func, SYMA(code))) + offset);
 	}
 	else
@@ -3530,7 +3530,7 @@ CInterpreter::handleBreakPoints(void)
 					isBP = true;
 					if (NOTNIL(GetFrameSlot(iter.value(), SYMA(temporary))))
 					{
-						ArrayRemoveCount(bps, RINT(iter.tag()), 1);
+						ArrayRemoveCount(bps, RINDEX(iter.tag()), 1);
 					}
 				}
 			}

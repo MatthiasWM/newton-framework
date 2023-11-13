@@ -517,7 +517,7 @@ StoreGetSoup(RefArg inRcvr, RefArg inName)
 		// we’ll need to find it with a CSoupIndex
 		CStoreWrapper * storeWrapper = (CStoreWrapper *)GetFrameSlot(inRcvr, SYMA(store));
 		CSoupIndex	soupIndex;
-		soupIndex.init(storeWrapper, RINT(GetFrameSlot(proto, SYMA(nameIndex))), StoreGetDirSortTable(inRcvr));
+		soupIndex.init(storeWrapper, RINDEX(GetFrameSlot(proto, SYMA(nameIndex))), StoreGetDirSortTable(inRcvr));
 		RefVar soupObj;
 
 		// create key for soup name

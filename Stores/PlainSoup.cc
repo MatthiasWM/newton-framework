@@ -115,7 +115,7 @@ PlainSoupIndexSizes(RefArg inRcvr)
 	for (ArrayIndex i = 0; i < count; ++i)
 	{
 		index = GetArraySlot(soupIndexes, i);
-		ii = RINT(GetFrameSlot(index, SYMA(index)));
+		ii = RINDEX(GetFrameSlot(index, SYMA(index)));
 		SetArraySlot(indexSizes, i, MAKEINT(GetSoupIndexObject(inRcvr, ii)->totalSize()));
 	}
 	return indexSizes;
@@ -195,7 +195,7 @@ PlainSoupRemoveIndex(RefArg inRcvr, RefArg index)
 	CStoreWrapper * storeWrapper = (CStoreWrapper *)GetFrameSlot(inRcvr, SYMA(TStore));
 	CheckWriteProtect(storeWrapper->store());
 
-	ArrayIndex indexi = RINT(GetFrameSlot(indexDesc, SYMA(index)));
+	ArrayIndex indexi = RINDEX(GetFrameSlot(indexDesc, SYMA(index)));
 
 	storeWrapper->lockStore();
 	CSoupIndex * soupIndex = GetSoupIndexObject(inRcvr, indexi);
@@ -378,7 +378,7 @@ PlainSoupRemoveTags(RefArg inRcvr, RefArg inTags)
 		{
 			RefVar index(FSetContains(RA(NILREF), soupTags, GetArraySlot(inTags, i)));
 			if (ISINT(index))
-				SetArraySlot(soupTags, RINT(index), RA(NILREF));
+				SetArraySlot(soupTags, RINDEX(index), RA(NILREF));
 		}
 		
 		theTime = MAKEINT(RealClock() & 0x1FFFFFFF);
@@ -444,14 +444,14 @@ PlainSoupModifyTag(RefArg inRcvr, RefArg inOldTag, RefArg inNewTag)
 			if (IsArray(theTags))
 			{
 				index = FSetContains(RA(NILREF), theTags, inOldTag);
-				SetArraySlot(theTags, RINT(index), inNewTag);
+				SetArraySlot(theTags, RINDEX(index), inNewTag);
 			}
 			else
 				SetFramePath(entry, tagsPath, inNewTag);
 
 			EntryChangeCommon(entry, 3);
 		}
-		SetArraySlot(soupTags, RINT(tagIndex), inNewTag);
+		SetArraySlot(soupTags, RINDEX(tagIndex), inNewTag);
 		SetFrameSlot(soupIndexInfo, SYMA(indexesModTime), MAKEINT(RealClock() & 0x1FFFFFFF));
 		SoupChanged(soupIndexInfo, false);
 		WriteFaultBlock(soupIndexInfo);
@@ -1114,7 +1114,7 @@ PlainSoupCopyEntriesWithCallBack(RefArg inRcvr, RefArg intoSoup, RefArg inCallba
 	parms.storeWrapper = storeWrapper;
 	parms.toStoreWrapper = (CStoreWrapper *)GetFrameSlot(intoSoup, SYMA(TStore));
 	parms.aIndex = 0;
-	parms.aCount = RINT(indexNextUId);
+	parms.aCount = RINDEX(indexNextUId);
 	parms.map = new PSSIdMapping[parms.aCount];
 	if (parms.map == NULL)
 		return SlowCopyEntries(inRcvr, intoSoup, inCallbackFn, callbackInterval);

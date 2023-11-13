@@ -319,14 +319,14 @@ SuckPackageThruPipe(CPipe * inPipe, RefArg inStore, RefArg inParms)
 	P l a i n   C   I n t e r f a c e
 ----------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------------
-	Suck a package from a binary object.
-	We do this by creating a memory pipe so we can SuckPackageThruPipe()
-	Args:		rcvr			a store frame
-				inBinary		the binary object containing the package
-				inParms		params frame
-	Return:	a package frame
-------------------------------------------------------------------------------- */
+/**
+ Suck a package from a binary object.
+ We do this by creating a memory pipe so we can SuckPackageThruPipe()
+ \param[in] rcvr      a store frame
+ \param[in] inBinary  the binary object containing the package
+ \param[in] inParms		params frame
+ \return a package frame
+ */
 
 Ref
 StoreSuckPackageFromBinary(RefArg rcvr, RefArg inBinary, RefArg inParms)

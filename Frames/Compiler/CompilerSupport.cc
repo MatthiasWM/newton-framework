@@ -416,7 +416,7 @@ CFunctionState::variableIndex(RefArg inTag)
 		return FrameSlotPosition(fArgFrame, inTag);
 	else
 	//	NOS 2
-		return RINT(GetFrameSlot(fVarLocs, inTag));
+		return RINDEX(GetFrameSlot(fVarLocs, inTag));
 }
 
 
@@ -564,7 +564,7 @@ CFunctionState::makeCodeBlock(void)
 			for ( ; !iter.done(); iter.next())
 			{
 				if (ISINT(iter.value()))
-					SetArraySlot(dbg, RINT(iter.value()) + dbgLen - kFunctionArgFrameIndex, iter.tag());
+					SetArraySlot(dbg, RINDEX(iter.value()) + dbgLen - kFunctionArgFrameIndex, iter.tag());
 				else
 				{
 					ArrayIndex posn = ArrayPosition(fArgs, iter.tag(), 0, NILREF);
@@ -741,7 +741,7 @@ CLoopState *
 CLoopState::endLoop(ArrayIndex inPC)
 {
 	for (ArrayIndex i = 0, count = Length(fExits); i < count; ++i)
-		fEncFunc->backpatch(RINT(GetArraySlot(fExits, i)), kOpcodeBranch, inPC);
+		fEncFunc->backpatch(RINDEX(GetArraySlot(fExits, i)), kOpcodeBranch, inPC);
 
 	CLoopState *	encLoop = fEncLoop;
 	fEncLoop = NULL;

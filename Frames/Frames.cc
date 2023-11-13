@@ -1288,7 +1288,7 @@ FRemoveSlot(RefArg inRcvr, RefArg inObj, RefArg inTag)
 	if ((flags & kObjFrame) != 0)
 		RemoveSlot(inObj, inTag);
 	else
-		ArrayRemoveCount(inObj, RINT(inTag), 1);
+		ArrayRemoveCount(inObj, RINDEX(inTag), 1);
 
 	return inObj;
 }

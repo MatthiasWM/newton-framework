@@ -353,7 +353,7 @@ FClicker(RefArg inRcvr)
 	if (NOTNIL(GetPreference(SYMA(penSoundEffects))))
 	{
 		RefVar	curClick(GetGlobalVar(SYMA(_curClick)));
-		ArrayIndex	index = ISINT(curClick) ? RINT(curClick) : 0;
+		ArrayIndex	index = ISINT(curClick) ? RINDEX(curClick) : 0;
 		RefVar	song(GetGlobalVar(SYMA(_clickSong)));
 		if (ISNIL(song))
 			song = *RS_clickSong;
@@ -362,7 +362,7 @@ FClicker(RefArg inRcvr)
 			index = 0;
 		RefVar	note(GetArraySlot(song, index));
 		if (ISINT(note))
-			note = GetArraySlot(RA(clicks), RINT(note));
+			note = GetArraySlot(RA(clicks), RINDEX(note));
 		FPlaySoundIrregardless(RA(NILREF), note);
 		DefGlobalVar(SYMA(_curClick), MAKEINT(index));
 	}

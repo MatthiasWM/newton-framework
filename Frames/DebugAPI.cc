@@ -96,7 +96,7 @@ FunctionStackSize(RefArg inFunc)
 
 	if (EQ(fnClass, SYMA(_function)))
 	{
-		ArrayIndex argCount = RINT(GetArraySlot(inFunc, kFunctionNumArgsIndex));
+		ArrayIndex argCount = RINDEX(GetArraySlot(inFunc, kFunctionNumArgsIndex));
 		return (argCount >> 16) /* number of locals */ + (argCount & 0xFFFF) /* number of args */;
 	}
 
@@ -187,7 +187,7 @@ CNSDebugAPI::locals(ArrayIndex index)
 
 	if (EQ(funcClass, SYMA(_function)))
 	{
-		ArrayIndex numArgs = RINT(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
+		ArrayIndex numArgs = RINDEX(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
 		ArrayIndex numLocals = (numArgs >> 16) + (numArgs & 0xFFFF);
 		RefVar localsArray(MakeArray(numLocals));
 		for (ArrayIndex i = 0; i < numLocals; ++i)
@@ -226,7 +226,7 @@ CNSDebugAPI::getVar(ArrayIndex index, ArrayIndex inVarIndex)
 
 	if (EQ(funcClass, SYMA(_function)))
 	{
-		ArrayIndex numArgs = RINT(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
+		ArrayIndex numArgs = RINDEX(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
 		ArrayIndex numVars = (numArgs >> 16) + (numArgs & 0xFFFF);
 		if (inVarIndex >= numVars)
 			ThrowExFramesWithBadValue(kNSErrOutOfRange, MAKEINT(inVarIndex));
@@ -260,7 +260,7 @@ CNSDebugAPI::setVar(ArrayIndex index, ArrayIndex inVarIndex, RefArg inVar)
 
 	if (EQ(funcClass, SYMA(_function)))
 	{
-		ArrayIndex numArgs = RINT(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
+		ArrayIndex numArgs = RINDEX(GetArraySlotRef(funcObj, kFunctionNumArgsIndex));
 		ArrayIndex numVars = (numArgs >> 16) + (numArgs & 0xFFFF);
 		if (inVarIndex >= numVars)
 			ThrowExFramesWithBadValue(kNSErrOutOfRange, MAKEINT(inVarIndex));
@@ -416,7 +416,7 @@ REPStackTrace(void * interpreter)
 						RefVar argFrame(GetArraySlot(theFunc, kFunctionArgFrameIndex));
 						RefVar argMap(((FrameObject *)ObjectPtr(argFrame))->map);
 						ArrayIndex numOfLocals = Length(argFrame) - kArgFrameArgIndex;
-						ArrayIndex numOfArgs = RINT(GetArraySlot(theFunc, kFunctionNumArgsIndex));
+						ArrayIndex numOfArgs = RINDEX(GetArraySlot(theFunc, kFunctionNumArgsIndex));
 						for (ArrayIndex i = 0; i < numOfLocals; ++i)
 						{
 							indent = REPprintf("       %ld %s", i, SymbolName(GetTag(argMap, i+kArgFrameArgIndex)));
@@ -638,7 +638,7 @@ PrintInstruction(bool in_function, unsigned char * instruction, RefArg inLiteral
 			if (in_function) {
 				const char * literalName = NULL;
 				if (NOTNIL(inDebugInfo)) {
-					ArrayIndex debugNamesBaseIndex = RINT(GetArraySlot(inDebugInfo, 0)) + 1;
+					ArrayIndex debugNamesBaseIndex = RINDEX(GetArraySlot(inDebugInfo, 0)) + 1;
 					ArrayIndex literalNameIndex = debugNamesBaseIndex + b - 3;
 					RefVar literal(GetArraySlot(inDebugInfo, literalNameIndex));
 					if (NOTNIL(literal)) {

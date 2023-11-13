@@ -2,6 +2,7 @@
 
 #include "Frames/Frames.h"
 #include "Funcs.h"
+#include "NewtonPackage.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -30,6 +31,8 @@ extern void PrintCode(RefArg obj);
 //bool  IsRealPtr(Ref r) { return ISREALPTR(r); }
 
 
+const char *pkg_path = "/Users/matt/dev/Newton/Software/mpg.pkg";
+
 extern Ref *RSSYMviewer;
 
 int main(int argc, char **argv)
@@ -52,11 +55,26 @@ int main(int argc, char **argv)
 //  Ref ParseFile(const char * inFilename)
 //  void Disassemble(RefArg inFunc);
 
+//#define INIVAR(x_, age_, sex_ ,s_) \
+//union {\
+//struct { ..., char name[sizeof(s_)]; } x;\
+//person p;\
+//} x_ = { (age_), (sex_), (s_) }
+//
+//INIVAR(your_var, 55, 'M', "THE NAME");
+
+#if 0
   Ref src = MakeStringFromCString("7*6");
   Ref fn = ParseString(src);
   Ref ret = DoBlock(fn, RA(NILREF));
   PrintObject(ret, 0); puts("");
   Disassemble(fn);
   PrintCode(fn); puts("");
+#endif
 
+  NewtonPackage pkg(pkg_path);
+  Ref part = pkg.partRef(0);
+  PrintObject(part, 0); puts("");
+  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
+  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
 }

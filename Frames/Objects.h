@@ -119,7 +119,8 @@ enum
 
 extern "C" int _RPTRError(Ref r), _RINTError(Ref r), _RCHARError(Ref r);
 
-inline long	RINT(Ref r)		{ return ISINT(r) ? RVALUE(r) : _RINTError(r); }
+inline long  RINT(Ref r)    { return ISINT(r) ? RVALUE(r) : _RINTError(r); }
+inline ArrayIndex RINDEX(Ref r) { return ISINT(r) ? (ArrayIndex)RVALUE(r) : _RINTError(r); }
 inline UniChar	RCHAR(Ref r)	{ return ISCHAR(r) ? (UniChar) RIMMEDVALUE(r) : _RCHARError(r); }
 
 

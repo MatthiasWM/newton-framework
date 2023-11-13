@@ -1680,7 +1680,7 @@ CCompiler::declarationWalker(RefArg inGraph, int inNodeType, RefArg inP1, RefArg
 			RefVar	varNames(MakeArray(3));
 			SetArraySlot(varNames, 0, inP1);
 			const char *	name = SymbolName(inP1);
-			ArrayIndex	nameLen = strlen(name);
+			ArrayIndex	nameLen = (ArrayIndex)strlen(name);
 			char *	iterVarName = (char *)malloc(nameLen + 7);
 			strcpy(iterVarName, name);
 			memmove(iterVarName + nameLen, "|limit", 7);
@@ -1697,9 +1697,9 @@ CCompiler::declarationWalker(RefArg inGraph, int inNodeType, RefArg inP1, RefArg
 			func->addLocals(Clone(inP4));
 			const char *	tagName = SymbolName(GetArraySlot(inP4, 0));
 			const char *	valueName = Length(inP4) > 1 ? SymbolName(GetArraySlot(inP4, 1)) : "";
-			ArrayIndex	tagNameLen = strlen(tagName);
-			ArrayIndex	valueNameLen = strlen(valueName);
-			char *	iterVarName = (char *)malloc(tagNameLen + valueNameLen + 8);	// +8 for longest of "|iter", "|index", "|result" 
+			ArrayIndex	tagNameLen = (ArrayIndex)strlen(tagName);
+			ArrayIndex	valueNameLen = (ArrayIndex)strlen(valueName);
+			char *	iterVarName = (char *)malloc(tagNameLen + valueNameLen + 8);	// +8 for longest of "|iter", "|index", "|result"
 			strcpy(iterVarName, tagName);
 			strcat(iterVarName, valueName);
 			strcat(iterVarName, "|iter");
@@ -2220,10 +2220,10 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 				Ref	handlerOffset = MAKEINT(curPC());
 				if (handlerOffset == (handlerOffset & 0xFFFF))
 				//	short branch
-					backpatch(RINT(GetArraySlot(entryBranches, i)), kOpcodePushConstant, handlerOffset);
+					backpatch(RINDEX(GetArraySlot(entryBranches, i)), kOpcodePushConstant, handlerOffset);
 				else
 				//	long branch
-					backpatch(RINT(GetArraySlot(entryBranches, i)), kOpcodePush, func->literalOffset(handlerOffset));
+					backpatch(RINDEX(GetArraySlot(entryBranches, i)), kOpcodePush, func->literalOffset(handlerOffset));
 
 				if (inFinalNode)
 				{
@@ -2240,7 +2240,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
 			// backpatch handler exit branches
 			for (i = 0; i < numOfExits; ++i)
-				backpatch(RINT(GetArraySlot(exitBranches, i)), kOpcodeBranch, curPC());
+				backpatch(RINDEX(GetArraySlot(exitBranches, i)), kOpcodeBranch, curPC());
 			emit(kOpcodeSimple, kSimplePopHandlers);
 
 			// backpatch try end branch
@@ -2868,7 +2868,7 @@ CCompiler::freqFuncIndex(RefArg inName, ArrayIndex inNumArgs)
 	if (ISNIL(index)
 	|| gFreqFuncInfo[RINT(index)].numOfArgs != inNumArgs)
 		return kIndexNotFound;
-	return RINT(index);
+	return RINDEX(index);
 }
 
 

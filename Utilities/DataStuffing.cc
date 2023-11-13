@@ -58,7 +58,7 @@ BoundsWriteCheck(RefArg inObj, ArrayIndex inOffset, ArrayIndex inLength)
 Ref
 FExtractChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(char));
 
 	char * p = BinaryData(inObj);
@@ -74,7 +74,7 @@ FExtractChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(UniChar));
 
 	char * p = BinaryData(inObj);
@@ -87,7 +87,7 @@ FExtractUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractByte(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(int8_t));
 
 	char * p = BinaryData(inObj);
@@ -99,7 +99,7 @@ FExtractByte(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractWord(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(int16_t));
 
 	char * p = BinaryData(inObj);
@@ -111,7 +111,7 @@ FExtractWord(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(int32_t));
 
 	char * p = BinaryData(inObj);
@@ -126,7 +126,7 @@ FExtractLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractXLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(uint32_t));
 
 	char * p = BinaryData(inObj);
@@ -138,7 +138,7 @@ FExtractXLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractCString(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsCheck(inObj, offset, sizeof(char));
 
 	// check that C string is nul-terminated
@@ -163,7 +163,7 @@ FExtractCString(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractPString(RefArg rcvr, RefArg inObj, RefArg inOffset)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	unsigned char * p = (unsigned char *)BinaryData(inObj);
 	ArrayIndex pStrLen = *p + 1;
 	BoundsCheck(inObj, offset, pStrLen);
@@ -177,8 +177,8 @@ FExtractPString(RefArg rcvr, RefArg inObj, RefArg inOffset)
 Ref
 FExtractBytes(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inLength, RefArg inClass)
 {
-	ArrayIndex offset = RINT(inOffset);
-	ArrayIndex length = NOTNIL(inLength) ? RINT(inLength) : Length(inObj) - offset;	// if not specified, assume all
+	ArrayIndex offset = RINDEX(inOffset);
+	ArrayIndex length = NOTNIL(inLength) ? RINDEX(inLength) : Length(inObj) - offset;	// if not specified, assume all
 	BoundsCheck(inObj, offset, length);		// original does its own checks
 	if (!IsSymbol(inClass))
 		ThrowErr(exFrames, kNSErrBadArgs);
@@ -194,7 +194,7 @@ FExtractBytes(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inLength, RefAr
 Ref
 FStuffChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsWriteCheck(inObj, offset, sizeof(char));
 
 	UniChar ustr[2];
@@ -210,7 +210,7 @@ FStuffChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 Ref
 FStuffUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsWriteCheck(inObj, offset, sizeof(UniChar));
 
 	UniChar uc = ISINT(inData) ? RINT(inData) : RCHAR(inData);
@@ -222,7 +222,7 @@ FStuffUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 Ref
 FStuffByte(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsWriteCheck(inObj, offset, sizeof(int8_t));
 
 	int8_t v = RINT(inData);
@@ -234,7 +234,7 @@ FStuffByte(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 Ref
 FStuffWord(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsWriteCheck(inObj, offset, sizeof(int16_t));
 
 	int16_t v = RINT(inData);
@@ -245,7 +245,7 @@ FStuffWord(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 Ref
 FStuffLong(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	BoundsWriteCheck(inObj, offset, sizeof(int32_t));
 
 	int32_t v = RINT(inData);
@@ -257,7 +257,7 @@ FStuffLong(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 Ref
 FStuffCString(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inStr)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	if (!IsString(inStr))
 		ThrowBadTypeWithFrameData(kNSErrNotAString, inStr);
 	ArrayIndex length = Length(inStr) / sizeof(UniChar);	// string includes nul-terminator
@@ -271,7 +271,7 @@ FStuffCString(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inStr)
 Ref
 FStuffPString(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inStr)
 {
-	ArrayIndex offset = RINT(inOffset);
+	ArrayIndex offset = RINDEX(inOffset);
 	if (!IsString(inStr))
 		ThrowBadTypeWithFrameData(kNSErrNotAString, inStr);
 	ArrayIndex length = Length(inStr) / sizeof(UniChar);	// string includes nul-terminator

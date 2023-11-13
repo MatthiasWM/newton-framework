@@ -618,15 +618,15 @@ BinaryMunger(RefArg a1, ArrayIndex a1start, ArrayIndex a1count,
 Ref
 FMakeBinary(RefArg inRcvr, RefArg inSize, RefArg inClass)
 {
-	return AllocateBinary(inClass, RINT(inSize));
+	return AllocateBinary(inClass, RINDEX(inSize));
 }
 
 Ref
 FBinaryMunger(RefArg inRcvr, RefArg a1, RefArg a1start, RefArg a1count,
 									  RefArg a2, RefArg a2start, RefArg a2count)
 {
-	BinaryMunger(a1, RINT(a1start), NOTNIL(a1count) ? RINT(a1count) : kIndexNotFound,
-					 a2, RINT(a2start), NOTNIL(a2count) ? RINT(a2count) : kIndexNotFound);
+	BinaryMunger(a1, RINDEX(a1start), NOTNIL(a1count) ? RINDEX(a1count) : kIndexNotFound,
+					 a2, RINDEX(a2start), NOTNIL(a2count) ? RINDEX(a2count) : kIndexNotFound);
 	return a1;
 }
 

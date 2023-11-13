@@ -479,14 +479,14 @@ FAddArraySlot(RefArg inRcvr, RefArg ioArray, RefArg inObj)
 Ref
 FNewWeakArray(RefArg inRcvr, RefArg inLength)
 {
-	return AllocateArray(kWeakArrayClass, RINT(inLength));
+	return AllocateArray(kWeakArrayClass, RINDEX(inLength));
 }
 
 
 Ref
 FArray(RefArg inRcvr, RefArg inLength, RefArg inValue)
 {
-	ArrayIndex	aLen = RINT(inLength);
+	ArrayIndex	aLen = RINDEX(inLength);
 	RefVar		a(MakeArray(aLen));
 	if (NOTNIL(inValue))
 	{
@@ -501,7 +501,7 @@ FArray(RefArg inRcvr, RefArg inLength, RefArg inValue)
 Ref
 FArrayInsert(RefArg inRcvr, RefArg ioArray, RefArg inObj, RefArg index)
 {
-	ArrayInsert(ioArray, inObj, RINT(index));
+	ArrayInsert(ioArray, inObj, RINDEX(index));
 	return ioArray;
 }
 
@@ -510,8 +510,8 @@ Ref
 FArrayMunger(RefArg inRcvr, RefArg a1, RefArg a1start, RefArg a1count,
 									 RefArg a2, RefArg a2start, RefArg a2count)
 {
-	ArrayMunger(a1, RINT(a1start), NOTNIL(a1count) ? RINT(a1count) : kIndexNotFound,
-					a2, RINT(a2start), NOTNIL(a2count) ? RINT(a2count) : kIndexNotFound);
+	ArrayMunger(a1, RINDEX(a1start), NOTNIL(a1count) ? RINDEX(a1count) : kIndexNotFound,
+					a2, RINDEX(a2start), NOTNIL(a2count) ? RINDEX(a2count) : kIndexNotFound);
 	return a1;
 }
 
@@ -519,7 +519,7 @@ FArrayMunger(RefArg inRcvr, RefArg a1, RefArg a1start, RefArg a1count,
 Ref
 FArrayRemoveCount(RefArg inRcvr, RefArg ioArray, RefArg inStart, RefArg inCount)
 {
-	ArrayRemoveCount(ioArray, RINT(inStart), RINT(inCount));
+	ArrayRemoveCount(ioArray, RINDEX(inStart), RINDEX(inCount));
 	return NILREF;
 }
 
@@ -527,7 +527,7 @@ FArrayRemoveCount(RefArg inRcvr, RefArg ioArray, RefArg inStart, RefArg inCount)
 Ref
 FSetLength(RefArg inRcvr, RefArg ioArray, RefArg inLength)
 {
-	SetLength(ioArray, RINT(inLength));
+	SetLength(ioArray, RINDEX(inLength));
 	return ioArray;
 }
 
