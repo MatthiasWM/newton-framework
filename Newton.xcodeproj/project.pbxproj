@@ -686,7 +686,7 @@
 		66163A6A0511DA1400A80002 /* Timers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Timers.h; sourceTree = "<group>"; };
 		66175DAD0546AA1D00A80002 /* RecStroke.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RecStroke.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		661D23930536A30600A80002 /* NewtGlobals.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtGlobals.h; sourceTree = "<group>"; };
-		662C243904FD269E00A80002 /* NewtWorld.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = NewtWorld.cc; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		662C243904FD269E00A80002 /* NewtWorld.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = NewtWorld.cc; sourceTree = "<group>"; };
 		66319C95050C816A00A80002 /* CommManager.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CommManager.cc; path = ../Communications/CommManager.cc; sourceTree = "<group>"; };
 		66319C99050C9BE200A80002 /* KernelGlobals.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelGlobals.h; sourceTree = "<group>"; };
 		66393DB904C7F08100A80002 /* Arrays.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Arrays.cc; sourceTree = "<group>"; };
@@ -850,7 +850,7 @@
 		669C09F70508FD5200A80002 /* KernelTasks.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelTasks.h; sourceTree = "<group>"; };
 		669EEFAA04F394E100A80002 /* Screen.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Screen.h; sourceTree = "<group>"; };
 		66B1B66804CFD3340086C7ED /* MPController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MPController.h; path = ../Platform/MPController.h; sourceTree = "<group>"; };
-		66B1B66904CFD3340086C7ED /* MPController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; lineEnding = 0; name = MPController.mm; path = ../Platform/MPController.mm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		66B1B66904CFD3340086C7ED /* MPController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; lineEnding = 0; name = MPController.mm; path = ../Platform/MPController.mm; sourceTree = "<group>"; };
 		66B1B67B04CFEF920086C7ED /* Gestalt.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gestalt.cc; sourceTree = "<group>"; };
 		66B1B68204D03ED60086C7ED /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		66CCA13F04BEB4C100A80002 /* ViewObject.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewObject.h; path = Views/ViewObject.h; sourceTree = "<group>"; };
@@ -2678,11 +2678,11 @@
 				F4A8B53B057381D5004D6931 /* Boot.cc in Sources */,
 				F4A8B53C057381D5004D6931 /* BusyBox.cc in Sources */,
 				F4A8B53D057381D5004D6931 /* CommManager.cc in Sources */,
+				F4D61175192631580041C087 /* DragAndDrop.cc in Sources */,
 				F4A8B53E057381D5004D6931 /* DynamicArray.cc in Sources */,
 				F4A8B53F057381D5004D6931 /* Environment.cc in Sources */,
 				F4A58FB918BB69E1008B0832 /* ProtoMacro.s in Sources */,
 				F4C4C1DC1A374D42002B8821 /* FakePointers.cc in Sources */,
-				F4D61175192631580041C087 /* DragAndDrop.cc in Sources */,
 				F4A8B540057381D5004D6931 /* Events.cc in Sources */,
 				F4A8B541057381D5004D6931 /* Exceptions.cc in Sources */,
 				F4A8B542057381D5004D6931 /* Frames.cc in Sources */,

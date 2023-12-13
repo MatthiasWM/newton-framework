@@ -31,6 +31,24 @@ extern void PrintCode(RefArg obj);
 //bool  IsRealPtr(Ref r) { return ISREALPTR(r); }
 
 
+//  .globl  _RSSYMGetDefaultStore
+//_RSYMGetDefaultStore:    Ref  MAKEPTR(SYMGetDefaultStore)
+//_RSSYMGetDefaultStore:  Ref  _RSYMGetDefaultStore
+//SYMGetDefaultStore:  Ref    kHeaderSize + 4 + 16 + kFlagsBinary
+//Ref    0, 0x55552
+//  .long    0x529B1862
+//  .asciz  "GetDefaultStore"
+//  .align  8
+//#define kHeaderSize 24
+//#define kFlagsBinary (0x40<<24)
+//struct StructGetDefaultStore{ uintptr_t hdr, gc, id; uint32_t hash; char sym[16]; };
+//struct StructGetDefaultStore SYMGetDefaultStore = { kHeaderSize+16+kFlagsBinary, 0, 0x55552, 0x529B1862, "GetDefaultStore" };
+//uintptr_t RSYMGetDefaultStore = MAKEPTR(&SYMGetDefaultStore);
+//uintptr_t RSSYMGetDefaultStore = RSYMGetDefaultStore; // _RSSYMGetDefaultStore
+
+
+
+
 const char *pkg_path = "/Users/matt/dev/Newton/Software/mpg.pkg";
 
 extern Ref *RSSYMviewer;

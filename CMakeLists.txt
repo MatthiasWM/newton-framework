@@ -344,11 +344,11 @@ SET ( UNUSED_SRC_FILES
   MPW Tools/REx/REx.cc
   MPW Tools/REx/Reporting.cc
   MPW Tools/REx/Research.cc
-  Memory Manager/Handles.cc
-  Memory Manager/Heap.cc
-  Memory Manager/MemMgr.cc
-  Memory Manager/Pointers.cc
-  Memory Manager/SafeHeap.cc
+  Memory\ Manager/Handles.cc
+  Memory\ Manager/Heap.cc
+  Memory\ Manager/MemMgr.cc
+  Memory\ Manager/Pointers.cc
+  Memory\ Manager/SafeHeap.cc
   NTK/TranslatorImpl.s
   OS/AppWorld.cc
   OS/Boot.cc
@@ -562,6 +562,317 @@ target_include_directories ( test PRIVATE
 )
 
 target_link_libraries ( test PRIVATE
+  "-framework Cocoa"
+  "-framework CoreServices"
+  "-framework ApplicationServices"
+  "-framework AudioUnit"
+  "-framework IOKit"
+)
+
+
+set ( MP_SRC_FILES
+  Views/DragAndDrop.cc
+  Views/Application.cc
+  OS/AppWorld.cc
+  Recognition/Array.cc
+  Frames/Arrays.cc
+  OS/Boot.cc
+  Views/BusyBox.cc
+  Communications/CommManager.cc
+  UtilityClasses/DynamicArray.cc
+  OS/Environment.cc
+  Protocols/ProtoMacro.s
+  Memory\ Manager/FakePointers.cc
+  UtilityClasses/Events.cc
+  Frames/Exceptions.cc
+  Frames/Frames.cc
+  OS/Gestalt.cc
+  Frames/Globals.cc
+  Frames/Compiler/InputStreams.cc
+  OS/Interrupt.cc
+  NTK/TranslatorProto.s
+  Frames/Iterators.cc
+  OS/KernelMonitor.cc
+  Communications/Endpoint.cc
+  OS/KernelObjects.cc
+  OS/KernelPhys.cc
+  OS/KernelPorts.cc
+  Sound/SoundChannel.cc
+  OS/KernelSemaphore.cc
+  Communications/EndpointProto.s
+  OS/KernelTasks.cc
+  Sound/Codecs/MuLawCodec.cc
+  Views/Librarian.cc
+  UtilityClasses/List.cc
+  Frames/Lookup.cc
+  Protocols/ProtocolProto.s
+  Frames/MagicPointers.cc
+  main.m
+  Stores/FlashProto.s
+  Toolbox/Maths.cc
+  OS/MemArch.cc
+  UtilityClasses/MemObject.cc
+  OS/MemObjManager.cc
+  OS/NameServer.cc
+  OS/NewtWorld.cc
+  Views/Notebook.cc
+  Frames/ObjectHeap.cc
+  Frames/ObjectPrinter.cc
+  Communications/DES.c
+  Frames/Objects.cc
+  OS/PageManager.cc
+  Views/PictureView.cc
+  Stores/FlashDriver.cc
+  UtilityClasses/Queues.cc
+  Recognition/Recognition.cc
+  Stores/StoreObjRef.cc
+  Frames/RefMemory.cc
+  Frames/RefVar.cc
+  Views/Responder.cc
+  Frames/Compiler/Codegen.cc
+  Frames/RichStrings.cc
+  OS/asm-LP64/SWIHandler.s
+  Views/RootView.cc
+  OS/Scheduler.cc
+  Sound/SoundDriverProto.s
+  OS/Semaphore.cc
+  OS/SharedMem.cc
+  OS/StackManager.cc
+  Frames/Strings.cc
+  Frames/Symbols.cc
+  OS/SystemEvents.cc
+  Recognition/Tablet.cc
+  UtilityClasses/TimerQueue.cc
+  OS/Timers.cc
+  Frames/Compiler/Parser.cc
+  Utilities/Unicode.cc
+  OS/UserMonitor.cc
+  OS/UserObjects.cc
+  OS/UserPorts.cc
+  OS/UserSharedMem.cc
+  OS/UserTasks.cc
+  Utilities/UStringUtils.c
+  Views/View.cc
+  Views/ViewObject.cc
+  Views/ViewUtils.cc
+  OS/VirtualMemory.cc
+  OS/ROMExtension.cc
+  Protocols/Protocols.cc
+  OS/MMU.c
+  OS/PhysicalMemory.cc
+  Preference.cc
+  Platform/MPController.mm
+  Locales.cc
+  Frames/Interpreter.cc
+  Views/TextView.cc
+  Views/Debug.cc
+  Graphics/Shapes.cc
+  Views/ModalViews.cc
+  Recognition/RecObject.cc
+  Recognition/RecArea.cc
+  Recognition/RecDomain.cc
+  Stores/FlashIterator.cc
+  Stores/Flash.cc
+  Frames/Compiler/Lexer.cc
+  Stores/FlashRange.cc
+  Recognition/RecType.cc
+  OS/asm-LP64/SWIGlue.s
+  Frames/LargeBinaries.cc
+  Frames/Compiler/Compiler.cc
+  Recognition/Stroke.cc
+  REP.cc
+  Frames/Compiler/y.tab.c
+  Frames/Compiler/CompilerSupport.cc
+  Communications/CommToolProtocol.cc
+  Platform/Platform.cc
+  OS/SWInterrupt.cc
+  Sound/Codecs/IMACodec.cc
+  Stores/StoreMonitorProto.s
+  NTK/NTK.cc
+  Sound/Codecs/GSMCodec.cc
+  Compression/Compression.cc
+  Recognition/Inker.cc
+  CommAPI/CommOptions.cc
+  Printing/Printing.cc
+  Frames/ScriptInit.cc
+  Frames/StreamObjects.cc
+  Packages/Packages.cc
+  Frames/Pipes.cc
+  Stores/StoreWrapper.cc
+  Stores/PackageStore.cc
+  OS/ROMDomainManager.cc
+  Stores/CachedReadStore.cc
+  Stores/FaultBlocks.cc
+  Stores/LargeObjectStore.cc
+  Stores/Stores.cc
+  Compression/UnicodeCompression/Compression.cc
+  Compression/ArithmeticCompression/Compression.cc
+  Compression/ZippyCompression/Compression.cc
+  Compression/LZCompression/CopyOffset_bin.cc
+  Compression/LZCompression/LZCompressionData-j.cc
+  Compression/LZCompression/LZCompressor.cc
+  Stores/MuxStore.cc
+  Compression/LZCompression/LZDecompressor.cc
+  Compression/LZCompression/LZStoreCompander.cc
+  Compression/LZCompression/PushPopBits.cc
+  Compression/StoreCompanderWrapper.cc
+  Stores/LargeObjects.cc
+  Frames/NewtonScript.cc
+  Frames/RefIO.cc
+  Graphics/DrawImage.cc
+  Graphics/DrawInk.cc
+  Graphics/DrawShape.cc
+  Graphics/DrawText.cc
+  Graphics/InkCompr.c
+  Views/SplashScreen.cc
+  ObjectSystem.cc
+  Memory\ Manager/Heap.cc
+  Memory\ Manager/SafeHeap.cc
+  Stores/FlashBlock.cc
+  Memory\ Manager/MemMgr.cc
+  Sound/Sound.cc
+  Sound/Codecs/DTMFCodec.cc
+  Sound/UserSoundChannel.cc
+  Compression/SimpleStoreCompander.cc
+  Communications/DockerDynArray.cc
+  UtilityClasses/Buffer.cc
+  UtilityClasses/BufferList.cc
+  ROMData/forNewton/RSSymbols.s
+  UtilityClasses/BufferPipe.cc
+  Stores/FlashStore.cc
+  UtilityClasses/BufferSegment.cc
+  UtilityClasses/CircleBuf.cc
+  Frames/CObjectBinaries.cc
+  Sound/Codecs/CodecProto.s
+  Compression/CompressionProto.s
+  Stores/Cursors.cc
+  Dates.cc
+  Stores/FlashCache.cc
+  Dictionaries.cc
+  Stores/Entries.cc
+  ErrorString.m
+  Stores/Hints.cc
+  IA.cc
+  ROMData/forNewton/RefSymbols.s
+  Stubs.cc
+  Stores/Indexes.cc
+  Graphics/Ink.cc
+  OS/Marshaling.cc
+  Recognition/InkGeometry.cc
+  Recognition/Journal.cc
+  UtilityClasses/MemoryPipe.cc
+  Stores/NodeCache.cc
+  OS/UserDomain.cc
+  Communications/OptionArray.cc
+  Stores/PlainSoup.cc
+  Compression/QDCompression.cc
+  Graphics/QDDrawing.cc
+  Graphics/Geometry.cc
+  Recognition/RecStroke.cc
+  Recognition/RecUnit.cc
+  Recognition/SIUnit.cc
+  Stores/Soups.cc
+  Stores/StoreDriver.cc
+  Stores/StoreProto.s
+  ROMData/forNewton/RSData.s
+  Stores/StoreStreamObjects.cc
+  Recognition/Stroker.cc
+  Recognition/TabletBuffer.cc
+  Stores/Tags.cc
+  Testing/TestAgent.cc
+  Recognition/Transformations.cc
+  Stores/UnionSoup.cc
+  Recognition/TabletDriver.cc
+  Recognition/TabletDriverProto.s
+  UtilityClasses/NArray.cc
+  Compression/Relocation.cc
+  Views/Animation.cc
+  UtilityClasses/EndpointPipe.cc
+  Communications/CommTool.cc
+  Graphics/ScreenDriverProto.s
+  Graphics/ScreenDriver.cc
+  Cards/CardEvents.cc
+  SerialNumber.cc
+  Graphics/Screen.cc
+  CommAPI/CMService.cc
+  SplashScreenProto.s
+  Communications/CommToolProto.s
+  Packages/PackageManager.cc
+  Recognition/Controller.cc
+  Sound/SoundServer.cc
+  Graphics/Regions.cc
+  Sound/SoundDriver.cc
+  Platform/PlatformDriverProto.s
+  Views/ViewStubs.cc
+  Views/KeyboardView.cc
+  Views/ParagraphView.cc
+  Views/GaugeView.cc
+  ROMData/forNewton/RefData.s
+  Power.cc
+  Frames/SortedArrays.cc
+  Platform/Voyager.cc
+  Startup.cc
+  UtilityClasses/TraceEvents.cc
+  Cards/CardServer.cc
+  Packages/PartHandler.cc
+  Views/Alerts.cc
+  Stores/PSSManager.cc
+  OS/PowerManager.cc
+  Packages/Parts.cc
+  Communications/CMWorld.cc
+  Platform/MPInterface.cc
+  Recognition/Recognizers.cc
+  Views/PickView.cc
+  Frames/Decompiler.cc
+  Stores/FlashTracker.cc
+  NewtonPackage.cc
+  Recognition/Unit.cc
+  Recognition/WordRecognizer.cc
+  Recognition/ShapeRecognizer.cc
+  Recognition/Arbiter.cc
+  Communications/SerialOptions.cc
+  Recognition/EdgeListRecognizer.cc
+  Recognition/StrokeRecognizer.cc
+  Recognition/ClickRecognizer.cc
+  UtilityClasses/TaskSafeRingBuffer.cc
+  Utilities/DataStuffing.cc
+  Frames/DebugAPI.cc
+  Views/DataView.cc
+)
+
+add_executable ( MessagePad ${MP_SRC_FILES} )
+target_compile_definitions( MessagePad PRIVATE forMac forDarkStar )
+target_include_directories ( MessagePad PRIVATE
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/Frames
+  ${CMAKE_SOURCE_DIR}/UtilityClasses
+  ${CMAKE_SOURCE_DIR}/OS
+  ${CMAKE_SOURCE_DIR}/NTK
+  ${CMAKE_SOURCE_DIR}/CommAPI
+  ${CMAKE_SOURCE_DIR}/Frames/Compiler
+  ${CMAKE_SOURCE_DIR}/Views
+  ${CMAKE_SOURCE_DIR}/Graphics
+  ${CMAKE_SOURCE_DIR}/Protocols
+  ${CMAKE_SOURCE_DIR}/Stores
+  ${CMAKE_SOURCE_DIR}/Utilities
+  ${CMAKE_SOURCE_DIR}/Recognition
+  ${CMAKE_SOURCE_DIR}/Cards
+  ${CMAKE_SOURCE_DIR}/Sound
+  ${CMAKE_SOURCE_DIR}/Platform
+  ${CMAKE_SOURCE_DIR}/Sound/Codecs
+  ${CMAKE_SOURCE_DIR}/Toolbox
+  ${CMAKE_SOURCE_DIR}/Testing
+  ${CMAKE_SOURCE_DIR}/Packages
+  ${CMAKE_SOURCE_DIR}/Compression
+  ${CMAKE_SOURCE_DIR}/Memory\ Manager
+  ${CMAKE_SOURCE_DIR}/Communications
+  ${CMAKE_SOURCE_DIR}/Compression/LZCompression
+  ${CMAKE_SOURCE_DIR}/Compression/ZippyCompression
+  ${CMAKE_SOURCE_DIR}/Compression/UnicodeCompression
+  ${CMAKE_SOURCE_DIR}/Sound/Codecs/gsm-1.0-pl12/inc/
+)
+
+target_link_libraries ( MessagePad PRIVATE
   "-framework Cocoa"
   "-framework CoreServices"
   "-framework ApplicationServices"

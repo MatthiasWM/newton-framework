@@ -411,8 +411,8 @@ FPenPos(RefArg inRcvr)
 	if (!isPenUp)
 	{
 		RefVar	pos(Clone(RA(canonicalPoint)));
-		SetFrameSlot(pos, SYMA(x), MAKEINT(x + 0.5));
-		SetFrameSlot(pos, SYMA(y), MAKEINT(y + 0.5));
+		SetFrameSlot(pos, SYMA(x), MAKEINT(((int)(x + 0.5))));
+		SetFrameSlot(pos, SYMA(y), MAKEINT(((int)(y + 0.5))));
 		return pos;
 	}
 	return NILREF;

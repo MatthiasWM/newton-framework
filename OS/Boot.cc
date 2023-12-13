@@ -776,7 +776,7 @@ L20	LDR	R0, [g0F183C00]
 		BL		InitParamBlockFromImagePhysical  ; does nothing
 		BL		PostCGlobalsHWInit
 		BL		InitInterruptStacks			; 00018B78, private, follows SetFIQStack
-		InitFinished
+		InitFinished ; 0xE6000010
 */
 #if !defined(correct)
 	gKernelArea.bank[0] = *bankInfo;
