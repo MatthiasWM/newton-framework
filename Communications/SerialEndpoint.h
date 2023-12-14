@@ -197,7 +197,6 @@ public:
 
 
 PROTOCOL CSerialEndpoint : public CEndpoint
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CSerialEndpoint)

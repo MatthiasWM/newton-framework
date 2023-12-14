@@ -56,7 +56,6 @@ public:
 
 
 PROTOCOL CStoreCompanderWrapper : public CStoreCompander
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

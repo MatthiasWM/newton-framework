@@ -18,7 +18,6 @@
 #else
 @interface NStore
 { }
-//	PROTOCOLVERSION(1.0)
 //	PROTOCOL_IMPL_HEADER_MACRO(NStore);
 
 //	CAPABILITIES( "LOBJ" )

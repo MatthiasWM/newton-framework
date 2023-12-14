@@ -21,7 +21,6 @@ class CMuxStoreMonitor;
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CMuxStore : public CStore
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -106,7 +105,6 @@ inline NewtonErr	CMuxStore::releaseLock(void)		{ return fLock->release(); }
 ------------------------------------------------------------------------------*/
 
 MONITOR CMuxStoreMonitor : public CStoreMonitor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

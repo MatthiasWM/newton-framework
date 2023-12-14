@@ -39,7 +39,7 @@
 const CClassInfo *
 GetStoreClassInfo(const CStore * inStore)
 {
-	const CClassInfo * storeClassInfo = inStore->GetClassInfo();
+	const CClassInfo * storeClassInfo = inStore->fClassInfo;
 	return (storeClassInfo == CMuxStore::classInfo()) ? ((CMuxStore *)inStore)->getStore()->classInfo() : storeClassInfo;
 }
 
@@ -61,13 +61,21 @@ CanCreateLargeObjectsOnStore(CStore * inStore)
 	CMuxStore implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCMuxStore() {
-  return new CMuxStore();
-}
-
 const CClassInfo *
 CMuxStore::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CMuxStore",
+        .fInterface = "CStore",
+        .fSignature = "LOBJ\0\0",
+        .fSizeofProc = []()->size_t { return sizeof(CMuxStore); },
+        .fAllocProc = []()->CProtocol* { return new CMuxStore(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -148,6 +156,7 @@ CMuxStore::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMuxStore)
@@ -643,78 +652,87 @@ CMuxStore::getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigned 
 	CMuxStoreMonitor implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCMuxStoreMonitor() {
-  return new CMuxStoreMonitor();
-}
-
 const CClassInfo *
 CMuxStoreMonitor::classInfo(void)
 {
-  static CClassInfo *classInfo = nullptr;
-  if (!classInfo) {
-    classInfo = new CClassInfo();
-//__asm__ (
-//CLASSINFO_BEGIN
-//"		.long		0			\n"
-//"		.long		1f - .	\n"
-    classInfo->fName = "CMuxStoreMonitor";
-//"		.long		2f - .	\n"
-    classInfo->fInterfaceName = "CStoreMonitor";
-//"		.long		3f - .	\n"
-    classInfo->fSignature = "\0";
-//"		.long		4f - .	\n"
-//"		.long		5f - .	\n"
-//"		.long		__ZN16CMuxStoreMonitor6sizeOfEv - 0b	\n"
-    classInfo->fAllocProc = newCMuxStoreMonitor;
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		__ZN16CMuxStoreMonitor4makeEv - 0b	\n"
-//"		.long		__ZN16CMuxStoreMonitor7destroyEv - 0b	\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		6f - 0b	\n"
-//"1:	.asciz	\"CMuxStoreMonitor\"	\n"
-//"2:	.asciz	\"CStoreMonitor\"	\n"
-//"3:	.byte		0			\n"
-//"		.align	2			\n"
-//"4:	.long		0			\n"
-    // verified:
-//"		.long		__ZN16CMuxStoreMonitor9classInfoEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor4makeEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor7destroyEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor4initEP6CStore - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor11needsFormatEPb - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor6formatEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor9getRootIdEPj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor9newObjectEPjm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor11eraseObjectEj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor12deleteObjectEj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor13setObjectSizeEjm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor13getObjectSizeEjPm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor5writeEjmPvm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor4readEjmPvm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor12getStoreSizeEPmS0_ - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor10isReadOnlyEPb - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor9lockStoreEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor11unlockStoreEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor5abortEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor4idleEPbS0_ - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor10nextObjectEjPj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor14checkIntegrityEPj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor20newWithinTransactionEPjm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor23startTransactionAgainstEj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor15separatelyAbortEj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor23addToCurrentTransactionEj - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor12lockReadOnlyEv - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor14unlockReadOnlyEb - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor9newObjectEPjPvm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor13replaceObjectEjPvm - 4b	\n"
-//"		.long		__ZN16CMuxStoreMonitor12newXIPObjectEPjm - 4b	\n"
-//CLASSINFO_END
-//);
-  }
-  return classInfo;
+    static CClassInfo _classInfo = {
+        .fName = "CMuxStoreMonitor",
+        .fInterface = "CStoreMonitor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CMuxStoreMonitor); },
+        .fAllocProc = []()->CProtocol* { return new CMuxStoreMonitor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
+    static CClassInfo *classInfo = nullptr;
+    if (!classInfo) {
+        classInfo = new CClassInfo();
+        //__asm__ (
+        //CLASSINFO_BEGIN
+        //"		.long		0			\n"
+        //"		.long		1f - .	\n"
+        classInfo->fName = "CMuxStoreMonitor";
+        //"		.long		2f - .	\n"
+        classInfo->fInterfaceName = "CStoreMonitor";
+        //"		.long		3f - .	\n"
+        classInfo->fSignature = "\0";
+        //"		.long		4f - .	\n"
+        //"		.long		5f - .	\n"
+        //"		.long		__ZN16CMuxStoreMonitor6sizeOfEv - 0b	\n"
+        classInfo->fAllocProc = newCMuxStoreMonitor;
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		__ZN16CMuxStoreMonitor4makeEv - 0b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor7destroyEv - 0b	\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		6f - 0b	\n"
+        //"1:	.asciz	\"CMuxStoreMonitor\"	\n"
+        //"2:	.asciz	\"CStoreMonitor\"	\n"
+        //"3:	.byte		0			\n"
+        //"		.align	2			\n"
+        //"4:	.long		0			\n"
+        // verified:
+        //"		.long		__ZN16CMuxStoreMonitor9classInfoEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor4makeEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor7destroyEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor4initEP6CStore - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor11needsFormatEPb - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor6formatEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor9getRootIdEPj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor9newObjectEPjm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor11eraseObjectEj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor12deleteObjectEj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor13setObjectSizeEjm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor13getObjectSizeEjPm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor5writeEjmPvm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor4readEjmPvm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor12getStoreSizeEPmS0_ - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor10isReadOnlyEPb - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor9lockStoreEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor11unlockStoreEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor5abortEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor4idleEPbS0_ - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor10nextObjectEjPj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor14checkIntegrityEPj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor20newWithinTransactionEPjm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor23startTransactionAgainstEj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor15separatelyAbortEj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor23addToCurrentTransactionEj - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor12lockReadOnlyEv - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor14unlockReadOnlyEb - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor9newObjectEPjPvm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor13replaceObjectEjPvm - 4b	\n"
+        //"		.long		__ZN16CMuxStoreMonitor12newXIPObjectEPjm - 4b	\n"
+        //CLASSINFO_END
+        //);
+    }
+    return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMuxStoreMonitor)

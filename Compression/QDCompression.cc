@@ -30,13 +30,21 @@ InitQDCompression(void)
 	CPixelMapCompander implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCPixelMapCompander() {
-  return new CPixelMapCompander();
-}
-
 const CClassInfo *
 CPixelMapCompander::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CPixelMapCompander",
+        .fInterface = "CStoreCompander",
+        .fSignature = "CLZDecompressor\0CLZCompressor\0\0",
+        .fSizeofProc = []()->size_t { return sizeof(CPixelMapCompander); },
+        .fAllocProc = []()->CProtocol* { return new CPixelMapCompander(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -84,6 +92,7 @@ CPixelMapCompander::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPixelMapCompander)

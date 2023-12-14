@@ -28,7 +28,6 @@ struct PixMapObj
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CPixelMapCompander : public CStoreCompander
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

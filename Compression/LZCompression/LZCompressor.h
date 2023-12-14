@@ -27,7 +27,6 @@ struct TTNode
 
 
 PROTOCOL CLZCompressor : public CCompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

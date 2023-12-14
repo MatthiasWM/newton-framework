@@ -86,7 +86,7 @@ CProtocol::classInfo(void) const
 //	typedef const CClassInfo * (*ClassInfoProc)(void);
 //  ClassInfoProc classInfoProc = (ClassInfoProc) ((char *)fRealThis->fBTable + (long)fRealThis->fBTable[1]);
 //	return classInfoProc();
-  return fRealThis->GetClassInfo();
+    return fRealThis->fClassInfo;
 }
 
 
@@ -100,7 +100,8 @@ CProtocol::getMonitorId(void) const
 void
 CProtocol::setType(const CClassInfo * info)
 {
-	fBTable = (int32_t *)((char *)info + info->fBTableDelta);
+    assert(0);
+//	fBTable = (int32_t *)((char *)info + info->fBTableDelta);
 }
 
 
@@ -374,10 +375,6 @@ GetProtocolRegistry(void)
 	CClassInfoRegistryImpl implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCClassInfoRegistryImpl() {
-  return new CClassInfoRegistryImpl();
-}
-
 /**
  Return a pointer to an information block about this class.
 
@@ -387,6 +384,18 @@ static CProtocol *newCClassInfoRegistryImpl() {
  */
 const CClassInfo *CClassInfoRegistryImpl::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CClassInfoRegistryImpl",
+        .fInterface = "CClassInfoRegistry",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CClassInfoRegistryImpl); },
+        .fAllocProc = []()->CProtocol* { return new CClassInfoRegistryImpl(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -434,6 +443,7 @@ const CClassInfo *CClassInfoRegistryImpl::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CClassInfoRegistryImpl)
@@ -747,13 +757,16 @@ CClassInfo::allocProc(void) const
 FreeProcPtr
 CClassInfo::freeProc(void) const
 {
-	return fFreeBranch != 0 ? (FreeProcPtr)((char *)this + fFreeBranch) : NULL;
+//	return fFreeBranch != 0 ? (FreeProcPtr)((char *)this + fFreeBranch) : NULL;
+    return fFreeProc;
 }
 
 EntryProcPtr
 CClassInfo::entryProc(void) const
 {
-	return (EntryProcPtr)((char *)this + fEntryProcDelta);
+    assert(0); // needed for MP
+    return nullptr;
+//	return (EntryProcPtr)((char *)this + fEntryProcDelta);
 }
 
 NewtonErr
@@ -771,28 +784,27 @@ CClassInfo::deregisterProtocol(void) const
 //typedef void (CProtocol::*NewProcPtr)(void);
 typedef void (*NewProcPtr)(CProtocol*);
 
-CProtocol *
-CClassInfo::make(void) const
+CProtocol* CClassInfo::make() const
 {
-	CProtocol * instance;
-	AllocProcPtr allocFn;
-	if ((allocFn = allocProc()) != NULL)
-		instance = (CProtocol *)(*allocFn)();
-  else {
-    assert(0);
-    instance = (CProtocol *)NewPtr(size());
-  }
-	if (instance != NULL)
-	{
-		makeAt(instance);
-//		NewProcPtr maker = (NewProcPtr)((char *)this + fDefaultNewBranch);
-//		(instance->*maker)();
-//		(*maker)(instance);
-    instance->make();
-		if (gProtocolRegistry)
-			gProtocolRegistry->updateInstanceCount(this, 1);
-	}
-	return instance;
+    CProtocol * instance;
+    AllocProcPtr allocFn;
+    if ((allocFn = allocProc()) != NULL)
+        instance = (CProtocol *)(*allocFn)();
+    else {
+        assert(0);
+        instance = (CProtocol *)NewPtr(size());
+    }
+    if (instance != NULL)
+    {
+        makeAt(instance);
+//      NewProcPtr maker = (NewProcPtr)((char *)this + fDefaultNewBranch);
+//      (instance->*maker)();
+//      (*maker)(instance);
+        instance->make();
+        if (gProtocolRegistry)
+            gProtocolRegistry->updateInstanceCount(this, 1);
+    }
+    return instance;
 }
 
 void
@@ -800,7 +812,8 @@ CClassInfo::makeAt(CProtocol *p) const
 {
   p->fRuntime = NULL;
   p->fRealThis = p;
-  p->fBTable = nullptr; //(void **)((char *)inClass + inClass->fBTableDelta);
+  p->fClassInfo = this;
+//  p->fBTable = nullptr; //(void **)((char *)inClass + inClass->fBTableDelta);
   p->fMonitorId = 0;  // kNoId
 }
 
@@ -876,7 +889,7 @@ CClassInfo::implementationName(void) const
 const char *
 CClassInfo::interfaceName(void) const
 {
-  return fInterfaceName;
+  return fInterface;
 }
 
 // signature is key-value pairs of null-terminated capability strings

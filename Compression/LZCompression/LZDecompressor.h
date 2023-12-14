@@ -15,7 +15,6 @@
 
 
 PROTOCOL CLZDecompressor : public CDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

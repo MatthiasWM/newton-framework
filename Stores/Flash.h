@@ -112,7 +112,6 @@ public:
 typedef NewtonErr (CFlashRange::*FlashRWProcPtr)(VAddr inAddr, size_t inLength, char * inBuffer);
 
 PROTOCOL CNewInternalFlash : public CFlash
-	PROTOCOLVERSION(1.0)
 {
 public:
     // inherited from CProtocol

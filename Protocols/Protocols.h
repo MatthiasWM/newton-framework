@@ -33,8 +33,6 @@
 #define PSEUDOSTATIC			/*nothing*/
 #define NONVIRTUAL			/*nothing*/
 #define INVISIBLE				/*nothing*/
-#define PROTOCOLVERSION(x)	/*nothing*/
-#define MONITORVERSION(x)	/*nothing*/
 #define CAPABILITIES(x)		/*nothing*/
 #endif
 
@@ -58,7 +56,7 @@ MONITOR CClassInfoRegistry;
 
 
 typedef class CProtocol* (*AllocProcPtr)();
-typedef void (*FreeProcPtr)(void *);
+typedef void (*FreeProcPtr)(CProtocol *);
 typedef int (*EntryProcPtr)(void);
 
 //	CodeProcPtr	--	Pass control to the first byte of a hunk-O-code
@@ -78,9 +76,9 @@ public:
   virtual ~CProtocol();
   /// The protocol is already created by CClassInfo::make(), use this to
   /// initialize the instance
-  virtual CProtocol *make() = 0;
-  virtual void      destroy(void) = 0;
-  virtual const CClassInfo *GetClassInfo() const = 0;
+  virtual CProtocol *make() = 0;        // New()
+  virtual void      destroy(void) = 0;  // Delete()
+//  virtual const CClassInfo *GetClassInfo() const = 0;
 
 	void			become(const CProtocol * instance);	// forward to an instance
 	void			become(ObjectId inMonitorId);			// forward to a monitor (via kernel id)
@@ -104,12 +102,14 @@ private:
 	*/
 	void *				fRuntime;			// runtime usage (e.g. Throw() cleanup of autos for exceptions)
 	const CProtocol *	fRealThis;			// -> true "this" for auto instances
-	int32_t *			fBTable;				// -> dispatch table
+    const CClassInfo*   fClassInfo;
+//	int32_t *			fBTable;				// -> dispatch table
 //	const void **		fBTable;				// originally was jump table
 	ObjectId				fMonitorId;			// for monitors, the monitor id
 
 	friend class CClassInfo;				// allow (e.g.) CClassInfo::makeAt to diddle our innards
 	friend void PrivateClassInfoMakeAt(const CClassInfo *, const void * proto);	// for pre jump table use
+    friend const CClassInfo *GetStoreClassInfo(const class CStore * inStore);
 };
 
 inline CProtocol::operator ObjectId()
@@ -140,8 +140,8 @@ inline CProtocol::operator ObjectId()
 #else
 #define	PROTOCOL_IMPL_HEADER_MACRO(name) \
 	static size_t sizeOf(void); \
-	static const CClassInfo * classInfo(void); \
-  const CClassInfo *GetClassInfo() const override { return name::classInfo(); }
+	static const CClassInfo * classInfo(void);
+//  const CClassInfo *GetClassInfo() const override { return name::classInfo(); }
 #endif /*forARM*/
 
 /*
@@ -200,6 +200,53 @@ public:
 	friend const char * PrivateClassInfoInterfaceName(const CClassInfo *);
 	friend const char * PrivateClassInfoImplementationName(const CClassInfo *);
 
+#if 1
+    // (reserved for future use, zero for now)
+    //long                    fReserved1;
+
+    /// asciz implementation name
+    const char *fName;
+
+    /// asciz protocol name
+    const char *fInterface;
+
+    /// list of NUL separated features, asciz signature
+    const char *fSignature;
+
+    // dispatch table, uses the class vtable now
+    //long fBTableDelta;
+
+    // unused:  monitor entry (valid only for monitors)
+    //long fEntryProcDelta;
+
+    /// return the size of the class before it is allocated
+    size_t (*fSizeofProc)();
+
+    /// calls the class constructor, must be implemented
+    CProtocol *(*fAllocProc)();
+
+    /// calls the class destructor, must be implemented
+    void (*fFreeProc)(CProtocol*);
+
+    // no longer needed, just call virtual New (make). May be needed for MP implementation
+    //unsigned long   fDefaultNewBranch;
+
+    // no longer needed, just call virtual Delete (destroy)
+    //unsigned long   fDefaultDeleteBranch;
+
+    /// this implementation's version
+    uint32_t fVersion;
+
+    /// various flags (see below)
+    uint32_t fFlags;
+
+    // unused
+    //long                    fSelectorBranch;                // ARM branch to bail-out function (that returns nil now)
+
+    // unused
+    //long                    fReserved2;                             // (reserved for future use, zero for now)
+
+#else
 	/*
 	**	Never change these; generated glue depends on this layout,
 	** and if you change anything here you will definitely wish you hadn’t.
@@ -242,6 +289,7 @@ public:
 	unsigned long	fFlags;						// various flags (see below)
 	long				fReserved2;					// (reserved for future use, zero for now)
 	unsigned long	fSelectorBranch;			// ARM branch to bail-out function (that returns nil now)
+#endif
 #endif
 };
 

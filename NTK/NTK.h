@@ -28,7 +28,6 @@ struct SerialTranslatorInfo
 
 
 PROTOCOL PSerialInTranslator : public PInTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PSerialInTranslator)
@@ -54,7 +53,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PSerialOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PSerialOutTranslator)
@@ -99,7 +97,6 @@ struct NTKTranslatorInfo
 
 
 PROTOCOL PNTKInTranslator : public PInTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PNTKInTranslator)
@@ -132,7 +129,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PNTKOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PNTKOutTranslator)

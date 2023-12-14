@@ -19,7 +19,6 @@
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CGSMCodec : public CSoundCodec
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CGSMCodec)

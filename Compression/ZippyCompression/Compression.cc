@@ -17,7 +17,6 @@ void	InitZippyDecompression(void);
 
 
 PROTOCOL CZippyCallbackCompressor : public CCallbackCompressor
-	PROTOCOLVERSION(1.0)
 {
   public:
     PROTOCOL_IMPL_HEADER_MACRO(CZippyCallbackCompressor)
@@ -36,7 +35,6 @@ PROTOCOL CZippyCallbackCompressor : public CCallbackCompressor
 typedef int ByteAccessor;	// don’t really know
 
 PROTOCOL CZippyCompressor : public CCompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CZippyCompressor)
@@ -67,10 +65,20 @@ private:
 	CZippyDecompressor implementation class info.
 ---------------------------------------------------------------- */
 
-const CClassInfo *
-CZippyDecompressor::classInfo(void)
+const CClassInfo* CZippyDecompressor::classInfo()
 {
-  static CClassInfo *classInfo = nullptr;
+    static CClassInfo _classInfo = {
+        .fName = "CZippyDecompressor",
+        .fInterface = "CDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CZippyDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CZippyDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   if (!classInfo) {
     classInfo = new CClassInfo();
 //#if 0
@@ -108,7 +116,8 @@ CZippyDecompressor::classInfo(void)
 //CLASSINFO_END
 //);
   }
-  return classInfo;
+    return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyDecompressor)
@@ -402,6 +411,18 @@ CZippyDecompressor::finish(void*, size_t)
 const CClassInfo *
 CZippyStoreDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CZippyStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CZippyStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CZippyStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -440,6 +461,7 @@ CZippyStoreDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyStoreDecompressor)
@@ -521,6 +543,18 @@ CZippyStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAd
 const CClassInfo *
 CZippyRelocStoreDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CZippyRelocStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CZippyRelocStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CZippyRelocStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -559,6 +593,7 @@ CZippyRelocStoreDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CZippyRelocStoreDecompressor)

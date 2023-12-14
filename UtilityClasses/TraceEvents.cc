@@ -14,7 +14,6 @@
 --------------------------------------------------------------------------------*/
 
 class CHistoryCollector : public CEventCollector
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CHistoryCollector)

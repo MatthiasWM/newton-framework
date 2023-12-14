@@ -36,7 +36,6 @@ struct PackageStoreData
 ----------------------------------------------------------------------------- */
 
 PROTOCOL CPackageStore : public CStore
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

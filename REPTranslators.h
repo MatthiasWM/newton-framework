@@ -50,7 +50,6 @@ public:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PHammerInTranslator : public PInTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -79,7 +78,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PNullInTranslator : public PInTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -100,7 +98,6 @@ public:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PStdioInTranslator : public PInTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -156,7 +153,6 @@ public:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PHammerOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -192,7 +188,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PNullOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inhertied from CProtocol
@@ -229,7 +224,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PStdioOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- override from CProtocol

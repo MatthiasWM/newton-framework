@@ -399,6 +399,18 @@ InsertANode(unsigned char index, TTNode * inNode1, TTNode * inNode2, TTNode * in
 const CClassInfo *
 CLZCompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CLZCompressor",
+        .fInterface = "CCompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CLZCompressor); },
+        .fAllocProc = []()->CProtocol* { return new CLZCompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -438,6 +450,7 @@ CLZCompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZCompressor)

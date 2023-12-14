@@ -123,13 +123,21 @@ CeilLog2(ULong inX)
 	CFlashStore implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCFlashStore() {
-  return new CFlashStore();
-}
-
 const CClassInfo *
 CFlashStore::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CFlashStore",
+        .fInterface = "CStore",
+        .fSignature = "LOBJ\0\0",
+        .fSizeofProc = []()->size_t { return sizeof(CFlashStore); },
+        .fAllocProc = []()->CProtocol* { return new CFlashStore(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -210,6 +218,7 @@ CFlashStore::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CFlashStore)

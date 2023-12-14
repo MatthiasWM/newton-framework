@@ -33,7 +33,6 @@ public:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PUnflattenPtr : public PFrameSource
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PUnflattenPtr)
@@ -57,7 +56,6 @@ struct UnflattenPtrParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PUnflattenRef : public PFrameSource
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PUnflattenRef)
@@ -81,7 +79,6 @@ struct UnflattenRefParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PStreamInRef : public PFrameSource
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PStreamInRef)
@@ -132,7 +129,6 @@ struct FrameSinkParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PFlattenPtr : public PFrameSink
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PFlattenPtr)
@@ -159,7 +155,6 @@ struct FlattenPtrParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PFlattenRef : public PFrameSink
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PFlattenRef)
@@ -182,7 +177,6 @@ struct FlattenRefParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PStreamOutRef : public PFrameSink
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PStreamOutRef)

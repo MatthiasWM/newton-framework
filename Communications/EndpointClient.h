@@ -82,7 +82,6 @@ typedef int FormUser;	// should be an enum when we know what the FormUsers are
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PScriptDataIn : public PFrameSource
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PScriptDataIn)
@@ -111,7 +110,6 @@ struct ScriptDataInParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL POptionDataIn : public PFrameSource
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(POptionDataIn)
@@ -135,7 +133,6 @@ struct OptionDataInParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PScriptDataOut : public PFrameSink
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PScriptDataOut)
@@ -165,7 +162,6 @@ struct ScriptDataOutParms
 ------------------------------------------------------------------------------*/
 
 PROTOCOL POptionDataOut : public PFrameSink
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(POptionDataOut)

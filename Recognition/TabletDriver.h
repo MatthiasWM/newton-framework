@@ -64,7 +64,6 @@ class		CBIOInterface;
 class		CADC;
 
 PROTOCOL CResistiveTablet : public CTabletDriver
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CResistiveTablet)

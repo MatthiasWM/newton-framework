@@ -31,7 +31,6 @@ struct ZippyHeader
 #define kZippyCacheSize 16
 
 PROTOCOL CZippyDecompressor : public CDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -63,7 +62,6 @@ private:
 ----------------------------------------------------------------------------- */
 
 PROTOCOL CZippyStoreDecompressor : public CStoreDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -87,7 +85,6 @@ private:
 ----------------------------------------------------------------------------- */
 
 PROTOCOL CZippyRelocStoreDecompressor : public CStoreDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

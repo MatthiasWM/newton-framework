@@ -29,7 +29,6 @@ unsigned char gUnicodeLookupTable[32] =
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CUnicodeCompressor : public CCallbackCompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited forom CProtocol
@@ -70,13 +69,21 @@ private:
 	CUnicodeCompressor implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCUnicodeCompressor() {
-  return new CUnicodeCompressor();
-}
-
 const CClassInfo *
 CUnicodeCompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CUnicodeCompressor",
+        .fInterface = "CCallbackCompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CUnicodeCompressor); },
+        .fAllocProc = []()->CProtocol* { return new CUnicodeCompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -93,6 +100,7 @@ CUnicodeCompressor::classInfo(void)
 //"		.long		5f - .	\n"
 //"		.long		__ZN18CUnicodeCompressor6sizeOfEv - 0b	\n"
     classInfo->fAllocProc = newCUnicodeCompressor;
+//      classInfo->fAllocProc = []() -> CProtocol* { return new CUnicodeCompressor(); };
 //"		.long		0			\n"
 //"		.long		0			\n"
 //"		.long		__ZN18CUnicodeCompressor4makeEv - 0b	\n"
@@ -118,6 +126,7 @@ CUnicodeCompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeCompressor)
@@ -261,7 +270,6 @@ CUnicodeCompressor::write(unsigned char inCh)
 ----------------------------------------------------------------------------- */
 
 PROTOCOL CUnicodeDecompressor : public CCallbackDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -295,13 +303,21 @@ private:
 	CUnicodeDecompressor implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCUnicodeDecompressor() {
-  return new CUnicodeDecompressor();
-}
-
 const CClassInfo *
 CUnicodeDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CUnicodeDecompressor",
+        .fInterface = "CCallbackDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CUnicodeDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CUnicodeDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -342,6 +358,7 @@ CUnicodeDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CUnicodeDecompressor)

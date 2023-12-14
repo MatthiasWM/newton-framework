@@ -20,7 +20,6 @@
 PROTOCOL CStore : public CProtocol
 {
 // Implementations will need to consider:
-//	PROTOCOLVERSION(1.0)
 //	PROTOCOL_IMPL_HEADER_MACRO(CStore);
 
 //	CAPABILITIES( "LOBJ" )

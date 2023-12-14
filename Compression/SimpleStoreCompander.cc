@@ -27,44 +27,57 @@ extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId inId, PSSId, int
 const CClassInfo *
 CSimpleStoreDecompressor::classInfo(void)
 {
-  static CClassInfo *classInfo = nullptr;
-  if (!classInfo) {
-    classInfo = new CClassInfo();
-//__asm__ (
-//CLASSINFO_BEGIN
-//"		.long		0			\n"
-//"		.long		1f - .	\n"
-    classInfo->fName = "CSimpleStoreDecompressor";
-//"		.long		2f - .	\n"
-    classInfo->fInterfaceName = "CStoreDecompressor";
-//"		.long		3f - .	\n"
-    classInfo->fSignature = "\0";
-//"		.long		4f - .	\n"
-//"		.long		5f - .	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor6sizeOfEv - 0b	\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		__ZN24CSimpleStoreDecompressor4makeEv - 0b	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor7destroyEv - 0b	\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		6f - 0b	\n"
-//"1:	.asciz	\"CSimpleStoreDecompressor\"	\n"
-//"2:	.asciz	\"CStoreDecompressor\"	\n"
-//"3:	.byte		0			\n"
-//"		.align	2			\n"
-//"4:	.long		0			\n"
-    // verified:
-//"		.long		__ZN24CSimpleStoreDecompressor9classInfoEv - 4b	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor4makeEv - 4b	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor7destroyEv - 4b	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor4initEP6CStorejPc - 4b	\n"
-//"		.long		__ZN24CSimpleStoreDecompressor4readEjPcmm - 4b	\n"
-//CLASSINFO_END
-//);
-  }
-  return classInfo;
+    static CClassInfo _classInfo = {
+        .fName = "CSimpleStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CSimpleStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CSimpleStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
+    static CClassInfo *classInfo = nullptr;
+    if (!classInfo) {
+        classInfo = new CClassInfo();
+        //__asm__ (
+        //CLASSINFO_BEGIN
+        //"		.long		0			\n"
+        //"		.long		1f - .	\n"
+        classInfo->fName = "CSimpleStoreDecompressor";
+        //"		.long		2f - .	\n"
+        classInfo->fInterfaceName = "CStoreDecompressor";
+        //"		.long		3f - .	\n"
+        classInfo->fSignature = "\0";
+        //"		.long		4f - .	\n"
+        //"		.long		5f - .	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor6sizeOfEv - 0b	\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor4makeEv - 0b	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor7destroyEv - 0b	\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		6f - 0b	\n"
+        //"1:	.asciz	\"CSimpleStoreDecompressor\"	\n"
+        //"2:	.asciz	\"CStoreDecompressor\"	\n"
+        //"3:	.byte		0			\n"
+        //"		.align	2			\n"
+        //"4:	.long		0			\n"
+        // verified:
+        //"		.long		__ZN24CSimpleStoreDecompressor9classInfoEv - 4b	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor4makeEv - 4b	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor7destroyEv - 4b	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor4initEP6CStorejPc - 4b	\n"
+        //"		.long		__ZN24CSimpleStoreDecompressor4readEjPcmm - 4b	\n"
+        //CLASSINFO_END
+        //);
+    }
+    return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleStoreDecompressor)
@@ -129,6 +142,18 @@ CSimpleStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VA
 const CClassInfo *
 CSimpleRelocStoreDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CSimpleRelocStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CSimpleRelocStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CSimpleRelocStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -167,6 +192,7 @@ CSimpleRelocStoreDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleRelocStoreDecompressor)
@@ -236,6 +262,18 @@ CSimpleRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLe
 const CClassInfo *
 CSimpleStoreCompander::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CSimpleStoreCompander",
+        .fInterface = "CStoreCompander",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CSimpleStoreCompander); },
+        .fAllocProc = []()->CProtocol* { return new CSimpleStoreCompander(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -278,6 +316,7 @@ CSimpleStoreCompander::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CSimpleStoreCompander)

@@ -563,13 +563,22 @@ CreateHammerInTranslator(PInTranslator ** outTranslator)
 /* ----------------------------------------------------------------
 	PHammerInTranslator implementation class info.
 ---------------------------------------------------------------- */
-static CProtocol *newPHammerInTranslator() {
-  return new PHammerInTranslator();
-}
 
 const CClassInfo *
 PHammerInTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PHammerInTranslator",
+        .fInterface = "PInTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PHammerInTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PHammerInTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -611,6 +620,7 @@ PHammerInTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerInTranslator)
@@ -713,62 +723,71 @@ CreateHammerOutTranslator(POutTranslator ** outTranslator)
 	PHammerOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newPHammerOutTranslator() {
-  return new PHammerOutTranslator();
-}
-
 const CClassInfo *
 PHammerOutTranslator::classInfo(void)
 {
-  static CClassInfo *classInfo = nullptr;
-  if (!classInfo) {
-    classInfo = new CClassInfo();
-//__asm__ (
-//CLASSINFO_BEGIN
-//"		.long		0			\n"
-//"		.long		1f - .	\n"
-    classInfo->fName = "PHammerOutTranslator";
-//"		.long		2f - .	\n"
-    classInfo->fInterfaceName = "POutTranslator";
-//"		.long		3f - .	\n"
-    classInfo->fSignature = "\0";
-//"		.long		4f - .	\n"
-//"		.long		5f - .	\n"
-//"		.long		__ZN20PHammerOutTranslator6sizeOfEv - 0b	\n"
-    classInfo->fAllocProc = newPHammerOutTranslator;
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		__ZN20PHammerOutTranslator4makeEv - 0b	\n"
-//"		.long		__ZN20PHammerOutTranslator7destroyEv - 0b	\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		0			\n"
-//"		.long		6f - 0b	\n"
-//"1:	.asciz	\"PHammerOutTranslator\"	\n"
-//"2:	.asciz	\"POutTranslator\"	\n"
-//"3:	.byte		0			\n"
-//"		.align	2			\n"
-//"4:	.long		0			\n"
-    // verified:
-//"		.long		__ZN20PHammerOutTranslator9classInfoEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator4makeEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator7destroyEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator4initEPv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator4idleEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator6promptEi - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator5printEPKcz - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator4putcEi - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator5flushEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator14enterBreakLoopEi - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator13exitBreakLoopEv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator10stackTraceEPv - 4b	\n"
-//"		.long		__ZN20PHammerOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
-//CLASSINFO_END
-//);
-  }
-  return classInfo;
+    static CClassInfo _classInfo = {
+        .fName = "PHammerOutTranslator",
+        .fInterface = "POutTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PHammerOutTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PHammerOutTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
+    static CClassInfo *classInfo = nullptr;
+    if (!classInfo) {
+        classInfo = new CClassInfo();
+        //__asm__ (
+        //CLASSINFO_BEGIN
+        //"		.long		0			\n"
+        //"		.long		1f - .	\n"
+        classInfo->fName = "PHammerOutTranslator";
+        //"		.long		2f - .	\n"
+        classInfo->fInterfaceName = "POutTranslator";
+        //"		.long		3f - .	\n"
+        classInfo->fSignature = "\0";
+        //"		.long		4f - .	\n"
+        //"		.long		5f - .	\n"
+        //"		.long		__ZN20PHammerOutTranslator6sizeOfEv - 0b	\n"
+        classInfo->fAllocProc = newPHammerOutTranslator;
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		__ZN20PHammerOutTranslator4makeEv - 0b	\n"
+        //"		.long		__ZN20PHammerOutTranslator7destroyEv - 0b	\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		0			\n"
+        //"		.long		6f - 0b	\n"
+        //"1:	.asciz	\"PHammerOutTranslator\"	\n"
+        //"2:	.asciz	\"POutTranslator\"	\n"
+        //"3:	.byte		0			\n"
+        //"		.align	2			\n"
+        //"4:	.long		0			\n"
+        // verified:
+        //"		.long		__ZN20PHammerOutTranslator9classInfoEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator4makeEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator7destroyEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator4initEPv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator4idleEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator12consumeFrameERK6RefVarii - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator6promptEi - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator5printEPKcz - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator6vprintEPKcP13__va_list_tag - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator4putcEi - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator5flushEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator14enterBreakLoopEi - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator13exitBreakLoopEv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator10stackTraceEPv - 4b	\n"
+        //"		.long		__ZN20PHammerOutTranslator15exceptionNotifyEP9Exception - 4b	\n"
+        //CLASSINFO_END
+        //);
+    }
+    return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PHammerOutTranslator)
@@ -927,13 +946,21 @@ CreateNullInTranslator(PInTranslator ** outTranslator)
 	PNullInTranslator implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newPNullInTranslator() {
-  return new PNullInTranslator();
-}
-
 const CClassInfo *
 PNullInTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PNullInTranslator",
+        .fInterface = "PInTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PNullInTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PNullInTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -975,6 +1002,7 @@ PNullInTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullInTranslator)
@@ -1035,13 +1063,21 @@ CreateNullOutTranslator(POutTranslator ** outTranslator)
 	PNullOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newPNullOutTranslator() {
-  return new PNullOutTranslator();
-}
-
 const CClassInfo *
 PNullOutTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PNullOutTranslator",
+        .fInterface = "POutTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PNullOutTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PNullOutTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -1091,6 +1127,7 @@ PNullOutTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PNullOutTranslator)
@@ -1191,13 +1228,21 @@ CreateStdioInTranslator(PInTranslator ** outTranslator)
 	PStdioInTranslator implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newPStdioInTranslator() {
-  return new PStdioInTranslator();
-}
-
 const CClassInfo *
 PStdioInTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PStdioInTranslator",
+        .fInterface = "PInTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PStdioInTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PStdioInTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -1239,6 +1284,7 @@ PStdioInTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioInTranslator)
@@ -1332,13 +1378,21 @@ CreateStdioOutTranslator(POutTranslator ** outTranslator)
 	PStdioOutTranslator implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newPStdioOutTranslator() {
-  return new PStdioOutTranslator();
-}
-
 const CClassInfo *
 PStdioOutTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PStdioOutTranslator",
+        .fInterface = "POutTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PStdioOutTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PStdioOutTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -1388,6 +1442,7 @@ PStdioOutTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(PStdioOutTranslator)

@@ -18,7 +18,6 @@
 ------------------------------------------------------------------------------*/
 
 PROTOCOL PMainSoundDriver : public PSoundDriver
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(PMainSoundDriver)

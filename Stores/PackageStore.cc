@@ -108,13 +108,21 @@ FGetPackageStore(RefArg inRcvr, RefArg inName)
 	CPackageStore implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCPackageStore() {
-  return new CPackageStore();
-}
-
 const CClassInfo *
 CPackageStore::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CPackageStore",
+        .fInterface = "CStore",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CPackageStore); },
+        .fAllocProc = []()->CProtocol* { return new CPackageStore(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -194,6 +202,7 @@ CPackageStore::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CPackageStore)

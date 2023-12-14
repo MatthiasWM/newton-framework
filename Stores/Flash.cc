@@ -108,13 +108,21 @@ ClobberInternalFlash(void)
 	CNewInternalFlash implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCNewInternalFlash() {
-  return new CNewInternalFlash();
-}
-
 const CClassInfo *
 CNewInternalFlash::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CNewInternalFlash",
+        .fInterface = "CFlash",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CNewInternalFlash); },
+        .fAllocProc = []()->CProtocol* { return new CNewInternalFlash(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -189,6 +197,7 @@ CNewInternalFlash::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CNewInternalFlash)

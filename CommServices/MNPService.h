@@ -17,7 +17,6 @@
 --------------------------------------------------------------------------------*/
 
 PROTOCOL CMNPService : public CCMService
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CMNPService)

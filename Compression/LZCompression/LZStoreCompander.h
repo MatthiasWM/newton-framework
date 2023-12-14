@@ -41,7 +41,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CLZRelocStoreDecompressor : public CStoreDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

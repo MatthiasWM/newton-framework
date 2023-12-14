@@ -99,6 +99,18 @@ ReleaseSharedLZObjects(CCompressor * inCompressor, CDecompressor * inDecompresso
 const CClassInfo *
 CLZStoreDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CLZStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CLZStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CLZStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -137,6 +149,7 @@ CLZStoreDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreDecompressor)
@@ -221,6 +234,18 @@ CLZStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAddr 
 const CClassInfo *
 CLZRelocStoreDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CLZRelocStoreDecompressor",
+        .fInterface = "CStoreDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CLZRelocStoreDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CLZRelocStoreDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -259,6 +284,7 @@ CLZRelocStoreDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZRelocStoreDecompressor)
@@ -349,6 +375,18 @@ CLZRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, V
 const CClassInfo *
 CLZStoreCompander::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CLZStoreCompander",
+        .fInterface = "CStoreCompander",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CLZStoreCompander); },
+        .fAllocProc = []()->CProtocol* { return new CLZStoreCompander(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -391,6 +429,7 @@ CLZStoreCompander::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZStoreCompander)

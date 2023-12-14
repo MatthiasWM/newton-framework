@@ -11,7 +11,6 @@
 
 
 PROTOCOL CArithmeticCompressor : public CCallbackCompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CArithmeticCompressor)
@@ -37,7 +36,6 @@ private:
 
 
 PROTOCOL CArithmeticDecompressor : public CCallbackDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
 	PROTOCOL_IMPL_HEADER_MACRO(CArithmeticDecompressor)

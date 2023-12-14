@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CSimpleStoreDecompressor : public CStoreDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -40,7 +39,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CSimpleRelocStoreDecompressor : public CStoreDecompressor
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -62,7 +60,6 @@ private:
 ------------------------------------------------------------------------------*/
 
 PROTOCOL CSimpleStoreCompander : public CStoreCompander
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol

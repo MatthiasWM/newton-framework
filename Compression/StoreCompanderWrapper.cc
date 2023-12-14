@@ -26,6 +26,18 @@ extern NewtonErr	LODefaultDoTransaction(CStore * inStore, PSSId, PSSId, int, boo
 const CClassInfo *
 CStoreCompanderWrapper::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CStoreCompanderWrapper",
+        .fInterface = "CStoreCompander",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CStoreCompanderWrapper); },
+        .fAllocProc = []()->CProtocol* { return new CStoreCompanderWrapper(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -68,6 +80,7 @@ CStoreCompanderWrapper::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CStoreCompanderWrapper)

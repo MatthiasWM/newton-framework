@@ -125,7 +125,6 @@ string DumpCode(RefArg inObj);
 extern void PrintObjectAux(Ref inObj, int indent, int inDepth);
 
 PROTOCOL PStringOutTranslator : public POutTranslator
-	PROTOCOLVERSION(1.0)
 {
 public:
     // -- inherited from CProtocol
@@ -2076,13 +2075,21 @@ DumpObject(RefArg obj)
 }
 
 
-static CProtocol *newPStringOutTranslator() {
-  return new PStringOutTranslator();
-}
-
 const CClassInfo *
 PStringOutTranslator::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PStringOutTranslator",
+        .fInterface = "POutTranslator",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(PStringOutTranslator); },
+        .fAllocProc = []()->CProtocol* { return new PStringOutTranslator(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -2133,6 +2140,7 @@ PStringOutTranslator::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PStringOutTranslator *

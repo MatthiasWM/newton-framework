@@ -30,13 +30,21 @@ InitLZDecompression(void)
 	CLZDecompressor implementation class info.
 ---------------------------------------------------------------- */
 
-static CProtocol *newCLZDecompressor() {
-  return new CLZDecompressor();
-}
-
 const CClassInfo *
 CLZDecompressor::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CLZDecompressor",
+        .fInterface = "CDecompressor",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CLZDecompressor); },
+        .fAllocProc = []()->CProtocol* { return new CLZDecompressor(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
   static CClassInfo *classInfo = nullptr;
   if (!classInfo) {
     classInfo = new CClassInfo();
@@ -76,6 +84,7 @@ CLZDecompressor::classInfo(void)
 //);
   }
   return classInfo;
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CLZDecompressor)
