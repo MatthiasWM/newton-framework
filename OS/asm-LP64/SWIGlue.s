@@ -17,6 +17,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 //	register offsets in CTask
 		.set	taskr1,	 0xC0		// == kReturnParm1; sizeof(CObject) + 21*sizeof(long) == 0x18 + 0xA8 == 0xC0
 		.set	taskr2,	 0xC8
@@ -1113,4 +1115,6 @@ _DoSchedulerSWI:
 _DebugStr$stub:
 		.indirect_symbol _DebugStr
 		hlt ; hlt ; hlt ; hlt ; hlt
+
+#endif
 

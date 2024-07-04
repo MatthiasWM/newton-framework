@@ -69,6 +69,18 @@ public:
 const CClassInfo *
 PMainSoundDriver::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "PMainSoundDriver",
+        .fInterface = "PMainSoundDriver",
+        .fSignature = "SoundOutput\0\0",
+        .fSizeofProc = []()->size_t { return sizeof(PMainSoundDriver); },
+        .fAllocProc = []()->CProtocol* { return new PMainSoundDriver(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -129,6 +141,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN16PMainSoundDriver20setInputCallbackProcEPFlPvES0_ - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 #pragma mark -

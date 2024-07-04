@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 20014.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -111,4 +113,6 @@ __ZN13CStoreMonitor13replaceObjectEjPvm:
 		MonDispatch 28
 __ZN13CStoreMonitor12newXIPObjectEPjm:
 		MonDispatch 29
+
+#endif
 

@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2015.
 */
 
+#if 0
+
 #include "Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -79,3 +81,6 @@ __ZN15CPlatformDriver17setSubsystemPowerEjj:
 		Dispatch 20
 __ZN15CPlatformDriver17getSubsystemPowerEjPj:
 		Dispatch 21
+
+#endif
+

@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 #include "Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -91,4 +93,6 @@ __ZN14POutTranslator10stackTraceEPv:
 		Dispatch 14
 __ZN14POutTranslator15exceptionNotifyEP9Exception:
 		Dispatch 15
+
+#endif
 

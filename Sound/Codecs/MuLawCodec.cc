@@ -22,6 +22,18 @@
 const CClassInfo *
 CMuLawCodec::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CMuLawCodec",
+        .fInterface = "CSoundCodec",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CMuLawCodec); },
+        .fAllocProc = []()->CProtocol* { return new CMuLawCodec(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -56,6 +68,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN11CMuLawCodec15bufferCompletedEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CMuLawCodec)

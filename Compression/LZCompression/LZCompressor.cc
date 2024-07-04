@@ -415,7 +415,7 @@ CLZCompressor::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "CLZCompressor";

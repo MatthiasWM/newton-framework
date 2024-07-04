@@ -18,6 +18,8 @@
 	Written by:	Newton Research Group, 2014.
 */
 
+#if 0
+
 //	register offsets in CTask
 		.set	taskrax,  0x18
 		.set	taskrbx,  0x20
@@ -1236,4 +1238,6 @@ SWI_JT:
 _DebugStr$stub:
 		.indirect_symbol _DebugStr
 		hlt ; hlt ; hlt ; hlt ; hlt
+
+#endif
 

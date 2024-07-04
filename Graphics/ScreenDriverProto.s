@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2010.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -61,3 +63,6 @@ __ZN13CScreenDriver13enterIdleModeEv:
 		Dispatch 14
 __ZN13CScreenDriver12exitIdleModeEv:
 		Dispatch 15
+
+#endif
+

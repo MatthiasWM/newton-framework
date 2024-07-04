@@ -277,8 +277,8 @@ CPickView::realDraw(Rect& inRect)
 				//SetFgPattern(GetStdPattern(grayPat));
 //				MoveTo(viewBounds.left+1, itemTop);
 //				LineTo(viewBounds.right-1, itemTop);
-				Point pt1 = {viewBounds.left+1, itemTop};
-				Point pt2 = {viewBounds.right-1, itemTop};
+				Point pt1 = {(short)(viewBounds.left+1), (short)itemTop};
+				Point pt2 = {(short)(viewBounds.right-1), (short)itemTop};
 				SetPattern(grayPat);
 				StrokeLine(pt1, pt2);
 				//SetFgPattern(savedPat);
@@ -288,8 +288,8 @@ CPickView::realDraw(Rect& inRect)
 //				PenSize(1,2);
 //				MoveTo(viewBounds.left+1, itemTop);	// original doesn’t add 1
 //				LineTo(viewBounds.right-1, itemTop);
-				Point pt1 = {viewBounds.left+1, itemTop};
-				Point pt2 = {viewBounds.right-1, itemTop};
+				Point pt1 = {(short)(viewBounds.left+1), (short)itemTop};
+				Point pt2 = {(short)(viewBounds.right-1), (short)itemTop};
 				SetPattern(blackPat);
 				SetLineWidth(2);
 				StrokeLine(pt1, pt2);

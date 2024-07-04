@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2016.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -93,3 +95,6 @@ __ZN9CEndpoint7timeoutEj:
 		Dispatch 15
 __ZN9CEndpoint9isPendingEj:
 		Dispatch 16
+
+#endif
+

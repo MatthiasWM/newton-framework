@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2015.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -122,3 +124,6 @@ __ZN12PSoundDriver21setOutputCallbackProcEPFlPvES0_:
 		Dispatch 34
 __ZN12PSoundDriver20setInputCallbackProcEPFlPvES0_:
 		Dispatch 35
+
+#endif
+

@@ -6,6 +6,9 @@
 	Written by:	Newton Research Group, 2014.
 */
 
+#if 0
+
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -137,3 +140,6 @@ __ZN6CFlash4copyEjjm:
 		Dispatch 39
 __ZN6CFlash8isVirginEjm:
 		Dispatch 40
+
+#endif
+

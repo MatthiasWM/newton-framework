@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 #include "../../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -46,3 +48,6 @@ __ZN11CSoundCodec4stopEi:
 		Dispatch 9
 __ZN11CSoundCodec15bufferCompletedEv:
 		Dispatch 10
+
+#endif
+

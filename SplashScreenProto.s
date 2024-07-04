@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2010.
 */
 
+#if 0
+
 #include "Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -52,3 +54,6 @@ __ZN14CVersionString7destroyEv:
 		Delete 3
 __ZN14CVersionString13versionStringEPt:
 		Dispatch 4
+
+#endif
+

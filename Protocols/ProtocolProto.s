@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 		.text
 		.align	2
 
@@ -235,3 +237,6 @@ __ZN18CClassInfoRegistry19updateInstanceCountEPK10CClassInfoi:
 		MonDispatch 9
 __ZN18CClassInfoRegistry16getInstanceCountEPK10CClassInfo:
 		MonDispatch 10
+
+#endif
+

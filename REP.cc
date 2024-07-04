@@ -583,7 +583,7 @@ PHammerInTranslator::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "PHammerInTranslator";
@@ -742,7 +742,7 @@ PHammerOutTranslator::classInfo(void)
     if (!classInfo) {
         classInfo = new CClassInfo();
         //__asm__ (
-        //CLASSINFO_BEGIN
+        //CLASSINFO_BEGINx
         //"		.long		0			\n"
         //"		.long		1f - .	\n"
         classInfo->fName = "PHammerOutTranslator";
@@ -965,7 +965,7 @@ PNullInTranslator::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "PNullInTranslator";
@@ -1082,7 +1082,7 @@ PNullOutTranslator::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "PNullOutTranslator";
@@ -1247,7 +1247,7 @@ PStdioInTranslator::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "PStdioInTranslator";
@@ -1397,7 +1397,7 @@ PStdioOutTranslator::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "PStdioOutTranslator";

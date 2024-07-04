@@ -27,8 +27,17 @@
 const CClassInfo *
 CDTMFCodec::classInfo(void)
 {
-  assert(0);
-  return nullptr;
+    static CClassInfo _classInfo = {
+        .fName = "CDTMFCodec",
+        .fInterface = "CSoundCodec",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CDTMFCodec); },
+        .fAllocProc = []()->CProtocol* { return new CDTMFCodec(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
 #if 0
 __asm__ (
 CLASSINFO_BEGIN

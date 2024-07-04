@@ -27,6 +27,18 @@ RegisterVoyagerMiscIntf(void)
 const CClassInfo *
 CVoyagerPlatform::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CVoyagerPlatform",
+        .fInterface = "CPlatformDriver",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CVoyagerPlatform); },
+        .fAllocProc = []()->CProtocol* { return new CVoyagerPlatform(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -72,6 +84,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN16CVoyagerPlatform17getSubsystemPowerEjPj - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CVoyagerPlatform)

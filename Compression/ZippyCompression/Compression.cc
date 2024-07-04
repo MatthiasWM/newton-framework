@@ -83,7 +83,7 @@ const CClassInfo* CZippyDecompressor::classInfo()
     classInfo = new CClassInfo();
 //#if 0
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "CZippyDecompressor";
@@ -427,7 +427,7 @@ CZippyStoreDecompressor::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "CZippyStoreDecompressor";
@@ -559,7 +559,7 @@ CZippyRelocStoreDecompressor::classInfo(void)
   if (!classInfo) {
     classInfo = new CClassInfo();
 //__asm__ (
-//CLASSINFO_BEGIN
+//CLASSINFO_BEGINx
 //"		.long		0			\n"
 //"		.long		1f - .	\n"
     classInfo->fName = "CZippyRelocStoreDecompressor";

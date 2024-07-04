@@ -7,6 +7,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -176,4 +178,6 @@ __ZN15CStoreCompander20doTransactionAgainstEij:
 		Dispatch 8
 __ZN15CStoreCompander10isReadOnlyEv:
 		Dispatch 9
+
+#endif
 

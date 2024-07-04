@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#if 0
+
 #include "../Protocols/ProtoMacro.s"
 
 /* ---------------------------------------------------------------- */
@@ -197,3 +199,4 @@ __ZN12CLrgObjStore12sizeOfStreamEP6CStorejb:
 __ZN12CLrgObjStore6backupEP5CPipeP6CStorejbP11CLOCallback:
 		Dispatch 12
 
+#endif

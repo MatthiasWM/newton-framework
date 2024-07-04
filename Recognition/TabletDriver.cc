@@ -48,6 +48,18 @@ ULong		gTabSkipD2Detect = true;				// 0C100B54
 const CClassInfo *
 CResistiveTablet::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CResistiveTabletDriver",
+        .fInterface = "CTabletDriver",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CResistiveTablet); },
+        .fAllocProc = []()->CProtocol* { return new CResistiveTablet(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -94,6 +106,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN16CResistiveTablet27returnTabletToConsciousnessEjjj - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CResistiveTablet)

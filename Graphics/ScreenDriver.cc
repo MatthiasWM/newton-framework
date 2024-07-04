@@ -57,8 +57,17 @@ struct BlitRec
 const CClassInfo *
 CMainDisplayDriver::classInfo(void)
 {
-  assert(0);
-  return nullptr;
+    static CClassInfo _classInfo = {
+        .fName = "CMainDisplayDriver",
+        .fInterface = "CScreenDriver",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CMainDisplayDriver); },
+        .fAllocProc = []()->CProtocol* { return new CMainDisplayDriver(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
 #if 0
 __asm__ (
 CLASSINFO_BEGIN

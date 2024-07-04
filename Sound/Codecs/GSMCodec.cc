@@ -29,6 +29,18 @@ int  gsm_decode(gsm, gsm_byte *, gsm_signal *) {}
 const CClassInfo *
 CGSMCodec::classInfo(void)
 {
+    static CClassInfo _classInfo = {
+        .fName = "CGSMCodec",
+        .fInterface = "CSoundCodec",
+        .fSignature = "\0",
+        .fSizeofProc = []()->size_t { return sizeof(CGSMCodec); },
+        .fAllocProc = []()->CProtocol* { return new CGSMCodec(); },
+        .fFreeProc = [](CProtocol* p)->void { delete p; },
+        .fVersion = 0,
+        .fFlags = 0
+    };
+    return &_classInfo;
+#if 0
 __asm__ (
 CLASSINFO_BEGIN
 "		.long		0			\n"
@@ -63,6 +75,7 @@ CLASSINFO_BEGIN
 "		.long		__ZN9CGSMCodec15bufferCompletedEv - 4b	\n"
 CLASSINFO_END
 );
+#endif
 }
 
 PROTOCOL_IMPL_SOURCE_MACRO(CGSMCodec)

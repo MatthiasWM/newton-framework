@@ -1,8 +1,13 @@
 
-/.DSStore
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
 xcshareddata
 Xcuserdata
-.DSStore
 /build
 /Newton.xcodeproj/xcuserdata/
 doc/
