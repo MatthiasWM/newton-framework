@@ -7,8 +7,12 @@
 	Written by:	Newton Research Group, 2014.
 */
 
+#ifdef __APPLE__
+
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
+
+#endif
 
 #include "SerialNumber.h"
 #include "OSErrors.h"

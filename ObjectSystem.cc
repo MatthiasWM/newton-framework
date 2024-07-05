@@ -8,7 +8,11 @@
 
 #include "RootView.h"
 
+#ifdef __APPLE__
+
 #include <CoreFoundation/CoreFoundation.h>
+
+#endif
 
 #include "Objects.h"
 #include "ObjHeader.h"

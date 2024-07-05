@@ -534,7 +534,7 @@ source_group(
 
 add_executable (test ${SRCFILES} ${HEADERFILES})
 target_compile_definitions(test PRIVATE forMac forFramework)
-target_compile_definitions(test PRIVATE __LP64)
+target_compile_definitions(test PRIVATE __LP64__=1)
 target_include_directories ( test PRIVATE
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/Frames
