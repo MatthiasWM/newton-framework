@@ -1,6 +1,13 @@
 
-#define __MACMEMORY__
-#import <Cocoa/Cocoa.h>
+
+#include <filesystem>
+#include <string>
+#include <cstdlib>
+#include <iostream>
+
+extern "C" const char * GetFramesErrorString(int inErr);
+extern "C" const char * GetMagicPointerString(int inMP);
+extern "C" const char * StoreBackingFile(const char * inStoreName);
 
 /* -----------------------------------------------------------------------------
 	Return a string describing an error code.
@@ -11,9 +18,16 @@
 const char *
 GetFramesErrorString(int inErr)
 {
+#if 1
+	// There seems no such table, so we just return the decimal
+	static char buffer[32];
+	snprintf(buffer, 32, "%d", inErr);
+	return buffer;
+#else
 	NSString * key = [NSString stringWithFormat: @"%d", inErr];
 	NSString * errStr = NSLocalizedStringFromTable(key, @"Error", NULL);
 	return errStr.UTF8String;
+#endif
 }
 
 
@@ -26,12 +40,19 @@ GetFramesErrorString(int inErr)
 const char *
 GetMagicPointerString(int inMP)
 {
+#if 1
+	// There seems no such table, so we just return the decimal, prepended with the '@'
+	static char buffer[32];
+	snprintf(buffer, 32, "@%d", inMP);
+	return buffer;
+#else
 	NSString * key = [NSString stringWithFormat: @"%d", inMP];
 	NSString * mpStr = NSLocalizedStringFromTable(key, @"MagicPointer", NULL);
 	if (isdigit([mpStr characterAtIndex:0])) {
 		mpStr = [@"@" stringByAppendingString:mpStr];
 	}
 	return mpStr.UTF8String;
+#endif
 }
 
 
@@ -41,6 +62,28 @@ GetMagicPointerString(int inMP)
 	Args:		--
 	Return:	a URL
 ----------------------------------------------------------------------------- */
+
+#if 1
+
+std::filesystem::path ApplicationSupportFolder() {
+#ifdef _WIN32
+	auto path = std::filesystem::path(std::getenv("APPDATA")) / "Newton"; // On Windows
+#elif defined(__APPLE__)
+	auto path = std::filesystem::path(std::getenv("HOME")) / "Library" / "Application Support" / "Newton"; // On macOS
+#else
+	auto path = std::filesystem::path(std::getenv("HOME")) / ".local" / "share" / "Newton"; // On Linux
+#endif
+	try {
+		std::filesystem::create_directories(path);
+	} catch (const std::filesystem::filesystem_error& e) {
+		std::cerr << "Can't create application support folder " << path << ": " << e.what() << std::endl;
+	} catch (const std::exception& e) {
+		std::cerr << "Error creating application support folder " << path << ": " << e.what() << std::endl;
+	}
+	return path;
+}
+
+#else
 
 NSURL *
 ApplicationSupportFolder(void)
@@ -53,6 +96,7 @@ ApplicationSupportFolder(void)
 	return appFolder;
 }
 
+#endif
 
 /* -----------------------------------------------------------------------------
 	Return the path to the store backing file.
@@ -63,6 +107,13 @@ ApplicationSupportFolder(void)
 const char *
 StoreBackingFile(const char * inStoreName)
 {
+#if 1
+	static char buffer[2048];
+	auto path = ApplicationSupportFolder() / inStoreName;
+	strcpy(buffer, path.c_str());
+	return buffer;
+#else
 	NSURL * url = [ApplicationSupportFolder() URLByAppendingPathComponent:[NSString stringWithUTF8String:inStoreName]];
 	return url.fileSystemRepresentation;
+#endif
 }

@@ -15,7 +15,7 @@ set ( SRCFILES
   test.cpp
   Dates.cc
   Dictionaries.cc
-  ErrorString.m
+  ErrorString.cc
   IA.cc
   Locales.cc
   NTKStubs.cc
@@ -167,7 +167,7 @@ set ( HEADERFILES
   test.cpp
   Dates.cc
   Dictionaries.cc
-  ErrorString.m
+  ErrorString.cc
   IA.cc
   Locales.cc
   NTKStubs.cc
@@ -750,7 +750,7 @@ set ( MP_SRC_FILES
   Stores/FlashCache.cc
   Dictionaries.cc
   Stores/Entries.cc
-  ErrorString.m
+  ErrorString.cc
   Stores/Hints.cc
   IA.cc
   ROMData/forNewton/RefSymbols.s
