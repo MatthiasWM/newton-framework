@@ -34,39 +34,51 @@
 		Ref destRef; \
 	} gc;
 
+#pragma pack(push, 1)
+
 struct ObjHeader
 {
 	OBJHEADER
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 
 /*----------------------------------------------------------------------
 	S l o t t e d   O b j e c t
 ----------------------------------------------------------------------*/
 
+#pragma pack(push, 1)
+
 struct SlottedObject
 {
 	OBJHEADER
 
 	Ref		slot[];
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 /*----------------------------------------------------------------------
 	F o r w a r d i n g   O b j e c t
 ----------------------------------------------------------------------*/
+
+#pragma pack(push, 1)
 
 struct ForwardingObject
 {
 	OBJHEADER
 
 	Ref		obj;
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 /*----------------------------------------------------------------------
 	B i n a r y   O b j e c t
 ----------------------------------------------------------------------*/
+
+#pragma pack(push, 1)
 
 struct BinaryObject
 {
@@ -74,7 +86,9 @@ struct BinaryObject
 
 	Ref		objClass;
 	char		data[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 #define SIZEOF_BINARYOBJECT (sizeof(ObjHeader) + sizeof(Ref))
 
@@ -86,6 +100,9 @@ struct BinaryObject
 ----------------------------------------------------------------------*/
 
 struct IndirectBinaryProcs;
+
+#pragma pack(push, 1)
+
 struct IndirectBinaryObject
 {
 	OBJHEADER
@@ -93,7 +110,9 @@ struct IndirectBinaryObject
 	Ref		objClass;
 	const IndirectBinaryProcs * procs;
 	char		data[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 #define SIZEOF_INDIRECTBINARYOBJECT (sizeof(ObjHeader) + sizeof(Ref) + sizeof(const IndirectBinaryProcs *))
 
@@ -119,13 +138,17 @@ struct ArrayObject
 	F r a m e   O b j e c t
 ----------------------------------------------------------------------*/
 
+#pragma pack(push, 1)
+
 struct FrameObject
 {
 	OBJHEADER
 
 	Ref		map;
 	Ref		slot[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 #define SIZEOF_FRAMEOBJECT(_n) (sizeof(ObjHeader) + sizeof(Ref) + _n*sizeof(Ref))
 
@@ -134,6 +157,8 @@ struct FrameObject
 	F r a m e   M a p   O b j e c t
 ----------------------------------------------------------------------*/
 
+#pragma pack(push, 1)
+
 struct FrameMapObject
 {
 	OBJHEADER
@@ -141,7 +166,9 @@ struct FrameMapObject
 	Ref		objClass;
 	Ref		supermap;
 	Ref		slot[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 #define SIZEOF_FRAMEMAPOBJECT(_n) (sizeof(ObjHeader) + sizeof(Ref) + sizeof(Ref) + _n*sizeof(Ref))
 
@@ -150,6 +177,8 @@ struct FrameMapObject
 	S y m b o l   O b j e c t
 ----------------------------------------------------------------------*/
 
+#pragma pack(push, 1)
+
 struct SymbolObject
 {
 	OBJHEADER
@@ -157,12 +186,15 @@ struct SymbolObject
 	Ref		objClass;
 	ULong		hash;
 	char		name[];
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 /*----------------------------------------------------------------------
 	S t r i n g   O b j e c t
 ----------------------------------------------------------------------*/
+
+#pragma pack(push, 1)
 
 struct StringObject
 {
@@ -170,8 +202,9 @@ struct StringObject
 
 	Ref		objClass;
 	UniChar	str[];
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 /*----------------------------------------------------------------------
 	O b j e c t   F l a g s

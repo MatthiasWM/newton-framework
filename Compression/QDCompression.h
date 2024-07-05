@@ -12,6 +12,7 @@
 #include "StoreCompander.h"
 #include "QDTypes.h"
 
+#pragma pack(push, 1)
 
 struct PixMapObj
 {
@@ -20,8 +21,9 @@ struct PixMapObj
 	int32_t	x20;
 	int32_t	x24;
 	int32_t	x28;
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 /*------------------------------------------------------------------------------
 	C P i x e l M a p C o m p a n d e r

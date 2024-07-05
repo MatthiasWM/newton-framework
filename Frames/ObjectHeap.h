@@ -78,11 +78,15 @@ private:
 #define kNumOfHandlesInBlock 256
 #define kIncrHandlesInBlock   32
 
+#pragma pack(push, 1)
+
 	struct RefHandleBlock
 	{
 		OBJHEADER
 		RefHandle	data[kNumOfHandlesInBlock];
-	}__attribute__((packed));
+	};
+
+#pragma pack(pop)
 
 	char *				mem;				// +04	allocated memory for heap
 	ObjHeader *			heapBase;		// +08	long-aligned base of heap

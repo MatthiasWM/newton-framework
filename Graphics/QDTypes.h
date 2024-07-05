@@ -72,6 +72,8 @@ struct PictureShape
 typedef void *		ShapePtr;
 
 
+#pragma pack(push, 1)
+
 /*	In a 64-bit world, the FramBitmap MUST still align with its 32-bit definition.
 	Since the FramBitmap is only built by NTK we can assume the baseAddr is a 32-bit offset, never a pointer.
 */
@@ -82,8 +84,11 @@ struct FramBitmap
 	short			reserved1;		// pads to long
 	Rect			bounds;			// +08
 	char			data[];			// +10
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 /*	In a 64-bit world, the PixelMap MUST still align with its 32-bit definition
 	for handling data built by NTK or imported by NCX.
@@ -97,7 +102,9 @@ struct PixelMap
 	ULong			pixMapFlags;
 	Point			deviceRes;		// resolution of input device (0 indicates kDefaultDPI)
 	uint32_t		grayTable;		// gray tone table
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 /*	However, there are some uses (screen bitmaps, for example) where we need host-sized pointers.
 */

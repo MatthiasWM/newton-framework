@@ -17,6 +17,8 @@
 	F a u l t   B l o c k s
 ------------------------------------------------------------------------------*/
 
+#pragma pack(push, 1)
+
 struct FaultObject
 {
 	OBJHEADER
@@ -26,8 +28,9 @@ struct FaultObject
 	Ref	store;			// actually (CStoreWrapper *)
 	Ref	id;
 	Ref	object;
-}__attribute__((packed));
+};
 
+#pragma pack(pop)
 
 ObjHeader * ObjectPtr1(Ref inObj, long inTag, bool inDoFaultCheck);
 

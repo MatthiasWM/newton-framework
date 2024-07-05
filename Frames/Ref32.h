@@ -20,31 +20,49 @@ typedef int32_t Ref32;
 		Ref32 destRef; \
 	}gc;
 
+#pragma pack(push, 1)
+
 struct ObjHeader32
 {
 	OBJHEADER32
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct BinaryObject32
 {
 	OBJHEADER32
 	Ref32		objClass;
 	char		data[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct ArrayObject32
 {
 	OBJHEADER32
 	Ref32		objClass;
 	Ref32		slot[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct FrameObject32
 {
 	OBJHEADER32
 	Ref32		map;
 	Ref32		slot[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct FrameMapObject32
 {
@@ -52,7 +70,11 @@ struct FrameMapObject32
 	Ref32		objClass;
 	Ref32		supermap;
 	Ref32		slot[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct SymbolObject32
 {
@@ -60,14 +82,20 @@ struct SymbolObject32
 	Ref32		objClass;
 	ULong		hash;
 	char		name[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct StringObject32
 {
 	OBJHEADER32
 	Ref32		objClass;
 	UniChar	str[];
-}__attribute__((packed));
+};
+
+#pragma pack(pop)
 
 
 #define BYTE_SWAP_SIZE(n) (((n << 16) & 0x00FF0000) | (n & 0x0000FF00) | ((n >> 16) & 0x000000FF))

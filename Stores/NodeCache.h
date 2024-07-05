@@ -12,6 +12,8 @@
 
 class CSoupIndex;
 
+#pragma pack(push, 1)
+
 // maybe this should be like ObjHeader, prefix to different kinds of node
 // need to PACK these structs
 struct NodeHeader
@@ -22,7 +24,11 @@ struct NodeHeader
 	UShort	numOfSlots;			// +0A
 
 	UShort	keyFieldOffset[1];	// +0C	actually variable length, but always at least 1
-} __attribute__((__packed__));
+};
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 
 struct DupNodeHeader
 {
@@ -34,8 +40,9 @@ struct DupNodeHeader
 	UShort	bytesUsed;			// +0C
 	short		x0E;
 	char		x10[];
-} __attribute__((__packed__));
+};
 
+#pragma pack(pop)
 
 struct NodeRef
 {

@@ -90,6 +90,8 @@ Ref	SKeyToKey(const SKey& inKey, RefArg inType, short * outSize);
 ----------------------------------------------------------------------*/
 #define kKeyFieldBufSize 98
 
+#pragma pack(push, 1)
+
 struct KeyField
 {
 	enum { kData, kDupData };
@@ -102,9 +104,13 @@ struct KeyField
 	unsigned short type:2;
 	unsigned short	length:14;
 	char	buf[kKeyFieldBufSize];
-}__attribute__((__packed__));
+};
+
+#pragma pack(pop)
 
 inline SKey * KeyField::key(void) const  { return (SKey *)buf; }
+
+#pragma pack(push, 1)
 
 /*
 	Dup nodes are suffixed w/ PACKED extra data
@@ -113,8 +119,9 @@ struct DupInfo
 {
 	short	count;
 	ULong	id;
-}__attribute__((__packed__));
+};
 
+#pragma pack(pop)
 
 /*----------------------------------------------------------------------
 	I n d e x I n f o
