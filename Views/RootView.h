@@ -177,7 +177,9 @@ private:
 	CView *			fCaretSlip;			// +78
 	RefStruct		fSelectionStack;	// +7C
 	bool				fPreserveHilites;	// +80
+#ifdef __APPLE__
 	CGImageRef		fCaret;				// +84	caret pixmap -- was CBits*
+#endif
 	bool				fIsCaretUp;			// +88
 	Point				fCaretPt;			// +8C
 	CView *			x90;

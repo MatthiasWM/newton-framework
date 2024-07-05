@@ -999,6 +999,8 @@ CDictionary::verifyString(UniChar * inStr, UniChar ** outArg3, ULong ** outArg4,
 
 	if (outArg5)
 		*outArg5 = nodeNamePtr;
+
+	return 0;
 }
 
 
@@ -1502,7 +1504,7 @@ CDictionary::AL_nextSetCB(OpaqueRef ioArg1, OpaqueRef inArg2, ULong inArg3, ULon
 int
 CDictionary::AL_nextSet9(void)
 {
-	;
+	return 0;
 }
 
 
@@ -1522,7 +1524,9 @@ CDictionary::AL_nextSet(void)
 
 bool
 A8_PrefixCompletions(DictWalkBlock * inParms)
-{}
+{
+	return false;
+}
 
 bool
 A8_WalkNextChars(DictWalkBlock * inParms, ULong inOffset)
@@ -1559,6 +1563,8 @@ A8_WalkNextChars(DictWalkBlock * inParms, ULong inOffset)
 		dict->x20 = inOffset;
 		return A8_PrefixCompletions(inParms);
 	}
+#else
+	return false;
 #endif
 }
 

@@ -49,6 +49,8 @@
 
 #include "QDTypes.h"
 
+#ifdef __APPLE__
+
 #include <CoreGraphics/CoreGraphics.h>
 
 
@@ -68,5 +70,6 @@ extern CGPoint			MakeCGPoint(Point inPoint);
 extern CGRect			MakeCGRect(Rect inRect);
 extern CGRect			MakeCGRectFrame(Rect inRect, float inLineWd);
 
+#endif /* __APPLE__ */
 
 #endif	/* __QUARTZ_H */

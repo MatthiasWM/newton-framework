@@ -36,7 +36,11 @@ extern bool				SetPattern(int inPatNo);
 
 extern ULong			RGBtoGray(ULong inR, ULong inG, ULong inB, int inNumOfBits, int inDepth);
 
+#ifdef __APPLE__
+
 extern CGColorRef		GetStdPattern(int inPatNo);
 extern bool				GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDefault);
+
+#endif
 
 #endif	/* __QDPATTERNS_H */

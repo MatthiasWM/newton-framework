@@ -110,7 +110,7 @@ StoreBackingFile(const char * inStoreName)
 #if 1
 	static char buffer[2048];
 	auto path = ApplicationSupportFolder() / inStoreName;
-	strcpy(buffer, path.c_str());
+	strcpy(buffer, (char*)path.c_str());
 	return buffer;
 #else
 	NSURL * url = [ApplicationSupportFolder() URLByAppendingPathComponent:[NSString stringWithUTF8String:inStoreName]];
