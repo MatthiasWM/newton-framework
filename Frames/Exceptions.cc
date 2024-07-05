@@ -188,6 +188,7 @@ FRethrow(RefArg rcvr)
 	// everything else -- assume error code
 	else
 		ThrowErr(gFramesExceptionName, RINT(GetFrameSlot(currentException, SYMA(error))));
+	return NILREF;
 }
 
 
@@ -410,7 +411,8 @@ Throw(ExceptionName name, void * data, ExceptionDestructor destructor)
 			((NewtonExceptionHandler *)handler)->exception.data = data;
 			((NewtonExceptionHandler *)handler)->exception.destructor = destructor;
 			// jump to the handler code
-			longjmp((int *)((NewtonExceptionHandler *)handler)->state, 1);
+//			longjmp((int *)((NewtonExceptionHandler *)handler)->state, 1);
+			longjmp(((NewtonExceptionHandler *)handler)->state, 1);
 			//	never returns!
 		}	
 		else if (handler->catchType == kExceptionCleanup)

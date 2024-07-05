@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group.
 */
 
+#ifdef __APPLE__
+
 #include "Quartz.h"
 #include "Objects.h"
 #include "QDPatterns.h"
@@ -1018,3 +1020,4 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 	return gotPattern;
 }
 
+#endif /* __APPLE__ */

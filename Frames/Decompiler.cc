@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+#include <stdarg.h>
 
 using namespace std;  // FIXME: no!
 

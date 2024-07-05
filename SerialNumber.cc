@@ -12,8 +12,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 
-#endif
-
 #include "SerialNumber.h"
 #include "OSErrors.h"
 
@@ -129,3 +127,6 @@ FGetSerialNumber(RefArg inRcvr)
 		return serno;
 	return NILREF;
 }
+
+#endif
+

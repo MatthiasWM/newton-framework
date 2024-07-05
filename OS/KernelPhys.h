@@ -71,12 +71,12 @@ protected:
 	unsigned int	fIsWhatever:1;		// 0100
 	unsigned int	fNumOfPages:8;		// 00FF
 #else
-	unsigned long	fPageAddr:52;
-	unsigned long	fIsReadOnly:1;
-	unsigned long	fIsCached:1;
-	unsigned long	fIsLittle:1;
-	unsigned long	fIsWhatever:1;
-	unsigned long	fNumOfPages:8;
+	uint64_t	fPageAddr:52;
+	uint64_t	fIsReadOnly:1;
+	uint64_t	fIsCached:1;
+	uint64_t	fIsLittle:1;
+	uint64_t	fIsWhatever:1;
+	uint64_t	fNumOfPages:8;
 #endif
 	size_t			fSize;				// +14
 // size +18

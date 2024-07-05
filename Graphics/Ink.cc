@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2009.
 */
 
+#ifdef __APPLE__
+
 #include "Ink.h"
 #include "Geometry.h"
 #include "CoreGraphics/CGGeometry.h"
@@ -682,3 +684,5 @@ FInkConvert(RefArg rcvr, RefArg inObj, RefArg inType)
 }
 
 #endif
+
+#endif /* __APPLE__ */

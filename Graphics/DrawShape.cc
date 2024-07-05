@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2007.
 */
 
+#ifdef __APPLE__
+
 #include "Newton.h"
 
 #include "Quartz.h"
@@ -1627,3 +1629,4 @@ commondraw:
 #endif
 }
 
+#endif /* __APPLE__ */

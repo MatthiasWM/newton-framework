@@ -46,6 +46,7 @@ TextBounds(CRichString & inStr, RefArg inFont, Rect * ioRect, long inJustifyH)
 
 #endif
 
+#ifdef __APPLE__
 
 #include "Quartz.h"
 #include <CoreText/CoreText.h>
@@ -594,3 +595,5 @@ DrawSimpleParagraph(CRichString & inStr, RefArg inFont, Rect * ioRect, ULong inJ
 
 	// return path.size.height -> ioRect.bottom
 }
+
+#endif /* __APPLE__ */

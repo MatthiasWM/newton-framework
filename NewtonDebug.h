@@ -42,7 +42,9 @@
 #undef DebugCStr
 
 #ifdef forDebug
+#ifdef __APPLE__
 #warning "forDebug set"
+#endif
 extern void Debugger(void);
 extern void DebugStr(const char*);
 #define DebugCStr(s) DebugStr(s)

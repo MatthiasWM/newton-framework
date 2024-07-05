@@ -6,6 +6,8 @@
 	Written by:	Newton Research Group, 2007.
 */
 
+#ifdef __APPLE__
+
 #include "Quartz.h"
 #include "Objects.h"
 #include "QDPatterns.h"
@@ -818,4 +820,6 @@ FPtInPicture(RefArg inRcvr, RefArg inX, RefArg inY, RefArg inPicture)
 {
 	return PtInPicture(inX, inY, inPicture, false);
 }
+
+#endif
 

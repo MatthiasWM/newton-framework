@@ -5,6 +5,9 @@
 
 	Written by:	Newton Research Group.
 */
+
+#ifdef __APPLE__
+
 #include "Quartz.h"
 #include "Geometry.h"
 
@@ -603,3 +606,4 @@ void
 CMainDisplayDriver::exitIdleMode(void)
 {	/* this really does nothing */	}
 
+#endif /* __APPLE__ */

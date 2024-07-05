@@ -16,7 +16,7 @@
 #include "SafeHeap.h"
 #include "OSErrors.h"
 
-#include "sys/malloc.h"
+#include "malloc.h"
 #include <new>
 
 extern "C" ULong	LowLevelGetCPUType(void);

@@ -9,6 +9,8 @@
 	Written by:	Newton Research Group, 2007.
 */
 
+#ifdef __APPLE__
+
 #include "Quartz.h"
 #include "Paths.h"
 #include "Objects.h"
@@ -1821,3 +1823,5 @@ HWRMemoryFree(void * p)
 	return true;
 }
 #endif
+
+#endif /* __APPLE__ */

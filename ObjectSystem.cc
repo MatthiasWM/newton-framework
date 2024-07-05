@@ -70,7 +70,9 @@ extern Ref			InitDarkStar(RefArg inRcvr, RefArg inOptions);
 ------------------------------------------------------------------------------*/
 
 extern "C" {
+#ifdef __APPLE__
 void	NSLog(CFStringRef format, ...);
+#endif
 void  InitObjectSystem(void);
 }
 
@@ -291,6 +293,9 @@ MakeROMResources(void)
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------*/
+
+#ifdef __APPLE__
+
 #include <CoreGraphics/CoreGraphics.h>
 
 CGImageRef
@@ -307,3 +312,4 @@ LoadPNG(const char * inName)
 	return png;
 }
 
+#endif

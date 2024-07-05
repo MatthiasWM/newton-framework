@@ -29,6 +29,8 @@ alternatively...
 	forFramework, must continue to draw into bitmap context
 */
 
+#ifdef __APPLE__
+
 #include "Quartz.h"
 
 #include "Objects.h"
@@ -765,3 +767,4 @@ FLockScreen(RefArg inRcvr, RefArg inDoIt)
 	return NILREF;
 }
 
+#endif /* __APPLE__ */
