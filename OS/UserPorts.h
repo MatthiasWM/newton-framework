@@ -79,8 +79,8 @@ public:
 					CUAsyncMessage(ObjectId inMemMsg, ObjectId inReplyMem);
 					~CUAsyncMessage();
 
-	void	operator=(const CUAsyncMessage & inCopy);
-	void	operator=(const CUMsgToken & inCopy);
+    CUAsyncMessage&	operator=(const CUAsyncMessage & inCopy);
+    CUAsyncMessage&	operator=(const CUMsgToken & inCopy);
 
 	NewtonErr	init(bool inSendRPC = true);
 	NewtonErr	setCollectorPort(ObjectId inPortId);
@@ -102,7 +102,12 @@ private:
 	C U A s y n c M e s s a g e   I n l i n e s
 --------------------------------------------------------------------------------*/
 
-inline void			CUAsyncMessage::operator=(const CUAsyncMessage & inCopy)	{ fMsg = inCopy.fMsg; fReplyMem = inCopy.fReplyMem; }
+inline CUAsyncMessage& CUAsyncMessage::operator=(const CUAsyncMessage & inCopy)
+{
+    fMsg = inCopy.fMsg;
+    fReplyMem = inCopy.fReplyMem;
+    return *this;
+}
 inline NewtonErr	CUAsyncMessage::setCollectorPort(ObjectId inPortId)		{ return fMsg.setMsgAvailPort(inPortId); }
 inline NewtonErr	CUAsyncMessage::setUserRefCon(OpaqueRef inRefCon)			{ return fMsg.setUserRefCon(inRefCon); }
 inline NewtonErr	CUAsyncMessage::getUserRefCon(OpaqueRef * outRefCon)		{ return fMsg.getUserRefCon(outRefCon); }
@@ -150,7 +155,7 @@ class CUPort : public CUObject
 public:
 					CUPort();
 					CUPort(ObjectId id);
-	void			operator=(const CUPort & inCopy);
+	CUPort&			operator=(const CUPort & inCopy);
 	NewtonErr	init();
 
 	NewtonErr	send(void * inContent, size_t inSize, Timeout inTimeout = kNoTimeout, ULong inMsgType = 0, bool inUrgent = false)
@@ -190,7 +195,10 @@ private:
 
 inline			CUPort::CUPort() : CUObject(0) { }
 inline			CUPort::CUPort(ObjectId id) : CUObject(id) { }
-inline 	void	CUPort::operator=(const CUPort & inCopy) { copyObject(inCopy); }
+inline CUPort& CUPort::operator=(const CUPort & inCopy) {
+    copyObject(inCopy);
+    return *this;
+}
 
 
 /*------------------------------------------------------------------------------

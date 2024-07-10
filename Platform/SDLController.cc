@@ -1,9 +1,102 @@
 
+
+
 #define __MACMEMORY__
-#import "MPController.h"
-#import "Platform.h"
-#import "NewtonTime.h"
-#import "UserGlobals.h"
+#include "SDLController.h"
+#include "Platform.h"
+#include "NewtonTime.h"
+#include "NewtonTypes.h"
+#include "UserGlobals.h"
+
+#include "messagepad_SDL.h"
+
+#define forLayerDrawing 1
+
+
+extern CTime        GetClock(void);
+
+extern "C" void    ResetNewton(void);
+extern void            TimerInterruptHandler(void * inQueue);
+extern void            PreemptiveTimerInterruptHandler(void * inQueue);
+
+//dispatch_queue_t gNewtonQ;
+//dispatch_queue_t gTimerQ;
+//dispatch_source_t schedulerSource;
+//dispatch_source_t alarmSource;
+bool gIsAlarmSet = false;
+ULong gPendingInterrupt = 0;
+
+#define kIntSourceTimer            0x0020
+#define kIntSourceScheduler    0x0040
+extern void    DispatchFakeInterrupt(uint32_t inSourceMask);
+extern ULong gCPSR;
+
+#define kTabScale 8.0
+
+extern int gScreenHeight;
+
+extern "C" void    PenDown(float inX, float inY);
+extern "C" void    PenMoved(float inX, float inY);
+extern "C" void    PenUp(void);
+
+void
+SetPlatformAlarm(int64_t inDelta)
+{
+//    // set one-shot timer to fire in inDelta ms
+//    dispatch_source_set_timer(alarmSource, dispatch_time(DISPATCH_TIME_NOW, inDelta * NSEC_PER_USEC), DISPATCH_TIME_FOREVER, 1000ull);
+    if (!gIsAlarmSet)
+    {
+        gIsAlarmSet = true;
+        printf("SetPlatformAlarm(inDelta=%lldms)\n", inDelta);
+//        SDL_TimerID SDL_AddTimer(Uint32 interval, (ms)
+//                                 SDL_TimerCallback callback,
+//                                 void *param);
+//        typedef Uint32 (SDLCALL * SDL_TimerCallback) (Uint32 interval, void *param);
+//        dispatch_resume(alarmSource);
+    }
+}
+
+
+void
+WeAreDirty(void)
+{
+    SDL_UserEvent user_event = {
+        SDL_USEREVENT,
+        SDL_GetTicks(),
+        0,
+        1,
+        nullptr,
+        nullptr
+    };
+    SDL_PushEvent((SDL_Event*)&user_event);
+//#if 0
+//    ((MPView *)wc.window.contentView).needsDisplay = true;
+//#else
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        ((MPView *)wc.window.contentView).needsDisplay = true;
+//    });
+//#endif
+}
+
+
+extern "C" void
+ServicePendingInterrupts(void)
+{
+    if (gPendingInterrupt != 0)
+    {
+//        dispatch_async(gTimerQ, ^{ DispatchFakeInterrupt(gPendingInterrupt); });
+        DispatchFakeInterrupt(gPendingInterrupt);
+        gPendingInterrupt = 0;
+    }
+}
+
+
+
+
+
+#if 0
+
+// Replace all the following code with C++ code
 
 #define forLayerDrawing 1
 
@@ -247,3 +340,6 @@ WeAreDirty(void)
 }
 
 @end
+
+#endif
+

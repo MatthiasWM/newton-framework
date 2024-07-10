@@ -13,6 +13,9 @@
 #include "QDDrawing.h"
 #include "NewtonGestalt.h"
 
+#ifdef NFW_USE_SDL
+#include "messagepad_SDL.h"
+#endif
 
 /* -----------------------------------------------------------------------------
 	S c r e e n   P a r a m e t e r s
@@ -255,6 +258,50 @@ CMainDisplayDriver::blit(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * i
 	size_t	pixmapHeight = RectGetHeight(inPixmap->bounds);
 	size_t	pixmapDepth = PixelDepth(inPixmap);
 
+#ifdef NFW_USE_SDL
+
+//    static unsigned int t2 = SDL_GetTicks();
+//    unsigned int t2 = SDL_GetTicks();
+//    float delta = (t2 - t1) / 1000.0f;
+//    t1 = t2;
+//
+//    SDL_FillRect(gSDLPixels, NULL, 0);
+    static const unsigned int color_lut[] = { 0xff0000ff, 0xff00ff00, 0xff00ffff, 0xffff0000, 0xffff00ff, 0xffffff00, 0xffffffff, 0xff000000 };
+    static unsigned char ctr = 0;
+    unsigned int col = color_lut[(ctr++)&7];
+
+    // write the pixels
+    SDL_LockSurface(gSDLPixels);
+
+    unsigned int *p = (unsigned int*)gSDLPixels->pixels;
+    for (int i=0; i<20; i++) {
+//        p[i] = 0xff0000ff;
+        p[i] = col;
+    }
+//    {
+//        int pitch = gSDLPixels->pitch;
+//
+//        // move 100 pixels/second
+//        pos += delta * 100.0f;
+//        pos = fmodf(pos, width);
+//
+//        // draw red diagonal line
+//        for (int i=0; i<height; i++)
+//        {
+//            int y = i;
+//            int x = ((int)pos + i) % width;
+//
+//            unsigned int* row = (unsigned int*)((char*)gSDLPixels->pixels + pitch * y);
+//            row[x] = 0xff0000ff; // 0xAABBGGRR
+//            row[x+1] = 0xff0000ff; // 0xAABBGGRR
+//            row[x+2] = 0xff0000ff; // 0xAABBGGRR
+//            row[x+3] = 0xff0000ff; // 0xAABBGGRR
+//        }
+//    }
+    SDL_UnlockSurface(gSDLPixels);
+
+#else
+
 	CGImageRef			image = NULL;
 	CGColorSpaceRef	baseColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
 	CGColorSpaceRef	colorSpace = CGColorSpaceCreateIndexed(baseColorSpace, (1 << pixmapDepth)-1, colorTable[pixmapDepth]);
@@ -283,7 +330,8 @@ printf("CMainDisplayDriver::blit(pixmap={w:%lu,h:%lu}, srcBounds={t:%d,l:%d,b:%d
 	} else {
 printf("image=NULL -- ");
 	}
-
+    
+#endif
 
 #if defined(correct)
 	BlitRec	blitParms;

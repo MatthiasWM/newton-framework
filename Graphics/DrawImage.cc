@@ -62,8 +62,10 @@ DrawPicture(RefArg inIcon, const Rect * inFrame, ULong inJustify, int inTransfer
 	if (IsBinary(inIcon) && EQ(ClassOf(inIcon), SYMA(picture)))
 	{
 		CDataPtr	iconData(inIcon);
+//        0x001897FC: DrawPicture(RefVar const &, TRect const &, unsigned long, long)
+//        0x003337FC: DrawPicture(Picture **, Rect *, unsigned char)
 //		DrawPicture(iconData, Length(inIcon), Justify(PictureBounds(iconData, &iconRect), inFrame, inJustify));
-	}
+    }
 
 	else if (IsFrame(inIcon) && !IsInstance(inIcon, SYMA(bitmap))
 			&& (FrameHasSlot(inIcon, SYMA(bits)) || FrameHasSlot(inIcon, SYMA(colorData))))

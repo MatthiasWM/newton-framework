@@ -26,6 +26,21 @@ MeasureTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short *
 
 	DoTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRuns, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * outBoundsInfo, bool inDoDraw)
 	->	DrawTextObj
+        ->  0x0035A60C: CallDrawText(long, long, long)
+            -> jump table, for example: 0x0035b07c StdText
+                ->  DoTextArrow__FlN21
+                ->  DoPutText__FlN21
+                    ->  PutPicOpcode__Fl PutPicWord__Fl PutPicByte__Fl PutPicData__FPcl QDPatchpoint__Fv BlockMove
+                    ->  ...
+                ->  DrText__FlN21
+                    ->  DrTextChunk__FP10DrTextInfolPUsPl
+                        ->  OpenFont__FP8PixelMapP11StyleRecordlT3P14FontEngineInfo
+                        ->  SFNTGetGlyph...
+                            after GetGlyph, we seem to draw the character
+                        ->  QDPatchpoint (no-op)
+                    ->  ...
+                ->  DoCharToPoint__FlN21
+                ->  DoPointToChar__FlN21
 	->	DispatchCalcBounds
 
 
@@ -46,6 +61,9 @@ TextBounds(CRichString & inStr, RefArg inFont, Rect * ioRect, long inJustifyH)
 
 #endif
 
+#ifdef NFW_USE_SDL
+#include "messagepad_SDL.h"
+#endif
 
 #include "Quartz.h"
 #include <CoreText/CoreText.h>
@@ -432,6 +450,31 @@ DoTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRu
 void
 DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect * inBox, CGColorRef inColor, ULong inJustify)	// SRB
 {
+#ifdef NFW_USE_SDL
+
+    //    static unsigned int t2 = SDL_GetTicks();
+    //    unsigned int t2 = SDL_GetTicks();
+    //    float delta = (t2 - t1) / 1000.0f;
+    //    t1 = t2;
+    //
+    //    SDL_FillRect(gSDLPixels, NULL, 0);
+    static const unsigned int color_lut[] = { 0xff0000ff, 0xff00ff00, 0xff00ffff, 0xffff0000, 0xffff00ff, 0xffffff00, 0xffffffff, 0xff000000 };
+    static unsigned char ctr = 1;
+    unsigned int col = color_lut[(ctr++)&7];
+
+    // write the pixels
+    SDL_LockSurface(gSDLPixels);
+    unsigned int *p = nullptr;
+    for (int i=inBox->top; i<inBox->bottom; i++) {
+        p = ((unsigned int*)gSDLPixels->pixels) + inBox->left + i*320;
+        for (int j=inBox->right-inBox->left; j>0; j--) {
+            *p++ = col;
+        }
+    }
+    SDL_UnlockSurface(gSDLPixels);
+
+
+#else // NFW_USE_SDL
 
 	CGRect box = MakeCGRect(*inBox);
 	if (box.size.width < 0.0)
@@ -524,6 +567,7 @@ DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect 
 	int strLen = MIN(inLength, 255);
 	ConvertFromUnicode((const UniChar *)inStr, str, strLen);
 	printf("%s @ %d,%d\n", str, inBox->left, inBox->bottom); */
+#endif
 }
 
 

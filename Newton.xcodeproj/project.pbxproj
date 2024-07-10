@@ -7,6 +7,297 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C9B4C8842C3D7BB200E1EBA3 /* messagepad_SDL.cc in Sources */ = {isa = PBXBuildFile; fileRef = C9B4C8822C3D7BB200E1EBA3 /* messagepad_SDL.cc */; };
+		C9B4C8852C3D7BB200E1EBA3 /* messagepad_SDL.h in Headers */ = {isa = PBXBuildFile; fileRef = C9B4C8832C3D7BB200E1EBA3 /* messagepad_SDL.h */; };
+		C9B4C88B2C3D813400E1EBA3 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9B4C88A2C3D813300E1EBA3 /* CoreAudio.framework */; };
+		C9B4C88D2C3D813F00E1EBA3 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9B4C88C2C3D813F00E1EBA3 /* AudioToolbox.framework */; };
+		C9B4C88F2C3D815100E1EBA3 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9B4C88E2C3D815100E1EBA3 /* CoreVideo.framework */; };
+		C9B4C8912C3D816100E1EBA3 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9B4C8902C3D816100E1EBA3 /* Carbon.framework */; };
+		C9B4C8932C3D821A00E1EBA3 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9B4C8872C3D7F0E00E1EBA3 /* libSDL2.a */; };
+		C9B4C8962C3D93D100E1EBA3 /* SDLController.cc in Sources */ = {isa = PBXBuildFile; fileRef = C9B4C8942C3D93D100E1EBA3 /* SDLController.cc */; };
+		C9B4C8972C3D93D100E1EBA3 /* SDLController.h in Headers */ = {isa = PBXBuildFile; fileRef = C9B4C8952C3D93D100E1EBA3 /* SDLController.h */; };
+		C9B4C8982C3D949000E1EBA3 /* MessagePadSDL-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C9CE76192C3D79BE0033F683 /* MessagePadSDL-Info.plist */; };
+		C9B4C8992C3D961700E1EBA3 /* MPInterface.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AA87521293E11E00749A7C /* MPInterface.cc */; };
+		C9CE74F82C3D79BE0033F683 /* Newton.rex in Resources */ = {isa = PBXBuildFile; fileRef = F42D8792080D6F1400D571FA /* Newton.rex */; };
+		C9CE74F92C3D79BE0033F683 /* appicon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F4DA4B8E0C848C0300FF7B9C /* appicon.icns */; };
+		C9CE74FA2C3D79BE0033F683 /* DictData in Resources */ = {isa = PBXBuildFile; fileRef = F491EA49119C833300F781BF /* DictData */; };
+		C9CE74FB2C3D79BE0033F683 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = F43E1DAD1E535C9500EFADB2 /* Credits.rtf */; };
+		C9CE74FC2C3D79BE0033F683 /* busy.png in Resources */ = {isa = PBXBuildFile; fileRef = F4C4C1E01A40BE15002B8821 /* busy.png */; };
+		C9CE74FD2C3D79BE0033F683 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F43E1DB31E535C9500EFADB2 /* Main.storyboard */; };
+		C9CE74FE2C3D79BE0033F683 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F43E1DB11E535C9500EFADB2 /* Localizable.strings */; };
+		C9CE74FF2C3D79BE0033F683 /* caret.png in Resources */ = {isa = PBXBuildFile; fileRef = F4C4C1E21A40C133002B8821 /* caret.png */; };
+		C9CE75002C3D79BE0033F683 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F43E1DAF1E535C9500EFADB2 /* InfoPlist.strings */; };
+		C9CE75012C3D79BE0033F683 /* MessagePadHelp in Resources */ = {isa = PBXBuildFile; fileRef = F4DB1C8412730BA7003F8A10 /* MessagePadHelp */; };
+		C9CE75022C3D79BE0033F683 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F43E1DB51E535C9500EFADB2 /* MainMenu.xib */; };
+		C9CE75042C3D79BE0033F683 /* Application.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660F3E030281386C007CB514 /* Application.cc */; };
+		C9CE75052C3D79BE0033F683 /* AppWorld.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6659808204FE889400A80002 /* AppWorld.cc */; };
+		C9CE75062C3D79BE0033F683 /* Array.cc in Sources */ = {isa = PBXBuildFile; fileRef = F41B5D910560E5F300F1E13B /* Array.cc */; };
+		C9CE75072C3D79BE0033F683 /* Arrays.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DB904C7F08100A80002 /* Arrays.cc */; };
+		C9CE75082C3D79BE0033F683 /* Boot.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3204C7F0F400A80002 /* Boot.cc */; };
+		C9CE75092C3D79BE0033F683 /* BusyBox.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3304C7F0F400A80002 /* BusyBox.cc */; };
+		C9CE750A2C3D79BE0033F683 /* CommManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66319C95050C816A00A80002 /* CommManager.cc */; };
+		C9CE750B2C3D79BE0033F683 /* DynamicArray.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E8F04C7F0F500A80002 /* DynamicArray.cc */; };
+		C9CE750C2C3D79BE0033F683 /* Environment.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3604C7F0F400A80002 /* Environment.cc */; };
+		C9CE750D2C3D79BE0033F683 /* ProtoMacro.s in Sources */ = {isa = PBXBuildFile; fileRef = F4A58FB518BB685F008B0832 /* ProtoMacro.s */; };
+		C9CE750E2C3D79BE0033F683 /* FakePointers.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45661220DB897D2003B7D17 /* FakePointers.cc */; };
+		C9CE750F2C3D79BE0033F683 /* DragAndDrop.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D61174192631580041C087 /* DragAndDrop.cc */; };
+		C9CE75102C3D79BE0033F683 /* Events.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E9204C7F0F500A80002 /* Events.cc */; };
+		C9CE75112C3D79BE0033F683 /* Exceptions.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DBE04C7F08100A80002 /* Exceptions.cc */; };
+		C9CE75122C3D79BE0033F683 /* Frames.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DC104C7F08100A80002 /* Frames.cc */; };
+		C9CE75132C3D79BE0033F683 /* Gestalt.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66B1B67B04CFEF920086C7ED /* Gestalt.cc */; };
+		C9CE75142C3D79BE0033F683 /* Globals.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DC404C7F08100A80002 /* Globals.cc */; };
+		C9CE75152C3D79BE0033F683 /* InputStreams.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E2204C7F0F400A80002 /* InputStreams.cc */; };
+		C9CE75162C3D79BE0033F683 /* Interrupt.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3A04C7F0F400A80002 /* Interrupt.cc */; };
+		C9CE75172C3D79BE0033F683 /* TranslatorProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4A58FD418BB74FD008B0832 /* TranslatorProto.s */; };
+		C9CE75182C3D79BE0033F683 /* Iterators.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DC904C7F08100A80002 /* Iterators.cc */; };
+		C9CE75192C3D79BE0033F683 /* KernelMonitor.cc in Sources */ = {isa = PBXBuildFile; fileRef = 667F5255050F173400A80002 /* KernelMonitor.cc */; };
+		C9CE751A2C3D79BE0033F683 /* Endpoint.cc in Sources */ = {isa = PBXBuildFile; fileRef = F47F861A1C44F2D200640B81 /* Endpoint.cc */; };
+		C9CE751B2C3D79BE0033F683 /* KernelObjects.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3B04C7F0F400A80002 /* KernelObjects.cc */; };
+		C9CE751C2C3D79BE0033F683 /* KernelPhys.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660001D8051B0BCD00A80002 /* KernelPhys.cc */; };
+		C9CE751D2C3D79BE0033F683 /* KernelPorts.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660FD1BD050E29EF00A80002 /* KernelPorts.cc */; };
+		C9CE751E2C3D79BE0033F683 /* SoundChannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4DBB07E1B7910F300B6E8F8 /* SoundChannel.cc */; };
+		C9CE751F2C3D79BE0033F683 /* KernelSemaphore.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66017BE40532D6C600A80002 /* KernelSemaphore.cc */; };
+		C9CE75202C3D79BE0033F683 /* EndpointProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F47F861E1C44F48900640B81 /* EndpointProto.s */; };
+		C9CE75212C3D79BE0033F683 /* KernelTasks.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E3D04C7F0F400A80002 /* KernelTasks.cc */; };
+		C9CE75222C3D79BE0033F683 /* MuLawCodec.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C222D31B7B640E00086F70 /* MuLawCodec.cc */; };
+		C9CE75232C3D79BE0033F683 /* Librarian.cc in Sources */ = {isa = PBXBuildFile; fileRef = 666E138204C964FC003FEEAB /* Librarian.cc */; };
+		C9CE75242C3D79BE0033F683 /* List.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66FE933704D6628500CB80AF /* List.cc */; };
+		C9CE75252C3D79BE0033F683 /* Lookup.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DCC04C7F08100A80002 /* Lookup.cc */; };
+		C9CE75262C3D79BE0033F683 /* ProtocolProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4A58FB218BB685F008B0832 /* ProtocolProto.s */; };
+		C9CE75272C3D79BE0033F683 /* MagicPointers.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DCE04C7F08100A80002 /* MagicPointers.cc */; };
+		C9CE75292C3D79BE0033F683 /* FlashProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BA206318E1FF8C00681C49 /* FlashProto.s */; };
+		C9CE752A2C3D79BE0033F683 /* Maths.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E7E04C7F0F500A80002 /* Maths.cc */; };
+		C9CE752B2C3D79BE0033F683 /* MemArch.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66F1790B04D41D2B0067FFD7 /* MemArch.cc */; };
+		C9CE752C2C3D79BE0033F683 /* MemObject.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393F1204C7FF3700A80002 /* MemObject.cc */; };
+		C9CE752D2C3D79BE0033F683 /* MemObjManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E4004C7F0F400A80002 /* MemObjManager.cc */; };
+		C9CE752E2C3D79BE0033F683 /* NameServer.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E4304C7F0F400A80002 /* NameServer.cc */; };
+		C9CE752F2C3D79BE0033F683 /* NewtWorld.cc in Sources */ = {isa = PBXBuildFile; fileRef = 662C243904FD269E00A80002 /* NewtWorld.cc */; };
+		C9CE75302C3D79BE0033F683 /* Notebook.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393F4C04C8503F00A80002 /* Notebook.cc */; };
+		C9CE75312C3D79BE0033F683 /* ObjectHeap.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DD204C7F08100A80002 /* ObjectHeap.cc */; };
+		C9CE75322C3D79BE0033F683 /* ObjectPrinter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DD404C7F08100A80002 /* ObjectPrinter.cc */; };
+		C9CE75332C3D79BE0033F683 /* DES.c in Sources */ = {isa = PBXBuildFile; fileRef = F412664B1770A444007171AE /* DES.c */; };
+		C9CE75342C3D79BE0033F683 /* Objects.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DD504C7F08100A80002 /* Objects.cc */; };
+		C9CE75352C3D79BE0033F683 /* PageManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660001D6051B067F00A80002 /* PageManager.cc */; };
+		C9CE75362C3D79BE0033F683 /* PictureView.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660F3E090281386C007CB514 /* PictureView.cc */; };
+		C9CE75372C3D79BE0033F683 /* FlashDriver.cc in Sources */ = {isa = PBXBuildFile; fileRef = F48BD4BF1A0B987200098DEE /* FlashDriver.cc */; };
+		C9CE75382C3D79BE0033F683 /* Queues.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66FE933504D59C8D00CB80AF /* Queues.cc */; };
+		C9CE75392C3D79BE0033F683 /* Recognition.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6667F10E04D6BB4C0078187B /* Recognition.cc */; };
+		C9CE753A2C3D79BE0033F683 /* StoreObjRef.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AA2F9211D662C300D04DF0 /* StoreObjRef.cc */; };
+		C9CE753B2C3D79BE0033F683 /* RefMemory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DD904C7F08100A80002 /* RefMemory.cc */; };
+		C9CE753C2C3D79BE0033F683 /* RefVar.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DDB04C7F08100A80002 /* RefVar.cc */; };
+		C9CE753D2C3D79BE0033F683 /* Responder.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660F3E050281386C007CB514 /* Responder.cc */; };
+		C9CE753E2C3D79BE0033F683 /* Codegen.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BC0AC11962C2A80096738D /* Codegen.cc */; };
+		C9CE753F2C3D79BE0033F683 /* RichStrings.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DDD04C7F08100A80002 /* RichStrings.cc */; };
+		C9CE75402C3D79BE0033F683 /* SWIHandler.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BC0A85195324820096738D /* SWIHandler.s */; };
+		C9CE75412C3D79BE0033F683 /* RootView.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393F4804C8474900A80002 /* RootView.cc */; };
+		C9CE75422C3D79BE0033F683 /* Scheduler.cc in Sources */ = {isa = PBXBuildFile; fileRef = 667F5261050F291E00A80002 /* Scheduler.cc */; };
+		C9CE75432C3D79BE0033F683 /* SoundDriverProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F40A96D71B776AE5009D0782 /* SoundDriverProto.s */; };
+		C9CE75442C3D79BE0033F683 /* Semaphore.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E4A04C7F0F400A80002 /* Semaphore.cc */; };
+		C9CE75452C3D79BE0033F683 /* SharedMem.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660FD1BB050E134B00A80002 /* SharedMem.cc */; };
+		C9CE75462C3D79BE0033F683 /* StackManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A8B46305735849004D6931 /* StackManager.cc */; };
+		C9CE75472C3D79BE0033F683 /* Strings.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DDE04C7F08100A80002 /* Strings.cc */; };
+		C9CE75482C3D79BE0033F683 /* Symbols.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DE104C7F08100A80002 /* Symbols.cc */; };
+		C9CE75492C3D79BE0033F683 /* SystemEvents.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393F1504C8103F00A80002 /* SystemEvents.cc */; };
+		C9CE754A2C3D79BE0033F683 /* Tablet.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6667F10904D6BB270078187B /* Tablet.cc */; };
+		C9CE754B2C3D79BE0033F683 /* TimerQueue.cc in Sources */ = {isa = PBXBuildFile; fileRef = F46F6EB80563E85900DABFCA /* TimerQueue.cc */; };
+		C9CE754C2C3D79BE0033F683 /* Timers.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E4E04C7F0F400A80002 /* Timers.cc */; };
+		C9CE754D2C3D79BE0033F683 /* Parser.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BC0ABD195C7B1B0096738D /* Parser.cc */; };
+		C9CE754E2C3D79BE0033F683 /* Unicode.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E8204C7F0F500A80002 /* Unicode.cc */; };
+		C9CE754F2C3D79BE0033F683 /* UserMonitor.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E5104C7F0F400A80002 /* UserMonitor.cc */; };
+		C9CE75502C3D79BE0033F683 /* UserObjects.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E5304C7F0F400A80002 /* UserObjects.cc */; };
+		C9CE75512C3D79BE0033F683 /* UserPorts.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66F1790404D12A050067FFD7 /* UserPorts.cc */; };
+		C9CE75522C3D79BE0033F683 /* UserSharedMem.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E5704C7F0F400A80002 /* UserSharedMem.cc */; };
+		C9CE75532C3D79BE0033F683 /* UserTasks.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E5904C7F0F400A80002 /* UserTasks.cc */; };
+		C9CE75542C3D79BE0033F683 /* UStringUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 66393E8704C7F0F500A80002 /* UStringUtils.c */; };
+		C9CE75552C3D79BE0033F683 /* View.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660F3E0B0281386C007CB514 /* View.cc */; };
+		C9CE75562C3D79BE0033F683 /* ViewObject.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66CCA14104BEB57800A80002 /* ViewObject.cc */; };
+		C9CE75572C3D79BE0033F683 /* ViewUtils.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66EBB1DA04DA60B000D670B7 /* ViewUtils.cc */; };
+		C9CE75582C3D79BE0033F683 /* VirtualMemory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E5B04C7F0F400A80002 /* VirtualMemory.cc */; };
+		C9CE75592C3D79BE0033F683 /* ROMExtension.cc in Sources */ = {isa = PBXBuildFile; fileRef = F40FD38E0577C0AD00DE1D20 /* ROMExtension.cc */; };
+		C9CE755A2C3D79BE0033F683 /* Protocols.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A58FB318BB685F008B0832 /* Protocols.cc */; };
+		C9CE755B2C3D79BE0033F683 /* MMU.c in Sources */ = {isa = PBXBuildFile; fileRef = F4A79B7E05AC1694002D6675 /* MMU.c */; };
+		C9CE755C2C3D79BE0033F683 /* PhysicalMemory.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A79C5305AC2959002D6675 /* PhysicalMemory.cc */; };
+		C9CE755D2C3D79BE0033F683 /* Preference.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A5C22505D00EBE00AAC1B9 /* Preference.cc */; };
+		C9CE755F2C3D79BE0033F683 /* Locales.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A51A7E0653F2FC002276D4 /* Locales.cc */; };
+		C9CE75602C3D79BE0033F683 /* Interpreter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DC604C7F08100A80002 /* Interpreter.cc */; };
+		C9CE75612C3D79BE0033F683 /* TextView.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4FFC2A006B033DD00FDD935 /* TextView.cc */; };
+		C9CE75622C3D79BE0033F683 /* Debug.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4FFC7DA06B41D3A00FDD935 /* Debug.cc */; };
+		C9CE75632C3D79BE0033F683 /* Shapes.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BB348F06BBAD250038DF69 /* Shapes.cc */; };
+		C9CE75642C3D79BE0033F683 /* ModalViews.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A61E1F06C16E29007ADB0E /* ModalViews.cc */; };
+		C9CE75652C3D79BE0033F683 /* RecObject.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D867F006D77F1300BE7C2B /* RecObject.cc */; };
+		C9CE75662C3D79BE0033F683 /* RecArea.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8680306D77FE600BE7C2B /* RecArea.cc */; };
+		C9CE75672C3D79BE0033F683 /* RecDomain.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D86A5A06D7C07000BE7C2B /* RecDomain.cc */; };
+		C9CE75682C3D79BE0033F683 /* FlashIterator.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AA2FBF11DBB5F600D04DF0 /* FlashIterator.cc */; };
+		C9CE75692C3D79BE0033F683 /* Flash.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BA206518E2054400681C49 /* Flash.cc */; };
+		C9CE756A2C3D79BE0033F683 /* Lexer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BC0AB8195C70FD0096738D /* Lexer.cc */; };
+		C9CE756B2C3D79BE0033F683 /* FlashRange.cc in Sources */ = {isa = PBXBuildFile; fileRef = F48BD4C71A0B995000098DEE /* FlashRange.cc */; };
+		C9CE756C2C3D79BE0033F683 /* RecType.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D86AF906D89CAE00BE7C2B /* RecType.cc */; };
+		C9CE756D2C3D79BE0033F683 /* SWIGlue.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BC0A84195324820096738D /* SWIGlue.s */; };
+		C9CE756E2C3D79BE0033F683 /* LargeBinaries.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D0E04D06FB1ACF0035F2EF /* LargeBinaries.cc */; };
+		C9CE756F2C3D79BE0033F683 /* Compiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393DBB04C7F08100A80002 /* Compiler.cc */; };
+		C9CE75702C3D79BE0033F683 /* Stroke.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D86E0206D9125800BE7C2B /* Stroke.cc */; };
+		C9CE75712C3D79BE0033F683 /* REP.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8337107A908B800F51BE0 /* REP.cc */; };
+		C9CE75722C3D79BE0033F683 /* y.tab.c in Sources */ = {isa = PBXBuildFile; fileRef = F4A3BB7407C5EE4200F27A5F /* y.tab.c */; };
+		C9CE75732C3D79BE0033F683 /* CompilerSupport.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A3BC2B07C7412900F27A5F /* CompilerSupport.cc */; };
+		C9CE75742C3D79BE0033F683 /* CommToolProtocol.cc in Sources */ = {isa = PBXBuildFile; fileRef = F47F861C1C44F2DE00640B81 /* CommToolProtocol.cc */; };
+		C9CE75752C3D79BE0033F683 /* Platform.cc in Sources */ = {isa = PBXBuildFile; fileRef = F47E54D3082E7D1300B12C30 /* Platform.cc */; };
+		C9CE75762C3D79BE0033F683 /* SWInterrupt.cc in Sources */ = {isa = PBXBuildFile; fileRef = F44301980817A10B0089C70B /* SWInterrupt.cc */; };
+		C9CE75772C3D79BE0033F683 /* IMACodec.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C222D71B7B969000086F70 /* IMACodec.cc */; };
+		C9CE75782C3D79BE0033F683 /* StoreMonitorProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BA205A18E03DCF00681C49 /* StoreMonitorProto.s */; };
+		C9CE75792C3D79BE0033F683 /* NTK.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A58FC318BB6A81008B0832 /* NTK.cc */; };
+		C9CE757A2C3D79BE0033F683 /* GSMCodec.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4EFBA930C74B986005319F8 /* GSMCodec.cc */; };
+		C9CE757B2C3D79BE0033F683 /* Compression.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42508480897ABE1009A6130 /* Compression.cc */; };
+		C9CE757C2C3D79BE0033F683 /* Inker.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6667F10C04D6BB4C0078187B /* Inker.cc */; };
+		C9CE757D2C3D79BE0033F683 /* CommOptions.cc in Sources */ = {isa = PBXBuildFile; fileRef = F401FFFC1B8F5E7B00555CBC /* CommOptions.cc */; };
+		C9CE757E2C3D79BE0033F683 /* Printing.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4F3740B090A5A6F000F707C /* Printing.cc */; };
+		C9CE757F2C3D79BE0033F683 /* ScriptInit.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4F37416090A5C1D000F707C /* ScriptInit.cc */; };
+		C9CE75802C3D79BE0033F683 /* StreamObjects.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4F3744B090ABC8B000F707C /* StreamObjects.cc */; };
+		C9CE75812C3D79BE0033F683 /* Packages.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A1F5870912D8F9001F1A9B /* Packages.cc */; };
+		C9CE75822C3D79BE0033F683 /* Pipes.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A1F61F0916DAB6001F1A9B /* Pipes.cc */; };
+		C9CE75832C3D79BE0033F683 /* StoreWrapper.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4FA712709A3334700B62DDB /* StoreWrapper.cc */; };
+		C9CE75842C3D79BE0033F683 /* PackageStore.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4ABCFA109ACD087009F195C /* PackageStore.cc */; };
+		C9CE75852C3D79BE0033F683 /* ROMDomainManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = F40E47AC0BF8C5FD00251AC4 /* ROMDomainManager.cc */; };
+		C9CE75862C3D79BE0033F683 /* CachedReadStore.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8F38E0C0ECDFD009E4CA3 /* CachedReadStore.cc */; };
+		C9CE75872C3D79BE0033F683 /* FaultBlocks.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4312B2C09B843F300742BE0 /* FaultBlocks.cc */; };
+		C9CE75882C3D79BE0033F683 /* LargeObjectStore.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D418B0BA83804005EC25C /* LargeObjectStore.cc */; };
+		C9CE75892C3D79BE0033F683 /* Stores.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E7504C7F0F500A80002 /* Stores.cc */; };
+		C9CE758A2C3D79BE0033F683 /* Compression.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F8A0BA2E06D005EC25C /* Compression.cc */; };
+		C9CE758B2C3D79BE0033F683 /* Compression.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F800BA2D371005EC25C /* Compression.cc */; };
+		C9CE758C2C3D79BE0033F683 /* Compression.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F940BA2E25D005EC25C /* Compression.cc */; };
+		C9CE758D2C3D79BE0033F683 /* CopyOffset_bin.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D41030BA73C0A005EC25C /* CopyOffset_bin.cc */; };
+		C9CE758E2C3D79BE0033F683 /* LZCompressionData-j.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F6E0BA2CDBD005EC25C /* LZCompressionData-j.cc */; };
+		C9CE758F2C3D79BE0033F683 /* LZCompressor.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F700BA2CDBD005EC25C /* LZCompressor.cc */; };
+		C9CE75902C3D79BE0033F683 /* MuxStore.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4312AF309B451A700742BE0 /* MuxStore.cc */; };
+		C9CE75912C3D79BE0033F683 /* LZDecompressor.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F720BA2CDBD005EC25C /* LZDecompressor.cc */; };
+		C9CE75922C3D79BE0033F683 /* LZStoreCompander.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F740BA2CDBD005EC25C /* LZStoreCompander.cc */; };
+		C9CE75932C3D79BE0033F683 /* PushPopBits.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D3F750BA2CDBD005EC25C /* PushPopBits.cc */; };
+		C9CE75942C3D79BE0033F683 /* StoreCompanderWrapper.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8F73B0C1D7717009E4CA3 /* StoreCompanderWrapper.cc */; };
+		C9CE75952C3D79BE0033F683 /* LargeObjects.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D42160BA95A71005EC25C /* LargeObjects.cc */; };
+		C9CE75962C3D79BE0033F683 /* NewtonScript.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42710FB066FA268006A2B66 /* NewtonScript.cc */; };
+		C9CE75972C3D79BE0033F683 /* RefIO.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45D401F0BA42CB6005EC25C /* RefIO.cc */; };
+		C9CE75982C3D79BE0033F683 /* DrawImage.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D89AD30C4FE95C002620D7 /* DrawImage.cc */; };
+		C9CE75992C3D79BE0033F683 /* DrawInk.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D89ACB0C4FE1B8002620D7 /* DrawInk.cc */; };
+		C9CE759A2C3D79BE0033F683 /* DrawShape.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D89ACC0C4FE1B8002620D7 /* DrawShape.cc */; };
+		C9CE759B2C3D79BE0033F683 /* DrawText.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D89ACE0C4FE1B8002620D7 /* DrawText.cc */; };
+		C9CE759C2C3D79BE0033F683 /* InkCompr.c in Sources */ = {isa = PBXBuildFile; fileRef = F4D89ACF0C4FE1B8002620D7 /* InkCompr.c */; };
+		C9CE759D2C3D79BE0033F683 /* SplashScreen.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D89F010C5F6842002620D7 /* SplashScreen.cc */; };
+		C9CE759E2C3D79BE0033F683 /* ObjectSystem.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4B809E706F21C2A0042F1D4 /* ObjectSystem.cc */; };
+		C9CE759F2C3D79BE0033F683 /* Heap.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E3CB3907F0423900D65383 /* Heap.cc */; };
+		C9CE75A02C3D79BE0033F683 /* SafeHeap.cc in Sources */ = {isa = PBXBuildFile; fileRef = F49EB25A07E87C0700A8EF49 /* SafeHeap.cc */; };
+		C9CE75A12C3D79BE0033F683 /* FlashBlock.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AABD6311E3239A00D47682 /* FlashBlock.cc */; };
+		C9CE75A22C3D79BE0033F683 /* MemMgr.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E3CB3B07F0423900D65383 /* MemMgr.cc */; };
+		C9CE75A32C3D79BE0033F683 /* Sound.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4EFBA940C74B986005319F8 /* Sound.cc */; };
+		C9CE75A42C3D79BE0033F683 /* DTMFCodec.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4EFBA920C74B986005319F8 /* DTMFCodec.cc */; };
+		C9CE75A52C3D79BE0033F683 /* UserSoundChannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4EFBAA40C74BFF3005319F8 /* UserSoundChannel.cc */; };
+		C9CE75A62C3D79BE0033F683 /* SimpleStoreCompander.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C21D8B0CFC27BA00A46B34 /* SimpleStoreCompander.cc */; };
+		C9CE75A72C3D79BE0033F683 /* DockerDynArray.cc in Sources */ = {isa = PBXBuildFile; fileRef = F46F27F316778C4700EDC91D /* DockerDynArray.cc */; };
+		C9CE75A82C3D79BE0033F683 /* Buffer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4263FBB0BC0FC4B008C154B /* Buffer.cc */; };
+		C9CE75A92C3D79BE0033F683 /* BufferList.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DB2A107F34D50004B70B /* BufferList.cc */; };
+		C9CE75AA2C3D79BE0033F683 /* RSSymbols.s in Sources */ = {isa = PBXBuildFile; fileRef = F497CB8B1F179F0300884F98 /* RSSymbols.s */; };
+		C9CE75AB2C3D79BE0033F683 /* BufferPipe.cc in Sources */ = {isa = PBXBuildFile; fileRef = F486F72F10F0AC1100176ED0 /* BufferPipe.cc */; };
+		C9CE75AC2C3D79BE0033F683 /* FlashStore.cc in Sources */ = {isa = PBXBuildFile; fileRef = F486CD0A10B69CBC00176ED0 /* FlashStore.cc */; };
+		C9CE75AD2C3D79BE0033F683 /* BufferSegment.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DB2B107F34D50004B70B /* BufferSegment.cc */; };
+		C9CE75AE2C3D79BE0033F683 /* CircleBuf.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DB2F107F35F80004B70B /* CircleBuf.cc */; };
+		C9CE75AF2C3D79BE0033F683 /* CObjectBinaries.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E296B70CDB2BC300166666 /* CObjectBinaries.cc */; };
+		C9CE75B02C3D79BE0033F683 /* CodecProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4AE155910591A3700F1AB5A /* CodecProto.s */; };
+		C9CE75B12C3D79BE0033F683 /* CompressionProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4E611261056A121007E700A /* CompressionProto.s */; };
+		C9CE75B22C3D79BE0033F683 /* Cursors.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E6E04C7F0F500A80002 /* Cursors.cc */; };
+		C9CE75B32C3D79BE0033F683 /* Dates.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E033670F18FFAD0087A179 /* Dates.cc */; };
+		C9CE75B42C3D79BE0033F683 /* FlashCache.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4571B4C11BBA68600B144C7 /* FlashCache.cc */; };
+		C9CE75B52C3D79BE0033F683 /* Dictionaries.cc in Sources */ = {isa = PBXBuildFile; fileRef = F49808E91162085000142AFC /* Dictionaries.cc */; };
+		C9CE75B62C3D79BE0033F683 /* Entries.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A7B0560CB268FE00EE4067 /* Entries.cc */; };
+		C9CE75B72C3D79BE0033F683 /* ErrorString.m in Sources */ = {isa = PBXBuildFile; fileRef = F42E4D82118B239E0065D7AC /* ErrorString.m */; };
+		C9CE75B82C3D79BE0033F683 /* Hints.cc in Sources */ = {isa = PBXBuildFile; fileRef = F404E0800CBF5E9C0008EF03 /* Hints.cc */; };
+		C9CE75B92C3D79BE0033F683 /* IA.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C18816071447A20049FE3F /* IA.cc */; };
+		C9CE75BA2C3D79BE0033F683 /* RefSymbols.s in Sources */ = {isa = PBXBuildFile; fileRef = F497CB891F179F0300884F98 /* RefSymbols.s */; };
+		C9CE75BB2C3D79BE0033F683 /* Stubs.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C514611D86EED9008E5537 /* Stubs.cc */; };
+		C9CE75BC2C3D79BE0033F683 /* Indexes.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A7B0070CB164AD00EE4067 /* Indexes.cc */; };
+		C9CE75BD2C3D79BE0033F683 /* Ink.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AE156510591BC000F1AB5A /* Ink.cc */; };
+		C9CE75BE2C3D79BE0033F683 /* Marshaling.cc in Sources */ = {isa = PBXBuildFile; fileRef = F40A96D51B6A35F3009D0782 /* Marshaling.cc */; };
+		C9CE75BF2C3D79BE0033F683 /* InkGeometry.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42E4E661224415800D49B5D /* InkGeometry.cc */; };
+		C9CE75C02C3D79BE0033F683 /* Journal.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4CAB04A123E5242005179CD /* Journal.cc */; };
+		C9CE75C12C3D79BE0033F683 /* MemoryPipe.cc in Sources */ = {isa = PBXBuildFile; fileRef = F486F75310F1043800176ED0 /* MemoryPipe.cc */; };
+		C9CE75C22C3D79BE0033F683 /* NodeCache.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E6113A1056A190007E700A /* NodeCache.cc */; };
+		C9CE75C32C3D79BE0033F683 /* UserDomain.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AEFE12184E23DE0072ACAA /* UserDomain.cc */; };
+		C9CE75C42C3D79BE0033F683 /* OptionArray.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4565E700D9EA717003B7D17 /* OptionArray.cc */; };
+		C9CE75C52C3D79BE0033F683 /* PlainSoup.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E7004C7F0F500A80002 /* PlainSoup.cc */; };
+		C9CE75C62C3D79BE0033F683 /* QDCompression.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4C826C30BCD542500392B90 /* QDCompression.cc */; };
+		C9CE75C72C3D79BE0033F683 /* QDDrawing.cc in Sources */ = {isa = PBXBuildFile; fileRef = F47D42D9120F25E500061FD8 /* QDDrawing.cc */; };
+		C9CE75C82C3D79BE0033F683 /* Geometry.cc in Sources */ = {isa = PBXBuildFile; fileRef = F47D42DB120F25E500061FD8 /* Geometry.cc */; };
+		C9CE75C92C3D79BE0033F683 /* RecStroke.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42E4EF712250F2100D49B5D /* RecStroke.cc */; };
+		C9CE75CA2C3D79BE0033F683 /* RecUnit.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42E52071229013500D49B5D /* RecUnit.cc */; };
+		C9CE75CB2C3D79BE0033F683 /* SIUnit.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42E523412295C8000D49B5D /* SIUnit.cc */; };
+		C9CE75CC2C3D79BE0033F683 /* Soups.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E7204C7F0F500A80002 /* Soups.cc */; };
+		C9CE75CD2C3D79BE0033F683 /* StoreDriver.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4571B4F11BBA9B400B144C7 /* StoreDriver.cc */; };
+		C9CE75CE2C3D79BE0033F683 /* StoreProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4E611361056A17A007E700A /* StoreProto.s */; };
+		C9CE75CF2C3D79BE0033F683 /* RSData.s in Sources */ = {isa = PBXBuildFile; fileRef = F497CB8A1F179F0300884F98 /* RSData.s */; };
+		C9CE75D02C3D79BE0033F683 /* StoreStreamObjects.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4FA711809A3321000B62DDB /* StoreStreamObjects.cc */; };
+		C9CE75D12C3D79BE0033F683 /* Stroker.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4CAAFB51239036C005179CD /* Stroker.cc */; };
+		C9CE75D22C3D79BE0033F683 /* TabletBuffer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BACE2412424DAE00191B4E /* TabletBuffer.cc */; };
+		C9CE75D32C3D79BE0033F683 /* Tags.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E6113E1056A1D8007E700A /* Tags.cc */; };
+		C9CE75D42C3D79BE0033F683 /* TestAgent.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4CAB04E123F93B4005179CD /* TestAgent.cc */; };
+		C9CE75D52C3D79BE0033F683 /* Transformations.cc in Sources */ = {isa = PBXBuildFile; fileRef = F42E4E5A12243EF900D49B5D /* Transformations.cc */; };
+		C9CE75D62C3D79BE0033F683 /* UnionSoup.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E7804C7F0F500A80002 /* UnionSoup.cc */; };
+		C9CE75D72C3D79BE0033F683 /* TabletDriver.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4CAAF6A1237BFC0005179CD /* TabletDriver.cc */; };
+		C9CE75D82C3D79BE0033F683 /* TabletDriverProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4CAAF6C1237C22C005179CD /* TabletDriverProto.s */; };
+		C9CE75D92C3D79BE0033F683 /* NArray.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AE155E10591B1200F1AB5A /* NArray.cc */; };
+		C9CE75DA2C3D79BE0033F683 /* Relocation.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AF1863111065C8003CE609 /* Relocation.cc */; };
+		C9CE75DB2C3D79BE0033F683 /* Animation.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66DB098E053EF2CC00A80002 /* Animation.cc */; };
+		C9CE75DC2C3D79BE0033F683 /* EndpointPipe.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AF0E8410F78518003CE609 /* EndpointPipe.cc */; };
+		C9CE75DD2C3D79BE0033F683 /* CommTool.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DEC8109366110004B70B /* CommTool.cc */; };
+		C9CE75DE2C3D79BE0033F683 /* ScreenDriverProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BAF28F1248D76E000C2433 /* ScreenDriverProto.s */; };
+		C9CE75DF2C3D79BE0033F683 /* ScreenDriver.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8A2FE0C64F19E002620D7 /* ScreenDriver.cc */; };
+		C9CE75E02C3D79BE0033F683 /* CardEvents.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4571ADC11B3D52100B144C7 /* CardEvents.cc */; };
+		C9CE75E12C3D79BE0033F683 /* SerialNumber.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D61137190A9C160041C087 /* SerialNumber.cc */; };
+		C9CE75E22C3D79BE0033F683 /* Screen.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66393E6C04C7F0F500A80002 /* Screen.cc */; };
+		C9CE75E32C3D79BE0033F683 /* CMService.cc in Sources */ = {isa = PBXBuildFile; fileRef = F41CCFA61B46C9E400119136 /* CMService.cc */; };
+		C9CE75E42C3D79BE0033F683 /* SplashScreenProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4BAF348124948E8000C2433 /* SplashScreenProto.s */; };
+		C9CE75E52C3D79BE0033F683 /* CommToolProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F47F86201C44F7C600640B81 /* CommToolProto.s */; };
+		C9CE75E62C3D79BE0033F683 /* PackageManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4BCFEA708A4C16A00942899 /* PackageManager.cc */; };
+		C9CE75E72C3D79BE0033F683 /* Controller.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D8699D06D7AB4700BE7C2B /* Controller.cc */; };
+		C9CE75E82C3D79BE0033F683 /* SoundServer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4F9297C0C82D1D20077CA66 /* SoundServer.cc */; };
+		C9CE75E92C3D79BE0033F683 /* Regions.cc in Sources */ = {isa = PBXBuildFile; fileRef = 66DF10BD054BDA6800A80002 /* Regions.cc */; };
+		C9CE75EA2C3D79BE0033F683 /* SoundDriver.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4DB171D126D8BFA003F8A10 /* SoundDriver.cc */; };
+		C9CE75EB2C3D79BE0033F683 /* PlatformDriverProto.s in Sources */ = {isa = PBXBuildFile; fileRef = F4A1893F1A62E1D500226A3A /* PlatformDriverProto.s */; };
+		C9CE75EC2C3D79BE0033F683 /* ViewStubs.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4DB1836126E19AD003F8A10 /* ViewStubs.cc */; };
+		C9CE75ED2C3D79BE0033F683 /* KeyboardView.cc in Sources */ = {isa = PBXBuildFile; fileRef = F49CABBF073FDAFA009F6DD0 /* KeyboardView.cc */; };
+		C9CE75EE2C3D79BE0033F683 /* ParagraphView.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4FFC2F206B0388D00FDD935 /* ParagraphView.cc */; };
+		C9CE75EF2C3D79BE0033F683 /* GaugeView.cc in Sources */ = {isa = PBXBuildFile; fileRef = 660F3E070281386C007CB514 /* GaugeView.cc */; };
+		C9CE75F02C3D79BE0033F683 /* RefData.s in Sources */ = {isa = PBXBuildFile; fileRef = F497CB881F179F0300884F98 /* RefData.s */; };
+		C9CE75F12C3D79BE0033F683 /* Power.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4B784F80F265A02000CBAFE /* Power.cc */; };
+		C9CE75F22C3D79BE0033F683 /* SortedArrays.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4F003F112845E4E005BFF92 /* SortedArrays.cc */; };
+		C9CE75F32C3D79BE0033F683 /* Voyager.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D2F989128C59A9009D5BA5 /* Voyager.cc */; };
+		C9CE75F42C3D79BE0033F683 /* Startup.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D2F995128C5A9E009D5BA5 /* Startup.cc */; };
+		C9CE75F52C3D79BE0033F683 /* TraceEvents.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D2F9B5128D596F009D5BA5 /* TraceEvents.cc */; };
+		C9CE75F62C3D79BE0033F683 /* CardServer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D2F9C3128D5D99009D5BA5 /* CardServer.cc */; };
+		C9CE75F72C3D79BE0033F683 /* PartHandler.cc in Sources */ = {isa = PBXBuildFile; fileRef = F45C69911143B6640025CE32 /* PartHandler.cc */; };
+		C9CE75F82C3D79BE0033F683 /* Alerts.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4571AF911B410AB00B144C7 /* Alerts.cc */; };
+		C9CE75F92C3D79BE0033F683 /* PSSManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4312AE209B3647900742BE0 /* PSSManager.cc */; };
+		C9CE75FA2C3D79BE0033F683 /* PowerManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6659808404FF606300A80002 /* PowerManager.cc */; };
+		C9CE75FB2C3D79BE0033F683 /* Parts.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4755B7212043EA000215298 /* Parts.cc */; };
+		C9CE75FC2C3D79BE0033F683 /* CMWorld.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AA869D12928F7D00749A7C /* CMWorld.cc */; };
+		C9CE75FE2C3D79BE0033F683 /* Recognizers.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4123156129FC151008996E1 /* Recognizers.cc */; };
+		C9CE75FF2C3D79BE0033F683 /* PickView.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4DC1EC21CC1557900B0C308 /* PickView.cc */; };
+		C9CE76002C3D79BE0033F683 /* Decompiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4863FD01DA685C500C5B484 /* Decompiler.cc */; };
+		C9CE76012C3D79BE0033F683 /* FlashTracker.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4AA2FBB11DBB51100D04DF0 /* FlashTracker.cc */; };
+		C9CE76022C3D79BE0033F683 /* NewtonPackage.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4CE81C51AEAB0BA004726AD /* NewtonPackage.cc */; };
+		C9CE76032C3D79BE0033F683 /* Unit.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D86D2106D8DCF900BE7C2B /* Unit.cc */; };
+		C9CE76042C3D79BE0033F683 /* WordRecognizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F41233BF12A51BE7008996E1 /* WordRecognizer.cc */; };
+		C9CE76052C3D79BE0033F683 /* ShapeRecognizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F412393C12B1571E008996E1 /* ShapeRecognizer.cc */; };
+		C9CE76062C3D79BE0033F683 /* Arbiter.cc in Sources */ = {isa = PBXBuildFile; fileRef = F412394812B21C2F008996E1 /* Arbiter.cc */; };
+		C9CE76072C3D79BE0033F683 /* SerialOptions.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DCA4108785F90004B70B /* SerialOptions.cc */; };
+		C9CE76082C3D79BE0033F683 /* EdgeListRecognizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4123B7012B7A05B008996E1 /* EdgeListRecognizer.cc */; };
+		C9CE76092C3D79BE0033F683 /* StrokeRecognizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4123BA812B7EC07008996E1 /* StrokeRecognizer.cc */; };
+		C9CE760A2C3D79BE0033F683 /* ClickRecognizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4123BEF12B8C760008996E1 /* ClickRecognizer.cc */; };
+		C9CE760B2C3D79BE0033F683 /* TaskSafeRingBuffer.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4263FA20BC030BC008C154B /* TaskSafeRingBuffer.cc */; };
+		C9CE760C2C3D79BE0033F683 /* DataStuffing.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4A5F24217D8D1AF0004B6DB /* DataStuffing.cc */; };
+		C9CE760D2C3D79BE0033F683 /* DebugAPI.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4E5B97917EDB064007DA5BC /* DebugAPI.cc */; };
+		C9CE760E2C3D79BE0033F683 /* DataView.cc in Sources */ = {isa = PBXBuildFile; fileRef = F4D61172192630050041C087 /* DataView.cc */; };
+		C9CE76102C3D79BE0033F683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6660FC8F04CEEED50030313D /* Cocoa.framework */; };
+		C9CE76112C3D79BE0033F683 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F44CC7690DC12F6C0053040F /* CoreServices.framework */; };
+		C9CE76122C3D79BE0033F683 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66B1B68204D03ED60086C7ED /* ApplicationServices.framework */; };
+		C9CE76132C3D79BE0033F683 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4D6113F190AAD650041C087 /* IOKit.framework */; };
+		C9CE76142C3D79BE0033F683 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4D8A4320C667165002620D7 /* AudioUnit.framework */; };
 		F401FFFB1B8E0A8700555CBC /* CommTool.cc in Sources */ = {isa = PBXBuildFile; fileRef = F402DEC8109366110004B70B /* CommTool.cc */; };
 		F401FFFD1B8F5E7B00555CBC /* CommOptions.cc in Sources */ = {isa = PBXBuildFile; fileRef = F401FFFC1B8F5E7B00555CBC /* CommOptions.cc */; };
 		F404E0840CBF617A0008EF03 /* Hints.cc in Sources */ = {isa = PBXBuildFile; fileRef = F404E0800CBF5E9C0008EF03 /* Hints.cc */; };
@@ -836,6 +1127,18 @@
 		66FE933304D5742A00CB80AF /* DoubleQ.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DoubleQ.h; sourceTree = "<group>"; };
 		66FE933504D59C8D00CB80AF /* Queues.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Queues.cc; sourceTree = "<group>"; };
 		66FE933704D6628500CB80AF /* List.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = List.cc; sourceTree = "<group>"; };
+		C9B4C8822C3D7BB200E1EBA3 /* messagepad_SDL.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = messagepad_SDL.cc; sourceTree = "<group>"; };
+		C9B4C8832C3D7BB200E1EBA3 /* messagepad_SDL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = messagepad_SDL.h; sourceTree = "<group>"; };
+		C9B4C8872C3D7F0E00E1EBA3 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../../../usr/local/lib/libSDL2.a; sourceTree = "<group>"; };
+		C9B4C88A2C3D813300E1EBA3 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		C9B4C88C2C3D813F00E1EBA3 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		C9B4C88E2C3D815100E1EBA3 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		C9B4C8902C3D816100E1EBA3 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		C9B4C8922C3D820A00E1EBA3 /* MessagePad_SDL.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MessagePad_SDL.entitlements; sourceTree = "<group>"; };
+		C9B4C8942C3D93D100E1EBA3 /* SDLController.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SDLController.cc; path = Platform/SDLController.cc; sourceTree = SOURCE_ROOT; };
+		C9B4C8952C3D93D100E1EBA3 /* SDLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDLController.h; path = Platform/SDLController.h; sourceTree = SOURCE_ROOT; };
+		C9CE76182C3D79BE0033F683 /* MessagePad_SDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MessagePad_SDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9CE76192C3D79BE0033F683 /* MessagePadSDL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MessagePadSDL-Info.plist"; path = "/Users/matt/dev/newton-framework.git/MessagePadSDL-Info.plist"; sourceTree = "<absolute>"; };
 		F400438A0BC411070076F480 /* ErrorNotify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ErrorNotify.h; path = Views/ErrorNotify.h; sourceTree = "<group>"; };
 		F401FFFC1B8F5E7B00555CBC /* CommOptions.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CommOptions.cc; path = CommAPI/CommOptions.cc; sourceTree = SOURCE_ROOT; };
 		F402DB2A107F34D50004B70B /* BufferList.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferList.cc; sourceTree = "<group>"; };
@@ -1302,6 +1605,23 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C9CE760F2C3D79BE0033F683 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9B4C8932C3D821A00E1EBA3 /* libSDL2.a in Frameworks */,
+				C9B4C8912C3D816100E1EBA3 /* Carbon.framework in Frameworks */,
+				C9B4C88F2C3D815100E1EBA3 /* CoreVideo.framework in Frameworks */,
+				C9B4C88D2C3D813F00E1EBA3 /* AudioToolbox.framework in Frameworks */,
+				C9B4C88B2C3D813400E1EBA3 /* CoreAudio.framework in Frameworks */,
+				C9CE76102C3D79BE0033F683 /* Cocoa.framework in Frameworks */,
+				C9CE76112C3D79BE0033F683 /* CoreServices.framework in Frameworks */,
+				C9CE76132C3D79BE0033F683 /* IOKit.framework in Frameworks */,
+				C9CE76142C3D79BE0033F683 /* AudioUnit.framework in Frameworks */,
+				C9CE76122C3D79BE0033F683 /* ApplicationServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4A8B52F05738194004D6931 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1417,6 +1737,7 @@
 				F4A8B53105738194004D6931 /* MessagePad.app */,
 				F4B8094C06F217940042F1D4 /* Newton.framework */,
 				F4ECC35D0DE492E70023D27A /* NTK.framework */,
+				C9CE76182C3D79BE0033F683 /* MessagePad_SDL.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1424,6 +1745,7 @@
 		6617816E020F1EE40039A44D = {
 			isa = PBXGroup;
 			children = (
+				C9B4C8922C3D820A00E1EBA3 /* MessagePad_SDL.entitlements */,
 				F4241FB017400A9700F4D699 /* MessagePad.entitlements */,
 				F42E518F1227B3D500D49B5D /* Info-Newton.plist */,
 				F458FCB81247510C00539427 /* Info-MessagePad.plist */,
@@ -1478,6 +1800,9 @@
 				F4C514611D86EED9008E5537 /* Stubs.cc */,
 				F4863FCE1DA66ED300C5B484 /* NTKStubs.cc */,
 				F4A8B4AA05737D8E004D6931 /* main.m */,
+				C9B4C8822C3D7BB200E1EBA3 /* messagepad_SDL.cc */,
+				C9B4C8832C3D7BB200E1EBA3 /* messagepad_SDL.h */,
+				C9CE76192C3D79BE0033F683 /* MessagePadSDL-Info.plist */,
 				F4F7917205FDC00A00C7AE09 /* NewtonScript */,
 				F4DA4B8E0C848C0300FF7B9C /* appicon.icns */,
 				F4C4C1E01A40BE15002B8821 /* busy.png */,
@@ -1486,6 +1811,7 @@
 				6660FBAC04CDA02C0030313D /* Interfaces */,
 				66103786022801D10003E189 /* External Frameworks */,
 				66109D37021143E900E30176 /* Products */,
+				C9B4C8862C3D7F0D00E1EBA3 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1954,6 +2280,18 @@
 			path = Recognition;
 			sourceTree = "<group>";
 		};
+		C9B4C8862C3D7F0D00E1EBA3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C9B4C8902C3D816100E1EBA3 /* Carbon.framework */,
+				C9B4C88E2C3D815100E1EBA3 /* CoreVideo.framework */,
+				C9B4C88C2C3D813F00E1EBA3 /* AudioToolbox.framework */,
+				C9B4C88A2C3D813300E1EBA3 /* CoreAudio.framework */,
+				C9B4C8872C3D7F0E00E1EBA3 /* libSDL2.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F41452A719769636002ECEB1 /* REP */ = {
 			isa = PBXGroup;
 			children = (
@@ -2151,6 +2489,8 @@
 		F4D2F986128C5915009D5BA5 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
+				C9B4C8942C3D93D100E1EBA3 /* SDLController.cc */,
+				C9B4C8952C3D93D100E1EBA3 /* SDLController.h */,
 				F4A1893E1A62E03400226A3A /* Platform.h */,
 				F4A1893F1A62E1D500226A3A /* PlatformDriverProto.s */,
 				F47E54D3082E7D1300B12C30 /* Platform.cc */,
@@ -2294,6 +2634,15 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		C9CE74F62C3D79BE0033F683 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9B4C8972C3D93D100E1EBA3 /* SDLController.h in Headers */,
+				C9B4C8852C3D7BB200E1EBA3 /* messagepad_SDL.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4A8B52C05738194004D6931 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -2367,6 +2716,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		C9CE74F52C3D79BE0033F683 /* MessagePad_SDL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9CE76152C3D79BE0033F683 /* Build configuration list for PBXNativeTarget "MessagePad_SDL" */;
+			buildPhases = (
+				C9CE74F62C3D79BE0033F683 /* Headers */,
+				C9CE74F72C3D79BE0033F683 /* Resources */,
+				C9CE75032C3D79BE0033F683 /* Sources */,
+				C9CE760F2C3D79BE0033F683 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MessagePad_SDL;
+			productName = MessagePad;
+			productReference = C9CE76182C3D79BE0033F683 /* MessagePad_SDL.app */;
+			productType = "com.apple.product-type.application";
+		};
 		F4A8B53005738194004D6931 /* MessagePad */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F436792D093B7565001AE880 /* Build configuration list for PBXNativeTarget "MessagePad" */;
@@ -2465,11 +2832,31 @@
 				F4A8B53005738194004D6931 /* MessagePad */,
 				F4B8094406F217930042F1D4 /* FrameWork */,
 				F4ECC2E90DE492E70023D27A /* NTKFrameWork */,
+				C9CE74F52C3D79BE0033F683 /* MessagePad_SDL */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		C9CE74F72C3D79BE0033F683 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9B4C8982C3D949000E1EBA3 /* MessagePadSDL-Info.plist in Resources */,
+				C9CE74F82C3D79BE0033F683 /* Newton.rex in Resources */,
+				C9CE74F92C3D79BE0033F683 /* appicon.icns in Resources */,
+				C9CE74FA2C3D79BE0033F683 /* DictData in Resources */,
+				C9CE74FB2C3D79BE0033F683 /* Credits.rtf in Resources */,
+				C9CE74FC2C3D79BE0033F683 /* busy.png in Resources */,
+				C9CE74FD2C3D79BE0033F683 /* Main.storyboard in Resources */,
+				C9CE74FE2C3D79BE0033F683 /* Localizable.strings in Resources */,
+				C9CE74FF2C3D79BE0033F683 /* caret.png in Resources */,
+				C9CE75002C3D79BE0033F683 /* InfoPlist.strings in Resources */,
+				C9CE75012C3D79BE0033F683 /* MessagePadHelp in Resources */,
+				C9CE75022C3D79BE0033F683 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4A8B52D05738194004D6931 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2508,6 +2895,280 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C9CE75032C3D79BE0033F683 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9CE75042C3D79BE0033F683 /* Application.cc in Sources */,
+				C9CE75052C3D79BE0033F683 /* AppWorld.cc in Sources */,
+				C9CE75062C3D79BE0033F683 /* Array.cc in Sources */,
+				C9CE75072C3D79BE0033F683 /* Arrays.cc in Sources */,
+				C9CE75082C3D79BE0033F683 /* Boot.cc in Sources */,
+				C9CE75092C3D79BE0033F683 /* BusyBox.cc in Sources */,
+				C9CE750A2C3D79BE0033F683 /* CommManager.cc in Sources */,
+				C9CE750B2C3D79BE0033F683 /* DynamicArray.cc in Sources */,
+				C9CE750C2C3D79BE0033F683 /* Environment.cc in Sources */,
+				C9CE750D2C3D79BE0033F683 /* ProtoMacro.s in Sources */,
+				C9CE750E2C3D79BE0033F683 /* FakePointers.cc in Sources */,
+				C9CE750F2C3D79BE0033F683 /* DragAndDrop.cc in Sources */,
+				C9CE75102C3D79BE0033F683 /* Events.cc in Sources */,
+				C9CE75112C3D79BE0033F683 /* Exceptions.cc in Sources */,
+				C9CE75122C3D79BE0033F683 /* Frames.cc in Sources */,
+				C9CE75132C3D79BE0033F683 /* Gestalt.cc in Sources */,
+				C9CE75142C3D79BE0033F683 /* Globals.cc in Sources */,
+				C9CE75152C3D79BE0033F683 /* InputStreams.cc in Sources */,
+				C9CE75162C3D79BE0033F683 /* Interrupt.cc in Sources */,
+				C9CE75172C3D79BE0033F683 /* TranslatorProto.s in Sources */,
+				C9CE75182C3D79BE0033F683 /* Iterators.cc in Sources */,
+				C9CE75192C3D79BE0033F683 /* KernelMonitor.cc in Sources */,
+				C9CE751A2C3D79BE0033F683 /* Endpoint.cc in Sources */,
+				C9CE751B2C3D79BE0033F683 /* KernelObjects.cc in Sources */,
+				C9CE751C2C3D79BE0033F683 /* KernelPhys.cc in Sources */,
+				C9CE751D2C3D79BE0033F683 /* KernelPorts.cc in Sources */,
+				C9CE751E2C3D79BE0033F683 /* SoundChannel.cc in Sources */,
+				C9CE751F2C3D79BE0033F683 /* KernelSemaphore.cc in Sources */,
+				C9CE75202C3D79BE0033F683 /* EndpointProto.s in Sources */,
+				C9CE75212C3D79BE0033F683 /* KernelTasks.cc in Sources */,
+				C9CE75222C3D79BE0033F683 /* MuLawCodec.cc in Sources */,
+				C9CE75232C3D79BE0033F683 /* Librarian.cc in Sources */,
+				C9CE75242C3D79BE0033F683 /* List.cc in Sources */,
+				C9CE75252C3D79BE0033F683 /* Lookup.cc in Sources */,
+				C9CE75262C3D79BE0033F683 /* ProtocolProto.s in Sources */,
+				C9CE75272C3D79BE0033F683 /* MagicPointers.cc in Sources */,
+				C9CE75292C3D79BE0033F683 /* FlashProto.s in Sources */,
+				C9CE752A2C3D79BE0033F683 /* Maths.cc in Sources */,
+				C9CE752B2C3D79BE0033F683 /* MemArch.cc in Sources */,
+				C9CE752C2C3D79BE0033F683 /* MemObject.cc in Sources */,
+				C9CE752D2C3D79BE0033F683 /* MemObjManager.cc in Sources */,
+				C9CE752E2C3D79BE0033F683 /* NameServer.cc in Sources */,
+				C9CE752F2C3D79BE0033F683 /* NewtWorld.cc in Sources */,
+				C9CE75302C3D79BE0033F683 /* Notebook.cc in Sources */,
+				C9CE75312C3D79BE0033F683 /* ObjectHeap.cc in Sources */,
+				C9CE75322C3D79BE0033F683 /* ObjectPrinter.cc in Sources */,
+				C9CE75332C3D79BE0033F683 /* DES.c in Sources */,
+				C9CE75342C3D79BE0033F683 /* Objects.cc in Sources */,
+				C9CE75352C3D79BE0033F683 /* PageManager.cc in Sources */,
+				C9CE75362C3D79BE0033F683 /* PictureView.cc in Sources */,
+				C9CE75372C3D79BE0033F683 /* FlashDriver.cc in Sources */,
+				C9CE75382C3D79BE0033F683 /* Queues.cc in Sources */,
+				C9CE75392C3D79BE0033F683 /* Recognition.cc in Sources */,
+				C9CE753A2C3D79BE0033F683 /* StoreObjRef.cc in Sources */,
+				C9CE753B2C3D79BE0033F683 /* RefMemory.cc in Sources */,
+				C9CE753C2C3D79BE0033F683 /* RefVar.cc in Sources */,
+				C9CE753D2C3D79BE0033F683 /* Responder.cc in Sources */,
+				C9CE753E2C3D79BE0033F683 /* Codegen.cc in Sources */,
+				C9CE753F2C3D79BE0033F683 /* RichStrings.cc in Sources */,
+				C9CE75402C3D79BE0033F683 /* SWIHandler.s in Sources */,
+				C9CE75412C3D79BE0033F683 /* RootView.cc in Sources */,
+				C9CE75422C3D79BE0033F683 /* Scheduler.cc in Sources */,
+				C9CE75432C3D79BE0033F683 /* SoundDriverProto.s in Sources */,
+				C9CE75442C3D79BE0033F683 /* Semaphore.cc in Sources */,
+				C9CE75452C3D79BE0033F683 /* SharedMem.cc in Sources */,
+				C9CE75462C3D79BE0033F683 /* StackManager.cc in Sources */,
+				C9CE75472C3D79BE0033F683 /* Strings.cc in Sources */,
+				C9CE75482C3D79BE0033F683 /* Symbols.cc in Sources */,
+				C9CE75492C3D79BE0033F683 /* SystemEvents.cc in Sources */,
+				C9CE754A2C3D79BE0033F683 /* Tablet.cc in Sources */,
+				C9CE754B2C3D79BE0033F683 /* TimerQueue.cc in Sources */,
+				C9CE754C2C3D79BE0033F683 /* Timers.cc in Sources */,
+				C9CE754D2C3D79BE0033F683 /* Parser.cc in Sources */,
+				C9CE754E2C3D79BE0033F683 /* Unicode.cc in Sources */,
+				C9CE754F2C3D79BE0033F683 /* UserMonitor.cc in Sources */,
+				C9CE75502C3D79BE0033F683 /* UserObjects.cc in Sources */,
+				C9CE75512C3D79BE0033F683 /* UserPorts.cc in Sources */,
+				C9CE75522C3D79BE0033F683 /* UserSharedMem.cc in Sources */,
+				C9CE75532C3D79BE0033F683 /* UserTasks.cc in Sources */,
+				C9CE75542C3D79BE0033F683 /* UStringUtils.c in Sources */,
+				C9CE75552C3D79BE0033F683 /* View.cc in Sources */,
+				C9CE75562C3D79BE0033F683 /* ViewObject.cc in Sources */,
+				C9CE75572C3D79BE0033F683 /* ViewUtils.cc in Sources */,
+				C9CE75582C3D79BE0033F683 /* VirtualMemory.cc in Sources */,
+				C9CE75592C3D79BE0033F683 /* ROMExtension.cc in Sources */,
+				C9CE755A2C3D79BE0033F683 /* Protocols.cc in Sources */,
+				C9CE755B2C3D79BE0033F683 /* MMU.c in Sources */,
+				C9CE755C2C3D79BE0033F683 /* PhysicalMemory.cc in Sources */,
+				C9CE755D2C3D79BE0033F683 /* Preference.cc in Sources */,
+				C9CE755F2C3D79BE0033F683 /* Locales.cc in Sources */,
+				C9CE75602C3D79BE0033F683 /* Interpreter.cc in Sources */,
+				C9CE75612C3D79BE0033F683 /* TextView.cc in Sources */,
+				C9CE75622C3D79BE0033F683 /* Debug.cc in Sources */,
+				C9CE75632C3D79BE0033F683 /* Shapes.cc in Sources */,
+				C9CE75642C3D79BE0033F683 /* ModalViews.cc in Sources */,
+				C9CE75652C3D79BE0033F683 /* RecObject.cc in Sources */,
+				C9CE75662C3D79BE0033F683 /* RecArea.cc in Sources */,
+				C9CE75672C3D79BE0033F683 /* RecDomain.cc in Sources */,
+				C9CE75682C3D79BE0033F683 /* FlashIterator.cc in Sources */,
+				C9CE75692C3D79BE0033F683 /* Flash.cc in Sources */,
+				C9CE756A2C3D79BE0033F683 /* Lexer.cc in Sources */,
+				C9CE756B2C3D79BE0033F683 /* FlashRange.cc in Sources */,
+				C9B4C8962C3D93D100E1EBA3 /* SDLController.cc in Sources */,
+				C9CE756C2C3D79BE0033F683 /* RecType.cc in Sources */,
+				C9CE756D2C3D79BE0033F683 /* SWIGlue.s in Sources */,
+				C9CE756E2C3D79BE0033F683 /* LargeBinaries.cc in Sources */,
+				C9CE756F2C3D79BE0033F683 /* Compiler.cc in Sources */,
+				C9CE75702C3D79BE0033F683 /* Stroke.cc in Sources */,
+				C9CE75712C3D79BE0033F683 /* REP.cc in Sources */,
+				C9CE75722C3D79BE0033F683 /* y.tab.c in Sources */,
+				C9B4C8842C3D7BB200E1EBA3 /* messagepad_SDL.cc in Sources */,
+				C9CE75732C3D79BE0033F683 /* CompilerSupport.cc in Sources */,
+				C9CE75742C3D79BE0033F683 /* CommToolProtocol.cc in Sources */,
+				C9CE75752C3D79BE0033F683 /* Platform.cc in Sources */,
+				C9CE75762C3D79BE0033F683 /* SWInterrupt.cc in Sources */,
+				C9CE75772C3D79BE0033F683 /* IMACodec.cc in Sources */,
+				C9CE75782C3D79BE0033F683 /* StoreMonitorProto.s in Sources */,
+				C9CE75792C3D79BE0033F683 /* NTK.cc in Sources */,
+				C9CE757A2C3D79BE0033F683 /* GSMCodec.cc in Sources */,
+				C9CE757B2C3D79BE0033F683 /* Compression.cc in Sources */,
+				C9CE757C2C3D79BE0033F683 /* Inker.cc in Sources */,
+				C9CE757D2C3D79BE0033F683 /* CommOptions.cc in Sources */,
+				C9CE757E2C3D79BE0033F683 /* Printing.cc in Sources */,
+				C9CE757F2C3D79BE0033F683 /* ScriptInit.cc in Sources */,
+				C9CE75802C3D79BE0033F683 /* StreamObjects.cc in Sources */,
+				C9CE75812C3D79BE0033F683 /* Packages.cc in Sources */,
+				C9CE75822C3D79BE0033F683 /* Pipes.cc in Sources */,
+				C9CE75832C3D79BE0033F683 /* StoreWrapper.cc in Sources */,
+				C9CE75842C3D79BE0033F683 /* PackageStore.cc in Sources */,
+				C9CE75852C3D79BE0033F683 /* ROMDomainManager.cc in Sources */,
+				C9CE75862C3D79BE0033F683 /* CachedReadStore.cc in Sources */,
+				C9CE75872C3D79BE0033F683 /* FaultBlocks.cc in Sources */,
+				C9CE75882C3D79BE0033F683 /* LargeObjectStore.cc in Sources */,
+				C9CE75892C3D79BE0033F683 /* Stores.cc in Sources */,
+				C9CE758A2C3D79BE0033F683 /* Compression.cc in Sources */,
+				C9CE758B2C3D79BE0033F683 /* Compression.cc in Sources */,
+				C9CE758C2C3D79BE0033F683 /* Compression.cc in Sources */,
+				C9CE758D2C3D79BE0033F683 /* CopyOffset_bin.cc in Sources */,
+				C9CE758E2C3D79BE0033F683 /* LZCompressionData-j.cc in Sources */,
+				C9CE758F2C3D79BE0033F683 /* LZCompressor.cc in Sources */,
+				C9CE75902C3D79BE0033F683 /* MuxStore.cc in Sources */,
+				C9CE75912C3D79BE0033F683 /* LZDecompressor.cc in Sources */,
+				C9CE75922C3D79BE0033F683 /* LZStoreCompander.cc in Sources */,
+				C9CE75932C3D79BE0033F683 /* PushPopBits.cc in Sources */,
+				C9CE75942C3D79BE0033F683 /* StoreCompanderWrapper.cc in Sources */,
+				C9CE75952C3D79BE0033F683 /* LargeObjects.cc in Sources */,
+				C9CE75962C3D79BE0033F683 /* NewtonScript.cc in Sources */,
+				C9CE75972C3D79BE0033F683 /* RefIO.cc in Sources */,
+				C9CE75982C3D79BE0033F683 /* DrawImage.cc in Sources */,
+				C9CE75992C3D79BE0033F683 /* DrawInk.cc in Sources */,
+				C9CE759A2C3D79BE0033F683 /* DrawShape.cc in Sources */,
+				C9CE759B2C3D79BE0033F683 /* DrawText.cc in Sources */,
+				C9CE759C2C3D79BE0033F683 /* InkCompr.c in Sources */,
+				C9CE759D2C3D79BE0033F683 /* SplashScreen.cc in Sources */,
+				C9CE759E2C3D79BE0033F683 /* ObjectSystem.cc in Sources */,
+				C9CE759F2C3D79BE0033F683 /* Heap.cc in Sources */,
+				C9CE75A02C3D79BE0033F683 /* SafeHeap.cc in Sources */,
+				C9CE75A12C3D79BE0033F683 /* FlashBlock.cc in Sources */,
+				C9CE75A22C3D79BE0033F683 /* MemMgr.cc in Sources */,
+				C9CE75A32C3D79BE0033F683 /* Sound.cc in Sources */,
+				C9CE75A42C3D79BE0033F683 /* DTMFCodec.cc in Sources */,
+				C9CE75A52C3D79BE0033F683 /* UserSoundChannel.cc in Sources */,
+				C9CE75A62C3D79BE0033F683 /* SimpleStoreCompander.cc in Sources */,
+				C9CE75A72C3D79BE0033F683 /* DockerDynArray.cc in Sources */,
+				C9CE75A82C3D79BE0033F683 /* Buffer.cc in Sources */,
+				C9CE75A92C3D79BE0033F683 /* BufferList.cc in Sources */,
+				C9B4C8992C3D961700E1EBA3 /* MPInterface.cc in Sources */,
+				C9CE75AA2C3D79BE0033F683 /* RSSymbols.s in Sources */,
+				C9CE75AB2C3D79BE0033F683 /* BufferPipe.cc in Sources */,
+				C9CE75AC2C3D79BE0033F683 /* FlashStore.cc in Sources */,
+				C9CE75AD2C3D79BE0033F683 /* BufferSegment.cc in Sources */,
+				C9CE75AE2C3D79BE0033F683 /* CircleBuf.cc in Sources */,
+				C9CE75AF2C3D79BE0033F683 /* CObjectBinaries.cc in Sources */,
+				C9CE75B02C3D79BE0033F683 /* CodecProto.s in Sources */,
+				C9CE75B12C3D79BE0033F683 /* CompressionProto.s in Sources */,
+				C9CE75B22C3D79BE0033F683 /* Cursors.cc in Sources */,
+				C9CE75B32C3D79BE0033F683 /* Dates.cc in Sources */,
+				C9CE75B42C3D79BE0033F683 /* FlashCache.cc in Sources */,
+				C9CE75B52C3D79BE0033F683 /* Dictionaries.cc in Sources */,
+				C9CE75B62C3D79BE0033F683 /* Entries.cc in Sources */,
+				C9CE75B72C3D79BE0033F683 /* ErrorString.m in Sources */,
+				C9CE75B82C3D79BE0033F683 /* Hints.cc in Sources */,
+				C9CE75B92C3D79BE0033F683 /* IA.cc in Sources */,
+				C9CE75BA2C3D79BE0033F683 /* RefSymbols.s in Sources */,
+				C9CE75BB2C3D79BE0033F683 /* Stubs.cc in Sources */,
+				C9CE75BC2C3D79BE0033F683 /* Indexes.cc in Sources */,
+				C9CE75BD2C3D79BE0033F683 /* Ink.cc in Sources */,
+				C9CE75BE2C3D79BE0033F683 /* Marshaling.cc in Sources */,
+				C9CE75BF2C3D79BE0033F683 /* InkGeometry.cc in Sources */,
+				C9CE75C02C3D79BE0033F683 /* Journal.cc in Sources */,
+				C9CE75C12C3D79BE0033F683 /* MemoryPipe.cc in Sources */,
+				C9CE75C22C3D79BE0033F683 /* NodeCache.cc in Sources */,
+				C9CE75C32C3D79BE0033F683 /* UserDomain.cc in Sources */,
+				C9CE75C42C3D79BE0033F683 /* OptionArray.cc in Sources */,
+				C9CE75C52C3D79BE0033F683 /* PlainSoup.cc in Sources */,
+				C9CE75C62C3D79BE0033F683 /* QDCompression.cc in Sources */,
+				C9CE75C72C3D79BE0033F683 /* QDDrawing.cc in Sources */,
+				C9CE75C82C3D79BE0033F683 /* Geometry.cc in Sources */,
+				C9CE75C92C3D79BE0033F683 /* RecStroke.cc in Sources */,
+				C9CE75CA2C3D79BE0033F683 /* RecUnit.cc in Sources */,
+				C9CE75CB2C3D79BE0033F683 /* SIUnit.cc in Sources */,
+				C9CE75CC2C3D79BE0033F683 /* Soups.cc in Sources */,
+				C9CE75CD2C3D79BE0033F683 /* StoreDriver.cc in Sources */,
+				C9CE75CE2C3D79BE0033F683 /* StoreProto.s in Sources */,
+				C9CE75CF2C3D79BE0033F683 /* RSData.s in Sources */,
+				C9CE75D02C3D79BE0033F683 /* StoreStreamObjects.cc in Sources */,
+				C9CE75D12C3D79BE0033F683 /* Stroker.cc in Sources */,
+				C9CE75D22C3D79BE0033F683 /* TabletBuffer.cc in Sources */,
+				C9CE75D32C3D79BE0033F683 /* Tags.cc in Sources */,
+				C9CE75D42C3D79BE0033F683 /* TestAgent.cc in Sources */,
+				C9CE75D52C3D79BE0033F683 /* Transformations.cc in Sources */,
+				C9CE75D62C3D79BE0033F683 /* UnionSoup.cc in Sources */,
+				C9CE75D72C3D79BE0033F683 /* TabletDriver.cc in Sources */,
+				C9CE75D82C3D79BE0033F683 /* TabletDriverProto.s in Sources */,
+				C9CE75D92C3D79BE0033F683 /* NArray.cc in Sources */,
+				C9CE75DA2C3D79BE0033F683 /* Relocation.cc in Sources */,
+				C9CE75DB2C3D79BE0033F683 /* Animation.cc in Sources */,
+				C9CE75DC2C3D79BE0033F683 /* EndpointPipe.cc in Sources */,
+				C9CE75DD2C3D79BE0033F683 /* CommTool.cc in Sources */,
+				C9CE75DE2C3D79BE0033F683 /* ScreenDriverProto.s in Sources */,
+				C9CE75DF2C3D79BE0033F683 /* ScreenDriver.cc in Sources */,
+				C9CE75E02C3D79BE0033F683 /* CardEvents.cc in Sources */,
+				C9CE75E12C3D79BE0033F683 /* SerialNumber.cc in Sources */,
+				C9CE75E22C3D79BE0033F683 /* Screen.cc in Sources */,
+				C9CE75E32C3D79BE0033F683 /* CMService.cc in Sources */,
+				C9CE75E42C3D79BE0033F683 /* SplashScreenProto.s in Sources */,
+				C9CE75E52C3D79BE0033F683 /* CommToolProto.s in Sources */,
+				C9CE75E62C3D79BE0033F683 /* PackageManager.cc in Sources */,
+				C9CE75E72C3D79BE0033F683 /* Controller.cc in Sources */,
+				C9CE75E82C3D79BE0033F683 /* SoundServer.cc in Sources */,
+				C9CE75E92C3D79BE0033F683 /* Regions.cc in Sources */,
+				C9CE75EA2C3D79BE0033F683 /* SoundDriver.cc in Sources */,
+				C9CE75EB2C3D79BE0033F683 /* PlatformDriverProto.s in Sources */,
+				C9CE75EC2C3D79BE0033F683 /* ViewStubs.cc in Sources */,
+				C9CE75ED2C3D79BE0033F683 /* KeyboardView.cc in Sources */,
+				C9CE75EE2C3D79BE0033F683 /* ParagraphView.cc in Sources */,
+				C9CE75EF2C3D79BE0033F683 /* GaugeView.cc in Sources */,
+				C9CE75F02C3D79BE0033F683 /* RefData.s in Sources */,
+				C9CE75F12C3D79BE0033F683 /* Power.cc in Sources */,
+				C9CE75F22C3D79BE0033F683 /* SortedArrays.cc in Sources */,
+				C9CE75F32C3D79BE0033F683 /* Voyager.cc in Sources */,
+				C9CE75F42C3D79BE0033F683 /* Startup.cc in Sources */,
+				C9CE75F52C3D79BE0033F683 /* TraceEvents.cc in Sources */,
+				C9CE75F62C3D79BE0033F683 /* CardServer.cc in Sources */,
+				C9CE75F72C3D79BE0033F683 /* PartHandler.cc in Sources */,
+				C9CE75F82C3D79BE0033F683 /* Alerts.cc in Sources */,
+				C9CE75F92C3D79BE0033F683 /* PSSManager.cc in Sources */,
+				C9CE75FA2C3D79BE0033F683 /* PowerManager.cc in Sources */,
+				C9CE75FB2C3D79BE0033F683 /* Parts.cc in Sources */,
+				C9CE75FC2C3D79BE0033F683 /* CMWorld.cc in Sources */,
+				C9CE75FE2C3D79BE0033F683 /* Recognizers.cc in Sources */,
+				C9CE75FF2C3D79BE0033F683 /* PickView.cc in Sources */,
+				C9CE76002C3D79BE0033F683 /* Decompiler.cc in Sources */,
+				C9CE76012C3D79BE0033F683 /* FlashTracker.cc in Sources */,
+				C9CE76022C3D79BE0033F683 /* NewtonPackage.cc in Sources */,
+				C9CE76032C3D79BE0033F683 /* Unit.cc in Sources */,
+				C9CE76042C3D79BE0033F683 /* WordRecognizer.cc in Sources */,
+				C9CE76052C3D79BE0033F683 /* ShapeRecognizer.cc in Sources */,
+				C9CE76062C3D79BE0033F683 /* Arbiter.cc in Sources */,
+				C9CE76072C3D79BE0033F683 /* SerialOptions.cc in Sources */,
+				C9CE76082C3D79BE0033F683 /* EdgeListRecognizer.cc in Sources */,
+				C9CE76092C3D79BE0033F683 /* StrokeRecognizer.cc in Sources */,
+				C9CE760A2C3D79BE0033F683 /* ClickRecognizer.cc in Sources */,
+				C9CE760B2C3D79BE0033F683 /* TaskSafeRingBuffer.cc in Sources */,
+				C9CE760C2C3D79BE0033F683 /* DataStuffing.cc in Sources */,
+				C9CE760D2C3D79BE0033F683 /* DebugAPI.cc in Sources */,
+				C9CE760E2C3D79BE0033F683 /* DataView.cc in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4A8B52E05738194004D6931 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3122,6 +3783,86 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		C9CE76162C3D79BE0033F683 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagePad_SDL.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = BK4ST6N599;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(PROJECT_DIR)/Frames/ConfigFrames.h";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "MessagePadSDL-Info.plist";
+				INIT_ROUTINE = "";
+				INSTALL_PATH = "$(USER_APPS_DIR)";
+				LIBRARY_SEARCH_PATHS = /usr/local/lib/;
+				MACH_O_TYPE = mh_execute;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				OTHER_CFLAGS = (
+					"-DforMac",
+					"-DforDarkStar",
+					"-DNFW_USE_SDL",
+					"-D_THREAD_SAFE",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DforMac",
+					"-DforDarkStar",
+					"-DNFW_USE_SDL",
+					"-D_THREAD_SAFE",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.newton.messagepad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include/SDL2/;
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
+			};
+			name = Debug;
+		};
+		C9CE76172C3D79BE0033F683 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagePad_SDL.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = BK4ST6N599;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(PROJECT_DIR)/Frames/ConfigFrames.h";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "MessagePadSDL-Info.plist";
+				INIT_ROUTINE = "";
+				INSTALL_PATH = "$(USER_APPS_DIR)";
+				LIBRARY_SEARCH_PATHS = /usr/local/lib/;
+				MACH_O_TYPE = mh_execute;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				OTHER_CFLAGS = (
+					"-DforMac",
+					"-DforDarkStar",
+					"-DNFW_USE_SDL",
+					"-D_THREAD_SAFE",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DforMac",
+					"-DforDarkStar",
+					"-DNFW_USE_SDL",
+					"-D_THREAD_SAFE",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.newton.messagepad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include/SDL2/;
+				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
+			};
+			name = Release;
+		};
 		F436792E093B7565001AE880 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3397,6 +4138,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C9CE76152C3D79BE0033F683 /* Build configuration list for PBXNativeTarget "MessagePad_SDL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9CE76162C3D79BE0033F683 /* Debug */,
+				C9CE76172C3D79BE0033F683 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F436792D093B7565001AE880 /* Build configuration list for PBXNativeTarget "MessagePad" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

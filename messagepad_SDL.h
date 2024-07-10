@@ -9,6 +9,10 @@
 #ifndef messagepad_SDL_hpp
 #define messagepad_SDL_hpp
 
-#include <stdio.h>
+#include <SDL.h>
+
+extern SDL_Window* gSDLWindow;
+extern SDL_Surface* gSDLScreen;
+extern SDL_Surface* gSDLPixels;
 
 #endif /* messagepad_SDL_hpp */

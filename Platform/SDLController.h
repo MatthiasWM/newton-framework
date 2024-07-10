@@ -1,4 +1,10 @@
 
+#ifndef _SDL_CONTROLLER_H
+#define _SDL_CONTROLLER_H
+
+#if 0
+
+// Replace all the following code with C++ code
 #import <Cocoa/Cocoa.h>
 
 /*------------------------------------------------------------------------------
@@ -31,3 +37,7 @@
 @interface MPController : NSObject
 @property(weak) IBOutlet NSView * newtonView;
 @end
+
+#endif
+
+#endif // _SDL_CONTROLLER_H

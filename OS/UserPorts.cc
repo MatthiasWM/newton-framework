@@ -82,7 +82,7 @@ CUAsyncMessage::~CUAsyncMessage()
 //	fMsg, fReplyMem destructors
 }
 
-void
+CUAsyncMessage&
 CUAsyncMessage::operator=(const CUMsgToken & inCopy)
 {
 	if (inCopy.fRcvrMsgId != 0)
@@ -92,6 +92,7 @@ CUAsyncMessage::operator=(const CUMsgToken & inCopy)
 		fMsg = inCopy.getMsgId();
 		fReplyMem = inCopy.getReplyId();
 	}
+    return *this;
 }
 
 NewtonErr

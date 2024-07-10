@@ -544,7 +544,7 @@ InitScreenTask(void)
 		semList->init(1, MAKESEMLISTITEM(0,-1));
 
 // we donÕt use this frame-buffering scheme
-#if defined(correct)
+#if defined(correct) || defined(NFW_USE_SDL)
 		CUTask * task = new CUTask;
 		gScreen.updateTask = task;
 		task->init(ScreenUpdateTask, 4*KByte, 0, NULL, kScreenTaskPriority, 'scrn');
@@ -560,7 +560,7 @@ InitScreenTask(void)
 void
 ScreenUpdateTask(void * inTask, size_t inSize, ObjectId inArg)
 {
-#if defined(correct)
+#if defined(correct) || defined(NFW_USE_SDL)
 	CTime		nextUpdateTime;
 //	CADC *	adc = GetADCObject();
 
@@ -569,7 +569,8 @@ ScreenUpdateTask(void * inTask, size_t inSize, ObjectId inArg)
 		gScreen.semaphore->semOp(gScreen.f30, kWaitOnBlock);
 		gScreen.lock->acquire(kWaitOnBlock);
 
-		nextUpdateTime = TimeFromNow(30*kMilliseconds);
+//        nextUpdateTime = TimeFromNow(30*kMilliseconds);
+        nextUpdateTime = TimeFromNow(30*kMilliseconds*100);
 		UpdateHardwareScreen();
 
 		gScreen.lock->release();

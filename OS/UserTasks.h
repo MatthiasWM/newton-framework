@@ -37,7 +37,7 @@ class CUTask : public CUObject
 {
 public:
 					CUTask(ObjectId id = 0);
-	void			operator=(const CUTask & inCopy);
+    CUTask&		operator=(const CUTask & inCopy);
 	NewtonErr	init(TaskProcPtr inTask, size_t inStackSize, size_t inDataSize, void * inData, ULong inPriority, ULong inTaskName, ObjectId inEnvironment);
 	NewtonErr	init(TaskProcPtr inTask, size_t inStackSize, size_t inDataSize, void * inData, ULong inPriority = kUserTaskPriority, ULong inTaskName = 'UNAM');
 
@@ -60,7 +60,11 @@ enum
 ------------------------------------------------------------------------------*/
 
 inline			CUTask::CUTask(ObjectId id) : CUObject(id)  { }
-inline void		CUTask::operator=(const CUTask & inCopy)  { copyObject(inCopy); }
+inline CUTask& CUTask::operator=(const CUTask & inCopy)
+{
+    copyObject(inCopy);
+    return *this;
+}
 
 
 /*------------------------------------------------------------------------------
