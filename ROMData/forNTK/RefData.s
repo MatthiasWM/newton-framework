@@ -6,39 +6,36 @@
 	Written by:	Newton Research Group, 2016.
 */
 		.data
-		.align	2
+		.align  8
 
 #define kFlagsBinary (0x40<<24)
 #define kFlagsArray  (0x41<<24)
 #define kFlagsFrame  (0x43<<24)
 
 #if __LP64__
-/* Refs are 64-bit, object header is long size|flags, quad gcStuff, quad class */
+/* Refs are 64-bit, object header is quad size|flags, quad gcStuff, quad class */
+/* Matt: clang interpretes the ';' inside the macro as the start of a comment */
+/* and since macros are always expanded into a single line, we only emit the */
+/* first Ref (fixed, but see below) */
 #define Ref .quad
-#define kHeaderSize 20
+#define kHeaderSize 24
 #define ArrayObj(_len,_class) \
-		.long		kHeaderSize + (_len<<3) + kFlagsArray ;\
-		Ref		0, _class
+Ref             kHeaderSize + (_len<<3) + kFlagsArray, 0, _class
 #define FrameMapObj(_len) \
-		.long		kHeaderSize + ((_len+1)<<3) + kFlagsArray ;\
-		Ref		0
+Ref             kHeaderSize + ((_len+1)<<3) + kFlagsArray, 0
 #define FrameObj(_len, _map) \
-		.long		kHeaderSize + (_len<<3) + kFlagsFrame ;\
-		Ref		0, MAKEPTR(_map)
+Ref             kHeaderSize + (_len<<3) + kFlagsFrame, 0, MAKEPTR(_map)
 
 #else
 /* Refs are 32-bit, object header is long size|flags, long gcStuff, long class */
 #define Ref .long
 #define kHeaderSize 12
 #define ArrayObj(_len,_class) \
-		.long		kHeaderSize + (_len<<2) + kFlagsArray ;\
-		Ref		0, _class
+    Ref             kHeaderSize + (_len<<2) + kFlagsArray, 0, _class
 #define FrameMapObj(_len) \
-		.long		kHeaderSize + ((_len+1)<<2) + kFlagsArray ;\
-		Ref		0
+    Ref             kHeaderSize + ((_len+1)<<2) + kFlagsArray, 0
 #define FrameObj(_len, _map) \
-		.long		kHeaderSize + (_len<<2) + kFlagsFrame ;\
-		Ref		0, MAKEPTR(_map)
+    Ref             kHeaderSize + (_len<<2) + kFlagsFrame, 0, MAKEPTR(_map)
 #endif
 
 #define NILREF 2
@@ -54,266 +51,266 @@ obj_DefineGlobalConstant_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_DefineGlobalConstant:	FrameObj(3, obj_DefineGlobalConstant_map)
 		Ref		0x00000132,_FDefineGlobalConstant,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_UnDefineGlobalConstant
 obj_UnDefineGlobalConstant_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_UnDefineGlobalConstant:	FrameObj(3, obj_UnDefineGlobalConstant_map)
 		Ref		0x00000132,_FUnDefineGlobalConstant,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_IsGlobalConstant
 obj_IsGlobalConstant_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_IsGlobalConstant:	FrameObj(3, obj_IsGlobalConstant_map)
 		Ref		0x00000132,_FIsGlobalConstant,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_DefPureFn
 obj_DefPureFn_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_DefPureFn:	FrameObj(3, obj_DefPureFn_map)
 		Ref		0x00000132,_FDefPureFn,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_StuffHex
 obj_StuffHex_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_StuffHex:	FrameObj(3, obj_StuffHex_map)
 		Ref		0x00000132,_FStuffHex,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_LoadDataFile
 obj_LoadDataFile_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LoadDataFile:	FrameObj(3, obj_LoadDataFile_map)
 		Ref		0x00000132,_FLoadDataFile,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_ReadStreamFile
 obj_ReadStreamFile_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_ReadStreamFile:	FrameObj(3, obj_ReadStreamFile_map)
 		Ref		0x00000132,_FReadStreamFile,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_Disasm
 obj_Disasm_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_Disasm:	FrameObj(3, obj_Disasm_map)
 		Ref		0x00000132,_FDisasm,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_DisasmRange
 obj_DisasmRange_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_DisasmRange:	FrameObj(3, obj_DisasmRange_map)
 		Ref		0x00000132,_FDisasmRange,MAKEINT(3)
-		.align	2
+		.align  8
 		.globl	obj_VerboseGC
 obj_VerboseGC_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_VerboseGC:	FrameObj(3, obj_VerboseGC_map)
 		Ref		0x00000132,_FVerboseGC,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_Selection
 obj_Selection_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_Selection:	FrameObj(3, obj_Selection_map)
 		Ref		0x00000132,_Selection,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_SelectionOffset
 obj_SelectionOffset_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SelectionOffset:	FrameObj(3, obj_SelectionOffset_map)
 		Ref		0x00000132,_SelectionOffset,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_SelectionLength
 obj_SelectionLength_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SelectionLength:	FrameObj(3, obj_SelectionLength_map)
 		Ref		0x00000132,_SelectionLength,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_SetSelection
 obj_SetSelection_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetSelection:	FrameObj(3, obj_SetSelection_map)
 		Ref		0x00000132,_SetSelection,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_ReplaceSelection
 obj_ReplaceSelection_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_ReplaceSelection:	FrameObj(3, obj_ReplaceSelection_map)
 		Ref		0x00000132,_ReplaceSelection,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_TextString
 obj_TextString_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_TextString:	FrameObj(3, obj_TextString_map)
 		Ref		0x00000132,_TextString,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_TextLength
 obj_TextLength_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_TextLength:	FrameObj(3, obj_TextLength_map)
 		Ref		0x00000132,_TextLength,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_FindLine
 obj_FindLine_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_FindLine:	FrameObj(3, obj_FindLine_map)
 		Ref		0x00000132,_FindLine,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_LineStart
 obj_LineStart_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LineStart:	FrameObj(3, obj_LineStart_map)
 		Ref		0x00000132,_LineStart,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_NumberOfLines
 obj_NumberOfLines_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_NumberOfLines:	FrameObj(3, obj_NumberOfLines_map)
 		Ref		0x00000132,_NumberOfLines,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_LineTop
 obj_LineTop_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LineTop:	FrameObj(3, obj_LineTop_map)
 		Ref		0x00000132,_LineTop,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_LineBottom
 obj_LineBottom_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LineBottom:	FrameObj(3, obj_LineBottom_map)
 		Ref		0x00000132,_LineBottom,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_LineBaseline
 obj_LineBaseline_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LineBaseline:	FrameObj(3, obj_LineBaseline_map)
 		Ref		0x00000132,_LineBaseline,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_LeftEdge
 obj_LeftEdge_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_LeftEdge:	FrameObj(3, obj_LeftEdge_map)
 		Ref		0x00000132,_LeftEdge,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_RightEdge
 obj_RightEdge_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_RightEdge:	FrameObj(3, obj_RightEdge_map)
 		Ref		0x00000132,_RightEdge,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_PointToOffset
 obj_PointToOffset_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_PointToOffset:	FrameObj(3, obj_PointToOffset_map)
 		Ref		0x00000132,_PointToOffset,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_MapChars
 obj_MapChars_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_MapChars:	FrameObj(3, obj_MapChars_map)
 		Ref		0x00000132,_MapChars,MAKEINT(3)
-		.align	2
+		.align  8
 		.globl	obj_SearchChars
 obj_SearchChars_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SearchChars:	FrameObj(3, obj_SearchChars_map)
 		Ref		0x00000132,_SearchChars,MAKEINT(3)
-		.align	2
+		.align  8
 		.globl	obj_Peek
 obj_Peek_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_Peek:	FrameObj(3, obj_Peek_map)
 		Ref		0x00000132,_Peek,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_SetKeyHandler
 obj_SetKeyHandler_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetKeyHandler:	FrameObj(3, obj_SetKeyHandler_map)
 		Ref		0x00000132,_SetKeyHandler,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_GetKeyHandler
 obj_GetKeyHandler_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_GetKeyHandler:	FrameObj(3, obj_GetKeyHandler_map)
 		Ref		0x00000132,_GetKeyHandler,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_SetMetaBit
 obj_SetMetaBit_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetMetaBit:	FrameObj(3, obj_SetMetaBit_map)
 		Ref		0x00000132,_SetMetaBit,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_QuoteCharacter
 obj_QuoteCharacter_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_QuoteCharacter:	FrameObj(3, obj_QuoteCharacter_map)
 		Ref		0x00000132,_QuoteCharacter,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_CharacterClass
 obj_CharacterClass_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_CharacterClass:	FrameObj(3, obj_CharacterClass_map)
 		Ref		0x00000132,_CharacterClass,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_SetCharacterClass
 obj_SetCharacterClass_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetCharacterClass:	FrameObj(3, obj_SetCharacterClass_map)
 		Ref		0x00000132,_SetCharacterClass,MAKEINT(2)
-		.align	2
+		.align  8
 		.globl	obj_TokenStart
 obj_TokenStart_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_TokenStart:	FrameObj(3, obj_TokenStart_map)
 		Ref		0x00000132,_TokenStart,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_TokenEnd
 obj_TokenEnd_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_TokenEnd:	FrameObj(3, obj_TokenEnd_map)
 		Ref		0x00000132,_TokenEnd,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_TellUser
 obj_TellUser_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_TellUser:	FrameObj(3, obj_TellUser_map)
 		Ref		0x00000132,_TellUser,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_VisibleTop
 obj_VisibleTop_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_VisibleTop:	FrameObj(3, obj_VisibleTop_map)
 		Ref		0x00000132,_VisibleTop,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_VisibleLeft
 obj_VisibleLeft_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_VisibleLeft:	FrameObj(3, obj_VisibleLeft_map)
 		Ref		0x00000132,_VisibleLeft,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_VisibleHeight
 obj_VisibleHeight_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_VisibleHeight:	FrameObj(3, obj_VisibleHeight_map)
 		Ref		0x00000132,_VisibleHeight,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_VisibleWidth
 obj_VisibleWidth_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_VisibleWidth:	FrameObj(3, obj_VisibleWidth_map)
 		Ref		0x00000132,_VisibleWidth,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	obj_SetVisibleTop
 obj_SetVisibleTop_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetVisibleTop:	FrameObj(3, obj_SetVisibleTop_map)
 		Ref		0x00000132,_SetVisibleTop,MAKEINT(1)
-		.align	2
+		.align  8
 		.globl	obj_SetVisibleLeft
 obj_SetVisibleLeft_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_SetVisibleLeft:	FrameObj(3, obj_SetVisibleLeft_map)
 		Ref		0x00000132,_SetVisibleLeft,MAKEINT(1)
-		.align	2
-obj_003C5A85:	.long		kHeaderSize + 118 + kFlagsBinary
+		.align  8
+obj_003C5A85:	Ref    kHeaderSize + 118 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x08,0x8B,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x2E,0x7D,0x24,0xC2,0xA4,0x7D
 		.byte		0x20,0xC2,0xA3,0x70,0x7B,0x91,0xC5,0x6F,0x00,0x2C,0x70,0x7B,0x7C,0x19,0x29,0x6F
@@ -323,7 +320,7 @@ obj_003C5A85:	.long		kHeaderSize + 118 + kFlagsBinary
 		.byte		0x5B,0x70,0x7B,0x7C,0xC7,0x00,0x13,0x98,0x5F,0x00,0x5B,0x7D,0x05,0x7D,0x06,0x6F
 		.byte		0x00,0x42,0x22,0x22,0xA5,0x00,0x27,0x01,0xDB,0x30,0x00,0x70,0x1A,0x24,0x98,0x70
 		.byte		0x1B,0x27,0x00,0x40,0x99,0x02
-		.align	2
+		.align  8
 obj_003C5B09:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMIsFunction),MAKEPTR(SYMprintDepth),MAKEPTR(SYMprintLength)
 bootInitNSGlobals_map:	FrameMapObj(5)
@@ -331,7 +328,7 @@ bootInitNSGlobals_map:	FrameMapObj(5)
 		.globl	bootInitNSGlobals
 bootInitNSGlobals:	FrameObj(5, bootInitNSGlobals_map)
 		Ref		0x00000032,MAKEPTR(obj_003C5A85),MAKEPTR(obj_003C5B09),NILREF,0x000C0000
-obj_003C5BF1:	.long		kHeaderSize + 249 + kFlagsBinary
+obj_003C5BF1:	Ref    kHeaderSize + 249 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x20,0xC2,0xA3,0x7B,0x19,0x38,0x1A,0x1B,0x2A,0x6F,0x00,0x13,0x1C,0x7B
 		.byte		0x1D,0x39,0x00,0x27,0x08,0x93,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0xA9,0x7D,0x24
@@ -349,11 +346,11 @@ obj_003C5BF1:	.long		kHeaderSize + 249 + kFlagsBinary
 		.byte		0x00,0x0F,0x28,0xA7,0x00,0x0E,0x7F,0x00,0x0C,0x30,0x00,0x7F,0x00,0x0D,0x05,0x7F
 		.byte		0x00,0x0D,0x06,0x6F,0x00,0xBF,0x22,0x22,0xA7,0x00,0x0D,0x00,0x77,0x00,0x10,0x1F
 		.byte		0x00,0x11,0x91,0x22,0x1F,0x00,0x12,0x2A,0x02
-		.align	2
-obj_003C5B75:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_003C5B75:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'I','n','t','e','r','n','a','l',0
-		.align	2
+		.align  8
 obj_003C5BC9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMsoupDef),MAKEPTR(SYMname)
 obj_003C5BDD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -379,7 +376,7 @@ varsMapStarter:	FrameObj(75, varsMapStarter_map)
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
-obj_0062CBB9:	.long		kHeaderSize + 1484 + kFlagsBinary
+obj_0062CBB9:	Ref    kHeaderSize + 1484 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMSort)
 		.byte		0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x7F,0x00,0xA0,0x00,0xFF
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -474,8 +471,8 @@ obj_0062CBB9:	.long		kHeaderSize + 1484 + kFlagsBinary
 		.byte		0x00,0x45,0x00,0x46,0x00,0x47,0x00,0x48,0x00,0x49,0x00,0x4A,0x00,0x4B,0x00,0x4C
 		.byte		0x00,0x4D,0x00,0x4E,0x00,0x4F,0x00,0x50,0x00,0x51,0x00,0x52,0x00,0x53,0x00,0x54
 		.byte		0x00,0x55,0x00,0x56,0x00,0x57,0x00,0x58,0x00,0x59,0x00,0x5A
-		.align	2
-obj_0062D1F1:	.long		kHeaderSize + 1474 + kFlagsBinary
+		.align  8
+obj_0062D1F1:	Ref    kHeaderSize + 1474 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMSort)
 		.byte		0x00,0x07,0x00,0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x7F,0x00,0xA0,0x00,0xFF
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -570,7 +567,7 @@ obj_0062D1F1:	.long		kHeaderSize + 1474 + kFlagsBinary
 		.byte		0x00,0x4D,0x00,0x4E,0x00,0x4F,0x00,0x50,0x00,0x51,0x00,0x52,0x00,0x53,0x00,0x54
 		.byte		0x00,0x55,0x00,0x56,0x00,0x57,0x00,0x58,0x00,0x59,0x00,0x5A,0x00,0xC5,0x00,0xC4
 		.byte		0x00,0xD6
-		.align	2
+		.align  8
 		.globl	sortTables
 sortTables:	ArrayObj(2, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(obj_0062CBB9),MAKEPTR(obj_0062D1F1)
@@ -587,7 +584,7 @@ rootContext:	FrameObj(74, rootContext_map)
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
 		Ref		NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF,NILREF
-obj_003D594D:	.long		kHeaderSize + 376 + kFlagsBinary
+obj_003D594D:	Ref    kHeaderSize + 376 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x08,0x00,0xCA,0x00,0xCA,0x01,0x86,0x00,0xF7,0x01,0xB2
 		.byte		0x00,0x00,0x0E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x1E,0x00,0x00,0x00,0x00,0x00
@@ -613,7 +610,7 @@ obj_003D594D:	.long		kHeaderSize + 376 + kFlagsBinary
 		.byte		0x00,0x00,0x1E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0F,0xE0,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x1F,0xE0,0x00,0x00,0x00,0x00,0x00,0x00,0x1E,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x0C,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D5931_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D5931:	FrameObj(4, obj_003D5931_map)
@@ -653,11 +650,11 @@ obj_0041D739_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041D739:	FrameObj(3, obj_0041D739_map)
 		Ref		0x00000132,_FSetupTetheredListener,0x0000000C
-obj_0041E5B9:	.long		kHeaderSize + 28 + kFlagsBinary
+obj_0041E5B9:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0xC7,0x00,0x0A,0x6F,0x00,0x0C,0x7C,0x5F,0x00,0x1B,0x7B,0x7D,0xC7,0x00
 		.byte		0x0B,0x6F,0x00,0x18,0x7D,0x5F,0x00,0x1B,0x7B,0x18,0x29,0x02
-		.align	2
+		.align  8
 obj_0041E5E1:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMfloor)
 obj_0041E5F1_map:	FrameMapObj(5)
@@ -672,10 +669,10 @@ obj_005633E5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005633E5:	FrameObj(3, obj_005633E5_map)
 		Ref		0x00000132,_FBatteryCount,0x00000000
-obj_00518F65:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_00518F65:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x1A,0x29,0x02
-		.align	2
+		.align  8
 obj_00568215:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMcurrentModem),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMGetModemSetUp)
 obj_0056822D_map:	FrameMapObj(5)
@@ -694,10 +691,10 @@ obj_00420D51_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420D51:	FrameObj(3, obj_00420D51_map)
 		Ref		0x00000132,_FSubstituteChars,0x0000000C
-obj_005697C5:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_005697C5:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7C,0x7B,0x19,0x3A,0x02
-		.align	2
+		.align  8
 obj_005697D9:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMsoupDef),MAKEPTR(SYMSetInfo)
 obj_005697ED_map:	FrameMapObj(5)
@@ -728,21 +725,21 @@ obj_0041B231_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B231:	FrameObj(3, obj_0041B231_map)
 		Ref		0x00000132,_CircleDistance,0x00000014
-obj_004A87A1:	.long		kHeaderSize + 74 + kFlagsBinary
+obj_004A87A1:	Ref    kHeaderSize + 74 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x80,0xA4,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x2C
 		.byte		0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x7E,0x1A,0x91,0x7B
 		.byte		0xC4,0x6F,0x00,0x28,0x7C,0x7D,0x7E,0x98,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06
 		.byte		0x6F,0x00,0x10,0x22,0x22,0xA7,0x00,0x07,0x00,0x7C,0xC7,0x00,0x12,0x20,0xC7,0x00
 		.byte		0x0B,0x6F,0x00,0x48,0x7C,0x5F,0x00,0x49,0x22,0x02
-		.align	2
+		.align  8
 obj_004A87F9:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004D4879),MAKEPTR(SYM_dataDefs),MAKEPTR(SYMsuperSymbol)
 obj_004A8811_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8811:	FrameObj(5, obj_004A8811_map)
 		Ref		0x00000032,MAKEPTR(obj_004A87A1),MAKEPTR(obj_004A87F9),NILREF,0x00100004
-obj_004D7F21:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_004D7F21:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x7B,0x6F,0x00,0x2D,0x71,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x24
 		.byte		0x7E,0x24,0xC2,0xA5,0x7D,0x1A,0x91,0x7B,0xC4,0x6F,0x00,0x22,0x7C,0x7D,0xC7,0x00
@@ -750,17 +747,17 @@ obj_004D7F21:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x29,0xC4,0x6F,0x00,0x5A,0x71,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x51,0x7E,0x24
 		.byte		0xC2,0xA5,0x7D,0x1A,0x91,0xC5,0x6F,0x00,0x4F,0x7C,0x7D,0xC7,0x00,0x15,0x00,0x7E
 		.byte		0x05,0x7E,0x06,0x6F,0x00,0x3E,0x22,0x22,0xA6,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_004D7F89:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMAuxButtonRegistry),MAKEPTR(SYMdestApp),MAKEPTR(SYMblessedApp),MAKEPTR(SYMGetUserConfig)
 obj_004D7FA9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004D7FA9:	FrameObj(5, obj_004D7FA9_map)
 		Ref		0x00000032,MAKEPTR(obj_004D7F21),MAKEPTR(obj_004D7F89),NILREF,0x000C0004
-obj_00473CED:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_00473CED:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','o','n','n','T','r','a','n','s','p','o','r','t','s',0
-		.align	2
+		.align  8
 obj_00473D19_map:	FrameMapObj(0)
 		Ref		0x00000000,NILREF
 obj_00473D19:	FrameObj(0, obj_00473D19_map)
@@ -778,21 +775,21 @@ obj_0046DD4D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0046DD4D:	FrameObj(3, obj_0046DD4D_map)
 		Ref		0x00000132,_FInTryString,0x00000004
-obj_0041A7C5:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_0041A7C5:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x27,0xFF,0xF8,0x5F,0x00,0x0D,0x27,0x00,0x08,0x18,0x29,0x02
-		.align	2
+		.align  8
 obj_0041A7E1:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBusyBoxControl)
 obj_0041A7F1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041A7F1:	FrameObj(5, obj_0041A7F1_map)
 		Ref		0x00000032,MAKEPTR(obj_0041A7C5),MAKEPTR(obj_0041A7E1),NILREF,0x00000004
-obj_0062C735:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_0062C735:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7C,0x6F,0x00,0x13,0x7B,0x19,0x29,0x1A,0x38,0x7C,0x1B,0x7B
 		.byte		0x1C,0x2C,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_0062C531:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntryFlush),MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetName),MAKEPTR(SYMentryChanged),MAKEPTR(SYMXmitSoupChange)
 obj_0062CAF9_map:	FrameMapObj(5)
@@ -811,13 +808,13 @@ obj_0062D9BD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062D9BD:	FrameObj(3, obj_0062D9BD_map)
 		Ref		0x00000132,_FGreaterOrEqual,0x00000008
-obj_005308FD:	.long		kHeaderSize + 49 + kFlagsBinary
+obj_005308FD:	Ref    kHeaderSize + 49 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x28,0x7B,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x1C,0x7D
 		.byte		0x24,0xC2,0xA4,0x7C,0x19,0x91,0x7C,0x1A,0x2A,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00
 		.byte		0x0F,0x22,0x22,0xA5,0x00,0x5F,0x00,0x2F,0x7B,0x19,0x91,0x7B,0x1A,0x2A,0x00,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0053093D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMuniqueId),MAKEPTR(SYMRegCommConfig)
 obj_00530955_map:	FrameMapObj(5)
@@ -828,11 +825,11 @@ obj_0041C28D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C28D:	FrameObj(3, obj_0041C28D_map)
 		Ref		0x00000132,_FCategorizeKeyCommands,0x00000004
-obj_00421E91:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00421E91:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x7B,0x19,0x83,0x1A,0x1B,0x28,0x20,0xC2,0x1C,0x39,0x1D,0x39,0x1E,0x38
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00421EB1:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMkey),MAKEPTR(obj_00421DF5),MAKEPTR(obj_005465ED),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMQuery),MAKEPTR(SYMentry)
 obj_00421ED9_map:	FrameMapObj(5)
@@ -865,11 +862,11 @@ obj_0062D9ED_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062D9ED:	FrameObj(3, obj_0062D9ED_map)
 		Ref		0x00000132,_FStuffChar,0x0000000C
-obj_00569975:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_00569975:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x10,0x7D,0x7C,0x19,0x1A,0x2B,0x5F,0x00,0x17
 		.byte		0x1B,0x20,0x7B,0x1C,0x82,0x1D,0x2A,0x02
-		.align	2
+		.align  8
 obj_0056995D:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMerrorCode),MAKEPTR(SYMvalue)
 obj_00569999:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -882,7 +879,7 @@ obj_0062DA05_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062DA05:	FrameObj(3, obj_0062DA05_map)
 		Ref		0x00000132,_Fcosh,0x00000004
-obj_00482D91:	.long		kHeaderSize + 460 + kFlagsBinary
+obj_00482D91:	Ref    kHeaderSize + 460 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xC5,0x6F,0x00,0x0A,0x22,0x02,0x00,0x7B,0xC7,0x00,0x13,0x19,0x29
 		.byte		0xA4,0x1A,0x1B,0x29,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x3F,0x7F,0x00
@@ -913,19 +910,19 @@ obj_00482D91:	.long		kHeaderSize + 460 + kFlagsBinary
 		.byte		0x00,0x09,0x7F,0x00,0x09,0x00,0x7F,0x00,0x09,0x7F,0x00,0x0B,0xC7,0x00,0x0A,0x67
 		.byte		0x00,0x6A,0x22,0x00,0x7F,0x00,0x08,0x1F,0x00,0x0D,0x1F,0x00,0x0E,0x1F,0x00,0x0F
 		.byte		0x2B,0xA7,0x00,0x08,0x7F,0x00,0x08,0x1F,0x00,0x10,0x29,0x02
-		.align	2
-obj_00482D69:	.long		kHeaderSize + 10 + kFlagsBinary
+		.align  8
+obj_00482D69:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'B','o','b','E',0
-		.align	2
-obj_003C59B1:	.long		kHeaderSize + 34 + kFlagsBinary
+		.align  8
+obj_003C59B1:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',0
-		.align	2
-obj_00482D55:	.long		kHeaderSize + 6 + kFlagsBinary
+		.align  8
+obj_00482D55:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'\\','u',0
-		.align	2
+		.align  8
 obj_00482F69:	ArrayObj(17, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrFilled),MAKEPTR(SYMDowncase),MAKEPTR(SYMuserFolders),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMStrExactCompare),MAKEPTR(SYMStrLen),MAKEPTR(SYMORD),MAKEPTR(obj_00482D69),MAKEPTR(obj_003C59B1),MAKEPTR(SYM_3E_3E),MAKEPTR(obj_00482D55),MAKEPTR(SYMarray),MAKEPTR(SYMStrMunger),MAKEPTR(obj_00482D81),MAKEPTR(SYMrejectBeginning),MAKEPTR(SYMStringFilter)
 		Ref		MAKEPTR(SYMIntern)
@@ -963,7 +960,7 @@ obj_0062DA4D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062DA4D:	FrameObj(3, obj_0062DA4D_map)
 		Ref		0x00000132,_FApply,0x00000008
-obj_0045D1AD:	.long		kHeaderSize + 326 + kFlagsBinary
+obj_0045D1AD:	Ref    kHeaderSize + 326 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xC7,0x00,0x13,0xA6,0x7B,0x18,0x91,0x7B,0x19,0x91,0xC1,0xA7,0x00,0x07,0x7B
 		.byte		0x1A,0x91,0x7B,0x1B,0x91,0xC1,0xA7,0x00,0x08,0x7F,0x00,0x07,0x7C,0x18,0x91,0x7C
@@ -986,11 +983,11 @@ obj_0045D1AD:	.long		kHeaderSize + 326 + kFlagsBinary
 		.byte		0x91,0xC0,0x7F,0x00,0x08,0xC1,0x27,0x00,0x08,0xC7,0x00,0x09,0x98,0x7E,0x1A,0x7E
 		.byte		0x1B,0x91,0x7F,0x00,0x08,0xC0,0x98,0x5F,0x01,0x44,0x7E,0x1A,0x7E,0x1B,0x91,0x7F
 		.byte		0x00,0x08,0xC0,0x98,0x7E,0x02
-		.align	2
-REALobj_0045D171:	.long		kHeaderSize + 8 + kFlagsBinary
+		.align  8
+REALobj_0045D171:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0x68497682,0x3D3C25C2
-		.align	2
+		.align  8
 obj_0045D185:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMright),MAKEPTR(SYMleft),MAKEPTR(SYMbottom),MAKEPTR(SYMtop),MAKEPTR(SYMmax),MAKEPTR(REALobj_0045D171),MAKEPTR(SYMceiling)
 obj_0045D301_map:	FrameMapObj(5)
@@ -1001,11 +998,11 @@ obj_0055A8E5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0055A8E5:	FrameObj(3, obj_0055A8E5_map)
 		Ref		0x00000132,_FLoadOnlinePackage,0x00000000
-obj_0056834D:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_0056834D:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x19,0x29,0x6F,0x00,0x15,0x7C,0x1A,0x1B,0x2A,0x00,0x27
 		.byte		0x00,0x1A,0x5F,0x00,0x16,0x22,0x02
-		.align	2
+		.align  8
 obj_00568371:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetModemSetUp),MAKEPTR(SYMIsSoupEntry),MAKEPTR(SYM_newt),MAKEPTR(SYMEntryRemoveFromSoupXmit)
 obj_0056838D_map:	FrameMapObj(5)
@@ -1036,17 +1033,17 @@ obj_006281A5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006281A5:	FrameObj(3, obj_006281A5_map)
 		Ref		0x00000132,_FOtherViewInUse,0x00000004
-obj_004B209D:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_004B209D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0E,0x7B,0x19,0x91,0x22,0xC6,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_004B20B9:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsFrame),MAKEPTR(SYM_cursor)
 obj_004B20CD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004B20CD:	FrameObj(5, obj_004B20CD_map)
 		Ref		0x00000032,MAKEPTR(obj_004B209D),MAKEPTR(obj_004B20B9),NILREF,0x00000004
-obj_005B9085:	.long		kHeaderSize + 190 + kFlagsBinary
+obj_005B9085:	Ref    kHeaderSize + 190 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x00,0x1C,0xC4,0x67,0x00,0x0E,0x7B,0x24,0xC4,0x5F,0x00,0x11,0x27,0x00
 		.byte		0x1A,0x67,0x00,0x1C,0x7B,0x27,0x00,0xA8,0xC4,0x5F,0x00,0x1F,0x27,0x00,0x1A,0x6F
@@ -1060,7 +1057,7 @@ obj_005B9085:	.long		kHeaderSize + 190 + kFlagsBinary
 		.byte		0x00,0x9A,0x7E,0x27,0x00,0x0C,0xC6,0x5F,0x00,0x9B,0x22,0x6F,0x00,0xA9,0x27,0x00
 		.byte		0x0C,0x18,0x29,0xA5,0x7C,0x7D,0x19,0x39,0xA6,0x7E,0x27,0x00,0x08,0xC4,0x67,0x00
 		.byte		0xB9,0x7E,0x27,0x00,0x0C,0xC4,0x5F,0x00,0xBC,0x27,0x00,0x1A,0x02,0x02
-		.align	2
+		.align  8
 obj_005B9071:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDictionary),MAKEPTR(SYMLookupEncodedWord)
 obj_005B9151_map:	FrameMapObj(5)
@@ -1071,7 +1068,7 @@ obj_0041B079_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B079:	FrameObj(3, obj_0041B079_map)
 		Ref		0x00000132,_FExtractRichStringFromParaSlots,0x00000010
-obj_00416965:	.long		kHeaderSize + 169 + kFlagsBinary
+obj_00416965:	Ref    kHeaderSize + 169 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xC5,0x6F,0x00,0x09,0x27,0x00,0x3C,0xA4,0x18,0x88,0xA5,0x27,0x0D,0x5F,0x22
 		.byte		0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x9A,0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7E
@@ -1084,18 +1081,18 @@ obj_00416965:	.long		kHeaderSize + 169 + kFlagsBinary
 		.byte		0x00,0x09,0xC7,0x00,0x13,0xA7,0x00,0x09,0x7F,0x00,0x09,0x1A,0x1B,0x98,0x7D,0x7F
 		.byte		0x00,0x09,0xC7,0x00,0x15,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00
 		.byte		0x19,0x22,0x22,0xA7,0x00,0x07,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00416949:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMface),MAKEPTR(SYMmark),0xFC0B6
 obj_00416A1D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00416A1D:	FrameObj(5, obj_00416A1D_map)
 		Ref		0x00000032,MAKEPTR(obj_00416965),MAKEPTR(obj_00416949),NILREF,0x00140008
-obj_0055A4ED:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_0055A4ED:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x39,0xA4,0x7C,0x6F,0x00,0x10,0x1A,0x7C,0x1B,0x39,0x5F,0x00,0x11
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_0055A4A5_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMnone)
 obj_0055A4A5:	FrameObj(1, obj_0055A4A5_map)
@@ -1110,7 +1107,7 @@ obj_0055A529_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0055A529:	FrameObj(5, obj_0055A529_map)
 		Ref		0x00000032,MAKEPTR(obj_0055A4ED),MAKEPTR(obj_0055A50D),NILREF,0x00040004
-obj_004972C9:	.long		kHeaderSize + 98 + kFlagsBinary
+obj_004972C9:	Ref    kHeaderSize + 98 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0F,0x7B,0x19,0x29,0x1A,0x29,0xA5,0x5F,0x00,0x17,0x7B
 		.byte		0x1B,0x29,0x6F,0x00,0x17,0x7B,0xA5,0x7D,0x6F,0x00,0x60,0x74,0x1D,0x91,0x7D,0x20
@@ -1119,7 +1116,7 @@ obj_004972C9:	.long		kHeaderSize + 98 + kFlagsBinary
 		.byte		0x7C,0x1F,0x00,0x0B,0x29,0xA7,0x00,0x07,0x7F,0x00,0x07,0x1F,0x00,0x07,0x7D,0x98
 		.byte		0x74,0x1D,0x91,0x7F,0x00,0x07,0xC7,0x00,0x15,0x00,0x7F,0x00,0x07,0x5F,0x00,0x61
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_00497339:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMObjectPkgRef),MAKEPTR(SYMGetVBOStore),MAKEPTR(SYMIsFrame),MAKEPTR(SYMStoreSlipRegistry),MAKEPTR(SYMstoreSlips),MAKEPTR(SYM_3D),MAKEPTR(SYM_openedForStore),MAKEPTR(SYMLSearch),MAKEPTR(SYMClose),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMBuildContext)
 obj_00497375_map:	FrameMapObj(5)
@@ -1134,12 +1131,12 @@ obj_00556A61_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00556A61:	FrameObj(3, obj_00556A61_map)
 		Ref		0x00000132,_FPidToPackageLite,0x00000004
-obj_0056A1FD:	.long		kHeaderSize + 35 + kFlagsBinary
+obj_0056A1FD:	Ref    kHeaderSize + 35 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0xC2,0xA4,0x7C,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x21,0x7C
 		.byte		0x20,0xC2,0x19,0x91,0xA5,0x7D,0x6F,0x00,0x1D,0x7D,0x5F,0x00,0x1E,0x1A,0x5F,0x00
 		.byte		0x22,0x22,0x02
-		.align	2
+		.align  8
 obj_0056A22D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBusySlots),MAKEPTR(SYMappName),MAKEPTR(SYMbecause)
 obj_0056A245_map:	FrameMapObj(5)
@@ -1158,34 +1155,34 @@ obj_0041B0C9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B0C9:	FrameObj(3, obj_0041B0C9_map)
 		Ref		0x00000132,_FComputeParagraphHeight,0x0000000C
-obj_0062C8C9:	.long		kHeaderSize + 4 + kFlagsBinary
+obj_0062C8C9:	Ref    kHeaderSize + 4 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0x02
-		.align	2
+		.align  8
 obj_0062C5A5:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars)
 obj_0062DAC5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062DAC5:	FrameObj(5, obj_0062DAC5_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C8C9),MAKEPTR(obj_0062C5A5),NILREF,0x00000004
-obj_003C6631:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_003C6631:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x29,0x7C,0x98,0x22,0x02
-		.align	2
+		.align  8
 obj_003C6C89:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCoverPageRegistry),MAKEPTR(SYMEnsureInternal)
 obj_003C6C9D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C6C9D:	FrameObj(5, obj_003C6C9D_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C6C89),NILREF,0x00000008
-obj_005A83CD:	.long		kHeaderSize + 77 + kFlagsBinary
+obj_005A83CD:	Ref    kHeaderSize + 77 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x7B,0x18,0x29,0xA6,0x7E,0x6F,0x00
 		.byte		0x2B,0x7E,0x19,0x1A,0x2A,0xC5,0x6F,0x00,0x1E,0x7E,0x19,0x1B,0x80,0x98,0x7E,0x19
 		.byte		0x91,0x7C,0x7D,0x98,0x7E,0x1C,0x29,0x00,0x5F,0x00,0x4A,0x7B,0x1D,0x80,0x1E,0x82
 		.byte		0xA6,0x7E,0x19,0x91,0x7C,0x7D,0x98,0x7E,0x27,0x02,0x07,0x1F,0x00,0x07,0x28,0x20
 		.byte		0xC2,0x1F,0x00,0x08,0x39,0x1F,0x00,0x09,0x39,0x00,0x7E,0x02,0x02
-		.align	2
+		.align  8
 obj_005A83B5:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMapp),MAKEPTR(SYMextensionPaths)
 obj_005A8429:	ArrayObj(10, MAKEPTR(SYMliterals))
@@ -1208,12 +1205,12 @@ obj_00628889_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00628889:	FrameObj(3, obj_00628889_map)
 		Ref		0x00000132,_FWRecIsBeingUsed,0x00000000
-obj_00569F29:	.long		kHeaderSize + 41 + kFlagsBinary
+obj_00569F29:	Ref    kHeaderSize + 41 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x38,0xA4,0x7C,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x20,0x7E,0x24,0xC2
 		.byte		0xA5,0x7D,0x6F,0x00,0x1E,0x7D,0x19,0x38,0x1A,0x1B,0x7D,0x1C,0x2C,0x00,0x7E,0x05
 		.byte		0x7E,0x06,0x6F,0x00,0x0D,0x22,0x22,0xA6,0x02
-		.align	2
+		.align  8
 obj_00569F61:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSoupsInUse),MAKEPTR(SYMGetName),MAKEPTR(SYM_newt),MAKEPTR(SYMSoupEnters),MAKEPTR(SYMXmitSoupChangeNow)
 obj_00569F81_map:	FrameMapObj(5)
@@ -1224,7 +1221,7 @@ obj_0062DAE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062DAE5:	FrameObj(3, obj_0062DAE5_map)
 		Ref		0x00000132,_FClone,0x00000004
-obj_00570B41:	.long		kHeaderSize + 112 + kFlagsBinary
+obj_00570B41:	Ref    kHeaderSize + 112 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x11,0x19,0x1A,0x29,0x5F,0x00
 		.byte		0x12,0x22,0x6F,0x00,0x6E,0x7C,0x6F,0x00,0x45,0x1B,0x1C,0x29,0x6F,0x00,0x2B,0x22
@@ -1233,7 +1230,7 @@ obj_00570B41:	.long		kHeaderSize + 112 + kFlagsBinary
 		.byte		0x38,0x00,0x5F,0x00,0x68,0x7B,0x1F,0x00,0x0A,0xC4,0x6F,0x00,0x53,0x1B,0x1C,0x29
 		.byte		0x5F,0x00,0x54,0x22,0x6F,0x00,0x5D,0x73,0x1F,0x00,0x0B,0x38,0x00,0x70,0x7B,0x1F
 		.byte		0x00,0x0C,0x89,0x1F,0x00,0x0D,0x2A,0x00,0x27,0x00,0x1A,0x5F,0x00,0x6F,0x22,0x02
-		.align	2
+		.align  8
 obj_00570BBD:	ArrayObj(14, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMAutoDockRegistry),MAKEPTR(SYMAutoDockOn),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMAutoDockSlip),MAKEPTR(SYMGlobalVarExists),MAKEPTR(SYMMoveBehind),MAKEPTR(SYMdockMessage),MAKEPTR(SYMBuildContext),MAKEPTR(SYMDefGlobalVar),MAKEPTR(SYMOpen),MAKEPTR(SYMDisconnect),MAKEPTR(SYMClose),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00570C01_map:	FrameMapObj(5)
@@ -1248,14 +1245,14 @@ obj_0041B61D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B61D:	FrameObj(3, obj_0041B61D_map)
 		Ref		0x00000132,_FDrawXBitmap,0x00000010
-obj_004164F9:	.long		kHeaderSize + 70 + kFlagsBinary
+obj_004164F9:	Ref    kHeaderSize + 70 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x3B,0x7D,0x24
 		.byte		0xC2,0xA4,0x7C,0x1A,0xC7,0x00,0x17,0x6F,0x00,0x20,0x7C,0x1A,0x91,0x5F,0x00,0x21
 		.byte		0x22,0x67,0x00,0x2D,0x7C,0x1A,0xC7,0x00,0x17,0xC5,0x5F,0x00,0x30,0x27,0x00,0x1A
 		.byte		0x6F,0x00,0x39,0x7B,0x7C,0xC7,0x00,0x15,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x0E
 		.byte		0x22,0x22,0xA5,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_0041654D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMfonts),MAKEPTR(SYMusable)
 obj_00416565_map:	FrameMapObj(5)
@@ -1274,12 +1271,12 @@ obj_0041BDAD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BDAD:	FrameObj(3, obj_0041BDAD_map)
 		Ref		0x00000132,_FGetOrientation,0x00000000
-obj_00562F65:	.long		kHeaderSize + 34 + kFlagsBinary
+obj_00562F65:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x19,0x28,0x00,0x72,0xC5,0x6F,0x00,0x16
 		.byte		0x7B,0x1B,0x29,0x5F,0x00,0x17,0x22,0x6F,0x00,0x20,0x7B,0x1C,0x29,0x5F,0x00,0x21
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_00562F95:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPoweringOff),MAKEPTR(SYMHideBatteryAlerts),MAKEPTR(SYMPowerOffFenceSitters),MAKEPTR(SYMPowerOffJooHooShuuShuu),MAKEPTR(SYMPowerOffYobiKaiGi)
 obj_00562FB5_map:	FrameMapObj(5)
@@ -1300,13 +1297,13 @@ obj_003C69AD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C69AD:	FrameObj(5, obj_003C69AD_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C6999),NILREF,0x00000004
-obj_004B20ED:	.long		kHeaderSize + 63 + kFlagsBinary
+obj_004B20ED:	Ref    kHeaderSize + 63 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x2C,0x7B,0xC7,0x00,0x18,0x19,0x29,0xA5,0x7D,0x6F,0x00
 		.byte		0x19,0x7B,0x7C,0x7D,0x1A,0x42,0x5F,0x00,0x1A,0x22,0xA6,0x7E,0xC5,0x6F,0x00,0x28
 		.byte		0x7C,0x7B,0x27,0x08,0x63,0x1B,0x3A,0xA6,0x7E,0x5F,0x00,0x3E,0x7C,0x7B,0x6F,0x00
 		.byte		0x37,0x7B,0x1C,0x89,0x5F,0x00,0x39,0x1C,0x88,0x27,0x07,0xE7,0x1B,0x3A,0x02
-		.align	2
+		.align  8
 obj_004B2139:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTargetIsCursor),MAKEPTR(SYMGetDataDefs),MAKEPTR(SYMQuery),MAKEPTR(SYMNew),MAKEPTR(SYMarray)
 obj_004B2159_map:	FrameMapObj(5)
@@ -1317,12 +1314,12 @@ obj_0062A319_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062A319:	FrameObj(3, obj_0062A319_map)
 		Ref		0x00000132,_FPolyContainsInk,0x00000004
-obj_00556AED:	.long		kHeaderSize + 45 + kFlagsBinary
+obj_00556AED:	Ref    kHeaderSize + 45 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x67,0x00,0x0E,0x7B,0xC7,0x00,0x18,0x18,0xC4,0x5F,0x00,0x11,0x27,0x00
 		.byte		0x1A,0x6F,0x00,0x18,0x7B,0x19,0x81,0xA3,0x7B,0x1A,0x91,0x7B,0x1B,0x91,0x6F,0x00
 		.byte		0x27,0x7B,0x1B,0x91,0x5F,0x00,0x29,0x1C,0x28,0x7B,0x1D,0x33,0x02
-		.align	2
+		.align  8
 obj_00556AD9:	ArrayObj(2, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMfile)
 obj_00556AC1_map:	FrameMapObj(3)
@@ -1339,20 +1336,20 @@ obj_0041D4FD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041D4FD:	FrameObj(3, obj_0041D4FD_map)
 		Ref		0x00000132,_DSFilterStringsAux,0x00000008
-obj_004A8CF1:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_004A8CF1:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x7B,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_004A8D05:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMsymbol),MAKEPTR(SYMRegDataDef)
 obj_004A8D19_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8D19:	FrameObj(5, obj_004A8D19_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8CF1),MAKEPTR(obj_004A8D05),NILREF,0x00000004
-obj_0048014D:	.long		kHeaderSize + 11 + kFlagsBinary
+obj_0048014D:	Ref    kHeaderSize + 11 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x2A,0x00,0x1A,0x28,0x7B,0x1B,0x2A,0x02
-		.align	2
+		.align  8
 obj_00480165:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtransports),MAKEPTR(SYMSetRemove),MAKEPTR(SYMGetRoot),MAKEPTR(SYMRemoveSlot)
 obj_00480181_map:	FrameMapObj(5)
@@ -1387,19 +1384,19 @@ obj_0041C089_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C089:	FrameObj(3, obj_0041C089_map)
 		Ref		0x00000132,_FFinishRecognizing,0x00000000
-obj_00563C9D:	.long		kHeaderSize + 47 + kFlagsBinary
+obj_00563C9D:	Ref    kHeaderSize + 47 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0xA3,0x72,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x26,0x7E,0x24
 		.byte		0xC2,0xA5,0x7E,0x20,0xC2,0xA4,0x7D,0x1B,0x91,0x6F,0x00,0x24,0x7C,0x27,0x00,0x1A
 		.byte		0x7B,0x1C,0x3A,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x0E,0x22,0x22,0xA6,0x02
-		.align	2
+		.align  8
 obj_00563CD9:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMnotification),MAKEPTR(SYMNotifications),MAKEPTR(SYMbatteryAltert),MAKEPTR(SYMMarkItemSeen)
 obj_00563CF9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00563CF9:	FrameObj(5, obj_00563CF9_map)
 		Ref		0x00000032,MAKEPTR(obj_00563C9D),MAKEPTR(obj_00563CD9),NILREF,0x00100000
-obj_0052FFD5:	.long		kHeaderSize + 82 + kFlagsBinary
+obj_0052FFD5:	Ref    kHeaderSize + 82 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x1A,0x19,0x29,0xA4,0x27,0x07,0xCF,0x1B,0x81,0xA5,0x1C,0x1D
 		.byte		0x7D,0x1E,0x3A,0x00,0x7B,0x1F,0x00,0x07,0x29,0x6F,0x00,0x20,0x7B,0x5F,0x00,0x21
@@ -1407,22 +1404,22 @@ obj_0052FFD5:	.long		kHeaderSize + 82 + kFlagsBinary
 		.byte		0x1F,0x00,0x0B,0x7D,0x1E,0x3A,0x00,0x7C,0x1F,0x00,0x07,0x29,0x6F,0x00,0x43,0x7C
 		.byte		0x5F,0x00,0x46,0x1F,0x00,0x0C,0x7D,0x1F,0x00,0x08,0x39,0x00,0x7D,0x1F,0x00,0x09
 		.byte		0x38,0x02
-		.align	2
-obj_0052FFA5:	.long		kHeaderSize + 10 + kFlagsBinary
+		.align  8
+obj_0052FFA5:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'a','t','l','k',0
-		.align	2
-obj_0052FBCD:	.long		kHeaderSize + 20 + kFlagsBinary
+		.align  8
+obj_0052FBCD:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'D','e','f','A','T','L','i','n','k',0
-		.align	2
+		.align  8
 obj_00530035:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMmodemHardwareLocation),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMappletalkLink),MAKEPTR(obj_004E4429),MAKEPTR(obj_0052FF8D),MAKEPTR(obj_0052EC95),MAKEPTR(SYMInstantiate),MAKEPTR(SYMStrFilled),MAKEPTR(SYMsetdefaultConfig),MAKEPTR(SYMDispose),MAKEPTR(obj_0052FFA5),MAKEPTR(obj_0052FBCD),MAKEPTR(obj_0052FFBD)
 obj_00530075_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00530075:	FrameObj(5, obj_00530075_map)
 		Ref		0x00000032,MAKEPTR(obj_0052FFD5),MAKEPTR(obj_00530035),NILREF,0x000C0000
-obj_00563105:	.long		kHeaderSize + 292 + kFlagsBinary
+obj_00563105:	Ref    kHeaderSize + 292 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xC5,0x67,0x00,0x0B,0x70,0x19,0xC4,0x5F,0x00,0x0E,0x27,0x00,0x1A,0x6F,0x00
 		.byte		0x14,0x22,0x02,0x00,0x72,0xC5,0x6F,0x00,0x8B,0x73,0x22,0xC7,0x00,0x11,0xA5,0x5F
@@ -1443,7 +1440,7 @@ obj_00563105:	.long		kHeaderSize + 292 + kFlagsBinary
 		.byte		0x20,0xC7,0x00,0x0B,0x5F,0x01,0x08,0x22,0x67,0x00,0x9A,0x22,0x00,0x22,0xAA,0x22
 		.byte		0xA8,0x1F,0x00,0x0B,0x28,0xA7,0x00,0x09,0x7F,0x00,0x09,0x1F,0x00,0x0C,0x29,0x00
 		.byte		0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_005630C5:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPoweringOff),MAKEPTR(SYMinYobiKaiGi),MAKEPTR(SYMPowerOffFenceSitters),MAKEPTR(SYMOldPowerOffHandlers),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMPowerOff),MAKEPTR(SYMPowerOffScript),MAKEPTR(SYMarray),MAKEPTR(SYMPowerOffRegistry),MAKEPTR(SYMholdYourHorses),MAKEPTR(SYMSetRemove),MAKEPTR(SYMPowerOffRingiSho),MAKEPTR(SYMPowerOnSequence)
 obj_00563235_map:	FrameMapObj(5)
@@ -1458,24 +1455,24 @@ obj_0041B309_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B309:	FrameObj(3, obj_0041B309_map)
 		Ref		0x00000132,_FSetCaretInfo,0x00000008
-obj_004C5C59:	.long		kHeaderSize + 71 + kFlagsBinary
+obj_004C5C59:	Ref    kHeaderSize + 71 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x29,0x6F,0x00,0x0C,0x71,0x7B,0x91,0x5F,0x00,0x0D,0x22,0x6F,0x00,0x45
 		.byte		0x7C,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x26,0x7E,0x24,0xC2,0xA5,0x71,0x7B,0x91
 		.byte		0x7D,0x1A,0x2A,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x19,0x22,0x22,0xA6,0x00,0x71
 		.byte		0x7B,0x91,0xC7,0x00,0x12,0x20,0xC4,0x6F,0x00,0x41,0x71,0x7B,0x1B,0x2A,0x5F,0x00
 		.byte		0x42,0x22,0x5F,0x00,0x46,0x22,0x02
-		.align	2
+		.align  8
 obj_004C5CAD:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMAppClassesRegistry),MAKEPTR(SYMSetRemove),MAKEPTR(SYMRemoveSlot)
 obj_004C5CC9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004C5CC9:	FrameObj(5, obj_004C5CC9_map)
 		Ref		0x00000032,MAKEPTR(obj_004C5C59),MAKEPTR(obj_004C5CAD),NILREF,0x00080008
-obj_0041A729:	.long		kHeaderSize + 10 + kFlagsBinary
+obj_0041A729:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x24,0xC7,0x00,0x0E,0x20,0xC6,0x02
-		.align	2
+		.align  8
 obj_0041A741:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetViewFlags)
 obj_0041A751_map:	FrameMapObj(5)
@@ -1488,13 +1485,13 @@ obj_003C6B51_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C6B51:	FrameObj(5, obj_003C6B51_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C6B3D),NILREF,0x00000004
-obj_005A80F5:	.long		kHeaderSize + 53 + kFlagsBinary
+obj_005A80F5:	Ref    kHeaderSize + 53 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x02,0x07,0x18,0x28,0x20,0xC2,0x19,0x39,0x1A,0x1B,0x81,0x1C,0x2A,0xA3,0x7B
 		.byte		0x1D,0x38,0xA4,0x5F,0x00,0x2D,0x7C,0x1E,0x91,0xC5,0x6F,0x00,0x25,0x7B,0x1D,0x38
 		.byte		0x1F,0x00,0x07,0x29,0x00,0x7B,0x1F,0x00,0x08,0x38,0xA4,0x7C,0x00,0x7C,0x22,0xC6
 		.byte		0x67,0x00,0x16,0x22,0x02
-		.align	2
+		.align  8
 obj_005A8139:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMindex),MAKEPTR(obj_00555DC9),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(SYMbuiltInMetaData),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(SYMNext)
 obj_005A8169_map:	FrameMapObj(5)
@@ -1513,21 +1510,21 @@ obj_0041C921_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C921:	FrameObj(3, obj_0041C921_map)
 		Ref		0x00000132,_FAppleTalkOpenCount,0x00000000
-obj_004B2199:	.long		kHeaderSize + 29 + kFlagsBinary
+obj_004B2199:	Ref    kHeaderSize + 29 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x0F,0x7C,0x7D,0x19,0x41,0x5F,0x00,0x10,0x22
 		.byte		0xA6,0x7E,0xC5,0x6F,0x00,0x1B,0x7B,0x7C,0x1A,0x82,0xA6,0x7E,0x02
-		.align	2
+		.align  8
 obj_004B21C5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDataDefs),MAKEPTR(SYMCreateCursor),MAKEPTR(obj_004E9301)
 obj_004B21DD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004B21DD:	FrameObj(5, obj_004B21DD_map)
 		Ref		0x00000032,MAKEPTR(obj_004B2199),MAKEPTR(obj_004B21C5),NILREF,0x00080008
-obj_0044DFFD:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_0044DFFD:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0xC4,0x02,0x02
-		.align	2
+		.align  8
 obj_0044E011:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		0xF7016
 obj_0044E021_map:	FrameMapObj(5)
@@ -1538,11 +1535,11 @@ obj_0041FC6D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FC6D:	FrameObj(3, obj_0041FC6D_map)
 		Ref		0x00000132,_FTicks,0x00000000
-obj_005B8F15:	.long		kHeaderSize + 26 + kFlagsBinary
+obj_005B8F15:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x02,0xAF,0x18,0x81,0xA4,0x27,0x00,0x3C,0x24,0x7C,0x19,0x3A,0x00,0x7C,0x1A
 		.byte		0x20,0x98,0x7C,0x1B,0x7B,0x98,0x7C,0x1C,0x38,0x02
-		.align	2
+		.align  8
 obj_005B8F3D:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004E4429),MAKEPTR(SYMInitialize),MAKEPTR(SYMstatus),MAKEPTR(SYMcustom),MAKEPTR(SYMRegister)
 obj_005B8F5D_map:	FrameMapObj(5)
@@ -1555,7 +1552,7 @@ obj_003C65BD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C65BD:	FrameObj(5, obj_003C65BD_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C65A9),NILREF,0x00000008
-obj_004375F5:	.long		kHeaderSize + 551 + kFlagsBinary
+obj_004375F5:	Ref    kHeaderSize + 551 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA8,0x7D,0xA9,0x7F,0x00,0x08,0xAA,0x71,0x27,0x01,0x18,0xC7,0x00,0x08,0x27
 		.byte		0x02,0xD0,0xC7,0x00,0x08,0x1B,0xC7,0x00,0x07,0x1C,0x29,0xA7,0x00,0x0D,0x1D,0x88
@@ -1592,7 +1589,7 @@ obj_004375F5:	.long		kHeaderSize + 551 + kFlagsBinary
 		.byte		0x7F,0x00,0x0C,0xB7,0x00,0x0B,0x7F,0x00,0x11,0xBF,0x01,0xC3,0x22,0x00,0x76,0xC7
 		.byte		0x00,0x12,0x24,0xC7,0x00,0x0B,0x6F,0x02,0x25,0x76,0x1F,0x00,0x2F,0x1F,0x00,0x30
 		.byte		0x1F,0x00,0x31,0x2B,0x00,0x76,0x02
-		.align	2
+		.align  8
 obj_003C46F1:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMx),MAKEPTR(SYMy)
 obj_004371F9:	ArrayObj(3, 0x00000008)
@@ -1617,7 +1614,7 @@ obj_00437389:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMe),MAKEPTR(SYMx)
 obj_0043739D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMe),MAKEPTR(SYMx)
-obj_00437425:	.long		kHeaderSize + 337 + kFlagsBinary
+obj_00437425:	Ref    kHeaderSize + 337 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x71,0x7B,0x20,0xC2,0x7B,0x24,0xC2,0x1A,0x1B,0x2D,0xA4,0x7C,0x74,0xC7,0x00
 		.byte		0x0A,0x6F,0x01,0x4E,0x7B,0x20,0xC2,0x7B,0x24,0xC2,0x7C,0x1D,0x83,0xA5,0x76,0x1F
@@ -1641,7 +1638,7 @@ obj_00437425:	.long		kHeaderSize + 337 + kFlagsBinary
 		.byte		0x00,0x0B,0x6F,0x01,0x4E,0x77,0x00,0x0C,0x77,0x00,0x18,0x1F,0x00,0x19,0x2A,0x00
 		.byte		0x77,0x00,0x0C,0x77,0x00,0x18,0x24,0xC1,0xC2,0x1F,0x00,0x08,0x91,0xAC,0x22,0x02
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00437225:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMx),MAKEPTR(SYMy),MAKEPTR(SYMd)
 obj_004373B1:	ArrayObj(26, MAKEPTR(SYMliterals))
@@ -1682,7 +1679,7 @@ obj_00627FF1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627FF1:	FrameObj(3, obj_00627FF1_map)
 		Ref		0x00000132,_FDrawStringShapes,0x00000008
-obj_00482BE5:	.long		kHeaderSize + 83 + kFlagsBinary
+obj_00482BE5:	Ref    kHeaderSize + 83 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA7,0x00,0x07,0x7B,0x6F,0x00,0x12,0x7F,0x00,0x07,0x7B,0x91,0x5F
 		.byte		0x00,0x13,0x22,0x6F,0x00,0x21,0x7F,0x00,0x07,0x7B,0x91,0xC7,0x00,0x13,0x5F,0x00
@@ -1690,7 +1687,7 @@ obj_00482BE5:	.long		kHeaderSize + 83 + kFlagsBinary
 		.byte		0x00,0x1A,0x1C,0x2B,0xA6,0x7D,0x6F,0x00,0x45,0x7E,0x7F,0x00,0x07,0x1D,0x91,0x27
 		.byte		0x00,0x1A,0x1C,0x2B,0xA6,0x7E,0x1E,0x77,0x00,0x07,0x1F,0x00,0x08,0x91,0x1F,0x00
 		.byte		0x09,0x2B,0x02
-		.align	2
+		.align  8
 obj_00482C45:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserFolderGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMarray),MAKEPTR(SYM_Global),MAKEPTR(SYMSetUnion),MAKEPTR(SYM_System),MAKEPTR(SYMstr_3C),MAKEPTR(SYMfunctions),MAKEPTR(SYMGetFolderStr),MAKEPTR(SYMSort)
 obj_00482C79_map:	FrameMapObj(5)
@@ -1713,11 +1710,11 @@ obj_0053668D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0053668D:	FrameObj(3, obj_0053668D_map)
 		Ref		0x00000132,_FTestMDropConnection,0x00000000
-obj_00563265:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_00563265:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x6F,0x00,0x0C,0x70,0x20,0xC2,0x7B,0xC4,0x5F,0x00,0x0D,0x22,0x6F,0x00,0x1C
 		.byte		0x70,0x20,0x19,0x2A,0x00,0x72,0x1B,0x91,0x1C,0x1D,0x2A,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_00563255:	ArrayObj(1, MAKEPTR(SYMarray))
 		Ref		NILREF
 obj_00563291:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -1726,7 +1723,7 @@ obj_005632B5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005632B5:	FrameObj(5, obj_005632B5_map)
 		Ref		0x00000032,MAKEPTR(obj_00563265),MAKEPTR(obj_00563291),NILREF,0x00000004
-obj_005579E1:	.long		kHeaderSize + 85 + kFlagsBinary
+obj_005579E1:	Ref    kHeaderSize + 85 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x53,0x7C,0x18,0x22,0x98,0x19,0x27,0x00,0x78,0xC9,0x7C,0x1A,0x91
 		.byte		0x6F,0x00,0x18,0x7C,0x7C,0x1A,0x39,0x00,0x07,0x00,0x07,0x5F,0x00,0x21,0x07,0x00
@@ -1734,7 +1731,7 @@ obj_005579E1:	.long		kHeaderSize + 85 + kFlagsBinary
 		.byte		0xA7,0x00,0x07,0x7F,0x00,0x07,0x1D,0x91,0x6F,0x00,0x41,0x7F,0x00,0x07,0x1E,0x38
 		.byte		0x00,0x07,0x00,0x07,0x5F,0x00,0x4A,0x07,0x00,0x07,0x7D,0x7E,0x1F,0x00,0x07,0x2A
 		.byte		0x5F,0x00,0x54,0x22,0x02
-		.align	2
+		.align  8
 obj_00557A45:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_proto),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMremoveScript),MAKEPTR(SYMGetRoot),MAKEPTR(SYMapp),MAKEPTR(SYMviewCObject),MAKEPTR(SYMClose),MAKEPTR(SYMRemoveSlot)
 obj_00557A71_map:	FrameMapObj(5)
@@ -1745,12 +1742,12 @@ obj_005C2DDD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005C2DDD:	FrameObj(3, obj_005C2DDD_map)
 		Ref		0x00000132,_FUnblockStrokes,0x00000000
-obj_0042019D:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_0042019D:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0xA4,0x70,0x19,0x91,0xA5,0x7D,0x6F,0x00,0x2E,0x27,0x00,0xF0,0x7B,0x7D,0x1A
 		.byte		0x2A,0xC7,0x00,0x07,0xA6,0x7E,0x70,0x1B,0x91,0xC6,0x6F,0x00,0x2E,0x7E,0x70,0x1B
 		.byte		0x91,0xC1,0x27,0x00,0xF0,0xC7,0x00,0x09,0xA4,0x1B,0x7E,0x1C,0x2A,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_004201D9:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMlocation),MAKEPTR(SYMDSTOffset),MAKEPTR(SYMdaylightSavings),MAKEPTR(SYMSetUserConfig)
 obj_004201F9_map:	FrameMapObj(5)
@@ -1765,13 +1762,13 @@ obj_0062DBB9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062DBB9:	FrameObj(3, obj_0062DBB9_map)
 		Ref		0x00000132,_FShellSort,0x0000000C
-obj_005684FD:	.long		kHeaderSize + 52 + kFlagsBinary
+obj_005684FD:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x19,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x1A,0x7D,0x24,0xC2,0xA4
 		.byte		0x7B,0x7C,0x1A,0x22,0x22,0x1B,0x2D,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x0C,0x22
 		.byte		0x22,0xA5,0x00,0x7B,0x1C,0x20,0x1D,0x2B,0x00,0x7B,0x20,0x20,0x19,0x20,0x22,0x1E
 		.byte		0x2E,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_0056801D:	ArrayObj(4, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(obj_003C5F05),MAKEPTR(obj_00567F99),MAKEPTR(obj_00567FBD),MAKEPTR(obj_00567FED)
 obj_0056853D:	ArrayObj(7, MAKEPTR(SYMliterals))
@@ -1792,7 +1789,7 @@ obj_0041FACD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FACD:	FrameObj(3, obj_0041FACD_map)
 		Ref		0x00000132,_FTotalMinutes,0x00000004
-obj_00464F2D:	.long		kHeaderSize + 1346 + kFlagsBinary
+obj_00464F2D:	Ref    kHeaderSize + 1346 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x18,0x28,0x6F,0x00,0x12,0x71,0x5F
 		.byte		0x00,0x13,0x22,0x6F,0x00,0x23,0x27,0x00,0x0C,0x1A,0x1B,0x1C,0x28,0x1D,0x3B,0x00
@@ -1879,11 +1876,11 @@ obj_00464F2D:	.long		kHeaderSize + 1346 + kFlagsBinary
 		.byte		0xA3,0x7B,0x1F,0x00,0x59,0x27,0x00,0x1A,0x98,0x7B,0x7D,0x1F,0x00,0x5A,0x39,0x00
 		.byte		0x7E,0x02,0x00,0x7E,0x1F,0x00,0x5B,0x38,0x00,0x7E,0x22,0x1F,0x00,0x5C,0x2A,0x00
 		.byte		0x7E,0x02
-		.align	2
-obj_00464839:	.long		kHeaderSize + 92 + kFlagsBinary
+		.align  8
+obj_00464839:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','o','r','r','y','.',' ',' ','A','n','o','t','h','e','r',' ','r','o','u','t','i','n','g',' ','s','l','i','p',' ','i','s',' ','a','l','r','e','a','d','y',' ','o','p','e','n','.',0
-		.align	2
+		.align  8
 obj_0046495D:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMbeam_3Anewton),MAKEPTR(SYMprint_3Anewton),MAKEPTR(SYMfaxsend_3Anewton)
 obj_00464B55:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -1902,10 +1899,10 @@ obj_00464BCD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMfields),MAKEPTR(SYMcategory)
 obj_00464BE1:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMfields),MAKEPTR(SYMcategory)
-obj_00463E11:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_00463E11:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'b','o','g','u','s',0
-		.align	2
+		.align  8
 obj_00463E65_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00463E65:	FrameObj(5, obj_00463E65_map)
@@ -1938,10 +1935,10 @@ obj_00464CBD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMfields),MAKEPTR(SYMalternatives)
 obj_00464CD1:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMfields),MAKEPTR(SYMalternatives)
-obj_00464A4D:	.long		kHeaderSize + 52 + kFlagsBinary
+obj_00464A4D:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','i','s',' ','i','t','e','m',' ','c','a','n','n','o','t',' ','b','e',' ','s','e','n','t','.',0
-		.align	2
+		.align  8
 obj_00464CE5:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMtargetView),MAKEPTR(SYMSetupRoutingSlip)
 obj_00464CF9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -1981,10 +1978,10 @@ obj_0041AFE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AFE5:	FrameObj(3, obj_0041AFE5_map)
 		Ref		0x00000132,_FHideCaret,0x00000000
-obj_004A8831:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_004A8831:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x0E,0x71,0x7C,0x91,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_004A884D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMDataClassOf),MAKEPTR(SYM_dataDefs)
 obj_004A8861_map:	FrameMapObj(5)
@@ -1995,14 +1992,14 @@ obj_0041B585_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B585:	FrameObj(3, obj_0041B585_map)
 		Ref		0x00000132,_FMatchKeyMessage,0x00000008
-obj_0054AC9D:	.long		kHeaderSize + 80 + kFlagsBinary
+obj_0054AC9D:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x7B,0x91,0xA4,0x7C,0x6F,0x00,0x12,0x7C,0x19,0x91,0x1A,0x1B,0x2A,0x5F
 		.byte		0x00,0x13,0x22,0x6F,0x00,0x1C,0x7C,0x19,0x91,0x5F,0x00,0x4F,0x7C,0x6F,0x00,0x29
 		.byte		0x7C,0x1C,0x91,0x1A,0x1B,0x2A,0x5F,0x00,0x2A,0x22,0x6F,0x00,0x33,0x7C,0x1C,0x91
 		.byte		0x5F,0x00,0x4F,0x7B,0x1D,0x18,0x28,0x1E,0x91,0x1F,0x00,0x07,0x3A,0xA5,0x7D,0x6F
 		.byte		0x00,0x4A,0x7D,0x1F,0x00,0x08,0x91,0x5F,0x00,0x4F,0x7B,0x1F,0x00,0x09,0x29,0x02
-		.align	2
+		.align  8
 obj_0054AC91_map:	FrameMapObj(0)
 		Ref		0x00000000,NILREF
 obj_0054AC91:	FrameObj(0, obj_0054AC91_map)
@@ -2020,10 +2017,10 @@ obj_0062DBD1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062DBD1:	FrameObj(3, obj_0062DBD1_map)
 		Ref		0x00000132,_FGetPkgRefInfo,0x00000004
-obj_00569C25:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_00569C25:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x00,0x1A,0x18,0x2A,0xA6,0x7E,0x7C,0x19,0x29,0x7D,0x98,0x22,0x02
-		.align	2
+		.align  8
 obj_00569C41:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSoupChangeCallbacks),MAKEPTR(SYMEnsureInternal)
 obj_00569C55_map:	FrameMapObj(5)
@@ -2038,13 +2035,13 @@ obj_005C2DF5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005C2DF5:	FrameObj(3, obj_005C2DF5_map)
 		Ref		0x00000132,_FMergeInk,0x00000008
-obj_004369B5:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_004369B5:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x28,0x20,0xC2,0x19,0x39,0xA6,0x7E,0xC5,0x6F,0x00,0x2A,0x18,0x28,0x20
 		.byte		0xC2,0xA7,0x00,0x07,0x1A,0x7B,0x1B,0x29,0x91,0xA7,0x00,0x08,0x7F,0x00,0x08,0x7F
 		.byte		0x00,0x07,0x22,0x1C,0x2B,0xA6,0x27,0x00,0x1A,0xA5,0x7C,0x1D,0x1E,0x98,0x7C,0x1F
 		.byte		0x00,0x07,0x22,0x98,0x7C,0x7E,0x1E,0x39,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00433B55_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433B55:	FrameObj(3, obj_00433B55_map)
@@ -2133,10 +2130,10 @@ obj_004366C9_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_004366C9:	FrameObj(6, obj_004366C9_map)
 		Ref		MAKEMAGICPTR(295),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEMAGICPTR(295),MAKEPTR(obj_004364D9)
-obj_004366ED:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_004366ED:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'D','a','y','l','i','g','h','t',' ','S','a','v','i','n','g','s',' ','T','i','m','e','s',0
-		.align	2
+		.align  8
 obj_00433D3D_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433D3D:	FrameObj(3, obj_00433D3D_map)
@@ -2151,10 +2148,10 @@ obj_00436729_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_00436729:	FrameObj(6, obj_00436729_map)
 		Ref		MAKEMAGICPTR(658),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_004366ED),MAKEPTR(obj_00436515)
-obj_0043674D:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_0043674D:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'U','S',' ','S','t','a','t','e','s',0
-		.align	2
+		.align  8
 obj_00433D55_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433D55:	FrameObj(3, obj_00433D55_map)
@@ -2189,10 +2186,10 @@ obj_0043676D_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_0043676D:	FrameObj(6, obj_0043676D_map)
 		Ref		MAKEMAGICPTR(452),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_0043674D),MAKEPTR(obj_00436541)
-obj_00436791:	.long		kHeaderSize + 38 + kFlagsBinary
+obj_00436791:	Ref    kHeaderSize + 38 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','a','n','a','d','i','a','n',' ','P','r','o','v','i','n','c','e','s',0
-		.align	2
+		.align  8
 obj_00433E0D_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433E0D:	FrameObj(3, obj_00433E0D_map)
@@ -2227,10 +2224,10 @@ obj_004367C5_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_004367C5:	FrameObj(6, obj_004367C5_map)
 		Ref		MAKEMAGICPTR(453),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_00436791),MAKEPTR(obj_0043657D)
-obj_004367E9:	.long		kHeaderSize + 36 + kFlagsBinary
+obj_004367E9:	Ref    kHeaderSize + 36 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','u','s','t','r','a','l','i','a','n',' ','S','t','a','t','e','s',0
-		.align	2
+		.align  8
 obj_00433EAD_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433EAD:	FrameObj(3, obj_00433EAD_map)
@@ -2265,10 +2262,10 @@ obj_00436819_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_00436819:	FrameObj(6, obj_00436819_map)
 		Ref		MAKEMAGICPTR(513),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_004367E9),MAKEPTR(obj_004365B9)
-obj_0043683D:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_0043683D:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'U','K',' ','C','o','u','n','t','i','e','s',0
-		.align	2
+		.align  8
 obj_00433F4D_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433F4D:	FrameObj(3, obj_00433F4D_map)
@@ -2303,10 +2300,10 @@ obj_00436861_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_00436861:	FrameObj(6, obj_00436861_map)
 		Ref		MAKEMAGICPTR(524),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_0043683D),MAKEPTR(obj_004365F5)
-obj_00436885:	.long		kHeaderSize + 38 + kFlagsBinary
+obj_00436885:	Ref    kHeaderSize + 38 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'F','r','e','n','c','h',' ','D','e','p','a','r','t','m','e','n','t','s',0
-		.align	2
+		.align  8
 obj_00433FED_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_00433FED:	FrameObj(3, obj_00433FED_map)
@@ -2341,10 +2338,10 @@ obj_004368B9_map:	FrameMapObj(6)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_004368B9:	FrameObj(6, obj_004368B9_map)
 		Ref		MAKEMAGICPTR(854),MAKEPTR(obj_004DADA1),MAKEPTR(SYMworldClock),MAKEPTR(obj_004DADA1),MAKEPTR(obj_00436885),MAKEPTR(obj_00436631)
-obj_004368DD:	.long		kHeaderSize + 42 + kFlagsBinary
+obj_004368DD:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'J','a','p','a','n','e','s','e',' ','P','r','e','f','e','c','t','u','r','e','s',0
-		.align	2
+		.align  8
 obj_0043408D_map:	FrameMapObj(3)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMstructure),MAKEPTR(SYMpath),MAKEPTR(SYMtype)
 obj_0043408D:	FrameObj(3, obj_0043408D_map)
@@ -2395,12 +2392,12 @@ obj_003C63B1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C63B1:	FrameObj(5, obj_003C63B1_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C639D),NILREF,0x00000004
-obj_00421E11:	.long		kHeaderSize + 36 + kFlagsBinary
+obj_00421E11:	Ref    kHeaderSize + 36 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x7B,0x19,0x83,0x1A,0x1B,0x28,0x20,0xC2,0x1C,0x39,0x1D,0x39,0xA4,0x7C
 		.byte		0x1E,0x38,0xA5,0x7D,0x6F,0x00,0x22,0x7D,0x1F,0x00,0x07,0x29,0x00,0x1F,0x00,0x08
 		.byte		0x28,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00421E41:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMkey),MAKEPTR(obj_00421DF5),MAKEPTR(obj_005465ED),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(SYMSetNextAlarm)
 obj_00421E71_map:	FrameMapObj(5)
@@ -2415,10 +2412,10 @@ obj_00420C61_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420C61:	FrameObj(3, obj_00420C61_map)
 		Ref		0x00000132,_Fisfinite,0x00000004
-obj_005B8F7D:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_005B8F7D:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x19,0x38,0x00,0x7C,0x1A,0x38,0x00,0x22,0x02,0x02
-		.align	2
+		.align  8
 obj_005B8F99:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDictionary),MAKEPTR(SYMUnregister),MAKEPTR(SYMDispose)
 obj_005B8FB1_map:	FrameMapObj(5)
@@ -2445,21 +2442,21 @@ obj_0062E125_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E125:	FrameObj(3, obj_0062E125_map)
 		Ref		0x00000132,_FPerform,0x0000000C
-obj_0041FEDD:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_0041FEDD:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0B,0x7B,0x20,0x19,0x2A,0xA3,0x7B,0x1A,0x29,0x02
-		.align	2
+		.align  8
 obj_0041FEF9:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsNumber),MAKEPTR(SYMTimeToTimeInSeconds),MAKEPTR(SYMSetTimeInSeconds)
 obj_0041FF11_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041FF11:	FrameObj(5, obj_0041FF11_map)
 		Ref		0x00000032,MAKEPTR(obj_0041FEDD),MAKEPTR(obj_0041FEF9),NILREF,0x00000004
-obj_0041C7CD:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_0041C7CD:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xC5,0x6F,0x00,0x10,0x7B,0x7C,0x7D,0x7E,0x19,0x2C,0x5F,0x00,0x11
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_0041C7ED:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMProcrastinatedActions),MAKEPTR(SYMAddProcrastinatedCall)
 obj_0041C801_map:	FrameMapObj(5)
@@ -2474,7 +2471,7 @@ obj_0041B4B1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B4B1:	FrameObj(3, obj_0041B4B1_map)
 		Ref		0x00000132,_FGetKeyView,0x00000000
-obj_0048BFED:	.long		kHeaderSize + 336 + kFlagsBinary
+obj_0048BFED:	Ref    kHeaderSize + 336 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x7B,0x19,0x28,0x1A,0x39,0x98,0x7C,0x1B,0x7B,0x1B,0x91,0xC7,0x00,0x13
 		.byte		0x98,0x7C,0x1C,0x7B,0x1D,0x91,0x1E,0x7B,0x1F,0x00,0x07,0x91,0x1F,0x00,0x08,0x7B
@@ -2497,7 +2494,7 @@ obj_0048BFED:	.long		kHeaderSize + 336 + kFlagsBinary
 		.byte		0xC2,0x98,0x5F,0x01,0x2B,0x7C,0x1F,0x00,0x1D,0x7D,0x98,0x7B,0x1F,0x00,0x1E,0x19
 		.byte		0x28,0x1F,0x00,0x13,0x91,0x1F,0x00,0x1B,0x3A,0xA6,0x7E,0x6F,0x01,0x49,0x7C,0x1F
 		.byte		0x00,0x1A,0x7E,0x20,0xC2,0x99,0x5F,0x01,0x4F,0x7C,0x1F,0x00,0x1A,0x7D,0x99,0x02
-		.align	2
+		.align  8
 obj_0048BF3D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMowner),MAKEPTR(SYMsignature)
 obj_0048BFD9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -2529,7 +2526,7 @@ obj_00420ED1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420ED1:	FrameObj(3, obj_00420ED1_map)
 		Ref		0x00000132,_FStripInk,0x00000008
-obj_00590DAD:	.long		kHeaderSize + 98 + kFlagsBinary
+obj_00590DAD:	Ref    kHeaderSize + 98 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA7,0x00,0x07,0x18,0x88,0xA7,0x00,0x08,0x5F,0x00,0x3A,0x7F,0x00,0x07,0x20
 		.byte		0x7D,0x19,0x2B,0xA6,0x7F,0x00,0x07,0x7D,0x24,0xC0,0x7F,0x00,0x07,0x1A,0x29,0x19
@@ -2538,7 +2535,7 @@ obj_00590DAD:	.long		kHeaderSize + 98 + kFlagsBinary
 		.byte		0x2B,0xA5,0x7D,0x67,0x00,0x0C,0x22,0x00,0x7F,0x00,0x07,0x1A,0x29,0x20,0xC7,0x00
 		.byte		0x0B,0x6F,0x00,0x5E,0x7F,0x00,0x08,0x7F,0x00,0x07,0xC7,0x00,0x15,0x00,0x7F,0x00
 		.byte		0x08,0x02
-		.align	2
+		.align  8
 obj_00590E1D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMSubstr),MAKEPTR(SYMStrLen),MAKEPTR(SYMStrPos)
 obj_00590E39_map:	FrameMapObj(5)
@@ -2549,25 +2546,25 @@ obj_0062E1A1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E1A1:	FrameObj(3, obj_0062E1A1_map)
 		Ref		0x00000132,_FArrayRemoveCount,0x0000000C
-obj_00437A1D:	.long		kHeaderSize + 62 + kFlagsBinary
+obj_00437A1D:	Ref    kHeaderSize + 62 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0xC7,0x00,0x09,0xA4,0x7C,0x19,0xC7,0x00,0x0B,0x6F,0x00,0x12,0x7C,0x1A
 		.byte		0xC1,0xA4,0x7C,0x27,0x00,0xF0,0xC7,0x00,0x09,0x1B,0x29,0x27,0x0A,0x06,0x7C,0x27
 		.byte		0x00,0xF0,0x1C,0x2A,0x1B,0x29,0x1D,0x7C,0x20,0xC7,0x00,0x0A,0x6F,0x00,0x35,0x27
 		.byte		0x05,0x36,0x5F,0x00,0x38,0x27,0x04,0xE6,0x1E,0x8D,0xC7,0x00,0x16,0x02
-		.align	2
+		.align  8
 obj_00437A69:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		0x0001845C,0x0000A8C0,0x00015180,MAKEPTR(SYMabs),MAKEPTR(SYMmod),MAKEPTR(obj_0047CABD),MAKEPTR(SYMarray)
 obj_00437A91_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00437A91:	FrameObj(5, obj_00437A91_map)
 		Ref		0x00000032,MAKEPTR(obj_00437A1D),MAKEPTR(obj_00437A69),NILREF,0x00040004
-obj_00437129:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_00437129:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x0A,0x4B,0x18,0x29,0xA4,0x7C,0xC5,0x6F,0x00,0x0E,0x22,0x02,0x00,0x7B,0x19
 		.byte		0x1A,0x2A,0x6F,0x00,0x19,0x7B,0x1B,0x29,0xA3,0x1C,0x1D,0x7B,0x7B,0x1E,0x84,0xA5
 		.byte		0x7D,0x7C,0x1F,0x00,0x07,0x39,0xA6,0x22,0x7E,0x1F,0x00,0x08,0x39,0x02
-		.align	2
+		.align  8
 obj_00437165:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetLocationSoup),MAKEPTR(SYMstring),MAKEPTR(SYMIsInstance),MAKEPTR(SYMIntern),MAKEPTR(SYMindex),MAKEPTR(SYMsymbol),MAKEPTR(obj_00437039),MAKEPTR(SYMQuery),MAKEPTR(SYMMap)
 obj_00437195_map:	FrameMapObj(5)
@@ -2586,17 +2583,17 @@ obj_00420DC9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420DC9:	FrameObj(3, obj_00420DC9_map)
 		Ref		0x00000132,_FSmartStop,0x00000008
-obj_00562DBD:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_00562DBD:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0xC7,0x00,0x15,0x02
-		.align	2
+		.align  8
 obj_00562DD1:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMOldPowerOffHandlers)
 obj_00562DE1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00562DE1:	FrameObj(5, obj_00562DE1_map)
 		Ref		0x00000032,MAKEPTR(obj_00562DBD),MAKEPTR(obj_00562DD1),NILREF,0x00000004
-obj_005638F5:	.long		kHeaderSize + 180 + kFlagsBinary
+obj_005638F5:	Ref    kHeaderSize + 180 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x67,0x00,0x11,0x1A,0x28,0x27,0x00,0x08,0xC7,0x00,0x0A,0x5F,0x00
 		.byte		0x14,0x27,0x00,0x1A,0x6F,0x00,0x1A,0x22,0x02,0x00,0x24,0x1B,0x29,0xA3,0x1C,0x28
@@ -2610,29 +2607,29 @@ obj_005638F5:	.long		kHeaderSize + 180 + kFlagsBinary
 		.byte		0x91,0xA5,0x5F,0x00,0x99,0x1F,0x00,0x0F,0xA5,0x27,0x00,0x10,0x1F,0x00,0x0A,0x7D
 		.byte		0x1C,0x28,0x1F,0x00,0x0B,0x3B,0xA6,0x7E,0x1F,0x00,0x0C,0x27,0x00,0x1A,0x99,0x5F
 		.byte		0x00,0xB3,0x22,0x02
-		.align	2
-obj_00563651:	.long		kHeaderSize + 278 + kFlagsBinary
+		.align  8
+obj_00563651:	Ref    kHeaderSize + 278 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','b','a','c','k','u','p',' ','b','a','t','t','e','r','y',' ','i','s',' ','d','e','a','d',' ','o','r',' ','m','i','s','s','i','n','g','.',' ','Y','o','u',' ','n','e','e','d',' ','t','o',' ','r','e','p','l','a','c','e',' ','t','h','e',' ','b','a','c','k','u','p',' ','b','a','t','t','e','r','y',' ','i','m','m','e','d','i','a','t','e','l','y',' ','o','r',' ','y','o','u',' ','w','i','l','l',' ','l','o','s','e',' ','t','h','e',' ','i','n','f','o','r','m','a','t','i','o','n',' ','i','n',' ','y','o','u','r',' ','N','e','w','t','o','n','.',0
-		.align	2
-obj_0056379D:	.long		kHeaderSize + 254 + kFlagsBinary
+		.align  8
+obj_0056379D:	Ref    kHeaderSize + 254 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','b','a','c','k','u','p',' ','b','a','t','t','e','r','y',' ','i','s',' ','r','u','n','n','i','n','g',' ','l','o','w','.',' ','Y','o','u',' ','n','e','e','d',' ','t','o',' ','r','e','p','l','a','c','e',' ','t','h','e',' ','b','a','c','k','u','p',' ','b','a','t','t','e','r','y',' ','s','o','o','n',' ','o','r',' ','y','o','u',' ','m','a','y',' ','l','o','s','e',' ','t','h','e',' ','i','n','f','o','r','m','a','t','i','o','n',' ','i','n',' ','y','o','u','r',' ','N','e','w','t','o','n','.',0
-		.align	2
+		.align  8
 obj_005638A9:	ArrayObj(16, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMquicklooklives),MAKEPTR(SYMBatteryCount),MAKEPTR(SYMBatteryStatus),MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetBatteryMessages),MAKEPTR(SYMbatteryCapacity),MAKEPTR(SYMbatteryDead),MAKEPTR(SYMbackupBatteryDeadMessage),MAKEPTR(obj_00563651),MAKEPTR(obj_0043C4C5),MAKEPTR(SYMNotify),MAKEPTR(SYMbatteryAlert),MAKEPTR(SYMbatteryLow),MAKEPTR(SYMbackupBatteryLowMessage),MAKEPTR(obj_0056379D)
 obj_005639B5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005639B5:	FrameObj(5, obj_005639B5_map)
 		Ref		0x00000032,MAKEPTR(obj_005638F5),MAKEPTR(obj_005638A9),NILREF,0x00100000
-obj_005AC9E5:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_005AC9E5:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x90,0x18,0x19,0x2A,0x02
-		.align	2
-obj_005ABC29:	.long		kHeaderSize + 16 + kFlagsBinary
+		.align  8
+obj_005ABC29:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','u','t','o','A','d','d',0
-		.align	2
+		.align  8
 obj_005AC9F9:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005ABC29),MAKEPTR(SYMLoadDictionary)
 obj_005ACA0D_map:	FrameMapObj(5)
@@ -2655,11 +2652,11 @@ obj_0062E361_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E361:	FrameObj(3, obj_0062E361_map)
 		Ref		0x00000132,_FGetVariable,0x00000008
-obj_0062C5B5:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_0062C5B5:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x2A,0xA6,0x7D,0x6F,0x00,0x12,0x7C,0x19,0x38,0x7D,0x1A,0x7E,0x1B
 		.byte		0x2C,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_0062C5D5:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntryCopy),MAKEPTR(SYMGetName),MAKEPTR(SYMentryAdded),MAKEPTR(SYMXmitSoupChange)
 obj_0062CB19_map:	FrameMapObj(5)
@@ -2670,7 +2667,7 @@ obj_0062E379_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E379:	FrameObj(3, obj_0062E379_map)
 		Ref		0x00000132,_FCollect,0x00000008
-obj_00468F31:	.long		kHeaderSize + 119 + kFlagsBinary
+obj_00468F31:	Ref    kHeaderSize + 119 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x59
 		.byte		0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x7E,0x22,0xC7,0x00
@@ -2680,7 +2677,7 @@ obj_00468F31:	.long		kHeaderSize + 119 + kFlagsBinary
 		.byte		0x22,0xA7,0x00,0x09,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x10
 		.byte		0x22,0x22,0xA7,0x00,0x07,0x00,0x7C,0xC7,0x00,0x12,0x20,0xC4,0x6F,0x00,0x74,0x22
 		.byte		0x02,0x5F,0x00,0x76,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_00468FB5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMAppClassesRegistry),MAKEPTR(SYMSetAdd)
 obj_00468FCD_map:	FrameMapObj(5)
@@ -2695,14 +2692,14 @@ obj_0062E391_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E391:	FrameObj(3, obj_0062E391_map)
 		Ref		0x00000132,_FFulfillImportTable,0x00000004
-obj_005A7E11:	.long		kHeaderSize + 73 + kFlagsBinary
+obj_005A7E11:	Ref    kHeaderSize + 73 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x18,0x7B,0x91,0xA4,0x7C,0x6F,0x00
 		.byte		0x13,0x7C,0xA3,0x71,0x7B,0x91,0xA5,0x7D,0xC5,0x6F,0x00,0x1F,0x22,0x02,0x00,0x7D
 		.byte		0x1A,0x29,0x6F,0x00,0x2A,0x7D,0xA6,0x5F,0x00,0x46,0x1B,0x28,0x7D,0x91,0xA6,0x7E
 		.byte		0xC5,0x6F,0x00,0x46,0x7B,0x1C,0x29,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x46
 		.byte		0x7F,0x00,0x07,0x7D,0x91,0xA6,0x7E,0x02,0x02
-		.align	2
+		.align  8
 obj_005A7DD9_map:	FrameMapObj(11)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMnote),MAKEPTR(SYMOutline),MAKEPTR(SYMcheckList),MAKEPTR(SYMgrid),MAKEPTR(SYMperson),MAKEPTR(SYMcompany),MAKEPTR(SYMplace),MAKEPTR(SYMgroup),MAKEPTR(SYMowner),MAKEPTR(SYMworksite),MAKEPTR(SYMioItem)
 obj_005A7DD9:	FrameObj(11, obj_005A7DD9_map)
@@ -2717,10 +2714,10 @@ obj_0053674D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0053674D:	FrameObj(3, obj_0053674D_map)
 		Ref		0x00000132,_FJournalReplayALine,0x00000018
-obj_00482A15:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_00482A15:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x22,0x18,0x2B,0x02
-		.align	2
+		.align  8
 obj_00482A29:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetAppFolderSyms)
 obj_00482A39_map:	FrameMapObj(5)
@@ -2735,7 +2732,7 @@ obj_0062E3A9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E3A9:	FrameObj(3, obj_0062E3A9_map)
 		Ref		0x00000132,_FEntryUndoChanges,0x00000004
-obj_0041FE09:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_0041FE09:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0C,0x7B,0x19,0x29,0x5F,0x00,0x0D,0x7B,0xA4,0x7C,0x1A
 		.byte		0x29,0xA5,0x7D,0x1B,0x29,0xA6,0x7C,0x1C,0x29,0x00,0x75,0x1E,0x20,0x1F,0x00,0x07
@@ -2743,7 +2740,7 @@ obj_0041FE09:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x2A,0x00,0x1F,0x00,0x0C,0x28,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x49,0x7F
 		.byte		0x00,0x07,0x1F,0x00,0x0D,0x91,0x5F,0x00,0x4A,0x22,0x6F,0x00,0x55,0x7F,0x00,0x07
 		.byte		0x1F,0x00,0x0E,0x38,0x00,0x1F,0x00,0x0F,0x28,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_0041FE71:	ArrayObj(16, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsFrame),MAKEPTR(SYMTotalSeconds),MAKEPTR(SYMTimeInSecondsToTime),MAKEPTR(SYMDSTVerify),MAKEPTR(SYMSetTimeHardware),MAKEPTR(SYMvars),MAKEPTR(SYMsetTimeSeed),0x02625A00,MAKEPTR(SYMRandom),MAKEPTR(SYMSetTimeRegistry),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns),MAKEPTR(SYMGetRoot),MAKEPTR(SYMviewCObject),MAKEPTR(SYMDirty),MAKEPTR(SYMSetNextAlarm)
 obj_0041FEBD_map:	FrameMapObj(5)
@@ -2774,7 +2771,7 @@ obj_0041BD4D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BD4D:	FrameObj(3, obj_0041BD4D_map)
 		Ref		0x00000132,_ReFlow,0x00000010
-obj_004890C5:	.long		kHeaderSize + 111 + kFlagsBinary
+obj_004890C5:	Ref    kHeaderSize + 111 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0B,0x7B,0x19,0x91,0x02,0x00,0x1A,0xC7,0x00,0x13,0xA4
 		.byte		0x7B,0x27,0x00,0x80,0xC7,0x00,0x0E,0x20,0xC6,0x6F,0x00,0x22,0x7C,0x1B,0x27,0x00
@@ -2783,7 +2780,7 @@ obj_004890C5:	.long		kHeaderSize + 111 + kFlagsBinary
 		.byte		0x7C,0x1D,0x27,0x00,0x1A,0x98,0x7B,0x27,0x04,0x00,0xC7,0x00,0x0E,0x20,0xC6,0x6F
 		.byte		0x00,0x58,0x7C,0x1E,0x27,0x00,0x1A,0x98,0x7B,0x27,0x08,0x00,0xC7,0x00,0x0E,0x20
 		.byte		0xC6,0x6F,0x00,0x6C,0x7C,0x1F,0x00,0x07,0x27,0x00,0x1A,0x98,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_00488EFD_map:	FrameMapObj(6)
 		Ref		0x00000018,NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMdoTextRecognition),MAKEPTR(SYMdoShapeRecognition),MAKEPTR(SYMdoInkWordRecognition),MAKEPTR(SYMwordsCursiveOption),MAKEPTR(SYMnumbersCursiveOption)
 obj_00488EFD:	FrameObj(6, obj_00488EFD_map)
@@ -2814,13 +2811,13 @@ obj_0062E3F1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E3F1:	FrameObj(3, obj_0062E3F1_map)
 		Ref		0x00000132,_FStuffLong,0x0000000C
-obj_00450099:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_00450099:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x7B,0x18,0x19,0x2A,0x6F,0x00,0x15,0x7B
 		.byte		0x1A,0x29,0x5F,0x00,0x3A,0x7B,0x1B,0x29,0x6F,0x00,0x23,0x7B,0x1C,0x91,0x1D,0x29
 		.byte		0x5F,0x00,0x24,0x22,0x6F,0x00,0x2F,0x7B,0x1C,0x91,0x1A,0x29,0x5F,0x00,0x3A,0x7B
 		.byte		0x1E,0x29,0x6F,0x00,0x39,0x7B,0x5F,0x00,0x3A,0x22,0x02
-		.align	2
+		.align  8
 obj_004500E1:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalias),MAKEPTR(SYMIsInstance),MAKEPTR(SYMResolveEntryAlias),MAKEPTR(SYMIsFrame),MAKEPTR(SYM_alias),MAKEPTR(SYMIsEntryAlias),MAKEPTR(SYMIsSoupEntry)
 obj_00450109_map:	FrameMapObj(5)
@@ -2831,7 +2828,7 @@ obj_0062E409_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E409:	FrameObj(3, obj_0062E409_map)
 		Ref		0x00000132,_FEntryModTime,0x00000004
-obj_00559559:	.long		kHeaderSize + 408 + kFlagsBinary
+obj_00559559:	Ref    kHeaderSize + 408 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA6,0x71,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x35,0x7F,0x00
 		.byte		0x08,0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00,0x07,0x1A,0x91,0x7B,0xC4,0x6F,0x00,0x31
@@ -2859,17 +2856,17 @@ obj_00559559:	.long		kHeaderSize + 408 + kFlagsBinary
 		.byte		0x8B,0x1F,0x00,0x18,0x2A,0x1F,0x00,0x19,0x1F,0x00,0x1A,0x2A,0xC5,0x6F,0x01,0x83
 		.byte		0x22,0x02,0x00,0x7F,0x00,0x12,0x05,0x7F,0x00,0x12,0x06,0x6F,0x01,0x55,0x22,0x22
 		.byte		0xA7,0x00,0x12,0x00,0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_005594C9:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMname),MAKEPTR(SYMmessage)
-obj_00559245:	.long		kHeaderSize + 86 + kFlagsBinary
+obj_00559245:	Ref    kHeaderSize + 86 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','i','s',' ','o','p','e','r','a','t','i','o','n',' ','m','a','y',' ','c','a','u','s','e',' ','s','e','r','i','o','u','s',' ','p','r','o','b','l','e','m','s','.',0
-		.align	2
-obj_0055943D:	.long		kHeaderSize + 64 + kFlagsBinary
+		.align  8
+obj_0055943D:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x201C,'^','0',0x201D,' ','i','s',' ','c','u','r','r','e','n','t','l','y',' ','i','n',' ','u','s','e','.',' ','^','1',' ','^','2',0
-		.align	2
+		.align  8
 obj_005594E1:	ArrayObj(27, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMBusyPackages),MAKEPTR(SYMpkgRef),MAKEPTR(SYMappName),MAKEPTR(SYMreason),MAKEPTR(obj_005594C9),MAKEPTR(SYMGetPkgRefInfo),MAKEPTR(SYMparts),MAKEPTR(SYMIsFrame),MAKEPTR(SYM_exportTable),MAKEPTR(SYMobjects),MAKEPTR(SYMGetExportTableClients),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMname),MAKEPTR(SYMmajor),MAKEPTR(SYMminor)
 		Ref		MAKEPTR(SYMclient),MAKEPTR(SYMRemovalApproval),MAKEPTR(obj_005594C9),MAKEPTR(SYMIsProtocolPartInUse),MAKEPTR(obj_00559245),MAKEPTR(obj_005594C9),MAKEPTR(obj_0055943D),MAKEPTR(SYMmessage),MAKEPTR(SYMParamStr),MAKEPTR(SYMokCancelDefaultCancel),MAKEPTR(SYMModalConfirm)
@@ -2885,11 +2882,11 @@ obj_0062E455_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E455:	FrameObj(3, obj_0062E455_map)
 		Ref		0x00000132,_FIsDirty,0x00000004
-obj_0044E0E5:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_0044E0E5:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x04,0x16,0xC7,0x00,0x0C,0x6F,0x00,0x14,0x7B,0x27,0x05,0xA6,0xC7,0x00
 		.byte		0x0D,0x5F,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_0044E109_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044E109:	FrameObj(5, obj_0044E109_map)
@@ -2898,7 +2895,7 @@ obj_0041FBED_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FBED:	FrameObj(3, obj_0041FBED_map)
 		Ref		0x00000132,_FTimeStr,0x00000008
-obj_005B80B9:	.long		kHeaderSize + 97 + kFlagsBinary
+obj_005B80B9:	Ref    kHeaderSize + 97 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x67,0x00,0x0C,0x18,0x7B,0x19,0x2A,0x5F,0x00,0x0F,0x27,0x00,0x1A,0x6F
 		.byte		0x00,0x4D,0x1A,0x1B,0x29,0xA4,0x7C,0x6F,0x00,0x37,0x1C,0x7C,0x19,0x2A,0x6F,0x00
@@ -2907,23 +2904,23 @@ obj_005B80B9:	.long		kHeaderSize + 97 + kFlagsBinary
 		.byte		0x1F,0x00,0x07,0x28,0x1F,0x00,0x08,0x3B,0x00,0x22,0x5F,0x00,0x60,0x27,0x00,0x0C
 		.byte		0x1F,0x00,0x0B,0x1F,0x00,0x0C,0x1F,0x00,0x07,0x28,0x1F,0x00,0x08,0x3B,0x00,0x22
 		.byte		0x02
-		.align	2
-obj_005B7EA5:	.long		kHeaderSize + 28 + kFlagsBinary
+		.align  8
+obj_005B7EA5:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','n','t','e','r',' ','N','e','w',' ','P','I','N',0
-		.align	2
-obj_005B7ECD:	.long		kHeaderSize + 32 + kFlagsBinary
+		.align  8
+obj_005B7ECD:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','o','n','f','i','r','m',' ','N','e','w',' ','P','I','N',0
-		.align	2
-obj_005B7EF9:	.long		kHeaderSize + 146 + kFlagsBinary
+		.align  8
+obj_005B7EF9:	Ref    kHeaderSize + 146 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','o','n','f','i','r','m','a','t','i','o','n',' ','o','f',' ','t','h','e',' ','n','e','w',' ','P','I','N',' ','f','a','i','l','e','d','.',' ','Y','o','u','r',' ','o','r','i','g','i','n','a','l',' ','P','I','N',' ','r','e','m','a','i','n','s',' ','u','n','c','h','a','n','g','e','d','.',0
-		.align	2
-obj_005B7FB9:	.long		kHeaderSize + 122 + kFlagsBinary
+		.align  8
+obj_005B7FB9:	Ref    kHeaderSize + 122 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','o',' ','n','e','w',' ','P','I','N',' ','w','a','s',' ','e','n','t','e','r','e','d','.',' ','Y','o','u','r',' ','o','r','i','g','i','n','a','l',' ','P','I','N',' ','r','e','m','a','i','n','s',' ','u','n','c','h','a','n','g','e','d','.',0
-		.align	2
+		.align  8
 obj_005B8129:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005B7E7D),MAKEPTR(SYMModalCheckPIN),MAKEPTR(obj_005B7EA5),MAKEPTR(SYMModalPINPrompt),MAKEPTR(obj_005B7ECD),MAKEPTR(obj_005B7F99),MAKEPTR(obj_005B7EF9),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(obj_005B7F99),MAKEPTR(obj_005B7FB9),MAKEPTR(obj_005B7F99),MAKEPTR(obj_005B8041)
 obj_005B8169_map:	FrameMapObj(5)
@@ -2934,11 +2931,11 @@ obj_0041CB19_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CB19:	FrameObj(3, obj_0041CB19_map)
 		Ref		0x00000132,_FStringShorten,0x00000004
-obj_004A8E85:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_004A8E85:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x2A,0x00,0x72,0x1B,0x1C,0x7B,0x22,0x1D,0x8C,0x1E,0x2A,0x00,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_004A8EA5:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_dataDefs),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMStationeryChangeRegistry),MAKEPTR(SYMremove),MAKEPTR(SYMdataDef),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_004A8ECD_map:	FrameMapObj(5)
@@ -2949,11 +2946,11 @@ obj_0062E46D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E46D:	FrameObj(3, obj_0062E46D_map)
 		Ref		0x00000132,_FLShift,0x00000008
-obj_0048356D:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_0048356D:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0F,0x7C,0x22,0x18,0x2A,0x7B,0x19,0x2A,0xC5,0x5F,0x00,0x10,0x22
 		.byte		0x6F,0x00,0x1C,0x7B,0x1A,0x29,0x7C,0x1B,0x2A,0x5F,0x00,0x1D,0x7B,0x02
-		.align	2
+		.align  8
 obj_00483599:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetFolderList),MAKEPTR(SYMSetContains),MAKEPTR(SYMSymbolName),MAKEPTR(SYMAddFolder)
 obj_004835B5_map:	FrameMapObj(5)
@@ -2972,51 +2969,51 @@ obj_0041CBF1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CBF1:	FrameObj(3, obj_0041CBF1_map)
 		Ref		0x00000132,_GetDictItem,0x00000004
-obj_004A8B91:	.long		kHeaderSize + 76 + kFlagsBinary
+obj_004A8B91:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x91,0x19,0x29,0xA5,0x7B,0x19,0x29,0xA3,0x72,0x7B,0x91,0xA6,0x7E,0xC5
 		.byte		0x6F,0x00,0x1C,0x72,0x7B,0x1B,0x80,0x99,0xA6,0x5F,0x00,0x2D,0x7E,0x1C,0x29,0x6F
 		.byte		0x00,0x2D,0x72,0x7B,0x72,0x7B,0x91,0xC7,0x00,0x13,0xA6,0x7E,0x98,0x7E,0x7D,0xC7
 		.byte		0x00,0x17,0x6F,0x00,0x38,0x22,0x02,0x00,0x7E,0x7D,0x7C,0x98,0x75,0x1E,0x1F,0x00
 		.byte		0x07,0x7B,0x7D,0x1F,0x00,0x08,0x8C,0x1F,0x00,0x09,0x2A,0x02
-		.align	2
+		.align  8
 obj_004A8BE9:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMsymbol),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYM_viewdefs),MAKEPTR(obj_004D4879),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMStationeryChangeRegistry),MAKEPTR(SYMinstall),MAKEPTR(SYMviewDef),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_004A8C1D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8C1D:	FrameObj(5, obj_004A8C1D_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8B91),MAKEPTR(obj_004A8BE9),NILREF,0x00080008
-obj_0056232D:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_0056232D:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x29,0x27,0x00,0x1A,0x1A,0x2B,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_00562345:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMfindApps),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMSetAdd)
 obj_0056235D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056235D:	FrameObj(5, obj_0056235D_map)
 		Ref		0x00000032,MAKEPTR(obj_0056232D),MAKEPTR(obj_00562345),NILREF,0x00000004
-obj_0052D025:	.long		kHeaderSize + 51 + kFlagsBinary
+obj_0052D025:	Ref    kHeaderSize + 51 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x19,0x1A,0x27,0x08,0x00,0x24,0x24,0x1B,0x7C,0x7B,0x1C,0x8D
 		.byte		0x1D,0x1E,0x1E,0x1C,0x1F,0x00,0x07,0x27,0x00,0x10,0x1C,0x8B,0x1F,0x00,0x08,0x1C
 		.byte		0x1F,0x00,0x09,0x20,0x1C,0x8B,0x1C,0x8E,0x1F,0x00,0x0A,0x82,0x1F,0x00,0x0B,0x84
 		.byte		0xA5,0x7D,0x02
-		.align	2
-obj_0052CFF1:	.long		kHeaderSize + 10 + kFlagsBinary
+		.align  8
+obj_0052CFF1:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	's','l','t','k',0
-		.align	2
+		.align  8
 obj_0052D065:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),MAKEPTR(obj_0052CFD9),MAKEPTR(SYMaddress),MAKEPTR(obj_0052CFF1),MAKEPTR(SYMarray),MAKEPTR(SYMstruct),MAKEPTR(SYMlong),MAKEPTR(SYMchar),MAKEPTR(SYMuLong),MAKEPTR(SYMunicodechar),MAKEPTR(obj_004BF0FD),MAKEPTR(obj_0052D3E5)
 obj_0052D0A1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0052D0A1:	FrameObj(5, obj_0052D0A1_map)
 		Ref		0x00000032,MAKEPTR(obj_0052D025),MAKEPTR(obj_0052D065),NILREF,0x00080004
-obj_00563D55:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_00563D55:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x30,0x6F,0x00,0x0E,0x19,0x28,0x00,0x1A,0x1B,0x29,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_00563D19_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00563D19:	FrameObj(3, obj_00563D19_map)
@@ -3039,7 +3036,7 @@ obj_0062E49D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E49D:	FrameObj(3, obj_0062E49D_map)
 		Ref		0x00000132,_Fmin,0x00000008
-obj_00466C7D:	.long		kHeaderSize + 481 + kFlagsBinary
+obj_00466C7D:	Ref    kHeaderSize + 481 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x7C,0x22,0xC4,0x6F,0x00,0x16,0x7B
 		.byte		0x18,0x19,0x1A,0x2B,0x02,0x00,0x7C,0x1B,0x91,0x6F,0x00,0x23,0x7C,0x1C,0x91,0xC5
@@ -3072,7 +3069,7 @@ obj_00466C7D:	.long		kHeaderSize + 481 + kFlagsBinary
 		.byte		0x07,0x1E,0x7F,0x00,0x0E,0x1F,0x00,0x22,0x91,0x98,0x7F,0x00,0x07,0x1F,0x00,0x1C
 		.byte		0x28,0x7F,0x00,0x0A,0x1F,0x00,0x23,0x91,0x91,0x1F,0x00,0x24,0x39,0x02,0x00,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00466B79:	ArrayObj(0, MAKEPTR(SYMarray))
 obj_00466E6D:	ArrayObj(37, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCheckOutBox),MAKEPTR(obj_00466B79),MAKEPTR(SYMTransportNotify),MAKEPTR(SYMhidden),MAKEPTR(SYMcompletionscript),MAKEPTR(SYMprinterFormat),MAKEPTR(SYMcurrentFormat),MAKEPTR(SYMmail),MAKEPTR(SYMemail),MAKEPTR(SYMtoRef),MAKEPTR(SYMnameRef_2Eemail),MAKEPTR(SYMGetDataDefs),MAKEPTR(obj_004A3F95),MAKEPTR(SYMStrParseTrimmed),MAKEPTR(SYMarray),MAKEPTR(SYMstring_2Eemail)
@@ -3082,17 +3079,17 @@ obj_00466F0D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00466F0D:	FrameObj(5, obj_00466F0D_map)
 		Ref		0x00000032,MAKEPTR(obj_00466C7D),MAKEPTR(obj_00466E6D),NILREF,0x00280008
-obj_004613C5:	.long		kHeaderSize + 61 + kFlagsBinary
+obj_004613C5:	Ref    kHeaderSize + 61 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7D,0xA8,0x7C,0x19,0x29,0xC5,0x6F,0x00,0x23,0x7C,0xC7,0x00,0x18,0x1A,0xC4,0x6F
 		.byte		0x00,0x18,0x27,0x08,0x7F,0x7C,0x91,0xA4,0x7C,0xC5,0x6F,0x00,0x23,0x27,0x08,0x7F
 		.byte		0x1B,0x91,0xA4,0x27,0x08,0x83,0x7B,0x7C,0x1C,0x04,0x1D,0x84,0x1E,0x29,0xAF,0x00
 		.byte		0x07,0x77,0x00,0x07,0x1F,0x00,0x08,0x38,0x00,0x77,0x00,0x07,0x02
-		.align	2
-obj_00461441:	.long		kHeaderSize + 9 + kFlagsBinary
+		.align  8
+obj_00461441:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x71,0x1A,0x91,0x1B,0x89,0x1C,0x2A,0x02
-		.align	2
+		.align  8
 obj_00461459:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMclosure),MAKEPTR(SYMview),MAKEPTR(SYMconfirmedValue),MAKEPTR(SYMarray),MAKEPTR(SYMAddDeferredCall)
 obj_00461479_map:	FrameMapObj(3)
@@ -3115,22 +3112,22 @@ obj_004614D5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004614D5:	FrameObj(5, obj_004614D5_map)
 		Ref		0x00000032,MAKEPTR(obj_004613C5),MAKEPTR(obj_00461411),MAKEPTR(obj_004614F5),0x0000000C
-obj_005A7EA9:	.long		kHeaderSize + 41 + kFlagsBinary
+obj_005A7EA9:	Ref    kHeaderSize + 41 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7F,0x00,0x07,0xA7,0x00,0x09,0x7C,0xC5,0x6F,0x00,0x0F,0x7B,0x18,0x29,0xA4,0x7C
 		.byte		0x6F,0x00,0x24,0x7F,0x00,0x07,0x7D,0x7E,0x7F,0x00,0x08,0x7C,0x19,0x44,0xA7,0x00
 		.byte		0x09,0x5F,0x00,0x24,0x7F,0x00,0x09,0x02,0x02
-		.align	2
+		.align  8
 obj_005A7EE1:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetConversionFrame),MAKEPTR(SYMConvert)
 obj_005A7EF5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005A7EF5:	FrameObj(5, obj_005A7EF5_map)
 		Ref		0x00000032,MAKEPTR(obj_005A7EA9),MAKEPTR(obj_005A7EE1),NILREF,0x00040018
-obj_00559C35:	.long		kHeaderSize + 10 + kFlagsBinary
+obj_00559C35:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x19,0x20,0x1A,0x22,0x1B,0x2D,0x02
-		.align	2
+		.align  8
 obj_00559C4D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_tagList),MAKEPTR(SYM_frozen),MAKEPTR(SYM_3D),MAKEPTR(SYMLFetch)
 obj_00559C69_map:	FrameMapObj(5)
@@ -3153,7 +3150,7 @@ obj_0041E48D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041E48D:	FrameObj(3, obj_0041E48D_map)
 		Ref		0x00000132,_FDV,0x00000004
-obj_00420539:	.long		kHeaderSize + 105 + kFlagsBinary
+obj_00420539:	Ref    kHeaderSize + 105 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA4,0x7B,0xA5,0x7D,0x19,0x1A,0x2A,0xC5,0x6F,0x00,0x2D,0x7D,0x1B,0x91,0x1C
 		.byte		0x29,0xA5,0x7D,0xC5,0x67,0x00,0x20,0x7D,0xC7,0x00,0x12,0x20,0xC4,0x5F,0x00,0x23
@@ -3162,7 +3159,7 @@ obj_00420539:	.long		kHeaderSize + 105 + kFlagsBinary
 		.byte		0xA6,0x7E,0x6F,0x00,0x67,0x7E,0x20,0xC2,0xA6,0x1F,0x00,0x07,0x7E,0x1F,0x00,0x08
 		.byte		0x91,0x1F,0x00,0x09,0x29,0x7E,0x1F,0x00,0x0A,0x91,0x1F,0x00,0x09,0x29,0x1F,0x00
 		.byte		0x0B,0x8A,0x1F,0x00,0x0C,0x2A,0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_004205B1:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004E5415),MAKEPTR(SYMdaylight),MAKEPTR(SYMHasSlot),MAKEPTR(SYMcountry),MAKEPTR(SYMGetCountryEntry),MAKEPTR(obj_005A7F4D),MAKEPTR(SYMGetDSTEntry),MAKEPTR(obj_0045A939),MAKEPTR(SYMstart),MAKEPTR(SYMDSTDateExplain),MAKEPTR(SYMstop),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr)
 obj_004205F1_map:	FrameMapObj(5)
@@ -3173,7 +3170,7 @@ obj_0062E4CD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E4CD:	FrameObj(3, obj_0062E4CD_map)
 		Ref		0x00000132,_FIsSubclass,0x00000008
-obj_004802B1:	.long		kHeaderSize + 344 + kFlagsBinary
+obj_004802B1:	Ref    kHeaderSize + 344 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x22,0xA6,0x22,0xA7,0x00,0x07,0x22,0xA7,0x00,0x08,0x7C,0x18,0x91,0x19
 		.byte		0x29,0x6F,0x00,0x5E,0x7C,0x18,0x91,0xA7,0x00,0x0A,0x7C,0x1A,0x91,0xA7,0x00,0x0B
@@ -3197,7 +3194,7 @@ obj_004802B1:	.long		kHeaderSize + 344 + kFlagsBinary
 		.byte		0x7E,0x1F,0x00,0x11,0x39,0x00,0x7F,0x00,0x08,0xC5,0x6F,0x01,0x42,0x22,0x5F,0x01
 		.byte		0x4E,0x00,0x7F,0x00,0x0D,0x05,0x7F,0x00,0x0D,0x06,0x6F,0x00,0x87,0x22,0x22,0xA7
 		.byte		0x00,0x0D,0x00,0x7F,0x00,0x08,0x02,0x02
-		.align	2
+		.align  8
 obj_0048023D:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMtext),MAKEPTR(SYMtextData)
 obj_00480415:	ArrayObj(18, MAKEPTR(SYMliterals))
@@ -3207,12 +3204,12 @@ obj_00480469_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00480469:	FrameObj(5, obj_00480469_map)
 		Ref		0x00000032,MAKEPTR(obj_004802B1),MAKEPTR(obj_00480415),NILREF,0x002C0008
-obj_00629C81:	.long		kHeaderSize + 39 + kFlagsBinary
+obj_00629C81:	Ref    kHeaderSize + 39 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x4C,0xC9,0x19,0x28,0x00,0x7B,0x7C,0x1A,0x2A,0xA5,0x07,0x00,0x07
 		.byte		0x5F,0x00,0x1F,0x1B,0x28,0x00,0x1C,0x28,0x00,0x1D,0x28,0x00,0x07,0x00,0x07,0x1B
 		.byte		0x28,0x00,0x1C,0x28,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00629CB5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMBlockStrokes),MAKEPTR(SYMApply),MAKEPTR(SYMUnblockStrokes),MAKEPTR(SYMFlushStrokes),MAKEPTR(SYMRethrow)
 obj_00629CD9_map:	FrameMapObj(5)
@@ -3247,24 +3244,24 @@ obj_005366BD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005366BD:	FrameObj(3, obj_005366BD_map)
 		Ref		0x00000132,_FTestWillCallExit,0x00000000
-obj_0062B041:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_0062B041:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x04,0xA4,0x7B,0x6F,0x00,0x13,0x19,0x7C,0x22,0x1A,0x28,0x1B,0x91,0x1C,0x3B
 		.byte		0x5F,0x00,0x17,0x7C,0x22,0x1D,0x2A,0x02
-		.align	2
-obj_0062B089:	.long		kHeaderSize + 13 + kFlagsBinary
+		.align  8
+obj_0062B089:	Ref    kHeaderSize + 13 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x00,0x19,0x1A,0x1B,0x1C,0x8A,0x1D,0x04,0x1E,0x2B,0x02
-		.align	2
-obj_0062A681:	.long		kHeaderSize + 436 + kFlagsBinary
+		.align  8
+obj_0062A681:	Ref    kHeaderSize + 436 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'W','o','r','d','s',' ','a','r','e',' ','b','e','i','n','g',' ','l','e','f','t',' ','a','s',' ','i','n','k',' ','d','u','e',' ','t','o',' ','a',' ','s','h','o','r','t','a','g','e',' ','o','f',' ','m','e','m','o','r','y','.',' ',' ','I','f',' ','y','o','u',' ','h','a','v','e',' ','m','u','l','t','i','p','l','e',' ','a','p','p','l','i','c','a','t','i','o','n','s',' ','o','r',' ','c','o','n','n','e','c','t','i','o','n','s',' ','o','p','e','n',',',' ','c','l','o','s','i','n','g',' ','s','o','m','e',' ','o','f',' ','t','h','e','m',' ','m','a','y',' ','h','e','l','p','.',' ',' ','I','f',' ','y','o','u',' ','c','o','n','t','i','n','u','e',' ','t','o',' ','h','a','v','e',' ','p','r','o','b','l','e','m','s',',',' ','y','o','u',' ','s','h','o','u','l','d',' ','r','e','s','t','a','r','t',' ','y','o','u','r',' ','N','e','w','t','o','n',' ','d','e','v','i','c','e','.',0
-		.align	2
-obj_0062B0CD:	.long		kHeaderSize + 17 + kFlagsBinary
+		.align  8
+obj_0062B0CD:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x24,0xC4,0x6F,0x00,0x0F,0x70,0x19,0x91,0x22,0x1A,0x2A,0x5F,0x00,0x10,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0062B0ED:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMfunctions),MAKEPTR(SYMReBoot),MAKEPTR(SYMAddDeferredCall)
 obj_0062B105_map:	FrameMapObj(3)
@@ -3285,17 +3282,17 @@ obj_0062B155_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062B155:	FrameObj(5, obj_0062B155_map)
 		Ref		0x00000032,MAKEPTR(obj_0062B089),MAKEPTR(obj_0062B0A5),MAKEPTR(obj_0062B11D),0x00000000
-obj_0062A64D:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_0062A64D:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'R','e','c','o','g','n','i','t','i','o','n',' ','W','a','r','n','i','n','g',0
-		.align	2
+		.align  8
 obj_0062B065:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0062B155),MAKEPTR(obj_0062A64D),MAKEPTR(SYMGetRoot),MAKEPTR(SYMnotifyIcon),MAKEPTR(SYMAddAction),MAKEPTR(SYMAddDeferredCall)
 obj_0062B175_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062B175:	FrameObj(5, obj_0062B175_map)
 		Ref		0x00000032,MAKEPTR(obj_0062B041),MAKEPTR(obj_0062B065),NILREF,0x00040004
-obj_005B5479:	.long		kHeaderSize + 168 + kFlagsBinary
+obj_005B5479:	Ref    kHeaderSize + 168 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC7,0x00,0x18,0x18,0xC4,0x6F,0x00,0x69,0x7B,0x19,0x91,0x6F,0x00,0x13,0x1A
 		.byte		0x5F,0x00,0x14,0x1B,0x1C,0x29,0xA4,0x7C,0x1D,0x20,0x20,0x27,0x03,0x80,0x7B,0x1E
@@ -3308,7 +3305,7 @@ obj_005B5479:	.long		kHeaderSize + 168 + kFlagsBinary
 		.byte		0x20,0xC2,0xA5,0x7E,0x1F,0x00,0x13,0x91,0x7B,0x1F,0x00,0x14,0x2A,0x6F,0x00,0x97
 		.byte		0x7E,0x1F,0x00,0x15,0x29,0x02,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F
 		.byte		0x00,0x77,0x22,0x22,0xA7,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_005B5415:	ArrayObj(22, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMframe),MAKEPTR(SYMnogo),MAKEMAGICPTR(810),MAKEMAGICPTR(809),MAKEPTR(SYMBuildContext),MAKEPTR(SYMviewBounds),MAKEPTR(SYMheight),MAKEPTR(SYMSetBounds),MAKEPTR(SYMstepChildren),MAKEPTR(SYMviewChildren),MAKEPTR(SYMarray),MAKEPTR(SYMprefPanelProto),MAKEPTR(SYMGetAppParams),MAKEPTR(SYMappAreaWidth),MAKEPTR(SYMReOrientToScreen),MAKEPTR(SYMGetRoot)
 		Ref		MAKEPTR(SYMClose),MAKEPTR(SYMOpen),MAKEPTR(SYMGetPrefs),MAKEPTR(SYMoverview),MAKEPTR(SYMStrEqual),MAKEPTR(SYMOpenPrefsTo)
@@ -3316,10 +3313,10 @@ obj_005B552D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005B552D:	FrameObj(5, obj_005B552D_map)
 		Ref		0x00000032,MAKEPTR(obj_005B5479),MAKEPTR(obj_005B5415),NILREF,0x00100004
-obj_00557751:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_00557751:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x7C,0x18,0x41,0x02
-		.align	2
+		.align  8
 obj_00557765:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMremoveScript)
 obj_00557775_map:	FrameMapObj(5)
@@ -3330,14 +3327,14 @@ obj_0062E52D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E52D:	FrameObj(3, obj_0062E52D_map)
 		Ref		0x00000132,_FQuickSort,0x0000000C
-obj_005B0EF1:	.long		kHeaderSize + 66 + kFlagsBinary
+obj_005B0EF1:	Ref    kHeaderSize + 66 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA9,0x72,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x2B,0x7D,0x24
 		.byte		0xC2,0xA4,0x7D,0x20,0xC2,0xA3,0x72,0x7B,0x91,0x7C,0xC4,0x6F,0x00,0x29,0x71,0x7C
 		.byte		0x1B,0x91,0x7B,0x1C,0x82,0xC7,0x00,0x15,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x0E
 		.byte		0x22,0x22,0xA5,0x00,0x71,0x1D,0x1E,0x1F,0x00,0x07,0x2B,0x00,0x71,0x1F,0x00,0x08
 		.byte		0x29,0x02
-		.align	2
+		.align  8
 obj_005B0ED9:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMitem),MAKEPTR(SYMsoundSymbol)
 obj_005B0F41:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -3346,12 +3343,12 @@ obj_005B0F71_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005B0F71:	FrameObj(5, obj_005B0F71_map)
 		Ref		0x00000032,MAKEPTR(obj_005B0EF1),MAKEPTR(obj_005B0F41),NILREF,0x000C0000
-obj_005A8215:	.long		kHeaderSize + 34 + kFlagsBinary
+obj_005A8215:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x27,0x02,0x07,0x18,0x28,0x20,0xC2
 		.byte		0x19,0x39,0x1A,0x1B,0x7B,0x7B,0x1C,0x84,0x1D,0x2A,0xAE,0x76,0x1F,0x00,0x07,0x38
 		.byte		0x02,0x02
-		.align	2
+		.align  8
 obj_005A8245:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMindex),MAKEPTR(SYMapp),MAKEPTR(obj_00437039),MAKEPTR(SYMQuery),MAKEPTR(SYMq),MAKEPTR(SYMentry)
 obj_005A8271_map:	FrameMapObj(5)
@@ -3368,7 +3365,7 @@ obj_003C68C1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C68C1:	FrameObj(5, obj_003C68C1_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C68AD),NILREF,0x00000004
-obj_0052881D:	.long		kHeaderSize + 208 + kFlagsBinary
+obj_0052881D:	Ref    kHeaderSize + 208 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0xC7,0x00,0x17,0x6F,0x00,0xB1,0x7C,0x19,0x91,0x22,0xC4,0x6F,0x00,0x44
 		.byte		0x7C,0x1A,0x91,0x1B,0x29,0xA5,0x7D,0x6F,0x00,0x22,0x7B,0x1C,0x7C,0x1D,0x91,0x7D
@@ -3383,7 +3380,7 @@ obj_0052881D:	.long		kHeaderSize + 208 + kFlagsBinary
 		.byte		0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x51,0x22,0x22,0xA7,0x00,0x07,0x5F,0x00
 		.byte		0xCF,0x7B,0x1E,0x91,0xC5,0x6F,0x00,0xCE,0x7B,0x1F,0x00,0x07,0x7C,0x1F,0x00,0x08
 		.byte		0x91,0x7C,0x1F,0x00,0x09,0x91,0x1F,0x00,0x0A,0x2A,0x99,0x5F,0x00,0xCF,0x22,0x02
-		.align	2
+		.align  8
 obj_005288F9:	ArrayObj(19, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMphone),MAKEPTR(SYMwho),MAKEPTR(SYMraw),MAKEPTR(SYMFindPossiblePhone),MAKEPTR(SYMdialdirect),MAKEPTR(SYMphrases),MAKEPTR(SYMcandidates),MAKEPTR(SYMrawtext),MAKEPTR(SYMnoiseWords),MAKEPTR(SYMorigPhrase),MAKEPTR(SYMFindPossibleName),MAKEPTR(SYMparsed_phone),MAKEPTR(SYMisa),MAKEPTR(SYMvalue),MAKEPTR(SYMphone_tag),MAKEPTR(SYMIsSymbol)
 		Ref		MAKEPTR(SYMMapSymToFrame),MAKEPTR(SYMphoneTag),MAKEPTR(SYMtagSymbol)
@@ -3391,7 +3388,7 @@ obj_00528951_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00528951:	FrameObj(5, obj_00528951_map)
 		Ref		0x00000032,MAKEPTR(obj_0052881D),MAKEPTR(obj_005288F9),NILREF,0x000C0008
-obj_00569551:	.long		kHeaderSize + 82 + kFlagsBinary
+obj_00569551:	Ref    kHeaderSize + 82 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7C,0x19,0x91,0x1A,0x1B,0x1C,0x2C,0xA5,0x7B,0x1D,0x29,0xA3,0x7D,0x6F,0x00
 		.byte		0x2D,0x7D,0x1E,0x29,0xC5,0x6F,0x00,0x2A,0x7D,0x1F,0x00,0x07,0x91,0x7B,0x1F,0x00
@@ -3399,7 +3396,7 @@ obj_00569551:	.long		kHeaderSize + 82 + kFlagsBinary
 		.byte		0x7B,0x1F,0x00,0x0A,0x89,0x1F,0x00,0x0B,0x82,0xA6,0x70,0x7E,0x1A,0x1F,0x00,0x0C
 		.byte		0x7B,0x1F,0x00,0x0D,0xC6,0x1F,0x00,0x09,0x2D,0x00,0x7C,0x19,0x91,0x1F,0x00,0x0E
 		.byte		0x29,0x02
-		.align	2
+		.align  8
 obj_005694ED:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMsoupDef),MAKEPTR(SYMname)
 obj_003C6DCD:	ArrayObj(3, 0x00000008)
@@ -3416,18 +3413,18 @@ obj_0062A451_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062A451:	FrameObj(3, obj_0062A451_map)
 		Ref		0x00000132,_FCompressStrokes,0x00000004
-obj_0056935D:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_0056935D:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x7D,0x99,0x02
-		.align	2
+		.align  8
 obj_00569371_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00569371:	FrameObj(5, obj_00569371_map)
 		Ref		0x00000032,MAKEPTR(obj_0056935D),NILREF,NILREF,0x0000000C
-obj_00569EC1:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_00569EC1:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x22,0x1A,0x2C,0x02
-		.align	2
+		.align  8
 obj_00569ED5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_newt),MAKEPTR(SYMwhatThe),MAKEPTR(SYMXmitSoupChangeNow)
 obj_00569EED_map:	FrameMapObj(5)
@@ -3454,7 +3451,7 @@ obj_0062E545_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E545:	FrameObj(3, obj_0062E545_map)
 		Ref		0x00000132,_FBitAnd,0x00000008
-obj_0041C51D:	.long		kHeaderSize + 103 + kFlagsBinary
+obj_0041C51D:	Ref    kHeaderSize + 103 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xA4,0x7C,0x6F,0x00,0x65,0x7C,0x19,0x91,0x1A,0x28,0xC1,0xA5,0x7D
 		.byte		0x20,0xC7,0x00,0x0B,0x6F,0x00,0x2F,0x73,0x1C,0x91,0x7B,0x1D,0x89,0x7D,0x27,0x0F
@@ -3463,7 +3460,7 @@ obj_0041C51D:	.long		kHeaderSize + 103 + kFlagsBinary
 		.byte		0x00,0x09,0x91,0x7C,0x1F,0x00,0x08,0x91,0x7C,0x1F,0x00,0x0A,0x91,0x1F,0x00,0x0B
 		.byte		0x2B,0x5F,0x00,0x62,0x7C,0x1F,0x00,0x09,0x91,0x7C,0x1F,0x00,0x0A,0x91,0x1F,0x00
 		.byte		0x0C,0x2A,0x5F,0x00,0x66,0x22,0x02
-		.align	2
+		.align  8
 obj_0041C591:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMProcrastinatedActions),MAKEPTR(SYMtimeToRun),MAKEPTR(SYMTicks),MAKEPTR(SYMfunctions),MAKEPTR(SYMExecuteProcrastinatedCall),MAKEPTR(SYMarray),MAKEPTR(SYMAddDelayedCall),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMmessage),MAKEPTR(SYMreceiverOrClosure),MAKEPTR(SYMargArray),MAKEPTR(SYMPerform),MAKEPTR(SYMApply)
 obj_0041C5D1_map:	FrameMapObj(5)
@@ -3524,7 +3521,7 @@ obj_0062E5A5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E5A5:	FrameObj(3, obj_0062E5A5_map)
 		Ref		0x00000132,_Ffesetexcept,0x00000008
-obj_00436B7D:	.long		kHeaderSize + 168 + kFlagsBinary
+obj_00436B7D:	Ref    kHeaderSize + 168 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x19,0x80,0xA5,0x7C,0x1A,0x38,0x22,0xC7,0x00,0x11,0xA7,0x00
 		.byte		0x07,0x5F,0x00,0x5F,0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7E,0x1B,0x91,0x1C,0xC4,0x6F
@@ -3537,7 +3534,7 @@ obj_00436B7D:	.long		kHeaderSize + 168 + kFlagsBinary
 		.byte		0x00,0x0C,0x20,0xC2,0xA7,0x00,0x0A,0x7D,0x7F,0x00,0x0A,0x91,0xC5,0x6F,0x00,0x97
 		.byte		0x7B,0x7F,0x00,0x0A,0x1E,0x2A,0x00,0x7F,0x00,0x0C,0x05,0x7F,0x00,0x0C,0x06,0x6F
 		.byte		0x00,0x77,0x22,0x22,0xA7,0x00,0x0C,0x02
-		.align	2
+		.align  8
 obj_00436B55:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntrySoup),MAKEPTR(obj_004D4879),MAKEPTR(SYMGetIndexes),MAKEPTR(SYMstructure),MAKEPTR(SYMslot),MAKEPTR(SYMpath),MAKEPTR(SYMRemoveSlot)
 obj_00436C31_map:	FrameMapObj(5)
@@ -3548,10 +3545,10 @@ obj_0041CE01_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CE01:	FrameObj(3, obj_0041CE01_map)
 		Ref		0x00000132,_CompositeClass,0x00000004
-obj_00523C21:	.long		kHeaderSize + 9 + kFlagsBinary
+obj_00523C21:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x28,0x19,0x91,0x1A,0x3A,0x02
-		.align	2
+		.align  8
 obj_00523C39:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMTinyTim),MAKEPTR(SYMOpenHelpBookTo)
 obj_00523C51_map:	FrameMapObj(5)
@@ -3570,10 +3567,10 @@ obj_0041CD41_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CD41:	FrameObj(3, obj_0041CD41_map)
 		Ref		0x00000132,_PhoneIndexToValue,0x00000008
-obj_004A8DD9:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_004A8DD9:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x7B,0x18,0x2A,0x02
-		.align	2
+		.align  8
 obj_004A8DED:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMUnRegDataView)
 obj_004A8DFD_map:	FrameMapObj(5)
@@ -3596,7 +3593,7 @@ obj_00536555_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00536555:	FrameObj(3, obj_00536555_map)
 		Ref		0x00000132,_FStdioOn,0x00000000
-obj_00557895:	.long		kHeaderSize + 196 + kFlagsBinary
+obj_00557895:	Ref    kHeaderSize + 196 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0xA4,0x19,0x28,0xA5,0x7C,0x1A,0x91,0x1B,0x29,0xA6,0x7D,0x7E,0x91
 		.byte		0x6F,0x00,0x2E,0x27,0x00,0x0C,0x1C,0x1D,0x7E,0x1E,0x29,0x7E,0x1F,0x00,0x07,0x8A
@@ -3611,11 +3608,11 @@ obj_00557895:	.long		kHeaderSize + 196 + kFlagsBinary
 		.byte		0x7F,0x00,0x08,0x98,0x7B,0x1F,0x00,0x11,0x91,0x24,0xC4,0x6F,0x00,0xB8,0x7F,0x00
 		.byte		0x08,0x1F,0x00,0x12,0x77,0x00,0x13,0x98,0x7F,0x00,0x07,0x1F,0x00,0x0B,0x22,0x98
 		.byte		0x7F,0x00,0x07,0x02
-		.align	2
-obj_00557795:	.long		kHeaderSize + 120 + kFlagsBinary
+		.align  8
+obj_00557795:	Ref    kHeaderSize + 120 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','n',' ','a','p','p','l','i','c','a','t','i','o','n',' ','b','y',' ','t','h','e',' ','n','a','m','e',' ',0x201C,'^','0',0x201D,' ','(',''','^','1',')',' ','i','s',' ','a','l','r','e','a','d','y',' ','i','n','s','t','a','l','l','e','d','.',0
-		.align	2
+		.align  8
 obj_0055785D:	ArrayObj(5, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMapp),MAKEPTR(SYMInstallScript),MAKEPTR(SYMremoveScript)
 obj_00557965:	ArrayObj(20, MAKEPTR(SYMliterals))
@@ -3633,7 +3630,7 @@ obj_00627FC1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627FC1:	FrameObj(3, obj_00627FC1_map)
 		Ref		0x00000132,_FConvertFromMP,0x00000008
-obj_004A61ED:	.long		kHeaderSize + 151 + kFlagsBinary
+obj_004A61ED:	Ref    kHeaderSize + 151 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7C,0x6F,0x00,0x46,0x7C,0x1A,0x29,0x6F,0x00,0x13,0x7C,0xC7
 		.byte		0x00,0x13,0xA4,0x7B,0x1B,0x91,0xA5,0x7D,0x1C,0x29,0xA6,0x7E,0x6F,0x00,0x38,0x7C
@@ -3645,11 +3642,11 @@ obj_004A61ED:	.long		kHeaderSize + 151 + kFlagsBinary
 		.byte		0xC5,0x6F,0x00,0x7E,0x7B,0x1B,0x91,0x1F,0x00,0x0A,0x29,0xA7,0x00,0x09,0x7F,0x00
 		.byte		0x08,0x7F,0x00,0x09,0x7B,0x98,0x70,0x1F,0x00,0x08,0x1F,0x00,0x07,0x29,0x7F,0x00
 		.byte		0x08,0x99,0x5F,0x00,0x96,0x22,0x02
-		.align	2
-obj_004A5E55:	.long		kHeaderSize + 7 + kFlagsBinary
+		.align  8
+obj_004A5E55:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x91,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_004A5E69:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtitle),MAKEPTR(SYMStrEqual)
 obj_004A5E7D_map:	FrameMapObj(5)
@@ -3666,12 +3663,12 @@ obj_0041ADE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041ADE5:	FrameObj(3, obj_0041ADE5_map)
 		Ref		0x00000132,_FStrWidth,0x00000004
-obj_0062C5F1:	.long		kHeaderSize + 26 + kFlagsBinary
+obj_0062C5F1:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x7C,0xA9,0x71,0x1A,0x1B,0x2A,0x6F,0x00,0x13,0x71,0x1C,0x1D,0x8A,0xC7
 		.byte		0x00,0x16,0xA9,0x20,0xAE,0x1F,0x00,0x07,0x04,0x02
-		.align	2
-obj_0062C645:	.long		kHeaderSize + 86 + kFlagsBinary
+		.align  8
+obj_0062C645:	Ref    kHeaderSize + 86 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x29,0xA3,0x72,0x7B,0xC7,0x00,0x0A,0x6F,0x00,0x54,0x5F,0x00,0x20,0x72
 		.byte		0x24,0xC0,0xAA,0x72,0x7B,0xC4,0x6F,0x00,0x1E,0x22,0x02,0x5F,0x00,0x1F,0x22,0x00
@@ -3679,7 +3676,7 @@ obj_0062C645:	.long		kHeaderSize + 86 + kFlagsBinary
 		.byte		0xC0,0xAA,0x72,0x7B,0xC4,0x67,0x00,0x42,0x73,0x70,0x72,0xC2,0x20,0x1C,0x2B,0x5F
 		.byte		0x00,0x45,0x27,0x00,0x1A,0x6F,0x00,0x2E,0x22,0x00,0x70,0x7C,0x72,0x7C,0xC1,0x1D
 		.byte		0x2B,0x5F,0x00,0x55,0x22,0x02
-		.align	2
+		.align  8
 obj_0062C6A9:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMstr),MAKEPTR(SYMStrLen),MAKEPTR(SYMpos),MAKEPTR(SYMdelimiters),MAKEPTR(SYMCharPos),MAKEPTR(SYMSubstr)
 obj_0062C9ED_map:	FrameMapObj(3)
@@ -3700,7 +3697,7 @@ obj_0062E5BD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062E5BD:	FrameObj(5, obj_0062E5BD_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C5F1),MAKEPTR(obj_0062C619),MAKEPTR(obj_0062E5DD),0x00000008
-obj_004D8151:	.long		kHeaderSize + 96 + kFlagsBinary
+obj_004D8151:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x20,0x19,0x1A,0x1B,0x2D,0xA4,0x7C,0x6F,0x00,0x5E,0x70,0x7C,0xC2,0x1C
 		.byte		0x91,0xA5,0x70,0x7C,0x1D,0x2A,0x00,0x7D,0x6F,0x00,0x2E,0x1E,0x28,0x7D,0x91,0xA6
@@ -3708,7 +3705,7 @@ obj_004D8151:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x08,0x1F,0x00,0x09,0x29,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x47,0x1E,0x28
 		.byte		0x7F,0x00,0x07,0x91,0x5F,0x00,0x48,0x22,0xA7,0x00,0x08,0x7F,0x00,0x08,0x6F,0x00
 		.byte		0x5A,0x7B,0x7F,0x00,0x08,0x1F,0x00,0x07,0x41,0x00,0x7B,0x5F,0x00,0x5F,0x22,0x02
-		.align	2
+		.align  8
 obj_004D81BD:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMAuxButtonRegistry),MAKEPTR(SYM_3D),MAKEPTR(SYMappSymbol),MAKEPTR(SYMLSearch),MAKEPTR(SYMdestApp),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMGetRoot),MAKEPTR(SYMRemoveAuxButton),MAKEPTR(SYMblessedApp),MAKEPTR(SYMGetUserConfig)
 obj_004D81F1_map:	FrameMapObj(5)
@@ -3719,11 +3716,11 @@ obj_0041AE75_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AE75:	FrameObj(3, obj_0041AE75_map)
 		Ref		0x00000132,_FStyledStrTruncate,0x0000000C
-obj_00473DE5:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_00473DE5:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA4,0x7C,0x19,0x91,0x7B,0x1A,0x2A,0x00,0x7C,0x1B,0x1C,0x2A,0x00,0x7C
 		.byte		0x02,0x02
-		.align	2
+		.align  8
 obj_00473E05:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDesktopConnTransports),MAKEPTR(SYMtransports),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMwhatThe),MAKEPTR(SYMEntryChangeXmit)
 obj_00473E25_map:	FrameMapObj(5)
@@ -3734,12 +3731,12 @@ obj_0062E601_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E601:	FrameObj(3, obj_0062E601_map)
 		Ref		0x00000132,_Ffeclearexcept,0x00000004
-obj_005045D1:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_005045D1:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0xA3,0x7B,0x1A,0x91,0x1B,0x29,0x6F,0x00,0x1F,0x7B,0x1C,0x1D
 		.byte		0x80,0x98,0x7B,0x1A,0x7B,0x1E,0x91,0x1F,0x00,0x07,0x81,0x99,0x5F,0x00,0x27,0x7B
 		.byte		0x1F,0x00,0x08,0x7B,0x1E,0x91,0x99,0x02
-		.align	2
+		.align  8
 obj_00504635:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMmeetingTypeRegistry),MAKEPTR(SYM_proto)
 obj_00504605:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -3752,7 +3749,7 @@ obj_006281ED_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006281ED:	FrameObj(3, obj_006281ED_map)
 		Ref		0x00000132,_FSpellDocBegin,0x00000000
-obj_00558D65:	.long		kHeaderSize + 282 + kFlagsBinary
+obj_00558D65:	Ref    kHeaderSize + 282 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x38,0xA4,0x27,0x00,0x1A,0xA5,0x7B,0x19,0x28,0x20,0xC2,0xC4,0xA6,0x1A
 		.byte		0x28,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x3C,0x7F,0x00,0x07,0x1B,0x91,0x27
@@ -3772,11 +3769,11 @@ obj_00558D65:	.long		kHeaderSize + 282 + kFlagsBinary
 		.byte		0x00,0x5F,0x01,0x0F,0x7E,0x6F,0x01,0x06,0x7F,0x00,0x07,0x1C,0x91,0x27,0x00,0xA0
 		.byte		0xC7,0x00,0x0A,0x5F,0x01,0x07,0x22,0x6F,0x01,0x0F,0x27,0x0C,0xA3,0x30,0x00,0x1F
 		.byte		0x00,0x1B,0x1F,0x00,0x1C,0x29,0x00,0x7D,0x02,0x02
-		.align	2
-obj_00558AED:	.long		kHeaderSize + 120 + kFlagsBinary
+		.align  8
+obj_00558AED:	Ref    kHeaderSize + 120 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'D','o',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','a','c','t','i','v','a','t','e',' ','t','h','e',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','i','n','t','e','r','n','a','l',' ','s','t','o','r','e','?',0
-		.align	2
+		.align  8
 obj_00558A81_map:	FrameMapObj(2)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMvalue),MAKEPTR(SYMtext)
 obj_00558A81:	FrameObj(2, obj_00558A81_map)
@@ -3789,14 +3786,14 @@ obj_00558AA9:	ArrayObj(2, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(obj_00558A81),MAKEPTR(obj_00558A95)
 obj_00558B95:	ArrayObj(2, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMerrList)
-obj_00558BA9:	.long		kHeaderSize + 174 + kFlagsBinary
+obj_00558BA9:	Ref    kHeaderSize + 174 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','o','m','e',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,' ','c','o','n','f','l','i','c','t',' ','w','i','t','h',' ','t','h','e',' ','n','a','m','e','s',' ','o','f',' ','p','a','c','k','a','g','e','s',' ','a','l','r','e','a','d','y',' ','i','n',' ','u','s','e',':',' ','^','1',0
-		.align	2
-obj_00558C65:	.long		kHeaderSize + 116 + kFlagsBinary
+		.align  8
+obj_00558C65:	Ref    kHeaderSize + 116 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','r','r','o','r','s',' ','o','c','c','u','r','r','e','d',' ','a','c','t','i','v','a','t','i','n','g',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,':',' ','^','1',0
-		.align	2
+		.align  8
 obj_00558CE5:	ArrayObj(29, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetName),MAKEPTR(SYMGetStores),MAKEPTR(SYMPenPos),MAKEPTR(SYMx),MAKEPTR(SYMy),MAKEPTR(obj_00558AED),MAKEPTR(obj_00558AA9),MAKEPTR(SYMModalConfirm),MAKEPTR(SYMActivatePackages_3F),MAKEPTR(SYMCardSlot),MAKEPTR(SYMModalCardAlert),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMversion),MAKEPTR(SYMActivateStore2_2EXPackages),MAKEPTR(SYMActivateStore1_2EXPackages),MAKEPTR(obj_005A7F4D)
 		Ref		MAKEPTR(obj_00558B95),MAKEPTR(SYMdupList),MAKEPTR(obj_005691C9),MAKEPTR(obj_00558BA9),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(SYMerrList),MAKEPTR(obj_005691C9),MAKEPTR(obj_00558C65),MAKEPTR(SYMActivateStorePackages),MAKEPTR(SYMXmitPackageOp)
@@ -3804,22 +3801,22 @@ obj_00558E8D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00558E8D:	FrameObj(5, obj_00558E8D_map)
 		Ref		0x00000032,MAKEPTR(obj_00558D65),MAKEPTR(obj_00558CE5),NILREF,0x00140004
-obj_0048351D:	.long		kHeaderSize + 10 + kFlagsBinary
+obj_0048351D:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x7D,0x18,0x28,0x19,0x91,0x1A,0x3B,0x02
-		.align	2
+		.align  8
 obj_00483535:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMfolderEdit),MAKEPTR(SYMBroadcastFolderChange)
 obj_0048354D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0048354D:	FrameObj(5, obj_0048354D_map)
 		Ref		0x00000032,MAKEPTR(obj_0048351D),MAKEPTR(obj_00483535),NILREF,0x0000000C
-obj_00568145:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_00568145:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x07,0x18,0x28,0x00,0x19,0x7B,0x7B,0x1A,0x83,0x27,0x04,0x53,0x1B
 		.byte		0x28,0x20,0xC2,0x1C,0x39,0x1D,0x39,0xA5,0x7D,0x1E,0x38,0xA6,0x7E,0xC5,0x6F,0x00
 		.byte		0x2E,0x27,0x03,0x67,0x7B,0x1F,0x00,0x07,0x19,0x1F,0x00,0x08,0x2C,0xA6,0x7E,0x02
-		.align	2
+		.align  8
 obj_00568181:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMConvert1_2EXModemSetUps),MAKEPTR(SYMmodemName),MAKEPTR(obj_00421DF5),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(SYMstr_3C),MAKEPTR(SYMBFetch)
 obj_005681B1_map:	FrameMapObj(5)
@@ -3854,13 +3851,13 @@ obj_0041FB8D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FB8D:	FrameObj(3, obj_0041FB8D_map)
 		Ref		0x00000132,_FDateNTime,0x00000004
-obj_005ACCA1:	.long		kHeaderSize + 54 + kFlagsBinary
+obj_005ACCA1:	Ref    kHeaderSize + 54 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x30,0xA3,0x7B,0x6F,0x00,0x34,0x71,0x1A,0x91,0xA4,0x7B,0x1B,0x91,0xC5,0x6F
 		.byte		0x00,0x1B,0x7B,0x1B,0x27,0x00,0x10,0x22,0x1C,0x2A,0x98,0x7B,0x1B,0x91,0x7C,0xC2
 		.byte		0xA5,0x7D,0xC5,0x6F,0x00,0x2C,0x1D,0x28,0x00,0x1E,0x28,0xA5,0x7D,0x1F,0x00,0x07
 		.byte		0x29,0x5F,0x00,0x35,0x22,0x02
-		.align	2
+		.align  8
 obj_005ACCE5:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005ACB89),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMscreenOrientation),MAKEPTR(SYMrotated),MAKEPTR(SYMarray),MAKEPTR(SYMCalibrateTablet),MAKEPTR(SYMGetCalibration),MAKEPTR(SYMSetCalibration)
 obj_005ACD11_map:	FrameMapObj(5)
@@ -3891,14 +3888,14 @@ obj_0062E67D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E67D:	FrameObj(3, obj_0062E67D_map)
 		Ref		0x00000132,_FBeginsWith,0x00000008
-obj_0062AA25:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_0062AA25:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x1A,0x8B,0xC7,0x00,0x16,0x1B,0x1C,0x2A,0x00,0x7B,0x1D,0x29,0x02
-		.align	2
-obj_0062AAC9:	.long		kHeaderSize + 26 + kFlagsBinary
+		.align  8
+obj_0062AAC9:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'M','a','k','e','S','y','m','b','o','l','(','"',0
-		.align	2
+		.align  8
 obj_0062AAA5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0062AAC9),MAKEPTR(obj_003C58A9),MAKEPTR(SYMarray),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMIntern)
 obj_0062AAF1_map:	FrameMapObj(5)
@@ -3913,7 +3910,7 @@ obj_0041C445_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C445:	FrameObj(3, obj_0041C445_map)
 		Ref		0x00000132,_FAddDelayedCall,0x0000000C
-obj_00463FFD:	.long		kHeaderSize + 545 + kFlagsBinary
+obj_00463FFD:	Ref    kHeaderSize + 545 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x22,0xA5,0x7B,0x6F,0x00,0x10,0x19,0x28,0x7B,0x91,0x5F,0x00,0x11
 		.byte		0x22,0xA6,0x7E,0xC5,0x6F,0x00,0x1A,0x19,0x28,0xA6,0x7B,0x22,0xC6,0x6F,0x00,0x28
@@ -3950,7 +3947,7 @@ obj_00463FFD:	.long		kHeaderSize + 545 + kFlagsBinary
 		.byte		0x00,0x0C,0x05,0x7F,0x00,0x0C,0x06,0x6F,0x01,0xE3,0x22,0x22,0xA7,0x00,0x0C,0x00
 		.byte		0x7C,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x6F,0x02,0x1F,0x7C,0x5F,0x02,0x20,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00463F29:	ArrayObj(5, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMsymbol),MAKEPTR(SYMnoDefaults),MAKEPTR(SYMdataTypes)
 obj_00463F7D:	ArrayObj(4, 0x00000018)
@@ -3970,7 +3967,7 @@ obj_0062E695_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E695:	FrameObj(3, obj_0062E695_map)
 		Ref		0x00000132,_FDeinstallPackage,0x00000004
-obj_0062B549:	.long		kHeaderSize + 85 + kFlagsBinary
+obj_0062B549:	Ref    kHeaderSize + 85 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x1A,0x8B,0xC7,0x00,0x16,0x1B,0x1C,0x2A,0x00,0x7B,0x7B,0x7D,0x7D
 		.byte		0x1D,0x29,0x7E,0x24,0xC2,0x7C,0x1E,0x86,0xA7,0x00,0x07,0x7B,0x1F,0x00,0x07,0x29
@@ -3978,15 +3975,15 @@ obj_0062B549:	.long		kHeaderSize + 85 + kFlagsBinary
 		.byte		0x09,0x38,0x6F,0x00,0x3E,0x1F,0x00,0x0A,0x28,0x20,0xC2,0xA7,0x00,0x08,0x7F,0x00
 		.byte		0x07,0x7F,0x00,0x08,0x7D,0x1F,0x00,0x0B,0x2B,0x00,0x1F,0x00,0x0C,0x7F,0x00,0x07
 		.byte		0x1F,0x00,0x0D,0x2A,0x02
-		.align	2
-obj_0062B5F1:	.long		kHeaderSize + 38 + kFlagsBinary
+		.align  8
+obj_0062B5F1:	Ref    kHeaderSize + 38 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'R','e','g','i','s','t','e','r','C','a','r','d','S','o','u','p','(','"',0
-		.align	2
-obj_0062B52D:	.long		kHeaderSize + 16 + kFlagsBinary
+		.align  8
+obj_0062B52D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'"',',',' ','.','.','.',')',0
-		.align	2
+		.align  8
 obj_0062FF51:	ArrayObj(7, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMname),MAKEPTR(SYMuserName),MAKEPTR(SYMownerApp),MAKEPTR(SYMownerAppName),MAKEPTR(SYMuserDescr),MAKEPTR(SYMindexes)
 obj_0062B5AD:	ArrayObj(14, MAKEPTR(SYMliterals))
@@ -3995,11 +3992,11 @@ obj_0062B625_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062B625:	FrameObj(5, obj_0062B625_map)
 		Ref		0x00000032,MAKEPTR(obj_0062B549),MAKEPTR(obj_0062B5AD),NILREF,0x00080010
-obj_004195F1:	.long		kHeaderSize + 25 + kFlagsBinary
+obj_004195F1:	Ref    kHeaderSize + 25 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x91,0x1A,0x2A,0x00,0x7B,0x19,0x91,0x1B,0x29,0x00,0x7B,0xAC,0x1D
 		.byte		0x28,0x1E,0x38,0x00,0x1F,0x00,0x07,0x28,0x02
-		.align	2
+		.align  8
 obj_00419619:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMscreenOrientation),MAKEPTR(SYMorientation),MAKEPTR(SYMSetUserConfig),MAKEPTR(SYMSetOrientation),MAKEPTR(SYMdisplayParams),MAKEPTR(SYMGetRoot),MAKEPTR(SYMFixupDisplay),MAKEPTR(SYMVerifyCalibration)
 obj_00419645_map:	FrameMapObj(5)
@@ -4014,10 +4011,10 @@ obj_0062E6C5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E6C5:	FrameObj(3, obj_0062E6C5_map)
 		Ref		0x00000132,_FArrayMunger,0x00000018
-obj_005B7DCD:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_005B7DCD:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x08,0xBB,0x18,0x39,0xA4,0x7C,0x19,0x38,0x00,0x7C,0x1A,0x91,0x02
-		.align	2
+		.align  8
 obj_005B7DE9:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBuildMeUp),MAKEPTR(SYMModalDialog),MAKEPTR(SYMnewPinKey)
 obj_005B7E01_map:	FrameMapObj(5)
@@ -4042,10 +4039,10 @@ obj_004D1489_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_004D1489:	FrameObj(3, obj_004D1489_map)
 		Ref		0x00000132,_FOpenRemote,0x00000000
-obj_005698E1:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_005698E1:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x0D,0x7C,0x19,0x91,0x02,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_005698FD:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSoupDef),MAKEPTR(SYMindexes)
 obj_00569911_map:	FrameMapObj(5)
@@ -4064,7 +4061,7 @@ obj_0041CCC9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CCC9:	FrameObj(3, obj_0041CCC9_map)
 		Ref		0x00000132,_IASmartCFLookup,0x00000004
-obj_0041C64D:	.long		kHeaderSize + 133 + kFlagsBinary
+obj_0041C64D:	Ref    kHeaderSize + 133 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xA7,0x00,0x07,0x19,0x28,0x7E,0x27,0x00,0xF0,0xC7,0x00,0x07,0x27
 		.byte		0x0F,0xA0,0xC7,0x00,0x09,0xC0,0xA7,0x00,0x08,0x7F,0x00,0x07,0x6F,0x00,0x60,0x7F
@@ -4075,7 +4072,7 @@ obj_0041C64D:	.long		kHeaderSize + 133 + kFlagsBinary
 		.byte		0x70,0x7B,0x1F,0x00,0x0A,0x29,0x7C,0x7D,0x22,0x7F,0x00,0x08,0x1F,0x00,0x0B,0x84
 		.byte		0x98,0x76,0x1F,0x00,0x07,0x91,0x7B,0x1F,0x00,0x08,0x89,0x7E,0x1F,0x00,0x09,0x2B
 		.byte		0x00,0x7F,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_0041C5F1:	ArrayObj(5, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMreceiverOrClosure),MAKEPTR(SYMargArray),MAKEPTR(SYMmessage),MAKEPTR(SYMtimeToRun)
 obj_0041C611:	ArrayObj(12, MAKEPTR(SYMliterals))
@@ -4092,29 +4089,29 @@ obj_005BA405_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005BA405:	FrameObj(3, obj_005BA405_map)
 		Ref		0x00000132,_FLookupWord,0x00000004
-obj_004D2891:	.long		kHeaderSize + 64 + kFlagsBinary
+obj_004D2891:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x3C,0x7B,0xC7,0x00,0x13,0xA4,0x7C,0x19,0x1A,0x1B,0x2B
 		.byte		0xA4,0x7C,0x1C,0x1D,0x22,0x1E,0x2C,0x00,0x7C,0x1F,0x00,0x07,0x1F,0x00,0x08,0x22
 		.byte		0x1E,0x2C,0x00,0x7C,0x1F,0x00,0x09,0x1F,0x00,0x0A,0x22,0x1E,0x2C,0x00,0x7C,0x1F
 		.byte		0x00,0x0B,0x1F,0x00,0x0C,0x1F,0x00,0x0D,0x2B,0x5F,0x00,0x3F,0x1F,0x00,0x0E,0x02
-		.align	2
-obj_004D27F5:	.long		kHeaderSize + 50 + kFlagsBinary
+		.align  8
+obj_004D27F5:	Ref    kHeaderSize + 50 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','D','G','J','M','P','T','W','B','E','H','K','N','R','U','X','C','F','I','L','O','S','V','Y',0
-		.align	2
-obj_004D2835:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_004D2835:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'2','3','4','5','6','7','8','9',0
-		.align	2
-obj_004D2699:	.long		kHeaderSize + 8 + kFlagsBinary
+		.align  8
+obj_004D2699:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'e','x','t',0
-		.align	2
-obj_004D2855:	.long		kHeaderSize + 48 + kFlagsBinary
+		.align  8
+obj_004D2855:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','q','r','s','t','u','v','y','z',0
-		.align	2
+		.align  8
 obj_004D28DD:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrFilled),MAKEPTR(obj_004D27F5),MAKEPTR(obj_004D2835),MAKEPTR(SYMSubstituteChars),MAKEPTR(obj_004D2699),MAKEPTR(obj_004D2B51),MAKEPTR(SYMStrReplace),MAKEPTR(obj_0052C4D5),MAKEPTR(obj_004D2B51),MAKEPTR(obj_004D26AD),MAKEPTR(obj_004D2B51),MAKEPTR(obj_004D2855),MAKEPTR(SYMrejectAll),MAKEPTR(SYMStringFilter),MAKEPTR(obj_005A7F4D)
 obj_004D2925_map:	FrameMapObj(5)
@@ -4133,11 +4130,11 @@ obj_0041BBCD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BBCD:	FrameObj(3, obj_0041BBCD_map)
 		Ref		0x00000132,_FDrawDateLabels,0x00000008
-obj_0056E1AD:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_0056E1AD:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x7D,0x27,0x00,0x27,0x18,0x3B,0xA6,0x7E,0x19,0x38,0x00,0x7E,0x1A,0x91
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0056E1CD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBuildCardAlert),MAKEPTR(SYMModalDialog),MAKEPTR(SYMconfirmedValue)
 obj_0056E1E5_map:	FrameMapObj(5)
@@ -4148,7 +4145,7 @@ obj_0041C1B1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C1B1:	FrameObj(3, obj_0041C1B1_map)
 		Ref		0x00000132,_FPointsToArray,0x00000004
-obj_0045B5F5:	.long		kHeaderSize + 82 + kFlagsBinary
+obj_0045B5F5:	Ref    kHeaderSize + 82 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x7B,0x19,0x91,0x91,0xA4,0x7B,0x1A,0x91,0x1A,0x28,0xC1,0x1B,0x29,0x7B
 		.byte		0x1C,0x91,0xC7,0x00,0x0A,0x6F,0x00,0x1E,0x7C,0x1D,0x40,0x5F,0x00,0x1F,0x22,0x6F
@@ -4156,7 +4153,7 @@ obj_0045B5F5:	.long		kHeaderSize + 82 + kFlagsBinary
 		.byte		0x1F,0x00,0x08,0x91,0x1F,0x00,0x09,0x8B,0xC7,0x00,0x16,0x7B,0x1F,0x00,0x0A,0x29
 		.byte		0x22,0x77,0x00,0x0B,0x1F,0x00,0x0C,0x91,0x7B,0x1F,0x00,0x09,0x89,0x1F,0x00,0x0D
 		.byte		0x2D,0x02
-		.align	2
+		.align  8
 obj_0045B655:	ArrayObj(14, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMowner),MAKEPTR(SYMTime),MAKEPTR(SYMabs),MAKEPTR(SYMtolerance),MAKEPTR(SYMAlarmsEnabled),MAKEPTR(SYMPeriodicAlarm),MAKEPTR(SYMname),MAKEPTR(SYMownerName),MAKEPTR(SYMarray),MAKEPTR(SYMUpdatePeriodicAlarmTime),MAKEPTR(SYMfunctions),MAKEPTR(SYMPeriodicAlarmFunc),MAKEPTR(SYMAddAlarm)
 obj_0045B699_map:	FrameMapObj(5)
@@ -4173,71 +4170,71 @@ obj_00557D99_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557D99:	FrameObj(5, obj_00557D99_map)
 		Ref		0x00000032,MAKEPTR(obj_00518F65),MAKEPTR(obj_00518F79),NILREF,0x00000000
-obj_00518F91:	.long		kHeaderSize + 25 + kFlagsBinary
+obj_00518F91:	Ref    kHeaderSize + 25 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x1A,0x19,0x29,0x1B,0x29,0xC6,0x6F,0x00,0x17,0x1A,0x7B
 		.byte		0x1C,0x29,0x1D,0x2A,0x5F,0x00,0x18,0x22,0x02
-		.align	2
+		.align  8
 obj_00518FB9:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalarmVolume),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMalarmVolumeDb),MAKEPTR(SYMDecibelsToVolume),MAKEPTR(SYMVolumeToDecibels),MAKEPTR(SYMSetUserConfig)
 obj_00557DB9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557DB9:	FrameObj(5, obj_00557DB9_map)
 		Ref		0x00000032,MAKEPTR(obj_00518F91),MAKEPTR(obj_00518FB9),NILREF,0x00040000
-obj_00518FDD:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_00518FDD:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x1A,0x29,0xA3,0x7B,0x1B,0x19,0x29,0xC6,0x6F,0x00,0x15,0x1B,0x7B
 		.byte		0x1C,0x2A,0x5F,0x00,0x16,0x22,0x02
-		.align	2
+		.align  8
 obj_00519001:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalarmVolumeDb),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMDecibelsToVolume),MAKEPTR(SYMalarmVolume),MAKEPTR(SYMSetUserConfig)
 obj_00557DD9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557DD9:	FrameObj(5, obj_00557DD9_map)
 		Ref		0x00000032,MAKEPTR(obj_00518FDD),MAKEPTR(obj_00519001),NILREF,0x00040000
-obj_00519021:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_00519021:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x19,0x1A,0x29,0xA4,0x7C,0x7B,0xC6,0x6F,0x00,0x11,0x7C,0x1B,0x29
 		.byte		0x00,0x7C,0x1C,0x1A,0x29,0x1D,0x29,0xC6,0x6F,0x00,0x26,0x1C,0x7C,0x1E,0x29,0x1F
 		.byte		0x00,0x07,0x2A,0x5F,0x00,0x27,0x22,0x02
-		.align	2
+		.align  8
 obj_00557C55:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetVolume),MAKEPTR(SYMsoundVolume),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMSetVolume),MAKEPTR(SYMsoundVolumeDb),MAKEPTR(SYMDecibelsToVolume),MAKEPTR(SYMVolumeToDecibels),MAKEPTR(SYMSetUserConfig)
 obj_00557DF9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557DF9:	FrameObj(5, obj_00557DF9_map)
 		Ref		0x00000032,MAKEPTR(obj_00519021),MAKEPTR(obj_00557C55),NILREF,0x00080000
-obj_00557C81:	.long		kHeaderSize + 38 + kFlagsBinary
+obj_00557C81:	Ref    kHeaderSize + 38 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x19,0x1A,0x29,0xA4,0x7C,0x7B,0xC6,0x6F,0x00,0x11,0x7C,0x1B,0x29
 		.byte		0x00,0x7C,0x1C,0x29,0xA5,0x7D,0x1D,0x1A,0x29,0xC6,0x6F,0x00,0x24,0x1D,0x7D,0x1E
 		.byte		0x2A,0x5F,0x00,0x25,0x22,0x02
-		.align	2
+		.align  8
 obj_00557CB5:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSystemVolume),MAKEPTR(SYMsoundVolumeDb),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMSetSystemVolume),MAKEPTR(SYMDecibelsToVolume),MAKEPTR(SYMsoundVolume),MAKEPTR(SYMSetUserConfig)
 obj_00557E19_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557E19:	FrameObj(5, obj_00557E19_map)
 		Ref		0x00000032,MAKEPTR(obj_00557C81),MAKEPTR(obj_00557CB5),NILREF,0x000C0000
-obj_00557CDD:	.long		kHeaderSize + 67 + kFlagsBinary
+obj_00557CDD:	Ref    kHeaderSize + 67 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x1A,0x29,0x6F,0x00,0x28,0x7B,0x20,0xC7,0x00,0x0A,0x6F
 		.byte		0x00,0x17,0x20,0xA3,0x5F,0x00,0x25,0x7B,0x27,0x03,0xFC,0xC7,0x00,0x0B,0x6F,0x00
 		.byte		0x25,0x27,0x03,0xFC,0xA3,0x5F,0x00,0x2C,0x27,0x02,0x00,0xA3,0x7B,0x1B,0x29,0xA3
 		.byte		0x7B,0x74,0x18,0x91,0xC6,0x6F,0x00,0x41,0x74,0x18,0x7B,0x98,0x1D,0x28,0x5F,0x00
 		.byte		0x42,0x22,0x02
-		.align	2
+		.align  8
 obj_00557D2D:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMinputGain),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMIsInteger),MAKEPTR(SYMSetInputGain),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMFlushUserConfig)
 obj_00557E39_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557E39:	FrameObj(5, obj_00557E39_map)
 		Ref		0x00000032,MAKEPTR(obj_00557CDD),MAKEPTR(obj_00557D2D),NILREF,0x00040000
-obj_00557D51:	.long		kHeaderSize + 27 + kFlagsBinary
+obj_00557D51:	Ref    kHeaderSize + 27 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x1A,0x29,0xA3,0x7B,0x73,0x18,0x91,0xC6,0x6F,0x00,0x19
 		.byte		0x73,0x18,0x7B,0x98,0x1C,0x28,0x5F,0x00,0x1A,0x22,0x02
-		.align	2
+		.align  8
 obj_00557D79:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMoutputDevice),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMSetOutputDevice),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMFlushUserConfig)
 obj_00557E59_map:	FrameMapObj(5)
@@ -4258,27 +4255,27 @@ obj_0062E70D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E70D:	FrameObj(3, obj_0062E70D_map)
 		Ref		0x00000132,_Fferaiseexcept,0x00000004
-obj_006340CD:	.long		kHeaderSize + 45 + kFlagsBinary
+obj_006340CD:	Ref    kHeaderSize + 45 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x1A,0x2A,0x00,0x1B,0x80,0xA3,0x22,0x22,0x1C,0x2A,0xA4,0x7C,0x22,0xC7
 		.byte		0x00,0x11,0xA6,0x5F,0x00,0x22,0x7E,0x24,0xC2,0xA5,0x7B,0x7D,0x7D,0x1D,0x29,0x98
 		.byte		0x7E,0x05,0x7E,0x06,0x6F,0x00,0x16,0x22,0x22,0xA6,0x00,0x7B,0x02
-		.align	2
-obj_0063412D:	.long		kHeaderSize + 32 + kFlagsBinary
+		.align  8
+obj_0063412D:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'G','e','t','A','l','l','F','o','l','d','e','r','s','(',')',0
-		.align	2
+		.align  8
 obj_00634109:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0063412D),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(obj_004D4879),MAKEPTR(SYMGetFolderList),MAKEPTR(SYMGetFolderStr)
 obj_00634159_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00634159:	FrameObj(5, obj_00634159_map)
 		Ref		0x00000032,MAKEPTR(obj_006340CD),MAKEPTR(obj_00634109),NILREF,0x00100000
-obj_005A7281:	.long		kHeaderSize + 25 + kFlagsBinary
+obj_005A7281:	Ref    kHeaderSize + 25 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0x1A,0x38,0xA6,0x7E,0x1B,0x7B,0x1C,0x29,0x98,0x7E,0x1D,0x7C
 		.byte		0x1C,0x29,0x98,0x7E,0x1E,0x7D,0x98,0x7E,0x02
-		.align	2
+		.align  8
 obj_005A72D1:	ArrayObj(3, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMiobox),MAKEPTR(SYMallDataDefs),MAKEPTR(SYMsmartMail)
 obj_005A72A9:	ArrayObj(7, MAKEPTR(SYMliterals))
@@ -4343,21 +4340,21 @@ obj_0062CB59_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062CB59:	FrameObj(5, obj_0062CB59_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C735),MAKEPTR(obj_0062C6CD),NILREF,0x00040008
-obj_0062C98D:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_0062C98D:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_0062C6ED:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMHasSlot)
 obj_0062E7B9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062E7B9:	FrameObj(5, obj_0062E7B9_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C98D),MAKEPTR(obj_0062C6ED),NILREF,0x00000004
-obj_005B50CD:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_005B50CD:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x2A,0x00,0x1A,0x28,0x1B,0x91,0x6F,0x00,0x13,0x1A,0x28,0x1C,0x91
 		.byte		0x1D,0x38,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_005B5115:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMpreferenceRoll),MAKEPTR(SYMviewCObject)
 obj_005B50F1:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -4416,11 +4413,11 @@ obj_0041AFB5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AFB5:	FrameObj(3, obj_0041AFB5_map)
 		Ref		0x00000132,_FGetInsertionStyle,0x00000000
-obj_00422A11:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00422A11:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC7,0x00,0x13,0xA5,0x7D,0x18,0x29,0xA5,0x7D,0x19,0x7C,0x98,0x7D,0x1A,0x29
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00422A31:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMConvertToSoundFrame),MAKEPTR(SYMvolume),MAKEPTR(SYMplaysound)
 obj_00422A49_map:	FrameMapObj(5)
@@ -4431,13 +4428,13 @@ obj_0062E821_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E821:	FrameObj(3, obj_0062E821_map)
 		Ref		0x00000132,_FReplaceObject,0x00000008
-obj_005AF12D:	.long		kHeaderSize + 53 + kFlagsBinary
+obj_005AF12D:	Ref    kHeaderSize + 53 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x20,0x98,0x1A,0x28,0x00,0x7B,0x1B,0x91,0x1C,0x29,0x00,0x1D,0x22,0xC7
 		.byte		0x00,0x11,0xA5,0x5F,0x00,0x29,0x7D,0x24,0xC2,0xA4,0x7B,0x7C,0x1E,0x2A,0x6F,0x00
 		.byte		0x27,0x70,0x7C,0x7B,0x7C,0x91,0x98,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x16,0x22,0x22
 		.byte		0xA5,0x00,0x1A,0x28,0x02
-		.align	2
+		.align  8
 obj_005AF019:	ArrayObj(14, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMlineAtATime),MAKEPTR(SYMletterSpaceCursiveOption),MAKEPTR(SYMspeedCursiveOption),MAKEPTR(SYMtimeoutCursiveOption),MAKEPTR(SYMwordsCursiveOption),MAKEPTR(SYMlettersCursiveOption),MAKEPTR(SYMlettersInFieldsOption),MAKEPTR(SYMnumbersCursiveOption),MAKEPTR(SYMpunctuationCursiveOption),MAKEPTR(SYMremoteWriting),MAKEPTR(SYMinkWordScaling),MAKEPTR(SYMdoAutoAdd),MAKEPTR(SYMlearningEnabledOption)
 obj_005AF171:	ArrayObj(7, MAKEPTR(SYMliterals))
@@ -4450,7 +4447,7 @@ obj_0062E839_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E839:	FrameObj(3, obj_0062E839_map)
 		Ref		0x00000132,_FBSearchLeft,0x00000010
-obj_00559EF5:	.long		kHeaderSize + 167 + kFlagsBinary
+obj_00559EF5:	Ref    kHeaderSize + 167 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA8,0x7B,0x19,0x29,0xAA,0x72,0xC5,0x6F,0x00,0x0E,0x22,0x02,0x00,0x72,0x1B
 		.byte		0x29,0xAC,0x72,0x1D,0x29,0xA5,0x72,0x1E,0x91,0xA6,0x72,0x1F,0x00,0x07,0x91,0xA7
@@ -4463,20 +4460,20 @@ obj_00559EF5:	.long		kHeaderSize + 167 + kFlagsBinary
 		.byte		0x95,0x7F,0x00,0x08,0x6F,0x00,0x8D,0x7E,0x1F,0x00,0x15,0x29,0x00,0x1F,0x00,0x16
 		.byte		0x28,0x00,0x07,0x00,0x07,0x7F,0x00,0x08,0x6F,0x00,0xA3,0x72,0x1E,0x91,0x1F,0x00
 		.byte		0x15,0x29,0x00,0x27,0x00,0x1A,0x02
-		.align	2
-obj_00559C89:	.long		kHeaderSize + 212 + kFlagsBinary
+		.align  8
+obj_00559C89:	Ref    kHeaderSize + 212 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','w','a','s',' ','n','o','t',' ','m','o','v','e','d',' ','b','e','c','a','u','s','e',' ','a',' ','p','a','c','k','a','g','e',' ','b','y',' ','t','h','e',' ','s','a','m','e',' ','n','a','m','e',' ','i','s',' ','a','l','r','e','a','d','y',' ','i','n','s','t','a','l','l','e','d',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','1',0x201D,'.',0
-		.align	2
-obj_00559D69:	.long		kHeaderSize + 6 + kFlagsBinary
+		.align  8
+obj_00559D69:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x04,0x71,0x1A,0x39,0x02
-		.align	2
-obj_00559D95:	.long		kHeaderSize + 28 + kFlagsBinary
+		.align  8
+obj_00559D95:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x71,0x1A,0x1B,0x29,0x1C,0x39,0x1D,0x2A,0x00,0x1A,0x1E,0x1F,0x00,0x07,0x77
 		.byte		0x00,0x08,0x70,0x1F,0x00,0x09,0x82,0x1F,0x00,0x0A,0x2C,0x02
-		.align	2
+		.align  8
 obj_00559DBD:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMentry),MAKEPTR(SYMdestStore),MAKEPTR(obj_005A74D1),MAKEPTR(SYMGetUnionSoupAlways),MAKEPTR(SYMGetMember),MAKEPTR(SYMEntryMove),MAKEPTR(SYM_newt),MAKEPTR(SYMentryMoved),MAKEPTR(SYMoldSoup),MAKEPTR(obj_0055A105),MAKEPTR(SYMUnsafeXmitSoupChangeNow)
 obj_00559DF5_map:	FrameMapObj(3)
@@ -4528,15 +4525,15 @@ obj_0041CFAD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CFAD:	FrameObj(3, obj_0041CFAD_map)
 		Ref		0x00000132,_FSetClipboard,0x00000004
-obj_00476C3D:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_00476C3D:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0C,0x7B,0x7C,0xC7,0x00,0x14,0x5F,0x00,0x0D,0x22,0x02
-		.align	2
+		.align  8
 obj_00476C59_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00476C59:	FrameObj(5, obj_00476C59_map)
 		Ref		0x00000032,MAKEPTR(obj_00476C3D),NILREF,NILREF,0x00000008
-obj_0063AB59:	.long		kHeaderSize + 97 + kFlagsBinary
+obj_0063AB59:	Ref    kHeaderSize + 97 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x27,0x19,0x7B,0x7C,0x6F,0x00,0x1B,0x27,0x02,0x86,0x7C
 		.byte		0x27,0x02,0x96,0x1A,0x8B,0xC7,0x00,0x16,0x5F,0x00,0x1C,0x22,0x27,0x00,0xD6,0x1A
@@ -4545,33 +4542,33 @@ obj_0063AB59:	.long		kHeaderSize + 97 + kFlagsBinary
 		.byte		0x00,0x4F,0x7D,0x1F,0x00,0x09,0x29,0x00,0x1F,0x00,0x0A,0x28,0x5F,0x00,0x60,0x7C
 		.byte		0x1F,0x00,0x0B,0xC6,0x6F,0x00,0x5F,0x7D,0x1F,0x00,0x09,0x29,0x5F,0x00,0x60,0x22
 		.byte		0x02
-		.align	2
-obj_0063AACD:	.long		kHeaderSize + 34 + kFlagsBinary
+		.align  8
+obj_0063AACD:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','a','s','t','y',' ','p','r','a','c','t','i','c','e',' ','#',0
-		.align	2
-obj_0063AAFD:	.long		kHeaderSize + 16 + kFlagsBinary
+		.align  8
+obj_0063AAFD:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x000D,'U','s','e',' ','o','f',0
-		.align	2
-obj_0063AB19:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_0063AB19:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','P','I',':',0x000D,'-',' ',' ',0
-		.align	2
+		.align  8
 obj_0063ABC9:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsInteger),MAKEPTR(obj_0063AACD),MAKEPTR(SYMarray),MAKEPTR(obj_0063AAFD),MAKEPTR(obj_0047CABD),MAKEPTR(obj_0047CABD),MAKEPTR(obj_0063AB19),MAKEPTR(SYMvars),MAKEPTR(SYMNoEvilLiveOn),MAKEPTR(SYMWrite),MAKEPTR(SYMBreakLoop),MAKEPTR(SYMobsolete)
 obj_0063AC05_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0063AC05:	FrameObj(5, obj_0063AC05_map)
 		Ref		0x00000032,MAKEPTR(obj_0063AB59),MAKEPTR(obj_0063ABC9),NILREF,0x00040008
-obj_0056A455:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_0056A455:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x70,0x19,0x38,0xAA,0x1B,0x27,0x00,0x1A,0x1C,0x22,0x22,0x1D,0x84,0x1E
 		.byte		0x04,0x1F,0x00,0x07,0x2B,0x02
-		.align	2
+		.align  8
 obj_0056A281:	ArrayObj(5, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMbarber),MAKEPTR(SYMicon),MAKEPTR(SYMprimary),MAKEPTR(SYMcloseBox)
-obj_0056A539:	.long		kHeaderSize + 137 + kFlagsBinary
+obj_0056A539:	Ref    kHeaderSize + 137 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x72,0x1B,0x89,0x1C,0x2A,0x27,0x00,0x1A,0x1D,0x82,0x7B,0x1E,0x3A,0x00
 		.byte		0x1F,0x00,0x07,0x27,0x00,0x98,0xC9,0x77,0x00,0x08,0x7B,0x1F,0x00,0x09,0x2A,0x00
@@ -4582,25 +4579,25 @@ obj_0056A539:	.long		kHeaderSize + 137 + kFlagsBinary
 		.byte		0x08,0x7B,0x1F,0x00,0x10,0x2A,0x07,0x00,0x07,0x5F,0x00,0x88,0x27,0x00,0x0C,0x1F
 		.byte		0x00,0x11,0x1F,0x00,0x12,0x72,0x1B,0x89,0x1C,0x2A,0x1F,0x00,0x0C,0x28,0x1F,0x00
 		.byte		0x0D,0x3B,0x00,0x22,0x02,0x07,0x00,0x07,0x02
-		.align	2
-obj_0056A2A1:	.long		kHeaderSize + 76 + kFlagsBinary
+		.align  8
+obj_0056A2A1:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','o','n','v','e','r','t','i','n','g',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,0
-		.align	2
+		.align  8
 obj_0056A3C9:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMstatusText),MAKEPTR(SYMbarber)
-obj_0056A2F9:	.long		kHeaderSize + 110 + kFlagsBinary
+obj_0056A2F9:	Ref    kHeaderSize + 110 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','r','r','o','r','s',' ','o','c','c','u','r','r','e','d',' ','c','o','n','v','e','r','t','i','n','g',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,'.',0
-		.align	2
-obj_0056A375:	.long		kHeaderSize + 70 + kFlagsBinary
+		.align  8
+obj_0056A375:	Ref    kHeaderSize + 70 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','o','n','v','e','r','t','i','n','g',' ','s','o','u','p','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,0
-		.align	2
-obj_0056A3E1:	.long		kHeaderSize + 104 + kFlagsBinary
+		.align  8
+obj_0056A3E1:	Ref    kHeaderSize + 104 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','r','r','o','r','s',' ','o','c','c','u','r','r','e','d',' ','c','o','n','v','e','r','t','i','n','g',' ','s','o','u','p','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,'.',0
-		.align	2
+		.align  8
 obj_0056A4E1:	ArrayObj(19, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvBarber),MAKEPTR(obj_0056A2A1),MAKEPTR(SYMstoreName),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(obj_0056A3C9),MAKEPTR(SYMSetStatus),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMstore),MAKEPTR(SYMConvert1_2EXPackages),MAKEPTR(obj_005691C9),MAKEPTR(obj_0056A2F9),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(obj_0056A375),MAKEPTR(obj_0056A3C9)
 		Ref		MAKEPTR(SYMConvert1_2EXStoreData),MAKEPTR(obj_005691C9),MAKEPTR(obj_0056A3E1)
@@ -4630,14 +4627,14 @@ obj_0062E871_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E871:	FrameObj(3, obj_0062E871_map)
 		Ref		0x00000132,_FGC,0x00000000
-obj_0044C9F5:	.long		kHeaderSize + 73 + kFlagsBinary
+obj_0044C9F5:	Ref    kHeaderSize + 73 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x47,0x7C,0x18,0x29,0xA6,0x7E,0x19,0x29,0xA7,0x00,0x07,0x20,0xA7
 		.byte		0x00,0x08,0x7F,0x00,0x07,0x27,0x00,0x08,0xC7,0x00,0x0B,0x6F,0x00,0x2E,0x7F,0x00
 		.byte		0x07,0x27,0x00,0x08,0xC1,0xA7,0x00,0x08,0x27,0x00,0x08,0xA7,0x00,0x07,0x7B,0x7D
 		.byte		0x27,0x00,0x08,0xC0,0x7F,0x00,0x07,0xC1,0x7F,0x00,0x07,0x7E,0x7F,0x00,0x08,0x7F
 		.byte		0x00,0x07,0x1A,0x2E,0x5F,0x00,0x48,0x22,0x02
-		.align	2
+		.align  8
 obj_0044CA4D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSPrintObject),MAKEPTR(SYMStrLen),MAKEPTR(SYMStrMunger)
 obj_0044CA65_map:	FrameMapObj(5)
@@ -4658,7 +4655,7 @@ obj_0041FA9D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FA9D:	FrameObj(3, obj_0041FA9D_map)
 		Ref		0x00000132,_FTimeInSeconds,0x00000000
-obj_00482AAD:	.long		kHeaderSize + 95 + kFlagsBinary
+obj_00482AAD:	Ref    kHeaderSize + 95 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA4,0x1A,0x19,0x29,0xA5,0x7C,0x7B,0x91,0x6F,0x00,0x14,0x7B,0x1B
 		.byte		0xC6,0x5F,0x00,0x15,0x22,0x6F,0x00,0x1E,0x7B,0x1C,0xC6,0x5F,0x00,0x1F,0x22,0x6F
@@ -4666,7 +4663,7 @@ obj_00482AAD:	.long		kHeaderSize + 95 + kFlagsBinary
 		.byte		0x00,0x07,0x24,0xC2,0xA6,0x7E,0x1D,0x29,0xC7,0x00,0x12,0x24,0xC4,0x6F,0x00,0x45
 		.byte		0x7D,0x7E,0x1E,0x2A,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x2F
 		.byte		0x22,0x22,0xA7,0x00,0x07,0x00,0x7C,0x7B,0x1E,0x2A,0x5F,0x00,0x5E,0x22,0x02
-		.align	2
+		.align  8
 obj_00482B19:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserFolderGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMuserFolders),MAKEPTR(SYM_Global),MAKEPTR(SYM_System),MAKEPTR(SYMGetFolderGroups),MAKEPTR(SYMRemoveSlot)
 obj_00482B41_map:	FrameMapObj(5)
@@ -4697,21 +4694,21 @@ obj_0041C2BD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C2BD:	FrameObj(3, obj_0041C2BD_map)
 		Ref		0x00000132,_FPostCommand,0x00000008
-obj_00420775:	.long		kHeaderSize + 10 + kFlagsBinary
+obj_00420775:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x27,0x00,0xF0,0xC7,0x00,0x09,0xC0,0x02
-		.align	2
+		.align  8
 obj_0042078D:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		0x0B292600
 obj_0042079D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0042079D:	FrameObj(5, obj_0042079D_map)
 		Ref		0x00000032,MAKEPTR(obj_00420775),MAKEPTR(obj_0042078D),NILREF,0x00000004
-obj_00420725:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_00420725:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0xF0,0x7B,0x18,0xC1,0xC7,0x00,0x07,0x7C,0x6F,0x00,0x11,0x7C,0x5F,0x00
 		.byte		0x12,0x20,0xC0,0x02
-		.align	2
+		.align  8
 obj_00420745:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		0x0B292600
 obj_00420755_map:	FrameMapObj(5)
@@ -4726,17 +4723,17 @@ obj_0041C8C1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C8C1:	FrameObj(3, obj_0041C8C1_map)
 		Ref		0x00000132,_FGetSortId,0x00000004
-obj_00557F29:	.long		kHeaderSize + 42 + kFlagsBinary
+obj_00557F29:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x7C,0xA9,0x27,0x04,0x53,0x70,0x1A,0x39,0xA5,0x7D,0x6F,0x00,0x28,0x1B
 		.byte		0x7D,0x1C,0x39,0x1D,0x38,0xAD,0x75,0x6F,0x00,0x24,0x1E,0x04,0x70,0x1F,0x00,0x07
 		.byte		0x39,0x5F,0x00,0x25,0x22,0x5F,0x00,0x29,0x22,0x02
-		.align	2
+		.align  8
 obj_00557C25_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMindexPath),MAKEPTR(SYMbeginKey),MAKEPTR(SYMendKey)
 obj_00557C25:	FrameObj(3, obj_00557C25_map)
 		Ref		MAKEPTR(SYMtag),MAKEPTR(obj_005A74D1),MAKEPTR(obj_005A74D1)
-obj_00557FCD:	.long		kHeaderSize + 255 + kFlagsBinary
+obj_00557FCD:	Ref    kHeaderSize + 255 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x18,0x88,0xA4,0x71,0x1A,0x91,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07
 		.byte		0x5F,0x00,0x5B,0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x7E
@@ -4754,7 +4751,7 @@ obj_00557FCD:	.long		kHeaderSize + 255 + kFlagsBinary
 		.byte		0x00,0x11,0xA7,0x00,0x0C,0x5F,0x00,0xF2,0x7F,0x00,0x0C,0x24,0xC2,0xA6,0x7F,0x00
 		.byte		0x0B,0x1F,0x00,0x16,0x7E,0x98,0x7F,0x00,0x0B,0x1F,0x00,0x17,0x29,0x00,0x7F,0x00
 		.byte		0x0C,0x05,0x7F,0x00,0x0C,0x06,0x6F,0x00,0xD8,0x22,0x22,0xA7,0x00,0x0C,0x02
-		.align	2
+		.align  8
 obj_00557EF9:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMpkgRef),MAKEPTR(SYMpackageName)
 obj_00557F11:	ArrayObj(3, 0x00000008)
@@ -4780,11 +4777,11 @@ obj_00558165_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00558165:	FrameObj(5, obj_00558165_map)
 		Ref		0x00000032,MAKEPTR(obj_00557F29),MAKEPTR(obj_00557F61),MAKEPTR(obj_00558185),0x00040008
-obj_0044E129:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_0044E129:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x06,0x16,0xC7,0x00,0x0C,0x6F,0x00,0x14,0x7B,0x27,0x07,0xA6,0xC7,0x00
 		.byte		0x0D,0x5F,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_0044E14D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044E14D:	FrameObj(5, obj_0044E14D_map)
@@ -4797,17 +4794,17 @@ obj_0041BE95_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BE95:	FrameObj(3, obj_0041BE95_map)
 		Ref		0x00000132,_FGetUnitDownTime,0x00000004
-obj_00557705:	.long		kHeaderSize + 11 + kFlagsBinary
+obj_00557705:	Ref    kHeaderSize + 11 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x7B,0x18,0x91,0x19,0x41,0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_0055771D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMpartFrame),MAKEPTR(SYMInstallScript)
 obj_00557731_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557731:	FrameObj(5, obj_00557731_map)
 		Ref		0x00000032,MAKEPTR(obj_00557705),MAKEPTR(obj_0055771D),NILREF,0x00040004
-obj_00496E49:	.long		kHeaderSize + 226 + kFlagsBinary
+obj_00496E49:	Ref    kHeaderSize + 226 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0xE0,0x70,0x19,0x91,0x7B,0x20,0x1A,0x1B,0x1C,0x2D,0xA4,0x7B,0x1D
 		.byte		0x38,0xA5,0x7D,0x1E,0xC6,0x6F,0x00,0x20,0x27,0x04,0x3F,0x7D,0x91,0x5F,0x00,0x21
@@ -4824,11 +4821,11 @@ obj_00496E49:	.long		kHeaderSize + 226 + kFlagsBinary
 		.byte		0x00,0x0C,0x1F,0x00,0x0E,0x1F,0x00,0x0F,0x7B,0x1F,0x00,0x10,0x38,0x1F,0x00,0x11
 		.byte		0x89,0x1F,0x00,0x12,0x2A,0x1F,0x00,0x0C,0x28,0x1F,0x00,0x13,0x3B,0x5F,0x00,0xE1
 		.byte		0x22,0x02
-		.align	2
-obj_00496DED:	.long		kHeaderSize + 80 + kFlagsBinary
+		.align  8
+obj_00496DED:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','o',' ','s','l','i','p',' ','i','s',' ','a','v','a','i','l','a','b','l','e',' ','f','o','r',' ','t','h','e',' ','c','a','r','d',' ',0x201C,'^','0',0x201D,'.',0
-		.align	2
+		.align  8
 obj_00496F39:	ArrayObj(20, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStoreSlipRegistry),MAKEPTR(SYMstoreSlips),MAKEPTR(SYM_3D),MAKEPTR(SYM_openedForStore),MAKEPTR(SYMLFetch),MAKEPTR(SYMcardType),MAKEPTR(SYMrom_20),MAKEPTR(SYMviewCObject),MAKEPTR(SYMMoveBehind),MAKEPTR(SYMOpen),MAKEPTR(SYMBuildContext),MAKEPTR(SYMsetDestStore),MAKEPTR(SYMGetRoot),MAKEPTR(SYMmiscSlips),MAKEMAGICPTR(556),MAKEPTR(obj_00496DED)
 		Ref		MAKEPTR(SYMGetName),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMNotify)
@@ -4840,7 +4837,7 @@ obj_0041CCB1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CCB1:	FrameObj(3, obj_0041CCB1_map)
 		Ref		0x00000132,_DSResolveString,0x00000008
-obj_004643E5:	.long		kHeaderSize + 393 + kFlagsBinary
+obj_004643E5:	Ref    kHeaderSize + 393 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA5,0x18,0x88,0xA6,0x7B,0x22,0xC4,0x6F,0x00,0x0F,0x7D,0x02,0x00,0x7B
 		.byte		0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x6F,0x7F,0x00,0x08,0x24,0xC2,0xA7
@@ -4867,7 +4864,7 @@ obj_004643E5:	.long		kHeaderSize + 393 + kFlagsBinary
 		.byte		0x2A,0x00,0x7D,0x7F,0x00,0x0D,0xC7,0x00,0x15,0x00,0x5F,0x01,0x75,0x7D,0x7F,0x00
 		.byte		0x0D,0xC7,0x00,0x15,0x00,0x7F,0x00,0x0C,0x05,0x7F,0x00,0x0C,0x06,0x6F,0x00,0x87
 		.byte		0x22,0x22,0xA7,0x00,0x0C,0x00,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_00464385:	ArrayObj(21, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMtitle),MAKEPTR(SYMGetTitle),MAKEPTR(SYMdataTypes),MAKEPTR(SYMSetAdd),MAKEPTR(SYMtransports),MAKEPTR(SYMGetRoot),MAKEPTR(SYMevt_2Eex_2EioBox),0xFFFFFFFFFFFF7E4C,MAKEPTR(SYMThrow),MAKEPTR(SYMIsArray),MAKEPTR(SYMSendRequest),MAKEPTR(SYMSetOverlaps),MAKEPTR(SYMgroup),MAKEPTR(SYMGetGroupTransport),MAKEPTR(SYMappSymbol)
 		Ref		MAKEPTR(SYMtransportGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(obj_004D4879),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMSetUserConfig)
@@ -4883,12 +4880,12 @@ obj_0062E901_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E901:	FrameObj(3, obj_0062E901_map)
 		Ref		0x00000132,_FIsProtocolPartInUse,0x00000004
-obj_00497405:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_00497405:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7C,0x7B,0x20,0x1A,0x22,0x1B,0x2D,0xA5,0x7D,0x6F,0x00,0x28
 		.byte		0x7C,0x7D,0xC2,0xA3,0x7C,0x7D,0x24,0x1C,0x2B,0x00,0x7B,0x1D,0x91,0x6F,0x00,0x24
 		.byte		0x7B,0x1E,0x38,0x00,0x22,0x5F,0x00,0x2F,0x7C,0x7B,0xC7,0x00,0x15,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_00497441:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStoreSlipRegistry),MAKEPTR(SYMmiscSlips),MAKEPTR(SYM_3D),MAKEPTR(SYMLSearch),MAKEPTR(SYMArrayRemoveCount),MAKEPTR(SYMviewCObject),MAKEPTR(SYMClose)
 obj_00497469_map:	FrameMapObj(5)
@@ -4937,19 +4934,19 @@ obj_0062E961_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E961:	FrameObj(3, obj_0062E961_map)
 		Ref		0x00000132,_Fsignbit,0x00000004
-obj_005699DD:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_005699DD:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x1A,0x28,0xA4,0x7C,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x21
 		.byte		0x7E,0x24,0xC2,0xA5,0x7D,0x1B,0x38,0x7B,0xC4,0x6F,0x00,0x1F,0x7D,0x02,0x00,0x7E
 		.byte		0x05,0x7E,0x06,0x6F,0x00,0x10,0x22,0x22,0xA6,0x00,0x7C,0x20,0xC2,0x02
-		.align	2
+		.align  8
 obj_00569A19:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMdefaultStoreSig),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSignature)
 obj_00569A35_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00569A35:	FrameObj(5, obj_00569A35_map)
 		Ref		0x00000032,MAKEPTR(obj_005699DD),MAKEPTR(obj_00569A19),NILREF,0x00100000
-obj_00558535:	.long		kHeaderSize + 151 + kFlagsBinary
+obj_00558535:	Ref    kHeaderSize + 151 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x22,0xA9,0x22,0xAA,0x20,0xAB,0x27,0x04,0x53,0x70,0x1C,0x39,0xA4,0x7C
 		.byte		0x6F,0x00,0x6E,0x1D,0x7C,0x1E,0x39,0x1F,0x00,0x07,0x38,0xAF,0x00,0x07,0x77,0x00
@@ -4961,16 +4958,16 @@ obj_00558535:	.long		kHeaderSize + 151 + kFlagsBinary
 		.byte		0xC7,0x00,0x0B,0x6F,0x00,0x90,0x72,0x1F,0x00,0x16,0x1F,0x00,0x17,0x73,0x73,0x24
 		.byte		0xC7,0x00,0x0B,0x1F,0x00,0x10,0x8A,0x1F,0x00,0x11,0x2A,0x1F,0x00,0x18,0x2B,0xAA
 		.byte		0x71,0x72,0x1F,0x00,0x19,0x82,0x02
-		.align	2
+		.align  8
 obj_0055830D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMSleepScreen),MAKEPTR(SYMviewCObject)
-obj_00558669:	.long		kHeaderSize + 78 + kFlagsBinary
+obj_00558669:	Ref    kHeaderSize + 78 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','c','t','i','v','a','t','i','n','g',' ','p','a','c','k','a','g','e','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,'.',0
-		.align	2
+		.align  8
 obj_00558259:	ArrayObj(7, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMbarber),MAKEPTR(SYMstatusText),MAKEPTR(SYMicon),MAKEPTR(SYMprimary),MAKEPTR(SYMcloseBox),MAKEPTR(SYMscreenRelativeH)
-obj_00558415:	.long		kHeaderSize + 241 + kFlagsBinary
+obj_00558415:	Ref    kHeaderSize + 241 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0xE8,0x7D,0x24,0xC2,0xA4,0x1A
 		.byte		0x27,0x03,0x6C,0xC9,0x7C,0x73,0x1C,0x2A,0xA6,0x7E,0x1D,0x91,0xA7,0x00,0x07,0x7F
@@ -4988,15 +4985,15 @@ obj_00558415:	.long		kHeaderSize + 241 + kFlagsBinary
 		.byte		0x00,0x1A,0x07,0x00,0x07,0x07,0x00,0x07,0x5F,0x00,0xE6,0x77,0x00,0x1C,0x24,0xC0
 		.byte		0xAF,0x00,0x1C,0x07,0x00,0x07,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x0B,0x22,0x22,0xA5
 		.byte		0x02
-		.align	2
-obj_00556C05:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_00556C05:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'B','u','i','l','t','-','I','n',0
-		.align	2
-obj_00558281:	.long		kHeaderSize + 26 + kFlagsBinary
+		.align  8
+obj_00558281:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x201C,'^','0',0x201D,' ','o','n',' ',0x201C,'^','1',0x201D,0
-		.align	2
+		.align  8
 obj_00558395:	ArrayObj(29, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMentry),MAKEPTR(SYMpssids),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMstore),MAKEPTR(SYMGetPkgInfoFromPssid),MAKEPTR(SYMtitle),MAKEPTR(SYMversion),MAKEPTR(SYMactivate),MAKEPTR(SYMIsSirNotAppearingInThisROM),MAKEPTR(SYMpackageList),MAKEPTR(SYMstr_3D),MAKEPTR(SYMLFetch),MAKEPTR(SYMGetName),MAKEPTR(obj_00556C05),MAKEPTR(SYMdupList),MAKEPTR(obj_005586C5)
 		Ref		MAKEPTR(obj_00558281),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMStrConcatDelimited),MAKEPTR(SYMvBarber),0x201C6,0x201D6,MAKEPTR(obj_005582A9),MAKEPTR(SYMSetStatus),MAKEPTR(SYMActivate1_2EXPackage),MAKEPTR(SYMerrList),MAKEPTR(obj_005586C5),MAKEPTR(SYMmiscErrorCount)
@@ -5008,10 +5005,10 @@ obj_00558515_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00558515:	FrameObj(5, obj_00558515_map)
 		Ref		0x00000032,MAKEPTR(obj_00558415),MAKEPTR(obj_00558395),MAKEPTR(obj_005582C1),0x00180004
-obj_005586D9:	.long		kHeaderSize + 50 + kFlagsBinary
+obj_005586D9:	Ref    kHeaderSize + 50 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0',' ','u','n','k','n','o','w','n',' ','p','a','c','k','a','g','e','^','?','1','s','|','|',0
-		.align	2
+		.align  8
 obj_00558719:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMdupList),MAKEPTR(SYMerrList)
 obj_00558321:	ArrayObj(26, MAKEPTR(SYMliterals))
@@ -5083,24 +5080,24 @@ obj_0062E991_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E991:	FrameObj(3, obj_0062E991_map)
 		Ref		0x00000132,_Fremquo,0x00000008
-obj_00497239:	.long		kHeaderSize + 56 + kFlagsBinary
+obj_00497239:	Ref    kHeaderSize + 56 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x7B,0x20,0x1A,0x1B,0x1C,0x2D,0xA4,0x7C,0x6F,0x00,0x12,0x7C,0x1D
 		.byte		0x38,0x00,0x70,0x1E,0x91,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x2F,0x7E,0x24,0xC2
 		.byte		0xA5,0x7D,0x1F,0x00,0x07,0x91,0x6F,0x00,0x2D,0x7D,0x1D,0x38,0x00,0x7E,0x05,0x7E
 		.byte		0x06,0x6F,0x00,0x1D,0x22,0x22,0xA6,0x02
-		.align	2
+		.align  8
 obj_0049727D:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStoreSlipRegistry),MAKEPTR(SYMstoreSlips),MAKEPTR(SYM_3D),MAKEPTR(SYM_openedForStore),MAKEPTR(SYMLFetch),MAKEPTR(SYMClose),MAKEPTR(SYMmiscSlips),MAKEPTR(SYMviewCObject)
 obj_004972A9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004972A9:	FrameObj(5, obj_004972A9_map)
 		Ref		0x00000032,MAKEPTR(obj_00497239),MAKEPTR(obj_0049727D),NILREF,0x000C0004
-obj_00420C0D:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00420C0D:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0x18,0x2A,0xA4,0x7C,0x6F,0x00,0x0F,0x7C,0x19,0x91,0x5F,0x00,0x10,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00420C2D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetMemorySlot),MAKEPTR(SYMitems)
 obj_00420C41_map:	FrameMapObj(5)
@@ -5115,18 +5112,18 @@ obj_00420CA9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420CA9:	FrameObj(3, obj_00420CA9_map)
 		Ref		0x00000132,_FNumberStr,0x00000004
-obj_00436FA9:	.long		kHeaderSize + 29 + kFlagsBinary
+obj_00436FA9:	Ref    kHeaderSize + 29 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x03,0xEF,0x18,0x29,0xA4,0x7C,0xC5,0x6F,0x00,0x0E,0x22,0x02,0x00,0x19,0x1A
 		.byte		0x7B,0x7B,0x1B,0x84,0x7C,0x1C,0x39,0xA5,0x22,0x7D,0x1D,0x39,0x02
-		.align	2
+		.align  8
 obj_00436FD5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetLocationSoup),MAKEPTR(SYMindex),MAKEPTR(SYMname),MAKEPTR(obj_00437039),MAKEPTR(SYMQuery),MAKEPTR(SYMMap)
 obj_00436FF9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00436FF9:	FrameObj(5, obj_00436FF9_map)
 		Ref		0x00000032,MAKEPTR(obj_00436FA9),MAKEPTR(obj_00436FD5),NILREF,0x00080004
-obj_00480009:	.long		kHeaderSize + 198 + kFlagsBinary
+obj_00480009:	Ref    kHeaderSize + 198 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA3,0x7B,0x6F,0x00,0xC4,0x19,0x28,0x7B,0x7C,0x1A,0x29,0x99,0xA5
 		.byte		0x7D,0x1B,0x7B,0x98,0x7D,0x1C,0x19,0x28,0x7D,0x1D,0x91,0x91,0x98,0x7B,0x7D,0x1E
@@ -5141,7 +5138,7 @@ obj_00480009:	.long		kHeaderSize + 198 + kFlagsBinary
 		.byte		0x00,0xA9,0x1F,0x00,0x0F,0x80,0xA7,0x00,0x08,0x7F,0x00,0x08,0x7C,0x1F,0x00,0x0C
 		.byte		0x91,0x18,0x29,0x7C,0x1B,0x91,0x18,0x29,0x98,0x1F,0x00,0x0E,0x7F,0x00,0x08,0x1F
 		.byte		0x00,0x10,0x2A,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_004800DD:	ArrayObj(17, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMGetRoot),MAKEPTR(SYMBuildContext),MAKEPTR(SYMappSymbol),MAKEPTR(SYMownerApp),MAKEPTR(SYMowner),MAKEPTR(SYMInstallScript),MAKEPTR(SYMtransports),MAKEPTR(SYMSetAdd),MAKEPTR(SYMregisteredAddresses),MAKEPTR(SYMIsFrame),MAKEPTR(SYMRegisterMailService),MAKEPTR(SYMgroup),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMtransportGroups),MAKEPTR(obj_004D4879)
 		Ref		MAKEPTR(SYMSetUserConfig)
@@ -5149,10 +5146,10 @@ obj_0048012D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0048012D:	FrameObj(5, obj_0048012D_map)
 		Ref		0x00000032,MAKEPTR(obj_00480009),MAKEPTR(obj_004800DD),NILREF,0x00100008
-obj_0041EA45:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_0041EA45:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x00,0x7B,0x7C,0x7B,0x7C,0xC2,0x19,0x1A,0x82,0xC3,0x02
-		.align	2
+		.align  8
 obj_0041EA61:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMclearPopupMark),0xFC0B6,MAKEPTR(obj_00489A15)
 obj_0041EA79_map:	FrameMapObj(5)
@@ -5165,7 +5162,7 @@ obj_003C668D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C668D:	FrameObj(5, obj_003C668D_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C6679),NILREF,0x00000004
-obj_004218F1:	.long		kHeaderSize + 227 + kFlagsBinary
+obj_004218F1:	Ref    kHeaderSize + 227 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x81,0xA5,0x1A,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x25,0x7F
 		.byte		0x00,0x07,0x24,0xC2,0xA6,0x7B,0x7E,0x91,0x6F,0x00,0x21,0x7D,0x7E,0x7B,0x7E,0x91
@@ -5182,7 +5179,7 @@ obj_004218F1:	.long		kHeaderSize + 227 + kFlagsBinary
 		.byte		0x7F,0x00,0x09,0x1F,0x00,0x0B,0x38,0x00,0x7F,0x00,0x09,0x7D,0x1F,0x00,0x0C,0x2A
 		.byte		0xA7,0x00,0x0A,0x7F,0x00,0x09,0x1F,0x00,0x0D,0x38,0x00,0x7F,0x00,0x0A,0x1F,0x00
 		.byte		0x0E,0x91,0x02
-		.align	2
+		.align  8
 obj_004217E1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMviewClass),MAKEPTR(SYMviewFormat),MAKEPTR(SYMviewFlags)
 obj_004217E1:	FrameObj(3, obj_004217E1_map)
@@ -5227,7 +5224,7 @@ obj_0041CCF9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CCF9:	FrameObj(3, obj_0041CCF9_map)
 		Ref		0x00000132,_PhoneSymToString,0x00000004
-obj_004833B9:	.long		kHeaderSize + 243 + kFlagsBinary
+obj_004833B9:	Ref    kHeaderSize + 243 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x18,0x19,0x29,0x7B,0x91,0x6F,0x00,0x16
 		.byte		0x7D,0x1A,0xC6,0x5F,0x00,0x17,0x22,0x6F,0x00,0xF1,0x1B,0x30,0xA6,0x7C,0x1C,0x29
@@ -5245,23 +5242,23 @@ obj_004833B9:	.long		kHeaderSize + 243 + kFlagsBinary
 		.byte		0x7F,0x00,0x08,0x7B,0x1F,0x00,0x09,0x2A,0x00,0x77,0x00,0x0A,0x1F,0x00,0x0B,0x29
 		.byte		0x00,0x7B,0x7F,0x00,0x07,0x7D,0x1F,0x00,0x0C,0x2B,0x00,0x7F,0x00,0x07,0x5F,0x00
 		.byte		0xF2,0x22,0x02
-		.align	2
-obj_00482CF5:	.long		kHeaderSize + 19 + kFlagsBinary
+		.align  8
+obj_00482CF5:	Ref    kHeaderSize + 19 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x1A,0x29,0x6F,0x00,0x11,0x73,0x18,0x7B,0x1C,0x29,0x99
 		.byte		0xA3,0x7B,0x02
-		.align	2
+		.align  8
 obj_00482D15:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserFolderGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMDeepClone)
 obj_00482D35_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00482D35:	FrameObj(5, obj_00482D35_map)
 		Ref		0x00000032,MAKEPTR(obj_00482CF5),MAKEPTR(obj_00482D15),NILREF,0x00040000
-obj_00482C99:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_00482C99:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x1A,0x29,0x6F,0x00,0x12,0x73,0x18,0x7B,0xC7,0x00,0x13
 		.byte		0x99,0xA3,0x7B,0x02
-		.align	2
+		.align  8
 obj_00482CB9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserFolders),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMuserConfiguration)
 obj_00482CD5_map:	FrameMapObj(5)
@@ -5274,14 +5271,14 @@ obj_004834B9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004834B9:	FrameObj(5, obj_004834B9_map)
 		Ref		0x00000032,MAKEPTR(obj_004833B9),MAKEPTR(obj_00483379),NILREF,0x0014000C
-obj_005AB689:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_005AB689:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x8C,0x18,0x19,0x2A,0x02
-		.align	2
-obj_005AB525:	.long		kHeaderSize + 34 + kFlagsBinary
+		.align  8
+obj_005AB525:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','x','p','a','n','d','D','i','c','t','i','o','n','a','r','y',0
-		.align	2
+		.align  8
 obj_005AB69D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005AB525),MAKEPTR(SYMLoadDictionary)
 obj_005AB6B1_map:	FrameMapObj(5)
@@ -5292,7 +5289,7 @@ obj_0062E9C1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E9C1:	FrameObj(3, obj_0062E9C1_map)
 		Ref		0x00000132,_FCeiling,0x00000004
-obj_0056E205:	.long		kHeaderSize + 84 + kFlagsBinary
+obj_0056E205:	Ref    kHeaderSize + 84 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0xA5,0x70,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x39,0x7F,0x00,0x08
 		.byte		0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00,0x08,0x20,0xC2,0xA6,0x7F,0x00,0x07,0x19,0x91
@@ -5300,7 +5297,7 @@ obj_0056E205:	.long		kHeaderSize + 84 + kFlagsBinary
 		.byte		0x00,0x7D,0x24,0xC0,0xA5,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x0D
 		.byte		0x22,0x22,0xA7,0x00,0x08,0x00,0x7D,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x52,0x7D,0x5F
 		.byte		0x00,0x53,0x22,0x02
-		.align	2
+		.align  8
 obj_0056E265:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMOpenCardViews),MAKEPTR(SYMCardSlot),MAKEPTR(SYMconfirmedValue),MAKEPTR(SYMClose)
 obj_0056E281_map:	FrameMapObj(5)
@@ -5319,22 +5316,22 @@ obj_0062E9F1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062E9F1:	FrameObj(3, obj_0062E9F1_map)
 		Ref		0x00000132,_Fexpm1,0x00000004
-obj_004C5BC5:	.long		kHeaderSize + 36 + kFlagsBinary
+obj_004C5BC5:	Ref    kHeaderSize + 36 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x29,0xC5,0x6F,0x00,0x0A,0x22,0x02,0x00,0x71,0x7B,0x91,0x6F,0x00,0x1D
 		.byte		0x71,0x7B,0x71,0x7B,0x91,0x7C,0x22,0x1A,0x2B,0x99,0x5F,0x00,0x23,0x71,0x7B,0x1B
 		.byte		0x29,0x7C,0x99,0x02
-		.align	2
+		.align  8
 obj_004C5BF5:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMAppClassesRegistry),MAKEPTR(SYMSetUnion),MAKEPTR(SYMEnsureInternal)
 obj_004C5C11_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004C5C11:	FrameObj(5, obj_004C5C11_map)
 		Ref		0x00000032,MAKEPTR(obj_004C5BC5),MAKEPTR(obj_004C5BF5),NILREF,0x00000008
-obj_00556BB5:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_00556BB5:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x1A,0x7B,0x1B,0x2C,0x02
-		.align	2
+		.align  8
 obj_00556BC9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005A74D1),MAKEPTR(SYMXmitPackageOp),MAKEPTR(SYMwhatThe),MAKEPTR(SYMXmitSoupChangeNow)
 obj_00556BE5_map:	FrameMapObj(5)
@@ -5387,13 +5384,13 @@ obj_0041C3FD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C3FD:	FrameObj(3, obj_0041C3FD_map)
 		Ref		0x00000132,_FAddDeferredCall,0x00000008
-obj_0041E849:	.long		kHeaderSize + 51 + kFlagsBinary
+obj_0041E849:	Ref    kHeaderSize + 51 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x31,0x7B,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x26,0x7E
 		.byte		0x24,0xC2,0xA5,0x7E,0x20,0xC2,0xA4,0x7D,0x19,0x29,0x6F,0x00,0x24,0x7B,0x7C,0x7D
 		.byte		0x1A,0x91,0xC3,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x0F,0x22,0x22,0xA6,0x5F,0x00
 		.byte		0x32,0x22,0x02
-		.align	2
+		.align  8
 obj_0041E889:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMIsFrame),MAKEPTR(SYMitem)
 obj_0041E8A1_map:	FrameMapObj(5)
@@ -5416,10 +5413,10 @@ obj_0062EA69_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062EA69:	FrameObj(3, obj_0062EA69_map)
 		Ref		0x00000132,_FEvalStringer,0x00000008
-obj_004191F1:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_004191F1:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x19,0x29,0x02
-		.align	2
+		.align  8
 obj_00419205:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCreateDisplayParams),MAKEPTR(SYMSafeSetDisplayParams)
 obj_00419219_map:	FrameMapObj(5)
@@ -5464,7 +5461,7 @@ obj_00422A81_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00422A81:	FrameObj(5, obj_00422A81_map)
 		Ref		0x00000032,MAKEPTR(obj_00422A11),MAKEPTR(obj_00422A69),NILREF,0x00040008
-obj_0042001D:	.long		kHeaderSize + 198 + kFlagsBinary
+obj_0042001D:	Ref    kHeaderSize + 198 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x20,0xC7,0x00,0x0A,0x6F,0x00,0x0A,0x20,0xA3,0x7B,0x27,0x16,0x80,0xC7,0x00
 		.byte		0x09,0xA4,0x7C,0x20,0xC4,0x6F,0x00,0x68,0x7B,0x27,0x00,0xF0,0xC7,0x00,0x09,0xA5
@@ -5479,11 +5476,11 @@ obj_0042001D:	.long		kHeaderSize + 198 + kFlagsBinary
 		.byte		0x0B,0x7C,0x24,0xC7,0x00,0x0B,0x6F,0x00,0xB4,0x1F,0x00,0x0C,0x7C,0x1A,0x89,0x1B
 		.byte		0x2A,0x5F,0x00,0xC3,0x7C,0x24,0xC4,0x6F,0x00,0xC0,0x1F,0x00,0x0D,0x5F,0x00,0xC3
 		.byte		0x1F,0x00,0x0E,0x1A,0x8A,0x02
-		.align	2
-obj_0041FF85:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_0041FF85:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'1',' ','m','i','n','u','t','e',0
-		.align	2
+		.align  8
 obj_0041FFD5:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMmod),MAKEPTR(obj_0046211D),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(obj_00462101),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_0041FF61),MAKEPTR(obj_0041FF85),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_00506851),MAKEPTR(obj_0041FFA5),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_0046213D),MAKEPTR(obj_00507CA5),MAKEPTR(obj_005A7F4D)
 obj_004200F1_map:	FrameMapObj(5)
@@ -5494,23 +5491,23 @@ obj_0041AE45_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AE45:	FrameObj(3, obj_0041AE45_map)
 		Ref		0x00000132,_FStrTruncate,0x00000008
-obj_0056B3A5:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_0056B3A5:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x08,0x77,0x7B,0x7C,0x18,0x2B,0x02
-		.align	2
+		.align  8
 obj_0056B3B9:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPerform)
 obj_0056B3C9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056B3C9:	FrameObj(5, obj_0056B3C9_map)
 		Ref		0x00000032,MAKEPTR(obj_0056B3A5),MAKEPTR(obj_0056B3B9),NILREF,0x00000008
-obj_0062C779:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_0062C779:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x19,0x28,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x21,0x7E,0x24,0xC2
 		.byte		0xA5,0x7D,0x1A,0x91,0x7B,0xC4,0x6F,0x00,0x1F,0x7C,0x7D,0xC7,0x00,0x15,0x00,0x7E
 		.byte		0x05,0x7E,0x06,0x6F,0x00,0x0D,0x22,0x22,0xA6,0x00,0x7C,0xC7,0x00,0x12,0x20,0xC7
 		.byte		0x00,0x0B,0x6F,0x00,0x39,0x7C,0x5F,0x00,0x3A,0x22,0x02
-		.align	2
+		.align  8
 obj_0062C7C1:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMPendingImports),MAKEPTR(SYMclient)
 obj_0062D191_map:	FrameMapObj(5)
@@ -5533,18 +5530,18 @@ obj_00420E41_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420E41:	FrameObj(3, obj_00420E41_map)
 		Ref		0x00000132,_FDecodeRichString,0x00000008
-obj_0056A191:	.long		kHeaderSize + 29 + kFlagsBinary
+obj_0056A191:	Ref    kHeaderSize + 29 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7C,0xC2,0xA5,0x7D,0x7B,0x20,0x19,0x1A,0x1B,0x2D,0xA6,0x7E,0x6F,0x00,0x1B
 		.byte		0x7D,0x7E,0x1C,0x2A,0x00,0x27,0x00,0x1A,0x5F,0x00,0x1C,0x22,0x02
-		.align	2
+		.align  8
 obj_0056A1BD:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBusySlots),MAKEPTR(SYM_3D),MAKEPTR(SYMappSymbol),MAKEPTR(SYMLSearch),MAKEPTR(SYMRemoveSlot)
 obj_0056A1DD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056A1DD:	FrameObj(5, obj_0056A1DD_map)
 		Ref		0x00000032,MAKEPTR(obj_0056A191),MAKEPTR(obj_0056A1BD),NILREF,0x00080008
-obj_00418CBD:	.long		kHeaderSize + 371 + kFlagsBinary
+obj_00418CBD:	Ref    kHeaderSize + 371 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x6F,0x00,0x0A,0x70,0x7B,0xC2,0xA4,0x7C,0xC5,0x6F,0x01,0x71,0x1A
 		.byte		0x1B,0x29,0xA5,0x1C,0x1B,0x29,0xA6,0x1D,0x1B,0x29,0xA7,0x00,0x07,0x7D,0x67,0x00
@@ -5570,7 +5567,7 @@ obj_00418CBD:	.long		kHeaderSize + 371 + kFlagsBinary
 		.byte		0x00,0x0C,0xC4,0x5F,0x01,0x59,0x27,0x00,0x1A,0x6F,0x01,0x71,0x7F,0x00,0x09,0x7F
 		.byte		0x00,0x08,0x1F,0x00,0x10,0x91,0x7F,0x00,0x0A,0x7F,0x00,0x0B,0x1F,0x00,0x11,0x84
 		.byte		0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_00418C9D:	ArrayObj(5, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMbuttonBarPosition),MAKEPTR(SYMbuttonBarThickness),MAKEPTR(SYMbuttonBarControlsPosition),MAKEPTR(SYMbellyButtonPosition)
 obj_00418E3D:	ArrayObj(18, MAKEPTR(SYMliterals))
@@ -5590,22 +5587,22 @@ obj_003C637D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C637D:	FrameObj(5, obj_003C637D_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C6369),NILREF,0x00000008
-obj_004D3A5D:	.long		kHeaderSize + 72 + kFlagsBinary
+obj_004D3A5D:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA4,0x7B,0x19,0x91,0x1A,0x29,0x6F,0x00,0x13,0x7B,0x19,0x7B,0x19,0x91,0x7C
 		.byte		0x1B,0x2A,0x98,0x7B,0x1C,0x91,0x1A,0x29,0x6F,0x00,0x24,0x7B,0x1C,0x7B,0x1C,0x91
 		.byte		0x7C,0x1B,0x2A,0x98,0x7B,0x1D,0x91,0x1A,0x29,0x6F,0x00,0x35,0x7B,0x1D,0x7B,0x1D
 		.byte		0x91,0x7C,0x1B,0x2A,0x98,0x1E,0x7B,0x19,0x91,0x7B,0x1C,0x91,0x7B,0x1D,0x91,0x1F
 		.byte		0x00,0x07,0x8B,0x1F,0x00,0x08,0x2A,0x02
-		.align	2
-obj_004D3AE1:	.long		kHeaderSize + 8 + kFlagsBinary
+		.align  8
+obj_004D3AE1:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'(',')','x',0
-		.align	2
-obj_004D3851:	.long		kHeaderSize + 40 + kFlagsBinary
+		.align  8
+obj_004D3851:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','?','0','(','^','0',')','|','|','^','1','^','?','2','x','^','2','|','|',0
-		.align	2
+		.align  8
 obj_004D3AB1:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004D3AE1),MAKEPTR(SYMareacode),MAKEPTR(SYMStrFilled),MAKEPTR(SYMStringFilterOut),MAKEPTR(SYMphone),MAKEPTR(SYMextension),MAKEPTR(obj_004D3851),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr)
 obj_004D3AF5_map:	FrameMapObj(5)
@@ -5626,7 +5623,7 @@ obj_0041BAA9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BAA9:	FrameObj(3, obj_0041BAA9_map)
 		Ref		0x00000132,_FGetBlue,0x00000004
-obj_00421F51:	.long		kHeaderSize + 123 + kFlagsBinary
+obj_00421F51:	Ref    kHeaderSize + 123 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x19,0x1A,0x04,0x1B,0x82,0x1C,0x1D,0x28,0x20,0xC2,0x1E,0x39,0x1F,0x00
 		.byte		0x07,0x39,0xA4,0x7C,0x22,0x1F,0x00,0x08,0x2A,0xA5,0x7D,0x1F,0x00,0x09,0x1F,0x00
@@ -5636,11 +5633,11 @@ obj_00421F51:	.long		kHeaderSize + 123 + kFlagsBinary
 		.byte		0x08,0x7E,0x19,0x91,0xC3,0x00,0x24,0xB7,0x00,0x08,0x00,0x00,0x7F,0x00,0x07,0x05
 		.byte		0x7F,0x00,0x07,0x06,0x6F,0x00,0x45,0x5F,0x00,0x6F,0xA7,0x00,0x09,0x00,0x00,0x7F
 		.byte		0x00,0x09,0x22,0xA7,0x00,0x09,0x22,0xA7,0x00,0x07,0x02
-		.align	2
-obj_00422019:	.long		kHeaderSize + 5 + kFlagsBinary
+		.align  8
+obj_00422019:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x70,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_0042202D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalarmKeySuffix),MAKEPTR(SYMEndsWith)
 obj_00422041_map:	FrameMapObj(3)
@@ -5707,11 +5704,11 @@ obj_0041BB0D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BB0D:	FrameObj(3, obj_0041BB0D_map)
 		Ref		0x00000132,_FIsEqualTone,0x00000008
-obj_0048BD39:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_0048BD39:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x1A,0x32,0x02
-		.align	2
-obj_0048BB29:	.long		kHeaderSize + 233 + kFlagsBinary
+		.align  8
+obj_0048BB29:	Ref    kHeaderSize + 233 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0xE7,0x7F,0x00,0x07,0x22
 		.byte		0xC7,0x00,0x11,0xA7,0x00,0x0A,0x5F,0x00,0x3E,0x7F,0x00,0x0A,0x24,0xC2,0xA6,0x7F
@@ -5728,7 +5725,7 @@ obj_0048BB29:	.long		kHeaderSize + 233 + kFlagsBinary
 		.byte		0x00,0x09,0x7C,0x22,0x98,0x1F,0x00,0x0C,0x7F,0x00,0x09,0x1F,0x00,0x0D,0x2A,0x5F
 		.byte		0x00,0xE0,0x7F,0x00,0x0B,0x6F,0x00,0xDF,0x7C,0x22,0x1B,0x2A,0x5F,0x00,0xE0,0x22
 		.byte		0x5F,0x00,0xE4,0x22,0x5F,0x00,0xE8,0x22,0x02
-		.align	2
+		.align  8
 obj_0048BAAD:	ArrayObj(11, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMname),MAKEPTR(SYMaddress),MAKEPTR(SYMcityZip),MAKEPTR(SYMcompany),MAKEPTR(SYMsignature),MAKEPTR(SYMmailAccount),MAKEPTR(SYMmailPassword),MAKEPTR(SYMhomePhone),MAKEPTR(SYMfaxPhone),MAKEPTR(SYMphone)
 obj_0048BAE5:	ArrayObj(14, MAKEPTR(SYMliterals))
@@ -5811,11 +5808,11 @@ obj_0062EF99_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062EF99:	FrameObj(3, obj_0062EF99_map)
 		Ref		0x00000132,_Flog1p,0x00000004
-obj_005ACA3D:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_005ACA3D:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA3,0x27,0x00,0x90,0x19,0x29,0xA4,0x7C,0x1A,0x1B,0x22,0x7C,0x1C,0x3A,0x98
 		.byte		0x27,0x00,0x90,0x1D,0x7B,0x1E,0x2B,0x02
-		.align	2
+		.align  8
 obj_005ACA2D_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMcount)
 obj_005ACA2D:	FrameObj(1, obj_005ACA2D_map)
@@ -5830,13 +5827,13 @@ obj_0041B635_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B635:	FrameObj(3, obj_0041B635_map)
 		Ref		0x00000132,_FMakeRect,0x00000010
-obj_004D3B31:	.long		kHeaderSize + 64 + kFlagsBinary
+obj_004D3B31:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0B,0x7B,0xA4,0x5F,0x00,0x1C,0x7B,0x19,0x1A,0x2A,0x6F
 		.byte		0x00,0x19,0x7B,0x1B,0x29,0xA4,0x5F,0x00,0x1C,0x22,0x02,0x00,0x1C,0x1D,0x29,0xA5
 		.byte		0x7D,0xC5,0x6F,0x00,0x27,0x1E,0xA5,0x7D,0x7C,0x1F,0x00,0x07,0x91,0x7C,0x1F,0x00
 		.byte		0x08,0x91,0x7C,0x1F,0x00,0x09,0x91,0x1F,0x00,0x0A,0x8B,0x1F,0x00,0x0B,0x2A,0x02
-		.align	2
+		.align  8
 obj_004D3B7D:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsFrame),MAKEPTR(SYMstring),MAKEPTR(SYMIsInstance),MAKEPTR(SYMParsePhone),MAKEPTR(SYMphoneFormat),MAKEPTR(SYMGetUserConfig),MAKEPTR(obj_004D381D),MAKEPTR(SYMareacode),MAKEPTR(SYMphone),MAKEPTR(SYMextension),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr)
 obj_004D3BB9_map:	FrameMapObj(5)
@@ -5855,7 +5852,7 @@ obj_0041CE31_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CE31:	FrameObj(3, obj_0041CE31_map)
 		Ref		0x00000132,_FavorObject,0x00000004
-obj_004A89CD:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_004A89CD:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x70,0x7B,0x91,0x5F,0x00,0x0B,0x22,0xA5,0x7D,0x6F,0x00,0x14
 		.byte		0x7C,0x5F,0x00,0x15,0x22,0x6F,0x00,0x1E,0x7D,0x7C,0x91,0x5F,0x00,0x1F,0x22,0x6F
@@ -5863,11 +5860,11 @@ obj_004A89CD:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x00,0x33,0x22,0x6F,0x00,0x3C,0x7D,0x19,0x91,0x5F,0x00,0x5B,0x27,0x09,0x3B,0xC7
 		.byte		0x00,0x13,0xA5,0x7B,0x1A,0x29,0xA6,0x7E,0x6F,0x00,0x4F,0x7E,0x1B,0x91,0xA3,0x7D
 		.byte		0x1C,0x1D,0x7B,0x1E,0x89,0x1F,0x00,0x07,0x2A,0x98,0x7D,0x02
-		.align	2
-obj_004A892D:	.long		kHeaderSize + 146 + kFlagsBinary
+		.align  8
+obj_004A892D:	Ref    kHeaderSize + 146 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','i','s',' ','u','s','e','s',' ','s','t','a','t','i','o','n','e','r','y',' ','t','h','a','t',' ','i','s',' ','n','o','t',' ','i','n','s','t','a','l','l','e','d',' ','a','n','d',0x000D,'c','a','n','n','o','t',' ','b','e',' ','d','i','s','p','l','a','y','e','d','.',' ','(','^','0',')',0
-		.align	2
+		.align  8
 obj_004A8A35:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_viewdefs),MAKEPTR(SYMdefault),MAKEPTR(SYMGetDataDefs),MAKEPTR(SYMname),MAKEPTR(SYMtext),MAKEPTR(obj_004A892D),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr)
 obj_004A8A61_map:	FrameMapObj(5)
@@ -5880,15 +5877,15 @@ obj_0046DD99_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0046DD99:	FrameObj(5, obj_0046DD99_map)
 		Ref		0x00000032,MAKEPTR(obj_004BBCAD),MAKEPTR(obj_0046DD85),NILREF,0x00000000
-obj_00628399:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_00628399:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x27,0x04,0x53,0x19,0x28,0x20,0xC2,0x1A,0x39,0xA4,0x7C,0x1B,0x1C,0x70
 		.byte		0x1D,0x04,0x1E,0x84,0x1F,0x00,0x07,0x2A,0xA5,0x7D,0x1F,0x00,0x08,0x38,0x02
-		.align	2
-obj_006283F5:	.long		kHeaderSize + 7 + kFlagsBinary
+		.align  8
+obj_006283F5:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x71,0x1A,0x2A,0x02
-		.align	2
+		.align  8
 obj_00628409:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtag),MAKEPTR(SYMkey),MAKEPTR(SYMStrEqual)
 obj_00628421_map:	FrameMapObj(3)
@@ -5921,10 +5918,10 @@ obj_0041CEA9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CEA9:	FrameObj(3, obj_0041CEA9_map)
 		Ref		0x00000132,_GetRelevantTemplates,0x00000004
-obj_005657F9:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_005657F9:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x71,0x1A,0x91,0x73,0x1C,0x1D,0x8A,0x20,0x1E,0x2C,0x02
-		.align	2
+		.align  8
 obj_00565811:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_FlushUserConfig),MAKEPTR(SYMfunctions),MAKEPTR(SYMEntryChangeXmit),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYM_newt),MAKEPTR(SYMarray),MAKEPTR(SYMAddProcrastinatedCall)
 obj_00565839_map:	FrameMapObj(5)
@@ -5957,11 +5954,11 @@ obj_0062F011_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F011:	FrameObj(3, obj_0062F011_map)
 		Ref		0x00000132,_FFramesStringer,0x00000004
-obj_0062C7D9:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_0062C7D9:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x19,0x38,0xA6,0x7B,0x7C,0x1A,0x2A,0xA7,0x00,0x07,0x7D,0x6F,0x00
 		.byte		0x1B,0x7E,0x7D,0x1B,0x7B,0x7C,0x1C,0x82,0x1D,0x2C,0x00,0x7F,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_0062BC49:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMoldEntry),MAKEPTR(SYMentry)
 obj_0062C805:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -5988,45 +5985,45 @@ obj_0041C0B9_map:	FrameMapObj(1)
 		Ref		0x00000000,MAKEPTR(obj_003AFDA9),MAKEPTR(SYMversion)
 obj_0041C0B9:	FrameObj(4, obj_0041C0B9_map)
 		Ref		0x00000132,_FPtInPicture,0x0000000C,0x00000004
-obj_0062C829:	.long		kHeaderSize + 25 + kFlagsBinary
+obj_0062C829:	Ref    kHeaderSize + 25 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x2A,0xA6,0x7D,0x6F,0x00,0x17,0x71,0x1A,0x29,0x1B,0x38,0x7D,0x1C
 		.byte		0x7B,0x7C,0x1D,0x82,0x1E,0x2C,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_0062C851:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntryReplaceWithModTime),MAKEPTR(SYMentry),MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetName),MAKEPTR(SYMentryReplaced),MAKEPTR(obj_0062BC49),MAKEPTR(SYMXmitSoupChange)
 obj_0062F041_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062F041:	FrameObj(5, obj_0062F041_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C829),MAKEPTR(obj_0062C851),NILREF,0x0004000C
-obj_00563AB1:	.long		kHeaderSize + 45 + kFlagsBinary
+obj_00563AB1:	Ref    kHeaderSize + 45 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x40,0xA3,0x7B,0x6F,0x00,0x0F,0x7B,0x1A,0x91,0x5F,0x00,0x10,0x22
 		.byte		0x6F,0x00,0x1A,0x7B,0x1A,0x91,0xA4,0x5F,0x00,0x1C,0x1B,0xA4,0x27,0x00,0x0C,0x1C
 		.byte		0x7C,0x18,0x28,0x1D,0x3B,0xA5,0x7D,0x1E,0x27,0x00,0x1A,0x99,0x02
-		.align	2
-obj_00563B71:	.long		kHeaderSize + 182 + kFlagsBinary
+		.align  8
+obj_00563B71:	Ref    kHeaderSize + 182 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','a','d','a','p','t','e','r',' ','i','s',' ','p','r','o','v','i','d','i','n','g',' ','t','o','o',' ','m','u','c','h',' ','p','o','w','e','r','.',' ',' ','T','h','e',' ','b','a','t','t','e','r','y',' ','c','a','n','n','o','t',' ','b','e',' ','c','h','a','r','g','e','d',' ','w','i','t','h',' ','t','h','i','s',' ','a','d','a','p','t','e','r','.',0
-		.align	2
-obj_00563415:	.long		kHeaderSize + 12 + kFlagsBinary
+		.align  8
+obj_00563415:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'P','o','w','e','r',0
-		.align	2
+		.align  8
 obj_00563C35:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetBatteryMessages),MAKEPTR(SYMbadAdapter),MAKEPTR(obj_00563B71),MAKEPTR(obj_00563415),MAKEPTR(SYMNotify),MAKEPTR(SYMbatteryAlert)
 obj_00563C5D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00563C5D:	FrameObj(5, obj_00563C5D_map)
 		Ref		0x00000032,MAKEPTR(obj_00563AB1),MAKEPTR(obj_00563C35),NILREF,0x000C0000
-obj_005591A9:	.long		kHeaderSize + 68 + kFlagsBinary
+obj_005591A9:	Ref    kHeaderSize + 68 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x39,0xA4,0x7C,0x6F,0x00,0x42,0x1A,0xA5,0x7D,0x7C,0x1B,0x39,0xA6
 		.byte		0x7E,0x1C,0x38,0xA7,0x00,0x07,0x1D,0x88,0xA7,0x00,0x08,0x5F,0x00,0x34,0x7F,0x00
 		.byte		0x08,0x7E,0x1E,0x38,0xC7,0x00,0x15,0x00,0x7E,0x1F,0x00,0x07,0x38,0xA7,0x00,0x07
 		.byte		0x7F,0x00,0x07,0x00,0x7F,0x00,0x07,0x67,0x00,0x1E,0x22,0x00,0x7F,0x00,0x08,0x5F
 		.byte		0x00,0x43,0x22,0x02
-		.align	2
+		.align  8
 obj_00559185_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMall)
 obj_00559185:	FrameObj(1, obj_00559185_map)
@@ -6041,11 +6038,11 @@ obj_00559225_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00559225:	FrameObj(5, obj_00559225_map)
 		Ref		0x00000032,MAKEPTR(obj_005591A9),MAKEPTR(obj_005591F9),NILREF,0x00140004
-obj_004A8E1D:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_004A8E1D:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x29,0x7C,0x98,0x72,0x1B,0x1C,0x7B,0x22,0x1D,0x8C,0x1E,0x2A,0x00
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_004A8E3D:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_dataDefs),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMStationeryChangeRegistry),MAKEPTR(SYMinstall),MAKEPTR(SYMdataDef),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_004A8E65_map:	FrameMapObj(5)
@@ -6056,12 +6053,12 @@ obj_0062F061_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F061:	FrameObj(3, obj_0062F061_map)
 		Ref		0x00000132,_FStrMunger,0x00000018
-obj_0048C585:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_0048C585:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA5,0x7B,0x19,0x1A,0x2A,0xC5,0x6F,0x00,0x2A,0x7B,0x1B,0x29,0xA4,0x7C,0x1C
 		.byte		0x29,0x27,0x00,0x1C,0xC4,0x6F,0x00,0x26,0x7C,0x27,0x00,0x0C,0x20,0x7D,0x20,0x7D
 		.byte		0xC7,0x00,0x12,0x1D,0x2E,0x00,0x7C,0x5F,0x00,0x2B,0x7B,0x02
-		.align	2
+		.align  8
 obj_0048C5BD:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004A4E4D),MAKEPTR(SYMstring),MAKEPTR(SYMIsInstance),MAKEPTR(SYMSPrintObject),MAKEPTR(SYMStrLen),MAKEPTR(SYMStrMunger)
 obj_0048C5E1_map:	FrameMapObj(5)
@@ -6080,11 +6077,11 @@ obj_0062F091_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F091:	FrameObj(3, obj_0062F091_map)
 		Ref		0x00000132,_FGetUnionSoup,0x00000004
-obj_0056A135:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_0056A135:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7C,0xC2,0x7B,0x7D,0x19,0x82,0x1A,0x29,0x20,0x1B,0x2B,0x00,0x27,0x00,0x1A
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0056A11D:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMappSymbol),MAKEPTR(SYMappName)
 obj_0056A155:	ArrayObj(4, MAKEPTR(SYMliterals))
@@ -6097,7 +6094,7 @@ obj_0041AF3D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AF3D:	FrameObj(3, obj_0041AF3D_map)
 		Ref		0x00000132,_FStrFontWidth,0x00000008
-obj_0045D0BD:	.long		kHeaderSize + 133 + kFlagsBinary
+obj_0045D0BD:	Ref    kHeaderSize + 133 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x19,0x91,0x6F,0x00,0x1D,0x7C,0x1A,0x91,0x7C,0x1B,0x91
 		.byte		0xC1,0xA5,0x7C,0x1C,0x91,0x7C,0x1D,0x91,0xC1,0xA6,0x5F,0x00,0x33,0x7C,0x1E,0x91
@@ -6108,7 +6105,7 @@ obj_0045D0BD:	.long		kHeaderSize + 133 + kFlagsBinary
 		.byte		0x2A,0xA7,0x00,0x09,0x20,0x20,0x7D,0x7F,0x00,0x09,0xC7,0x00,0x07,0x7F,0x00,0x07
 		.byte		0xC7,0x00,0x09,0x7E,0x7F,0x00,0x09,0xC7,0x00,0x07,0x7F,0x00,0x08,0xC7,0x00,0x09
 		.byte		0x1F,0x00,0x0C,0x2C,0x02
-		.align	2
+		.align  8
 obj_0045D01D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMbitsBounds),MAKEPTR(SYMright)
 obj_0045D031:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -6143,18 +6140,18 @@ obj_0041CB49_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CB49:	FrameObj(3, obj_0041CB49_map)
 		Ref		0x00000132,_DSPrevSubStr,0x00000008
-obj_00559ACD:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_00559ACD:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA9,0x71,0xC5,0x6F,0x00,0x0C,0x22,0x02,0x00,0x71,0x1A,0x29,0xA4
 		.byte		0x1B,0x04,0x7C,0x1C,0x39,0x00,0x71,0x1D,0x91,0xA5,0x7D,0x1E,0x29,0xC5,0x6F,0x00
 		.byte		0x2F,0x7D,0x71,0x1F,0x00,0x07,0x91,0x71,0x1A,0x29,0x1F,0x00,0x08,0x2B,0x00,0x1F
 		.byte		0x00,0x09,0x1F,0x00,0x0A,0x29,0x00,0x27,0x00,0x1A,0x02
-		.align	2
-obj_00559B4D:	.long		kHeaderSize + 22 + kFlagsBinary
+		.align  8
+obj_00559B4D:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x1A,0x1B,0x2A,0x00,0x70,0x1C,0x29,0x00,0x1D,0x1E,0x1F,0x00,0x07
 		.byte		0x70,0x1F,0x00,0x08,0x2C,0x02
-		.align	2
+		.align  8
 obj_00559B71:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMentry),MAKEPTR(SYM_tagList),MAKEPTR(SYM_frozen),MAKEPTR(SYMSetRemove),MAKEPTR(SYMEntryChange),MAKEPTR(obj_005A74D1),MAKEPTR(SYMMr_2EFreeze),MAKEPTR(SYMentryChanged),MAKEPTR(SYMUnsafeXmitSoupChangeNow)
 obj_00559BA1_map:	FrameMapObj(3)
@@ -6187,12 +6184,12 @@ obj_0055A89D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0055A89D:	FrameObj(3, obj_0055A89D_map)
 		Ref		0x00000132,_CallOnlineServices,0x00000004
-obj_0044FF91:	.long		kHeaderSize + 45 + kFlagsBinary
+obj_0044FF91:	Ref    kHeaderSize + 45 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x7B,0x18,0x19,0x2A,0x6F,0x00,0x13,0x7B
 		.byte		0x5F,0x00,0x2C,0x7B,0x1A,0x29,0x6F,0x00,0x1F,0x7B,0x1B,0x91,0x5F,0x00,0x2C,0x7B
 		.byte		0x1C,0x29,0x6F,0x00,0x2B,0x7B,0x1D,0x29,0x5F,0x00,0x2C,0x22,0x02
-		.align	2
+		.align  8
 obj_0044FFCD:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalias),MAKEPTR(SYMIsInstance),MAKEPTR(SYMIsNameRef),MAKEPTR(SYM_alias),MAKEPTR(SYMIsSoupEntry),MAKEPTR(SYMMakeEntryAlias)
 obj_0044FFF1_map:	FrameMapObj(5)
@@ -6207,7 +6204,7 @@ obj_0041D431_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041D431:	FrameObj(3, obj_0041D431_map)
 		Ref		0x00000132,_DSFindPossibleLocation,0x00000008
-obj_00569B0D:	.long		kHeaderSize + 81 + kFlagsBinary
+obj_00569B0D:	Ref    kHeaderSize + 81 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x1A,0x1B,0x2C,0xA5,0x7D,0x6F,0x00,0x11,0x70,0x7D,0xC2,0x5F,0x00
 		.byte		0x12,0x22,0xA6,0x7C,0x6F,0x00,0x4F,0x7E,0x6F,0x00,0x37,0x7E,0x1C,0x29,0x6F,0x00
@@ -6215,7 +6212,7 @@ obj_00569B0D:	.long		kHeaderSize + 81 + kFlagsBinary
 		.byte		0x7D,0x7E,0xC3,0x00,0x5F,0x00,0x4F,0x7B,0x1E,0x29,0x1F,0x00,0x07,0x80,0x1F,0x00
 		.byte		0x08,0x82,0xA6,0x70,0x7E,0x19,0x1A,0x27,0x00,0x1A,0x1F,0x00,0x09,0x2D,0x00,0x7E
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00569AF5:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMsoupName),MAKEPTR(SYMcallbacks)
 obj_00569B6D:	ArrayObj(10, MAKEPTR(SYMliterals))
@@ -6232,12 +6229,12 @@ obj_0041B2C1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B2C1:	FrameObj(3, obj_0041B2C1_map)
 		Ref		0x00000132,_FGetValue,0x0000000C
-obj_005593C1:	.long		kHeaderSize + 34 + kFlagsBinary
+obj_005593C1:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x20,0x19,0x1A,0x1B,0x2D,0xA4,0x7C,0x6F,0x00,0x20,0x70,0x7C,0x1C,0x2A
 		.byte		0x00,0x1D,0x7B,0x1E,0x29,0x1F,0x00,0x07,0x39,0x00,0x27,0x00,0x1A,0x5F,0x00,0x21
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_005593F1:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBusyPackages),MAKEPTR(SYM_3D),MAKEPTR(SYMpkgRef),MAKEPTR(SYMLSearch),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYM_newt),MAKEPTR(SYMGetVBOStore),MAKEPTR(SYMMarkNotBusy)
 obj_0055941D_map:	FrameMapObj(5)
@@ -6252,7 +6249,7 @@ obj_0041C1E1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C1E1:	FrameObj(3, obj_0041C1E1_map)
 		Ref		0x00000132,_CorrectSelect,0x00000008
-obj_0041F421:	.long		kHeaderSize + 224 + kFlagsBinary
+obj_0041F421:	Ref    kHeaderSize + 224 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7D,0x18,0xC4,0x6F,0x00,0x0A,0x19,0x5F,0x00,0x0B,0x1A,0xA6,0x1B,0x88,0xAC,0x1D
 		.byte		0x04,0xAE,0x1F,0x00,0x07,0x04,0xA7,0x00,0x07,0x1F,0x00,0x08,0xA7,0x00,0x08,0x7B
@@ -6268,8 +6265,8 @@ obj_0041F421:	.long		kHeaderSize + 224 + kFlagsBinary
 		.byte		0x00,0x09,0x7F,0x00,0x07,0x31,0x6F,0x00,0xC3,0x7B,0x7F,0x00,0x0A,0x24,0x1F,0x00
 		.byte		0x0B,0x2B,0x00,0x7F,0x00,0x0C,0xB7,0x00,0x0A,0x7F,0x00,0x0B,0xBF,0x00,0x88,0x22
 		.byte		0x00,0x74,0xC7,0x00,0x12,0x20,0xC4,0x6F,0x00,0xDE,0x22,0x5F,0x00,0xDF,0x74,0x02
-		.align	2
-obj_0041EFF9:	.long		kHeaderSize + 131 + kFlagsBinary
+		.align  8
+obj_0041EFF9:	Ref    kHeaderSize + 131 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x7B,0x19,0x91,0xC0,0x72,0xC7,0x00,0x0B,0x6F,0x00,0x24,0x7B,0x18
 		.byte		0x7B,0x1B,0x91,0x98,0x7B,0x1C,0x7B,0x1C,0x91,0x7B,0x1D,0x91,0xC0,0x98,0x7B,0x1D
@@ -6280,7 +6277,7 @@ obj_0041EFF9:	.long		kHeaderSize + 131 + kFlagsBinary
 		.byte		0x00,0x0A,0x7B,0x18,0x91,0x7B,0x19,0x91,0xC0,0x98,0x7C,0x1F,0x00,0x0B,0x7B,0x1C
 		.byte		0x91,0x7B,0x1F,0x00,0x07,0x91,0xC0,0x98,0x7B,0x18,0x7B,0x18,0x91,0x7B,0x19,0x91
 		.byte		0xC0,0x99,0x02
-		.align	2
+		.align  8
 obj_0041EFA9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMviewBounds),MAKEPTR(SYMleft)
 obj_0041EFBD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -6299,7 +6296,7 @@ obj_0041F089_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041F089:	FrameObj(5, obj_0041F089_map)
 		Ref		0x00000032,MAKEPTR(obj_0041EFF9),MAKEPTR(obj_0041EEB5),MAKEPTR(obj_0041EF51),0x00040004
-obj_0041F181:	.long		kHeaderSize + 593 + kFlagsBinary
+obj_0041F181:	Ref    kHeaderSize + 593 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x7B,0x18,0x91,0x5F,0x00,0x0B,0x22,0x6F,0x02,0x4F,0x24,0xA6
 		.byte		0x7B,0x18,0x91,0xC7,0x00,0x12,0x24,0xC1,0xA7,0x00,0x07,0x27,0x00,0x08,0xA7,0x00
@@ -6339,7 +6336,7 @@ obj_0041F181:	.long		kHeaderSize + 593 + kFlagsBinary
 		.byte		0x22,0xA7,0x00,0x11,0x00,0x7F,0x00,0x0A,0x7B,0x18,0x91,0x7E,0x24,0xC1,0xC2,0xC0
 		.byte		0xA7,0x00,0x0A,0x7F,0x00,0x08,0xB6,0x7F,0x00,0x07,0xBF,0x00,0xE7,0x22,0x00,0x7C
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0041F0A9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMviewBounds),MAKEPTR(SYMleft)
 obj_0041F0BD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -6365,13 +6362,13 @@ obj_0041F3E1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041F3E1:	FrameObj(5, obj_0041F3E1_map)
 		Ref		0x00000032,MAKEPTR(obj_0041F181),MAKEPTR(obj_0041F0F9),MAKEPTR(obj_0041EF69),0x00380004
-obj_0041EEF1:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_0041EEF1:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x7B,0x18,0x91,0x5F,0x00,0x0B,0x22,0x6F,0x00,0x39,0x7B,0x18
 		.byte		0x91,0x19,0x29,0xA4,0x7C,0xC5,0x67,0x00,0x23,0x7C,0x27,0x00,0x0C,0xC7,0x00,0x0C
 		.byte		0x5F,0x00,0x26,0x27,0x00,0x1A,0x6F,0x00,0x35,0x7B,0x18,0x7B,0x18,0x91,0x24,0x1A
 		.byte		0x2A,0x99,0x5F,0x00,0x36,0x22,0x5F,0x00,0x3A,0x22,0x02
-		.align	2
+		.align  8
 obj_0041EF39:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMviewFont),MAKEPTR(SYMGetFontFamilyNum),MAKEPTR(SYMSetFontFamily)
 obj_0041F401_map:	FrameMapObj(5)
@@ -6404,11 +6401,11 @@ obj_0062F0D9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F0D9:	FrameObj(3, obj_0062F0D9_map)
 		Ref		0x00000132,_FMod,0x00000008
-obj_0062C879:	.long		kHeaderSize + 32 + kFlagsBinary
+obj_0062C879:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x19,0x38,0xA6,0x7B,0x1A,0x29,0xA7,0x00,0x07,0x7C,0x6F
 		.byte		0x00,0x1C,0x7E,0x7C,0x1B,0x7D,0x7B,0x1C,0x82,0x1D,0x2C,0x00,0x7F,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_0062C8A5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetName),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(SYMentryRemoved),MAKEPTR(obj_0055A105),MAKEPTR(SYMXmitSoupChange)
 obj_0062D1D1_map:	FrameMapObj(5)
@@ -6419,10 +6416,10 @@ obj_0041C475_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C475:	FrameObj(3, obj_0041C475_map)
 		Ref		0x00000132,_TableLookup,0x00000008
-obj_004186ED:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_004186ED:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x7B,0xC2,0x02
-		.align	2
+		.align  8
 obj_00418701:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetAllRawDisplayParams)
 obj_00418711_map:	FrameMapObj(5)
@@ -6437,7 +6434,7 @@ obj_004F3811_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_004F3811:	FrameObj(3, obj_004F3811_map)
 		Ref		0x00000132,_FIncrementMonth,0x00000008
-obj_004203D1:	.long		kHeaderSize + 248 + kFlagsBinary
+obj_004203D1:	Ref    kHeaderSize + 248 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA5,0x7D,0x18,0x19,0x2A,0xC5,0x6F,0x00,0x2E,0x7D,0x1A,0x91,0x1B,0x29,0xA5
 		.byte		0x7D,0xC5,0x67,0x00,0x1E,0x7D,0xC7,0x00,0x12,0x20,0xC4,0x5F,0x00,0x21,0x27,0x00
@@ -6455,8 +6452,8 @@ obj_004203D1:	.long		kHeaderSize + 248 + kFlagsBinary
 		.byte		0x91,0xA6,0x5F,0x00,0xF6,0x7B,0x7F,0x00,0x0A,0xC7,0x00,0x0C,0x6F,0x00,0xE9,0x7B
 		.byte		0x7F,0x00,0x09,0xC7,0x00,0x0A,0x5F,0x00,0xEA,0x22,0xC5,0x6F,0x00,0xF6,0x7F,0x00
 		.byte		0x07,0x1F,0x00,0x0D,0x91,0xA6,0x7E,0x02
-		.align	2
-obj_004202D1:	.long		kHeaderSize + 107 + kFlagsBinary
+		.align  8
+obj_004202D1:	Ref    kHeaderSize + 107 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x91,0x24,0x20,0x20,0x1A,0x85,0x1B,0x29,0x1C,0x29,0xA4,0x7B,0x1D
 		.byte		0x91,0x7C,0x1D,0x91,0xC1,0xA5,0x7D,0x20,0xC7,0x00,0x0A,0x6F,0x00,0x24,0x7D,0x27
@@ -6465,7 +6462,7 @@ obj_004202D1:	.long		kHeaderSize + 107 + kFlagsBinary
 		.byte		0x00,0x07,0x91,0xC7,0x00,0x0B,0x6F,0x00,0x53,0x7B,0x1E,0x91,0x27,0x00,0x14,0xC4
 		.byte		0x5F,0x00,0x54,0x22,0x6F,0x00,0x61,0x7E,0x1C,0x7E,0x1C,0x91,0x27,0x00,0x1C,0xC1
 		.byte		0x98,0x7E,0x1B,0x29,0x7B,0x1F,0x00,0x08,0x91,0xC0,0x02
-		.align	2
+		.align  8
 obj_00420251:	ArrayObj(6, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMyear),MAKEPTR(SYMmonth),MAKEPTR(SYMDate),MAKEPTR(SYMhour),MAKEPTR(SYMminute)
 obj_00420349:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -6508,14 +6505,14 @@ obj_0041D3C5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041D3C5:	FrameObj(3, obj_0041D3C5_map)
 		Ref		0x00000132,_DSConstructSubjectLine,0x00000004
-obj_00480575:	.long		kHeaderSize + 66 + kFlagsBinary
+obj_00480575:	Ref    kHeaderSize + 66 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x22,0xC7,0x00,0x11,0xA5,0x7D,0x27,0x00,0x14,0xC2,0x19,0x8F,0xFF,0xFF
 		.byte		0xA7,0x00,0x07,0x20,0xA6,0x5F,0x00,0x2B,0x7D,0x24,0xC2,0xA4,0x7F,0x00,0x07,0x7E
 		.byte		0x7C,0x7B,0x91,0xC3,0x00,0x24,0xB6,0x00,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x18
 		.byte		0x5F,0x00,0x38,0xA7,0x00,0x07,0x00,0x00,0x7F,0x00,0x07,0x22,0xA7,0x00,0x07,0x22
 		.byte		0xA5,0x02
-		.align	2
+		.align  8
 obj_004805C5:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetAllDialinNetworks),MAKEPTR(SYMarray)
 obj_004805D9_map:	FrameMapObj(5)
@@ -6532,24 +6529,24 @@ obj_003C688D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C688D:	FrameObj(5, obj_003C688D_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C6879),NILREF,0x00000008
-obj_004B2521:	.long		kHeaderSize + 60 + kFlagsBinary
+obj_004B2521:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x7B,0x18,0x91,0x6F,0x00,0x14,0x7B,0x18
 		.byte		0x91,0x5F,0x00,0x15,0x7B,0xA4,0x7B,0x19,0x91,0x6F,0x00,0x3A,0x7B,0x1A,0x29,0xA5
 		.byte		0x7D,0x6F,0x00,0x29,0x7B,0x7D,0x1B,0x39,0xA4,0x7C,0xC5,0x6F,0x00,0x3A,0x27,0x00
 		.byte		0x0C,0x1C,0x1D,0x1E,0x28,0x1F,0x00,0x07,0x3B,0x00,0x7C,0x02
-		.align	2
-obj_004B2489:	.long		kHeaderSize + 140 + kFlagsBinary
+		.align  8
+obj_004B2489:	Ref    kHeaderSize + 140 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','i','s',' ','i','t','e','m',' ','c','a','n','n','o','t',' ','b','e',' ','r','o','u','t','e','d',';',' ','t','h','e',' ','o','r','i','g','i','n','a','l',' ','h','a','s',' ','b','e','e','n',' ','r','e','m','o','v','e','d',' ','o','r',' ','d','e','l','e','t','e','d','.',0
-		.align	2
+		.align  8
 obj_004B2569:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMbody),MAKEPTR(SYMneedsResolve),MAKEPTR(SYMGetCurrentFormat),MAKEPTR(SYMResolveBody),MAKEPTR(obj_004BE3E9),MAKEPTR(obj_004B2489),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify)
 obj_004B2595_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004B2595:	FrameObj(5, obj_004B2595_map)
 		Ref		0x00000032,MAKEPTR(obj_004B2521),MAKEPTR(obj_004B2569),NILREF,0x00080004
-obj_00556999:	.long		kHeaderSize + 91 + kFlagsBinary
+obj_00556999:	Ref    kHeaderSize + 91 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x6F,0x00,0x0D,0x71,0x7B,0x1A,0x1B,0x1C,0x2C,0xA6,0x7E,0xC5,0x6F
 		.byte		0x00,0x1B,0x27,0x03,0x5F,0x7B,0x1A,0x1B,0x1C,0x2C,0xA6,0x7E,0x6F,0x00,0x29,0x7C
@@ -6557,19 +6554,19 @@ obj_00556999:	.long		kHeaderSize + 91 + kFlagsBinary
 		.byte		0x6F,0x00,0x53,0x27,0x00,0x0C,0x1F,0x00,0x07,0x1F,0x00,0x08,0x7D,0x91,0x7B,0x7E
 		.byte		0x1E,0x91,0x1F,0x00,0x09,0x8A,0x1F,0x00,0x0A,0x2A,0x1F,0x00,0x0B,0x28,0x1F,0x00
 		.byte		0x0C,0x3B,0x00,0x27,0x00,0x1A,0x5F,0x00,0x5A,0x22,0x02
-		.align	2
-obj_0055670D:	.long		kHeaderSize + 162 + kFlagsBinary
+		.align  8
+obj_0055670D:	Ref    kHeaderSize + 162 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','w','a','s',' ','n','o','t',' ','i','n','s','t','a','l','l','e','d',' ','b','e','c','a','u','s','e',' ','i','t',' ','d','o','e','s',' ','n','o','t',' ','w','o','r','k',' ','w','i','t','h',' ','t','h','i','s',' ','s','y','s','t','e','m','.',' ','^','1',0
-		.align	2
-obj_005567D9:	.long		kHeaderSize + 162 + kFlagsBinary
+		.align  8
+obj_005567D9:	Ref    kHeaderSize + 162 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','w','a','s',' ','n','o','t',' ','a','c','t','i','v','a','t','e','d',' ','b','e','c','a','u','s','e',' ','i','t',' ','d','o','e','s',' ','n','o','t',' ','w','o','r','k',' ','w','i','t','h',' ','t','h','i','s',' ','s','y','s','t','e','m','.',' ','^','1',0
-		.align	2
-obj_00556889:	.long		kHeaderSize + 162 + kFlagsBinary
+		.align  8
+obj_00556889:	Ref    kHeaderSize + 162 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','w','a','s',' ','n','o','t',' ','c','o','n','v','e','r','t','e','d',' ','b','e','c','a','u','s','e',' ','i','t',' ','d','o','e','s',' ','n','o','t',' ','w','o','r','k',' ','w','i','t','h',' ','t','h','i','s',' ','s','y','s','t','e','m','.',' ','^','1',0
-		.align	2
+		.align  8
 obj_00556955_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMinstall),MAKEPTR(SYMactivate),MAKEPTR(SYMConvert)
 obj_00556955:	FrameObj(3, obj_00556955_map)
@@ -6584,17 +6581,17 @@ obj_0041BECD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BECD:	FrameObj(3, obj_0041BECD_map)
 		Ref		0x00000132,_FGetUnitUpTime,0x00000004
-obj_005AB645:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_005AB645:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x7C,0x18,0x29,0x02
-		.align	2
+		.align  8
 obj_005AB659:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMConvertDictionary)
 obj_005AB669_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005AB669:	FrameObj(5, obj_005AB669_map)
 		Ref		0x00000032,MAKEPTR(obj_005AB645),MAKEPTR(obj_005AB659),NILREF,0x00000000
-obj_005361F1:	.long		kHeaderSize + 727 + kFlagsBinary
+obj_005361F1:	Ref    kHeaderSize + 727 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA5,0x20,0x20,0x18,0x82,0x20,0x20,0x19,0x82,0x20,0x20,0x1A,0x82,0x20,0x20
 		.byte		0x1B,0x82,0x20,0x20,0x1C,0x82,0x20,0x20,0x1D,0x82,0x20,0x20,0x1E,0x82,0x20,0x20
@@ -6642,7 +6639,7 @@ obj_005361F1:	.long		kHeaderSize + 727 + kFlagsBinary
 		.byte		0x1F,0x00,0x0B,0x8F,0x00,0x0A,0x7F,0x00,0x08,0x31,0x00,0x7F,0x00,0x0E,0x05,0x7F
 		.byte		0x00,0x0E,0x06,0x6F,0x01,0xC4,0x22,0x22,0xA7,0x00,0x0E,0x00,0x7C,0xC5,0x6F,0x02
 		.byte		0xD5,0x7E,0x5F,0x02,0xD6,0x22,0x02
-		.align	2
+		.align  8
 obj_00535F55:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMcount),MAKEPTR(SYMsize)
 obj_00535F8D:	ArrayObj(15, 0x00000008)
@@ -6653,7 +6650,7 @@ obj_005358F1:	FrameObj(3, obj_005358F1_map)
 		Ref		0x00000132,_FGetFrameStuff,0x00000008
 obj_00535FD5:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMundo),MAKEPTR(SYMroot),MAKEPTR(SYMvars)
-obj_00536069:	.long		kHeaderSize + 120 + kFlagsBinary
+obj_00536069:	Ref    kHeaderSize + 120 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0xA4,0x24,0xA5,0x7B,0xC7,0x00,0x12,0xA6,0x27,0x00,0x08,0xA7,0x00,0x07,0x7F
 		.byte		0x00,0x07,0x7D,0x5F,0x00,0x6C,0x7B,0x7D,0x24,0xC1,0xC2,0xA7,0x00,0x08,0x7C,0x7F
@@ -6663,11 +6660,11 @@ obj_00536069:	.long		kHeaderSize + 120 + kFlagsBinary
 		.byte		0x00,0x09,0x7F,0x00,0x09,0x1A,0x29,0x00,0x5F,0x00,0x5E,0x22,0x02,0x00,0x7C,0x7F
 		.byte		0x00,0x09,0x1F,0x00,0x07,0x29,0xC0,0xA4,0x7F,0x00,0x07,0xB5,0x7E,0xBF,0x00,0x16
 		.byte		0x22,0x00,0x1F,0x00,0x08,0x1A,0x29,0x02
-		.align	2
-obj_00535FF1:	.long		kHeaderSize + 92 + kFlagsBinary
+		.align  8
+obj_00535FF1:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',0
-		.align	2
+		.align  8
 obj_005360ED:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00535FF1),MAKEPTR(SYMSubstr),MAKEPTR(SYMWrite),MAKEPTR(SYMarray),MAKEPTR(obj_00536059),MAKEPTR(obj_0047CABD),MAKEPTR(SYMSubstituteChars),MAKEPTR(SYMStrLen),MAKEPTR(obj_00536059)
 obj_0053611D_map:	FrameMapObj(5)
@@ -6714,7 +6711,7 @@ obj_0041C34D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C34D:	FrameObj(3, obj_0041C34D_map)
 		Ref		0x00000132,_FAddUndoAction,0x00000008
-obj_00437059:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_00437059:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x6F,0x00,0x1E,0x7B,0xC7,0x00,0x18,0x1A,0x29,0xA4,0x7C,0x27
 		.byte		0x00,0x3C,0x7C,0x1B,0x29,0x27,0x00,0x3C,0xC1,0x1C,0x2B,0x1D,0x29,0xA3,0x27,0x04
@@ -6722,7 +6719,7 @@ obj_00437059:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x00,0x08,0x7B,0x7B,0x1F,0x00,0x09,0x84,0xA6,0x7B,0x1F,0x00,0x0A,0x19,0x2A,0x6F
 		.byte		0x00,0x4A,0x7E,0x1F,0x00,0x0B,0x1F,0x00,0x0C,0x98,0x7E,0x7D,0x1F,0x00,0x0D,0x39
 		.byte		0xA7,0x00,0x07,0x22,0x7F,0x00,0x07,0x1F,0x00,0x0E,0x39,0x02
-		.align	2
+		.align  8
 obj_004370C1:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMstring_2Ecountry),MAKEPTR(SYMIsInstance),MAKEPTR(SYMSPrintObject),MAKEPTR(SYMStrLen),MAKEPTR(SYMSubstr),MAKEPTR(SYMIntern),MAKEPTR(SYMGetLocationSoup),MAKEPTR(SYMindex),MAKEPTR(SYMsymbol),MAKEPTR(obj_00437039),MAKEPTR(SYMstring),MAKEPTR(SYMindexPath),MAKEPTR(SYMname),MAKEPTR(SYMQuery),MAKEPTR(SYMMap)
 obj_00437109_map:	FrameMapObj(5)
@@ -6733,7 +6730,7 @@ obj_005364F5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005364F5:	FrameObj(3, obj_005364F5_map)
 		Ref		0x00000132,_FTestReportError,0x00000004
-obj_004654FD:	.long		kHeaderSize + 138 + kFlagsBinary
+obj_004654FD:	Ref    kHeaderSize + 138 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA7,0x00,0x07,0x7B,0x18,0xC4,0x6F,0x00,0x4C,0x71,0x22,0xC7,0x00,0x11,0xA7
 		.byte		0x00,0x09,0x5F,0x00,0x3C,0x7F,0x00,0x09,0x24,0xC2,0xA7,0x00,0x08,0x1A,0x28,0x7F
@@ -6744,7 +6741,7 @@ obj_004654FD:	.long		kHeaderSize + 138 + kFlagsBinary
 		.byte		0xA6,0x7E,0x22,0xC4,0x6F,0x00,0x6E,0x1D,0xA7,0x00,0x07,0x5F,0x00,0x85,0x7E,0x7C
 		.byte		0xC7,0x00,0x17,0x6F,0x00,0x81,0x7E,0x7C,0x7D,0x1B,0x2B,0xA7,0x00,0x07,0x5F,0x00
 		.byte		0x85,0x1E,0xA7,0x00,0x07,0x7F,0x00,0x07,0x02,0x02
-		.align	2
+		.align  8
 obj_004654D5:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_all),MAKEPTR(SYMtransports),MAKEPTR(SYMGetRoot),MAKEPTR(SYMPerform),MAKEPTR(SYMGetGroupTransport),MAKEPTR(SYMnoTransport),MAKEPTR(SYMNoMethod)
 obj_00465595_map:	FrameMapObj(5)
@@ -6759,7 +6756,7 @@ obj_0062F121_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F121:	FrameObj(3, obj_0062F121_map)
 		Ref		0x00000132,_FNegate,0x00000004
-obj_005AB84D:	.long		kHeaderSize + 166 + kFlagsBinary
+obj_005AB84D:	Ref    kHeaderSize + 166 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA8,0x19,0x04,0xA5,0x1A,0x18,0x70,0x7D,0x1B,0x84,0xA6,0x27,0x04,0x53,0x1C
 		.byte		0x28,0x20,0xC2,0x1D,0x39,0xA7,0x00,0x07,0x7F,0x00,0x07,0x7E,0x1E,0x2A,0x1F,0x00
@@ -6772,11 +6769,11 @@ obj_005AB84D:	.long		kHeaderSize + 166 + kFlagsBinary
 		.byte		0x0A,0x7F,0x00,0x08,0x1F,0x00,0x0A,0x91,0x7F,0x00,0x0A,0x90,0x98,0x7F,0x00,0x0C
 		.byte		0x05,0x7F,0x00,0x0C,0x06,0x6F,0x00,0x6B,0x22,0x22,0xA7,0x00,0x0C,0x5F,0x00,0xA1
 		.byte		0x22,0x5F,0x00,0xA5,0x22,0x02
-		.align	2
-obj_005AB7C9:	.long		kHeaderSize + 9 + kFlagsBinary
+		.align  8
+obj_005AB7C9:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x70,0x19,0x2A,0x20,0xC6,0x02
-		.align	2
+		.align  8
 obj_005AB7E1:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtag),MAKEPTR(SYMStrCompare)
 obj_005AB7F5_map:	FrameMapObj(3)
@@ -6825,13 +6822,13 @@ obj_00523C01_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00523C01:	FrameObj(5, obj_00523C01_map)
 		Ref		0x00000032,MAKEPTR(obj_00523BD5),MAKEPTR(obj_00523BE9),NILREF,0x00000004
-obj_004A62D1:	.long		kHeaderSize + 57 + kFlagsBinary
+obj_004A62D1:	Ref    kHeaderSize + 57 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0xC7,0x00,0x17,0x6F,0x00,0x11,0x70,0x19,0x91,0x1A,0x29,0xC5,0x5F,0x00
 		.byte		0x12,0x22,0x6F,0x00,0x1A,0x70,0x19,0x1B,0x2A,0x00,0x70,0x1C,0xC7,0x00,0x17,0x6F
 		.byte		0x00,0x2B,0x70,0x1C,0x91,0x1A,0x29,0xC5,0x5F,0x00,0x2C,0x22,0x6F,0x00,0x34,0x70
 		.byte		0x1C,0x1B,0x2A,0x00,0x27,0x00,0x1A,0x02,0x02
-		.align	2
+		.align  8
 obj_004A6319:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMinternational),MAKEPTR(SYMlocales),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMlocaleTable)
 obj_004A6339_map:	FrameMapObj(5)
@@ -6846,11 +6843,11 @@ obj_0062F1B1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F1B1:	FrameObj(3, obj_0062F1B1_map)
 		Ref		0x00000132,_FGetPath,0x00000008
-obj_0044E0A1:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_0044E0A1:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x03,0x06,0xC7,0x00,0x0C,0x6F,0x00,0x14,0x7B,0x27,0x03,0x96,0xC7,0x00
 		.byte		0x0D,0x5F,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_0044E0C5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044E0C5:	FrameObj(5, obj_0044E0C5_map)
@@ -6865,14 +6862,14 @@ obj_004A8DB9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8DB9:	FrameObj(5, obj_004A8DB9_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8DD9),MAKEPTR(obj_004A8DA9),NILREF,0x00000008
-obj_004220ED:	.long		kHeaderSize + 69 + kFlagsBinary
+obj_004220ED:	Ref    kHeaderSize + 69 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x20,0xA4,0x19,0x1A,0x04,0x1B,0x82,0x1C,0x1D,0x28,0x20,0xC2,0x1E,0x39
 		.byte		0x1F,0x00,0x07,0x39,0xA5,0x7D,0x1F,0x00,0x08,0x38,0xA6,0x5F,0x00,0x30,0x7C,0x24
 		.byte		0xC0,0xA4,0x7E,0x1F,0x00,0x09,0x29,0x00,0x7D,0x1F,0x00,0x0A,0x38,0xA6,0x7E,0x00
 		.byte		0x7E,0x67,0x00,0x1E,0x22,0x00,0x7C,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x43,0x1F,0x00
 		.byte		0x0B,0x28,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_0042217D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalarmKeySuffix),MAKEPTR(SYMEndsWith)
 obj_00422191_map:	FrameMapObj(3)
@@ -6893,14 +6890,14 @@ obj_004221C9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004221C9:	FrameObj(5, obj_004221C9_map)
 		Ref		0x00000032,MAKEPTR(obj_004220ED),MAKEPTR(obj_00422141),MAKEPTR(obj_004221E9),0x000C0004
-obj_005696FD:	.long		kHeaderSize + 75 + kFlagsBinary
+obj_005696FD:	Ref    kHeaderSize + 75 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x1A,0x1B,0x2C,0xA4,0x7C,0x6F,0x00,0x10,0x7C,0x1C,0x91,0x02,0x00
 		.byte		0x1D,0x28,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x40,0x7E,0x24,0xC2,0xA5,0x7B,0x7D
 		.byte		0x1E,0x39,0x6F,0x00,0x3E,0x1C,0x7B,0x7D,0x1F,0x00,0x07,0x39,0x1F,0x00,0x08,0x39
 		.byte		0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x3E,0x7F,0x00,0x07,0x02,0x00,0x7E,0x05
 		.byte		0x7E,0x06,0x6F,0x00,0x1A,0x22,0x22,0xA6,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_005696E9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMsoupDef),MAKEPTR(SYMname)
 obj_00569755:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -6909,12 +6906,12 @@ obj_00569785_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00569785:	FrameObj(5, obj_00569785_map)
 		Ref		0x00000032,MAKEPTR(obj_005696FD),MAKEPTR(obj_00569755),NILREF,0x00100004
-obj_00563EE5:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_00563EE5:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0xC4,0x6F,0x00,0x0C,0x7C,0x19,0x29,0x5F,0x00,0x2D,0x1A,0x28,0x7B,0x91
 		.byte		0xA5,0x7D,0x6F,0x00,0x1B,0x7D,0x1B,0x91,0x5F,0x00,0x1C,0x22,0x6F,0x00,0x27,0x7C
 		.byte		0x7D,0x1B,0x39,0x00,0x5F,0x00,0x2C,0x1A,0x28,0x7B,0x7C,0x98,0x7D,0x02
-		.align	2
+		.align  8
 obj_00563F21:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMbackupSlip),MAKEPTR(SYMOverrideCardSlipHack),MAKEPTR(SYMGetRoot),MAKEPTR(SYMoverrideOverrideBuiltinApp)
 obj_00563F3D_map:	FrameMapObj(5)
@@ -6933,13 +6930,13 @@ obj_0041C3E5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C3E5:	FrameObj(3, obj_0041C3E5_map)
 		Ref		0x00000132,_FAddDeferredAction,0x00000008
-obj_00418F39:	.long		kHeaderSize + 60 + kFlagsBinary
+obj_00418F39:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0xA4,0x7B,0x6F,0x00,0x1D,0x1A,0x7B,0x1B,0x2A,0x00,0x22,0x1C
 		.byte		0x29,0x1D,0x29,0x6F,0x00,0x1A,0x7C,0x1E,0x38,0x00,0x5F,0x00,0x31,0x1A,0x1F,0x00
 		.byte		0x07,0x29,0x00,0x22,0x1C,0x29,0x1D,0x29,0x6F,0x00,0x31,0x7C,0x1F,0x00,0x08,0x38
 		.byte		0x00,0x18,0x28,0x1F,0x00,0x09,0x91,0x1F,0x00,0x0A,0x38,0x02
-		.align	2
+		.align  8
 obj_00418F81:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMbuttons),MAKEPTR(SYMButtonBarParams),MAKEPTR(SYMDefGlobalVar),MAKEPTR(SYMCreateDisplayParams),MAKEPTR(SYMSafeSetDisplayParams),MAKEPTR(SYMClose),MAKEPTR(SYMUnDefGlobalVar),MAKEPTR(SYMOpen),MAKEPTR(SYMExtrasDrawer),MAKEPTR(SYMInvalIcons)
 obj_00418FB9_map:	FrameMapObj(5)
@@ -6970,7 +6967,7 @@ obj_0053650D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0053650D:	FrameObj(3, obj_0053650D_map)
 		Ref		0x00000132,_FTestReportMessage,0x00000004
-obj_004D8061:	.long		kHeaderSize + 161 + kFlagsBinary
+obj_004D8061:	Ref    kHeaderSize + 161 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x20,0x19,0x1A,0x1B,0x2D,0xA6,0x7E,0x6F,0x00,0x12,0x70,0x7E,0x24,0x1C
 		.byte		0x2B,0x00,0x7C,0x1D,0x91,0x6F,0x00,0x62,0x7B,0x1E,0x29,0x7C,0x7C,0x1D,0x91,0x1E
@@ -6983,7 +6980,7 @@ obj_004D8061:	.long		kHeaderSize + 161 + kFlagsBinary
 		.byte		0x8C,0x1F,0x00,0x09,0x28,0x7F,0x00,0x09,0x91,0x5F,0x00,0x8D,0x22,0xA7,0x00,0x0A
 		.byte		0x7F,0x00,0x0A,0x6F,0x00,0x9F,0x7D,0x7F,0x00,0x0A,0x1F,0x00,0x0A,0x41,0x00,0x7D
 		.byte		0x02
-		.align	2
+		.align  8
 obj_004D7FC9:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMappSymbol),MAKEPTR(SYMbutt),MAKEPTR(SYMdestApp)
 obj_004D8005:	ArrayObj(3, 0x00000008)
@@ -6994,45 +6991,45 @@ obj_004D8111_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004D8111:	FrameObj(5, obj_004D8111_map)
 		Ref		0x00000032,MAKEPTR(obj_004D8061),MAKEPTR(obj_004D801D),NILREF,0x00180008
-obj_0044E1A5:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_0044E1A5:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x12,0x7B,0x19,0x29,0xA4,0x7C,0x1A,0x29,0x00,0x7C,0x20
 		.byte		0xC2,0xA3,0x7B,0x02,0x02
-		.align	2
+		.align  8
 obj_0044E16D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsLower),MAKEPTR(SYMSPrintObject),MAKEPTR(SYMUpcase)
 obj_0044E185_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044E185:	FrameObj(5, obj_0044E185_map)
 		Ref		0x00000032,MAKEPTR(obj_0044E1A5),MAKEPTR(obj_0044E16D),NILREF,0x00040004
-obj_00528971:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_00528971:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA4,0x7C,0x1A,0x1B,0x2A,0xA4,0x7B,0x7C,0xC4,0x6F,0x00,0x15,0x27
 		.byte		0x00,0x1A,0x5F,0x00,0x16,0x22,0x02
-		.align	2
+		.align  8
 obj_00528995:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMviewFrontMostApp),MAKEPTR(SYMGetView),MAKEPTR(SYMappSymbol),MAKEPTR(SYMGetVariable)
 obj_005289B1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005289B1:	FrameObj(5, obj_005289B1_map)
 		Ref		0x00000032,MAKEPTR(obj_00528971),MAKEPTR(obj_00528995),NILREF,0x00040004
-obj_00473D89:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00473D89:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA5,0x7D,0x19,0x91,0x7B,0x7C,0x98,0x7D,0x1A,0x1B,0x2A,0x00,0x7D,0x02
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00473DA9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDesktopConnTransports),MAKEPTR(SYMtransports),MAKEPTR(SYMwhatThe),MAKEPTR(SYMEntryChangeXmit)
 obj_00473DC5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00473DC5:	FrameObj(5, obj_00473DC5_map)
 		Ref		0x00000032,MAKEPTR(obj_00473D89),MAKEPTR(obj_00473DA9),NILREF,0x00040008
-obj_0052A271:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_0052A271:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x6F,0x00,0x21,0x7C,0x1A,0x7B,0x18,0x91,0x98,0x7C,0x1B,0x91
 		.byte		0xC5,0x6F,0x00,0x1D,0x7C,0x1B,0x74,0x1D,0x91,0x99,0x5F,0x00,0x1E,0x22,0x5F,0x00
 		.byte		0x2F,0x7D,0x6F,0x00,0x2E,0x7C,0x1A,0x7D,0x20,0xC2,0x99,0x5F,0x00,0x2F,0x22,0x02
-		.align	2
+		.align  8
 obj_0052A2D1:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMlocation),MAKEPTR(SYMcountry)
 obj_0052A2AD:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -7053,7 +7050,7 @@ obj_0062F241_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F241:	FrameObj(3, obj_0062F241_map)
 		Ref		0x00000132,_FIsPackage,0x00000004
-obj_00483009:	.long		kHeaderSize + 195 + kFlagsBinary
+obj_00483009:	Ref    kHeaderSize + 195 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x30,0xA4,0x19,0x30,0xA5,0x7C,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00
 		.byte		0x2E,0x7F,0x00,0x08,0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00,0x08,0x20,0xC2,0xA6,0x7E
@@ -7068,24 +7065,24 @@ obj_00483009:	.long		kHeaderSize + 195 + kFlagsBinary
 		.byte		0x7F,0x00,0x07,0x98,0x7C,0x1C,0x91,0x7F,0x00,0x09,0x27,0x00,0x1A,0x1F,0x00,0x08
 		.byte		0x2B,0x00,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x84,0x22,0x22,0xA7
 		.byte		0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_00482FD9:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00482D35),MAKEPTR(obj_00482CD5),MAKEPTR(SYM_System),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYM_Global),MAKEPTR(SYMarray),MAKEPTR(SYMSetContains),MAKEPTR(SYMGenFolderSym),MAKEPTR(SYMSetAdd)
 obj_004830D9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004830D9:	FrameObj(5, obj_004830D9_map)
 		Ref		0x00000032,MAKEPTR(obj_00483009),MAKEPTR(obj_00482FD9),NILREF,0x00180004
-obj_00563A11:	.long		kHeaderSize + 148 + kFlagsBinary
+obj_00563A11:	Ref    kHeaderSize + 148 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','m','a','i','n',' ','b','a','t','t','e','r','y',' ','i','s',' ','u','n','a','b','l','e',' ','t','o',' ','m','a','i','n','t','a','i','n',' ','a',' ','c','h','a','r','g','e','.',' ','I','t',' ','n','e','e','d','s',' ','t','o',' ','b','e',' ','r','e','p','l','a','c','e','d','.',0
-		.align	2
+		.align  8
 obj_00563AED:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetBatteryMessages),MAKEPTR(SYMbadBattery),MAKEPTR(obj_00563A11),MAKEPTR(obj_0043C4C5),MAKEPTR(SYMNotify),MAKEPTR(SYMbatteryAlert)
 obj_00563B15_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00563B15:	FrameObj(5, obj_00563B15_map)
 		Ref		0x00000032,MAKEPTR(obj_00563AB1),MAKEPTR(obj_00563AED),NILREF,0x000C0000
-obj_005592F1:	.long		kHeaderSize + 93 + kFlagsBinary
+obj_005592F1:	Ref    kHeaderSize + 93 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0C,0x7B,0x19,0x29,0x5F,0x00,0x0D,0x22,0x6F,0x00,0x5B
 		.byte		0x7D,0xC5,0x6F,0x00,0x17,0x1A,0xA5,0x7C,0xC5,0x6F,0x00,0x22,0x7B,0x1B,0x29,0x1C
@@ -7093,7 +7090,7 @@ obj_005592F1:	.long		kHeaderSize + 93 + kFlagsBinary
 		.byte		0x00,0x3B,0x7E,0x1F,0x00,0x09,0x7C,0x98,0x5F,0x00,0x47,0x75,0x7B,0x7C,0x7D,0x1F
 		.byte		0x00,0x0A,0x83,0xC7,0x00,0x15,0x00,0x1F,0x00,0x0B,0x7C,0x7B,0x1F,0x00,0x0C,0x29
 		.byte		0x1F,0x00,0x0D,0x3A,0x00,0x27,0x00,0x1A,0x5F,0x00,0x5C,0x22,0x02
-		.align	2
+		.align  8
 obj_005592D5:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMpkgRef),MAKEPTR(SYMappName),MAKEPTR(SYMreason)
 obj_0055935D:	ArrayObj(14, MAKEPTR(SYMliterals))
@@ -7102,11 +7099,11 @@ obj_005593A1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005593A1:	FrameObj(5, obj_005593A1_map)
 		Ref		0x00000032,MAKEPTR(obj_005592F1),MAKEPTR(obj_0055935D),NILREF,0x0004000C
-obj_0048BDF5:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_0048BDF5:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x7B,0x1A,0x33,0x02
-		.align	2
-obj_0048BC71:	.long		kHeaderSize + 153 + kFlagsBinary
+		.align  8
+obj_0048BC71:	Ref    kHeaderSize + 153 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA6,0x22,0xA7,0x00,0x07,0x18,0x80,0xA7,0x00,0x09,0x7B,0x19,0x29,0xA7,0x00
 		.byte		0x08,0x7F,0x00,0x08,0xC5,0x6F,0x00,0x20,0x1A,0x88,0xA7,0x00,0x08,0x5F,0x00,0x54
@@ -7118,7 +7115,7 @@ obj_0048BC71:	.long		kHeaderSize + 153 + kFlagsBinary
 		.byte		0x1D,0xC4,0x6F,0x00,0x7C,0x1D,0x19,0x29,0xC5,0x5F,0x00,0x7D,0x22,0x6F,0x00,0x8E
 		.byte		0x1D,0x7F,0x00,0x08,0x20,0xC2,0x1E,0x2A,0x00,0x1F,0x00,0x07,0x28,0x00,0x7B,0x7F
 		.byte		0x00,0x09,0x1F,0x00,0x08,0x2A,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_0048BC41:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004D4879),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMarray),MAKEPTR(SYMIsSameEntry),MAKEPTR(SYMMakeEntryAlias),MAKEPTR(SYMcurrentPersona),MAKEPTR(SYMSetUserConfig),MAKEPTR(SYMUseCurrentPersona),MAKEPTR(SYMSetUserConfigEnMasse)
 obj_0048BD19_map:	FrameMapObj(5)
@@ -7135,7 +7132,7 @@ obj_0062F259_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F259:	FrameObj(3, obj_0062F259_map)
 		Ref		0x00000132,_FBFindRight,0x00000010
-obj_004A0775:	.long		kHeaderSize + 345 + kFlagsBinary
+obj_004A0775:	Ref    kHeaderSize + 345 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA9,0x1A,0x04,0xA7,0x00,0x0F,0x7B,0x6F,0x00,0x13,0x7B,0xA7,0x00,0x07
 		.byte		0x5F,0x00,0x8A,0x7C,0x1B,0xC4,0x6F,0x00,0x5E,0x1C,0x1D,0x29,0xA7,0x00,0x10,0x7F
@@ -7159,15 +7156,15 @@ obj_004A0775:	.long		kHeaderSize + 345 + kFlagsBinary
 		.byte		0x20,0x82,0x02,0x5F,0x01,0x58,0x7E,0x1F,0x00,0x16,0x91,0x6F,0x01,0x57,0x7E,0x1F
 		.byte		0x00,0x15,0x91,0x7E,0x1F,0x00,0x16,0x91,0x1F,0x00,0x21,0x1F,0x00,0x22,0x2B,0x00
 		.byte		0x1F,0x00,0x23,0x02,0x5F,0x01,0x58,0x22,0x02
-		.align	2
-obj_004A068D:	.long		kHeaderSize + 69 + kFlagsBinary
+		.align  8
+obj_004A068D:	Ref    kHeaderSize + 69 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x91,0x7C,0x6F,0x00,0x0C,0x7C,0x5F,0x00,0x0D,0x7D,0x7B,0x1A,0x91
 		.byte		0x7B,0x1B,0x91,0x1C,0x84,0xC7,0x00,0x15,0x00,0x75,0x67,0x00,0x27,0x7B,0x1E,0x91
 		.byte		0x1F,0x00,0x07,0xC4,0x5F,0x00,0x2A,0x27,0x00,0x1A,0xAD,0x77,0x00,0x08,0x67,0x00
 		.byte		0x3B,0x7B,0x1E,0x91,0x1F,0x00,0x09,0xC4,0x5F,0x00,0x3E,0x27,0x00,0x1A,0xAF,0x00
 		.byte		0x08,0x77,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_004A0561:	ArrayObj(5, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMpath),MAKEPTR(SYMHasData),MAKEPTR(SYMlabel)
 obj_004A06E1:	ArrayObj(10, MAKEPTR(SYMliterals))
@@ -7180,14 +7177,14 @@ obj_004A0755_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A0755:	FrameObj(5, obj_004A0755_map)
 		Ref		0x00000032,MAKEPTR(obj_004A068D),MAKEPTR(obj_004A06E1),MAKEPTR(obj_004A0715),0x0000000C
-obj_004A0581:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_004A0581:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','d','d','r','e','s','s','i','n','g',0
-		.align	2
-obj_004A05A5:	.long		kHeaderSize + 82 + kFlagsBinary
+		.align  8
+obj_004A05A5:	Ref    kHeaderSize + 82 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','d','d','r','e','s','s','i','n','g',' ','e','r','r','o','r',':',' ','n','o',' ','a','d','d','r','e','s','s',' ','f','r','a','m','e',' ','f','o','u','n','d',0
-		.align	2
+		.align  8
 obj_004A0605:	ArrayObj(12, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMstepChildren),MAKEPTR(SYMtarget),MAKEPTR(SYMisUserConfig),MAKEPTR(SYMpathArray),MAKEPTR(SYMcontext),MAKEPTR(SYMcompView),MAKEPTR(SYMcompMsg),MAKEPTR(SYMtitleText),MAKEPTR(SYMuserText),MAKEPTR(SYMkbdType)
 obj_004A0641:	ArrayObj(3, 0x00000008)
@@ -7222,7 +7219,7 @@ obj_0041BA79_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BA79:	FrameObj(3, obj_0041BA79_map)
 		Ref		0x00000132,_FGetGreen,0x00000004
-obj_0048071D:	.long		kHeaderSize + 468 + kFlagsBinary
+obj_0048071D:	Ref    kHeaderSize + 468 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA5,0x7B,0x6F,0x00,0x2E,0x7B,0x19,0x29,0x6F,0x00,0x11,0x7B,0x1A,0x29
 		.byte		0xA3,0x7B,0x1B,0x1C,0x2A,0x6F,0x00,0x25,0x7B,0xA6,0x7E,0x1D,0x91,0x1A,0x29,0xA7
@@ -7254,7 +7251,7 @@ obj_0048071D:	.long		kHeaderSize + 468 + kFlagsBinary
 		.byte		0x7F,0x00,0x0C,0x05,0x7F,0x00,0x0C,0x06,0x6F,0x01,0x6B,0x22,0x22,0xA7,0x00,0x0C
 		.byte		0x00,0x7F,0x00,0x10,0x05,0x7F,0x00,0x10,0x06,0x6F,0x01,0x3A,0x22,0x22,0xA7,0x00
 		.byte		0x10,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_004806B5:	ArrayObj(23, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMIsEntryAlias),MAKEPTR(SYMResolveEntryAlias),MAKEPTR(SYMworksite),MAKEPTR(SYMIsInstance),MAKEPTR(SYMcityAlias),MAKEPTR(SYMcurrentEmporium),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMlocation),MAKEPTR(SYMIsArray),MAKEPTR(SYMmailAccess),MAKEPTR(SYMmailNetwork),MAKEPTR(SYMSetContains),MAKEPTR(SYMmailPhone),MAKEPTR(SYMstrtophone),MAKEPTR(obj_00480691)
 		Ref		MAKEPTR(SYMpassAll),MAKEPTR(SYMStringFilter),MAKEPTR(SYMDialinNetworkRegistry),MAKEPTR(SYMGetAccessNumbers),MAKEPTR(obj_00480691),MAKEPTR(SYMstr_3D),MAKEPTR(SYMLSearch)
@@ -7282,7 +7279,7 @@ obj_00627EB9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627EB9:	FrameObj(3, obj_00627EB9_map)
 		Ref		0x00000132,_FSetHiliteIndex,0x00000004
-obj_005597FD:	.long		kHeaderSize + 88 + kFlagsBinary
+obj_005597FD:	Ref    kHeaderSize + 88 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0B,0x7B,0xA4,0x5F,0x00,0x56,0x7B,0x19,0x29,0x6F,0x00
 		.byte		0x1C,0x7B,0x1A,0x91,0xA5,0x7B,0x1B,0x91,0xA6,0x5F,0x00,0x43,0x7B,0xC7,0x00,0x18
@@ -7290,7 +7287,7 @@ obj_005597FD:	.long		kHeaderSize + 88 + kFlagsBinary
 		.byte		0x1F,0x00,0x07,0x29,0xA7,0x00,0x07,0x7F,0x00,0x07,0x1A,0x91,0xA5,0x7F,0x00,0x07
 		.byte		0x1B,0x91,0xA6,0x7D,0x6F,0x00,0x4B,0x7E,0x5F,0x00,0x4C,0x22,0x6F,0x00,0x56,0x7D
 		.byte		0x7E,0x1F,0x00,0x08,0x2A,0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_00559861:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsPackageEntry),MAKEPTR(SYMIsFrame),MAKEPTR(SYMtitle),MAKEPTR(SYMstore),MAKEPTR(SYMint),MAKEPTR(SYMPidToPkgRef),MAKEPTR(SYMIsPackage),MAKEPTR(SYMGetPkgRefInfo),MAKEPTR(SYMGetPackageEntry)
 obj_00559891_map:	FrameMapObj(5)
@@ -7313,10 +7310,10 @@ obj_0041FC25_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FC25:	FrameObj(3, obj_0041FC25_map)
 		Ref		0x00000132,_FTimeFrameStr,0x00000008
-obj_004207BD:	.long		kHeaderSize + 9 + kFlagsBinary
+obj_004207BD:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x7B,0x19,0x91,0x1A,0x2A,0x02
-		.align	2
+		.align  8
 obj_004207D5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTotalMinutes),MAKEPTR(SYMsecond),MAKEPTR(SYMTimeToTimeInSeconds)
 obj_004207ED_map:	FrameMapObj(5)
@@ -7333,13 +7330,13 @@ obj_0062F2E9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F2E9:	FrameObj(3, obj_0062F2E9_map)
 		Ref		0x00000132,_FEntrySetHandler,0x00000008
-obj_00482B61:	.long		kHeaderSize + 60 + kFlagsBinary
+obj_00482B61:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x19,0x1A,0x29,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x2D
 		.byte		0x7F,0x00,0x07,0x24,0xC2,0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x7E,0x7B,0x1B,0x2A
 		.byte		0x6F,0x00,0x29,0x7C,0x7D,0xC7,0x00,0x15,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07
 		.byte		0x06,0x6F,0x00,0x10,0x22,0x22,0xA7,0x00,0x07,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_00482BA9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMuserFolderGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMSetContains)
 obj_00482BC5_map:	FrameMapObj(5)
@@ -7378,23 +7375,23 @@ obj_0041BC2D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BC2D:	FrameObj(3, obj_0041BC2D_map)
 		Ref		0x00000132,_FRepeatInfoToText,0x0000000C
-obj_005B91A1:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_005B91A1:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x7C,0x7B,0x18,0x2A,0x02
-		.align	2
+		.align  8
 obj_005B91B5:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMDeleteWordFromDictionary)
 obj_005B91C5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005B91C5:	FrameObj(5, obj_005B91C5_map)
 		Ref		0x00000032,MAKEPTR(obj_005B91A1),MAKEPTR(obj_005B91B5),NILREF,0x00000004
-obj_005ACDA5:	.long		kHeaderSize + 54 + kFlagsBinary
+obj_005ACDA5:	Ref    kHeaderSize + 54 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x7B,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x27,0x7F,0x00,0x07
 		.byte		0x24,0xC2,0xA6,0x7E,0x18,0x91,0x7C,0x19,0x2A,0x6F,0x00,0x23,0x7E,0xA5,0x22,0x5F
 		.byte		0x00,0x2F,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x0D,0x22,0x22
 		.byte		0xA7,0x00,0x07,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_005ACDE9:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtitle),MAKEPTR(SYMStrEqual)
 obj_005ACDFD_map:	FrameMapObj(5)
@@ -7409,21 +7406,21 @@ obj_0041BB6D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BB6D:	FrameObj(3, obj_0041BB6D_map)
 		Ref		0x00000132,_FRemoveStepView,0x00000008
-obj_0063015D:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_0063015D:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA9,0x1A,0x1B,0x1C,0x2A,0x02
-		.align	2
-obj_00630191:	.long		kHeaderSize + 34 + kFlagsBinary
+		.align  8
+obj_00630191:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','e','t','u','p','C','a','r','d','S','o','u','p','s','(',')',0
-		.align	2
+		.align  8
 obj_00630171:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMcardSoups),MAKEPTR(obj_00630191),MAKEPTR(SYMdiscontinued),MAKEPTR(SYMBadWickedNaughtyNoot)
 obj_006301C1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_006301C1:	FrameObj(5, obj_006301C1_map)
 		Ref		0x00000032,MAKEPTR(obj_0063015D),MAKEPTR(obj_00630171),NILREF,0x00000000
-obj_00563539:	.long		kHeaderSize + 116 + kFlagsBinary
+obj_00563539:	Ref    kHeaderSize + 116 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x67,0x00,0x0F,0x1A,0x28,0x24,0xC7,0x00,0x0A,0x5F,0x00,0x12,0x27
 		.byte		0x00,0x1A,0x6F,0x00,0x18,0x22,0x02,0x00,0x20,0x1B,0x29,0xA3,0x7B,0x1C,0x91,0x1D
@@ -7433,24 +7430,24 @@ obj_00563539:	.long		kHeaderSize + 116 + kFlagsBinary
 		.byte		0x6F,0x00,0x57,0x1F,0x00,0x0B,0xA4,0x27,0x00,0x10,0x1F,0x00,0x0C,0x7C,0x1F,0x00
 		.byte		0x08,0x28,0x1F,0x00,0x0D,0x3B,0xA5,0x7D,0x1F,0x00,0x0E,0x27,0x00,0x1A,0x98,0x1F
 		.byte		0x00,0x0F,0x28,0x02
-		.align	2
-obj_00563475:	.long		kHeaderSize + 150 + kFlagsBinary
+		.align  8
+obj_00563475:	Ref    kHeaderSize + 150 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','b','a','t','t','e','r','y',' ','i','s',' ','r','u','n','n','i','n','g',' ','l','o','w','.',' ','Y','o','u',' ','n','e','e','d',' ','t','o',' ','r','e','c','h','a','r','g','e',' ','o','r',' ','c','h','a','n','g','e',' ','b','a','t','t','e','r','i','e','s',' ','s','o','o','n','.',0
-		.align	2
+		.align  8
 obj_005635B9:	ArrayObj(16, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMquicklooklives),MAKEPTR(SYMBatteryCount),MAKEPTR(SYMBatteryStatus),MAKEPTR(SYMacPower),MAKEPTR(SYMyes),MAKEPTR(SYMbatteryCapacity),MAKEPTR(SYMbatteryLow),MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetBatteryMessages),MAKEPTR(SYMbatteryLowMessage),MAKEPTR(obj_00563475),MAKEPTR(obj_0043C4C5),MAKEPTR(SYMNotify),MAKEPTR(SYMbatteryAlert),MAKEPTR(SYMCheckCardBattery)
 obj_00563605_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00563605:	FrameObj(5, obj_00563605_map)
 		Ref		0x00000032,MAKEPTR(obj_00563539),MAKEPTR(obj_005635B9),NILREF,0x000C0000
-obj_00476BAD:	.long		kHeaderSize + 64 + kFlagsBinary
+obj_00476BAD:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA4,0x7B,0x6F,0x00,0x3E,0x7B,0x18,0x29,0x6F,0x00,0x33,0x7B,0x19,0x91,0x6F
 		.byte		0x00,0x20,0x7B,0x19,0x91,0x1A,0x29,0xA4,0x7C,0x1B,0xC4,0x6F,0x00,0x20,0x22,0xA4
 		.byte		0x7C,0x22,0xC4,0x6F,0x00,0x2A,0x7B,0x1C,0x91,0xA4,0x7C,0xC5,0x6F,0x00,0x33,0x7B
 		.byte		0x1D,0x91,0xA4,0x7C,0x22,0xC4,0x6F,0x00,0x3E,0x7B,0xC7,0x00,0x18,0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_00476BF9:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsFrame),MAKEPTR(SYMbody),MAKEPTR(SYMDataClassOf),MAKEPTR(SYMframe),MAKEPTR(SYMclass),MAKEPTR(SYMviewStationery)
 obj_00476C1D_map:	FrameMapObj(5)
@@ -7471,7 +7468,7 @@ obj_0062F399_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F399:	FrameObj(3, obj_0062F399_map)
 		Ref		0x00000132,_FBFetch,0x00000010
-obj_0041F999:	.long		kHeaderSize + 191 + kFlagsBinary
+obj_0041F999:	Ref    kHeaderSize + 191 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA4,0x7C,0x6F,0x00,0x12,0x7C,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x5F
 		.byte		0x00,0x13,0x22,0x6F,0x00,0x1D,0x7C,0x20,0xC2,0xA3,0x5F,0x00,0xBD,0x19,0x28,0xA5
@@ -7485,7 +7482,7 @@ obj_0041F999:	.long		kHeaderSize + 191 + kFlagsBinary
 		.byte		0x00,0x09,0x91,0xA6,0x7F,0x00,0x08,0x1F,0x00,0x0B,0x91,0xA7,0x00,0x07,0x7F,0x00
 		.byte		0x07,0xC5,0x6F,0x00,0xAC,0x1F,0x00,0x0C,0x80,0xA7,0x00,0x07,0x7E,0x1F,0x00,0x0D
 		.byte		0x29,0x6F,0x00,0xBD,0x7E,0x7F,0x00,0x07,0x1F,0x00,0x0E,0x2A,0xA3,0x7B,0x02
-		.align	2
+		.align  8
 obj_0041F951:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetHilitedTextItems),MAKEPTR(SYMGetCaretInfo),MAKEPTR(SYMview),MAKEPTR(SYMinfo),MAKEPTR(SYMclass),MAKEPTR(SYMparaCaret),MAKEPTR(SYMviewClass),MAKEPTR(SYMoffset),MAKEPTR(SYMGetLineRange),MAKEPTR(SYMtext),MAKEPTR(SYMGetRangeData),MAKEPTR(SYMstyles),MAKEPTR(obj_004D4879),MAKEPTR(SYMStrFilled),MAKEPTR(SYMMakeRichString)
 obj_0041FA65_map:	FrameMapObj(5)
@@ -7496,7 +7493,7 @@ obj_0062F3B1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F3B1:	FrameObj(3, obj_0062F3B1_map)
 		Ref		0x00000132,_Ffabs,0x00000004
-obj_004A5FF9:	.long		kHeaderSize + 352 + kFlagsBinary
+obj_004A5FF9:	Ref    kHeaderSize + 352 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x01,0x5E,0x7B,0xC7,0x00,0x18,0x19,0xC4,0x6F,0x00
 		.byte		0x1A,0x7B,0xA5,0x7C,0x1A,0x91,0xA6,0x5F,0x00,0x27,0x7B,0x1B,0x1C,0x2A,0x6F,0x00
@@ -7520,14 +7517,14 @@ obj_004A5FF9:	.long		kHeaderSize + 352 + kFlagsBinary
 		.byte		0x6F,0x01,0x50,0x77,0x00,0x08,0x1F,0x00,0x1B,0x91,0x1F,0x00,0x19,0x29,0xC5,0x6F
 		.byte		0x01,0x4D,0x77,0x00,0x08,0x1F,0x00,0x1B,0x1F,0x00,0x16,0x2A,0x00,0x5F,0x01,0x5E
 		.byte		0x77,0x00,0x08,0x1F,0x00,0x1B,0x1F,0x00,0x1A,0x29,0x7F,0x00,0x0B,0x98,0x7C,0x02
-		.align	2
+		.align  8
 obj_004A5F4D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYM_proto),MAKEPTR(SYMlocales)
-obj_004A5D29:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_004A5D29:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x7C,0xA9,0x7D,0xAA,0x73,0x1C,0xC7,0x00,0x17,0x6F,0x00,0x15,0x70,0x71
 		.byte		0x72,0x1C,0x2B,0x02,0x00,0x1D,0x04,0x1E,0x1F,0x00,0x07,0x2A,0x02,0x02
-		.align	2
+		.align  8
 obj_004A5D95:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtarget),MAKEPTR(SYMmessage),MAKEPTR(SYMparams),MAKEPTR(SYMPerform)
 obj_004A5DB1_map:	FrameMapObj(3)
@@ -7551,14 +7548,14 @@ obj_004A5E11:	FrameObj(5, obj_004A5E11_map)
 		Ref		0x00000032,MAKEPTR(obj_004A5D29),MAKEPTR(obj_004A5D55),MAKEPTR(obj_004A5E31),0x0000000C
 obj_004A5FE5:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYM_proto),MAKEPTR(SYMlocales)
-obj_004A5C99:	.long		kHeaderSize + 70 + kFlagsBinary
+obj_004A5C99:	Ref    kHeaderSize + 70 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x7B,0xC7,0x00,0x12,0x7C,0xC7,0x00,0x12,0xC4,0x6F,0x00,0x43,0x27,0x00
 		.byte		0x1A,0xA5,0x7B,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x36,0x7F,0x00,0x07
 		.byte		0x24,0xC2,0xA6,0x7C,0x7E,0x18,0x2A,0xC5,0x6F,0x00,0x32,0x22,0xA5,0x22,0x5F,0x00
 		.byte		0x3E,0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x1D,0x22,0x22,0xA7
 		.byte		0x00,0x07,0x00,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_004A5CED:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSetContains)
 obj_004A5CFD_map:	FrameMapObj(5)
@@ -7567,14 +7564,14 @@ obj_004A5CFD:	FrameObj(5, obj_004A5CFD_map)
 		Ref		0x00000032,MAKEPTR(obj_004A5C99),MAKEPTR(obj_004A5CED),NILREF,0x000C0008
 obj_004A6165:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYM_proto),MAKEPTR(SYMlocaleTable)
-obj_004A5C1D:	.long		kHeaderSize + 80 + kFlagsBinary
+obj_004A5C1D:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x7B,0xC7,0x00,0x12,0x7C,0xC7,0x00,0x12,0xC4,0x6F,0x00,0x4D,0x27,0x00
 		.byte		0x1A,0xA5,0x7B,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x40,0x7F,0x00,0x08
 		.byte		0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00,0x08,0x20,0xC2,0xA6,0x7C,0x7E,0x91,0x7F,0x00
 		.byte		0x07,0xC6,0x6F,0x00,0x3C,0x22,0xA5,0x22,0x5F,0x00,0x48,0x00,0x7F,0x00,0x08,0x05
 		.byte		0x7F,0x00,0x08,0x06,0x6F,0x00,0x1D,0x22,0x22,0xA7,0x00,0x08,0x00,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_004A5C79_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A5C79:	FrameObj(5, obj_004A5C79_map)
@@ -7590,7 +7587,7 @@ obj_004612D1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_004612D1:	FrameObj(3, obj_004612D1_map)
 		Ref		0x00000132,_FModalState,0x00000000
-obj_0044E345:	.long		kHeaderSize + 186 + kFlagsBinary
+obj_0044E345:	Ref    kHeaderSize + 186 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x00,0x19,0x28,0xA4,0x7C,0x1A,0x91,0xA5,0x7B,0x6F,0x00,0xA3,0x7B,0x1B
 		.byte		0x91,0x6F,0x00,0x1B,0x7B,0x1B,0x91,0xA5,0x5F,0x00,0xA3,0x7B,0x1C,0x91,0x1D,0xC7
@@ -7604,7 +7601,7 @@ obj_0044E345:	.long		kHeaderSize + 186 + kFlagsBinary
 		.byte		0xA7,0x00,0x07,0x7F,0x00,0x07,0x27,0x01,0xD4,0xC4,0x6F,0x00,0xA3,0x7C,0x1F,0x00
 		.byte		0x0C,0x91,0xA5,0x7D,0x1F,0x00,0x10,0x91,0x6F,0x00,0xB4,0x22,0x7D,0x1F,0x00,0x11
 		.byte		0x39,0x5F,0x00,0xB9,0x7D,0x1F,0x00,0x12,0x38,0x02
-		.align	2
+		.align  8
 obj_0044E40D:	ArrayObj(19, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMRefreshViews),MAKEPTR(SYMGetRoot),MAKEPTR(SYMalphaKeyboard),MAKEPTR(SYM_keyboard),MAKEPTR(SYMviewFlags),0x07FFC000,0x00100000,MAKEPTR(SYMphoneKeyboard),0x00200000,0x00400000,MAKEPTR(SYMdateKeyboard),0x00008000,MAKEPTR(SYMnumericKeyboard),0x04000000,MAKEPTR(SYMdictionaries),MAKEPTR(SYMIsArray)
 		Ref		MAKEPTR(SYMviewCObject),MAKEPTR(SYMMoveBehind),MAKEPTR(SYMOpen)
@@ -7622,11 +7619,11 @@ obj_0041DE5D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041DE5D:	FrameObj(3, obj_0041DE5D_map)
 		Ref		0x00000132,_FNTKAlive,0x00000000
-obj_005B5051:	.long		kHeaderSize + 22 + kFlagsBinary
+obj_005B5051:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x29,0x7C,0x98,0x1A,0x28,0x1B,0x91,0x6F,0x00,0x14,0x1A,0x28,0x1C
 		.byte		0x91,0x1D,0x38,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_005B5099:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMpreferenceRoll),MAKEPTR(SYMviewCObject)
 obj_005B5075:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -7659,12 +7656,12 @@ obj_0062F3F9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F3F9:	FrameObj(3, obj_0062F3F9_map)
 		Ref		0x00000132,_FGetFunctionArgCount,0x00000004
-obj_0056A029:	.long		kHeaderSize + 42 + kFlagsBinary
+obj_0056A029:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x19,0x28,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x1F,0x7D,0x24,0xC2
 		.byte		0xA4,0x7C,0x1A,0x38,0x6F,0x00,0x1D,0x7B,0x7C,0xC7,0x00,0x15,0x00,0x7D,0x05,0x7D
 		.byte		0x06,0x6F,0x00,0x0D,0x22,0x22,0xA5,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_0056A061:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMGetStores),MAKEPTR(SYMIsValid)
 obj_0056A079_map:	FrameMapObj(5)
@@ -7695,10 +7692,10 @@ obj_0041BCBD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BCBD:	FrameObj(3, obj_0041BCBD_map)
 		Ref		0x00000132,_FDoPopup,0x00000010
-obj_0062AA65:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_0062AA65:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','t','r','i','n','g','P','(',0
-		.align	2
+		.align  8
 obj_0062AA41:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0062AA65),MAKEPTR(obj_0049793D),MAKEPTR(SYMarray),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMIsString)
 obj_0062AA85_map:	FrameMapObj(5)
@@ -7721,17 +7718,17 @@ obj_0041B9E5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B9E5:	FrameObj(3, obj_0041B9E5_map)
 		Ref		0x00000132,_FTextBounds,0x0000000C
-obj_0062C8E9:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_0062C8E9:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x29,0x7C,0x99,0x02
-		.align	2
+		.align  8
 obj_0062C8FD:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMEnsureInternal)
 obj_0062F429_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062F429:	FrameObj(5, obj_0062F429_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C8E9),MAKEPTR(obj_0062C8FD),NILREF,0x00000008
-obj_0041F855:	.long		kHeaderSize + 103 + kFlagsBinary
+obj_0041F855:	Ref    kHeaderSize + 103 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x7B,0x18,0x91,0x5F,0x00,0x0B,0x22,0x6F,0x00,0x1A,0x7B,0x19
 		.byte		0x91,0x24,0xC7,0x00,0x0E,0x20,0xC6,0x5F,0x00,0x1B,0x22,0x6F,0x00,0x65,0x72,0x1B
@@ -7740,7 +7737,7 @@ obj_0041F855:	.long		kHeaderSize + 103 + kFlagsBinary
 		.byte		0x1D,0x38,0x00,0x7B,0x18,0x91,0x6F,0x00,0x55,0x7B,0x19,0x91,0x24,0xC7,0x00,0x0E
 		.byte		0x20,0xC6,0x5F,0x00,0x56,0x22,0x6F,0x00,0x5E,0x22,0x7B,0x1E,0x39,0x00,0x72,0x1B
 		.byte		0x22,0x99,0x5F,0x00,0x66,0x22,0x02
-		.align	2
+		.align  8
 obj_0041F8C9:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMviewCObject),MAKEPTR(SYMviewFlags),MAKEPTR(SYMvars),MAKEPTR(SYM_hiliteMenuItem),MAKEPTR(SYMTrackHilite),MAKEPTR(SYMbuttonClickScript),MAKEPTR(SYMhilite)
 obj_0041F8F1_map:	FrameMapObj(5)
@@ -7755,7 +7752,7 @@ obj_0041B7CD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B7CD:	FrameObj(3, obj_0041B7CD_map)
 		Ref		0x00000132,_FScaleShape,0x0000000C
-obj_005571A1:	.long		kHeaderSize + 305 + kFlagsBinary
+obj_005571A1:	Ref    kHeaderSize + 305 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x70,0x19,0x29,0xA6,0x7E,0x1A,0x91,0xAB,0x73,0x7E,0x1C,0x91,0x1D,0x1E
 		.byte		0x2B,0x6F,0x00,0x17,0x22,0x02,0x00,0x1F,0x00,0x07,0x27,0x01,0xBC,0xC9,0x7E,0x1F
@@ -7777,24 +7774,24 @@ obj_005571A1:	.long		kHeaderSize + 305 + kFlagsBinary
 		.byte		0x1B,0x1F,0x00,0x1C,0x04,0x7C,0x1F,0x00,0x1D,0x39,0x00,0x7D,0x6F,0x01,0x27,0x70
 		.byte		0x73,0x7C,0x1F,0x00,0x1E,0x2B,0x00,0x1F,0x00,0x1F,0x1F,0x00,0x20,0x29,0x00,0x70
 		.byte		0x02
-		.align	2
-obj_00556E59:	.long		kHeaderSize + 312 + kFlagsBinary
+		.align  8
+obj_00556E59:	Ref    kHeaderSize + 312 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','n',' ','e','r','r','o','r',' ','o','c','c','u','r','r','e','d',' ','i','n','s','t','a','l','l','i','n','g',' ','t','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,'.',' ','I','t',' ','m','a','y',' ','n','o','t',' ','w','o','r','k',' ','w','i','t','h',' ','t','h','i','s',' ','s','y','s','t','e','m','.',' ','C','o','n','t','a','c','t',' ','t','h','e',' ','s','o','f','t','w','a','r','e',' ','p','u','b','l','i','s','h','e','r',' ','f','o','r',' ','f','u','r','t','h','e','r',' ','i','n','f','o','r','m','a','t','i','o','n','.',' ','(','P','a','r','t',' ','^','1',',',' ','T','y','p','e',' ','^','2',')',0
-		.align	2
-obj_00556F9D:	.long		kHeaderSize + 220 + kFlagsBinary
+		.align  8
+obj_00556F9D:	Ref    kHeaderSize + 220 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','w','a','s',' ','n','o','t',' ','i','n','s','t','a','l','l','e','d',' ','b','e','c','a','u','s','e',' ','a',' ','p','a','c','k','a','g','e',' ','b','y',' ','t','h','e',' ','s','a','m','e',' ','n','a','m','e',' ','i','s',' ','a','l','r','e','a','d','y',' ','i','n','s','t','a','l','l','e','d',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','1',0x201D,'.',0
-		.align	2
+		.align  8
 obj_005570B5_map:	FrameMapObj(2)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMtsps),MAKEPTR(SYMtspt)
 obj_005570B5:	FrameObj(2, obj_005570B5_map)
 		Ref		0x0000001A,0x0000001A
-obj_005570FD:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_005570FD:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x1A,0x89,0x73,0x1C,0x83,0x75,0x1E,0x39,0xA3,0x7B,0x18,0x91,0xA8,0x1F
 		.byte		0x00,0x07,0x1F,0x00,0x08,0x1F,0x00,0x09,0x7B,0x1F,0x00,0x0A,0x2C,0x02
-		.align	2
+		.align  8
 obj_005570E1:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMpkgRef),MAKEPTR(SYM_tagList),MAKEPTR(SYMpackageName)
 obj_00557129:	ArrayObj(11, MAKEPTR(SYMliterals))
@@ -7819,7 +7816,7 @@ obj_00557391_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00557391:	FrameObj(5, obj_00557391_map)
 		Ref		0x00000032,MAKEPTR(obj_005571A1),MAKEPTR(obj_00557301),MAKEPTR(obj_005573B1),0x0018000C
-obj_005307F9:	.long		kHeaderSize + 187 + kFlagsBinary
+obj_005307F9:	Ref    kHeaderSize + 187 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA7,0x00,0x07,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA7,0x00,0x09,0x5F
 		.byte		0x00,0xA9,0x7F,0x00,0x09,0x24,0xC2,0xA6,0x7F,0x00,0x09,0x20,0xC2,0xA7,0x00,0x08
@@ -7833,24 +7830,24 @@ obj_005307F9:	.long		kHeaderSize + 187 + kFlagsBinary
 		.byte		0x08,0x1E,0x2A,0xC5,0x5F,0x00,0x98,0x22,0x6F,0x00,0xA5,0x7F,0x00,0x07,0x7F,0x00
 		.byte		0x08,0xC7,0x00,0x15,0x00,0x7F,0x00,0x09,0x05,0x7F,0x00,0x09,0x06,0x6F,0x00,0x12
 		.byte		0x22,0x22,0xA7,0x00,0x09,0x00,0x7F,0x00,0x07,0x02,0x02
-		.align	2
+		.align  8
 obj_005307D1:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMCommConfigRegistry),MAKEPTR(SYMtype),MAKEPTR(SYMStrEqual),MAKEPTR(SYMserviceId),MAKEPTR(SYMname),MAKEPTR(SYMSetContains)
 obj_005308C1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005308C1:	FrameObj(5, obj_005308C1_map)
 		Ref		0x00000032,MAKEPTR(obj_005307F9),MAKEPTR(obj_005307D1),NILREF,0x0010000C
-obj_005A8345:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_005A8345:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x0E,0x7C,0x19,0x29,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_005A8361:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDirectoryEntry),MAKEPTR(SYMEntryRemoveFromSoup)
 obj_005A8375_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005A8375:	FrameObj(5, obj_005A8375_map)
 		Ref		0x00000032,MAKEPTR(obj_005A8345),MAKEPTR(obj_005A8361),NILREF,0x00040004
-obj_0046DBC9:	.long		kHeaderSize + 88 + kFlagsBinary
+obj_0046DBC9:	Ref    kHeaderSize + 88 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x24,0xC1,0xA4,0x20,0xA5,0x7C,0xA6,0x24,0xA7,0x00,0x07,0x7F,0x00
 		.byte		0x07,0x7D,0x5F,0x00,0x52,0x7B,0x7D,0xC2,0xA7,0x00,0x08,0x7F,0x00,0x08,0x19,0xC4
@@ -7858,7 +7855,7 @@ obj_0046DBC9:	.long		kHeaderSize + 88 + kFlagsBinary
 		.byte		0x1A,0xC4,0x6F,0x00,0x3F,0x7B,0x7D,0x27,0x04,0x96,0xC3,0x00,0x5F,0x00,0x4E,0x7F
 		.byte		0x00,0x08,0x1B,0xC4,0x6F,0x00,0x4E,0x7B,0x7D,0x27,0x06,0xC6,0xC3,0x00,0x7F,0x00
 		.byte		0x07,0xB5,0x7E,0xBF,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_0046DC2D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),0xF7146,0xF7156,0xF7166
 obj_0046DC49_map:	FrameMapObj(5)
@@ -7877,10 +7874,10 @@ obj_00420E29_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420E29:	FrameObj(3, obj_00420E29_map)
 		Ref		0x00000132,_FMakeRichString,0x00000008
-obj_0041869D:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_0041869D:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x6F,0x00,0x0A,0x70,0x5F,0x00,0x0B,0x1A,0x02
-		.align	2
+		.align  8
 obj_0041818D_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_0041818D:	FrameObj(4, obj_0041818D_map)
@@ -7933,19 +7930,19 @@ obj_004BE535_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_004BE535:	FrameObj(3, obj_004BE535_map)
 		Ref		0x00000132,_SendAbort,0x00000000
-obj_00418745:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_00418745:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x19,0x28,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x21,0x7E,0x24,0xC2
 		.byte		0xA5,0x7E,0x20,0xC2,0xA4,0x7D,0x6F,0x00,0x1F,0x7B,0x7C,0xC7,0x00,0x15,0x00,0x7E
 		.byte		0x05,0x7E,0x06,0x6F,0x00,0x0D,0x22,0x22,0xA6,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_0041877D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMGetAllRawDisplayParams)
 obj_00418791_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00418791:	FrameObj(5, obj_00418791_map)
 		Ref		0x00000032,MAKEPTR(obj_00418745),MAKEPTR(obj_0041877D),NILREF,0x00100000
-obj_0046D9BD:	.long		kHeaderSize + 218 + kFlagsBinary
+obj_0046D9BD:	Ref    kHeaderSize + 218 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0xA7,0x00,0x07,0x18,0x28,0x1A,0x91,0xA7,0x00,0x08,0x7F,0x00
 		.byte		0x07,0x6F,0x00,0x1E,0x7F,0x00,0x07,0x7F,0x00,0x08,0xC6,0x5F,0x00,0x1F,0x22,0x6F
@@ -7961,7 +7958,7 @@ obj_0046D9BD:	.long		kHeaderSize + 218 + kFlagsBinary
 		.byte		0x7F,0x00,0x0C,0x98,0x7F,0x00,0x0A,0x7B,0x1F,0x00,0x13,0x41,0xC5,0x6F,0x00,0xD4
 		.byte		0x7F,0x00,0x0A,0x1F,0x00,0x14,0x29,0xA7,0x00,0x0A,0x7F,0x00,0x0A,0x1F,0x00,0x15
 		.byte		0x38,0x5F,0x00,0xD5,0x22,0x5F,0x00,0xD9,0x22,0x02
-		.align	2
+		.align  8
 obj_0046DAA5:	ArrayObj(22, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMcurrentKeyboard),MAKEPTR(SYMcorrect),MAKEPTR(SYMSetHiliteNoUpdate),MAKEPTR(SYMtext),MAKEPTR(SYMstring),MAKEPTR(SYMGetDynamicValue),MAKEPTR(SYMStrLen),MAKEPTR(SYMOpenKeypadFor),MAKEPTR(SYMform),MAKEPTR(SYMwordOffset),MAKEPTR(SYMwordLength),MAKEPTR(SYMbounds),MAKEPTR(SYMrefCon),MAKEPTR(SYMcorrectInfo),MAKEPTR(SYMFindNew)
 		Ref		MAKEPTR(SYMwordInfo),MAKEPTR(SYMGetWords),MAKEPTR(SYMpickItems),MAKEPTR(SYMviewCorrectionPopupScript),MAKEPTR(SYMBuildContext),MAKEPTR(SYMOpen)
@@ -7969,7 +7966,7 @@ obj_0046DB09_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0046DB09:	FrameObj(5, obj_0046DB09_map)
 		Ref		0x00000032,MAKEPTR(obj_0046D9BD),MAKEPTR(obj_0046DAA5),NILREF,0x00180010
-obj_005656B5:	.long		kHeaderSize + 242 + kFlagsBinary
+obj_005656B5:	Ref    kHeaderSize + 242 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x22,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x60,0x7F,0x00,0x07,0x24,0xC2
 		.byte		0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x70,0x19,0x91,0x7D,0x90,0xA7,0x00,0x08,0x7E
@@ -7987,7 +7984,7 @@ obj_005656B5:	.long		kHeaderSize + 242 + kFlagsBinary
 		.byte		0x00,0x07,0x00,0x07,0x5F,0x00,0xDA,0x07,0x00,0x07,0x7F,0x00,0x0B,0x05,0x7F,0x00
 		.byte		0x0B,0x06,0x6F,0x00,0x90,0x22,0x22,0xA7,0x00,0x0B,0x00,0x1F,0x00,0x0A,0x28,0x00
 		.byte		0x7C,0x02
-		.align	2
+		.align  8
 obj_0056567D:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYM_proto),MAKEPTR(SYMIsBinary),MAKEPTR(SYMBinEqual),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMSystemConfigChange),MAKEPTR(SYMUserConfigChangeRegistry),MAKEPTR(SYMGetFunctionArgCount),MAKEPTR(SYMFlushUserConfig)
 obj_005657B5_map:	FrameMapObj(5)
@@ -8038,7 +8035,7 @@ obj_0046DD05_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0046DD05:	FrameObj(3, obj_0046DD05_map)
 		Ref		0x00000132,_FClearTryString,0x00000000
-obj_00422511:	.long		kHeaderSize + 91 + kFlagsBinary
+obj_00422511:	Ref    kHeaderSize + 91 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x19,0x1A,0x29,0x67,0x00,0x0F,0x1B,0x1A,0x29,0x5F,0x00,0x12,0x27
 		.byte		0x00,0x1A,0x6F,0x00,0x59,0x1C,0x1A,0x29,0xA4,0x1D,0x1A,0x29,0x1E,0x29,0xA5,0x7C
@@ -8046,7 +8043,7 @@ obj_00422511:	.long		kHeaderSize + 91 + kFlagsBinary
 		.byte		0xA7,0x00,0x08,0x7F,0x00,0x08,0x7E,0x5F,0x00,0x4F,0x7D,0x7B,0x1F,0x00,0x09,0x82
 		.byte		0x1F,0x00,0x0A,0x29,0x00,0x7C,0x1F,0x00,0x07,0x29,0x00,0x7F,0x00,0x08,0xB6,0x7F
 		.byte		0x00,0x07,0xBF,0x00,0x3A,0x22,0x5F,0x00,0x5A,0x22,0x02
-		.align	2
+		.align  8
 obj_004224F9:	ArrayObj(3, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMvolume)
 obj_00422579:	ArrayObj(11, MAKEPTR(SYMliterals))
@@ -8067,17 +8064,17 @@ obj_005BC4BD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005BC4BD:	FrameObj(3, obj_005BC4BD_map)
 		Ref		0x00000132,_FFlushStrokes,0x00000000
-obj_005598B1:	.long		kHeaderSize + 42 + kFlagsBinary
+obj_005598B1:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA9,0x71,0xC5,0x6F,0x00,0x0C,0x22,0x02,0x00,0x71,0x1A,0x29,0xA4
 		.byte		0x1B,0x04,0x7C,0x1C,0x39,0x00,0x71,0x1D,0x91,0xA5,0x7D,0x1E,0x29,0x6F,0x00,0x26
 		.byte		0x7D,0x1F,0x00,0x07,0x29,0x00,0x27,0x00,0x1A,0x02
-		.align	2
-obj_00559915:	.long		kHeaderSize + 25 + kFlagsBinary
+		.align  8
+obj_00559915:	Ref    kHeaderSize + 25 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x1A,0x27,0x00,0x1A,0x1B,0x2B,0x00,0x70,0x1C,0x29,0x00,0x1D,0x1E
 		.byte		0x1F,0x00,0x07,0x70,0x1F,0x00,0x08,0x2C,0x02
-		.align	2
+		.align  8
 obj_0055993D:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMentry),MAKEPTR(SYM_tagList),MAKEPTR(SYM_frozen),MAKEPTR(SYMSetAdd),MAKEPTR(SYMEntryChange),MAKEPTR(obj_005A74D1),MAKEPTR(SYMMr_2EFreeze),MAKEPTR(SYMentryChanged),MAKEPTR(SYMUnsafeXmitSoupChangeNow)
 obj_0055996D_map:	FrameMapObj(3)
@@ -8102,16 +8099,16 @@ obj_005BA435_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005BA435:	FrameObj(3, obj_005BA435_map)
 		Ref		0x00000132,_FStripRecognitionWord,0x00000004
-obj_0048B2E9:	.long		kHeaderSize + 39 + kFlagsBinary
+obj_0048B2E9:	Ref    kHeaderSize + 39 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x25,0x19
 		.byte		0x7C,0x20,0xC2,0x1A,0x91,0x1B,0x29,0x1C,0x8A,0xC7,0x00,0x16,0x1D,0x29,0xAE,0x7B
 		.byte		0x76,0xC7,0x00,0x14,0x00,0x7B,0x02
-		.align	2
-obj_0048B2A1:	.long		kHeaderSize + 32 + kFlagsBinary
+		.align  8
+obj_0048B2A1:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	's','t','r','i','n','g','.','c','o','u','n','t','r','y','.',0
-		.align	2
+		.align  8
 obj_0048B31D:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetCountryEntry),MAKEPTR(obj_0048B2A1),MAKEPTR(SYMsymbol),MAKEPTR(SYMSymbolName),MAKEPTR(SYMarray),MAKEPTR(SYMIntern),MAKEPTR(SYMcntrySym)
 obj_0048B345_map:	FrameMapObj(5)
@@ -8126,7 +8123,7 @@ obj_0041CC21_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CC21:	FrameObj(3, obj_0041CC21_map)
 		Ref		0x00000132,_DSAddLexiconFrame,0x00000004
-obj_005A759D:	.long		kHeaderSize + 561 + kFlagsBinary
+obj_005A759D:	Ref    kHeaderSize + 561 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x7B,0x18,0x38,0xA6,0x27,0x09,0x0B,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08
 		.byte		0x5F,0x00,0x38,0x7F,0x00,0x08,0x24,0xC2,0xA7,0x00,0x07,0x7E,0x7F,0x00,0x07,0x20
@@ -8164,7 +8161,7 @@ obj_005A759D:	.long		kHeaderSize + 561 + kFlagsBinary
 		.byte		0x1F,0x00,0x1D,0x1F,0x00,0x1E,0x7B,0x1F,0x00,0x1F,0x38,0x7D,0x1F,0x00,0x0C,0x8A
 		.byte		0x1F,0x00,0x20,0x2A,0x1F,0x00,0x21,0x28,0x1F,0x00,0x22,0x3B,0x5F,0x02,0x30,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_005A74F1_map:	FrameMapObj(0)
 		Ref		0x00000000,NILREF
 obj_005A74F1:	FrameObj(0, obj_005A74F1_map)
@@ -8172,10 +8169,10 @@ obj_005A74FD_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMbarber)
 obj_005A74FD:	FrameObj(1, obj_005A74FD_map)
 		Ref		0x0000001A
-obj_005A7521:	.long		kHeaderSize + 110 + kFlagsBinary
+obj_005A7521:	Ref    kHeaderSize + 110 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','r','r','o','r','s',' ','o','c','c','u','r','r','e','d',' ','c','o','n','v','e','r','t','i','n','g',' ','s','o','u','p','s',' ','o','n',' ','t','h','e',' ','s','t','o','r','e',' ',0x201C,'^','0',0x201D,':',' ','^','1',0
-		.align	2
+		.align  8
 obj_005A77DD:	ArrayObj(35, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSoupNames),MAKEPTR(SYMstr_3D),MAKEPTR(SYMLSearch),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMGetOwnerApp),MAKEPTR(SYMGetConversionFrame),MAKEPTR(SYMSystemScratch),MAKEPTR(SYMGetSoup),MAKEPTR(SYMvBarber),0x201C6,0x201D6,MAKEPTR(SYMarray),MAKEPTR(obj_005582A9),MAKEPTR(SYMSetStatus),MAKEPTR(SYMoneO)
 		Ref		MAKEPTR(SYMtwoO),MAKEPTR(SYMconvertSoup),MAKEPTR(obj_005A74F1),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(obj_005A74FD),MAKEPTR(SYMConvertFrame),MAKEPTR(SYMEntryChange),MAKEPTR(SYMEntryReplace),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(SYMNext),MAKEPTR(obj_005586C5),MAKEPTR(SYMStrConcatDelimited),MAKEPTR(obj_005691C9),MAKEPTR(obj_005A7521),MAKEPTR(SYMGetName)
@@ -8252,10 +8249,10 @@ obj_0062F5FD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F5FD:	FrameObj(3, obj_0062F5FD_map)
 		Ref		0x00000132,_Fref,0x00000004
-obj_00562CED:	.long		kHeaderSize + 9 + kFlagsBinary
+obj_00562CED:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x20,0x19,0x29,0x1A,0x89,0x1B,0x2A,0x02
-		.align	2
+		.align  8
 obj_00562D05:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPowerStatusChangeRegistry),MAKEPTR(SYMBatteryStatus),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00562D21_map:	FrameMapObj(5)
@@ -8300,10 +8297,10 @@ obj_00627F19_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627F19:	FrameObj(3, obj_00627F19_map)
 		Ref		0x00000132,_FGetLetterIndex,0x00000004
-obj_0046E1C5:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_0046E1C5:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x09,0x9B,0xC7,0x00,0x13,0xA3,0x7B,0x18,0x19,0x88,0x98,0x7B,0x02
-		.align	2
+		.align  8
 obj_0046E1E1:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMinfo),MAKEPTR(SYMarray)
 obj_0046E1F5_map:	FrameMapObj(5)
@@ -8318,7 +8315,7 @@ obj_0062F62D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F62D:	FrameObj(3, obj_0062F62D_map)
 		Ref		0x00000132,_FIsEntryAlias,0x00000004
-obj_004222E5:	.long		kHeaderSize + 95 + kFlagsBinary
+obj_004222E5:	Ref    kHeaderSize + 95 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0x22,0x22,0x18,0x2B,0x00,0x19,0x1A,0x28,0x20,0xC2,0x1B,0x39,0xA3,0x1C,0x7B
 		.byte		0x1D,0x39,0xA4,0x7C,0x1E,0x38,0xA5,0x5F,0x00,0x2E,0x7D,0x1F,0x00,0x07,0x29,0x00
@@ -8326,7 +8323,7 @@ obj_004222E5:	.long		kHeaderSize + 95 + kFlagsBinary
 		.byte		0x00,0x41,0x7C,0x1F,0x00,0x0A,0x38,0x1F,0x00,0x0B,0x28,0xC7,0x00,0x0D,0x5F,0x00
 		.byte		0x42,0x22,0x67,0x00,0x1A,0x22,0x00,0x7D,0x6F,0x00,0x5D,0x7D,0x1F,0x00,0x0B,0x91
 		.byte		0x77,0x00,0x0C,0x1F,0x00,0x0D,0x91,0x22,0x18,0x2B,0x5F,0x00,0x5E,0x22,0x02
-		.align	2
+		.align  8
 obj_00421A91_map:	FrameMapObj(1)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMindexPath)
 obj_00421A91:	FrameObj(1, obj_00421A91_map)
@@ -8341,20 +8338,20 @@ obj_0041FB2D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FB2D:	FrameObj(3, obj_0041FB2D_map)
 		Ref		0x00000132,_FStringToDate,0x00000004
-obj_00476D69:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_00476D69:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0x22,0xC4,0x6F,0x00,0x17,0x18,0x28,0x19,0x7B,0x1A,0x89,0x98
 		.byte		0x1B,0x1C,0x1D,0x2A,0x5F,0x00,0x2F,0x71,0xC7,0x00,0x12,0x27,0x00,0x14,0xC7,0x00
 		.byte		0x0B,0x6F,0x00,0x2A,0x71,0x20,0x24,0x1E,0x2B,0x00,0x71,0x7B,0xC7,0x00,0x15,0x02
-		.align	2
-obj_00476CCD:	.long		kHeaderSize + 73 + kFlagsBinary
+		.align  8
+obj_00476CCD:	Ref    kHeaderSize + 73 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0xC6,0x6F,0x00,0x09,0x22,0x02,0x00,0x71,0x6F,0x00,0x47,0x71,0x22,0xC7
 		.byte		0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x32,0x7F,0x00,0x08,0x24,0xC2,0xA7,0x00,0x07
 		.byte		0x7F,0x00,0x07,0x1A,0x29,0xA6,0x7E,0x6F,0x00,0x2E,0x7E,0x1B,0x38,0x00,0x7F,0x00
 		.byte		0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x18,0x22,0x22,0xA7,0x00,0x08,0x00,0x22
 		.byte		0xA9,0x1C,0x1D,0x29,0x5F,0x00,0x48,0x22,0x02
-		.align	2
+		.align  8
 obj_00476D25:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMstoreLeaves),MAKEPTR(SYMentryForms),MAKEPTR(SYMGetView),MAKEPTR(SYMClose),MAKEPTR(SYM_routing),MAKEPTR(SYMUnRegStoreChange)
 obj_00476D49_map:	FrameMapObj(5)
@@ -8371,7 +8368,7 @@ obj_0041B409_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B409:	FrameObj(3, obj_0041B409_map)
 		Ref		0x00000132,_FCommandKeyboardConnected,0x00000000
-obj_00480CDD:	.long		kHeaderSize + 99 + kFlagsBinary
+obj_00480CDD:	Ref    kHeaderSize + 99 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA6,0x7E,0x1A,0x7B,0x7C,0x1B,0x1C,0x83,0x98,0x7E,0x1D,0x38,0x00
 		.byte		0x1E,0x27,0x00,0xB8,0x1F,0x00,0x07,0x27,0x00,0xDC,0xCA,0x7D,0x7E,0x1F,0x00,0x08
@@ -8380,12 +8377,12 @@ obj_00480CDD:	.long		kHeaderSize + 99 + kFlagsBinary
 		.byte		0x00,0x7E,0x1F,0x00,0x0D,0x38,0x00,0x1F,0x00,0x0E,0x28,0x00,0x07,0x00,0x07,0x1F
 		.byte		0x00,0x0B,0x28,0x1B,0x1F,0x00,0x0C,0x2A,0x00,0x7E,0x1F,0x00,0x0D,0x38,0x00,0x7F
 		.byte		0x00,0x07,0x02
-		.align	2
-obj_00480B81:	.long		kHeaderSize + 30 + kFlagsBinary
+		.align  8
+obj_00480B81:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x82,0x03,0x19,0x39,0x00,0x1A,0x30,0x00,0x03,0x1B,0x91,0x22,0xC4
 		.byte		0x6F,0x00,0x1C,0x1C,0x27,0x0A,0x68,0x1D,0x2A,0x5F,0x00,0x1D,0x22,0x02
-		.align	2
+		.align  8
 obj_00480B49:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMname),MAKEPTR(SYMvalues)
 obj_00480B19_map:	FrameMapObj(3)
@@ -8430,7 +8427,7 @@ obj_003C6659_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C6659:	FrameObj(5, obj_003C6659_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C6645),NILREF,0x00000008
-obj_0041F619:	.long		kHeaderSize + 499 + kFlagsBinary
+obj_0041F619:	Ref    kHeaderSize + 499 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x91,0xA7,0x00,0x08,0x7B,0x19,0xC4,0x6F,0x00,0x13,0x7C,0x19,0x91,0xA5
 		.byte		0x5F,0x01,0xA5,0x7B,0x1A,0xC4,0x67,0x00,0x1F,0x7B,0x1B,0xC4,0x5F,0x00,0x22,0x27
@@ -8464,7 +8461,7 @@ obj_0041F619:	.long		kHeaderSize + 499 + kFlagsBinary
 		.byte		0x00,0x7E,0x6F,0x01,0xED,0x7D,0x1F,0x00,0x1F,0x29,0x6F,0x01,0xE6,0x7D,0x7E,0xC7
 		.byte		0x00,0x15,0x00,0x5F,0x01,0xED,0x7E,0x7D,0x1F,0x00,0x1D,0x8A,0xA5,0x7D,0x5F,0x01
 		.byte		0xF2,0x22,0x02
-		.align	2
+		.align  8
 obj_0041F561:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMfillPattern),MAKEPTR(SYMpenSize)
 obj_0041F551_map:	FrameMapObj(1)
@@ -8496,20 +8493,20 @@ obj_00627F91_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627F91:	FrameObj(3, obj_00627F91_map)
 		Ref		0x00000132,_FGetLearningData,0x00000000
-obj_004A5E9D:	.long		kHeaderSize + 54 + kFlagsBinary
+obj_004A5E9D:	Ref    kHeaderSize + 54 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA4,0x7B,0xC7,0x00,0x18,0x18,0xC4,0x6F,0x00,0x17,0x71,0x1A,0x91,0xA5,0x7D
 		.byte		0x6F,0x00,0x17,0x7D,0x7B,0x91,0xA4,0x7B,0x1B,0x1C,0x2A,0x6F,0x00,0x33,0x71,0x1D
 		.byte		0x91,0x7B,0x20,0x1E,0x1F,0x00,0x07,0x2C,0xA6,0x7E,0x6F,0x00,0x33,0x71,0x1D,0x91
 		.byte		0x7E,0xC2,0xA4,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_004A5EE1:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMsymbol),MAKEPTR(SYMinternational),MAKEPTR(SYMlocaleTable),MAKEPTR(SYMstring),MAKEPTR(SYMIsInstance),MAKEPTR(SYMlocales),MAKEPTR(obj_004A5E7D),MAKEPTR(SYMArrayPos)
 obj_004A5F0D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A5F0D:	FrameObj(5, obj_004A5F0D_map)
 		Ref		0x00000032,MAKEPTR(obj_004A5E9D),MAKEPTR(obj_004A5EE1),NILREF,0x000C0004
-obj_0055A1E9:	.long		kHeaderSize + 144 + kFlagsBinary
+obj_0055A1E9:	Ref    kHeaderSize + 144 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA9,0x71,0xC5,0x6F,0x00,0x0C,0x22,0x02,0x00,0x71,0x1A,0x29,0xAB
 		.byte		0x71,0x1C,0x29,0xA4,0x71,0x1D,0x91,0xA5,0x7D,0x1E,0x29,0xA6,0x7E,0x1F,0x00,0x07
@@ -8520,11 +8517,11 @@ obj_0055A1E9:	.long		kHeaderSize + 144 + kFlagsBinary
 		.byte		0x07,0x00,0x07,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x2B,0x22,0x22
 		.byte		0xA7,0x00,0x08,0x00,0x7D,0x1F,0x00,0x0B,0x29,0x6F,0x00,0x82,0x7D,0x1F,0x00,0x0C
 		.byte		0x29,0x00,0x1F,0x00,0x0D,0x04,0x7C,0x1F,0x00,0x0E,0x39,0x00,0x27,0x00,0x1A,0x02
-		.align	2
-obj_0055A165:	.long		kHeaderSize + 16 + kFlagsBinary
+		.align  8
+obj_0055A165:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x29,0x00,0x1A,0x1B,0x1C,0x75,0x70,0x1E,0x82,0x1F,0x00,0x07,0x2C,0x02
-		.align	2
+		.align  8
 obj_0055A181:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMentry),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(obj_005A74D1),MAKEPTR(SYM_newt),MAKEPTR(SYMentryRemoved),MAKEPTR(SYMoldSoup),MAKEPTR(obj_0055A105),MAKEPTR(SYMUnsafeXmitSoupChangeNow)
 obj_0055A1AD_map:	FrameMapObj(3)
@@ -8567,22 +8564,22 @@ obj_0041FB5D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FB5D:	FrameObj(3, obj_0041FB5D_map)
 		Ref		0x00000132,_FIsValidDate,0x00000004
-obj_0044FF19:	.long		kHeaderSize + 5 + kFlagsBinary
+obj_0044FF19:	Ref    kHeaderSize + 5 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_0044FF2D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMnameRef),MAKEPTR(SYMIsInstance)
 obj_0044FF41_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044FF41:	FrameObj(5, obj_0044FF41_map)
 		Ref		0x00000032,MAKEPTR(obj_0044FF19),MAKEPTR(obj_0044FF2D),NILREF,0x00000004
-obj_00420111:	.long		kHeaderSize + 37 + kFlagsBinary
+obj_00420111:	Ref    kHeaderSize + 37 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x18,0x28,0xA3,0x7B,0x7C,0x19,0x91,0x72,0x1B,0x91,0xC1
 		.byte		0x72,0x1C,0x91,0xC1,0x27,0x00,0xF0,0xC7,0x00,0x09,0xC0,0xA5,0x7D,0x7D,0x7C,0x1D
 		.byte		0x2A,0xC0,0xA5,0x7D,0x02
-		.align	2
+		.align  8
 obj_00420169:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMlocation),MAKEPTR(SYMgmt)
 obj_00420145:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -8603,23 +8600,23 @@ obj_005BA3BD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005BA3BD:	FrameObj(3, obj_005BA3BD_map)
 		Ref		0x00000132,_FSetDictionaryData,0x00000008
-obj_00558F31:	.long		kHeaderSize + 50 + kFlagsBinary
+obj_00558F31:	Ref    kHeaderSize + 50 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x29,0x7D,0x24,0xC2,0xA4,0x19,0x27,0x00
 		.byte		0x90,0xC9,0x7C,0x1A,0x29,0x7B,0xC4,0x6F,0x00,0x1E,0x7C,0x1B,0x29,0x00,0x07,0x00
 		.byte		0x07,0x5F,0x00,0x27,0x07,0x00,0x07,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x09,0x22,0x22
 		.byte		0xA5,0x02
-		.align	2
+		.align  8
 obj_00558F71:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMactivePackageList),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMGetVBOStore),MAKEPTR(SYMDeActivatePackage)
 obj_00558F8D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00558F8D:	FrameObj(5, obj_00558F8D_map)
 		Ref		0x00000032,MAKEPTR(obj_00558F31),MAKEPTR(obj_00558F71),NILREF,0x00080004
-obj_004603D1:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_004603D1:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x7C,0x19,0x82,0x1A,0x2A,0x02
-		.align	2
+		.align  8
 obj_004603E5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex_2Efr_2Eintrp_3Btype_2Eref_2Eframe),MAKEPTR(obj_0056995D),MAKEPTR(SYMThrow)
 obj_004603FD_map:	FrameMapObj(5)
@@ -8630,23 +8627,23 @@ obj_0041C211_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C211:	FrameObj(3, obj_0041C211_map)
 		Ref		0x00000132,_FDrawOriginal,0x00000008
-obj_00559779:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_00559779:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x14,0x7C,0x19,0x91,0x7C,0x1A,0x91,0x1B,0x1C
 		.byte		0x2B,0x5F,0x00,0x15,0x22,0x6F,0x00,0x2A,0x7C,0x19,0x91,0x1D,0x29,0x00,0x1E,0x1F
 		.byte		0x00,0x07,0x29,0x00,0x27,0x00,0x1A,0x5F,0x00,0x2B,0x22,0x02
-		.align	2
-obj_0055971D:	.long		kHeaderSize + 80 + kFlagsBinary
+		.align  8
+obj_0055971D:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','r','e',' ','y','o','u',' ','s','u','r','e',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','d','e','a','c','t','i','v','a','t','e',' ','i','t','?',0
-		.align	2
+		.align  8
 obj_005597B1:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPackageEntryFromThingy),MAKEPTR(SYMpkgRef),MAKEPTR(SYMpackageName),MAKEPTR(obj_0055971D),MAKEPTR(SYMOKToDeactivatePackage),MAKEPTR(SYMDeActivatePackage),MAKEPTR(SYMSafeDeactivatePackage),MAKEPTR(SYMXmitPackageOp)
 obj_005597DD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005597DD:	FrameObj(5, obj_005597DD_map)
 		Ref		0x00000032,MAKEPTR(obj_00559779),MAKEPTR(obj_005597B1),NILREF,0x00040004
-obj_004193D1:	.long		kHeaderSize + 241 + kFlagsBinary
+obj_004193D1:	Ref    kHeaderSize + 241 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x7B,0x19,0x91,0x1A,0x2A,0xC5,0x6F,0x00,0x0E,0x22,0x02,0x00,0x7B,0x1B
 		.byte		0x91,0x27,0x05,0x00,0xC7,0x00,0x0A,0xA4,0x7C,0x6F,0x00,0xE7,0x1C,0x28,0xA5,0x1D
@@ -8664,15 +8661,15 @@ obj_004193D1:	.long		kHeaderSize + 241 + kFlagsBinary
 		.byte		0x5F,0x00,0xD6,0x22,0x02,0x00,0x7F,0x00,0x09,0x05,0x7F,0x00,0x09,0x06,0x6F,0x00
 		.byte		0xB5,0x22,0x22,0xA7,0x00,0x09,0x00,0x7B,0x1F,0x00,0x13,0x29,0x00,0x27,0x00,0x1A
 		.byte		0x02
-		.align	2
-obj_00419251:	.long		kHeaderSize + 118 + kFlagsBinary
+		.align  8
+obj_00419251:	Ref    kHeaderSize + 118 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','b','a','c','k','d','r','o','p',' ','i','c','o','n','^','?','0',',',0x201C,'^','0',0x201D,',','|','|',' ','c','a','n','n','o','t',' ','o','p','e','r','a','t','e',' ','w','h','i','l','e',' ','r','o','t','a','t','e','d','.',0
-		.align	2
-obj_004192F5:	.long		kHeaderSize + 172 + kFlagsBinary
+		.align  8
+obj_004192F5:	Ref    kHeaderSize + 172 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','o','m','e',' ','f','u','n','c','t','i','o','n','s',' ','w','i','l','l',' ','n','o','t',' ','s','h','o','w',' ','a','f','t','e','r',' ','r','o','t','a','t','i','o','n',' ','b','e','c','a','u','s','e',' ','t','h','e','y',' ','c','a','n',0x2019,'t',' ','o','p','e','r','a','t','e',' ','w','h','i','l','e',' ','r','o','t','a','t','e','d','.',0
-		.align	2
+		.align  8
 obj_004194D1:	ArrayObj(20, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMLegalOrientations),MAKEPTR(SYMorientation),MAKEPTR(SYMSetContains),MAKEPTR(SYMappAreaHeight),MAKEPTR(SYMGetRoot),MAKEPTR(SYMblessedApp),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMReOrientToScreen),MAKEPTR(obj_0043F891),MAKEPTR(obj_00419251),MAKEPTR(SYMGetAppName),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMNotify),MAKEPTR(SYMChildViewFrames),MAKEPTR(obj_004192F5)
 		Ref		MAKEPTR(SYMokCancelDefaultOk),MAKEPTR(SYMModalConfirm),MAKEPTR(SYMClose),MAKEPTR(SYMSetDisplayParams)
@@ -8680,11 +8677,11 @@ obj_0041952D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041952D:	FrameObj(5, obj_0041952D_map)
 		Ref		0x00000032,MAKEPTR(obj_004193D1),MAKEPTR(obj_004194D1),NILREF,0x00180004
-obj_005AB709:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_005AB709:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA3,0x27,0x00,0x8C,0x19,0x29,0xA4,0x7C,0x1A,0x1B,0x22,0x7C,0x1C,0x3A,0x98
 		.byte		0x27,0x00,0x8C,0x1D,0x7B,0x1E,0x2B,0x02
-		.align	2
+		.align  8
 obj_005AB6D1:	ArrayObj(0, MAKEPTR(SYMarray))
 obj_005AB6DD_map:	FrameMapObj(2)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMlist),MAKEPTR(SYMcount)
@@ -8720,39 +8717,39 @@ obj_0062F6D5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F6D5:	FrameObj(3, obj_0062F6D5_map)
 		Ref		0x00000132,_FIsMagicPtr,0x00000004
-obj_005AB555:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_005AB555:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x7C,0x18,0x19,0x2A,0x02
-		.align	2
+		.align  8
 obj_005AB569:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004914F5),MAKEPTR(SYMLoadDictionary)
 obj_005AB57D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005AB57D:	FrameObj(5, obj_005AB57D_map)
 		Ref		0x00000032,MAKEPTR(obj_005AB555),MAKEPTR(obj_005AB569),NILREF,0x00000000
-obj_0062FF79:	.long		kHeaderSize + 76 + kFlagsBinary
+obj_0062FF79:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x1A,0x8B,0xC7,0x00,0x16,0x1B,0x1C,0x2A,0x00,0x7D,0x20,0xC2,0xA7
 		.byte		0x00,0x07,0x7B,0x7B,0x7F,0x00,0x07,0x7F,0x00,0x07,0x1D,0x29,0x7E,0x24,0xC2,0x7C
 		.byte		0x1E,0x86,0xA7,0x00,0x08,0x1F,0x00,0x07,0x28,0x20,0xC2,0xA7,0x00,0x09,0x7B,0x7F
 		.byte		0x00,0x09,0x1F,0x00,0x08,0x39,0xC5,0x6F,0x00,0x4A,0x7F,0x00,0x08,0x7F,0x00,0x09
 		.byte		0x7F,0x00,0x07,0x1F,0x00,0x09,0x2B,0x5F,0x00,0x4B,0x22,0x02
-		.align	2
-obj_00630021:	.long		kHeaderSize + 32 + kFlagsBinary
+		.align  8
+obj_00630021:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'C','r','e','a','t','e','A','p','p','S','o','u','p','(','"',0
-		.align	2
-obj_0062EEB5:	.long		kHeaderSize + 14 + kFlagsBinary
+		.align  8
+obj_0062EEB5:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	',',' ','.','.','.',')',0
-		.align	2
+		.align  8
 obj_0062FFD1:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00630021),MAKEPTR(obj_0062EEB5),MAKEPTR(SYMarray),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMGetAppName),MAKEPTR(obj_0062FF51),MAKEPTR(SYMGetStores),MAKEPTR(SYMHasSoup),MAKEPTR(SYMCreateSoupFromSoupDef)
 obj_0063004D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0063004D:	FrameObj(5, obj_0063004D_map)
 		Ref		0x00000032,MAKEPTR(obj_0062FF79),MAKEPTR(obj_0062FFD1),NILREF,0x000C0010
-obj_00462C05:	.long		kHeaderSize + 207 + kFlagsBinary
+obj_00462C05:	Ref    kHeaderSize + 207 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x00,0x24,0xC4,0x6F,0x00,0x0E,0x27,0x01,0x5B,0x5F,0x00,0x11,0x27,0x01
 		.byte		0xFF,0x18,0x28,0x7B,0x7D,0x19,0x29,0x7C,0x19,0x29,0x22,0x7E,0x7F,0x00,0x07,0x1A
@@ -8767,7 +8764,7 @@ obj_00462C05:	.long		kHeaderSize + 207 + kFlagsBinary
 		.byte		0x7F,0x00,0x09,0x1F,0x00,0x11,0x7F,0x00,0x08,0x27,0x00,0x1A,0x1F,0x00,0x0F,0x8A
 		.byte		0x1F,0x00,0x10,0x2B,0x00,0x5F,0x00,0xCB,0x7F,0x00,0x09,0x1F,0x00,0x0C,0x7F,0x00
 		.byte		0x08,0x22,0x1F,0x00,0x0F,0x8A,0x1F,0x00,0x10,0x2B,0x00,0x7F,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_00462BD5:	ArrayObj(9, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMtimestamp),MAKEPTR(SYMnfType),MAKEPTR(SYMnfText),MAKEPTR(SYMoverview),MAKEPTR(SYMseenByUser),MAKEPTR(SYMsound),MAKEPTR(SYMvolume)
 obj_00462BB9:	ArrayObj(4, MAKEPTR(SYMarray))
@@ -8787,7 +8784,7 @@ obj_0062F6ED_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F6ED:	FrameObj(3, obj_0062F6ED_map)
 		Ref		0x00000132,_Fsin,0x00000004
-obj_005A7C99:	.long		kHeaderSize + 125 + kFlagsBinary
+obj_005A7C99:	Ref    kHeaderSize + 125 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x6F,0x00,0x7A,0x1A,0x7B,0x20,0x1B,0x22,0x1C,0x2D,0xA5,0x7D
 		.byte		0x6F,0x00,0x1A,0x1D,0x7D,0xC2,0xA4,0x5F,0x00,0x7A,0x7B,0x1E,0x28,0x20,0xC2,0x1F
@@ -8797,7 +8794,7 @@ obj_005A7C99:	.long		kHeaderSize + 125 + kFlagsBinary
 		.byte		0x00,0x07,0x6F,0x00,0x5F,0x7F,0x00,0x07,0x1F,0x00,0x0C,0x29,0x5F,0x00,0x60,0x22
 		.byte		0x6F,0x00,0x70,0x7F,0x00,0x07,0xC7,0x00,0x12,0x20,0xC7,0x00,0x0B,0x5F,0x00,0x71
 		.byte		0x22,0x6F,0x00,0x7A,0x7F,0x00,0x07,0x20,0xC2,0xA4,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_005A7C01:	ArrayObj(12, MAKEPTR(SYMarray))
 		Ref		MAKEMAGICPTR(23),MAKEMAGICPTR(22),MAKEMAGICPTR(129),MAKEMAGICPTR(111),MAKEPTR(obj_0051AC05),MAKEMAGICPTR(47),MAKEMAGICPTR(144),MAKEMAGICPTR(139),MAKEMAGICPTR(239),MAKEMAGICPTR(242),MAKEMAGICPTR(276),MAKEMAGICPTR(282)
 obj_005A7C5D:	ArrayObj(12, MAKEPTR(SYMarray))
@@ -8844,7 +8841,7 @@ obj_00627FD9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627FD9:	FrameObj(3, obj_00627FD9_map)
 		Ref		0x00000132,_FConvertForMP,0x00000008
-obj_005A85DD:	.long		kHeaderSize + 132 + kFlagsBinary
+obj_005A85DD:	Ref    kHeaderSize + 132 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x81,0x7C,0x19,0x1A,0x2A,0x6F,0x00,0x1A,0x7C
 		.byte		0x1B,0x7C,0x1C,0x91,0x7C,0x19,0x91,0x1D,0x2A,0x98,0x7C,0x1E,0x1A,0x2A,0x6F,0x00
@@ -8855,7 +8852,7 @@ obj_005A85DD:	.long		kHeaderSize + 132 + kFlagsBinary
 		.byte		0x09,0x6F,0x00,0x6A,0x7D,0x7E,0x7F,0x00,0x09,0x98,0x7F,0x00,0x08,0x05,0x7F,0x00
 		.byte		0x08,0x06,0x6F,0x00,0x33,0x22,0x22,0xA7,0x00,0x08,0x00,0x7C,0x1F,0x00,0x09,0x7D
 		.byte		0x98,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_005A85A9:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMDeepClone),MAKEPTR(SYMmetadataPath),MAKEPTR(SYMHasSlot),MAKEPTR(SYMmetaDataFrame),MAKEPTR(SYMapp),MAKEPTR(SYMResolveMetadataPath),MAKEPTR(SYMextensionPaths),MAKEPTR(obj_004D4879),MAKEPTR(SYMGetExtensionFrame),MAKEPTR(SYMextensionFrames)
 obj_005A866D_map:	FrameMapObj(5)
@@ -8880,13 +8877,13 @@ obj_00420D99_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420D99:	FrameObj(3, obj_00420D99_map)
 		Ref		0x00000132,_FSmartStart,0x00000004
-obj_00467329:	.long		kHeaderSize + 50 + kFlagsBinary
+obj_00467329:	Ref    kHeaderSize + 50 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0xA4,0x7B,0x18,0x29,0x24,0xC1,0xA5,0x5F,0x00,0x25,0x7B,0x7C,0xC2,0xA6,0x7B
 		.byte		0x7C,0x7B,0x7D,0xC2,0xC3,0x00,0x7B,0x7D,0x7E,0xC3,0x00,0x7C,0x24,0xC0,0xA4,0x7D
 		.byte		0x24,0xC1,0xA5,0x7D,0x00,0x7C,0x7D,0xC7,0x00,0x0A,0x67,0x00,0x0B,0x22,0x00,0x7B
 		.byte		0x02,0x02
-		.align	2
+		.align  8
 obj_00467369:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen)
 obj_00467379_map:	FrameMapObj(5)
@@ -8901,7 +8898,7 @@ obj_00628039_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00628039:	FrameObj(3, obj_00628039_map)
 		Ref		0x00000132,_FGetRamParaData,0x00000004
-obj_00483135:	.long		kHeaderSize + 243 + kFlagsBinary
+obj_00483135:	Ref    kHeaderSize + 243 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x30,0xA5,0x7B,0x19,0x29,0xA6,0x7C,0xC5,0x6F,0x00,0x0E,0x1A,0xA4,0x7E,0xC5
 		.byte		0x67,0x00,0x36,0x7C,0x1A,0xC4,0x6F,0x00,0x1F,0x7D,0x1A,0x91,0x5F,0x00,0x20,0x22
@@ -8919,23 +8916,23 @@ obj_00483135:	.long		kHeaderSize + 243 + kFlagsBinary
 		.byte		0x7E,0x27,0x00,0x1A,0x1F,0x00,0x08,0x2B,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00
 		.byte		0xF1,0x77,0x00,0x09,0x1F,0x00,0x0A,0x29,0x00,0x22,0x7E,0x7C,0x1F,0x00,0x0B,0x2B
 		.byte		0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_004830F9:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00482D35),MAKEPTR(SYMGenFolderSym),MAKEPTR(SYM_Global),MAKEPTR(SYMuserFolders),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMSetContains),MAKEPTR(obj_00482CD5),MAKEPTR(SYMarray),MAKEPTR(SYMSetAdd),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMEntryChange),MAKEPTR(SYMXmitFolderChange)
 obj_00483235_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00483235:	FrameObj(5, obj_00483235_map)
 		Ref		0x00000032,MAKEPTR(obj_00483135),MAKEPTR(obj_004830F9),NILREF,0x00180008
-obj_0055A03D:	.long		kHeaderSize + 33 + kFlagsBinary
+obj_0055A03D:	Ref    kHeaderSize + 33 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x14,0x7D,0x19,0x91,0x7D,0x1A,0x91,0x1B,0x1C
 		.byte		0x2B,0x5F,0x00,0x15,0x22,0x6F,0x00,0x1F,0x7D,0x7C,0x1D,0x2A,0x5F,0x00,0x20,0x22
 		.byte		0x02
-		.align	2
-obj_00559FED:	.long		kHeaderSize + 68 + kFlagsBinary
+		.align  8
+obj_00559FED:	Ref    kHeaderSize + 68 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','r','e',' ','y','o','u',' ','s','u','r','e',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','m','o','v','e',' ','i','t','?',0
-		.align	2
+		.align  8
 obj_0055A06D:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPackageEntryFromThingy),MAKEPTR(SYMpkgRef),MAKEPTR(SYMpackageName),MAKEPTR(obj_00559FED),MAKEPTR(SYMOKToDeactivatePackage),MAKEPTR(SYMMovePackage)
 obj_0055A091_map:	FrameMapObj(5)
@@ -8984,7 +8981,7 @@ obj_0062F7DD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F7DD:	FrameObj(3, obj_0062F7DD_map)
 		Ref		0x00000132,_Ffeupdateenv,0x00000004
-obj_0042F9C1:	.long		kHeaderSize + 132 + kFlagsBinary
+obj_0042F9C1:	Ref    kHeaderSize + 132 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7C,0xC7,0x00,0x12,0x24,0xC4,0x6F,0x00,0x2A,0x7C,0x1A,0x7C
 		.byte		0x1B,0x91,0xC7,0x00,0x13,0x98,0x7C,0x1C,0x7C,0x1D,0x91,0xC7,0x00,0x13,0x98,0x7C
@@ -8995,7 +8992,7 @@ obj_0042F9C1:	.long		kHeaderSize + 132 + kFlagsBinary
 		.byte		0x7B,0x1F,0x00,0x08,0x91,0x1F,0x00,0x0B,0x29,0xC7,0x00,0x14,0x98,0x7C,0x1E,0x91
 		.byte		0x7B,0x1F,0x00,0x08,0x91,0x1F,0x00,0x0B,0x29,0x7B,0x1F,0x00,0x0D,0x91,0x1F,0x00
 		.byte		0x0B,0x29,0x99,0x02
-		.align	2
+		.align  8
 obj_0042F985:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYM_proto),MAKEPTR(SYMemailClasses)
 obj_0042F999:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -9028,10 +9025,10 @@ obj_0062A499_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062A499:	FrameObj(3, obj_0062A499_map)
 		Ref		0x00000132,_FExpandUnit,0x00000004
-obj_0051CD65:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_0051CD65:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0xAA,0x7B,0x72,0x1B,0x39,0x00,0x7C,0x72,0x1C,0x39,0x02
-		.align	2
+		.align  8
 obj_0051CD81:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMcopperfield),MAKEPTR(SYMc),MAKEPTR(SYMOpenBook),MAKEPTR(SYMTurnToSubject)
 obj_0051CDA1_map:	FrameMapObj(5)
@@ -9046,12 +9043,12 @@ obj_0041CCE1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CCE1:	FrameObj(3, obj_0041CCE1_map)
 		Ref		0x00000132,_GenPhoneTypeList,0x00000004
-obj_00562E5D:	.long		kHeaderSize + 41 + kFlagsBinary
+obj_00562E5D:	Ref    kHeaderSize + 41 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x6F,0x00,0x22,0x70,0x7B,0x20,0x19,0x22,0x1A,0x2D,0xA4,0x7C,0x6F,0x00,0x22
 		.byte		0x7C,0x20,0xC4,0x6F,0x00,0x1D,0x7B,0x1B,0x29,0x00,0x5F,0x00,0x22,0x70,0x7C,0x1C
 		.byte		0x2A,0x00,0x75,0x7B,0x1C,0x2A,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_00562E95:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPowerOffFenceSitters),MAKEPTR(SYM_3D),MAKEPTR(SYMLSearch),MAKEPTR(SYMPowerOffResume),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMPowerOffRegistry)
 obj_00562EB9_map:	FrameMapObj(5)
@@ -9070,16 +9067,16 @@ obj_0041B111_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B111:	FrameObj(3, obj_0041B111_map)
 		Ref		0x00000132,_FGetFontFamilySym,0x00000004
-obj_0044F3D9:	.long		kHeaderSize + 11 + kFlagsBinary
+obj_0044F3D9:	Ref    kHeaderSize + 11 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA8,0x7D,0xA9,0x7B,0x1A,0x1B,0x04,0x1C,0x2B,0x02
-		.align	2
-obj_0044F411:	.long		kHeaderSize + 33 + kFlagsBinary
+		.align  8
+obj_0044F411:	Ref    kHeaderSize + 33 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x6F,0x00,0x0A,0x7B,0x70,0x91,0x5F,0x00,0x0B,0x7B,0xA5,0x71,0x7D,0xC7,0x00
 		.byte		0x18,0x20,0x1A,0x22,0x1B,0x2D,0xA4,0x7C,0x6F,0x00,0x1F,0x7C,0x5F,0x00,0x20,0x1C
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0044F441:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMpath),MAKEPTR(SYMclasses),MAKEPTR(SYM_3D),MAKEPTR(SYMLSearch),0x00009C40
 obj_0044F461_map:	FrameMapObj(3)
@@ -9108,10 +9105,10 @@ obj_0062A421_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062A421:	FrameObj(3, obj_0062A421_map)
 		Ref		0x00000132,_FGetStrokePoint,0x00000010
-obj_0055A0B1:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_0055A0B1:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x2A,0xA5,0x7D,0x6F,0x00,0x0D,0x19,0x1A,0x29,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_0055A0CD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSafeMovePackageQT),MAKEPTR(SYMSafeMovePackage),MAKEPTR(SYMXmitPackageOp)
 obj_0055A0E5_map:	FrameMapObj(5)
@@ -9126,21 +9123,21 @@ obj_00536765_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00536765:	FrameObj(3, obj_00536765_map)
 		Ref		0x00000132,_FJournalReplayBusy,0x00000000
-obj_005ACD31:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_005ACD31:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x04,0x53,0x18,0x28,0x20,0xC2,0x19,0x39,0xA4,0x7B,0x7C,0x1A,0x39,0x02
-		.align	2
+		.align  8
 obj_005ACD4D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMAdd)
 obj_005ACD65_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005ACD65:	FrameObj(5, obj_005ACD65_map)
 		Ref		0x00000032,MAKEPTR(obj_005ACD31),MAKEPTR(obj_005ACD4D),NILREF,0x00040004
-obj_005B7E21:	.long		kHeaderSize + 27 + kFlagsBinary
+obj_005B7E21:	Ref    kHeaderSize + 27 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x17,0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x13,0x7D,0x7C,0x19,0x2A
 		.byte		0x5F,0x00,0x14,0x22,0x5F,0x00,0x1A,0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_005B7E49:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMModalPINPrompt),MAKEPTR(SYMBinEqual)
 obj_005B7E5D_map:	FrameMapObj(5)
@@ -9159,24 +9156,24 @@ obj_004647F5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004647F5:	FrameObj(5, obj_004647F5_map)
 		Ref		0x00000032,MAKEPTR(obj_004B7475),NILREF,NILREF,0x00000000
-obj_0062C911:	.long		kHeaderSize + 66 + kFlagsBinary
+obj_0062C911:	Ref    kHeaderSize + 66 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA6,0x7E,0x19,0x38,0xA7,0x00,0x07,0x7B,0x7C,0x1A,0x2A,0xA7,0x00
 		.byte		0x08,0x7D,0x6F,0x00,0x3E,0x7F,0x00,0x07,0x7D,0x1B,0x7E,0x7B,0x1C,0x82,0x1D,0x2C
 		.byte		0x00,0x7C,0x19,0x38,0xA7,0x00,0x09,0x7F,0x00,0x07,0x7F,0x00,0x09,0x1E,0x2A,0xC5
 		.byte		0x6F,0x00,0x3E,0x7F,0x00,0x09,0x7D,0x1F,0x00,0x07,0x7B,0x1D,0x2C,0x00,0x7F,0x00
 		.byte		0x08,0x02
-		.align	2
+		.align  8
 obj_0062C961:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetName),MAKEPTR(SYMEntryMove),MAKEPTR(SYMentryMoved),MAKEPTR(obj_0055A105),MAKEPTR(SYMXmitSoupChange),MAKEPTR(SYMStrEqual),MAKEPTR(SYMentryAdded)
 obj_0062D7C1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062D7C1:	FrameObj(5, obj_0062D7C1_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C911),MAKEPTR(obj_0062C961),NILREF,0x0010000C
-obj_0056E15D:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_0056E15D:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x7D,0x27,0x00,0x27,0x18,0x3B,0xA6,0x7E,0x19,0x38,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_0056E179:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMBuildCardAlert),MAKEPTR(SYMOpen)
 obj_0056E18D_map:	FrameMapObj(5)
@@ -9203,13 +9200,13 @@ obj_0041B2F1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B2F1:	FrameObj(3, obj_0041B2F1_map)
 		Ref		0x00000132,_FGetCaretInfo,0x00000000
-obj_00461305:	.long		kHeaderSize + 51 + kFlagsBinary
+obj_00461305:	Ref    kHeaderSize + 51 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x29,0xC5,0x6F,0x00,0x21,0x7C,0xC7,0x00,0x18,0x19,0xC4,0x6F,0x00,0x16
 		.byte		0x27,0x08,0x7F,0x7C,0x91,0xA4,0x7C,0xC5,0x6F,0x00,0x21,0x27,0x08,0x7F,0x1A,0x91
 		.byte		0xA4,0x27,0x08,0x83,0x7B,0x7C,0x1B,0x83,0x1C,0x29,0xA5,0x7D,0x1D,0x38,0x00,0x7D
 		.byte		0x1E,0x91,0x02
-		.align	2
+		.align  8
 obj_004612E9:	ArrayObj(4, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMmessage),MAKEPTR(SYMbuttonList)
 obj_00461345:	ArrayObj(7, MAKEPTR(SYMliterals))
@@ -9218,7 +9215,7 @@ obj_0046136D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0046136D:	FrameObj(5, obj_0046136D_map)
 		Ref		0x00000032,MAKEPTR(obj_00461305),MAKEPTR(obj_00461345),NILREF,0x00040008
-obj_004A8F31:	.long		kHeaderSize + 260 + kFlagsBinary
+obj_004A8F31:	Ref    kHeaderSize + 260 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA6,0x7B,0x19,0xC4,0x6F,0x00,0x82,0x7C,0x6F,0x00,0x49,0x72,0x27,0x00
 		.byte		0x1A,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x39,0x7F,0x00,0x08,0x24,0xC2,0xA7
@@ -9237,20 +9234,20 @@ obj_004A8F31:	.long		kHeaderSize + 260 + kFlagsBinary
 		.byte		0x7F,0x00,0x0D,0x05,0x7F,0x00,0x0D,0x06,0x6F,0x00,0xB4,0x22,0x22,0xA7,0x00,0x0D
 		.byte		0x00,0x7F,0x00,0x0A,0x05,0x7F,0x00,0x0A,0x06,0x6F,0x00,0x97,0x22,0x22,0xA7,0x00
 		.byte		0x0A,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_004A8F05:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMdataDef),MAKEPTR(SYM_dataDefs),MAKEPTR(SYMsuperSymbol),MAKEPTR(SYMSetContains),MAKEPTR(SYMviewDef),MAKEPTR(SYMGetViewDefs),MAKEPTR(SYMtype)
 obj_004A9041_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A9041:	FrameObj(5, obj_004A9041_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8F31),MAKEPTR(obj_004A8F05),NILREF,0x0020000C
-obj_0044E041:	.long		kHeaderSize + 52 + kFlagsBinary
+obj_0044E041:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x06,0x16,0xC7,0x00,0x0C,0x6F,0x00,0x14,0x7B,0x27,0x07,0xA6,0xC7,0x00
 		.byte		0x0D,0x5F,0x00,0x15,0x22,0x67,0x00,0x30,0x7B,0x27,0x04,0x16,0xC7,0x00,0x0C,0x6F
 		.byte		0x00,0x2C,0x7B,0x27,0x05,0xA6,0xC7,0x00,0x0D,0x5F,0x00,0x2D,0x22,0x5F,0x00,0x33
 		.byte		0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_0044E081_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0044E081:	FrameObj(5, obj_0044E081_map)
@@ -9291,10 +9288,10 @@ obj_0046356D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0046356D:	FrameObj(3, obj_0046356D_map)
 		Ref		0x00000132,_FReboot,0x00000000
-obj_00562D41:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_00562D41:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x89,0x1A,0x2A,0x02
-		.align	2
+		.align  8
 obj_00562D55:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPowerOnRegistry),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00562D6D_map:	FrameMapObj(5)
@@ -9325,14 +9322,14 @@ obj_0041CE49_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CE49:	FrameObj(3, obj_0041CE49_map)
 		Ref		0x00000132,_CheezySubsumption,0x00000008
-obj_00590E59:	.long		kHeaderSize + 68 + kFlagsBinary
+obj_00590E59:	Ref    kHeaderSize + 68 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA6,0x7B,0x7C,0x19,0x2A,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00
 		.byte		0x35,0x7F,0x00,0x08,0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00,0x07,0x1A,0x29,0xA5,0x7F
 		.byte		0x00,0x07,0x1B,0x29,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x31,0x7E,0x7D,0xC7,0x00,0x15
 		.byte		0x00,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x11,0x22,0x22,0xA7,0x00
 		.byte		0x08,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_00590EA9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMStrParse),MAKEPTR(SYMTrimString),MAKEPTR(SYMStrLen)
 obj_00590EC5_map:	FrameMapObj(5)
@@ -9355,14 +9352,14 @@ obj_0062F98D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F98D:	FrameObj(3, obj_0062F98D_map)
 		Ref		0x00000132,_FEntryUniqueId,0x00000004
-obj_00557B6D:	.long		kHeaderSize + 69 + kFlagsBinary
+obj_00557B6D:	Ref    kHeaderSize + 69 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x3C,0x7D,0x24,0xC2,0xA4,0x18,0x27,0x00
 		.byte		0xDC,0xC9,0x7C,0x19,0x91,0x7C,0x1A,0x91,0x7C,0x1B,0x91,0x7C,0x1C,0x91,0x1D,0x43
 		.byte		0xA6,0x7E,0x1E,0xC4,0x6F,0x00,0x31,0x7C,0x1F,0x00,0x07,0x91,0x1F,0x00,0x08,0x29
 		.byte		0x00,0x07,0x00,0x07,0x5F,0x00,0x3A,0x07,0x00,0x07,0x7D,0x05,0x7D,0x06,0x6F,0x00
 		.byte		0x09,0x22,0x22,0xA5,0x02
-		.align	2
+		.align  8
 obj_00557BF1:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMclient),MAKEPTR(SYM_importTable)
 obj_00557BC1:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -9391,7 +9388,7 @@ obj_0041B665_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B665:	FrameObj(3, obj_0041B665_map)
 		Ref		0x00000132,_FMakeLine,0x00000010
-obj_00436A49:	.long		kHeaderSize + 115 + kFlagsBinary
+obj_00436A49:	Ref    kHeaderSize + 115 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x19,0x38,0x1A,0x38,0xC5,0x6F,0x00,0x12,0x7B,0x1B,0x29,0x00,0x7B
 		.byte		0x02,0x00,0x7B,0x18,0x29,0x1C,0x38,0xA4,0x7C,0x1D,0x28,0x20,0xC2,0x1E,0x39,0xAF
@@ -9401,7 +9398,7 @@ obj_00436A49:	.long		kHeaderSize + 115 + kFlagsBinary
 		.byte		0x1F,0x00,0x0C,0x1F,0x00,0x0D,0x98,0x7F,0x00,0x07,0x1F,0x00,0x0E,0x7B,0x1F,0x00
 		.byte		0x0F,0x91,0x98,0x7F,0x00,0x07,0x1B,0x29,0x00,0x7B,0x1F,0x00,0x10,0x29,0x00,0x7F
 		.byte		0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_00436AC9:	ArrayObj(17, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetStore),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMEntryChange),MAKEPTR(SYMGetName),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMsoup),MAKEPTR(obj_00436939),MAKEPTR(SYMIntern),MAKEPTR(SYMCreateSoupFromSoupDef),MAKEPTR(SYMEntryCopy),MAKEPTR(SYMkind),MAKEPTR(SYMReplace),MAKEPTR(SYMromID),MAKEPTR(SYM_uniqueId)
 		Ref		MAKEPTR(SYMEntryUndoChanges)
@@ -9425,11 +9422,11 @@ obj_0062F9D5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062F9D5:	FrameObj(3, obj_0062F9D5_map)
 		Ref		0x00000132,_FBreakLoop,0x00000000
-obj_00559131:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00559131:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x2A,0xA5,0x7D,0x6F,0x00,0x0F,0x7D,0x19,0x91,0x5F,0x00,0x10,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00559151:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetPackageEntry),MAKEPTR(SYMpkgRef)
 obj_00559165_map:	FrameMapObj(5)
@@ -9444,11 +9441,11 @@ obj_0062FA05_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FA05:	FrameObj(3, obj_0062FA05_map)
 		Ref		0x00000132,_Ffmod,0x00000008
-obj_004A8AFD:	.long		kHeaderSize + 28 + kFlagsBinary
+obj_004A8AFD:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x70,0x7B,0x91,0x5F,0x00,0x0B,0x22,0xA4,0x7C,0xC5,0x6F,0x00
 		.byte		0x1A,0x7B,0x19,0x1A,0x2A,0x1B,0x81,0x5F,0x00,0x1B,0x7C,0x02
-		.align	2
+		.align  8
 obj_004A8B25:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_viewdefs),MAKEPTR(SYMdefault),MAKEPTR(SYMGetDataView),MAKEPTR(obj_005A71B9)
 obj_004A8B41_map:	FrameMapObj(5)
@@ -9463,12 +9460,12 @@ obj_0041C951_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C951:	FrameObj(3, obj_0041C951_map)
 		Ref		0x00000132,_FGetZoneFromName,0x00000004
-obj_0052CF5D:	.long		kHeaderSize + 41 + kFlagsBinary
+obj_0052CF5D:	Ref    kHeaderSize + 41 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x19,0x1A,0x27,0x08,0x00,0x27,0x00,0x0C,0x7C,0x7B,0x1B,0x8B
 		.byte		0x27,0x00,0x28,0x24,0x27,0x00,0x08,0x27,0x00,0x2C,0x27,0x00,0x34,0x20,0x1B,0x8B
 		.byte		0x1B,0x8C,0x1C,0x82,0x1D,0x84,0xA5,0x7D,0x02
-		.align	2
+		.align  8
 obj_0052CF95:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),MAKEPTR(obj_0052CFD9),MAKEPTR(SYMaddress),MAKEPTR(SYMarray),MAKEPTR(obj_004BF0FD),MAKEPTR(obj_0052D3E5)
 obj_0052CFB9_map:	FrameMapObj(5)
@@ -9495,7 +9492,7 @@ obj_0041BEFD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BEFD:	FrameObj(3, obj_0041BEFD_map)
 		Ref		0x00000132,_FInkOn,0x00000004
-obj_00565581:	.long		kHeaderSize + 207 + kFlagsBinary
+obj_00565581:	Ref    kHeaderSize + 207 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x7B,0x90,0xA5,0x7C,0x7D,0xC4,0x67,0x00,0x27,0x7C,0x1A,0x29,0x6F
 		.byte		0x00,0x18,0x7D,0x1A,0x29,0x5F,0x00,0x19,0x22,0x6F,0x00,0x23,0x7C,0x7D,0x1B,0x2A
@@ -9510,25 +9507,25 @@ obj_00565581:	.long		kHeaderSize + 207 + kFlagsBinary
 		.byte		0x7F,0x00,0x08,0x32,0x00,0x5F,0x00,0xAE,0x7B,0x7F,0x00,0x08,0x31,0x00,0x07,0x00
 		.byte		0x07,0x5F,0x00,0xB7,0x07,0x00,0x07,0x7F,0x00,0x09,0x05,0x7F,0x00,0x09,0x06,0x6F
 		.byte		0x00,0x6B,0x22,0x22,0xA7,0x00,0x09,0x00,0x1F,0x00,0x0B,0x28,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_00565545:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYM_proto),MAKEPTR(SYMIsBinary),MAKEPTR(SYMBinEqual),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMEnsureInternal),MAKEPTR(obj_004D4879),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMSystemConfigChange),MAKEPTR(SYMUserConfigChangeRegistry),MAKEPTR(SYMGetFunctionArgCount),MAKEPTR(SYMFlushUserConfig)
 obj_0056565D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056565D:	FrameObj(5, obj_0056565D_map)
 		Ref		0x00000032,MAKEPTR(obj_00565581),MAKEPTR(obj_00565545),NILREF,0x00140008
-obj_00562EF5:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_00562EF5:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x6F,0x00,0x07,0x22,0x02,0x00,0x27,0x00,0x1A,0xA8,0x7B,0xC5,0x6F,0x00,0x12
 		.byte		0x19,0xA3,0x72,0x1B,0x91,0x7B,0x1C,0x89,0x1D,0x2A,0x00,0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_00562F21:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPoweringOff),MAKEPTR(SYMbecause),MAKEPTR(SYMfunctions),MAKEPTR(SYMPowerOffSoodan),MAKEPTR(SYMarray),MAKEPTR(SYMAddDeferredCall)
 obj_00562F45_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00562F45:	FrameObj(5, obj_00562F45_map)
 		Ref		0x00000032,MAKEPTR(obj_00562EF5),MAKEPTR(obj_00562F21),NILREF,0x00000004
-obj_004226BD:	.long		kHeaderSize + 103 + kFlagsBinary
+obj_004226BD:	Ref    kHeaderSize + 103 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x27,0x00,0x24,0x20,0x19,0x1A,0x1B,0x2D,0xA4,0x7C,0x6F,0x00,0x15,0x7C,0x1C
 		.byte		0x91,0xC5,0x5F,0x00,0x16,0x22,0x6F,0x00,0x65,0x7B,0x20,0xC7,0x00,0x0B,0x6F,0x00
@@ -9537,11 +9534,11 @@ obj_004226BD:	.long		kHeaderSize + 103 + kFlagsBinary
 		.byte		0x0A,0x6F,0x00,0x61,0x1F,0x00,0x0B,0x1F,0x00,0x0C,0x28,0x7D,0x7B,0xC2,0xC0,0x22
 		.byte		0x1F,0x00,0x0D,0x7B,0x24,0xC0,0x1F,0x00,0x0E,0x89,0x1F,0x00,0x0F,0x2D,0x5F,0x00
 		.byte		0x62,0x22,0x5F,0x00,0x66,0x22,0x02
-		.align	2
-obj_00422695:	.long		kHeaderSize + 28 + kFlagsBinary
+		.align  8
+obj_00422695:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','n','n','o','y','i','n','g','A','l','a','r','m',0
-		.align	2
+		.align  8
 obj_004225D1:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMAnnoyUserRepeatedly)
 obj_004225E1_map:	FrameMapObj(5)
@@ -9562,7 +9559,7 @@ obj_0041C8D9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C8D9:	FrameObj(3, obj_0041C8D9_map)
 		Ref		0x00000132,_FSetSortId,0x00000004
-obj_00569D89:	.long		kHeaderSize + 183 + kFlagsBinary
+obj_00569D89:	Ref    kHeaderSize + 183 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA7,0x00,0x07,0x19,0x27,0x01,0xD8,0xC9,0x20,0xA7,0x00,0x08,0x72,0xC7
 		.byte		0x00,0x12,0x27,0x00,0x08,0xC1,0xA7,0x00,0x09,0x27,0x00,0x08,0xA7,0x00,0x0A,0x7F
@@ -9576,7 +9573,7 @@ obj_00569D89:	.long		kHeaderSize + 183 + kFlagsBinary
 		.byte		0x27,0x02,0x8C,0xC9,0x7B,0x7C,0x7D,0x7E,0x7F,0x00,0x0D,0x34,0x00,0x07,0x00,0x07
 		.byte		0x5F,0x00,0xA6,0x07,0x00,0x07,0x7F,0x00,0x0E,0x05,0x7F,0x00,0x0E,0x06,0x6F,0x00
 		.byte		0x87,0x22,0x22,0xA7,0x00,0x0E,0x02
-		.align	2
+		.align  8
 obj_00569D61:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMsoupNotify),MAKEPTR(SYMall),MAKEPTR(SYMStrEqual),MAKEPTR(SYMSoupChanged),MAKEPTR(SYMGetSoupChangeCallbacks)
 obj_00569E4D_map:	FrameMapObj(5)
@@ -9587,11 +9584,11 @@ obj_0062FA4D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FA4D:	FrameObj(3, obj_0062FA4D_map)
 		Ref		0x00000132,_FQuickSort,0x0000000C
-obj_0062877D:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_0062877D:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x22,0xC4,0x6F,0x00,0x0D,0x1A,0x28,0xA4,0x7C,0x6F,0x00
 		.byte		0x15,0x7C,0x1B,0x29,0x00,0x1C,0x28,0x02
-		.align	2
+		.align  8
 obj_006287A1:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00628175),MAKEPTR(SYMGetTaggedEntry),MAKEPTR(SYMConvertMPLetterWeights),MAKEPTR(SYMSetLetterWeights),MAKEPTR(SYMDeleteMPLetterWeights)
 obj_006287C1_map:	FrameMapObj(5)
@@ -9628,7 +9625,7 @@ obj_0041B1A1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B1A1:	FrameObj(3, obj_0041B1A1_map)
 		Ref		0x00000132,_FMakeCompactFont,0x0000000C
-obj_00497071:	.long		kHeaderSize + 412 + kFlagsBinary
+obj_00497071:	Ref    kHeaderSize + 412 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x18,0x88,0xA4,0x20,0xA5,0x20,0xA6,0x20,0xA7,0x00,0x07,0x19,0x28
 		.byte		0xA7,0x00,0x09,0x1A,0x28,0x22,0xC7,0x00,0x11,0xA7,0x00,0x0C,0x5F,0x00,0xC8,0x7F
@@ -9656,11 +9653,11 @@ obj_00497071:	.long		kHeaderSize + 412 + kFlagsBinary
 		.byte		0x72,0x22,0x6F,0x01,0x81,0x1F,0x00,0x0C,0x7F,0x00,0x08,0x22,0x1F,0x00,0x0D,0x2B
 		.byte		0x00,0x7E,0x20,0xC7,0x00,0x0B,0x6F,0x01,0x9A,0x27,0x00,0x0C,0x1F,0x00,0x0E,0x22
 		.byte		0x7F,0x00,0x09,0x1F,0x00,0x09,0x3B,0x5F,0x01,0x9B,0x22,0x02
-		.align	2
-obj_00496FCD:	.long		kHeaderSize + 42 + kFlagsBinary
+		.align  8
+obj_00496FCD:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','o',' ','c','a','r','d',' ','i','s',' ','i','n','s','e','r','t','e','d','.',0
-		.align	2
+		.align  8
 obj_00497029:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetCardTypes),MAKEPTR(SYMGetCardSlotStores),MAKEPTR(SYMArrayMunger),MAKEPTR(SYMIsArray),MAKEPTR(SYMcomm),MAKEMAGICPTR(556),MAKEPTR(obj_00496FCD),MAKEPTR(SYMNotify),MAKEPTR(SYMOpenStoreSlip),MAKEPTR(SYMOpen),MAKEPTR(SYMCommCardInserted),MAKEPTR(SYMCardAlert),0xFFFFFFFFFFFF5BEC
 obj_00497219_map:	FrameMapObj(5)
@@ -9671,7 +9668,7 @@ obj_0062FA7D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FA7D:	FrameObj(3, obj_0062FA7D_map)
 		Ref		0x00000132,_FMakeBinary,0x00000008
-obj_00568275:	.long		kHeaderSize + 98 + kFlagsBinary
+obj_00568275:	Ref    kHeaderSize + 98 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x22,0x19,0x2A,0xA4,0x7C,0x6F,0x00,0x28,0x7C,0x1A,0x91,0x7B,0x1A
 		.byte		0x91,0xC7,0x00,0x0C,0x6F,0x00,0x1D,0x22,0x02,0x00,0x5F,0x00,0x28,0x7C,0x1B,0x29
@@ -9680,18 +9677,18 @@ obj_00568275:	.long		kHeaderSize + 98 + kFlagsBinary
 		.byte		0x1F,0x00,0x0A,0x1F,0x00,0x0B,0x8A,0xC7,0x00,0x16,0x98,0x7D,0x1F,0x00,0x0C,0x29
 		.byte		0x00,0x27,0x04,0x53,0x1C,0x1F,0x00,0x0D,0x7D,0x1F,0x00,0x0E,0x2C,0x00,0x27,0x00
 		.byte		0x1A,0x02
-		.align	2
-obj_0056824D:	.long		kHeaderSize + 26 + kFlagsBinary
+		.align  8
+obj_0056824D:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	':','M','o','d','e','m','C','o','n','f','i','g',0
-		.align	2
+		.align  8
 obj_005682E5:	ArrayObj(15, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMmodemName),MAKEPTR(SYMGetModemSetUpAndXvert1_2EX),MAKEPTR(SYMversion),MAKEPTR(SYMIsSoupEntry),MAKEPTR(SYM_newt),MAKEPTR(SYMEntryRemoveFromSoupXmit),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMAdd),MAKEPTR(SYMtag),MAKEPTR(obj_0056824D),MAKEPTR(SYMarray),MAKEPTR(SYMEntryFlush),MAKEPTR(SYMentryAdded),MAKEPTR(SYMXmitSoupChange)
 obj_0056832D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056832D:	FrameObj(5, obj_0056832D_map)
 		Ref		0x00000032,MAKEPTR(obj_00568275),MAKEPTR(obj_005682E5),NILREF,0x00080004
-obj_00568089:	.long		kHeaderSize + 86 + kFlagsBinary
+obj_00568089:	Ref    kHeaderSize + 86 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x01,0x44,0xC9,0x19,0x1A,0x1A,0x1B,0x83,0x27,0x04,0x53,0x1C,0x28,0x20
 		.byte		0xC2,0x1D,0x39,0x1E,0x39,0xA3,0x7B,0x1F,0x00,0x07,0x38,0xA4,0x7C,0x6F,0x00,0x4A
@@ -9699,7 +9696,7 @@ obj_00568089:	.long		kHeaderSize + 86 + kFlagsBinary
 		.byte		0xA5,0x7D,0x1F,0x00,0x09,0x29,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x2D,0x22,0x22
 		.byte		0xA6,0x00,0x7C,0x1F,0x00,0x0A,0x29,0x5F,0x00,0x4B,0x22,0x07,0x00,0x07,0x5F,0x00
 		.byte		0x55,0x22,0x07,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_005680ED:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMtag),MAKEPTR(obj_003C5F31),MAKEPTR(obj_00421DF5),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(SYMmodems),MAKEPTR(SYMAddModemSetUp),MAKEPTR(SYMEntryRemoveFromSoup)
 obj_00568125_map:	FrameMapObj(5)
@@ -9714,10 +9711,10 @@ obj_0041B831_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B831:	FrameObj(3, obj_0041B831_map)
 		Ref		0x00000132,_FShapeBounds,0x00000004
-obj_005B8FD1:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_005B8FD1:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7C,0x22,0x7D,0x19,0x3A,0xA6,0x7E,0x20,0xC4,0x02,0x02
-		.align	2
+		.align  8
 obj_005B8FED:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDictionary),MAKEPTR(SYMAddEncodedWord)
 obj_005B9001_map:	FrameMapObj(5)
@@ -9732,10 +9729,10 @@ obj_0062FA95_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FA95:	FrameObj(3, obj_0062FA95_map)
 		Ref		0x00000132,_FExtractUniChar,0x00000008
-obj_004223FD:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_004223FD:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x6F,0x00,0x0C,0x1A,0x19,0x29,0x5F,0x00,0x0F,0x1B,0x19,0x29,0x02
-		.align	2
+		.align  8
 obj_00422419:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMAlarmVolumeEqualsSystem),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMsoundVolumeDb),MAKEPTR(SYMalarmVolumeDb)
 obj_00422435_map:	FrameMapObj(5)
@@ -9748,7 +9745,7 @@ obj_0062FAAD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062FAAD:	FrameObj(5, obj_0062FAAD_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C98D),MAKEPTR(obj_0062C9A1),NILREF,0x00000004
-obj_005AB9C5:	.long		kHeaderSize + 368 + kFlagsBinary
+obj_005AB9C5:	Ref    kHeaderSize + 368 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xA8,0x19,0x04,0xA6,0x1A,0x18,0x70,0x7E,0x1B,0x84,0xA7,0x00,0x07,0x27,0x04
 		.byte		0x53,0x1C,0x28,0x20,0xC2,0x1D,0x39,0xA7,0x00,0x08,0x7F,0x00,0x08,0x7F,0x00,0x07
@@ -9773,7 +9770,7 @@ obj_005AB9C5:	.long		kHeaderSize + 368 + kFlagsBinary
 		.byte		0x00,0x10,0x29,0x00,0x22,0xA6,0x7E,0xA7,0x00,0x07,0x7F,0x00,0x07,0xA7,0x00,0x09
 		.byte		0x7F,0x00,0x09,0xA7,0x00,0x0D,0x7F,0x00,0x0D,0xA7,0x00,0x08,0x1F,0x00,0x11,0x28
 		.byte		0x00,0x7B,0x70,0x1F,0x00,0x12,0x2A,0x00,0x1F,0x00,0x13,0x28,0x07,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_005AB979:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtag),MAKEPTR(SYMStrCompare)
 obj_005AB98D_map:	FrameMapObj(3)
@@ -9797,12 +9794,12 @@ obj_005ABB9D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005ABB9D:	FrameObj(5, obj_005ABB9D_map)
 		Ref		0x00000032,MAKEPTR(obj_005AB9C5),MAKEPTR(obj_005ABB41),MAKEPTR(obj_005ABBBD),0x0020000C
-obj_004227BD:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_004227BD:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x00,0x24,0x7B,0x7C,0x18,0x19,0x29,0x1A,0x29,0x1B,0x28,0x1C,0x2D,0x00,0x1D
 		.byte		0x19,0x29,0x6F,0x00,0x26,0x76,0x1F,0x00,0x07,0x91,0x20,0x1F,0x00,0x08,0x89,0x1F
 		.byte		0x00,0x09,0x2A,0x5F,0x00,0x27,0x22,0x02
-		.align	2
+		.align  8
 obj_004227F1:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMalarmSound),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMGetRegisteredSound),MAKEPTR(SYMGetAlarmVolume),MAKEPTR(SYMBHNotify),MAKEPTR(SYMAlarmAnnoyOn),MAKEPTR(SYMfunctions),MAKEPTR(SYMAnnoyUserRepeatedly),MAKEPTR(SYMarray),MAKEPTR(SYMAddDeferredCall)
 obj_00422825_map:	FrameMapObj(5)
@@ -9837,33 +9834,33 @@ obj_00556B9D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00556B9D:	FrameObj(3, obj_00556B9D_map)
 		Ref		0x00000132,_FBuildContext,0x00000004
-obj_004829C1:	.long		kHeaderSize + 15 + kFlagsBinary
+obj_004829C1:	Ref    kHeaderSize + 15 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x09,0x18,0x5F,0x00,0x0E,0x19,0x1A,0x29,0x7B,0x91,0x02
-		.align	2
+		.align  8
 obj_004829DD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0054B4A5),MAKEPTR(SYMuserFolders),MAKEPTR(SYMGetUserConfig)
 obj_004829F5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004829F5:	FrameObj(5, obj_004829F5_map)
 		Ref		0x00000032,MAKEPTR(obj_004829C1),MAKEPTR(obj_004829DD),NILREF,0x00000004
-obj_00629A79:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_00629A79:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x15,0x27,0x00,0x7C,0x18,0x29,0xA5,0x7C,0x7D,0x19,0x39,0x00,0x7B
 		.byte		0x1A,0x27,0x00,0x1A,0x98,0x22,0x02
-		.align	2
+		.align  8
 obj_00629A9D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDictionary),MAKEPTR(SYMDeleteEncodedWord),MAKEPTR(SYMsaveUserDict)
 obj_00629AB5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00629AB5:	FrameObj(5, obj_00629AB5_map)
 		Ref		0x00000032,MAKEPTR(obj_00629A79),MAKEPTR(obj_00629A9D),NILREF,0x00040008
-obj_006284CD:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_006284CD:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x29,0xA5,0x7B,0x6F,0x00,0x22,0x7D,0xC5,0x6F,0x00,0x18,0x7C,0x7B,0x19
 		.byte		0x82,0xA5,0x7D,0x1A,0x29,0x5F,0x00,0x1F,0x7D,0x1B,0x7B,0x98,0x7D,0x1C,0x29,0x5F
 		.byte		0x00,0x2D,0x7D,0x6F,0x00,0x2C,0x7D,0x1D,0x29,0x5F,0x00,0x2D,0x22,0x02
-		.align	2
+		.align  8
 obj_006284B5:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMtag),MAKEPTR(SYMdata)
 obj_00628509:	ArrayObj(6, MAKEPTR(SYMliterals))
@@ -9872,13 +9869,13 @@ obj_0062852D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062852D:	FrameObj(5, obj_0062852D_map)
 		Ref		0x00000032,MAKEPTR(obj_006284CD),MAKEPTR(obj_00628509),NILREF,0x00040008
-obj_00569A55:	.long		kHeaderSize + 57 + kFlagsBinary
+obj_00569A55:	Ref    kHeaderSize + 57 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA4,0x19,0x7B,0x1A,0x38,0x1B,0x2A,0x00,0x7B,0x1C,0x28,0x20,0xC2,0xC4
 		.byte		0x6F,0x00,0x1A,0x7C,0x1D,0x38,0xC5,0x5F,0x00,0x1B,0x22,0x6F,0x00,0x26,0x1E,0x22
 		.byte		0x7C,0x1F,0x00,0x07,0x3A,0x00,0x7B,0x1D,0x38,0xC5,0x6F,0x00,0x37,0x1E,0x27,0x00
 		.byte		0x1A,0x7B,0x1F,0x00,0x07,0x3A,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_00569A9D:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDefaultStore),MAKEPTR(SYMdefaultStoreSig),MAKEPTR(SYMGetSignature),MAKEPTR(SYMSetUserConfig),MAKEPTR(SYMGetStores),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMdefaultStore),MAKEPTR(SYMSetInfo)
 obj_00569AC9_map:	FrameMapObj(5)
@@ -9895,7 +9892,7 @@ obj_0041B8F5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B8F5:	FrameObj(3, obj_0041B8F5_map)
 		Ref		0x00000132,_FIsPtInRect,0x0000000C
-obj_00557629:	.long		kHeaderSize + 105 + kFlagsBinary
+obj_00557629:	Ref    kHeaderSize + 105 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0xA0,0xC9,0x7B,0x19,0x91,0x1A,0xC4,0x6F,0x00,0x15,0x7B,0x7C,0x1B
 		.byte		0x2A,0x00,0x5F,0x00,0x22,0x7B,0x19,0x91,0x1C,0xC4,0x6F,0x00,0x22,0x7B,0x7C,0x1D
@@ -9904,7 +9901,7 @@ obj_00557629:	.long		kHeaderSize + 105 + kFlagsBinary
 		.byte		0x0A,0x91,0x1F,0x00,0x0B,0x39,0x5F,0x00,0x68,0x7B,0x1E,0x91,0x1F,0x00,0x0C,0xC4
 		.byte		0x6F,0x00,0x67,0x7B,0x1F,0x00,0x08,0x91,0x1F,0x00,0x09,0x28,0x1F,0x00,0x0A,0x91
 		.byte		0x1F,0x00,0x0D,0x39,0x5F,0x00,0x68,0x22,0x02
-		.align	2
+		.align  8
 obj_005576A1:	ArrayObj(14, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMpartType),MAKEPTR(SYMform),MAKEPTR(SYMRemoveFormPart),MAKEPTR(SYMauto),MAKEPTR(SYMRemoveAutoPart),MAKEPTR(SYMpackageStyle),MAKEPTR(SYMhighROM),MAKEPTR(SYMpackageId),MAKEPTR(SYMGetRoot),MAKEPTR(SYMExtrasDrawer),MAKEPTR(SYMHandleRemovedHighROMPart),MAKEPTR(SYM1_2EX),MAKEPTR(SYMHandleRemoved1_2EXPart)
 obj_005576E5_map:	FrameMapObj(5)
@@ -9927,12 +9924,12 @@ obj_00627F79_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627F79:	FrameObj(3, obj_00627F79_map)
 		Ref		0x00000132,_FSetLetterWeights,0x00000004
-obj_005287A9:	.long		kHeaderSize + 34 + kFlagsBinary
+obj_005287A9:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x91,0xC7,0x00,0x12,0x20,0xC6,0x6F,0x00,0x16,0x7B,0x19,0x7C,0x18,0x91
 		.byte		0x1A,0x29,0x99,0x5F,0x00,0x21,0x7B,0x19,0x7C,0x1B,0x91,0x7C,0x1C,0x91,0x1D,0x2A
 		.byte		0x99,0x02
-		.align	2
+		.align  8
 obj_005287D9:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMnoiseWords),MAKEPTR(SYMrawtext),MAKEPTR(SYMGlueStrings),MAKEPTR(SYMraw),MAKEPTR(SYMphrases),MAKEPTR(SYMScanForWackyName)
 obj_005287FD_map:	FrameMapObj(5)
@@ -9947,10 +9944,10 @@ obj_0041BBE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BBE5:	FrameObj(3, obj_0041BBE5_map)
 		Ref		0x00000132,_FPositionToTime,0x00000008
-obj_0041AFFD:	.long		kHeaderSize + 9 + kFlagsBinary
+obj_0041AFFD:	Ref    kHeaderSize + 9 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x27,0x00,0x18,0xC0,0x02
-		.align	2
+		.align  8
 obj_0041B015:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		0x00409000,MAKEPTR(SYMStrFontWidth)
 obj_0041B029_map:	FrameMapObj(5)
@@ -9961,22 +9958,22 @@ obj_0041BBFD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BBFD:	FrameObj(3, obj_0041BBFD_map)
 		Ref		0x00000132,_FTimeToPosition,0x00000008
-obj_00628709:	.long		kHeaderSize + 26 + kFlagsBinary
+obj_00628709:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x6F,0x00,0x18,0x7B,0x1A,0x91,0x73,0x1C,0x91,0x1D,0x2A
 		.byte		0xA4,0x7C,0x1E,0x1F,0x00,0x07,0x2A,0x00,0x7C,0x02
-		.align	2
-obj_006280ED:	.long		kHeaderSize + 28 + kFlagsBinary
+		.align  8
+obj_006280ED:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'L','e','t','t','e','r','W','e','i','g','h','t','s',0
-		.align	2
+		.align  8
 obj_00628731:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_006280ED),MAKEPTR(SYMGetTaggedEntry),MAKEPTR(SYMdata),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMConvertFromMP),MAKEPTR(obj_00628175),MAKEPTR(SYMSaveDataToEntry)
 obj_0062875D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062875D:	FrameObj(5, obj_0062875D_map)
 		Ref		0x00000032,MAKEPTR(obj_00628709),MAKEPTR(obj_00628731),NILREF,0x00080000
-obj_004DA999:	.long		kHeaderSize + 382 + kFlagsBinary
+obj_004DA999:	Ref    kHeaderSize + 382 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA4,0x7B,0x6F,0x01,0x7C,0x19,0x88,0xA7,0x00,0x07,0x20,0xA5,0x7B,0xC7,0x00
 		.byte		0x12,0x24,0xC1,0xA7,0x00,0x0A,0x24,0xA7,0x00,0x0B,0x7F,0x00,0x0B,0x7D,0x5F,0x00
@@ -10002,7 +9999,7 @@ obj_004DA999:	.long		kHeaderSize + 382 + kFlagsBinary
 		.byte		0x91,0x1F,0x00,0x0C,0x2A,0xA7,0x00,0x0E,0x7F,0x00,0x0E,0x6F,0x01,0x67,0x7C,0x7F
 		.byte		0x00,0x0E,0x1F,0x00,0x0D,0x2A,0xA4,0x7C,0x1F,0x00,0x0E,0x1F,0x00,0x0D,0x2A,0xA4
 		.byte		0x7F,0x00,0x0B,0xB5,0x7F,0x00,0x0A,0xBF,0x01,0x41,0x22,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_004DA921:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMviewBounds),MAKEPTR(SYMtop)
 obj_004DA935:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -10059,12 +10056,12 @@ obj_0041FAE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041FAE5:	FrameObj(3, obj_0041FAE5_map)
 		Ref		0x00000132,_FDate,0x00000004
-obj_00530975:	.long		kHeaderSize + 47 + kFlagsBinary
+obj_00530975:	Ref    kHeaderSize + 47 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x27,0x7B,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x1B,0x7D
 		.byte		0x24,0xC2,0xA4,0x7C,0x19,0x91,0x1A,0x29,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x0F
 		.byte		0x22,0x22,0xA5,0x00,0x5F,0x00,0x2D,0x7B,0x19,0x91,0x1A,0x29,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_005309B1:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMuniqueId),MAKEPTR(SYMUnRegCommConfig)
 obj_005309C9_map:	FrameMapObj(5)
@@ -10075,7 +10072,7 @@ obj_0062FBAD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FBAD:	FrameObj(3, obj_0062FBAD_map)
 		Ref		0x00000132,_FIsFrame,0x00000004
-obj_0052D195:	.long		kHeaderSize + 283 + kFlagsBinary
+obj_0052D195:	Ref    kHeaderSize + 283 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x1A,0x1B,0x1C,0x8C,0x75,0x1E,0x91,0xC2,0xA3,0x27,0x00,0xF0,0xA4,0x75
 		.byte		0x1F,0x00,0x07,0x91,0x6F,0x00,0x1D,0x75,0x1F,0x00,0x07,0x91,0xA4,0x27,0x00,0x0C
@@ -10095,11 +10092,11 @@ obj_0052D195:	.long		kHeaderSize + 283 + kFlagsBinary
 		.byte		0x1F,0x00,0x1A,0x24,0x1C,0x8B,0x1F,0x00,0x1B,0x1F,0x00,0x1B,0x1F,0x00,0x1B,0x1F
 		.byte		0x00,0x1B,0x1F,0x00,0x1C,0x1F,0x00,0x19,0x1C,0x8F,0x00,0x0D,0x1F,0x00,0x1D,0x82
 		.byte		0x1F,0x00,0x1E,0x85,0xA7,0x00,0x09,0x7F,0x00,0x09,0x02
-		.align	2
-obj_0052D0D1:	.long		kHeaderSize + 10 + kFlagsBinary
+		.align  8
+obj_0052D0D1:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'm','d','o',' ',0
-		.align	2
+		.align  8
 obj_0052D0E9:	ArrayObj(6, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMtype),MAKEPTR(SYMlabel),MAKEPTR(SYMopCode),MAKEPTR(SYMform),MAKEPTR(SYMdata)
 obj_0052D10D:	ArrayObj(31, MAKEPTR(SYMliterals))
@@ -10129,10 +10126,10 @@ obj_0062FBDD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FBDD:	FrameObj(3, obj_0062FBDD_map)
 		Ref		0x00000132,_FExitBreakLoop,0x00000000
-obj_006286B5:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_006286B5:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x6F,0x00,0x0E,0x7B,0x1A,0x29,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_006286D1:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_006280ED),MAKEPTR(SYMGetTaggedEntry),MAKEPTR(SYMEntryRemoveFromSoup)
 obj_006286E9_map:	FrameMapObj(5)
@@ -10147,7 +10144,7 @@ obj_0062FC0D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FC0D:	FrameObj(3, obj_0062FC0D_map)
 		Ref		0x00000132,_Ffesetenv,0x00000004
-obj_005B517D:	.long		kHeaderSize + 186 + kFlagsBinary
+obj_005B517D:	Ref    kHeaderSize + 186 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x18,0x88,0xA4,0x19,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x36,0x7E
 		.byte		0x24,0xC2,0xA5,0x72,0x7D,0x91,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x28,0x7F
@@ -10161,7 +10158,7 @@ obj_005B517D:	.long		kHeaderSize + 186 + kFlagsBinary
 		.byte		0x22,0x22,0xA7,0x00,0x08,0x00,0x7C,0x7C,0xC7,0x00,0x12,0x22,0x75,0x20,0x22,0x1E
 		.byte		0x2E,0x00,0x7C,0x1F,0x00,0x07,0x1F,0x00,0x08,0x1F,0x00,0x09,0x2B,0x00,0x7B,0x7B
 		.byte		0xC7,0x00,0x12,0x22,0x7C,0x20,0x22,0x1E,0x2E,0x02
-		.align	2
+		.align  8
 obj_005B4795:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMoutput),MAKEPTR(SYMFaxPreferencesForm)
 obj_005B47A9:	ArrayObj(19, MAKEPTR(SYMarray))
@@ -10201,18 +10198,18 @@ obj_0062FC6D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FC6D:	FrameObj(3, obj_0062FC6D_map)
 		Ref		0x00000132,_FStuffCString,0x0000000C
-obj_0041C821:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_0041C821:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xC5,0x6F,0x00,0x13,0x7B,0x7C,0x7D,0x7E,0x7F,0x00,0x07,0x19,0x2D
 		.byte		0x5F,0x00,0x14,0x22,0x02
-		.align	2
+		.align  8
 obj_0041C845:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMProcrastinatedActions),MAKEPTR(SYMAddProcrastinatedSend)
 obj_0041C859_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041C859:	FrameObj(5, obj_0041C859_map)
 		Ref		0x00000032,MAKEPTR(obj_0041C821),MAKEPTR(obj_0041C845),NILREF,0x00000014
-obj_0046424D:	.long		kHeaderSize + 108 + kFlagsBinary
+obj_0046424D:	Ref    kHeaderSize + 108 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA4,0x7B,0x6F,0x00,0x5B,0x7B,0x19,0x29,0xA5,0x7D,0x1A,0x29,0xA6,0x7E
 		.byte		0x6F,0x00,0x5B,0x7E,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x4E,0x7F,0x00
@@ -10221,17 +10218,17 @@ obj_0046424D:	.long		kHeaderSize + 108 + kFlagsBinary
 		.byte		0x7C,0x7F,0x00,0x07,0x27,0x00,0x1A,0x1E,0x2B,0x00,0x7F,0x00,0x08,0x05,0x7F,0x00
 		.byte		0x08,0x06,0x6F,0x00,0x1E,0x22,0x22,0xA7,0x00,0x08,0x00,0x7C,0xC7,0x00,0x12,0x20
 		.byte		0xC7,0x00,0x0B,0x6F,0x00,0x6A,0x7C,0x5F,0x00,0x6B,0x22,0x02
-		.align	2
+		.align  8
 obj_004642C5:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMDataClassOf),MAKEPTR(SYMGetViewDefs),MAKEPTR(SYMtype),MAKEPTR(SYMprintFormat),MAKEPTR(SYMrouteFormat),MAKEPTR(SYMSetAdd)
 obj_004642ED_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004642ED:	FrameObj(5, obj_004642ED_map)
 		Ref		0x00000032,MAKEPTR(obj_0046424D),MAKEPTR(obj_004642C5),NILREF,0x00140004
-obj_0056932D:	.long		kHeaderSize + 4 + kFlagsBinary
+obj_0056932D:	Ref    kHeaderSize + 4 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x91,0x02
-		.align	2
+		.align  8
 obj_0056933D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0056933D:	FrameObj(5, obj_0056933D_map)
@@ -10240,20 +10237,20 @@ obj_0041C0A1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C0A1:	FrameObj(3, obj_0041C0A1_map)
 		Ref		0x00000132,_FStrokeInPicture,0x00000008
-obj_00428FDD:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_00428FDD:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x06,0xBF,0x18,0x19,0x82,0xA6,0x7E,0x1A,0x38,0x00,0x7B,0x22,0xC7,0x00,0x11
 		.byte		0xA7,0x00,0x08,0x5F,0x00,0x29,0x7F,0x00,0x08,0x24,0xC2,0xA7,0x00,0x07,0x7F,0x00
 		.byte		0x07,0x7E,0x1B,0x39,0x00,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x16
 		.byte		0x22,0x22,0xA7,0x00,0x08,0x00,0x7C,0x7E,0x1C,0x39,0x02
-		.align	2
+		.align  8
 obj_00429025:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMplay),MAKEPTR(obj_00428FC5),MAKEPTR(SYMOpen),MAKEPTR(SYMschedule),MAKEPTR(SYMstart)
 obj_00429045_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00429045:	FrameObj(5, obj_00429045_map)
 		Ref		0x00000032,MAKEPTR(obj_00428FDD),MAKEPTR(obj_00429025),NILREF,0x000C000C
-obj_00420981:	.long		kHeaderSize + 115 + kFlagsBinary
+obj_00420981:	Ref    kHeaderSize + 115 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x71,0x18,0x19,0x28,0x20,0xC2,0x1A,0x39,0xA5,0x1B,0x7B,0x1C,0x8A
 		.byte		0xC7,0x00,0x16,0xA6,0x7D,0x1D,0x1E,0x7E,0x7E,0x1F,0x00,0x07,0x84,0x1F,0x00,0x08
@@ -10263,11 +10260,11 @@ obj_00420981:	.long		kHeaderSize + 115 + kFlagsBinary
 		.byte		0xC4,0x6F,0x00,0x6D,0x7E,0x1C,0x88,0x1F,0x00,0x0D,0x82,0xA7,0x00,0x09,0x7F,0x00
 		.byte		0x09,0x7D,0x1F,0x00,0x0E,0x39,0x00,0x7F,0x00,0x09,0x5F,0x00,0x6E,0x22,0x5F,0x00
 		.byte		0x72,0x22,0x02
-		.align	2
-obj_00420925:	.long		kHeaderSize + 8 + kFlagsBinary
+		.align  8
+obj_00420925:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'_','M','_',0
-		.align	2
+		.align  8
 obj_00420969:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMtag),MAKEPTR(SYMitems)
 obj_00420A01:	ArrayObj(15, MAKEPTR(SYMliterals))
@@ -10276,15 +10273,15 @@ obj_00420A49_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00420A49:	FrameObj(5, obj_00420A49_map)
 		Ref		0x00000032,MAKEPTR(obj_00420981),MAKEPTR(obj_00420A01),NILREF,0x00140008
-obj_0041FCC5:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_0041FCC5:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x19,0x7C,0x1A,0x91,0x1B,0x28,0x1C,0x91,0x7C,0x1D,0x91,0x27
 		.byte		0x00,0x28,0xC7,0x00,0x0A,0x7C,0x1D,0x91,0x1E,0x8C,0x1F,0x00,0x07,0x2A,0x02
-		.align	2
-obj_0041FC9D:	.long		kHeaderSize + 26 + kFlagsBinary
+		.align  8
+obj_0041FC9D:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0','^','1','^','?','2','0','|','|','^','3',0
-		.align	2
+		.align  8
 obj_0041FD1D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMtimeFormat),MAKEPTR(SYMtimeSepStr2)
 obj_0041FCF1:	ArrayObj(8, MAKEPTR(SYMliterals))
@@ -10297,14 +10294,14 @@ obj_0041B3F1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B3F1:	FrameObj(3, obj_0041B3F1_map)
 		Ref		0x00000132,_FKeyboardConnected,0x00000000
-obj_003C6F65:	.long		kHeaderSize + 69 + kFlagsBinary
+obj_003C6F65:	Ref    kHeaderSize + 69 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00,0x38,0x7F,0x00,0x07
 		.byte		0x24,0xC2,0xA6,0x7F,0x00,0x07,0x20,0xC2,0xA5,0x7E,0x7B,0x7D,0x91,0xC4,0x6F,0x00
 		.byte		0x34,0x18,0x27,0x00,0xC4,0xC9,0x7E,0x7C,0x19,0x2A,0x00,0x07,0x00,0x07,0x5F,0x00
 		.byte		0x34,0x07,0x00,0x07,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x0D,0x22
 		.byte		0x22,0xA7,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_003C6FB9:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMApply)
 obj_003C6FCD_map:	FrameMapObj(5)
@@ -10315,11 +10312,11 @@ obj_0062FC85_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062FC85:	FrameObj(3, obj_0062FC85_map)
 		Ref		0x00000132,_FEntrySetCachedObject,0x00000008
-obj_00497395:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_00497395:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x7B,0x20,0x1A,0x22,0x1B,0x2D,0xA4,0x7C,0x6F,0x00,0x1D,0x70,0x19
 		.byte		0x91,0x7C,0xC2,0x1C,0x38,0x00,0x70,0x19,0x91,0x7C,0x1D,0x2A,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_004973C1:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStoreSlipRegistry),MAKEPTR(SYMstoreSlips),MAKEPTR(SYM_3D),MAKEPTR(SYMLSearch),MAKEPTR(SYMClose),MAKEPTR(SYMRemoveSlot)
 obj_004973E5_map:	FrameMapObj(5)
@@ -10334,7 +10331,7 @@ obj_0041B785_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B785:	FrameObj(3, obj_0041B785_map)
 		Ref		0x00000132,_FMakeBitmap,0x0000000C
-obj_004A0321:	.long		kHeaderSize + 190 + kFlagsBinary
+obj_004A0321:	Ref    kHeaderSize + 190 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA7,0x00,0x08,0x7D,0x22,0xC7,0x00,0x11,0xA7,0x00,0x0A,0x5F,0x00,0xA4
 		.byte		0x7F,0x00,0x0A,0x24,0xC2,0xA7,0x00,0x09,0x22,0xA7,0x00,0x0B,0x7C,0x7F,0x00,0x09
@@ -10348,7 +10345,7 @@ obj_004A0321:	.long		kHeaderSize + 190 + kFlagsBinary
 		.byte		0x7E,0x33,0x00,0x5F,0x00,0xA0,0x7F,0x00,0x08,0x7F,0x00,0x09,0xC7,0x00,0x15,0x00
 		.byte		0x7F,0x00,0x0A,0x05,0x7F,0x00,0x0A,0x06,0x6F,0x00,0x10,0x22,0x22,0xA7,0x00,0x0A
 		.byte		0x00,0x7E,0xC5,0x6F,0x00,0xBC,0x7F,0x00,0x08,0x5F,0x00,0xBD,0x22,0x02
-		.align	2
+		.align  8
 obj_004A02F5:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMGetPath),MAKEPTR(SYMdataFunc),MAKEPTR(SYMdataPath),MAKEPTR(SYMHasData),MAKEPTR(SYMstring),MAKEPTR(SYMIsInstance),MAKEPTR(SYMStrFilled)
 obj_004A03ED_map:	FrameMapObj(5)
@@ -10383,13 +10380,13 @@ obj_003C6CD1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C6CD1:	FrameObj(5, obj_003C6CD1_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C6CBD),NILREF,0x00000004
-obj_0055A419:	.long		kHeaderSize + 49 + kFlagsBinary
+obj_0055A419:	Ref    kHeaderSize + 49 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x39,0xA4,0x7C,0x1A,0x38,0xA5,0x1B,0x88,0xA6,0x5F,0x00,0x29,0x7D
 		.byte		0x1C,0x91,0x6F,0x00,0x21,0x7E,0x7D,0x1C,0x91,0x1D,0x22,0x27,0x00,0x1A,0x1E,0x2D
 		.byte		0x00,0x7C,0x1F,0x00,0x07,0x38,0xA5,0x7D,0x00,0x7D,0x67,0x00,0x0F,0x22,0x00,0x7E
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0055A3E1:	ArrayObj(2, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYM_package),MAKEPTR(SYM_scriptIcon)
 obj_0055A3F5_map:	FrameMapObj(2)
@@ -10406,11 +10403,11 @@ obj_0055A485_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0055A485:	FrameObj(5, obj_0055A485_map)
 		Ref		0x00000032,MAKEPTR(obj_0055A419),MAKEPTR(obj_0055A459),NILREF,0x000C0004
-obj_005A847D:	.long		kHeaderSize + 32 + kFlagsBinary
+obj_005A847D:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x0E,0x7D,0x19,0x91,0x5F,0x00,0x0F,0x22,0x6F
 		.byte		0x00,0x1D,0x7D,0x19,0x91,0x7C,0x1A,0x2A,0x00,0x7D,0x1B,0x29,0x00,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_005A84A9:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDirectoryEntry),MAKEPTR(SYMextensionPaths),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMEntryChange)
 obj_005A84C5_map:	FrameMapObj(5)
@@ -10433,14 +10430,14 @@ obj_006301E1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006301E1:	FrameObj(3, obj_006301E1_map)
 		Ref		0x00000132,_Ftanh,0x00000004
-obj_0055A549:	.long		kHeaderSize + 77 + kFlagsBinary
+obj_0055A549:	Ref    kHeaderSize + 77 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x4B,0x7C,0x19,0x38,0xA5,0x5F,0x00,0x43,0x7D
 		.byte		0x1A,0x29,0x6F,0x00,0x1B,0x7D,0x1B,0x91,0x5F,0x00,0x1C,0x22,0xA6,0x7D,0x1C,0x29
 		.byte		0x00,0x7E,0x1D,0x29,0x6F,0x00,0x3B,0x1E,0x27,0x00,0xE0,0xC9,0x7E,0x1F,0x00,0x07
 		.byte		0x29,0x00,0x07,0x00,0x07,0x5F,0x00,0x3B,0x07,0x00,0x07,0x7C,0x1F,0x00,0x08,0x38
 		.byte		0xA5,0x7D,0x00,0x7D,0x67,0x00,0x0F,0x22,0x5F,0x00,0x4C,0x22,0x02
-		.align	2
+		.align  8
 obj_0055A5A5:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetBackupAllPackagesCursor),MAKEPTR(SYMentry),MAKEPTR(SYMIsPackageEntry),MAKEPTR(SYMpkgRef),MAKEPTR(SYMEntryRemoveFromSoup),MAKEPTR(SYMIsPackageActive),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMDeActivatePackage),MAKEPTR(SYMNext)
 obj_0055A5D5_map:	FrameMapObj(5)
@@ -10455,25 +10452,25 @@ obj_0041A831_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041A831:	FrameObj(3, obj_0041A831_map)
 		Ref		0x00000132,_FGestalt,0x00000004
-obj_0041CED9:	.long		kHeaderSize + 11 + kFlagsBinary
+obj_0041CED9:	Ref    kHeaderSize + 11 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7B,0x18,0x29,0x22,0x7C,0x20,0x22,0x19,0x2E,0x02
-		.align	2
+		.align  8
 obj_0041CEF1:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),MAKEPTR(SYMStrMunger)
 obj_0041CF05_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041CF05:	FrameObj(5, obj_0041CF05_map)
 		Ref		0x00000032,MAKEPTR(obj_0041CED9),MAKEPTR(obj_0041CEF1),NILREF,0x00000008
-obj_005B703D:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_005B703D:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x27,0x02,0xC6,0x7C,0x19,0x1A,0x8D,0xC7,0x00,0x16,0x1B,0x1C,0x2A,0x00
 		.byte		0x7B,0x7C,0x1D,0x2A,0x02
-		.align	2
-obj_006294D5:	.long		kHeaderSize + 20 + kFlagsBinary
+		.align  8
+obj_006294D5:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','t','r','i','n','g','E','Q','(',0
-		.align	2
+		.align  8
 obj_006294B1:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_006294D5),MAKEPTR(obj_0049793D),MAKEPTR(SYMarray),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMStrEqual)
 obj_006294F5_map:	FrameMapObj(5)
@@ -10484,7 +10481,7 @@ obj_0041E4F5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041E4F5:	FrameObj(3, obj_0041E4F5_map)
 		Ref		0x00000132,_FDebugMemoryStats,0x00000000
-obj_004D26D9:	.long		kHeaderSize + 238 + kFlagsBinary
+obj_004D26D9:	Ref    kHeaderSize + 238 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA6,0x20,0xA7,0x00,0x07,0x7B,0x19,0x29,0xA7,0x00,0x08,0x5F,0x00,0x4E,0x7B
 		.byte		0x7F,0x00,0x07,0xC2,0x27,0x03,0x06,0xC7,0x00,0x0C,0x6F,0x00,0x2B,0x7B,0x7F,0x00
@@ -10501,7 +10498,7 @@ obj_004D26D9:	.long		kHeaderSize + 238 + kFlagsBinary
 		.byte		0x24,0xC1,0xA7,0x00,0x07,0x22,0x5F,0x00,0xE3,0x00,0x7F,0x00,0x07,0x24,0xC0,0xA7
 		.byte		0x00,0x07,0x7F,0x00,0x07,0x00,0x7F,0x00,0x07,0x7F,0x00,0x08,0xC7,0x00,0x0A,0x67
 		.byte		0x00,0x81,0x22,0x00,0x7E,0x7F,0x00,0x07,0x22,0x1B,0x2B,0xA6,0x7E,0x02
-		.align	2
+		.align  8
 obj_004D26BD:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_005A7F4D),MAKEPTR(SYMStrLen),MAKEPTR(SYMarray),MAKEPTR(SYMSubstr)
 obj_004D27D5_map:	FrameMapObj(5)
@@ -10512,19 +10509,19 @@ obj_00422969_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00422969:	FrameObj(3, obj_00422969_map)
 		Ref		0x00000132,_FConvertToSoundFrame,0x00000004
-obj_005AF1B9:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_005AF1B9:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x20,0x98,0x1A,0x28,0x00,0x1B,0x22,0xC7,0x00,0x11,0xA4,0x5F,0x00,0x1B
 		.byte		0x7C,0x24,0xC2,0xA3,0x70,0x7B,0x1C,0x2A,0x00,0x7C,0x05,0x7C,0x06,0x6F,0x00,0x10
 		.byte		0x22,0x22,0xA4,0x00,0x1D,0x28,0x1E,0x29,0x00,0x1F,0x00,0x07,0x28,0x02
-		.align	2
+		.align  8
 obj_005AF1F5:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMResetLetterDefaults),MAKEPTR(obj_005AF019),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMGetRemoteWriting),MAKEPTR(SYMSetRemoteWriting),MAKEPTR(SYMReadCursiveOptions)
 obj_005AF221_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005AF221:	FrameObj(5, obj_005AF221_map)
 		Ref		0x00000032,MAKEPTR(obj_005AF1B9),MAKEPTR(obj_005AF1F5),NILREF,0x00080000
-obj_004729E9:	.long		kHeaderSize + 97 + kFlagsBinary
+obj_004729E9:	Ref    kHeaderSize + 97 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x18,0x19,0x89,0xA7,0x00,0x07,0x7B,0x7C
 		.byte		0x1A,0x7F,0x00,0x07,0x1B,0x2C,0xA7,0x00,0x08,0x7F,0x00,0x08,0x6F,0x00,0x47,0x7B
@@ -10533,21 +10530,21 @@ obj_004729E9:	.long		kHeaderSize + 97 + kFlagsBinary
 		.byte		0x09,0x7D,0x7E,0x99,0x5F,0x00,0x60,0x7C,0x1C,0x81,0xA7,0x00,0x09,0x7F,0x00,0x09
 		.byte		0x7D,0x7E,0x98,0x7B,0x7F,0x00,0x09,0x1A,0x7F,0x00,0x07,0x27,0x00,0x1A,0x1D,0x2D
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00472A59:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMname),MAKEPTR(SYMpathExpr),MAKEPTR(SYMstr_3C),MAKEPTR(SYMBFind),MAKEPTR(obj_0045804D),MAKEPTR(SYMBInsert)
 obj_00472A7D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00472A7D:	FrameObj(5, obj_00472A7D_map)
 		Ref		0x00000032,MAKEPTR(obj_004729E9),MAKEPTR(obj_00472A59),NILREF,0x000C0010
-obj_0048BE41:	.long		kHeaderSize + 79 + kFlagsBinary
+obj_0048BE41:	Ref    kHeaderSize + 79 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x1A,0x29,0xA3,0x7B,0xC5,0x6F,0x00,0x0E,0x22,0x02,0x00,0x1B,0x80
 		.byte		0xA4,0x7B,0x7C,0x1C,0x2A,0x00,0x1D,0x7C,0x1E,0x2A,0x00,0x1F,0x00,0x07,0x28,0x1F
 		.byte		0x00,0x08,0x91,0x6F,0x00,0x4D,0x1F,0x00,0x07,0x28,0x1F,0x00,0x08,0x91,0x22,0xC7
 		.byte		0x00,0x11,0xA6,0x5F,0x00,0x42,0x7E,0x24,0xC2,0xA5,0x7D,0x1F,0x00,0x09,0x38,0x00
 		.byte		0x7E,0x05,0x7E,0x06,0x6F,0x00,0x36,0x22,0x22,0xA6,0x5F,0x00,0x4E,0x22,0x02
-		.align	2
+		.align  8
 obj_0048BE9D:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMcurrentPersona),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMResolveEntryAlias),MAKEPTR(obj_004D4879),MAKEPTR(SYMSetPersona),MAKEPTR(SYMpersonae),MAKEPTR(SYMSetUserConfigEnMasse),MAKEPTR(SYMGetRoot),MAKEPTR(SYMsenderList),MAKEPTR(SYMJamIt)
 obj_0048BED1_map:	FrameMapObj(5)
@@ -10562,11 +10559,11 @@ obj_00630211_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630211:	FrameObj(3, obj_00630211_map)
 		Ref		0x00000132,_FStuffPString,0x0000000C
-obj_00421D99:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_00421D99:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x29,0x6F,0x00,0x0B,0x7C,0x20,0x19,0x2A,0xA4,0x7B,0x7C,0x7D,0x7E,0x7F
 		.byte		0x00,0x07,0x1A,0x2D,0x02
-		.align	2
+		.align  8
 obj_00421DBD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsNumber),MAKEPTR(SYMTimeToTimeInSeconds),MAKEPTR(SYMAddAlarmInSeconds)
 obj_00421DD5_map:	FrameMapObj(5)
@@ -10589,12 +10586,12 @@ obj_00556A91_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00556A91:	FrameObj(3, obj_00556A91_map)
 		Ref		0x00000132,_FGetPackages,0x00000000
-obj_005A82C9:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_005A82C9:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x13,0x7D,0x19,0x7C,0x98,0x7D,0x1A,0x29,0x00
 		.byte		0x5F,0x00,0x25,0x7B,0x7C,0x1B,0x82,0xA5,0x7D,0x27,0x02,0x07,0x1C,0x28,0x20,0xC2
 		.byte		0x1D,0x39,0x1E,0x39,0x00,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_005A82B1:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMapp),MAKEPTR(SYMmetadataPath)
 obj_005A82FD:	ArrayObj(7, MAKEPTR(SYMliterals))
@@ -10615,7 +10612,7 @@ obj_00630259_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630259:	FrameObj(3, obj_00630259_map)
 		Ref		0x00000132,_FSubtract,0x00000008
-obj_0046DB29:	.long		kHeaderSize + 88 + kFlagsBinary
+obj_0046DB29:	Ref    kHeaderSize + 88 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x24,0xC1,0xA4,0x20,0xA5,0x7C,0xA6,0x24,0xA7,0x00,0x07,0x7F,0x00
 		.byte		0x07,0x7D,0x5F,0x00,0x52,0x7B,0x7D,0xC2,0xA7,0x00,0x08,0x7F,0x00,0x08,0x27,0x03
@@ -10623,7 +10620,7 @@ obj_0046DB29:	.long		kHeaderSize + 88 + kFlagsBinary
 		.byte		0x27,0x04,0x96,0xC4,0x6F,0x00,0x3F,0x7B,0x7D,0x1A,0xC3,0x00,0x5F,0x00,0x4E,0x7F
 		.byte		0x00,0x08,0x27,0x06,0xC6,0xC4,0x6F,0x00,0x4E,0x7B,0x7D,0x1B,0xC3,0x00,0x7F,0x00
 		.byte		0x07,0xB5,0x7E,0xBF,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_0046DB8D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),0xF7146,0xF7156,0xF7166
 obj_0046DBA9_map:	FrameMapObj(5)
@@ -10658,7 +10655,7 @@ obj_00420905_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00420905:	FrameObj(5, obj_00420905_map)
 		Ref		0x00000032,MAKEPTR(obj_00482A15),MAKEPTR(obj_004208F5),NILREF,0x00000008
-obj_0041666D:	.long		kHeaderSize + 174 + kFlagsBinary
+obj_0041666D:	Ref    kHeaderSize + 174 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xC5,0x6F,0x00,0x0B,0x18,0x28,0xA4,0x5F,0x00,0x44,0x7C,0x19,0xC4,0x6F,0x00
 		.byte		0x44,0x1A,0x88,0xA4,0x73,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA7,0x00,0x07,0x5F,0x00
@@ -10671,7 +10668,7 @@ obj_0041666D:	.long		kHeaderSize + 174 + kFlagsBinary
 		.byte		0x98,0x7F,0x00,0x08,0x7F,0x00,0x0A,0xC7,0x00,0x15,0x00,0x7F,0x00,0x09,0x05,0x7F
 		.byte		0x00,0x09,0x06,0x6F,0x00,0x5E,0x22,0x22,0xA7,0x00,0x09,0x00,0x7F,0x00,0x08,0x1F
 		.byte		0x00,0x0A,0x1F,0x00,0x0B,0x1F,0x00,0x0C,0x2B,0x00,0x7F,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_00416615:	ArrayObj(3, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMitem),MAKEPTR(SYMfamily)
 obj_0041662D:	ArrayObj(13, MAKEPTR(SYMliterals))
@@ -10680,7 +10677,7 @@ obj_00416729_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00416729:	FrameObj(5, obj_00416729_map)
 		Ref		0x00000032,MAKEPTR(obj_0041666D),MAKEPTR(obj_0041662D),NILREF,0x00180008
-obj_005B5265:	.long		kHeaderSize + 87 + kFlagsBinary
+obj_005B5265:	Ref    kHeaderSize + 87 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x28,0x20,0xC2,0x1A,0x39,0xA5,0x7B,0x1B,0x29,0xA6,0x7D,0x1C,0x1D,0x7E
 		.byte		0x7E,0x1E,0x84,0x1F,0x00,0x07,0x2A,0xA7,0x00,0x07,0x7F,0x00,0x07,0x1F,0x00,0x08
@@ -10688,7 +10685,7 @@ obj_005B5265:	.long		kHeaderSize + 87 + kFlagsBinary
 		.byte		0x7C,0x6F,0x00,0x55,0x7C,0xC7,0x00,0x13,0xA7,0x00,0x09,0x7F,0x00,0x09,0x1D,0x91
 		.byte		0xC5,0x6F,0x00,0x4A,0x7F,0x00,0x09,0x1D,0x7E,0x98,0x7F,0x00,0x09,0x7D,0x1F,0x00
 		.byte		0x09,0x39,0x5F,0x00,0x56,0x22,0x02
-		.align	2
+		.align  8
 obj_005B52C9:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEMAGICPTR(276),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(SYMSymbolName),MAKEPTR(SYMindex),MAKEPTR(SYMtag),MAKEPTR(obj_00437039),MAKEPTR(SYMQuery),MAKEPTR(SYMentry),MAKEPTR(SYMAdd)
 obj_005B52FD_map:	FrameMapObj(5)
@@ -10719,17 +10716,17 @@ obj_0041D001_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041D001:	FrameObj(3, obj_0041D001_map)
 		Ref		0x00000132,_History,0x00000004
-obj_0062B195:	.long		kHeaderSize + 59 + kFlagsBinary
+obj_0062B195:	Ref    kHeaderSize + 59 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x27,0x00,0x08,0xC4,0x6F,0x00,0x39,0x72,0x1B,0x91,0xA4,0x1C,0x1D
 		.byte		0x1E,0x89,0x1F,0x00,0x07,0x1E,0x8B,0xA5,0x7B,0x6F,0x00,0x30,0x1F,0x00,0x08,0x7C
 		.byte		0x7D,0x1F,0x00,0x09,0x28,0x1F,0x00,0x0A,0x91,0x1F,0x00,0x0B,0x3B,0x5F,0x00,0x36
 		.byte		0x7C,0x7D,0x1F,0x00,0x0C,0x2A,0x5F,0x00,0x3A,0x22,0x02
-		.align	2
-obj_0062A865:	.long		kHeaderSize + 410 + kFlagsBinary
+		.align  8
+obj_0062A865:	Ref    kHeaderSize + 410 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'W','o','r','d','s',' ','a','r','e',' ','b','e','i','n','g',' ','l','e','f','t',' ','a','s',' ','i','n','k',' ','b','e','c','a','u','s','e',' ','y','o','u',' ','a','r','e',' ','c','o','n','n','e','c','t','i','n','g',' ','o','r',' ','o','v','e','r','l','a','p','p','i','n','g',' ','l','e','t','t','e','r','s','.',' ',' ','W','h','e','n',' ','u','s','i','n','g',' ','t','h','e',' ','P','r','i','n','t','i','n','g',' ','r','e','c','o','g','n','i','t','i','o','n',' ','s','e','t','t','i','n','g',',',' ','b','e',' ','c','a','r','e','f','u','l',' ','n','o','t',' ','t','o',' ','c','o','n','n','e','c','t',' ','l','e','t','t','e','r','s','.',' ',' ','T','h','e',' ','C','u','r','s','i','v','e',' ','s','e','t','t','i','n','g',' ','p','e','r','m','i','t','s',' ','j','o','i','n','e','d',' ','l','e','t','t','e','r','s','.',0
-		.align	2
+		.align  8
 obj_0062B21D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062B21D:	FrameObj(5, obj_0062B21D_map)
@@ -10762,12 +10759,12 @@ obj_0041B59D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B59D:	FrameObj(3, obj_0041B59D_map)
 		Ref		0x00000132,_FPickViewKeyDown,0x00000008
-obj_005632ED:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_005632ED:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x20,0x1A,0x1B,0x2A,0x98,0x1C,0x28,0xA4,0x7C,0x1D,0x91,0x1E,0x38,0xC5
 		.byte		0x6F,0x00,0x1E,0x7C,0x1F,0x00,0x07,0x38,0x00,0x1F,0x00,0x08,0x28,0x00,0x1F,0x00
 		.byte		0x09,0x28,0x00,0x1F,0x00,0x0A,0x28,0x00,0x7B,0x1F,0x00,0x0B,0x29,0x02
-		.align	2
+		.align  8
 obj_00563329:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMsetTimeSeed),0xFFFFFFFF7FFFFFFC,MAKEPTR(SYMRandom),MAKEPTR(SYMGetRoot),MAKEPTR(SYMSleepScreen),MAKEPTR(SYMPasswordCheck),MAKEPTR(SYMDirty),MAKEPTR(SYMRefreshViews),MAKEPTR(SYMBackupBatteryCheck),MAKEPTR(SYMMainBatteryCheck),MAKEPTR(SYMCallPowerOnFns)
 obj_00563365_map:	FrameMapObj(5)
@@ -10778,12 +10775,12 @@ obj_0041BEE5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BEE5:	FrameObj(3, obj_0041BEE5_map)
 		Ref		0x00000132,_FSetInkerPenSize,0x00000004
-obj_00569CF5:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_00569CF5:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0x18,0x2A,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00,0x23,0x7F,0x00
 		.byte		0x08,0x24,0xC2,0xA7,0x00,0x07,0x7B,0x7C,0x7D,0x7E,0x7F,0x00,0x07,0x34,0x00,0x7F
 		.byte		0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x0E,0x22,0x22,0xA7,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_00569D31:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSoupChangeCallbacks)
 obj_00569D41_map:	FrameMapObj(5)
@@ -10796,12 +10793,12 @@ obj_003C65F1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C65F1:	FrameObj(5, obj_003C65F1_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C65DD),NILREF,0x00000004
-obj_00629BE1:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_00629BE1:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x50,0xC9,0x19,0x28,0x00,0x7B,0x7C,0x7D,0x1A,0x2B,0xA6,0x07,0x00
 		.byte		0x07,0x5F,0x00,0x20,0x1B,0x28,0x00,0x1C,0x28,0x00,0x1D,0x28,0x00,0x07,0x00,0x07
 		.byte		0x1B,0x28,0x00,0x1C,0x28,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_00629C15:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMBlockStrokes),MAKEPTR(SYMPerform),MAKEPTR(SYMUnblockStrokes),MAKEPTR(SYMFlushStrokes),MAKEPTR(SYMRethrow)
 obj_00629C39_map:	FrameMapObj(5)
@@ -10812,13 +10809,13 @@ obj_005366D5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005366D5:	FrameObj(3, obj_005366D5_map)
 		Ref		0x00000132,_FTestExit,0x00000000
-obj_00421CF9:	.long		kHeaderSize + 63 + kFlagsBinary
+obj_00421CF9:	Ref    kHeaderSize + 63 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x00,0x7C,0x19,0x29,0x6F,0x00,0x10,0x7C,0x1A,0x29,0x5F,0x00,0x11
 		.byte		0x7C,0xA7,0x00,0x08,0x7B,0x7F,0x00,0x08,0x1B,0x29,0x7D,0x7E,0x7F,0x00,0x08,0x7F
 		.byte		0x00,0x07,0x1C,0x86,0xA7,0x00,0x09,0x7F,0x00,0x09,0x1D,0x1E,0x28,0x20,0xC2,0x1F
 		.byte		0x00,0x07,0x39,0x1F,0x00,0x08,0x39,0x00,0x1F,0x00,0x09,0x28,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_00421CD1:	ArrayObj(7, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMkey),MAKEPTR(SYMTime),MAKEPTR(SYMnotifyArgs),MAKEPTR(SYMcallbackFn),MAKEPTR(SYMTimeInSeconds),MAKEPTR(SYMcallbackParams)
 obj_00421D45:	ArrayObj(10, MAKEPTR(SYMliterals))
@@ -10827,14 +10824,14 @@ obj_00421D79_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00421D79:	FrameObj(5, obj_00421D79_map)
 		Ref		0x00000032,MAKEPTR(obj_00421CF9),MAKEPTR(obj_00421D45),NILREF,0x00080014
-obj_00476A8D:	.long		kHeaderSize + 74 + kFlagsBinary
+obj_00476A8D:	Ref    kHeaderSize + 74 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA4,0x7B,0x18,0x29,0x6F,0x00,0x0E,0x7B,0x19,0x91,0x5F,0x00,0x0F,0x22,0x6F
 		.byte		0x00,0x19,0x1A,0x28,0x7B,0x19,0x91,0x91,0xA4,0x1B,0x27,0x00,0xF4,0xC9,0x7C,0x22
 		.byte		0xC4,0x67,0x00,0x2C,0x7C,0x1C,0x91,0x22,0xC4,0x5F,0x00,0x2F,0x27,0x00,0x1A,0x6F
 		.byte		0x00,0x37,0x1A,0x28,0x1D,0x91,0xA4,0x07,0x00,0x07,0x5F,0x00,0x48,0x1A,0x28,0x1D
 		.byte		0x91,0xA4,0x7C,0x02,0x00,0x07,0x00,0x07,0x7C,0x02
-		.align	2
+		.align  8
 obj_00476AE5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsFrame),MAKEPTR(SYMcategory),MAKEPTR(SYMGetRoot),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMdefaultConfiguration),MAKEPTR(SYMdefaultTransport_3ANewton)
 obj_00476B09_map:	FrameMapObj(5)
@@ -10845,7 +10842,7 @@ obj_0041B381_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B381:	FrameObj(3, obj_0041B381_map)
 		Ref		0x00000132,_FSetRemoteWriting,0x00000004
-obj_0055A6F1:	.long		kHeaderSize + 225 + kFlagsBinary
+obj_0055A6F1:	Ref    kHeaderSize + 225 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA8,0x70,0x20,0xC2,0x19,0x91,0xA5,0x7D,0x7C,0x1A,0x2A,0x6F,0x00,0x14,0x1B
 		.byte		0x1C,0x1D,0x2A,0x00,0x20,0xA6,0x20,0xA7,0x00,0x07,0x27,0x00,0x1A,0xA7,0x00,0x08
@@ -10862,12 +10859,12 @@ obj_0055A6F1:	.long		kHeaderSize + 225 + kFlagsBinary
 		.byte		0xC8,0x1B,0x1F,0x00,0x0D,0x1D,0x2A,0x00,0x7C,0x1F,0x00,0x0E,0x1F,0x00,0x0F,0x29
 		.byte		0x1F,0x00,0x10,0x39,0xAF,0x00,0x11,0x1F,0x00,0x12,0x04,0x7C,0x1F,0x00,0x13,0x39
 		.byte		0x02
-		.align	2
-obj_0055A671:	.long		kHeaderSize + 29 + kFlagsBinary
+		.align  8
+obj_0055A671:	Ref    kHeaderSize + 29 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x22,0xC7,0x00,0x11,0xA4,0x5F,0x00,0x14,0x7C,0x24,0xC2,0xA3,0x7B,0x71,0x1A
 		.byte		0x39,0x00,0x7C,0x05,0x7C,0x06,0x6F,0x00,0x09,0x22,0x22,0xA4,0x02
-		.align	2
+		.align  8
 obj_0055A69D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMpieceArray),MAKEPTR(SYMdestSoup),MAKEPTR(SYMAddFlushed)
 obj_0055A6B5_map:	FrameMapObj(3)
@@ -10897,7 +10894,7 @@ obj_0041CA71_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CA71:	FrameObj(3, obj_0041CA71_map)
 		Ref		0x00000132,_FSplitString,0x00000004
-obj_0045B4A9:	.long		kHeaderSize + 168 + kFlagsBinary
+obj_0045B4A9:	Ref    kHeaderSize + 168 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA4,0x7C,0x19,0x29,0x1A,0x91,0xA5,0x7C,0x7C,0x27,0x16,0x80,0x1B,0x2A
 		.byte		0xC1,0xA6,0x7B,0x1C,0x91,0x27,0x00,0xF0,0xC7,0x00,0x07,0x7B,0x1D,0x91,0xC0,0xA7
@@ -10910,7 +10907,7 @@ obj_0045B4A9:	.long		kHeaderSize + 168 + kFlagsBinary
 		.byte		0x08,0x7D,0xC1,0xC7,0x00,0x07,0xC0,0x7F,0x00,0x07,0xC0,0xAF,0x00,0x08,0x22,0x5F
 		.byte		0x00,0xA0,0x00,0x7F,0x00,0x0A,0xB7,0x00,0x08,0x7F,0x00,0x09,0xBF,0x00,0x68,0x22
 		.byte		0x00,0x7B,0x18,0x77,0x00,0x08,0x99,0x02
-		.align	2
+		.align  8
 obj_0045B479:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTime),MAKEPTR(SYMDate),MAKEPTR(SYMdayOfWeek),MAKEPTR(SYMmod),MAKEPTR(SYMhours),MAKEPTR(SYMminutes),MAKEPTR(SYMdays),MAKEPTR(obj_0045B419),MAKEPTR(SYMnextTime)
 obj_0045B55D_map:	FrameMapObj(5)
@@ -10921,18 +10918,18 @@ obj_0062812D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062812D:	FrameObj(3, obj_0062812D_map)
 		Ref		0x00000132,_FRecSettingsChanged,0x00000000
-obj_00530A29:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_00530A29:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0C,0x70,0x7B,0x91,0xA4,0x7C,0x5F,0x00,0x0D,0x22,0x6F,0x00,0x14
 		.byte		0x7C,0x5F,0x00,0x17,0x19,0x1A,0x81,0x02
-		.align	2
+		.align  8
 obj_00530A4D:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCommConfigRegistry),MAKEPTR(obj_00530A09),MAKEPTR(obj_0045804D)
 obj_00530A65_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00530A65:	FrameObj(5, obj_00530A65_map)
 		Ref		0x00000032,MAKEPTR(obj_00530A29),MAKEPTR(obj_00530A4D),NILREF,0x00040004
-obj_00418A05:	.long		kHeaderSize + 466 + kFlagsBinary
+obj_00418A05:	Ref    kHeaderSize + 466 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x18,0x28,0xA3,0x7B,0x19,0x29,0xA4,0x7C,0xA5,0x7B,0x1A
 		.byte		0x29,0xA6,0x7E,0x6F,0x01,0xD0,0x7C,0x22,0x22,0x22,0x22,0x22,0x1B,0x86,0xA5,0x7E
@@ -10964,7 +10961,7 @@ obj_00418A05:	.long		kHeaderSize + 466 + kFlagsBinary
 		.byte		0x91,0x6F,0x01,0xC2,0x7E,0x1F,0x00,0x27,0x91,0x7D,0x1F,0x00,0x27,0x91,0xC6,0x5F
 		.byte		0x01,0xC3,0x22,0x6F,0x01,0xD0,0x7D,0x1F,0x00,0x27,0x7E,0x1F,0x00,0x27,0x91,0x98
 		.byte		0x7D,0x02
-		.align	2
+		.align  8
 obj_004187B1:	ArrayObj(7, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMappAreaWidth),MAKEPTR(SYMappAreaHeight),MAKEPTR(SYMbuttonBarBounds),MAKEPTR(SYMbuttonBarPosition),MAKEPTR(SYMappAreaBounds)
 obj_00418819:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -11011,11 +11008,11 @@ obj_00418BE5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00418BE5:	FrameObj(5, obj_00418BE5_map)
 		Ref		0x00000032,MAKEPTR(obj_00418A05),MAKEPTR(obj_00418959),NILREF,0x000C0004
-obj_005A84E5:	.long		kHeaderSize + 29 + kFlagsBinary
+obj_005A84E5:	Ref    kHeaderSize + 29 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x6F,0x00,0x1A,0x18,0x28,0x7C,0x91,0xA5,0x7D,0xC5,0x6F,0x00,0x1A,0x7B,0x19
 		.byte		0x29,0xA6,0x7E,0x6F,0x00,0x1A,0x7E,0x7C,0x91,0xA5,0x7D,0x02,0x02
-		.align	2
+		.align  8
 obj_005A8511:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetDataDefs)
 obj_005A8525_map:	FrameMapObj(5)
@@ -11048,12 +11045,12 @@ obj_005ABBD9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005ABBD9:	FrameObj(3, obj_005ABBD9_map)
 		Ref		0x00000132,_FStripDiacriticals,0x00000004
-obj_004185BD:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_004185BD:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x70,0x1A,0x91,0x70,0x1B,0x91,0x70,0x1C,0x91,0x70,0x1D,0x91,0x70
 		.byte		0x1E,0x91,0x70,0x1F,0x00,0x07,0x91,0x70,0x1F,0x00,0x08,0x91,0x70,0x1F,0x00,0x09
 		.byte		0x91,0x1F,0x00,0x0A,0x87,0x00,0x09,0x02
-		.align	2
+		.align  8
 obj_00418589:	ArrayObj(10, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMappAreaGlobalTop),MAKEPTR(SYMappAreaGlobalLeft),MAKEPTR(SYMappAreaTop),MAKEPTR(SYMappAreaLeft),MAKEPTR(SYMappAreaWidth),MAKEPTR(SYMappAreaHeight),MAKEPTR(SYMappAreaBounds),MAKEPTR(SYMbuttonBarBounds),MAKEPTR(SYMbuttonBarPosition)
 obj_004185F1:	ArrayObj(11, MAKEPTR(SYMliterals))
@@ -11070,14 +11067,14 @@ obj_0041B1D1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B1D1:	FrameObj(3, obj_0041B1D1_map)
 		Ref		0x00000132,_CoordinateToLatitude,0x00000008
-obj_00480489:	.long		kHeaderSize + 66 + kFlagsBinary
+obj_00480489:	Ref    kHeaderSize + 66 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x30,0x7E,0x24
 		.byte		0xC2,0xA5,0x7E,0x20,0xC2,0xA4,0x71,0x7C,0x91,0x7D,0xC4,0x6F,0x00,0x24,0x7D,0x1A
 		.byte		0x29,0x5F,0x00,0x25,0x22,0x6F,0x00,0x2E,0x7B,0x7D,0xC7,0x00,0x15,0x00,0x7E,0x05
 		.byte		0x7E,0x06,0x6F,0x00,0x0E,0x22,0x22,0xA6,0x00,0x7B,0x1B,0x1C,0x1D,0x2B,0x00,0x7B
 		.byte		0x02,0x02
-		.align	2
+		.align  8
 obj_004804D9:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMDialinNetworkRegistry),MAKEPTR(SYMIsFrame),MAKEPTR(SYMstr_3C),MAKEPTR(SYMtitle),MAKEPTR(SYMSort)
 obj_004804FD_map:	FrameMapObj(5)
@@ -11096,26 +11093,26 @@ obj_0041B96D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B96D:	FrameObj(3, obj_0041B96D_map)
 		Ref		0x00000132,_FMapRect,0x0000000C
-obj_00590EE5:	.long		kHeaderSize + 72 + kFlagsBinary
+obj_00590EE5:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA5,0x7B,0xC7,0x00,0x12,0x24,0xC1,0xA6,0x20,0xA7,0x00,0x07,0x7E,0xA7,0x00
 		.byte		0x08,0x24,0xA7,0x00,0x09,0x7F,0x00,0x09,0x7F,0x00,0x07,0x5F,0x00,0x3E,0x7B,0x7F
 		.byte		0x00,0x07,0xC2,0x18,0x91,0x7C,0xC4,0x6F,0x00,0x38,0x7B,0x7F,0x00,0x07,0xC2,0xC7
 		.byte		0x00,0x13,0xA5,0x22,0x5F,0x00,0x45,0x00,0x7F,0x00,0x09,0xB7,0x00,0x07,0x7F,0x00
 		.byte		0x08,0xBF,0x00,0x1E,0x22,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00590F39:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMid)
 obj_00590F49_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00590F49:	FrameObj(5, obj_00590F49_map)
 		Ref		0x00000032,MAKEPTR(obj_00590EE5),MAKEPTR(obj_00590F39),NILREF,0x00140008
-obj_00569C75:	.long		kHeaderSize + 43 + kFlagsBinary
+obj_00569C75:	Ref    kHeaderSize + 43 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0x18,0x2A,0xA5,0x7D,0x6F,0x00,0x29,0x7D,0x19,0x91,0xA6,0x7E,0x7C,0x91
 		.byte		0x6F,0x00,0x29,0x7E,0x7C,0x1A,0x2A,0x00,0x7E,0xC7,0x00,0x12,0x20,0xC4,0x6F,0x00
 		.byte		0x29,0x73,0x7B,0x1C,0x1D,0x22,0x1E,0x2D,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_00569CAD:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetSoupChangeWatcher),MAKEPTR(SYMcallbacks),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMSoupChangeRegistry),MAKEPTR(SYMstr_3C),MAKEPTR(SYMsoupName),MAKEPTR(SYMBDelete)
 obj_00569CD5_map:	FrameMapObj(5)
@@ -11134,7 +11131,7 @@ obj_0041B90D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B90D:	FrameObj(3, obj_0041B90D_map)
 		Ref		0x00000132,_FOffsetRect,0x0000000C
-obj_004D39A9:	.long		kHeaderSize + 135 + kFlagsBinary
+obj_004D39A9:	Ref    kHeaderSize + 135 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0xA6,0x7B,0x18,0x7E,0x19,0x2B,0xA4,0x7C,0x6F,0x00,0x16,0x7B,0x1A,0x7E,0x19
 		.byte		0x2B,0xA5,0x7D,0x5F,0x00,0x17,0x22,0x6F,0x00,0x2C,0x7B,0x7C,0x24,0xC0,0x7D,0x7C
@@ -11145,7 +11142,7 @@ obj_004D39A9:	.long		kHeaderSize + 135 + kFlagsBinary
 		.byte		0x2B,0x1C,0x1F,0x00,0x08,0x1F,0x00,0x09,0x2B,0xA7,0x00,0x09,0x5F,0x00,0x75,0x7B
 		.byte		0x1F,0x00,0x07,0x29,0xA5,0x7F,0x00,0x07,0x7B,0x7E,0x7D,0x7E,0xC1,0x1B,0x2B,0x7F
 		.byte		0x00,0x09,0x1F,0x00,0x0A,0x83,0x02
-		.align	2
+		.align  8
 obj_004D3955:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMareacode),MAKEPTR(SYMphone),MAKEPTR(SYMextension)
 obj_004D3971:	ArrayObj(11, MAKEPTR(SYMliterals))
@@ -11174,10 +11171,10 @@ obj_0041BCA5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BCA5:	FrameObj(3, obj_0041BCA5_map)
 		Ref		0x00000132,_FGetNextMeetingTime,0x00000008
-obj_005B0F91:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_005B0F91:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xA4,0x7C,0xC5,0x6F,0x00,0x0D,0x70,0x19,0x91,0xA4,0x7C,0x02,0x02
-		.align	2
+		.align  8
 obj_005B0FAD:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSoundRegistry),MAKEPTR(SYMsimpleBeep)
 obj_005B0FC1_map:	FrameMapObj(5)
@@ -11208,20 +11205,20 @@ obj_00630361_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630361:	FrameObj(3, obj_00630361_map)
 		Ref		0x00000132,_FIsNumber,0x00000004
-obj_004A8A81:	.long		kHeaderSize + 53 + kFlagsBinary
+obj_004A8A81:	Ref    kHeaderSize + 53 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7D,0x6F,0x00,0x0E,0x71,0x7D,0x91,0x5F,0x00,0x0F,0x22,0xA6
 		.byte		0x7E,0xC5,0x67,0x00,0x24,0x7E,0x6F,0x00,0x20,0x7E,0x7C,0x91,0xC5,0x5F,0x00,0x21
 		.byte		0x22,0x5F,0x00,0x27,0x27,0x00,0x1A,0x6F,0x00,0x31,0x7D,0x7C,0x1A,0x2A,0x5F,0x00
 		.byte		0x34,0x7E,0x7C,0x91,0x02
-		.align	2
+		.align  8
 obj_004A8AC5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMDataClassOf),MAKEPTR(SYM_viewdefs),MAKEPTR(SYMGetDataView)
 obj_004A8ADD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8ADD:	FrameObj(5, obj_004A8ADD_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8A81),MAKEPTR(obj_004A8AC5),NILREF,0x00080008
-obj_0046D8B1:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_0046D8B1:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x18,0x91,0x6F,0x00,0x0F,0x27,0x00,0x08,0x7C,0x19,0x39,0x5F,0x00,0x10,0x22
 		.byte		0x6F,0x00,0x1C,0x1A,0x73,0x1C,0x91,0x1D,0x2A,0x5F,0x00,0x1D,0x22,0x6F,0x00,0x7D
@@ -11231,7 +11228,7 @@ obj_0046D8B1:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x1E,0x91,0x1F,0x00,0x08,0xC7,0x00,0x0E,0x20,0xC6,0x02,0x00,0x7B,0x1F,0x00,0x09
 		.byte		0x38,0xA3,0x7B,0x1E,0x91,0x1F,0x00,0x07,0xC7,0x00,0x0E,0x20,0xC6,0x6F,0x00,0x7D
 		.byte		0x7B,0x1E,0x91,0x1F,0x00,0x08,0xC7,0x00,0x0E,0x20,0xC6,0x02,0x00,0x22,0x02,0x02
-		.align	2
+		.align  8
 obj_0046D93D:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMstrokes),MAKEPTR(SYMTestFlags),MAKEPTR(obj_0056770D),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMcurrentwordrecognizer),MAKEPTR(SYMStrEqual),MAKEPTR(SYMviewFlags),0x05FBC000,0x05814000,MAKEPTR(SYMParent)
 obj_0046D971_map:	FrameMapObj(5)
@@ -11242,7 +11239,7 @@ obj_0041C1F9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C1F9:	FrameObj(3, obj_0041C1F9_map)
 		Ref		0x00000132,_CorrectWord,0x00000008
-obj_00557575:	.long		kHeaderSize + 135 + kFlagsBinary
+obj_00557575:	Ref    kHeaderSize + 135 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x98,0xC9,0x7B,0x19,0x91,0x1A,0xC4,0x6F,0x00,0x14,0x7B,0x1B,0x29
 		.byte		0xA4,0x5F,0x00,0x20,0x7B,0x19,0x91,0x1C,0xC4,0x6F,0x00,0x20,0x7B,0x1D,0x29,0xA4
@@ -11253,11 +11250,11 @@ obj_00557575:	.long		kHeaderSize + 135 + kFlagsBinary
 		.byte		0x00,0x10,0x91,0x1F,0x00,0x11,0x39,0x00,0x5F,0x00,0x85,0x7B,0x1F,0x00,0x0E,0x91
 		.byte		0x1F,0x00,0x12,0xC4,0x6F,0x00,0x85,0x7B,0x1F,0x00,0x0C,0x28,0x1F,0x00,0x10,0x91
 		.byte		0x1F,0x00,0x13,0x39,0x00,0x7C,0x02
-		.align	2
-obj_005573D5:	.long		kHeaderSize + 312 + kFlagsBinary
+		.align  8
+obj_005573D5:	Ref    kHeaderSize + 312 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','n',' ','e','r','r','o','r',' ','o','c','c','u','r','r','e','d',' ','a','c','t','i','v','a','t','i','n','g',' ','t','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,'.',' ','I','t',' ','m','a','y',' ','n','o','t',' ','w','o','r','k',' ','w','i','t','h',' ','t','h','i','s',' ','s','y','s','t','e','m','.',' ','C','o','n','t','a','c','t',' ','t','h','e',' ','s','o','f','t','w','a','r','e',' ','p','u','b','l','i','s','h','e','r',' ','f','o','r',' ','f','u','r','t','h','e','r',' ','i','n','f','o','r','m','a','t','i','o','n','.',' ','(','P','a','r','t',' ','^','1',',',' ','T','y','p','e',' ','^','2',')',0
-		.align	2
+		.align  8
 obj_00557519:	ArrayObj(20, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMpartType),MAKEPTR(SYMform),MAKEPTR(SYMInstallFormPart),MAKEPTR(SYMauto),MAKEPTR(SYMInstallAutoPart),MAKEPTR(obj_005691C9),MAKEPTR(obj_005573D5),MAKEPTR(SYMpackageName),MAKEPTR(SYMpartIndex),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(SYMpackageStyle),MAKEPTR(SYMhighROM)
 		Ref		MAKEPTR(SYMExtrasDrawer),MAKEPTR(SYMHandleNewHighROMPart),MAKEPTR(SYM1_2EX),MAKEPTR(SYMHandleNew1_2EXPart)
@@ -11291,13 +11288,13 @@ obj_0041B9CD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B9CD:	FrameObj(3, obj_0041B9CD_map)
 		Ref		0x00000132,_FTextBox,0x0000000C
-obj_005AF0A1:	.long		kHeaderSize + 56 + kFlagsBinary
+obj_005AF0A1:	Ref    kHeaderSize + 56 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x80,0xA3,0x71,0x1A,0x91,0xA4,0x71,0x1A,0x20,0x98,0x1B,0x28,0x00,0x71,0x1A
 		.byte		0x7C,0x98,0x7B,0x1C,0x1D,0x28,0x98,0x1E,0x22,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x2C
 		.byte		0x7E,0x24,0xC2,0xA5,0x7B,0x7D,0x71,0x7D,0x91,0x98,0x7E,0x05,0x7E,0x06,0x6F,0x00
 		.byte		0x20,0x22,0x22,0xA6,0x00,0x7B,0x02,0x02
-		.align	2
+		.align  8
 obj_005AF0E5:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004D4879),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMloadLetterWeights),MAKEPTR(SYMletterWeights),MAKEPTR(SYMGetLetterWeights),MAKEPTR(obj_005AF019)
 obj_005AF10D_map:	FrameMapObj(5)
@@ -11330,7 +11327,7 @@ obj_0041ED01_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041ED01:	FrameObj(3, obj_0041ED01_map)
 		Ref		0x00000132,_FViewAutopsy,0x00000004
-obj_00436CA9:	.long		kHeaderSize + 155 + kFlagsBinary
+obj_00436CA9:	Ref    kHeaderSize + 155 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x19,0x38,0x1A,0x38,0x6F,0x00,0x70,0x7B,0x18,0x29,0x1B,0x38,0xA4
 		.byte		0x7C,0x1C,0x28,0x20,0xC2,0x1D,0x39,0xA5,0x7D,0xC5,0x6F,0x00,0x3C,0x1C,0x28,0x20
@@ -11342,7 +11339,7 @@ obj_00436CA9:	.long		kHeaderSize + 155 + kFlagsBinary
 		.byte		0x7B,0x1F,0x00,0x0C,0x91,0x1F,0x00,0x11,0xC4,0x6F,0x00,0x93,0x7B,0x1F,0x00,0x0B
 		.byte		0x29,0x00,0x7B,0x1F,0x00,0x0C,0x1F,0x00,0x0D,0x98,0x7B,0x1F,0x00,0x10,0x29,0x00
 		.byte		0x5F,0x00,0x99,0x7B,0x1F,0x00,0x12,0x29,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_00436C51:	ArrayObj(19, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMEntrySoup),MAKEPTR(SYMGetStore),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMGetName),MAKEPTR(SYMGetStores),MAKEPTR(SYMGetSoup),MAKEPTR(obj_00436939),MAKEPTR(SYMIntern),MAKEPTR(SYMCreateSoupFromSoupDef),MAKEPTR(SYMresult),MAKEPTR(SYMEntryCopy),MAKEPTR(SYMRemoveAllButIndexes),MAKEPTR(SYMkind),MAKEPTR(SYMdelete),MAKEPTR(SYMromID),MAKEPTR(SYM_uniqueId)
 		Ref		MAKEPTR(SYMEntryChange),MAKEPTR(SYMReplace),MAKEPTR(SYMEntryRemoveFromSoup)
@@ -11354,11 +11351,11 @@ obj_00630391_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630391:	FrameObj(3, obj_00630391_map)
 		Ref		0x00000132,_FGetPackageStore,0x00000004
-obj_005581A9:	.long		kHeaderSize + 26 + kFlagsBinary
+obj_005581A9:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xC5,0x6F,0x00,0x11,0x7D,0x19,0x1A,0x8A,0xC7,0x00,0x16,0x5F,0x00
 		.byte		0x19,0x7B,0x7C,0x7D,0x1A,0x8B,0xC7,0x00,0x16,0x02
-		.align	2
+		.align  8
 obj_005581D1:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrFilled),MAKEPTR(obj_005A7F4D),MAKEPTR(SYMarray)
 obj_005581E9_map:	FrameMapObj(5)
@@ -11373,44 +11370,44 @@ obj_0041B8AD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B8AD:	FrameObj(3, obj_0041B8AD_map)
 		Ref		0x00000132,_FGetBitmapInfo,0x00000004
-obj_003C5675:	.long		kHeaderSize + 76 + kFlagsBinary
+obj_003C5675:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0D,0x7B,0x19,0x1A,0x2A,0x5F,0x00,0x0E,0x22,0x6F,0x00
 		.byte		0x2E,0x7B,0x27,0x00,0x10,0x1B,0x2A,0x7B,0x27,0x00,0x08,0x1B,0x2A,0x7B,0x27,0x00
 		.byte		0x20,0x1B,0x2A,0x7B,0x27,0x00,0x18,0x1B,0x2A,0x1C,0x2C,0x5F,0x00,0x4B,0x7B,0x1D
 		.byte		0x29,0x6F,0x00,0x3C,0x7B,0x1E,0x91,0x1D,0x29,0x5F,0x00,0x3D,0x22,0x6F,0x00,0x46
 		.byte		0x7B,0x1E,0x91,0x5F,0x00,0x4B,0x7B,0x1F,0x00,0x07,0x29,0x02
-		.align	2
+		.align  8
 obj_003C56CD:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsBinary),MAKEPTR(SYMpicture),MAKEPTR(SYMIsInstance),MAKEPTR(SYMExtractWord),MAKEPTR(SYMSetBounds),MAKEPTR(SYMIsFrame),MAKEPTR(SYMbounds),MAKEPTR(SYMShapeBounds)
 obj_003C56F9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C56F9:	FrameObj(5, obj_003C56F9_map)
 		Ref		0x00000032,MAKEPTR(obj_003C5675),MAKEPTR(obj_003C56CD),NILREF,0x00000004
-obj_0041EC89:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_0041EC89:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x6F,0x00,0x11,0x7B,0x18,0x91,0xC7,0x00,0x18,0x19,0xC4,0x5F,0x00
 		.byte		0x12,0x22,0x6F,0x00,0x2E,0x22,0x22,0x1A,0x2A,0x7B,0x18,0x91,0x1B,0x2A,0x22,0xC4
 		.byte		0x6F,0x00,0x2A,0x7B,0x18,0x22,0x99,0x5F,0x00,0x2B,0x22,0x5F,0x00,0x2F,0x22,0x02
-		.align	2
+		.align  8
 obj_0041ECC5:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMlabels),MAKEPTR(SYMsymbol),MAKEPTR(SYMGetFolderList),MAKEPTR(SYMSetContains)
 obj_0041ECE1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0041ECE1:	FrameObj(5, obj_0041ECE1_map)
 		Ref		0x00000032,MAKEPTR(obj_0041EC89),MAKEPTR(obj_0041ECC5),NILREF,0x00000004
-obj_005A7431:	.long		kHeaderSize + 71 + kFlagsBinary
+obj_005A7431:	Ref    kHeaderSize + 71 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x19,0xC4,0x67,0x00,0x10,0x7B,0x18,0x91,0x1A,0xC4,0x5F,0x00,0x13
 		.byte		0x27,0x00,0x1A,0x6F,0x00,0x1C,0x22,0x02,0x00,0x5F,0x00,0x44,0x7B,0x1B,0x91,0x1C
 		.byte		0x1D,0x2A,0x6F,0x00,0x44,0x1E,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x3B,0x7D,0x24
 		.byte		0xC2,0xA4,0x7B,0x7C,0x1F,0x00,0x07,0x2A,0x00,0x7D,0x05,0x7D,0x06,0x6F,0x00,0x2E
 		.byte		0x22,0x22,0xA5,0x00,0x7B,0x02,0x02
-		.align	2
-obj_005A7401:	.long		kHeaderSize + 36 + kFlagsBinary
+		.align  8
+obj_005A7401:	Ref    kHeaderSize + 36 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'U','s','e','r','c','o','n','f','i','g','u','r','a','t','i','o','n',0
-		.align	2
+		.align  8
 obj_0047278D:	ArrayObj(2, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYMlcdContrast),MAKEPTR(SYMscreenOrientation)
 obj_005A7485:	ArrayObj(8, MAKEPTR(SYMliterals))
@@ -11427,11 +11424,11 @@ obj_006303A9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006303A9:	FrameObj(3, obj_006303A9_map)
 		Ref		0x00000132,_FExtractChar,0x00000008
-obj_003C5719:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_003C5719:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x20,0x20,0x7C,0x19,0x91,0x7C,0x1A,0x91,0xC1,0x7C,0x1B,0x91
 		.byte		0x7C,0x1C,0x91,0xC1,0x1D,0x2C,0x02
-		.align	2
+		.align  8
 obj_003C573D:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGraphicBounds),MAKEPTR(SYMright),MAKEPTR(SYMleft),MAKEPTR(SYMbottom),MAKEPTR(SYMtop),MAKEPTR(SYMSetBounds)
 obj_003C5761_map:	FrameMapObj(5)
@@ -11450,12 +11447,12 @@ obj_006303C1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006303C1:	FrameObj(3, obj_006303C1_map)
 		Ref		0x00000132,_FIsReal,0x00000004
-obj_0044E2B1:	.long		kHeaderSize + 45 + kFlagsBinary
+obj_0044E2B1:	Ref    kHeaderSize + 45 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xA6,0x7E,0x7C,0x18,0x91,0xC1,0xA6,0x7E,0x7C,0x19,0x91,0x7C,0x18,0x91,0xC1
 		.byte		0xC7,0x00,0x08,0xA6,0x7E,0x7D,0x19,0x91,0x7D,0x18,0x91,0xC1,0xC7,0x00,0x07,0xA6
 		.byte		0x7E,0x7D,0x18,0x91,0xC0,0xA6,0x7E,0x1A,0x29,0x1B,0x29,0x02,0x02
-		.align	2
+		.align  8
 obj_0044E2ED:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMleft),MAKEPTR(SYMright),MAKEPTR(SYMround),MAKEPTR(SYMfloor)
 obj_0044E309_map:	FrameMapObj(5)
@@ -11474,14 +11471,14 @@ obj_00627E71_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627E71:	FrameObj(3, obj_00627E71_map)
 		Ref		0x00000132,_FClickLetterShapes,0x00000004
-obj_00634009:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_00634009:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x1A,0x2A,0x00,0x1B,0x28,0x02
-		.align	2
-obj_00634039:	.long		kHeaderSize + 30 + kFlagsBinary
+		.align  8
+obj_00634039:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'd','e','f','a','u','l','t','S','t','o','r','e','(',')',0
-		.align	2
+		.align  8
 obj_0063401D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00634039),MAKEPTR(SYMundocumented),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMGetDefaultStore)
 obj_00634065_map:	FrameMapObj(5)
@@ -11504,14 +11501,14 @@ obj_006303F1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006303F1:	FrameObj(3, obj_006303F1_map)
 		Ref		0x00000132,_FStuffUniChar,0x0000000C
-obj_00436D91:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_00436D91:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA3,0x7B,0x6F,0x00,0x0E,0x7B,0x1A,0x38,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
-obj_00433B35:	.long		kHeaderSize + 20 + kFlagsBinary
+		.align  8
+obj_00433B35:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'W','o','r','l','d','D','a','t','a',0
-		.align	2
+		.align  8
 obj_00436DAD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_00433B35),MAKEPTR(SYMGetPackageStore),MAKEPTR(SYMGetSoupNames)
 obj_00436DC5_map:	FrameMapObj(5)
@@ -11542,11 +11539,11 @@ obj_00630451_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630451:	FrameObj(3, obj_00630451_map)
 		Ref		0x00000132,_FIsFunction,0x00000004
-obj_005AB5D9:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_005AB5D9:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0xA3,0x27,0x00,0x7C,0x19,0x29,0xA4,0x7C,0x1A,0x1B,0x22,0x7C,0x1C,0x3A,0x98
 		.byte		0x27,0x00,0x7C,0x1D,0x7B,0x1E,0x2B,0x02
-		.align	2
+		.align  8
 obj_005AB59D_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMcount)
 obj_005AB59D:	FrameObj(1, obj_005AB59D_map)
@@ -11565,11 +11562,11 @@ obj_0041C45D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C45D:	FrameObj(3, obj_0041C45D_map)
 		Ref		0x00000132,_FAddDelayedSend,0x00000010
-obj_00569BCD:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00569BCD:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x2A,0xA5,0x7D,0x6F,0x00,0x0F,0x7D,0x19,0x91,0x5F,0x00,0x10,0x1A
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00569BC1_map:	FrameMapObj(0)
 		Ref		0x00000000,NILREF
 obj_00569BC1:	FrameObj(0, obj_00569BC1_map)
@@ -11587,7 +11584,7 @@ obj_0041CB01_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CB01:	FrameObj(3, obj_0041CB01_map)
 		Ref		0x00000132,_FStringAssoc,0x00000008
-obj_00416795:	.long		kHeaderSize + 132 + kFlagsBinary
+obj_00416795:	Ref    kHeaderSize + 132 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xC5,0x67,0x00,0x0E,0x7C,0xC7,0x00,0x12,0x20,0xC4,0x5F,0x00,0x11,0x27,0x00
 		.byte		0x1A,0x6F,0x00,0x16,0x18,0xA4,0x19,0x88,0xA5,0x7C,0x22,0xC7,0x00,0x11,0xA7,0x00
@@ -11598,11 +11595,11 @@ obj_00416795:	.long		kHeaderSize + 132 + kFlagsBinary
 		.byte		0x69,0x7F,0x00,0x0A,0x1E,0x1F,0x00,0x07,0x98,0x7D,0x7F,0x00,0x0A,0xC7,0x00,0x15
 		.byte		0x00,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x24,0x22,0x22,0xA7,0x00
 		.byte		0x08,0x00,0x7D,0x02
-		.align	2
-obj_00416749:	.long		kHeaderSize + 18 + kFlagsBinary
+		.align  8
+obj_00416749:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0',' ','p','o','i','n','t',0
-		.align	2
+		.align  8
 obj_00416769:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_003E92C9),MAKEPTR(SYMarray),MAKEPTR(obj_00416749),MAKEPTR(SYMParamStr),MAKEPTR(SYMSPrintObject),MAKEPTR(obj_004E44ED),MAKEPTR(SYMmark),0xFC0B6
 obj_00416825_map:	FrameMapObj(5)
@@ -11613,46 +11610,46 @@ obj_0041DEF9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041DEF9:	FrameObj(3, obj_0041DEF9_map)
 		Ref		0x00000132,_FStopBypassTablet,0x00000000
-obj_00629809:	.long		kHeaderSize + 21 + kFlagsBinary
+obj_00629809:	Ref    kHeaderSize + 21 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x22,0x98,0x70,0x1A,0x22,0x98,0x70,0x1B,0x7B,0x98,0x1C,0x28,0x00,0x1D
 		.byte		0x28,0x00,0x1E,0x28,0x02
-		.align	2
+		.align  8
 obj_0062982D:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMdoShapeRecognition),MAKEPTR(SYMsleepTime),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMReadCursiveOptions),MAKEPTR(SYMReadDomainOptions),MAKEPTR(SYMRefreshViews)
 obj_00629855_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00629855:	FrameObj(5, obj_00629855_map)
 		Ref		0x00000032,MAKEPTR(obj_00629809),MAKEPTR(obj_0062982D),NILREF,0x00000004
-obj_00629B45:	.long		kHeaderSize + 55 + kFlagsBinary
+obj_00629B45:	Ref    kHeaderSize + 55 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x20,0xA5,0x7C,0x24,0xC1,0xA6,0x24,0xA7,0x00,0x07,0x7F,0x00
 		.byte		0x07,0x7D,0x5F,0x00,0x31,0x7B,0x7D,0xC2,0x26,0xC4,0x6F,0x00,0x2D,0x7B,0x27,0x00
 		.byte		0x08,0x7D,0x24,0xC0,0xC7,0x00,0x07,0x19,0x2A,0x5F,0x00,0x36,0x00,0x7F,0x00,0x07
 		.byte		0xB5,0x7E,0xBF,0x00,0x15,0x22,0x02
-		.align	2
+		.align  8
 obj_00629B89:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrLen),MAKEPTR(SYMSetLength)
 obj_00629B9D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00629B9D:	FrameObj(5, obj_00629B9D_map)
 		Ref		0x00000032,MAKEPTR(obj_00629B45),MAKEPTR(obj_00629B89),NILREF,0x00100004
-obj_0062C9C9:	.long		kHeaderSize + 6 + kFlagsBinary
+obj_0062C9C9:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x22,0xC6,0x02
-		.align	2
+		.align  8
 obj_0062C9DD:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMObjectPid)
 obj_0062D811_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0062D811:	FrameObj(5, obj_0062D811_map)
 		Ref		0x00000032,MAKEPTR(obj_0062C9C9),MAKEPTR(obj_0062C9DD),NILREF,0x00000004
-obj_00558FBD:	.long		kHeaderSize + 46 + kFlagsBinary
+obj_00558FBD:	Ref    kHeaderSize + 46 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x88,0xC9,0x7B,0x19,0x91,0x27,0x00,0x10,0xC7,0x00,0x0C,0x6F,0x00
 		.byte		0x18,0x7B,0x1A,0x29,0x00,0x5F,0x00,0x1C,0x7B,0x1B,0x29,0x00,0x07,0x00,0x07,0x5F
 		.byte		0x00,0x25,0x07,0x00,0x07,0x74,0x1D,0x91,0x1E,0x1F,0x00,0x07,0x2A,0x02
-		.align	2
+		.align  8
 obj_00558FAD:	ArrayObj(1, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYMDeActivateStorePackages)
 obj_00558FF9:	ArrayObj(8, MAKEPTR(SYMliterals))
@@ -11669,7 +11666,7 @@ obj_0062A3A9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062A3A9:	FrameObj(3, obj_0062A3A9_map)
 		Ref		0x00000132,_FCountStrokes,0x00000004
-obj_0041C701:	.long		kHeaderSize + 97 + kFlagsBinary
+obj_0041C701:	Ref    kHeaderSize + 97 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x91,0xA7,0x00,0x08,0x19,0x28,0x7F,0x00,0x07,0x27,0x00,0xF0,0xC7,0x00
 		.byte		0x07,0x27,0x0F,0xA0,0xC7,0x00,0x09,0xC0,0xA7,0x00,0x09,0x7F,0x00,0x08,0x6F,0x00
@@ -11678,7 +11675,7 @@ obj_0041C701:	.long		kHeaderSize + 97 + kFlagsBinary
 		.byte		0x1E,0x29,0x7C,0x7E,0x7D,0x7F,0x00,0x09,0x1F,0x00,0x07,0x84,0x98,0x77,0x00,0x08
 		.byte		0x1F,0x00,0x09,0x91,0x7B,0x1F,0x00,0x0A,0x89,0x7F,0x00,0x07,0x1F,0x00,0x0B,0x2B
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0041C771:	ArrayObj(12, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMProcrastinatedActions),MAKEPTR(SYMTicks),MAKEPTR(SYMreceiverOrClosure),MAKEPTR(SYMargArray),MAKEPTR(SYMmessage),MAKEPTR(SYMtimeToRun),MAKEPTR(SYMEnsureInternal),MAKEPTR(obj_0041C5F1),MAKEPTR(SYMfunctions),MAKEPTR(SYMExecuteProcrastinatedCall),MAKEPTR(SYMarray),MAKEPTR(SYMAddDelayedCall)
 obj_0041C7AD_map:	FrameMapObj(5)
@@ -11715,7 +11712,7 @@ obj_0041BB25_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BB25:	FrameObj(3, obj_0041BB25_map)
 		Ref		0x00000132,_FAddView,0x00000008
-obj_0041A981:	.long		kHeaderSize + 96 + kFlagsBinary
+obj_0041A981:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7C,0x91,0xA5,0x7D,0x6F,0x00,0x5E,0x27,0x0A,0x5B,0x03,0x7D,0x19,0x91,0x7D
 		.byte		0x1A,0x91,0x1B,0x84,0xA6,0x27,0x00,0x1A,0x7E,0x1C,0x39,0x00,0x7B,0x22,0x7E,0x1D
@@ -11723,7 +11720,7 @@ obj_0041A981:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x22,0x6F,0x00,0x56,0x27,0x00,0x18,0x27,0x82,0xEC,0x1F,0x00,0x07,0x28,0x1F,0x00
 		.byte		0x08,0x39,0x27,0x82,0xEC,0x1F,0x00,0x07,0x28,0x1F,0x00,0x09,0x39,0x1F,0x00,0x07
 		.byte		0x28,0x1F,0x00,0x0A,0x3B,0x00,0x7E,0x1F,0x00,0x0B,0x38,0x5F,0x00,0x5F,0x22,0x02
-		.align	2
+		.align  8
 obj_0041AA29:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMconfig),MAKEPTR(SYMconfigOptions)
 obj_0041A8CD:	ArrayObj(5, 0x00000018)
@@ -11746,7 +11743,7 @@ obj_005B8EFD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005B8EFD:	FrameObj(3, obj_005B8EFD_map)
 		Ref		0x00000132,_FFindDictionaryFrame,0x00000004
-obj_004A8C3D:	.long		kHeaderSize + 91 + kFlagsBinary
+obj_004A8C3D:	Ref    kHeaderSize + 91 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xA5,0x7D,0xC5,0x6F,0x00,0x0A,0x22,0x02,0x00,0x7D,0x7B,0x91,0xA6,0x7E,0xC5
 		.byte		0x6F,0x00,0x16,0x22,0x02,0x00,0x7E,0x7C,0x91,0xA7,0x00,0x07,0x7F,0x00,0x07,0xC5
@@ -11754,7 +11751,7 @@ obj_004A8C3D:	.long		kHeaderSize + 91 + kFlagsBinary
 		.byte		0x7B,0x19,0x2A,0x00,0x5F,0x00,0x4B,0x7E,0x1A,0x29,0x6F,0x00,0x46,0x7D,0x7B,0x7D
 		.byte		0x7B,0x91,0xC7,0x00,0x13,0x98,0x7E,0x7C,0x19,0x2A,0x00,0x73,0x1C,0x1D,0x7B,0x7C
 		.byte		0x1E,0x8C,0x1F,0x00,0x07,0x2A,0x00,0x7F,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_004A8CA5:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_viewdefs),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMIsReadOnly),MAKEPTR(SYMStationeryChangeRegistry),MAKEPTR(SYMremove),MAKEPTR(SYMviewDef),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_004A8CD1_map:	FrameMapObj(5)
@@ -11795,7 +11792,7 @@ obj_003C66F1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C66F1:	FrameObj(5, obj_003C66F1_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6631),MAKEPTR(obj_003C66DD),NILREF,0x00000008
-obj_00420AD1:	.long		kHeaderSize + 272 + kFlagsBinary
+obj_00420AD1:	Ref    kHeaderSize + 272 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x67,0x00,0x0A,0x7C,0xC5,0x5F,0x00,0x0D,0x27,0x00,0x1A,0x67,0x00,0x22
 		.byte		0x7C,0x18,0x19,0x2A,0x6F,0x00,0x1E,0x7C,0x1A,0x29,0xC5,0x5F,0x00,0x1F,0x22,0x5F
@@ -11814,18 +11811,18 @@ obj_00420AD1:	.long		kHeaderSize + 272 + kFlagsBinary
 		.byte		0x09,0x24,0x1F,0x00,0x0C,0x83,0x20,0x1F,0x00,0x0D,0x2B,0x00,0x7F,0x00,0x07,0xC7
 		.byte		0x00,0x12,0x27,0x00,0x20,0xC7,0x00,0x0B,0x6F,0x01,0x06,0x7F,0x00,0x07,0x27,0x00
 		.byte		0x20,0x1F,0x00,0x0E,0x2A,0x00,0x7E,0x1F,0x00,0x0F,0x29,0x5F,0x01,0x0F,0x22,0x02
-		.align	2
-obj_00420825:	.long		kHeaderSize + 6 + kFlagsBinary
+		.align  8
+obj_00420825:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x22,0x19,0x2B,0x02
-		.align	2
-obj_0042084D:	.long		kHeaderSize + 63 + kFlagsBinary
+		.align  8
+obj_0042084D:	Ref    kHeaderSize + 63 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x27,0x16,0x80,0xC7,0x00,0x09,0xA5,0x27,0x00,0x40,0x7D,0x7B,0x19,0x91
 		.byte		0xC1,0x1A,0x2A,0x27,0x00,0x20,0x7B,0x1B,0x91,0xC7,0x00,0x07,0xC0,0x27,0x00,0x40
 		.byte		0x7D,0x7C,0x19,0x91,0xC1,0x1A,0x2A,0x27,0x00,0x20,0x7C,0x1B,0x91,0xC7,0x00,0x07
 		.byte		0xC0,0xC7,0x00,0x0B,0x6F,0x00,0x3D,0x27,0xFF,0xFC,0x5F,0x00,0x3E,0x24,0x02
-		.align	2
+		.align  8
 obj_00420899:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTime),MAKEPTR(SYMwhen),MAKEPTR(SYM_3E_3E),MAKEPTR(SYMcount)
 obj_004208B5_map:	FrameMapObj(5)
@@ -11850,10 +11847,10 @@ obj_006304B1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006304B1:	FrameObj(3, obj_006304B1_map)
 		Ref		0x00000132,_FEnsureInternal,0x00000004
-obj_00569E6D:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_00569E6D:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0x7B,0x7C,0x7D,0x7E,0x1A,0x8C,0x1B,0x2A,0x02
-		.align	2
+		.align  8
 obj_00569E85:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMfunctions),MAKEPTR(SYMXmitSoupChangeNow),MAKEPTR(SYMarray),MAKEPTR(SYMAddDeferredCall)
 obj_00569EA1_map:	FrameMapObj(5)
@@ -11880,18 +11877,18 @@ obj_00536735_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00536735:	FrameObj(3, obj_00536735_map)
 		Ref		0x00000132,_FJournalReplayAStroke,0x00000018
-obj_00556D25:	.long		kHeaderSize + 78 + kFlagsBinary
+obj_00556D25:	Ref    kHeaderSize + 78 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x7C,0x20,0x19,0x1A,0x1B,0x2D,0xA6,0x7E,0x6F,0x00,0x44,0x7E,0x1C,0x91
 		.byte		0x6F,0x00,0x1B,0x7E,0x1C,0x91,0x1D,0x38,0x5F,0x00,0x1C,0x1E,0xA7,0x00,0x07,0x27
 		.byte		0x00,0x0C,0x1F,0x00,0x07,0x1F,0x00,0x08,0x7C,0x7D,0x1D,0x38,0x7F,0x00,0x07,0x1F
 		.byte		0x00,0x09,0x8B,0x1F,0x00,0x0A,0x2A,0x1F,0x00,0x0B,0x28,0x1F,0x00,0x0C,0x3B,0x00
 		.byte		0x22,0x5F,0x00,0x4D,0x7B,0x1F,0x00,0x0D,0x29,0x00,0x27,0x00,0x1A,0x02
-		.align	2
-obj_00556C25:	.long		kHeaderSize + 242 + kFlagsBinary
+		.align  8
+obj_00556C25:	Ref    kHeaderSize + 242 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ',0x201C,'^','0',0x201D,' ','(','o','n',' ','s','t','o','r','e',' ',0x201C,'^','1',0x201D,')',' ','w','a','s',' ','n','o','t',' ','a','c','t','i','v','a','t','e','d',' ','b','e','c','a','u','s','e',' ','a',' ','p','a','c','k','a','g','e',' ','b','y',' ','t','h','e',' ','s','a','m','e',' ','n','a','m','e',' ','(','o','n',' ','s','t','o','r','e',' ',0x201C,'^','2',0x201D,')',' ','i','s',' ','a','l','r','e','a','d','y',' ','i','n',' ','u','s','e','.',0
-		.align	2
+		.align  8
 obj_00556D81:	ArrayObj(14, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetPackages),MAKEPTR(SYMstr_3D),MAKEPTR(SYMtitle),MAKEPTR(SYMLFetch),MAKEPTR(SYMstore),MAKEPTR(SYMGetName),MAKEPTR(obj_00556C05),MAKEPTR(obj_005691C9),MAKEPTR(obj_00556C25),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(SYMActivatePackage)
 obj_00556DC5_map:	FrameMapObj(5)
@@ -11910,15 +11907,15 @@ obj_0041CD29_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CD29:	FrameObj(3, obj_0041CD29_map)
 		Ref		0x00000132,_PhoneStringToValue,0x00000008
-obj_0055A339:	.long		kHeaderSize + 32 + kFlagsBinary
+obj_0055A339:	Ref    kHeaderSize + 32 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x14,0x7C,0x19,0x91,0x7C,0x1A,0x91,0x1B,0x1C
 		.byte		0x2B,0x5F,0x00,0x15,0x22,0x6F,0x00,0x1E,0x7C,0x1D,0x29,0x5F,0x00,0x1F,0x22,0x02
-		.align	2
-obj_005599E1:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_005599E1:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','r','e',' ','y','o','u',' ','s','u','r','e',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','f','r','e','e','z','e',' ','i','t','?',0
-		.align	2
+		.align  8
 obj_00559A35:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPackageEntryFromThingy),MAKEPTR(SYMpkgRef),MAKEPTR(SYMpackageName),MAKEPTR(obj_005599E1),MAKEPTR(SYMOKToDeactivatePackage),MAKEPTR(SYMFreezePackage)
 obj_00559A59_map:	FrameMapObj(5)
@@ -11941,7 +11938,7 @@ obj_0041BE45_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BE45:	FrameObj(3, obj_0041BE45_map)
 		Ref		0x00000132,_FHobbleTablet,0x00000000
-obj_00472AD1:	.long		kHeaderSize + 129 + kFlagsBinary
+obj_00472AD1:	Ref    kHeaderSize + 129 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x5A,0x7C,0x22,0xC7,0x00,0x11,0xA6,0x7E,0x27,0x00,0x14,0xC2,0x18
 		.byte		0x8F,0xFF,0xFF,0xA7,0x00,0x08,0x20,0xA7,0x00,0x07,0x5F,0x00,0x34,0x7E,0x24,0xC2
@@ -11952,7 +11949,7 @@ obj_00472AD1:	.long		kHeaderSize + 129 + kFlagsBinary
 		.byte		0x5F,0x00,0x78,0x7E,0x24,0xC2,0xA5,0x7D,0x19,0x91,0x1F,0x00,0x07,0x1F,0x00,0x08
 		.byte		0x22,0x1F,0x00,0x09,0x2C,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x63,0x22,0x22,0xA6
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00472A9D:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMname),MAKEPTR(SYMsoups),MAKEPTR(SYMstr_3C),MAKEPTR(SYMSort),MAKEPTR(SYMSoupRestoreRegistry),MAKEPTR(SYMCallFrameBasedRegistryFns),MAKEPTR(SYMConnection),MAKEPTR(SYMwhatThe),MAKEPTR(SYMXmitSoupChangeNow)
 obj_00472B61_map:	FrameMapObj(5)
@@ -11967,14 +11964,14 @@ obj_005ACAD9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005ACAD9:	FrameObj(3, obj_005ACAD9_map)
 		Ref		0x00000132,_FRunInitScripts,0x00000000
-obj_00569641:	.long		kHeaderSize + 71 + kFlagsBinary
+obj_00569641:	Ref    kHeaderSize + 71 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x1A,0x1B,0x2C,0xA5,0x7D,0x6F,0x00,0x12,0x7D,0x1C,0x29,0xC5,0x5F
 		.byte		0x00,0x13,0x22,0x6F,0x00,0x45,0x7D,0x1D,0x91,0x7C,0x1E,0x22,0x22,0x1F,0x00,0x07
 		.byte		0x2D,0x00,0x7D,0x1D,0x91,0xC7,0x00,0x12,0x20,0xC4,0x6F,0x00,0x45,0x70,0x7B,0x19
 		.byte		0x1F,0x00,0x08,0x7C,0x1F,0x00,0x09,0xC4,0x6F,0x00,0x3F,0x24,0x5F,0x00,0x40,0x22
 		.byte		0x1F,0x00,0x07,0x2D,0x00,0x22,0x02
-		.align	2
+		.align  8
 obj_00569619:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMsoupDef),MAKEPTR(SYMname)
 obj_0056962D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -11985,21 +11982,21 @@ obj_005696C9_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005696C9:	FrameObj(5, obj_005696C9_map)
 		Ref		0x00000032,MAKEPTR(obj_00569641),MAKEPTR(obj_00569695),NILREF,0x00040008
-obj_00416585:	.long		kHeaderSize + 74 + kFlagsBinary
+obj_00416585:	Ref    kHeaderSize + 74 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x88,0xA3,0x71,0x27,0x00,0x1A,0xC7,0x00,0x11,0xA6,0x5F,0x00,0x3F,0x7E,0x24
 		.byte		0xC2,0xA5,0x7E,0x20,0xC2,0xA4,0x7D,0x1A,0xC7,0x00,0x17,0x6F,0x00,0x24,0x7D,0x1A
 		.byte		0x91,0x5F,0x00,0x25,0x22,0x67,0x00,0x31,0x7D,0x1A,0xC7,0x00,0x17,0xC5,0x5F,0x00
 		.byte		0x34,0x27,0x00,0x1A,0x6F,0x00,0x3D,0x7B,0x7C,0xC7,0x00,0x15,0x00,0x7E,0x05,0x7E
 		.byte		0x06,0x6F,0x00,0x0E,0x22,0x22,0xA6,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_004165DD:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMarray),MAKEPTR(SYMfonts),MAKEPTR(SYMusable)
 obj_004165F5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004165F5:	FrameObj(5, obj_004165F5_map)
 		Ref		0x00000032,MAKEPTR(obj_00416585),MAKEPTR(obj_004165DD),NILREF,0x00100000
-obj_004645CD:	.long		kHeaderSize + 132 + kFlagsBinary
+obj_004645CD:	Ref    kHeaderSize + 132 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x22,0xC4,0x6F,0x00,0x09,0x22,0x02,0x00,0x18,0x19,0x29,0xA4,0x7C,0x22,0xC4
 		.byte		0x6F,0x00,0x16,0x1A,0x80,0xA4,0x7C,0x7B,0x91,0xA5,0x7D,0x22,0xC4,0x67,0x00,0x29
@@ -12010,18 +12007,18 @@ obj_004645CD:	.long		kHeaderSize + 132 + kFlagsBinary
 		.byte		0x00,0x08,0x1F,0x00,0x07,0x91,0x1E,0x29,0x99,0xA5,0x18,0x7C,0x1F,0x00,0x08,0x2A
 		.byte		0x00,0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x3A,0x22,0x22,0xA7,0x00
 		.byte		0x07,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_0046459D:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtransportGroups),MAKEPTR(SYMGetUserConfig),MAKEPTR(obj_004D4879),MAKEPTR(SYMGetRoot),MAKEPTR(SYMtransports),MAKEPTR(SYMgroup),MAKEPTR(SYMEnsureInternal),MAKEPTR(SYMappSymbol),MAKEPTR(SYMSetUserConfig)
 obj_0046465D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0046465D:	FrameObj(5, obj_0046465D_map)
 		Ref		0x00000032,MAKEPTR(obj_004645CD),MAKEPTR(obj_0046459D),NILREF,0x00140004
-obj_004A65CD:	.long		kHeaderSize + 27 + kFlagsBinary
+obj_004A65CD:	Ref    kHeaderSize + 27 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x22,0xC7,0x00,0x11,0xA4,0x5F,0x00,0x12,0x7C,0x24,0xC2,0xA3,0x7B,0x30,0x00
 		.byte		0x7C,0x05,0x7C,0x06,0x6F,0x00,0x09,0x22,0x22,0xA4,0x02
-		.align	2
+		.align  8
 obj_004A65F5:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004A6515)
 obj_004A6605_map:	FrameMapObj(5)
@@ -12040,18 +12037,18 @@ obj_0041CAB9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CAB9:	FrameObj(3, obj_0041CAB9_map)
 		Ref		0x00000132,_Append,0x00000008
-obj_00420649:	.long		kHeaderSize + 72 + kFlagsBinary
+obj_00420649:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA4,0x7B,0x19,0x91,0x6F,0x00,0x37,0x1A,0x7B,0x19,0x91,0x27,0x00,0x14
 		.byte		0xC7,0x00,0x0A,0x7C,0x1B,0x91,0x7B,0x19,0x91,0xC2,0x7C,0x1C,0x91,0x7B,0x1D,0x91
 		.byte		0xC2,0x7C,0x1E,0x91,0x7B,0x1F,0x00,0x07,0x91,0x24,0xC1,0xC2,0x1F,0x00,0x08,0x8C
 		.byte		0x1F,0x00,0x09,0x2A,0x5F,0x00,0x47,0x7B,0x1F,0x00,0x0A,0x29,0x27,0x01,0x0B,0x1F
 		.byte		0x00,0x0B,0x91,0x1F,0x00,0x0C,0x2A,0x02
-		.align	2
-obj_00420611:	.long		kHeaderSize + 42 + kFlagsBinary
+		.align  8
+obj_00420611:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','?','0','^','1','|','l','a','s','t','|',' ','^','2',' ','i','n',' ','^','3',0
-		.align	2
+		.align  8
 obj_004206DD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMlongDateFormat),MAKEPTR(SYMabbrDofWeek)
 obj_004206F1:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -12062,11 +12059,11 @@ obj_00420705_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00420705:	FrameObj(5, obj_00420705_map)
 		Ref		0x00000032,MAKEPTR(obj_00420649),MAKEPTR(obj_0042069D),NILREF,0x00040004
-obj_00559045:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_00559045:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0C,0x7B,0x19,0x91,0x5F,0x00,0x0D,0x22,0x6F,0x00,0x1C
 		.byte		0x7B,0x19,0x91,0x1A,0x20,0x1B,0x22,0x1C,0x2D,0x5F,0x00,0x1D,0x22,0x02
-		.align	2
+		.align  8
 obj_00559071:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsSoupEntry),MAKEPTR(SYM_tagList),MAKEPTR(SYM_package),MAKEPTR(SYM_3D),MAKEPTR(SYMLFetch)
 obj_00559091_map:	FrameMapObj(5)
@@ -12085,7 +12082,7 @@ obj_006308C5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006308C5:	FrameObj(3, obj_006308C5_map)
 		Ref		0x00000132,_FAddArraySlot,0x00000008
-obj_00416AA1:	.long		kHeaderSize + 526 + kFlagsBinary
+obj_00416AA1:	Ref    kHeaderSize + 526 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x4A,0x7B,0x20,0xC2,0x19,0x29,0xA7,0x00,0x08,0x7B,0x22
 		.byte		0xC7,0x00,0x11,0xA7,0x00,0x0A,0x5F,0x00,0x3A,0x7F,0x00,0x0A,0x24,0xC2,0xA7,0x00
@@ -12120,14 +12117,14 @@ obj_00416AA1:	.long		kHeaderSize + 526 + kFlagsBinary
 		.byte		0x7E,0x1F,0x00,0x0F,0x2A,0xA7,0x00,0x11,0x7F,0x00,0x07,0x6F,0x01,0xF8,0x7F,0x00
 		.byte		0x0B,0x1F,0x00,0x0D,0xC7,0x00,0x15,0x00,0x7F,0x00,0x0B,0x7F,0x00,0x0B,0xC7,0x00
 		.byte		0x12,0x20,0x7F,0x00,0x11,0x20,0x22,0x1D,0x2E,0x00,0x7F,0x00,0x0B,0x02
-		.align	2
+		.align  8
 obj_00416A55:	ArrayObj(16, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsArray),MAKEPTR(SYMGetFontFamilySym),MAKEPTR(SYMarray),MAKEPTR(SYMnone),MAKEPTR(SYMGetFontNameItems),MAKEPTR(SYMArrayMunger),MAKEPTR(SYMGetFontSize),MAKEPTR(SYMfonts),MAKEPTR(SYMuserSizes),MAKEPTR(SYMSetUnion),MAKEPTR(SYM_3C),MAKEPTR(SYMSort),MAKEPTR(SYMGetFontSizeItems),MAKEPTR(SYMpickSeparator),MAKEPTR(SYMGetFontFace),MAKEPTR(SYMGetFontStyleItems)
 obj_00416CBD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00416CBD:	FrameObj(5, obj_00416CBD_map)
 		Ref		0x00000032,MAKEPTR(obj_00416AA1),MAKEPTR(obj_00416A55),NILREF,0x002C0010
-obj_00483295:	.long		kHeaderSize + 182 + kFlagsBinary
+obj_00483295:	Ref    kHeaderSize + 182 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x18,0x19,0x29,0x7B,0x91,0x6F,0x00,0x16
 		.byte		0x7C,0x1A,0xC6,0x5F,0x00,0x17,0x22,0x6F,0x00,0xB4,0x1B,0x30,0xA5,0x7C,0xC5,0x6F
@@ -12141,7 +12138,7 @@ obj_00483295:	.long		kHeaderSize + 182 + kFlagsBinary
 		.byte		0x91,0x7B,0x1F,0x00,0x0B,0x2A,0x5F,0x00,0x9A,0x22,0xC5,0x5F,0x00,0xA1,0x27,0x00
 		.byte		0x1A,0x6F,0x00,0xAC,0x7B,0x22,0x7C,0x1F,0x00,0x0C,0x2B,0x00,0x7B,0x5F,0x00,0xB1
 		.byte		0x22,0x5F,0x00,0xB5,0x22,0x02
-		.align	2
+		.align  8
 obj_00483255:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserFolders),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYM_System),MAKEPTR(obj_00482D35),MAKEPTR(SYM_Global),MAKEPTR(SYMSetRemove),MAKEPTR(SYMRemoveSlot),MAKEPTR(obj_00482CD5),MAKEPTR(SYMGetFolderGroups),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMEntryChange),MAKEPTR(SYMSetContains),MAKEPTR(SYMXmitFolderChange)
 obj_00483359_map:	FrameMapObj(5)
@@ -12160,7 +12157,7 @@ obj_0041CBD9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041CBD9:	FrameObj(3, obj_0041CBD9_map)
 		Ref		0x00000132,_LexPhoneLookup,0x00000004
-obj_00558971:	.long		kHeaderSize + 153 + kFlagsBinary
+obj_00558971:	Ref    kHeaderSize + 153 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA8,0x22,0xA9,0x20,0xAA,0x1B,0x7B,0x1C,0x39,0xA4,0x7C,0x6F,0x00,0x70,0x1D
 		.byte		0x28,0xAE,0x1F,0x00,0x07,0x7C,0x1F,0x00,0x08,0x39,0xAF,0x00,0x09,0x77,0x00,0x09
@@ -12172,7 +12169,7 @@ obj_00558971:	.long		kHeaderSize + 153 + kFlagsBinary
 		.byte		0x72,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x92,0x71,0x1F,0x00,0x17,0x1F,0x00,0x18,0x72
 		.byte		0x72,0x24,0xC7,0x00,0x0B,0x1F,0x00,0x11,0x8A,0x1F,0x00,0x12,0x2A,0x1F,0x00,0x19
 		.byte		0x2B,0xA9,0x70,0x71,0x1F,0x00,0x1A,0x82,0x02
-		.align	2
+		.align  8
 obj_00558629_map:	FrameMapObj(2)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMnone),MAKEPTR(SYMall)
 obj_00558629:	FrameObj(2, obj_00558629_map)
@@ -12183,7 +12180,7 @@ obj_0055863D:	FrameObj(2, obj_0055863D_map)
 		Ref		MAKEPTR(SYMpackageName),MAKEPTR(obj_00558629)
 obj_0055877D:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMSleepScreen),MAKEPTR(SYMviewCObject)
-obj_00558885:	.long		kHeaderSize + 192 + kFlagsBinary
+obj_00558885:	Ref    kHeaderSize + 192 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x5F,0x00,0xBC,0x18,0x27,0x02,0xB4,0xC9,0x71,0x1A,0x91,0xA4,0x73,0x7C,0x20,0x1C
 		.byte		0x1D,0x1E,0x2D,0xA5,0x7D,0x6F,0x00,0x4D,0x7D,0x1F,0x00,0x07,0x91,0x6F,0x00,0x2C
@@ -12197,7 +12194,7 @@ obj_00558885:	.long		kHeaderSize + 192 + kFlagsBinary
 		.byte		0x8B,0xC7,0x00,0x16,0x1F,0x00,0x0F,0x2B,0xAF,0x00,0x17,0x07,0x00,0x07,0x77,0x00
 		.byte		0x19,0x1F,0x00,0x1A,0x38,0xA9,0x71,0x07,0x00,0x07,0x5F,0x00,0xBB,0x77,0x00,0x1B
 		.byte		0x24,0xC0,0xAF,0x00,0x1B,0x77,0x00,0x1B,0x07,0x00,0x07,0x00,0x71,0x63,0x22,0x02
-		.align	2
+		.align  8
 obj_00558809:	ArrayObj(28, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMentry),MAKEPTR(SYMpackageName),MAKEPTR(SYMpackageList),MAKEPTR(SYMstr_3D),MAKEPTR(SYMtitle),MAKEPTR(SYMLFetch),MAKEPTR(SYMstore),MAKEPTR(SYMGetName),MAKEPTR(obj_00556C05),MAKEPTR(SYMdupList),MAKEPTR(obj_005586C5),MAKEPTR(obj_00558281),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMStrConcatDelimited)
 		Ref		MAKEPTR(SYMvBarber),0x201C6,0x201D6,MAKEPTR(obj_005582A9),MAKEPTR(SYMSetStatus),MAKEPTR(SYMpkgRef),MAKEPTR(SYMActivatePackage),MAKEPTR(SYMerrList),MAKEPTR(obj_005586C5),MAKEPTR(SYMcursor),MAKEPTR(SYMNext),MAKEPTR(SYMmiscErrorCount)
@@ -12228,7 +12225,7 @@ obj_00630B29_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00630B29:	FrameObj(3, obj_00630B29_map)
 		Ref		0x00000132,_FIsReadOnly,0x00000004
-obj_0052A345:	.long		kHeaderSize + 143 + kFlagsBinary
+obj_0052A345:	Ref    kHeaderSize + 143 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0x22,0xC6,0x6F,0x00,0x8C,0x7C,0x18,0x19,0x28,0x1A,0x91,0x1B,0x3A,0xA5,0x7D
 		.byte		0x6F,0x00,0x1A,0x7B,0x1C,0x1D,0x2A,0x5F,0x00,0x1B,0x22,0x6F,0x00,0x8C,0x7B,0x1C
@@ -12239,7 +12236,7 @@ obj_0052A345:	.long		kHeaderSize + 143 + kFlagsBinary
 		.byte		0x62,0x22,0x6F,0x00,0x6A,0x77,0x00,0x07,0x02,0x00,0x7F,0x00,0x09,0x05,0x7F,0x00
 		.byte		0x09,0x06,0x6F,0x00,0x3C,0x22,0x22,0xA7,0x00,0x09,0x00,0x7F,0x00,0x07,0x05,0x7F
 		.byte		0x00,0x07,0x06,0x6F,0x00,0x2B,0x22,0x22,0xA7,0x00,0x07,0x00,0x22,0x02,0x02
-		.align	2
+		.align  8
 obj_0052A305:	ArrayObj(1, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYMstring_2Eemail)
 obj_0052A315:	ArrayObj(9, MAKEPTR(SYMliterals))
@@ -12252,10 +12249,10 @@ obj_0041B439_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041B439:	FrameObj(3, obj_0041B439_map)
 		Ref		0x00000132,_FIsCommandKeystroke,0x00000008
-obj_00556DE5:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_00556DE5:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x7D,0x18,0x2B,0xA6,0x7E,0x6F,0x00,0x0E,0x19,0x1A,0x29,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_00556E01:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSafeActivatePackageQT),MAKEPTR(SYMSafeActivatePackage),MAKEPTR(SYMXmitPackageOp)
 obj_00556E19_map:	FrameMapObj(5)
@@ -12268,10 +12265,10 @@ obj_003C6C45_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_003C6C45:	FrameObj(5, obj_003C6C45_map)
 		Ref		0x00000032,MAKEPTR(obj_003C6985),MAKEPTR(obj_003C6C31),NILREF,0x00000004
-obj_005681D1:	.long		kHeaderSize + 7 + kFlagsBinary
+obj_005681D1:	Ref    kHeaderSize + 7 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x27,0x00,0x1A,0x18,0x2A,0x02
-		.align	2
+		.align  8
 obj_005681E5:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetModemSetUpAndXvert1_2EX)
 obj_005681F5_map:	FrameMapObj(5)
@@ -12282,7 +12279,7 @@ obj_00420F01_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420F01:	FrameObj(3, obj_00420F01_map)
 		Ref		0x00000132,_FIsValidString,0x00000004
-obj_00450145:	.long		kHeaderSize + 123 + kFlagsBinary
+obj_00450145:	Ref    kHeaderSize + 123 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0xC5,0x6F,0x00,0x08,0x22,0x02,0x00,0x7B,0x18,0x29,0x6F,0x00,0x14,0x7B,0x19
 		.byte		0x91,0x5F,0x00,0x7A,0x7B,0xC7,0x00,0x18,0x1A,0xC4,0xC5,0x6F,0x00,0x24,0x7B,0x1B
@@ -12292,14 +12289,14 @@ obj_00450145:	.long		kHeaderSize + 123 + kFlagsBinary
 		.byte		0x1F,0x00,0x07,0x91,0x6F,0x00,0x72,0x7C,0x1F,0x00,0x07,0x91,0xC7,0x00,0x18,0x1F
 		.byte		0x00,0x08,0xC4,0x6F,0x00,0x6C,0x1F,0x00,0x09,0x5F,0x00,0x6F,0x1F,0x00,0x0A,0x5F
 		.byte		0x00,0x76,0x7C,0xC7,0x00,0x18,0x5F,0x00,0x7A,0x22,0x02
-		.align	2
+		.align  8
 obj_004501CD:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsNameRef),MAKEPTR(SYM_entryClass),MAKEPTR(SYMframe),MAKEPTR(SYMIsFrame),MAKEPTR(SYMEntryFromObj),MAKEPTR(SYMclass),MAKEPTR(SYMviewStationery),MAKEPTR(SYMsorton),MAKEPTR(SYMname),MAKEPTR(SYMperson),MAKEPTR(SYMcompany)
 obj_00450205_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00450205:	FrameObj(5, obj_00450205_map)
 		Ref		0x00000032,MAKEPTR(obj_00450145),MAKEPTR(obj_004501CD),NILREF,0x00040004
-obj_0056980D:	.long		kHeaderSize + 101 + kFlagsBinary
+obj_0056980D:	Ref    kHeaderSize + 101 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x7B,0x19,0x91,0x7C,0x1A,0x3A,0xA6,0x1B,0x7B,0x7E,0x1C,0x3A,0x00
 		.byte		0x7B,0x1D,0x91,0xA7,0x00,0x07,0x7F,0x00,0x07,0x6F,0x00,0x52,0x7F,0x00,0x07,0x1E
@@ -12308,7 +12305,7 @@ obj_0056980D:	.long		kHeaderSize + 101 + kFlagsBinary
 		.byte		0x52,0x7F,0x00,0x08,0x7F,0x00,0x07,0x7E,0x7B,0x1F,0x00,0x09,0x8A,0x1F,0x00,0x0A
 		.byte		0x2B,0x00,0x7D,0x6F,0x00,0x63,0x7B,0x18,0x91,0x7D,0x1F,0x00,0x0B,0x7E,0x1F,0x00
 		.byte		0x0C,0x2C,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_00569881:	ArrayObj(13, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMname),MAKEPTR(SYMindexes),MAKEPTR(SYMCreateSoup),MAKEPTR(SYMsoupDef),MAKEPTR(SYMSetInfo),MAKEPTR(SYMinitHook),MAKEPTR(SYMIsFunction),MAKEPTR(SYMGetRoot),MAKEPTR(SYMownerApp),MAKEPTR(SYMarray),MAKEPTR(SYMPerform),MAKEPTR(SYMsoupCreated),MAKEPTR(SYMXmitSoupChange)
 obj_005698C1_map:	FrameMapObj(5)
@@ -12319,11 +12316,11 @@ obj_0041BF45_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BF45:	FrameObj(3, obj_0041BF45_map)
 		Ref		0x00000132,_FGetPoint,0x00000008
-obj_0041E55D:	.long		kHeaderSize + 30 + kFlagsBinary
+obj_0041E55D:	Ref    kHeaderSize + 30 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0xC7,0x00,0x0A,0x67,0x00,0x10,0x7B,0x7D,0xC7,0x00,0x0B,0x5F,0x00,0x13
 		.byte		0x27,0x00,0x1A,0x6F,0x00,0x1A,0x22,0x5F,0x00,0x1D,0x7B,0x18,0x29,0x02
-		.align	2
+		.align  8
 obj_0041E589:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMfloor)
 obj_0041E599_map:	FrameMapObj(5)
@@ -12334,7 +12331,7 @@ obj_00420DE1_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00420DE1:	FrameObj(3, obj_00420DE1_map)
 		Ref		0x00000132,_FParamStr,0x00000008
-obj_00476895:	.long		kHeaderSize + 376 + kFlagsBinary
+obj_00476895:	Ref    kHeaderSize + 376 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x22,0xA4,0x7B,0x22,0xC4,0x6F,0x00,0x0B,0x22,0x02,0x00,0x7B,0x18,0x91,0x19,0xC4
 		.byte		0x6F,0x00,0x16,0x1A,0x02,0x00,0x7B,0x18,0x91,0x22,0xC4,0x6F,0x01,0x17,0x7B,0x1B
@@ -12360,7 +12357,7 @@ obj_00476895:	.long		kHeaderSize + 376 + kFlagsBinary
 		.byte		0x00,0x10,0x28,0x7B,0x1F,0x00,0x07,0x91,0x91,0xA7,0x00,0x0F,0x7F,0x00,0x0F,0x22
 		.byte		0xC4,0x6F,0x01,0x6B,0x1F,0x00,0x10,0x28,0xA7,0x00,0x0F,0x7F,0x00,0x0F,0x7B,0x18
 		.byte		0x91,0x1F,0x00,0x11,0x2A,0xA4,0x7C,0x02
-		.align	2
+		.align  8
 obj_00476A19:	ArrayObj(18, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMcurrentFormat),MAKEPTR(SYMbogus),MAKEPTR(obj_00463E85),MAKEPTR(SYMGetRouteFormats),MAKEPTR(SYMGetItemTransport),MAKEPTR(SYMdataTypes),MAKEPTR(SYMSetOverlaps),MAKEPTR(SYMappSymbol),MAKEPTR(SYMRouting),MAKEPTR(SYMfaxResolution),MAKEPTR(SYMfaxSlip),MAKEPTR(SYMprintSlip),MAKEPTR(SYMrouteform),MAKEPTR(SYMformats),MAKEPTR(SYMDataClassOf),MAKEPTR(SYMGetViewDefs)
 		Ref		MAKEPTR(SYMGetRoot),MAKEPTR(SYMGetVariable)
@@ -12368,10 +12365,10 @@ obj_00476A6D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00476A6D:	FrameObj(5, obj_00476A6D_map)
 		Ref		0x00000032,MAKEPTR(obj_00476895),MAKEPTR(obj_00476A19),NILREF,0x00300004
-obj_00559A79:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_00559A79:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA4,0x7C,0x6F,0x00,0x0C,0x19,0x1A,0x29,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_00559A95:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSafeFreezePackageQT),MAKEPTR(SYMSafeFreezePackage),MAKEPTR(SYMXmitPackageOp)
 obj_00559AAD_map:	FrameMapObj(5)
@@ -12394,13 +12391,13 @@ obj_0041BF5D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041BF5D:	FrameObj(3, obj_0041BF5D_map)
 		Ref		0x00000132,_FGetPointsArray,0x00000004
-obj_00437975:	.long		kHeaderSize + 62 + kFlagsBinary
+obj_00437975:	Ref    kHeaderSize + 62 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0xC7,0x00,0x09,0xA4,0x7C,0x19,0xC7,0x00,0x0B,0x6F,0x00,0x12,0x7C,0x1A
 		.byte		0xC1,0xA4,0x7C,0x27,0x00,0xF0,0xC7,0x00,0x09,0x1B,0x29,0x27,0x0A,0x06,0x7C,0x27
 		.byte		0x00,0xF0,0x1C,0x2A,0x1B,0x29,0x1D,0x7C,0x20,0xC7,0x00,0x0A,0x6F,0x00,0x35,0x27
 		.byte		0x05,0x76,0x5F,0x00,0x38,0x27,0x04,0x56,0x1E,0x8D,0xC7,0x00,0x16,0x02
-		.align	2
+		.align  8
 obj_004379C1:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		0x0001845C,0x0000A8C0,0x00015180,MAKEPTR(SYMabs),MAKEPTR(SYMmod),MAKEPTR(obj_0047CABD),MAKEPTR(SYMarray)
 obj_004379E9_map:	FrameMapObj(5)
@@ -12419,41 +12416,41 @@ obj_00627F01_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00627F01:	FrameObj(3, obj_00627F01_map)
 		Ref		0x00000132,_FCountLetterShapes,0x00000000
-obj_004D3895:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_004D3895:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x18,0x19,0x2B,0xA5,0x7D,0x1A,0x1B,0x1C,0x2B,0xA5,0x7D,0x02
-		.align	2
-obj_004D3885:	.long		kHeaderSize + 4 + kFlagsBinary
+		.align  8
+obj_004D3885:	Ref    kHeaderSize + 4 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0xFFFF,0
-		.align	2
+		.align  8
 obj_004D38B1:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_004D3885),MAKEPTR(SYMSubstituteChars),MAKEPTR(obj_004D3885),MAKEPTR(SYMrejectAll),MAKEPTR(SYMStringFilter)
 obj_004D38D1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004D38D1:	FrameObj(5, obj_004D38D1_map)
 		Ref		0x00000032,MAKEPTR(obj_004D3895),MAKEPTR(obj_004D38B1),NILREF,0x00040008
-obj_004A8759:	.long		kHeaderSize + 12 + kFlagsBinary
+obj_004A8759:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x6F,0x00,0x0A,0x70,0x7B,0x91,0x5F,0x00,0x0B,0x22,0x02
-		.align	2
+		.align  8
 obj_004A8771:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYM_dataDefs)
 obj_004A8781_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004A8781:	FrameObj(5, obj_004A8781_map)
 		Ref		0x00000032,MAKEPTR(obj_004A8759),MAKEPTR(obj_004A8771),NILREF,0x00000004
-obj_0055A2E5:	.long		kHeaderSize + 72 + kFlagsBinary
+obj_0055A2E5:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','r','e',' ','y','o','u',' ','s','u','r','e',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','r','e','m','o','v','e',' ','i','t','?',0
-		.align	2
+		.align  8
 obj_0055A365:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMPackageEntryFromThingy),MAKEPTR(SYMpkgRef),MAKEPTR(SYMpackageName),MAKEPTR(obj_0055A2E5),MAKEPTR(SYMOKToDeactivatePackage),MAKEPTR(SYMRemovePackage)
 obj_0055A389_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0055A389:	FrameObj(5, obj_0055A389_map)
 		Ref		0x00000032,MAKEPTR(obj_0055A339),MAKEPTR(obj_0055A365),NILREF,0x00040004
-obj_0048C2AD:	.long		kHeaderSize + 498 + kFlagsBinary
+obj_0048C2AD:	Ref    kHeaderSize + 498 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x1A,0x29,0xA7,0x00,0x07,0x1B,0x80,0xA7,0x00,0x08,0x7F,0x00,0x07
 		.byte		0x6F,0x00,0x2A,0x7F,0x00,0x07,0x1C,0x91,0x6F,0x00,0x25,0x7F,0x00,0x07,0x1C,0x91
@@ -12487,7 +12484,7 @@ obj_0048C2AD:	.long		kHeaderSize + 498 + kFlagsBinary
 		.byte		0x24,0xC2,0xA7,0x00,0x0A,0x7F,0x00,0x0A,0x1F,0x00,0x2A,0x38,0x00,0x7F,0x00,0x0B
 		.byte		0x05,0x7F,0x00,0x0B,0x06,0x6F,0x01,0xCD,0x22,0x22,0xA7,0x00,0x0B,0x5F,0x01,0xF1
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_0048C4AD:	ArrayObj(43, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMcurrentEmporium),MAKEPTR(SYMGetUserConfig),MAKEPTR(SYMResolveEntryAlias),MAKEPTR(obj_004D4879),MAKEPTR(SYMcityAlias),MAKEPTR(SYMGetCityFromAlias),MAKEPTR(SYMlocation),MAKEPTR(SYMcurrentAreaCode),MAKEPTR(SYMareacode),MAKEPTR(SYMarray),MAKEPTR(SYMcountrySymbol),MAKEPTR(SYMcurrentCountry),MAKEPTR(SYMdialingPrefix),MAKEPTR(SYMStrFilled),MAKEPTR(SYMprinter),MAKEPTR(SYMcurrentPrinter)
 		Ref		MAKEPTR(SYMsprint),MAKEPTR(SYMGetRoot),MAKEPTR(SYMcardfile),MAKEPTR(SYMbcEmailNetwork),MAKEPTR(SYMmailPhone),MAKEPTR(SYMConvertIntToPhone),MAKEPTR(SYMmailPhoneFull),MAKEPTR(SYMmailNetwork),MAKEPTR(SYMconcert),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_005A7F4D),MAKEPTR(SYMSetUserConfig),MAKEPTR(SYMworldClock),MAKEPTR(SYMviewCObject),MAKEPTR(SYMUpdateLocationFields),MAKEPTR(SYMRedoChildren)
@@ -12508,12 +12505,12 @@ obj_005365B5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005365B5:	FrameObj(3, obj_005365B5_map)
 		Ref		0x00000132,_FPreInitSerialDebugging,0x0000000C
-obj_0062863D:	.long		kHeaderSize + 35 + kFlagsBinary
+obj_0062863D:	Ref    kHeaderSize + 35 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x7B,0x6F,0x00,0x21,0x7B,0x19,0x29,0x6F,0x00,0x13,0x7B,0x72,0x1B
 		.byte		0x91,0xC2,0xA3,0x7B,0x72,0x1B,0x91,0x1C,0x2A,0xA3,0x7B,0x1D,0x1E,0x2A,0x5F,0x00
 		.byte		0x22,0x22,0x02
-		.align	2
+		.align  8
 obj_0062866D:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetLetterWeights),MAKEPTR(SYMIsArray),MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMConvertForMP),MAKEPTR(obj_006280ED),MAKEPTR(SYMSaveDataToEntry)
 obj_00628695_map:	FrameMapObj(5)
@@ -12532,11 +12529,11 @@ obj_00631139_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00631139:	FrameObj(3, obj_00631139_map)
 		Ref		0x00000132,_FClassInfoByName,0x0000000C
-obj_005590C1:	.long		kHeaderSize + 27 + kFlagsBinary
+obj_005590C1:	Ref    kHeaderSize + 27 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7C,0x19,0x39,0xA5,0x7D,0x6F,0x00,0x19,0x7B,0x7B,0x1A,0x1B,0x1C,0x84,0xA6
 		.byte		0x7E,0x7D,0x1D,0x39,0x1E,0x38,0x5F,0x00,0x1A,0x22,0x02
-		.align	2
+		.align  8
 obj_005590B1_map:	FrameMapObj(1)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMall)
 obj_005590B1:	FrameObj(1, obj_005590B1_map)
@@ -12551,7 +12548,7 @@ obj_0055A8B5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0055A8B5:	FrameObj(3, obj_0055A8B5_map)
 		Ref		0x00000132,_DisconnectOnlineServices,0x00000000
-obj_00562FF9:	.long		kHeaderSize + 132 + kFlagsBinary
+obj_00562FF9:	Ref    kHeaderSize + 132 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x2A,0x7D,0x24,0xC2,0xA4,0x19,0x27,0x00
 		.byte		0x94,0xC9,0x1A,0x7C,0x1B,0x39,0xC5,0x6F,0x00,0x1F,0x22,0xAC,0x74,0x02,0x00,0x07
@@ -12562,7 +12559,7 @@ obj_00562FF9:	.long		kHeaderSize + 132 + kFlagsBinary
 		.byte		0x66,0x22,0xAC,0x74,0x02,0x00,0x07,0x00,0x07,0x5F,0x00,0x6F,0x07,0x00,0x07,0x7F
 		.byte		0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x40,0x22,0x22,0xA7,0x00,0x07,0x00
 		.byte		0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_00562FD5:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMOldPowerOffHandlers),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMokToPowerOff),MAKEPTR(SYMPowerOffScript),MAKEPTR(SYMPoweringOff),MAKEPTR(SYMPowerOffRegistry)
 obj_00563089_map:	FrameMapObj(5)
@@ -12581,7 +12578,7 @@ obj_0041AA7D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041AA7D:	FrameObj(3, obj_0041AA7D_map)
 		Ref		0x00000132,_FSetRandomSeed,0x00000004
-obj_00568459:	.long		kHeaderSize + 86 + kFlagsBinary
+obj_00568459:	Ref    kHeaderSize + 86 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA3,0x27,0x03,0x67,0x22,0xC7,0x00,0x11,0xA6,0x7E,0x27,0x00,0x14,0xC2
 		.byte		0x19,0x8F,0xFF,0xFF,0xA7,0x00,0x08,0x20,0xA7,0x00,0x07,0x5F,0x00,0x35,0x7E,0x24
@@ -12589,14 +12586,14 @@ obj_00568459:	.long		kHeaderSize + 86 + kFlagsBinary
 		.byte		0x07,0x00,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x1E,0x5F,0x00,0x42,0xA7,0x00,0x08
 		.byte		0x00,0x00,0x7F,0x00,0x08,0x22,0xA7,0x00,0x08,0x22,0xA6,0xA4,0x7B,0x7C,0x1B,0x22
 		.byte		0x27,0x00,0x1A,0x1C,0x2D,0x02
-		.align	2
+		.align  8
 obj_005684BD:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetAllSoupBasedModemSetUpNames),MAKEPTR(SYMarray),MAKEPTR(SYMmodemName),MAKEPTR(SYMstr_3C),MAKEPTR(SYMBMerge)
 obj_005684DD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_005684DD:	FrameObj(5, obj_005684DD_map)
 		Ref		0x00000032,MAKEPTR(obj_00568459),MAKEPTR(obj_005684BD),NILREF,0x00180000
-obj_0048C18D:	.long		kHeaderSize + 139 + kFlagsBinary
+obj_0048C18D:	Ref    kHeaderSize + 139 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x6F,0x00,0x0C,0x7B,0x19,0x29,0x5F,0x00,0x8A,0x7B,0x1A,0x29,0x6F
 		.byte		0x00,0x89,0x7B,0x20,0xC2,0x1B,0x29,0xA4,0x7C,0xC7,0x00,0x12,0xA5,0x7D,0x24,0xC7
@@ -12607,17 +12604,17 @@ obj_0048C18D:	.long		kHeaderSize + 139 + kFlagsBinary
 		.byte		0x00,0x08,0x05,0x7F,0x00,0x08,0x06,0x6F,0x00,0x30,0x22,0x22,0xA7,0x00,0x08,0x00
 		.byte		0x7E,0xC5,0x6F,0x00,0x7D,0x7D,0x20,0xC7,0x00,0x0B,0x5F,0x00,0x7E,0x22,0x6F,0x00
 		.byte		0x85,0x7C,0x20,0xC2,0xA6,0x7E,0x5F,0x00,0x8A,0x22,0x02
-		.align	2
+		.align  8
 obj_0048C169:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMIsEntryAlias),MAKEPTR(SYMResolveEntryAlias),MAKEPTR(SYMIsArray),MAKEPTR(SYMGetCityEntry),MAKEPTR(SYMlongitude),MAKEPTR(SYMlatitude)
 obj_0048C225_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0048C225:	FrameObj(5, obj_0048C225_map)
 		Ref		0x00000032,MAKEPTR(obj_0048C18D),MAKEPTR(obj_0048C169),NILREF,0x00140004
-obj_0056491D:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_0056491D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0x6F,0x00,0x0C,0x70,0x7B,0x91,0x5F,0x00,0x0F,0x1A,0x7B,0x91,0x02
-		.align	2
+		.align  8
 obj_005648C1_map:	FrameMapObj(2)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMwidth),MAKEPTR(SYMheight)
 obj_005648C1:	FrameObj(2, obj_005648C1_map)
@@ -12636,10 +12633,10 @@ obj_00564951_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00564951:	FrameObj(5, obj_00564951_map)
 		Ref		0x00000032,MAKEPTR(obj_0056491D),MAKEPTR(obj_00564939),NILREF,0x00000004
-obj_005B9021:	.long		kHeaderSize + 14 + kFlagsBinary
+obj_005B9021:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0xA5,0x7C,0x7D,0x19,0x39,0xA6,0x7E,0x20,0xC4,0x02,0x02
-		.align	2
+		.align  8
 obj_005B903D:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetDictionary),MAKEPTR(SYMDeleteEncodedWord)
 obj_005B9051_map:	FrameMapObj(5)
@@ -12650,14 +12647,14 @@ obj_00631289_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00631289:	FrameObj(3, obj_00631289_map)
 		Ref		0x00000132,_FHasVar,0x00000004
-obj_00422205:	.long		kHeaderSize + 75 + kFlagsBinary
+obj_00422205:	Ref    kHeaderSize + 75 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x01,0x18,0xC9,0x7B,0x19,0x91,0x6F,0x00,0x14,0x7B,0x19,0x91,0x7B,0x1A
 		.byte		0x91,0x1B,0x2A,0x00,0x7B,0x1C,0x91,0xA4,0x7C,0x6F,0x00,0x3F,0x7C,0xC7,0x00,0x12
 		.byte		0x27,0x00,0x08,0xC4,0x6F,0x00,0x30,0x75,0x1E,0x91,0x7C,0x1B,0x2A,0x5F,0x00,0x3C
 		.byte		0x1F,0x00,0x07,0x28,0x1F,0x00,0x08,0x7C,0x1F,0x00,0x09,0x2B,0x5F,0x00,0x40,0x22
 		.byte		0x07,0x00,0x07,0x5F,0x00,0x4A,0x22,0x07,0x00,0x07,0x02
-		.align	2
+		.align  8
 obj_0042225D:	ArrayObj(10, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMcallbackFn),MAKEPTR(SYMcallbackParams),MAKEPTR(SYMApply),MAKEPTR(SYMnotifyArgs),MAKEPTR(SYMfunctions),MAKEPTR(SYMAlarmUser),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(SYMPerform)
 obj_00422291_map:	FrameMapObj(5)
@@ -12712,29 +12709,29 @@ obj_00628871_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00628871:	FrameObj(3, obj_00628871_map)
 		Ref		0x00000132,_FUseWRec,0x00000004
-obj_00476DED:	.long		kHeaderSize + 35 + kFlagsBinary
+obj_00476DED:	Ref    kHeaderSize + 35 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x19,0x91,0x6F,0x00,0x21,0x71,0x7B,0x1A,0x2A,0x00,0x71,0xC7,0x00,0x12
 		.byte		0x20,0xC4,0x6F,0x00,0x1D,0x22,0xA9,0x1B,0x1C,0x29,0x5F,0x00,0x1E,0x22,0x5F,0x00
 		.byte		0x22,0x22,0x02
-		.align	2
+		.align  8
 obj_00476E1D:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetGlobals),MAKEPTR(SYMentryForms),MAKEPTR(SYMSetRemove),MAKEPTR(SYM_routing),MAKEPTR(SYMUnRegStoreChange)
 obj_00476E3D_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00476E3D:	FrameObj(5, obj_00476E3D_map)
 		Ref		0x00000032,MAKEPTR(obj_00476DED),MAKEPTR(obj_00476E1D),NILREF,0x00000004
-obj_004801A1:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_004801A1:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0x19,0x2A,0x00,0x1A,0x28,0x02
-		.align	2
+		.align  8
 obj_004801B5:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMRemoveSlot),MAKEPTR(SYMFlushUserConfig)
 obj_004801CD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004801CD:	FrameObj(5, obj_004801CD_map)
 		Ref		0x00000032,MAKEPTR(obj_004801A1),MAKEPTR(obj_004801B5),NILREF,0x00000004
-obj_00436ED5:	.long		kHeaderSize + 89 + kFlagsBinary
+obj_00436ED5:	Ref    kHeaderSize + 89 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x19,0x29,0xA4,0x7C,0xC5,0x6F,0x00,0x0C,0x22,0x02,0x00,0x7B,0x7C,0x1A,0x39
 		.byte		0x1B,0x89,0xA5,0x7B,0x7C,0x1A,0x39,0xA6,0x7B,0x1C,0x28,0x20,0xC2,0x1A,0x39,0xA7
@@ -12742,13 +12739,13 @@ obj_00436ED5:	.long		kHeaderSize + 89 + kFlagsBinary
 		.byte		0x00,0x36,0x7E,0x1B,0x89,0xA5,0x27,0x03,0xA3,0x1D,0x91,0x1E,0x7D,0x27,0x00,0x20
 		.byte		0x1F,0x00,0x07,0x29,0x7B,0x27,0x03,0xA3,0x1F,0x00,0x08,0x91,0x1F,0x00,0x09,0x27
 		.byte		0x04,0x0B,0x1F,0x00,0x0A,0x87,0x00,0x08,0x02
-		.align	2
+		.align  8
 obj_00436F75:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYM_parent),MAKEPTR(SYMQuery)
-obj_00436E1D:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_00436E1D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x27,0x04,0x0B,0x7B,0x03,0x18,0x39,0x71,0xC7,0x00,0x12,0x24,0xC4,0x1A,0x83,0x02
-		.align	2
+		.align  8
 obj_00436E01:	ArrayObj(4, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMrealCurs),MAKEPTR(SYMromOnly)
 obj_00436E39:	ArrayObj(3, MAKEPTR(SYMliterals))
@@ -12773,15 +12770,15 @@ obj_0041C199_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0041C199:	FrameObj(3, obj_0041C199_map)
 		Ref		0x00000132,_FReadCursiveOptions,0x00000000
-obj_0062EE15:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_0062EE15:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x19,0x1A,0x8B,0xC7,0x00,0x16,0x1B,0x1C,0x2A,0x00,0x7B,0x1D,0x1E,0x2A
 		.byte		0x02
-		.align	2
-obj_0062EE5D:	.long		kHeaderSize + 42 + kFlagsBinary
+		.align  8
+obj_0062EE5D:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'U','n','R','e','g','i','s','t','e','r','C','a','r','d','S','o','u','p','(','"',0
-		.align	2
+		.align  8
 obj_0062EE35:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0062EE5D),MAKEPTR(obj_003C58A9),MAKEPTR(SYMarray),MAKEPTR(SYMobsolete),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYM_RegisterCardSoup),MAKEPTR(SYMUnRegUnionSoup)
 obj_0062EE95_map:	FrameMapObj(5)
@@ -12802,35 +12799,35 @@ obj_0055A3C1_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0055A3C1:	FrameObj(5, obj_0055A3C1_map)
 		Ref		0x00000032,MAKEPTR(obj_00559A79),MAKEPTR(obj_0055A3A9),NILREF,0x00040004
-obj_0055A5F5:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_0055A5F5:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x7B,0x7B,0x19,0x83,0x7C,0x1A,0x39,0xA6,0x7E,0x22,0x1B,0x2A,0x7D,0x1C,0x2A
 		.byte		0x02
-		.align	2
+		.align  8
 obj_0055A615:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMpackageName),MAKEPTR(obj_00421DF5),MAKEPTR(SYMQuery),MAKEPTR(SYMMapCursor),MAKEPTR(SYMRestoreAPackageFromPieces)
 obj_0055A635_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0055A635:	FrameObj(5, obj_0055A635_map)
 		Ref		0x00000032,MAKEPTR(obj_0055A5F5),MAKEPTR(obj_0055A615),NILREF,0x0004000C
-obj_004D38F1:	.long		kHeaderSize + 40 + kFlagsBinary
+obj_004D38F1:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7D,0xA6,0x5F,0x00,0x1C,0x7B,0x7E,0xC2,0x7C,0x20,0xC2,0xC4,0x6F,0x00,0x16,0x22
 		.byte		0x5F,0x00,0x25,0x5F,0x00,0x1B,0x7E,0x24,0xC0,0xA6,0x7E,0x00,0x7B,0x7C,0x7E,0x18
 		.byte		0x2B,0xA6,0x7E,0x65,0x22,0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_004D3925:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStrPos)
 obj_004D3935_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_004D3935:	FrameObj(5, obj_004D3935_map)
 		Ref		0x00000032,MAKEPTR(obj_004D38F1),MAKEPTR(obj_004D3925),NILREF,0x0004000C
-obj_006287E1:	.long		kHeaderSize + 47 + kFlagsBinary
+obj_006287E1:	Ref    kHeaderSize + 47 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7C,0x27,0x00,0x08,0xC6,0x6F,0x00,0x15,0x70,0x19,0x27,0x00
 		.byte		0x08,0x98,0x1A,0x28,0x00,0x70,0x1B,0x7B,0x98,0x1A,0x28,0x00,0x7C,0x27,0x00,0x08
 		.byte		0xC6,0x6F,0x00,0x2D,0x70,0x19,0x7C,0x98,0x1A,0x28,0x5F,0x00,0x2E,0x22,0x02
-		.align	2
+		.align  8
 obj_0062881D:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMuserConfiguration),MAKEPTR(SYMletterSetSelection),MAKEPTR(SYMReadCursiveOptions),MAKEPTR(SYMbigLearningEnabled)
 obj_00628839_map:	FrameMapObj(5)
@@ -12847,7 +12844,7 @@ obj_005633CD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_005633CD:	FrameObj(3, obj_005633CD_map)
 		Ref		0x00000132,_FSetBatteryType,0x00000008
-obj_0046309D:	.long		kHeaderSize + 178 + kFlagsBinary
+obj_0046309D:	Ref    kHeaderSize + 178 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0xA6,0x7E,0x19,0x91,0x6F,0x00,0x52,0x7E,0x1A,0x91,0xA7,0x00,0x07,0x7E
 		.byte		0x19,0x91,0x1B,0x29,0x6F,0x00,0x43,0x7D,0xC5,0x6F,0x00,0x22,0x7E,0x1C,0x91,0x5F
@@ -12861,17 +12858,17 @@ obj_0046309D:	.long		kHeaderSize + 178 + kFlagsBinary
 		.byte		0x1F,0x00,0x0F,0x91,0x1F,0x00,0x10,0x83,0xA7,0x00,0x08,0x5F,0x00,0xA7,0x7B,0x7C
 		.byte		0x1F,0x00,0x11,0x82,0xA7,0x00,0x08,0x7F,0x00,0x07,0x7F,0x00,0x08,0x1F,0x00,0x12
 		.byte		0x2A,0x02
-		.align	2
+		.align  8
 obj_00463089:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMdata),MAKEPTR(SYMuserMessage)
 obj_00462FDD:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYM_UserTitle),MAKEPTR(SYM_UserMessage),MAKEPTR(SYM_OrigExData)
 obj_00463019:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYM_UserTitle),MAKEPTR(SYM_UserMessage),MAKEPTR(SYMmessage)
-obj_00463035:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_00463035:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	';','t','y','p','e','.','r','e','f',0
-		.align	2
+		.align  8
 obj_00463055:	ArrayObj(4, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYM_UserTitle),MAKEPTR(SYM_UserMessage),MAKEPTR(SYMerrorCode)
 obj_00463071:	ArrayObj(3, 0x00000008)
@@ -12903,13 +12900,13 @@ obj_0050455D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0050455D:	FrameObj(3, obj_0050455D_map)
 		Ref		0x00000132,_FGetMeetingIcon,0x00000004
-obj_005683C1:	.long		kHeaderSize + 56 + kFlagsBinary
+obj_005683C1:	Ref    kHeaderSize + 56 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x00,0x19,0x88,0xA3,0x1A,0x1B,0x81,0x27,0x04,0x53,0x1C,0x28,0x20,0xC2
 		.byte		0x1D,0x39,0x1E,0x39,0xA4,0x7C,0x1F,0x00,0x07,0x38,0xA5,0x5F,0x00,0x30,0x7B,0x7C
 		.byte		0x1F,0x00,0x08,0x38,0xC7,0x00,0x15,0x00,0x7C,0x1F,0x00,0x09,0x38,0xA5,0x7D,0x00
 		.byte		0x7D,0x67,0x00,0x1E,0x22,0x00,0x7B,0x02
-		.align	2
+		.align  8
 obj_005683AD:	ArrayObj(2, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMindexPath)
 obj_00568405:	ArrayObj(10, MAKEPTR(SYMliterals))
@@ -12930,13 +12927,13 @@ obj_00631349_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00631349:	FrameObj(3, obj_00631349_map)
 		Ref		0x00000132,_FLoad,0x00000004
-obj_00558EAD:	.long		kHeaderSize + 53 + kFlagsBinary
+obj_00558EAD:	Ref    kHeaderSize + 53 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x28,0x22,0xC7,0x00,0x11,0xA5,0x5F,0x00,0x2C,0x7D,0x24,0xC2,0xA4,0x7C,0x19
 		.byte		0x91,0x7B,0xC4,0x6F,0x00,0x2A,0x1A,0x27,0x00,0x9C,0xC9,0x7C,0x1B,0x91,0x1C,0x29
 		.byte		0x00,0x07,0x00,0x07,0x5F,0x00,0x2A,0x07,0x00,0x07,0x7D,0x05,0x7D,0x06,0x6F,0x00
 		.byte		0x0A,0x22,0x22,0xA5,0x02
-		.align	2
+		.align  8
 obj_00558EF1:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetPackages),MAKEPTR(SYMstore),MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMid),MAKEPTR(SYMDeActivate1_2EXPackage)
 obj_00558F11_map:	FrameMapObj(5)
@@ -12951,7 +12948,7 @@ obj_00631379_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00631379:	FrameObj(3, obj_00631379_map)
 		Ref		0x00000132,_FHasPath,0x00000008
-obj_00535B4D:	.long		kHeaderSize + 965 + kFlagsBinary
+obj_00535B4D:	Ref    kHeaderSize + 965 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x29,0x67,0x00,0x0C,0x7B,0x19,0x29,0x5F,0x00,0x0F,0x27,0x00,0x1A,0x6F
 		.byte		0x00,0x15,0x22,0x02,0x00,0x7C,0x1A,0x91,0x6F,0x00,0x23,0x7B,0x7C,0x1A,0x91,0xC4
@@ -13014,7 +13011,7 @@ obj_00535B4D:	.long		kHeaderSize + 965 + kFlagsBinary
 		.byte		0x91,0x7E,0xC7,0x00,0x13,0x7B,0x7F,0x00,0x07,0x7F,0x00,0x10,0x7C,0x1F,0x00,0x25
 		.byte		0x91,0x7F,0x00,0x08,0xC1,0x1F,0x00,0x26,0x85,0xC7,0x00,0x15,0x5F,0x03,0xC0,0x22
 		.byte		0x5F,0x03,0xC4,0x22,0x02
-		.align	2
+		.align  8
 obj_0053596D:	ArrayObj(6, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMpath),MAKEPTR(SYMobject),MAKEPTR(SYMclass),MAKEPTR(SYMsize),MAKEPTR(SYMsizeAll)
 obj_00535A41:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -13041,7 +13038,7 @@ obj_00535F35_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00535F35:	FrameObj(5, obj_00535F35_map)
 		Ref		0x00000032,MAKEPTR(obj_00535B4D),MAKEPTR(obj_00535AA5),NILREF,0x00300010
-obj_00629875:	.long		kHeaderSize + 325 + kFlagsBinary
+obj_00629875:	Ref    kHeaderSize + 325 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7C,0xC7,0x00,0x13,0xA6,0x7E,0x18,0x29,0xA7,0x00,0x07,0x7E,0x19,0x29,0x00,0x7C
 		.byte		0x7C,0xC7,0x00,0x13,0x1A,0x29,0x1B,0x2A,0x20,0xC4,0xA7,0x00,0x08,0x7F,0x00,0x07
@@ -13064,23 +13061,23 @@ obj_00629875:	.long		kHeaderSize + 325 + kFlagsBinary
 		.byte		0x00,0x15,0x7F,0x00,0x0E,0x1F,0x00,0x07,0x8B,0xC7,0x00,0x16,0x1F,0x00,0x0A,0x1F
 		.byte		0x00,0x0B,0x2A,0x6F,0x01,0x43,0x1F,0x00,0x16,0x28,0x1F,0x00,0x17,0x91,0x1F,0x00
 		.byte		0x18,0x38,0x00,0x7D,0x02
-		.align	2
-obj_0062958D:	.long		kHeaderSize + 76 + kFlagsBinary
+		.align  8
+obj_0062958D:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'S','h','o','u','l','d',' ',''','^','0',''',' ','a','l','w','a','y','s',' ','b','e',' ','a','l','l',' ','u','p','p','e','r','-','c','a','s','e','?',0
-		.align	2
-obj_006295E5:	.long		kHeaderSize + 190 + kFlagsBinary
+		.align  8
+obj_006295E5:	Ref    kHeaderSize + 190 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'Y','o','u',' ','w','i','l','l',' ','n','e','e','d',' ','t','o',' ','r','e','m','o','v','e',' ','s','o','m','e',' ','w','o','r','d','s',' ','b','e','f','o','r','e',' ','m','o','r','e',' ','c','a','n',' ','b','e',' ','l','e','a','r','n','e','d','.',' ',' ','W','o','u','l','d',' ','y','o','u',' ','l','i','k','e',' ','t','o',' ','o','p','e','n',' ','i','t',' ','n','o','w','?',0
-		.align	2
-obj_006296B1:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_006296B1:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','P','e','r','s','o','n','a','l',' ','w','o','r','d',' ','l','i','s','t',' ','i','s',' ','n','o','w',' ','f','u','l','l','.',0
-		.align	2
-obj_00629705:	.long		kHeaderSize + 136 + kFlagsBinary
+		.align  8
+obj_00629705:	Ref    kHeaderSize + 136 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','w','o','r','d',' ',''','^','0',''',' ','w','a','s',' ','n','o','t',' ','a','d','d','e','d',' ','b','e','c','a','u','s','e',' ','t','h','e',' ','P','e','r','s','o','n','a','l',' ','w','o','r','d',' ','l','i','s','t',' ','i','s',' ','f','u','l','l','.',0
-		.align	2
+		.align  8
 obj_00629799:	ArrayObj(25, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMStripRecognitionWord),MAKEPTR(SYMTrimTruncatedString),MAKEPTR(SYMUpcase),MAKEPTR(SYMStrExactCompare),MAKEPTR(SYMSpellCheck),MAKEPTR(SYMdialogInhibit),MAKEPTR(obj_0062958D),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(obj_005AC505),MAKEPTR(SYMyesNo),MAKEPTR(SYMModalConfirm),MAKEPTR(SYMDowncase),MAKEPTR(SYMGetDictionary),MAKEPTR(SYMcount),MAKEPTR(SYMlimit)
 		Ref		MAKEPTR(SYMAddEncodedWord),MAKEPTR(SYMsaveUserDict),MAKEPTR(obj_006295E5),MAKEPTR(obj_006296B1),MAKEPTR(obj_00629705),MAKEPTR(obj_0047CABD),MAKEPTR(SYMGetRoot),MAKEPTR(SYMreviewDict),MAKEPTR(SYMOpen)
@@ -15428,10 +15425,10 @@ obj_00635925_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635925:	FrameObj(3, obj_00635925_map)
 		Ref		0x00000132,_StoreUsedSize,0x00000000
-obj_00635649:	.long		kHeaderSize + 4 + kFlagsBinary
+obj_00635649:	Ref    kHeaderSize + 4 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x91,0x02
-		.align	2
+		.align  8
 obj_00635659:	ArrayObj(1, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMsoups)
 obj_0063593D_map:	FrameMapObj(5)
@@ -15454,23 +15451,23 @@ obj_006359A5_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_006359A5:	FrameObj(3, obj_006359A5_map)
 		Ref		0x00000132,_StoreCheckWriteProtect,0x00000000
-obj_00635669:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_00635669:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x03,0x18,0x3A,0xA5,0x71,0x03,0x1A,0x7B,0x1B,0x8B,0x1C,0x2A,0x00,0x7D
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00635689:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSetInfoQT),MAKEPTR(SYMStoreChangeRegistry),MAKEPTR(SYMstoreInfoChanged),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_006359BD_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_006359BD:	FrameObj(5, obj_006359BD_map)
 		Ref		0x00000032,MAKEPTR(obj_00635669),MAKEPTR(obj_00635689),NILREF,0x00040008
-obj_006356A9:	.long		kHeaderSize + 38 + kFlagsBinary
+obj_006356A9:	Ref    kHeaderSize + 38 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x64,0xC9,0x7B,0x7C,0x03,0x19,0x3A,0x00,0x7D,0x30,0xA6,0x7B,0x03
 		.byte		0x1A,0x39,0x00,0x07,0x00,0x07,0x5F,0x00,0x24,0x7B,0x03,0x1A,0x39,0x00,0x1B,0x28
 		.byte		0x00,0x07,0x00,0x07,0x7E,0x02
-		.align	2
+		.align  8
 obj_006356DD:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMMarkBusy),MAKEPTR(SYMMarkNotBusy),MAKEPTR(SYMRethrow)
 obj_006359DD_map:	FrameMapObj(5)
@@ -15497,11 +15494,11 @@ obj_00635A5D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635A5D:	FrameObj(3, obj_00635A5D_map)
 		Ref		0x00000132,_StoreSetAllInfo,0x00000004
-obj_006356F9:	.long		kHeaderSize + 17 + kFlagsBinary
+obj_006356F9:	Ref    kHeaderSize + 17 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA4,0x7C,0x6F,0x00,0x0F,0x7B,0x7C,0x19,0x2A,0x5F,0x00,0x10,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00635719:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCardSlot),MAKEPTR(SYMMarkSlotNotBusy)
 obj_00635A75_map:	FrameMapObj(5)
@@ -15512,10 +15509,10 @@ obj_00635A95_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635A95:	FrameObj(3, obj_00635A95_map)
 		Ref		0x00000132,_StoreSetPassword,0x00000008
-obj_0063572D:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_0063572D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x03,0x18,0x39,0xA4,0x71,0x03,0x1A,0x22,0x1B,0x8B,0x1C,0x2A,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_00635749:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMSetAllInfoQT),MAKEPTR(SYMStoreChangeRegistry),MAKEPTR(SYMstoreInfoChanged),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00635AAD_map:	FrameMapObj(5)
@@ -15538,11 +15535,11 @@ obj_00635B15_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635B15:	FrameObj(3, obj_00635B15_map)
 		Ref		0x00000132,_StoreErase,0x00000000
-obj_00635769:	.long		kHeaderSize + 18 + kFlagsBinary
+obj_00635769:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA5,0x7D,0x6F,0x00,0x10,0x7B,0x7D,0x7C,0x19,0x2B,0x5F,0x00,0x11
 		.byte		0x22,0x02
-		.align	2
+		.align  8
 obj_00635789:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCardSlot),MAKEPTR(SYMMarkSlotBusy)
 obj_00635B2D_map:	FrameMapObj(5)
@@ -15553,11 +15550,11 @@ obj_00635B4D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635B4D:	FrameObj(3, obj_00635B4D_map)
 		Ref		0x00000132,_StoreConvertSoupSortTables,0x00000004
-obj_0063579D:	.long		kHeaderSize + 19 + kFlagsBinary
+obj_0063579D:	Ref    kHeaderSize + 19 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA3,0x03,0x19,0x38,0xA4,0x72,0x03,0x1B,0x7B,0x1C,0x8B,0x1D,0x2A
 		.byte		0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_006357BD:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetName),MAKEPTR(SYMEraseQT),MAKEPTR(SYMStoreChangeRegistry),MAKEPTR(SYMstoreErased),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00635B65_map:	FrameMapObj(5)
@@ -15580,11 +15577,11 @@ obj_00635BCD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635BCD:	FrameObj(3, obj_00635BCD_map)
 		Ref		0x00000132,_StoreGetSoupNames,0x00000000
-obj_006357E1:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_006357E1:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA4,0x7B,0x03,0x19,0x39,0xA5,0x72,0x03,0x1B,0x7C,0x1C,0x8B,0x1D
 		.byte		0x2A,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00635801:	ArrayObj(6, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetName),MAKEPTR(SYMSetNameQT),MAKEPTR(SYMStoreChangeRegistry),MAKEPTR(SYMstoreReNamed),MAKEPTR(SYMarray),MAKEPTR(SYMCallFrameBasedRegistryFns)
 obj_00635BE5_map:	FrameMapObj(5)
@@ -15611,11 +15608,11 @@ obj_00635C65_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635C65:	FrameObj(3, obj_00635C65_map)
 		Ref		0x00000132,_StoreCreateSoup,0x00000008
-obj_00635825:	.long		kHeaderSize + 19 + kFlagsBinary
+obj_00635825:	Ref    kHeaderSize + 19 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x7C,0x03,0x18,0x3A,0xA6,0x7D,0x6F,0x00,0x11,0x7B,0x7D,0x19,0x7E,0x1A,0x2C
 		.byte		0x00,0x7E,0x02
-		.align	2
+		.align  8
 obj_00635845:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCreateSoup),MAKEPTR(SYMsoupCreated),MAKEPTR(SYMXmitSoupChange)
 obj_00635C7D_map:	FrameMapObj(5)
@@ -15626,12 +15623,12 @@ obj_00635C9D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00635C9D:	FrameObj(3, obj_00635C9D_map)
 		Ref		0x00000132,_StoreSegmentedPackageRestore,0x00000008
-obj_0063585D:	.long		kHeaderSize + 34 + kFlagsBinary
+obj_0063585D:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x18,0x27,0x00,0x58,0xC9,0x03,0x19,0x38,0x00,0x7B,0x30,0xA4,0x03,0x1A,0x38,0x00
 		.byte		0x07,0x00,0x07,0x5F,0x00,0x20,0x03,0x1B,0x38,0x00,0x1C,0x28,0x00,0x07,0x00,0x07
 		.byte		0x7C,0x02
-		.align	2
+		.align  8
 obj_0063588D:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMevt_2Eex),MAKEPTR(SYMLock),MAKEPTR(SYMUnlock),MAKEPTR(SYMAbort),MAKEPTR(SYMRethrow)
 obj_00635CB5_map:	FrameMapObj(5)
@@ -15717,11 +15714,11 @@ obj_00634E1D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00634E1D:	FrameObj(3, obj_00634E1D_map)
 		Ref		0x00000132,_PlainSoupRemoveAllEntries,0x00000000
-obj_00634C55:	.long		kHeaderSize + 19 + kFlagsBinary
+obj_00634C55:	Ref    kHeaderSize + 19 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA4,0x7B,0x6F,0x00,0x11,0x03,0x19,0x38,0x7B,0x1A,0x22,0x1B,0x2C
 		.byte		0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_00634C75:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMRemoveAllEntries),MAKEPTR(SYMGetName),MAKEPTR(SYMwhatThe),MAKEPTR(SYMXmitSoupChange)
 obj_00634E35_map:	FrameMapObj(5)
@@ -15732,11 +15729,11 @@ obj_00634E55_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00634E55:	FrameObj(3, obj_00634E55_map)
 		Ref		0x00000132,_PlainSoupCopyEntries,0x00000004
-obj_00634C91:	.long		kHeaderSize + 20 + kFlagsBinary
+obj_00634C91:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x03,0x18,0x39,0xA5,0x7C,0x6F,0x00,0x12,0x7B,0x19,0x38,0x7C,0x1A,0x22,0x1B
 		.byte		0x2C,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00634CB1:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMCopyEntries),MAKEPTR(SYMGetName),MAKEPTR(SYMwhatThe),MAKEPTR(SYMXmitSoupChange)
 obj_00634E6D_map:	FrameMapObj(5)
@@ -15761,11 +15758,11 @@ obj_00634EDD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_00634EDD:	FrameObj(3, obj_00634EDD_map)
 		Ref		0x00000132,_PlainSoupRemoveFromStore,0x00000000
-obj_00634CE9:	.long		kHeaderSize + 23 + kFlagsBinary
+obj_00634CE9:	Ref    kHeaderSize + 23 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0xA4,0x03,0x19,0x38,0xA5,0x7B,0x6F,0x00,0x15,0x03,0x1A,0x38,0x7B
 		.byte		0x1B,0x7C,0x1C,0x2C,0x00,0x7D,0x02
-		.align	2
+		.align  8
 obj_00634D0D:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMGetStore),MAKEPTR(SYMRemoveFromStore),MAKEPTR(SYMGetName),MAKEPTR(SYMsoupDeleted),MAKEPTR(SYMXmitSoupChange)
 obj_00634EF5_map:	FrameMapObj(5)
@@ -15904,10 +15901,10 @@ obj_0062B409_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 obj_0062B409:	FrameObj(3, obj_0062B409_map)
 		Ref		0x00000132,_PlainSoupFlush,0x00000000
-obj_0062AFC1:	.long		kHeaderSize + 26 + kFlagsBinary
+obj_0062AFC1:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	's','o','u','p',':','F','l','u','s','h','(','"',0
-		.align	2
+		.align  8
 obj_0062B2F9:	ArrayObj(7, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(obj_0062AFC1),MAKEPTR(SYMGetName),MAKEPTR(obj_003C58A9),MAKEPTR(SYMarray),MAKEPTR(SYMdiscontinued),MAKEPTR(SYMBadWickedNaughtyNoot),MAKEPTR(SYMNaughtyFlush)
 obj_0062B421_map:	FrameMapObj(5)
@@ -16075,80 +16072,80 @@ canonicalPackageCallbackInfo_map:	FrameMapObj(5)
 canonicalPackageCallbackInfo:	FrameObj(5, canonicalPackageCallbackInfo_map)
 		Ref		NILREF,0x00000000,0x00000000,0x00000000,0x00000000
 		.globl	uErasePersistentDataAlertText
-uErasePersistentDataAlertText:	.long		kHeaderSize + 76 + kFlagsBinary
+uErasePersistentDataAlertText:	Ref    kHeaderSize + 76 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'D','o',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','e','r','a','s','e',' ','d','a','t','a',' ','c','o','m','p','l','e','t','e','l','y','?',0
-		.align	2
+		.align  8
 		.globl	uErasePersistentDataButton0Str
-uErasePersistentDataButton0Str:	.long		kHeaderSize + 6 + kFlagsBinary
+uErasePersistentDataButton0Str:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4E00,0x6F00,0
-		.align	2
+		.align  8
 		.globl	uErasePersistentDataButton1Str
-uErasePersistentDataButton1Str:	.long		kHeaderSize + 8 + kFlagsBinary
+uErasePersistentDataButton1Str:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5900,0x6500,0x7300,0
-		.align	2
+		.align  8
 		.globl	uErasePersistentStatusAlertText
-uErasePersistentStatusAlertText:	.long		kHeaderSize + 192 + kFlagsBinary
+uErasePersistentStatusAlertText:	Ref    kHeaderSize + 192 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','r','a','s','i','n','g',' ','d','a','t','a','.',' ',' ','T','h','i','s',' ','o','p','e','r','a','t','i','o','n',' ','w','i','l','l',' ','t','a','k','e',' ','a',' ','c','o','u','p','l','e',' ','o','f',' ','m','i','n','u','t','e','s','.',' ',' ','T','h','e',' ','s','y','s','t','e','m',' ','w','i','l','l',' ','r','e','b','o','o','t',' ','w','h','e','n',' ','d','o','n','e','.',0
-		.align	2
+		.align  8
 		.globl	uErasePersistentStatusEmptyButtonStr
-uErasePersistentStatusEmptyButtonStr:	.long		kHeaderSize + 2 + kFlagsBinary
+uErasePersistentStatusEmptyButtonStr:	Ref    kHeaderSize + 2 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0
-		.align	2
+		.align  8
 		.globl	uErasePersistentConfirmAlertText
-uErasePersistentConfirmAlertText:	.long		kHeaderSize + 106 + kFlagsBinary
+uErasePersistentConfirmAlertText:	Ref    kHeaderSize + 106 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'A','l','l',' ','y','o','u','r',' ','d','a','t','a',' ','w','i','l','l',' ','b','e',' ','l','o','s','t','.',' ','D','o',' ','y','o','u',' ','w','a','n','t',' ','t','o',' ','c','o','n','t','i','n','u','e','?',0
-		.align	2
+		.align  8
 		.globl	uErasePersistentConfirmButton0Str
-uErasePersistentConfirmButton0Str:	.long		kHeaderSize + 14 + kFlagsBinary
+uErasePersistentConfirmButton0Str:	Ref    kHeaderSize + 14 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4300,0x6100,0x6E00,0x6300,0x6500,0x6C00,0
-		.align	2
+		.align  8
 		.globl	uErasePersistentConfirmButton1Str
-uErasePersistentConfirmButton1Str:	.long		kHeaderSize + 6 + kFlagsBinary
+uErasePersistentConfirmButton1Str:	Ref    kHeaderSize + 6 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4F00,0x4B00,0
-		.align	2
+		.align  8
 		.globl	uCardPositionAlertText
-uCardPositionAlertText:	.long		kHeaderSize + 148 + kFlagsBinary
+uCardPositionAlertText:	Ref    kHeaderSize + 148 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','P','C','M','C','I','A',' ','c','a','r','d',' ','i','s',' ','n','o','t',' ','i','n','s','t','a','l','l','e','d',' ','c','o','r','r','e','c','t','l','y','.',' ','P','l','e','a','s','e',' ','a','d','j','u','s','t',' ','i','t',' ','t','o',' ','c','o','n','t','i','n','u','e','.',0
-		.align	2
+		.align  8
 		.globl	uCardPositionAlertButton
-uCardPositionAlertButton:	.long		kHeaderSize + 2 + kFlagsBinary
+uCardPositionAlertButton:	Ref    kHeaderSize + 2 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0
-		.align	2
+		.align  8
 		.globl	uCardReinsertAlertText
-uCardReinsertAlertText:	.long		kHeaderSize + 214 + kFlagsBinary
+uCardReinsertAlertText:	Ref    kHeaderSize + 214 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','e','w','t','o','n',' ','s','t','i','l','l',' ','n','e','e','d','s',' ','t','h','e',' ','c','a','r','d',' ','y','o','u',' ','r','e','m','o','v','e','d','.',' ',' ','P','l','e','a','s','e',' ','i','n','s','e','r','t',' ','i','t',' ','n','o','w',',',' ','o','r',' ','i','n','f','o','r','m','a','t','i','o','n',' ','o','n',' ','t','h','e',' ','c','a','r','d',' ','m','a','y',' ','b','e',' ','d','a','m','a','g','e','d','.',0
-		.align	2
+		.align  8
 		.globl	uCardReinsertAlertButton
-uCardReinsertAlertButton:	.long		kHeaderSize + 2 + kFlagsBinary
+uCardReinsertAlertButton:	Ref    kHeaderSize + 2 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0
-		.align	2
+		.align  8
 		.globl	uCardWPAlertText
-uCardWPAlertText:	.long		kHeaderSize + 174 + kFlagsBinary
+uCardWPAlertText:	Ref    kHeaderSize + 174 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','e','w','t','o','n',' ','i','s',' ','s','t','i','l','l',' ','w','r','i','t','i','n','g',' ','t','o',' ','t','h','e',' ','P','C','M','C','I','A',' ','c','a','r','d','.',' ',' ','Y','o','u',' ','m','u','s','t',' ','u','n','-','w','r','i','t','e','-','p','r','o','t','e','c','t',' ','i','t',' ','t','o',' ','c','o','n','t','i','n','u','e','.',0
-		.align	2
+		.align  8
 		.globl	uCardRepairAlertText
-uCardRepairAlertText:	.long		kHeaderSize + 180 + kFlagsBinary
+uCardRepairAlertText:	Ref    kHeaderSize + 180 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','P','C','M','C','I','A',' ','c','a','r','d',' ','n','e','e','d','s',' ','m','i','n','o','r',' ','r','e','p','a','i','r',' ','t','o',' ','b','e',' ','u','s','e','d','.',' ',' ','Y','o','u',' ','m','u','s','t',' ','u','n','-','w','r','i','t','e','-','p','r','o','t','e','c','t',' ','i','t',' ','t','o',' ','c','o','n','t','i','n','u','e','.',0
-		.align	2
+		.align  8
 		.globl	uPackageNeedsCardAlertText
-uPackageNeedsCardAlertText:	.long		kHeaderSize + 234 + kFlagsBinary
+uPackageNeedsCardAlertText:	Ref    kHeaderSize + 234 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','p','a','c','k','a','g','e',' ','"','^','0','"',' ','s','t','i','l','l',' ','n','e','e','d','s',' ','t','h','e',' ','c','a','r','d',' ','y','o','u',' ','r','e','m','o','v','e','d','.',' ',' ','P','l','e','a','s','e',' ','i','n','s','e','r','t',' ','i','t',' ','n','o','w',',',' ','o','r',' ','i','n','f','o','r','m','a','t','i','o','n',' ','o','n',' ','t','h','e',' ','c','a','r','d',' ','m','a','y',' ','b','e',' ','d','a','m','a','g','e','d','.',0
-		.align	2
+		.align  8
 kCardAlertBounds_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 		.globl	kCardAlertBounds
@@ -16184,7 +16181,7 @@ kOSErrorAlertButton1Bounds_map:	FrameMapObj(4)
 		.globl	kOSErrorAlertButton1Bounds
 kOSErrorAlertButton1Bounds:	FrameObj(4, kOSErrorAlertButton1Bounds_map)
 		Ref		0x00000028,0x000000DC,0x000000F0,0x00000118
-obj_003D6D65:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D6D65:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x49,0x00,0x49,0x01,0xA1,0x00,0x65,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x1F,0x80,0x00,0x00,0x1F,0xC0,0x00,0x00,0x1F,0xE0,0x00
@@ -16194,8 +16191,8 @@ obj_003D6D65:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x3F,0xFF,0xFF,0xE0,0x3F,0xFF,0xFF,0xE0,0x3F,0xFF,0xFF,0xE0,0x3F,0xFF,0xFF,0xE0
 		.byte		0x3F,0xFF,0xFF,0xE0,0x01,0xFF,0xFF,0xE0,0x00,0xFF,0xFF,0xC0,0x00,0xFF,0xFF,0x00
 		.byte		0x00,0x7F,0xFC,0x00,0x00,0x3F,0xE0,0x00,0x00,0x1F,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D6DF1:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D6DF1:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x49,0x00,0x49,0x01,0xA1,0x00,0x65,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x1F,0x80,0x00,0x00,0x1F,0xC0,0x00,0x00,0x10,0xE0,0x00
@@ -16205,7 +16202,7 @@ obj_003D6DF1:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x30,0xE0,0xFF,0xE0,0x31,0x60,0x00,0x60,0x30,0xE0,0x00,0x60,0x3F,0xE0,0x00,0x60
 		.byte		0x3F,0xE3,0x80,0x60,0x01,0xE3,0xE1,0xE0,0x00,0xE5,0xF7,0xC0,0x00,0xF2,0xFF,0x00
 		.byte		0x00,0x7B,0xFC,0x00,0x00,0x3F,0xE0,0x00,0x00,0x1F,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D6D49_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D6D49:	FrameObj(4, obj_003D6D49_map)
@@ -16214,7 +16211,7 @@ obj_003D6E7D_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMmask),MAKEPTR(SYMbits),MAKEPTR(SYMbounds)
 obj_003D6E7D:	FrameObj(3, obj_003D6E7D_map)
 		Ref		MAKEPTR(obj_003D6D65),MAKEPTR(obj_003D6DF1),MAKEPTR(obj_003D6D49)
-obj_003D6EB1:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D6EB1:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x6F,0x00,0x6F,0x01,0xA1,0x00,0x8B,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x3C,0x00,0x00,0x00,0x7E,0x00,0x07,0xE1,0xFF,0x00
@@ -16224,8 +16221,8 @@ obj_003D6EB1:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x1F,0xFF,0xFF,0xF0,0x1F,0xFF,0xFF,0xE0,0x1F,0xFF,0xFF,0x80,0x1F,0xFF,0xFF,0x00
 		.byte		0x1F,0xFF,0xFE,0x00,0x1F,0xFF,0xFC,0x00,0x00,0x3F,0xF8,0x00,0x00,0x1F,0xF8,0x00
 		.byte		0x00,0x07,0xF0,0x00,0x00,0x03,0xE0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D6F3D:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D6F3D:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x6F,0x00,0x6F,0x01,0xA1,0x00,0x8B,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x3C,0x00,0x00,0x00,0x7E,0x00,0x07,0xE1,0xE7,0x00
@@ -16235,7 +16232,7 @@ obj_003D6F3D:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x18,0x63,0xD1,0xF0,0x18,0xE1,0xEB,0xE0,0x1D,0xD0,0xF7,0x80,0x1B,0xA0,0x7F,0x00
 		.byte		0x1F,0xD0,0x3E,0x00,0x1F,0xE8,0x1C,0x00,0x00,0x3C,0x18,0x00,0x00,0x1F,0x38,0x00
 		.byte		0x00,0x07,0xF0,0x00,0x00,0x03,0xE0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D6E95_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D6E95:	FrameObj(4, obj_003D6E95_map)
@@ -16244,7 +16241,7 @@ obj_003D6FC9_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMmask),MAKEPTR(SYMbits),MAKEPTR(SYMbounds)
 obj_003D6FC9:	FrameObj(3, obj_003D6FC9_map)
 		Ref		MAKEPTR(obj_003D6EB1),MAKEPTR(obj_003D6F3D),MAKEPTR(obj_003D6E95)
-obj_003D6FFD:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D6FFD:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x96,0x00,0x96,0x01,0xA1,0x00,0xB2,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0xFE,0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0xFF,0x80,0x00
@@ -16254,8 +16251,8 @@ obj_003D6FFD:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x1F,0xFF,0xFF,0xE0,0x1F,0xFF,0xFF,0xC0,0x0F,0xFF,0xFF,0x80,0x0F,0xFF,0xFF,0x80
 		.byte		0x0F,0xFF,0xFF,0x80,0x07,0xFF,0xFF,0x80,0x07,0xFF,0xFF,0x80,0x03,0xFF,0xFF,0x80
 		.byte		0x03,0xFF,0xFF,0x80,0x01,0xF8,0x3F,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D7089:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D7089:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x96,0x00,0x96,0x01,0xA1,0x00,0xB2,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0xFE,0x00,0x00,0x00,0xFF,0x00,0x00,0x00,0xC3,0x80,0x00
@@ -16265,7 +16262,7 @@ obj_003D7089:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x1F,0x07,0x0F,0xE0,0x1F,0x0E,0x87,0xC0,0x0E,0x0D,0x0B,0x80,0x0C,0x0E,0x05,0x80
 		.byte		0x0E,0x0D,0x03,0x80,0x06,0x0E,0x01,0x80,0x07,0x0D,0x01,0x80,0x03,0x0F,0xE1,0x80
 		.byte		0x03,0xFF,0xFF,0x80,0x01,0xF8,0x3F,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D6FE1_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D6FE1:	FrameObj(4, obj_003D6FE1_map)
@@ -16274,7 +16271,7 @@ obj_003D7115_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMmask),MAKEPTR(SYMbits),MAKEPTR(SYMbounds)
 obj_003D7115:	FrameObj(3, obj_003D7115_map)
 		Ref		MAKEPTR(obj_003D6FFD),MAKEPTR(obj_003D7089),MAKEPTR(obj_003D6FE1)
-obj_003D7149:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D7149:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xBB,0x00,0xBB,0x01,0xA1,0x00,0xD7,0x01,0xBE
 		.byte		0x00,0x00,0x78,0x00,0x03,0x80,0xFC,0x00,0x03,0xE1,0xFE,0x00,0x03,0xFB,0xFF,0x00
@@ -16284,8 +16281,8 @@ obj_003D7149:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x7F,0xFF,0xFF,0xC0,0x7F,0xFF,0xFF,0xE0,0x3F,0xFF,0xFF,0xE0,0x1F,0xFF,0xFF,0xE0
 		.byte		0x01,0xFF,0xFF,0xE0,0x01,0xFF,0xFF,0xC0,0x00,0xFF,0xFF,0x80,0x00,0x7F,0xE0,0x00
 		.byte		0x00,0x3F,0xC0,0x00,0x00,0x3F,0xC0,0x00,0x00,0x1F,0x80,0x00,0x00,0x0F,0x00,0x00
-		.align	2
-obj_003D71D5:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D71D5:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xBB,0x00,0xBB,0x01,0xA1,0x00,0xD7,0x01,0xBE
 		.byte		0x00,0x00,0x78,0x00,0x03,0x80,0xFC,0x00,0x03,0xE1,0xCE,0x00,0x03,0x7B,0xA7,0x00
@@ -16295,7 +16292,7 @@ obj_003D71D5:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x60,0xE8,0x70,0xC0,0x71,0xD0,0x70,0xE0,0x3F,0xA0,0xD8,0x60,0x1F,0xC0,0xF0,0xE0
 		.byte		0x01,0x81,0xD9,0xE0,0x01,0xC1,0xBD,0xC0,0x00,0xE1,0xFF,0x80,0x00,0x73,0xE0,0x00
 		.byte		0x00,0x33,0xC0,0x00,0x00,0x3B,0xC0,0x00,0x00,0x1F,0x80,0x00,0x00,0x0F,0x00,0x00
-		.align	2
+		.align  8
 obj_003D712D_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D712D:	FrameObj(4, obj_003D712D_map)
@@ -16304,7 +16301,7 @@ obj_003D7261_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMmask),MAKEPTR(SYMbits),MAKEPTR(SYMbounds)
 obj_003D7261:	FrameObj(3, obj_003D7261_map)
 		Ref		MAKEPTR(obj_003D7149),MAKEPTR(obj_003D71D5),MAKEPTR(obj_003D712D)
-obj_003D7295:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D7295:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xDF,0x00,0xDF,0x01,0xA1,0x00,0xFB,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x03,0xE0,0x00,0x00,0x1F,0xF0,0x00,0x00,0xFF,0xF0,0x00
@@ -16314,8 +16311,8 @@ obj_003D7295:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x0F,0xFF,0xFF,0xC0,0x1F,0xFF,0xFF,0x80,0x1F,0xFF,0xFE,0x00,0x1F,0xFF,0xF8,0x00
 		.byte		0x1F,0xFF,0xF8,0x00,0x1F,0xFF,0xF8,0x00,0x1F,0xFF,0xF8,0x00,0x1F,0xFF,0xF0,0x00
 		.byte		0x00,0x1F,0xF0,0x00,0x00,0x0F,0xF0,0x00,0x00,0x07,0xE0,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D7321:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D7321:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xDF,0x00,0xDF,0x01,0xA1,0x00,0xFB,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x03,0xE0,0x00,0x00,0x1F,0xF0,0x00,0x00,0xFF,0x30,0x00
@@ -16325,7 +16322,7 @@ obj_003D7321:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x0C,0x00,0x03,0xC0,0x1D,0xFF,0x8F,0x80,0x1F,0xD7,0x1E,0x00,0x1A,0xAE,0x18,0x00
 		.byte		0x1D,0x7C,0x38,0x00,0x1A,0xF8,0x58,0x00,0x1F,0xF0,0xB8,0x00,0x1F,0xF8,0x70,0x00
 		.byte		0x00,0x1C,0xB0,0x00,0x00,0x0F,0xF0,0x00,0x00,0x07,0xE0,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D7279_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D7279:	FrameObj(4, obj_003D7279_map)
@@ -16334,7 +16331,7 @@ obj_003D73AD_map:	FrameMapObj(3)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMmask),MAKEPTR(SYMbits),MAKEPTR(SYMbounds)
 obj_003D73AD:	FrameObj(3, obj_003D73AD_map)
 		Ref		MAKEPTR(obj_003D7295),MAKEPTR(obj_003D7321),MAKEPTR(obj_003D7279)
-obj_003D73E1:	.long		kHeaderSize + 128 + kFlagsBinary
+obj_003D73E1:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x05,0x01,0x05,0x01,0xA1,0x01,0x21,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x3F,0xC0,0x00
@@ -16344,8 +16341,8 @@ obj_003D73E1:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x7F,0xFF,0xFF,0xC0,0x3F,0xFF,0xFF,0xE0,0x1F,0xFF,0xFF,0xF0,0x0F,0xFF,0xFF,0xF8
 		.byte		0x07,0xFF,0xFF,0xF8,0x07,0xFF,0xFF,0xF8,0x07,0xFF,0xFF,0xF0,0x07,0xFF,0xFF,0xE0
 		.byte		0x07,0xFF,0x7F,0x80,0x03,0xFC,0x00,0x00,0x01,0xF0,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D746D:	.long		kHeaderSize + 128 + kFlagsBinary
+		.align  8
+obj_003D746D:	Ref    kHeaderSize + 128 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x05,0x01,0x05,0x01,0xA1,0x01,0x21,0x01,0xBE
 		.byte		0x00,0x00,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x3B,0xC0,0x00
@@ -16355,7 +16352,7 @@ obj_003D746D:	.long		kHeaderSize + 128 + kFlagsBinary
 		.byte		0x7F,0x02,0x0E,0xC0,0x3B,0xC0,0x1D,0x60,0x1D,0x70,0x2A,0xF0,0x0E,0xB8,0x7F,0xF8
 		.byte		0x06,0x78,0x00,0x38,0x07,0xE0,0x00,0x78,0x07,0x81,0xC0,0xF0,0x06,0x07,0xF9,0xE0
 		.byte		0x07,0x1F,0x7F,0x80,0x03,0xFC,0x00,0x00,0x01,0xF0,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D73C5_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D73C5:	FrameObj(4, obj_003D73C5_map)
@@ -16367,7 +16364,7 @@ obj_003D74F9:	FrameObj(3, obj_003D74F9_map)
 		.globl	crumpleBitmaps
 crumpleBitmaps:	ArrayObj(6, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(obj_003D6E7D),MAKEPTR(obj_003D6FC9),MAKEPTR(obj_003D7115),MAKEPTR(obj_003D7261),MAKEPTR(obj_003D73AD),MAKEPTR(obj_003D74F9)
-obj_003CD221:	.long		kHeaderSize + 152 + kFlagsBinary
+obj_003CD221:	Ref    kHeaderSize + 152 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x5B,0x01,0x5B,0x01,0x7E,0x01,0x7D,0x01,0x9A
 		.byte		0x01,0xFF,0xF8,0x00,0x1F,0xFF,0xFF,0x80,0x7F,0xFF,0xFF,0xE0,0x7F,0xFF,0xFF,0xE0
@@ -16379,8 +16376,8 @@ obj_003CD221:	.long		kHeaderSize + 152 + kFlagsBinary
 		.byte		0x3F,0xFF,0xFF,0xC0,0x3F,0xFF,0xFF,0xC0,0x1F,0xFF,0xFF,0xC0,0x1F,0xFF,0xFF,0xC0
 		.byte		0x1F,0xFF,0xFF,0xC0,0x1F,0xFF,0xFF,0x80,0x1F,0xFF,0xFF,0x80,0x0F,0xFF,0xFF,0x00
 		.byte		0x03,0xFF,0xFC,0x00,0x00,0x7F,0xF0,0x00
-		.align	2
-obj_003CD2C5:	.long		kHeaderSize + 152 + kFlagsBinary
+		.align  8
+obj_003CD2C5:	Ref    kHeaderSize + 152 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x5B,0x01,0x5B,0x01,0x7E,0x01,0x7D,0x01,0x9A
 		.byte		0x01,0xFF,0xF8,0x00,0x1F,0xFF,0xFF,0x80,0x7F,0x55,0x5F,0xE0,0x6A,0xBB,0xAD,0xE0
@@ -16392,7 +16389,7 @@ obj_003CD2C5:	.long		kHeaderSize + 152 + kFlagsBinary
 		.byte		0x33,0x19,0x8C,0xC0,0x33,0x99,0x8C,0xC0,0x19,0x99,0x8C,0xC0,0x19,0x99,0x8C,0xC0
 		.byte		0x19,0x99,0x80,0xC0,0x18,0x19,0x81,0x80,0x1C,0x00,0x03,0x80,0x0F,0x80,0x1F,0x00
 		.byte		0x03,0xFF,0xFC,0x00,0x00,0x7F,0xF0,0x00
-		.align	2
+		.align  8
 obj_003CD205_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003CD205:	FrameObj(4, obj_003CD205_map)
@@ -16402,7 +16399,7 @@ trashBitmap_map:	FrameMapObj(3)
 		.globl	trashBitmap
 trashBitmap:	FrameObj(3, trashBitmap_map)
 		Ref		MAKEPTR(obj_003CD221),MAKEPTR(obj_003CD2C5),MAKEPTR(obj_003CD205)
-obj_003D8271:	.long		kHeaderSize + 412 + kFlagsBinary
+obj_003D8271:	Ref    kHeaderSize + 412 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0B,0x01,0x08
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -16430,7 +16427,7 @@ obj_003D8271:	.long		kHeaderSize + 412 + kFlagsBinary
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x20,0x10,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8255_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8255:	FrameObj(4, obj_003D8255_map)
@@ -16440,20 +16437,20 @@ smallClockBitmaps_map:	FrameMapObj(2)
 		.globl	smallClockBitmaps
 smallClockBitmaps:	FrameObj(2, smallClockBitmaps_map)
 		Ref		MAKEPTR(obj_003D8271),MAKEPTR(obj_003D8255)
-obj_003D8DA1:	.long		kHeaderSize + 52 + kFlagsBinary
+obj_003D8DA1:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x4D,0x00,0x4D,0x01,0x54,0x00,0x56,0x01,0x60
 		.byte		0x10,0x00,0x00,0x00,0x16,0x00,0x00,0x00,0x3F,0x80,0x00,0x00,0x3F,0xE0,0x00,0x00
 		.byte		0x5F,0xF0,0x00,0x00,0x5F,0x00,0x00,0x00,0x87,0x80,0x00,0x00,0x81,0x80,0x00,0x00
 		.byte		0x00,0x40,0x00,0x00
-		.align	2
-obj_003D8DE1:	.long		kHeaderSize + 52 + kFlagsBinary
+		.align  8
+obj_003D8DE1:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x4D,0x00,0x4D,0x01,0x54,0x00,0x56,0x01,0x60
 		.byte		0x10,0x00,0x00,0x00,0x16,0x00,0x00,0x00,0x2F,0x80,0x00,0x00,0x2F,0xE0,0x00,0x00
 		.byte		0x5F,0xF0,0x00,0x00,0x5F,0x00,0x00,0x00,0x87,0x80,0x00,0x00,0x81,0x80,0x00,0x00
 		.byte		0x00,0x40,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8D85_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8D85:	FrameObj(4, obj_003D8D85_map)
@@ -16468,13 +16465,13 @@ clockfaceBitmap_map:	FrameMapObj(2)
 		.globl	clockfaceBitmap
 clockfaceBitmap:	FrameObj(2, clockfaceBitmap_map)
 		Ref		MAKEPTR(obj_003D8809),MAKEPTR(obj_003D87ED)
-obj_003C8E5D:	.long		kHeaderSize + 52 + kFlagsBinary
+obj_003C8E5D:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xAD,0x00,0xAD,0x01,0xB3,0x00,0xB6,0x01,0xBC
 		.byte		0x18,0x00,0x00,0x00,0x0C,0x00,0x00,0x00,0x06,0x00,0x00,0x00,0xFF,0x00,0x00,0x00
 		.byte		0xFF,0x00,0x00,0x00,0x06,0x00,0x00,0x00,0x0C,0x00,0x00,0x00,0x18,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8E41_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8E41:	FrameObj(4, obj_003C8E41_map)
@@ -16484,20 +16481,20 @@ gotoArrowBitmap_map:	FrameMapObj(2)
 		.globl	gotoArrowBitmap
 gotoArrowBitmap:	FrameObj(2, gotoArrowBitmap_map)
 		Ref		MAKEPTR(obj_003C8E5D),MAKEPTR(obj_003C8E41)
-obj_003C88F5:	.long		kHeaderSize + 60 + kFlagsBinary
+obj_003C88F5:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMmask)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x06,0x01,0x06,0x01,0xA1,0x01,0x11,0x01,0xAD
 		.byte		0x00,0x30,0x00,0x00,0x00,0x60,0x00,0x00,0x00,0xC0,0x00,0x00,0x19,0x80,0x00,0x00
 		.byte		0x3B,0x80,0x00,0x00,0x0F,0x00,0x00,0x00,0x0F,0x00,0x00,0x00,0x06,0x00,0x00,0x00
 		.byte		0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003C893D:	.long		kHeaderSize + 60 + kFlagsBinary
+		.align  8
+obj_003C893D:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x9C,0x01,0x9C,0x00,0x9E,0x01,0xA7,0x00,0xAA
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xDB,0x60,0x00,0x00
-		.align	2
+		.align  8
 obj_003C88D9_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C88D9:	FrameObj(4, obj_003C88D9_map)
@@ -16507,13 +16504,13 @@ checkOffBitmap_map:	FrameMapObj(3)
 		.globl	checkOffBitmap
 checkOffBitmap:	FrameObj(3, checkOffBitmap_map)
 		Ref		MAKEPTR(obj_003C88F5),MAKEPTR(obj_003C893D),MAKEPTR(obj_003C88D9)
-obj_003C885D:	.long		kHeaderSize + 60 + kFlagsBinary
+obj_003C885D:	Ref    kHeaderSize + 60 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x88,0x01,0x88,0x00,0xD3,0x01,0x93,0x00,0xDF
 		.byte		0x00,0x30,0x00,0x00,0x00,0x60,0x00,0x00,0x00,0xC0,0x00,0x00,0x19,0x80,0x00,0x00
 		.byte		0x3B,0x80,0x00,0x00,0x0F,0x00,0x00,0x00,0x0F,0x00,0x00,0x00,0x06,0x00,0x00,0x00
 		.byte		0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xDB,0x60,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8841_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8841:	FrameObj(4, obj_003C8841_map)
@@ -16573,7 +16570,7 @@ txClipboardPrototype_map:	FrameMapObj(4)
 		.globl	txClipboardPrototype
 txClipboardPrototype:	FrameObj(4, txClipboardPrototype_map)
 		Ref		NILREF,NILREF,NILREF,NILREF
-obj_0042A579:	.long		kHeaderSize + 280 + kFlagsBinary
+obj_0042A579:	Ref    kHeaderSize + 280 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x20,0x20,0x20,0x20,0x18,0x2C,0xA3,0x20,0x20,0x20,0x20,0x18,0x2C,0xA4,0x71,0x20
 		.byte		0xC2,0xC7,0x00,0x13,0xA5,0x71,0x24,0xC2,0xC7,0x00,0x13,0xA6,0x72,0x1B,0x91,0x72
@@ -16593,7 +16590,7 @@ obj_0042A579:	.long		kHeaderSize + 280 + kFlagsBinary
 		.byte		0x00,0x12,0xC0,0x98,0x7C,0x1F,0x00,0x10,0x7C,0x1F,0x00,0x11,0x91,0x7F,0x00,0x0A
 		.byte		0xC0,0x98,0x7D,0x1F,0x00,0x13,0x7B,0x98,0x7E,0x1F,0x00,0x13,0x7C,0x98,0x03,0x19
 		.byte		0x7D,0x7E,0x1F,0x00,0x14,0x8A,0x99,0x02
-		.align	2
+		.align  8
 obj_0042A4C9:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMbounds),MAKEPTR(SYMright)
 obj_0042A4DD:	ArrayObj(2, MAKEPTR(SYMpathExpr))
@@ -16660,7 +16657,7 @@ canonicalFontSpec_map:	FrameMapObj(3)
 canonicalFontSpec:	FrameObj(3, canonicalFontSpec_map)
 		Ref		NILREF,NILREF,NILREF
 		.globl	alertFont
-alertFont:	.long		kHeaderSize + 28924 + kFlagsBinary
+alertFont:	Ref    kHeaderSize + 28924 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMsfnt)
 		.byte		0x00,0x01,0x00,0x00,0x00,0x0A,0x00,0x80,0x00,0x03,0x00,0x20,0x62,0x64,0x61,0x74
 		.byte		0x74,0x6E,0x21,0xE8,0x00,0x00,0x00,0xAC,0x00,0x00,0x5B,0xB6,0x62,0x6C,0x6F,0x63
@@ -18470,8 +18467,8 @@ alertFont:	.long		kHeaderSize + 28924 + kFlagsBinary
 		.byte		0x61,0x6E,0x2D,0x52,0x65,0x67,0x75,0x6C,0x61,0x72,0x00,0x00,0x00,0x03,0x00,0x00
 		.byte		0xFF,0xF3,0x00,0x00,0x00,0xC8,0x00,0x32,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
-obj_003D80B1:	.long		kHeaderSize + 96 + kFlagsBinary
+		.align  8
+obj_003D80B1:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x62,0x00,0x62,0x00,0x89,0x00,0x76,0x00,0x9E
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -18479,7 +18476,7 @@ obj_003D80B1:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x0F,0x38,0x80,0x00,0x11,0x44,0x80,0x00,0x11,0x7C,0x80,0x00,0x11,0x40,0x80,0x00
 		.byte		0x0F,0x3C,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8095_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8095:	FrameObj(4, obj_003D8095_map)
@@ -18489,7 +18486,7 @@ DTMFdel_map:	FrameMapObj(2)
 		.globl	DTMFdel
 DTMFdel:	FrameObj(2, DTMFdel_map)
 		Ref		MAKEPTR(obj_003D80B1),MAKEPTR(obj_003D8095)
-obj_003D7EDD:	.long		kHeaderSize + 96 + kFlagsBinary
+obj_003D7EDD:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x1D,0x00,0x1D,0x00,0x89,0x00,0x31,0x00,0x9E
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -18497,7 +18494,7 @@ obj_003D7EDD:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x00,0xC0,0x00,0x00,0x00,0xC0,0x00,0x00,0x00,0xC0,0x00,0x00,0x00,0xC0,0x00,0x00
 		.byte		0x00,0xC0,0x00,0x00,0x00,0xE0,0x00,0x00,0x00,0x60,0x00,0x00,0x00,0x70,0x00,0x00
 		.byte		0x00,0x30,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D7EC1_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D7EC1:	FrameObj(4, obj_003D7EC1_map)
@@ -18507,7 +18504,7 @@ DTMFleft_map:	FrameMapObj(2)
 		.globl	DTMFleft
 DTMFleft:	FrameObj(2, DTMFleft_map)
 		Ref		MAKEPTR(obj_003D7EDD),MAKEPTR(obj_003D7EC1)
-obj_003D7F79:	.long		kHeaderSize + 96 + kFlagsBinary
+obj_003D7F79:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x34,0x00,0x34,0x00,0x89,0x00,0x48,0x00,0x9E
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -18515,7 +18512,7 @@ obj_003D7F79:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x00,0x18,0x00,0x00,0x00,0x18,0x00,0x00,0x00,0x18,0x00,0x00,0x00,0x18,0x00,0x00
 		.byte		0x00,0x18,0x00,0x00,0x00,0x38,0x00,0x00,0x00,0x30,0x00,0x00,0x00,0x70,0x00,0x00
 		.byte		0x00,0x60,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D7F5D_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D7F5D:	FrameObj(4, obj_003D7F5D_map)
@@ -18525,7 +18522,7 @@ DTMFright_map:	FrameMapObj(2)
 		.globl	DTMFright
 DTMFright:	FrameObj(2, DTMFright_map)
 		Ref		MAKEPTR(obj_003D7F79),MAKEPTR(obj_003D7F5D)
-obj_003D8015:	.long		kHeaderSize + 96 + kFlagsBinary
+obj_003D8015:	Ref    kHeaderSize + 96 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x4B,0x00,0x4B,0x00,0x89,0x00,0x5F,0x00,0x9E
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -18533,7 +18530,7 @@ obj_003D8015:	.long		kHeaderSize + 96 + kFlagsBinary
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0xFC,0x00,0x00,0x01,0xFC,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003D7FF9_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D7FF9:	FrameObj(4, obj_003D7FF9_map)
@@ -18543,12 +18540,12 @@ DTMFdash_map:	FrameMapObj(2)
 		.globl	DTMFdash
 DTMFdash:	FrameObj(2, DTMFdash_map)
 		Ref		MAKEPTR(obj_003D8015),MAKEPTR(obj_003D7FF9)
-obj_003C8B75:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_003C8B75:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x07,0x00,0x09
 		.byte		0x63,0x00,0x00,0x00,0x94,0x80,0x00,0x00,0x7F,0x00,0x00,0x00,0x14,0x00,0x00,0x00
 		.byte		0x7F,0x00,0x00,0x00,0x94,0x80,0x00,0x00,0x63,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8B59_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8B59:	FrameObj(4, obj_003C8B59_map)
@@ -18558,12 +18555,12 @@ commandKeyIcon_map:	FrameMapObj(2)
 		.globl	commandKeyIcon
 commandKeyIcon:	FrameObj(2, commandKeyIcon_map)
 		Ref		MAKEPTR(obj_003C8B75),MAKEPTR(obj_003C8B59)
-obj_003C8C45:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_003C8C45:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x07,0x00,0x0A
 		.byte		0xF1,0xC0,0x00,0x00,0x88,0x40,0x00,0x00,0xE4,0x00,0x00,0x00,0x12,0x00,0x00,0x00
 		.byte		0x09,0xC0,0x00,0x00,0x04,0x40,0x00,0x00,0x03,0xC0,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8C29_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8C29:	FrameObj(4, obj_003C8C29_map)
@@ -18573,12 +18570,12 @@ optionKeyIcon_map:	FrameMapObj(2)
 		.globl	optionKeyIcon
 optionKeyIcon:	FrameObj(2, optionKeyIcon_map)
 		Ref		MAKEPTR(obj_003C8C45),MAKEPTR(obj_003C8C29)
-obj_003C8CAD:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_003C8CAD:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x07,0x00,0x05
 		.byte		0x20,0x00,0x00,0x00,0x50,0x00,0x00,0x00,0x88,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8C91_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8C91:	FrameObj(4, obj_003C8C91_map)
@@ -18588,12 +18585,12 @@ controlKeyIcon_map:	FrameMapObj(2)
 		.globl	controlKeyIcon
 controlKeyIcon:	FrameObj(2, controlKeyIcon_map)
 		Ref		MAKEPTR(obj_003C8CAD),MAKEPTR(obj_003C8C91)
-obj_003C8BDD:	.long		kHeaderSize + 44 + kFlagsBinary
+obj_003C8BDD:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x07,0x00,0x09
 		.byte		0x08,0x00,0x00,0x00,0x14,0x00,0x00,0x00,0x22,0x00,0x00,0x00,0x41,0x00,0x00,0x00
 		.byte		0xE3,0x80,0x00,0x00,0x22,0x00,0x00,0x00,0x3E,0x00,0x00,0x00
-		.align	2
+		.align  8
 obj_003C8BC1_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003C8BC1:	FrameObj(4, obj_003C8BC1_map)
@@ -18613,14 +18610,14 @@ canonicalCorrectInfo_map:	FrameMapObj(2)
 		.globl	canonicalCorrectInfo
 canonicalCorrectInfo:	FrameObj(2, canonicalCorrectInfo_map)
 		Ref		NILREF,NILREF
-obj_003D8C15:	.long		kHeaderSize + 68 + kFlagsBinary
+obj_003D8C15:	Ref    kHeaderSize + 68 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x54,0x00,0x54,0x02,0xD1,0x00,0x61,0x02,0xE6
 		.byte		0x00,0x08,0x00,0x00,0x00,0x1E,0x00,0x00,0x00,0x0F,0x00,0x00,0x00,0x07,0xC0,0x00
 		.byte		0x01,0xF9,0xE0,0x00,0x0F,0xFF,0xF0,0x00,0x3F,0xFF,0xF8,0x00,0x7F,0xFF,0xF8,0x00
 		.byte		0xFE,0x01,0xF0,0x00,0xE0,0x07,0xE0,0x00,0x00,0x0F,0x80,0x00,0x00,0x1F,0x00,0x00
 		.byte		0x00,0x1C,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8BF9_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8BF9:	FrameObj(4, obj_003D8BF9_map)
@@ -18630,14 +18627,14 @@ recogArrowUpInside_map:	FrameMapObj(2)
 		.globl	recogArrowUpInside
 recogArrowUpInside:	FrameObj(2, recogArrowUpInside_map)
 		Ref		MAKEPTR(obj_003D8C15),MAKEPTR(obj_003D8BF9)
-obj_003D8D21:	.long		kHeaderSize + 68 + kFlagsBinary
+obj_003D8D21:	Ref    kHeaderSize + 68 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x57,0x00,0x57,0x02,0x8F,0x00,0x64,0x02,0xA4
 		.byte		0x00,0x1C,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x0F,0x80,0x00,0xE0,0x07,0xE0,0x00
 		.byte		0xFE,0x01,0xF0,0x00,0x7F,0xFF,0xF8,0x00,0x3F,0xFF,0xF8,0x00,0x0F,0xFF,0xF0,0x00
 		.byte		0x01,0xF9,0xE0,0x00,0x00,0x07,0xC0,0x00,0x00,0x0F,0x00,0x00,0x00,0x1E,0x00,0x00
 		.byte		0x00,0x08,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8D05_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8D05:	FrameObj(4, obj_003D8D05_map)
@@ -18647,14 +18644,14 @@ recogArrowDownInside_map:	FrameMapObj(2)
 		.globl	recogArrowDownInside
 recogArrowDownInside:	FrameObj(2, recogArrowDownInside_map)
 		Ref		MAKEPTR(obj_003D8D21),MAKEPTR(obj_003D8D05)
-obj_003D8B89:	.long		kHeaderSize + 80 + kFlagsBinary
+obj_003D8B89:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x54,0x00,0x54,0x02,0xED,0x00,0x64,0x03,0x06
 		.byte		0x00,0x0F,0x80,0x00,0x00,0x1F,0xC0,0x00,0x00,0x1F,0xF0,0x00,0x00,0x7F,0xF8,0x00
 		.byte		0x01,0xFF,0xFC,0x00,0x0F,0xFF,0xFE,0x00,0x3F,0xFF,0xFF,0x00,0x7F,0xFF,0xFF,0x80
 		.byte		0x7F,0xFF,0xFF,0x80,0xFF,0xFF,0xFF,0x80,0xFF,0xFF,0xFF,0x00,0x7F,0x0F,0xFE,0x00
 		.byte		0x38,0x1F,0xF8,0x00,0x00,0x1F,0xF0,0x00,0x00,0x1F,0xC0,0x00,0x00,0x0F,0x00,0x00
-		.align	2
+		.align  8
 obj_003D8B6D_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8B6D:	FrameObj(4, obj_003D8B6D_map)
@@ -18664,14 +18661,14 @@ recogArrowUpOutside_map:	FrameMapObj(2)
 		.globl	recogArrowUpOutside
 recogArrowUpOutside:	FrameObj(2, recogArrowUpOutside_map)
 		Ref		MAKEPTR(obj_003D8B89),MAKEPTR(obj_003D8B6D)
-obj_003D8C95:	.long		kHeaderSize + 80 + kFlagsBinary
+obj_003D8C95:	Ref    kHeaderSize + 80 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x54,0x00,0x54,0x02,0xAB,0x00,0x64,0x02,0xC4
 		.byte		0x00,0x0F,0x00,0x00,0x00,0x1F,0xC0,0x00,0x00,0x1F,0xF0,0x00,0x38,0x1F,0xF8,0x00
 		.byte		0x7F,0x0F,0xFE,0x00,0xFF,0xFF,0xFF,0x00,0xFF,0xFF,0xFF,0x80,0x7F,0xFF,0xFF,0x80
 		.byte		0x7F,0xFF,0xFF,0x80,0x3F,0xFF,0xFF,0x00,0x0F,0xFF,0xFE,0x00,0x01,0xFF,0xFC,0x00
 		.byte		0x00,0x7F,0xF8,0x00,0x00,0x1F,0xF0,0x00,0x00,0x1F,0xC0,0x00,0x00,0x0F,0x80,0x00
-		.align	2
+		.align  8
 obj_003D8C79_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_003D8C79:	FrameObj(4, obj_003D8C79_map)
@@ -18682,7 +18679,7 @@ recogArrowDownOutside_map:	FrameMapObj(2)
 recogArrowDownOutside:	FrameObj(2, recogArrowDownOutside_map)
 		Ref		MAKEPTR(obj_003D8C95),MAKEPTR(obj_003D8C79)
 		.globl	paragraphCodebook1
-paragraphCodebook1:	.long		kHeaderSize + 23840 + kFlagsBinary
+paragraphCodebook1:	Ref    kHeaderSize + 23840 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMComp)
 		.byte		0x22,0xBC,0x04,0x56,0xFC,0xDE,0x01,0x33,0x75,0x30,0x8A,0xD0,0x00,0x1B,0x00,0x06
 		.byte		0x00,0x00,0x00,0x31,0x00,0x1C,0x00,0x06,0x00,0x00,0x00,0x09,0x00,0x15,0x00,0x06
@@ -20174,7 +20171,7 @@ paragraphCodebook1:	.long		kHeaderSize + 23840 + kFlagsBinary
 		.byte		0xFF,0xE9,0x00,0x0F,0x00,0x00,0x22,0xE0,0xFF,0xE7,0x00,0x0F,0x00,0x00,0x62,0xE0
 		.byte		0xFF,0xE6,0x00,0x10,0x00,0x00,0x42,0xE0,0x00,0x19,0x00,0x10,0x00,0x00,0xC2,0xE0
 		.byte		0x75,0x30,0x00,0x10,0x00,0x00,0x02,0xE0,0x8A,0xD0,0x00,0x10,0x00,0x00,0x82,0xE0
-		.align	2
+		.align  8
 canonicalShapeInfo_map:	FrameMapObj(1)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMbounds)
 		.globl	canonicalShapeInfo
@@ -20220,42 +20217,42 @@ protoRecorderButton_map:	FrameMapObj(4)
 		.globl	protoRecorderButton
 protoRecorderButton:	FrameObj(13, protoRecorderButton_map)
 		Ref		0x00000128,0x0000000C,0x00000000,0x00011018,MAKEPTR(obj_00426A75),NILREF,NILREF,MAKEPTR(obj_00426A55),0x05834F40,MAKEPTR(obj_00426C01),NILREF,MAKEPTR(obj_00426CB9),NILREF
-REALobj_003D4801:	.long		kHeaderSize + 8 + kFlagsBinary
+REALobj_003D4801:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0xCCCCCCCD,0x40DCB64C
-		.align	2
+		.align  8
 obj_003D47E1_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMsndFrameType),MAKEPTR(SYMsamplingRate),MAKEPTR(SYMdataType),MAKEPTR(SYMcompressionType),MAKEPTR(SYMsamples)
 obj_003D47E1:	FrameObj(5, obj_003D47E1_map)
 		Ref		MAKEPTR(SYMsimpleSound),MAKEPTR(REALobj_003D4801),0x00000020,0x00000000,MAKEPTR(obj_003D4681)
-REALobj_003D4835:	.long		kHeaderSize + 8 + kFlagsBinary
+REALobj_003D4835:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0xCCCCCCCD,0x40D9946C
-		.align	2
+		.align  8
 obj_003D4815_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMsndFrameType),MAKEPTR(SYMsamplingRate),MAKEPTR(SYMdataType),MAKEPTR(SYMcompressionType),MAKEPTR(SYMsamples)
 obj_003D4815:	FrameObj(5, obj_003D4815_map)
 		Ref		MAKEPTR(SYMsimpleSound),MAKEPTR(REALobj_003D4835),0x00000020,0x00000000,MAKEPTR(obj_003D4681)
-REALobj_003D4869:	.long		kHeaderSize + 8 + kFlagsBinary
+REALobj_003D4869:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0x1EB851EC,0x40D6CA05
-		.align	2
+		.align  8
 obj_003D4849_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMsndFrameType),MAKEPTR(SYMsamplingRate),MAKEPTR(SYMdataType),MAKEPTR(SYMcompressionType),MAKEPTR(SYMsamples)
 obj_003D4849:	FrameObj(5, obj_003D4849_map)
 		Ref		MAKEPTR(SYMsimpleSound),MAKEPTR(REALobj_003D4869),0x00000020,0x00000000,MAKEPTR(obj_003D4681)
-REALobj_003D489D:	.long		kHeaderSize + 8 + kFlagsBinary
+REALobj_003D489D:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0x9999999A,0x40D329D9
-		.align	2
+		.align  8
 obj_003D487D_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMsndFrameType),MAKEPTR(SYMsamplingRate),MAKEPTR(SYMdataType),MAKEPTR(SYMcompressionType),MAKEPTR(SYMsamples)
 obj_003D487D:	FrameObj(5, obj_003D487D_map)
 		Ref		MAKEPTR(SYMsimpleSound),MAKEPTR(REALobj_003D489D),0x00000020,0x00000000,MAKEPTR(obj_003D4681)
-REALobj_003D48D1:	.long		kHeaderSize + 8 + kFlagsBinary
+REALobj_003D48D1:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMreal)
 		.long		0x00000000,0x40D112A0
-		.align	2
+		.align  8
 obj_003D48B1_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMsndFrameType),MAKEPTR(SYMsamplingRate),MAKEPTR(SYMdataType),MAKEPTR(SYMcompressionType),MAKEPTR(SYMsamples)
 obj_003D48B1:	FrameObj(5, obj_003D48B1_map)
@@ -20343,79 +20340,79 @@ protoInstanceOfRepeatingMeeting_map:	FrameMapObj(4)
 protoInstanceOfRepeatingMeeting:	FrameObj(4, protoInstanceOfRepeatingMeeting_map)
 		Ref		MAKEPTR(SYMRepeatingMeeting),MAKEPTR(SYMmeeting),NILREF,NILREF
 		.globl	extrasSoupName
-extrasSoupName:	.long		kHeaderSize + 18 + kFlagsBinary
+extrasSoupName:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5000,0x6100,0x6300,0x6B00,0x6100,0x6700,0x6500,0x7300,0
-		.align	2
+		.align  8
 		.globl	printDone
-printDone:	.long		kHeaderSize + 20 + kFlagsBinary
+printDone:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'c','o','m','p','l','e','t','e','d',0
-		.align	2
+		.align  8
 		.globl	printDoneError
-printDoneError:	.long		kHeaderSize + 12 + kFlagsBinary
+printDoneError:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'e','r','r','o','r',0
-		.align	2
+		.align  8
 		.globl	waitPrinterMessage
-waitPrinterMessage:	.long		kHeaderSize + 42 + kFlagsBinary
+waitPrinterMessage:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5700,0x6100,0x6900,0x7400,0x6900,0x6E00,0x6700,0x2000,0x6600,0x6F00,0x7200,0x2000,0x7000,0x7200,0x6900,0x6E00,0x7400,0x6500,0x7200,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapSendMsg
-zapSendMsg:	.long		kHeaderSize + 36 + kFlagsBinary
+zapSendMsg:	Ref    kHeaderSize + 36 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5300,0x6500,0x6E00,0x6400,0x6900,0x6E00,0x6700,0x2000,0x5E00,0x3000,0x2000,0x6F00,0x6600,0x2000,0x5E00,0x3100,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapSendConnectMsg
-zapSendConnectMsg:	.long		kHeaderSize + 44 + kFlagsBinary
+zapSendConnectMsg:	Ref    kHeaderSize + 44 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4C00,0x6F00,0x6F00,0x6B00,0x6900,0x6E00,0x6700,0x2000,0x6600,0x6F00,0x7200,0x2000,0x7200,0x6500,0x6300,0x6500,0x6900,0x7600,0x6500,0x7200,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapSendDoneMsg
-zapSendDoneMsg:	.long		kHeaderSize + 18 + kFlagsBinary
+zapSendDoneMsg:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'n','o','t',' ','u','s','e','d',0
-		.align	2
+		.align  8
 		.globl	zapRecvMsg
-zapRecvMsg:	.long		kHeaderSize + 40 + kFlagsBinary
+zapRecvMsg:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5200,0x6500,0x6300,0x6500,0x6900,0x7600,0x6900,0x6E00,0x6700,0x2000,0x5E00,0x3000,0x2000,0x6F00,0x6600,0x2000,0x5E00,0x3100,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapRecvConnectMsg
-zapRecvConnectMsg:	.long		kHeaderSize + 40 + kFlagsBinary
+zapRecvConnectMsg:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4C00,0x6F00,0x6F00,0x6B00,0x6900,0x6E00,0x6700,0x2000,0x6600,0x6F00,0x7200,0x2000,0x7300,0x6500,0x6E00,0x6400,0x6500,0x7200,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapRecvDoneMsg
-zapRecvDoneMsg:	.long		kHeaderSize + 18 + kFlagsBinary
+zapRecvDoneMsg:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x6E00,0x6F00,0x7400,0x2000,0x7500,0x7300,0x6500,0x6400,0
-		.align	2
+		.align  8
 		.globl	zapRecvCancelMsg
-zapRecvCancelMsg:	.long		kHeaderSize + 20 + kFlagsBinary
+zapRecvCancelMsg:	Ref    kHeaderSize + 20 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x5300,0x7400,0x6F00,0x7000,0x7000,0x6900,0x6E00,0x6700,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapReceiveConfirm
 zapReceiveConfirm:	ArrayObj(0, MAKEPTR(SYMarray))
 		.globl	zapConfirmMsg
-zapConfirmMsg:	.long		kHeaderSize + 42 + kFlagsBinary
+zapConfirmMsg:	Ref    kHeaderSize + 42 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4300,0x6F00,0x6E00,0x6600,0x6900,0x7200,0x6D00,0x6900,0x6E00,0x6700,0x2000,0x5E00,0x3000,0x2000,0x6F00,0x6600,0x2000,0x5E00,0x3100,0x2620,0
-		.align	2
+		.align  8
 		.globl	zapNoMsg
-zapNoMsg:	.long		kHeaderSize + 18 + kFlagsBinary
+zapNoMsg:	Ref    kHeaderSize + 18 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'n','o','t',' ','u','s','e','d',0
-		.align	2
-obj_005B4655:	.long		kHeaderSize + 56 + kFlagsBinary
+		.align  8
+obj_005B4655:	Ref    kHeaderSize + 56 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xA2,0x00,0xA2,0x00,0x6C,0x00,0xAC,0x00,0x7D
 		.byte		0x1F,0xF0,0x00,0x00,0x3F,0xF8,0x00,0x00,0x30,0x18,0x00,0x00,0x70,0x10,0x00,0x00
 		.byte		0xFF,0xE4,0x80,0x00,0xDF,0xCF,0x00,0x00,0xC0,0x12,0x00,0x00,0xC0,0x00,0x00,0x00
 		.byte		0xFF,0xFE,0x00,0x00,0x7F,0xFC,0x00,0x00
-		.align	2
+		.align  8
 obj_005B4639_map:	FrameMapObj(4)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_005B4639:	FrameObj(4, obj_005B4639_map)
@@ -20430,35 +20427,35 @@ faxPreferencesForm_map:	FrameMapObj(1)
 faxPreferencesForm:	FrameObj(1, faxPreferencesForm_map)
 		Ref		MAKEPTR(obj_005B4699)
 		.globl	UCLetters
-UCLetters:	.long		kHeaderSize + 54 + kFlagsBinary
+UCLetters:	Ref    kHeaderSize + 54 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4100,0x4200,0x4300,0x4400,0x4500,0x4600,0x4700,0x4800,0x4900,0x4A00,0x4B00,0x4C00,0x4D00,0x4E00,0x4F00,0x5000,0x5100,0x5200,0x5300,0x5400,0x5500,0x5600,0x5700,0x5800,0x5900,0x5A00,0
-		.align	2
+		.align  8
 		.globl	emptyString
-emptyString:	.long		kHeaderSize + 2 + kFlagsBinary
+emptyString:	Ref    kHeaderSize + 2 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0
-		.align	2
+		.align  8
 		.globl	errNumberTooSmall
-errNumberTooSmall:	.long		kHeaderSize + 34 + kFlagsBinary
+errNumberTooSmall:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','u','m','b','e','r',' ','t','o','o',' ','s','m','a','l','l',0
-		.align	2
+		.align  8
 		.globl	errNumberTooLarge
-errNumberTooLarge:	.long		kHeaderSize + 34 + kFlagsBinary
+errNumberTooLarge:	Ref    kHeaderSize + 34 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','u','m','b','e','r',' ','t','o','o',' ','l','a','r','g','e',0
-		.align	2
+		.align  8
 		.globl	errNumberOutOfRange
-errNumberOutOfRange:	.long		kHeaderSize + 40 + kFlagsBinary
+errNumberOutOfRange:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','u','m','b','e','r',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',0
-		.align	2
+		.align  8
 		.globl	errNotANumber
-errNotANumber:	.long		kHeaderSize + 26 + kFlagsBinary
+errNotANumber:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'N','o','t',' ','a',' ','n','u','m','b','e','r',0
-		.align	2
+		.align  8
 canonicalDragItem_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMdragRef),MAKEPTR(SYMlabel),MAKEPTR(SYMtypes),MAKEPTR(SYMview)
 		.globl	canonicalDragItem
@@ -20474,17 +20471,17 @@ canonicalPictDragData_map:	FrameMapObj(2)
 		.globl	canonicalPictDragData
 canonicalPictDragData:	FrameObj(2, canonicalPictDragData_map)
 		Ref		NILREF,NILREF
-obj_0042FAB9:	.long		kHeaderSize + 11 + kFlagsBinary
+obj_0042FAB9:	Ref    kHeaderSize + 11 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x03,0x19,0x39,0x03,0x1A,0x39,0x00,0x1B,0x48,0x02
-		.align	2
+		.align  8
 obj_0042FAD1:	ArrayObj(4, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtarget),MAKEPTR(SYMsetup1),MAKEPTR(SYMSetLabelText),MAKEPTR(SYMTextSetup)
 obj_0042FC45_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0042FC45:	FrameObj(5, obj_0042FC45_map)
 		Ref		0x00000032,MAKEPTR(obj_0042FAB9),MAKEPTR(obj_0042FAD1),NILREF,0x00000000
-obj_0042FAED:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_0042FAED:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7B,0x6F,0x00,0x5A,0x7B,0x72,0x91,0xC7,0x00,0x18,0xA5,0x1B
 		.byte		0x88,0xAC,0x70,0x1D,0x91,0xAE,0x76,0x22,0xC7,0x00,0x11,0xA7,0x00,0x08,0x5F,0x00
@@ -20492,7 +20489,7 @@ obj_0042FAED:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x70,0x1F,0x00,0x07,0x91,0x7F,0x00,0x07,0x90,0xC7,0x00,0x15,0x00,0x7F,0x00,0x07
 		.byte		0x7D,0xC4,0x6F,0x00,0x49,0x74,0x7E,0xC2,0xA4,0x7F,0x00,0x08,0x05,0x7F,0x00,0x08
 		.byte		0x06,0x6F,0x00,0x21,0x22,0x22,0xA7,0x00,0x08,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_0042FC31:	ArrayObj(2, MAKEPTR(SYMpathExpr))
 		Ref		MAKEPTR(SYMemailText),MAKEPTR(SYMstring_2Eemail)
 obj_0042FB55:	ArrayObj(8, MAKEPTR(SYMliterals))
@@ -20501,23 +20498,23 @@ obj_0042FC65_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0042FC65:	FrameObj(5, obj_0042FC65_map)
 		Ref		0x00000032,MAKEPTR(obj_0042FAED),MAKEPTR(obj_0042FB55),NILREF,0x00140004
-obj_0042FB81:	.long		kHeaderSize + 31 + kFlagsBinary
+obj_0042FB81:	Ref    kHeaderSize + 31 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x71,0x91,0xC5,0x6F,0x00,0x0D,0x72,0x20,0xC2,0x5F,0x00,0x13,0x70,0x71,0x91
 		.byte		0xC7,0x00,0x18,0xA3,0x70,0x71,0x73,0x1C,0x91,0x7B,0xC7,0x00,0x14,0x99,0x02
-		.align	2
+		.align  8
 obj_0042FBAD:	ArrayObj(5, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtarget),MAKEPTR(SYMpath),MAKEPTR(SYMlabelSymbols),MAKEPTR(SYMentryLine),MAKEPTR(SYMtext)
 obj_0042FC85_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_0042FC85:	FrameObj(5, obj_0042FC85_map)
 		Ref		0x00000032,MAKEPTR(obj_0042FB81),MAKEPTR(obj_0042FBAD),NILREF,0x00040000
-obj_0042FBCD:	.long		kHeaderSize + 41 + kFlagsBinary
+obj_0042FBCD:	Ref    kHeaderSize + 41 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0xC2,0x03,0x19,0x39,0x00,0x72,0x1B,0x38,0x00,0x74,0x75,0x91,0xC5,0x6F
 		.byte		0x00,0x19,0x74,0x75,0x1E,0xC7,0x00,0x13,0x98,0x74,0x75,0x91,0x77,0x00,0x07,0x7B
 		.byte		0xC2,0xC7,0x00,0x14,0x00,0x27,0x00,0x1A,0x02
-		.align	2
+		.align  8
 obj_0042FC05:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMlabelCommands),MAKEPTR(SYMSetLabelText),MAKEPTR(SYMlabelLine),MAKEPTR(SYMDirty),MAKEPTR(SYMtarget),MAKEPTR(SYMpath),MAKEPTR(obj_005A7F4D),MAKEPTR(SYMlabelSymbols)
 obj_0042FCA5_map:	FrameMapObj(5)
@@ -20542,10 +20539,10 @@ canonicalCISCardFunctionInfo_map:	FrameMapObj(2)
 canonicalCISCardFunctionInfo:	FrameObj(2, canonicalCISCardFunctionInfo_map)
 		Ref		0xFFFFFFFFFFFFFFFC,MAKEPTR(obj_003C5275)
 		.globl	uDefaultReasonForBusyCard
-uDefaultReasonForBusyCard:	.long		kHeaderSize + 124 + kFlagsBinary
+uDefaultReasonForBusyCard:	Ref    kHeaderSize + 124 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'P','l','e','a','s','e',' ','r','e','i','n','s','e','r','t',' ','t','h','e',' ','s','t','o','r','a','g','e',' ','c','a','r','d',' ','s','o',' ','t','h','e',' ','c','h','a','n','g','e','s',' ','c','a','n',' ','b','e',' ','s','a','v','e','d','.',0
-		.align	2
+		.align  8
 charsetInfoResources_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMletterimages),MAKEPTR(SYMDTEHeader),MAKEPTR(SYMDTEMain),MAKEPTR(SYMPPDMain),MAKEPTR(SYMDTETrigrams)
 		.globl	charsetInfoResources
@@ -20654,10 +20651,10 @@ canonicalCurrentImport_map:	FrameMapObj(2)
 canonicalCurrentImport:	FrameObj(2, canonicalCurrentImport_map)
 		Ref		NILREF,NILREF
 		.globl	lineSpacingFmtStr
-lineSpacingFmtStr:	.long		kHeaderSize + 12 + kFlagsBinary
+lineSpacingFmtStr:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0',' ','l','i',0
-		.align	2
+		.align  8
 canonicalGestaltPatchInfo_map:	FrameMapObj(2)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMfTotalPatchPageCount),MAKEPTR(SYMfPatch)
 		.globl	canonicalGestaltPatchInfo
@@ -20677,34 +20674,34 @@ obj_0043082D_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_0043082D:	FrameObj(4, obj_0043082D_map)
 		Ref		0x00000000,0x00000000,0x00000000,0x00000038
-obj_00430731:	.long		kHeaderSize + 64 + kFlagsBinary
+obj_00430731:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xC7,0x00,0x13,0x27,0x02,0x10,0x19,0x2A,0xA8,0x72,0x24,0xC4,0x6F,0x00,0x1A
 		.byte		0x1B,0x70,0x1C,0x89,0x1D,0x2A,0xAE,0x5F,0x00,0x28,0x1F,0x00,0x07,0x70,0x72,0x1F
 		.byte		0x00,0x08,0x29,0x1C,0x8A,0x1D,0x2A,0xAE,0x77,0x00,0x09,0x20,0xC6,0x6F,0x00,0x3E
 		.byte		0x76,0x1F,0x00,0x0A,0x1C,0x8A,0xC7,0x00,0x16,0xAE,0x76,0x5F,0x00,0x3F,0x22,0x02
-		.align	2
-obj_00430641:	.long		kHeaderSize + 22 + kFlagsBinary
+		.align  8
+obj_00430641:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0',',',' ','1',' ','i','t','e','m',0
-		.align	2
-obj_00430665:	.long		kHeaderSize + 26 + kFlagsBinary
+		.align  8
+obj_00430665:	Ref    kHeaderSize + 26 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'^','0',',',' ','^','1',' ','i','t','e','m','s',0
-		.align	2
+		.align  8
 obj_0043077D:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMtitle),MAKEPTR(SYMStrTruncate),MAKEPTR(SYMcount),MAKEPTR(obj_00430641),MAKEPTR(SYMarray),MAKEPTR(SYMParamStr),MAKEPTR(SYMtext),MAKEPTR(obj_00430665),MAKEPTR(SYMNumberStr),MAKEPTR(SYMskip),0x20266
 obj_00430849_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00430849:	FrameObj(5, obj_00430849_map)
 		Ref		0x00000032,MAKEPTR(obj_00430731),MAKEPTR(obj_0043077D),NILREF,0x00000000
-obj_004307B5:	.long		kHeaderSize + 58 + kFlagsBinary
+obj_004307B5:	Ref    kHeaderSize + 58 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x03,0x18,0x39,0x6F,0x00,0x38,0x71,0x1A,0x71,0x1A,0x91,0xC5,0x99,0x6F,0x00
 		.byte		0x25,0x73,0x1C,0x73,0x1C,0x91,0x75,0xC1,0x73,0x1E,0x91,0xC7,0x00,0x09,0x73,0x1E
 		.byte		0x91,0xC7,0x00,0x07,0x98,0x73,0x1F,0x00,0x07,0x38,0x00,0x22,0x03,0x1F,0x00,0x08
 		.byte		0x39,0x00,0x27,0x00,0x1A,0x5F,0x00,0x39,0x22,0x02
-		.align	2
+		.align  8
 obj_004307FD:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTrackHilite),MAKEPTR(SYMcategory),MAKEPTR(SYMcollapsed),MAKEPTR(SYMroll),MAKEPTR(SYMscrollOrigin),MAKEPTR(SYMskip),MAKEPTR(SYMscrollAmount),MAKEPTR(SYMrecalc),MAKEPTR(SYMhilite)
 obj_00430869_map:	FrameMapObj(5)
@@ -20758,18 +20755,18 @@ connvalidtestexclusion_map:	FrameMapObj(1)
 connvalidtestexclusion:	FrameObj(1, connvalidtestexclusion_map)
 		Ref		MAKEPTR(obj_00472C0D)
 		.globl	inkName
-inkName:	.long		kHeaderSize + 22 + kFlagsBinary
+inkName:	Ref    kHeaderSize + 22 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	' ','-','s','k','e','t','c','h','-',' ',0
-		.align	2
+		.align  8
 		.globl	caretBitsOutside
-caretBitsOutside:	.long		kHeaderSize + 64 + kFlagsBinary
+caretBitsOutside:	Ref    kHeaderSize + 64 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0C,0x00,0x0B
 		.byte		0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x3F,0x80,0x00,0x00
 		.byte		0x3F,0x80,0x00,0x00,0x7F,0xC0,0x00,0x00,0x7F,0xC0,0x00,0x00,0xFF,0xE0,0x00,0x00
 		.byte		0xFF,0xE0,0x00,0x00,0xFB,0xE0,0x00,0x00,0xF1,0xE0,0x00,0x00,0xE0,0xE0,0x00,0x00
-		.align	2
+		.align  8
 canonicalKeyCommand_map:	FrameMapObj(5)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMchar),MAKEPTR(SYMmodifiers),MAKEPTR(SYMkeyMessage),MAKEPTR(SYMname),MAKEPTR(SYMcategory)
 		.globl	canonicalKeyCommand
@@ -20789,13 +20786,13 @@ canonicalSocketInfo_map:	FrameMapObj(11)
 canonicalSocketInfo:	FrameObj(11, canonicalSocketInfo_map)
 		Ref		0x00000000,MAKEPTR(obj_005A7F4D),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_005A7F4D),MAKEPTR(obj_005A7F4D),0x00000000,0x00000000,MAKEPTR(obj_003C5201),MAKEPTR(obj_003C520D),MAKEPTR(obj_003C5219),NILREF
 		.globl	caretBitsInside
-caretBitsInside:	.long		kHeaderSize + 56 + kFlagsBinary
+caretBitsInside:	Ref    kHeaderSize + 56 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x74,0x01,0x74,0x02,0x8F,0x01,0x7E,0x02,0x98
 		.byte		0x08,0x00,0x00,0x00,0x1C,0x00,0x00,0x00,0x1C,0x00,0x00,0x00,0x3E,0x00,0x00,0x00
 		.byte		0x3E,0x00,0x00,0x00,0x7F,0x00,0x00,0x00,0x77,0x00,0x00,0x00,0xE3,0x80,0x00,0x00
 		.byte		0xC1,0x80,0x00,0x00,0x80,0x80,0x00,0x00
-		.align	2
+		.align  8
 emailText_map:	FrameMapObj(15)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMstring),MAKEPTR(SYMstring_2Eemail),MAKEPTR(SYMstring_2Eemail_2Eeworld),MAKEPTR(SYMstring_2Eemail_2Einternet),MAKEPTR(SYMstring_2Eemail_2Eaol),MAKEPTR(SYMstring_2Eemail_2Ecompuserve),MAKEPTR(SYMstring_2Eemail_2Emcimail),MAKEPTR(SYMstring_2Eemail_2Eattmail),MAKEPTR(SYMstring_2Eemail_2Eeasylink),MAKEPTR(SYMstring_2Eemail_2Eprodigy),MAKEPTR(SYMstring_2Eemail_2Egenie),MAKEPTR(SYMstring_2Eemail_2Edelphi),MAKEPTR(SYMstring_2Eemail_2Emsn),MAKEPTR(SYMstring_2Eemail_2Einterchange)
 		Ref		MAKEPTR(SYMstring_2Eemail_2Eradiomail)
@@ -20837,10 +20834,10 @@ canonicalGestaltPatchInfoArrayElement:	FrameObj(4, canonicalGestaltPatchInfoArra
 _knownGlobalSymbols:	ArrayObj(11, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(SYMProtoNewsHowBar),MAKEPTR(SYMProToyEarPicker),MAKEPTR(SYMNewTabOutView),MAKEPTR(SYMProtoValidAteSlip),MAKEPTR(SYMNewTinFoBox),MAKEPTR(SYMNewTinFoButton),MAKEPTR(SYMNewTrollEntryView),MAKEPTR(SYMNewTrollLayout),MAKEPTR(SYMNewTrollOverLayout),MAKEPTR(SYMNewTenTryView),MAKEPTR(SYMProToadDressPicker)
 		.globl	drawingName
-drawingName:	.long		kHeaderSize + 16 + kFlagsBinary
+drawingName:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'd','r','a','w','i','n','g',0
-		.align	2
+		.align  8
 protoContentArea_map:	FrameMapObj(1)
 		Ref		0x00000010,MAKEPTR(obj_0051D13D),MAKEPTR(SYMpreAllocatedContext)
 		.globl	protoContentArea
@@ -20898,7 +20895,7 @@ obj_005210AD:	FrameObj(5, obj_005210AD_map)
 		Ref		MAKEPTR(obj_00520F9D),MAKEPTR(obj_00520FBD),MAKEPTR(obj_00520FDD),MAKEPTR(obj_00520FFD),MAKEPTR(obj_0052101D)
 obj_005210CD:	ArrayObj(0, MAKEPTR(SYMarray))
 obj_005210D9:	ArrayObj(0, MAKEPTR(SYMarray))
-obj_00520EF1:	.long		kHeaderSize + 97 + kFlagsBinary
+obj_00520EF1:	Ref    kHeaderSize + 97 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0xC7,0x00,0x13,0xA5,0x7D,0x19,0x72,0x98,0x7D,0x22,0x73,0x74,0x1D,0x84,0xA6
 		.byte		0x20,0xA4,0x76,0xC7,0x00,0x12,0x24,0xC1,0xA7,0x00,0x07,0x27,0x00,0x08,0xA7,0x00
@@ -20907,7 +20904,7 @@ obj_00520EF1:	.long		kHeaderSize + 97 + kFlagsBinary
 		.byte		0x03,0x1F,0x00,0x07,0x77,0x00,0x08,0x77,0x00,0x08,0x7E,0x1F,0x00,0x09,0x89,0x1F
 		.byte		0x00,0x0A,0x82,0x1F,0x00,0x09,0x89,0x1F,0x00,0x0B,0x82,0x1F,0x00,0x09,0x89,0x99
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00520E31:	ArrayObj(5, 0x00000018)
 		Ref		NILREF,MAKEPTR(SYM_proto),MAKEPTR(SYMpreAllocatedContext),MAKEPTR(SYMisbn),MAKEPTR(SYMviewChildren)
 obj_00520E51:	ArrayObj(3, 0x00000018)
@@ -20943,7 +20940,7 @@ proto1_2ExformEntry_map:	FrameMapObj(10)
 proto1_2ExformEntry:	FrameObj(10, proto1_2ExformEntry_map)
 		Ref		MAKEPTR(obj_0053748D),MAKEPTR(obj_005376E5),MAKEPTR(obj_00537705),MAKEPTR(obj_00537725),MAKEPTR(obj_00537685),MAKEPTR(obj_00537745),MAKEPTR(obj_005376C5),MAKEPTR(obj_00536B49),MAKEPTR(obj_00536B69),MAKEPTR(obj_00536B69)
 		.globl	trig
-trig:	.long		kHeaderSize + 8192 + kFlagsBinary
+trig:	Ref    kHeaderSize + 8192 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMTrigrams)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -21457,7 +21454,7 @@ trig:	.long		kHeaderSize + 8192 + kFlagsBinary
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-		.align	2
+		.align  8
 baseWordInfo_map:	FrameMapObj(11)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMSetWords),MAKEPTR(SYMGetWords),MAKEPTR(SYMAutoAdd),MAKEPTR(SYMAutoRemove),MAKEPTR(SYMLearn),MAKEPTR(SYMTestFlags),MAKEPTR(SYMSetFlags),MAKEPTR(SYMClearFlags),MAKEPTR(SYMAddCapitalized),MAKEPTR(SYMRemoveAddedEntries),MAKEPTR(SYMMoveFirst)
 		.globl	baseWordInfo
@@ -21493,7 +21490,7 @@ obj_00430CC9_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_00430CC9:	FrameObj(4, obj_00430CC9_map)
 		Ref		0x00000014,0x00000014,0xFFFFFFFFFFFFFFEC,0xFFFFFFFFFFFFFFEC
-obj_00430BA1:	.long		kHeaderSize + 282 + kFlagsBinary
+obj_00430BA1:	Ref    kHeaderSize + 282 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x03,0x18,0x38,0x19,0x91,0x27,0x00,0x38,0xC7,0x00,0x09,0xAA,0x72,0x27,0x00,0x08
 		.byte		0xC1,0xAB,0x03,0x1C,0x22,0x98,0x03,0x1D,0x22,0x98,0x03,0x1E,0x22,0x98,0x1F,0x00
@@ -21513,7 +21510,7 @@ obj_00430BA1:	.long		kHeaderSize + 282 + kFlagsBinary
 		.byte		0x7F,0x00,0x07,0x05,0x7F,0x00,0x07,0x06,0x6F,0x00,0x36,0x22,0x22,0xA7,0x00,0x07
 		.byte		0x00,0x03,0x1E,0x7C,0x20,0xC7,0x00,0x0D,0x98,0x03,0x1C,0x7B,0x98,0x03,0x1D,0x7B
 		.byte		0x77,0x00,0x11,0x03,0x1F,0x00,0x12,0x3A,0x99,0x02
-		.align	2
+		.align  8
 obj_00430B49:	ArrayObj(19, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMLocalBox),MAKEPTR(SYMbottom),MAKEPTR(SYMmaxItems),MAKEPTR(SYMscrollAmount),MAKEPTR(SYMitems),MAKEPTR(SYMviewChildren),MAKEPTR(SYMmoreBelow),MAKEPTR(SYMarray),MAKEPTR(SYMscrollOrigin),MAKEPTR(SYMcategoryFrames),MAKEPTR(SYMMakeCategoryItem),MAKEPTR(SYMallCollapsed),MAKEPTR(SYMcollapsed),MAKEPTR(SYMcount),MAKEPTR(SYMnegate),MAKEPTR(SYMskip)
 		Ref		MAKEPTR(SYMAddCategory),MAKEPTR(SYMindex),MAKEPTR(SYMLayoutColumn)
@@ -21521,34 +21518,34 @@ obj_00430CE5_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00430CE5:	FrameObj(5, obj_00430CE5_map)
 		Ref		0x00000032,MAKEPTR(obj_00430BA1),MAKEPTR(obj_00430B49),NILREF,0x00200000
-obj_00430A45:	.long		kHeaderSize + 48 + kFlagsBinary
+obj_00430A45:	Ref    kHeaderSize + 48 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x20,0xC7,0x00,0x0B,0x6F,0x00,0x2E,0x70,0x71,0xC1,0x20,0x1A,0x2A,0x70,0xC1
 		.byte		0xA3,0x7B,0x27,0x00,0x08,0xC1,0x1B,0x29,0x27,0x00,0x38,0xC7,0x00,0x07,0x20,0x74
 		.byte		0x1D,0x7B,0x1E,0x89,0x77,0x00,0x07,0x1F,0x00,0x08,0x3D,0x5F,0x00,0x2F,0x22,0x02
-		.align	2
+		.align  8
 obj_00430A81:	ArrayObj(9, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMscrollOrigin),MAKEPTR(SYMscrollAmount),MAKEPTR(SYMmax),MAKEPTR(SYMnegate),MAKEPTR(SYMscrollUpSound),MAKEPTR(SYMdoscrollscript),MAKEPTR(SYMarray),MAKEPTR(SYMroll),MAKEPTR(SYMSlideEffect)
 obj_00430D05_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00430D05:	FrameObj(5, obj_00430D05_map)
 		Ref		0x00000032,MAKEPTR(obj_00430A45),MAKEPTR(obj_00430A81),NILREF,0x00040000
-obj_00430AB1:	.long		kHeaderSize + 33 + kFlagsBinary
+obj_00430AB1:	Ref    kHeaderSize + 33 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x6F,0x00,0x1F,0x71,0x27,0x00,0x08,0xC0,0x1A,0x29,0x27,0x00,0x38,0xC7,0x00
 		.byte		0x07,0x20,0x73,0x1C,0x71,0x1D,0x89,0x76,0x1F,0x00,0x07,0x3D,0x5F,0x00,0x20,0x22
 		.byte		0x02
-		.align	2
+		.align  8
 obj_00430AE1:	ArrayObj(8, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMmoreBelow),MAKEPTR(SYMscrollAmount),MAKEPTR(SYMnegate),MAKEPTR(SYMscrollDownSound),MAKEPTR(SYMdoscrollscript),MAKEPTR(SYMarray),MAKEPTR(SYMroll),MAKEPTR(SYMSlideEffect)
 obj_00430D25_map:	FrameMapObj(5)
 		Ref		0x00000000,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMinstructions),MAKEPTR(SYMliterals),MAKEPTR(SYMargFrame),MAKEPTR(SYMnumArgs)
 obj_00430D25:	FrameObj(5, obj_00430D25_map)
 		Ref		0x00000032,MAKEPTR(obj_00430AB1),MAKEPTR(obj_00430AE1),NILREF,0x00000000
-obj_00430B0D:	.long		kHeaderSize + 8 + kFlagsBinary
+obj_00430B0D:	Ref    kHeaderSize + 8 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x7B,0xC0,0xA8,0x71,0x1A,0x38,0x02
-		.align	2
+		.align  8
 obj_00430B21:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMscrollOrigin),MAKEPTR(SYMroll),MAKEPTR(SYMrecalc)
 obj_00430D45_map:	FrameMapObj(5)
@@ -21585,140 +21582,140 @@ marshalTypes_map:	FrameMapObj(19)
 marshalTypes:	FrameObj(19, marshalTypes_map)
 		Ref		0x00000004,0x00000008,0x0000000C,0x00000010,0x00000014,0x00000018,0x0000001C,0x00000020,0x00000024,0x00000028,0x0000002C,0x00000030,0x00000034,0x00000038,0x0000003C,0x00000000
 		Ref		0x00000008,0x00000044,0x00000048
-obj_0046E5AD:	.long		kHeaderSize + 72 + kFlagsBinary
+obj_0046E5AD:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x91,0x01,0x91,0x00,0xB5,0x01,0x9F,0x00,0xC8
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xCF,0xF0,0x60,0x00
 		.byte		0xCF,0xF0,0x60,0x00,0xC0,0x00,0x60,0x00,0xCF,0xE0,0x60,0x00,0xCF,0xE0,0x60,0x00
 		.byte		0xC0,0x00,0x60,0x00,0xCF,0xFE,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E601:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E601:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x91,0x01,0x91,0x00,0xCB,0x01,0x9F,0x00,0xDE
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC7,0xFC,0x60,0x00
 		.byte		0xC7,0xFC,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0xE0,0x60,0x00,0xC0,0xE0,0x60,0x00
 		.byte		0xC0,0x00,0x60,0x00,0xC7,0xFC,0x60,0x00,0xC7,0xFC,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E655:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E655:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x91,0x01,0x91,0x00,0xE1,0x01,0x9F,0x00,0xF4
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC3,0xFF,0x60,0x00
 		.byte		0xC3,0xFF,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0xFF,0x60,0x00,0xC0,0xFF,0x60,0x00
 		.byte		0xC0,0x00,0x60,0x00,0xCF,0xFF,0x60,0x00,0xCF,0xFF,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E6A9:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E6A9:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x91,0x01,0x91,0x00,0xF7,0x01,0x9F,0x01,0x0A
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xCF,0xFE,0x60,0x00
 		.byte		0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00,0xCF,0xFE,0x60,0x00,0xCF,0xFE,0x60,0x00
 		.byte		0xC0,0x00,0x60,0x00,0xCF,0xFE,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E6FD:	.long		kHeaderSize + 40 + kFlagsBinary
+		.align  8
+obj_0046E6FD:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xA8,0x00,0xA8,0x00,0xFA,0x00,0xAE,0x01,0x05
 		.byte		0x04,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x3C,0x80,0x00,0x00
 		.byte		0x78,0x40,0x00,0x00,0xFF,0xE0,0x00,0x00
-		.align	2
-obj_0046E731:	.long		kHeaderSize + 40 + kFlagsBinary
+		.align  8
+obj_0046E731:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xA8,0x00,0xA8,0x00,0xFA,0x00,0xAE,0x01,0x05
 		.byte		0x04,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x19,0x00,0x00,0x00,0x30,0x80,0x00,0x00
 		.byte		0x7F,0xC0,0x00,0x00,0xFF,0xE0,0x00,0x00
-		.align	2
-obj_0046E765:	.long		kHeaderSize + 40 + kFlagsBinary
+		.align  8
+obj_0046E765:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xA8,0x00,0xA8,0x00,0xFA,0x00,0xAE,0x01,0x05
 		.byte		0x04,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x27,0x80,0x00,0x00
 		.byte		0x43,0xC0,0x00,0x00,0xFF,0xE0,0x00,0x00
-		.align	2
-obj_0046E799:	.long		kHeaderSize + 40 + kFlagsBinary
+		.align  8
+obj_0046E799:	Ref    kHeaderSize + 40 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xA8,0x00,0xA8,0x00,0xFA,0x00,0xAE,0x01,0x05
 		.byte		0x04,0x00,0x00,0x00,0x0E,0x00,0x00,0x00,0x1F,0x00,0x00,0x00,0x20,0x80,0x00,0x00
 		.byte		0x40,0x40,0x00,0x00,0xFF,0xE0,0x00,0x00
-		.align	2
-obj_0046E7CD:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E7CD:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x8D,0x01,0x8D,0x00,0x34,0x01,0x9B,0x00,0x47
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xC0,0x40,0x60,0x00,0xC0,0xE0,0x60,0x00,0xC1,0xF0,0x60,0x00,0xC3,0xC8,0x60,0x00
 		.byte		0xC7,0x84,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E821:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E821:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x8D,0x01,0x8D,0x00,0x4A,0x01,0x9B,0x00,0x5D
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xC0,0x40,0x60,0x00,0xC0,0xE0,0x60,0x00,0xC1,0x90,0x60,0x00,0xC3,0x08,0x60,0x00
 		.byte		0xC7,0xFC,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E875:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E875:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x8D,0x01,0x8D,0x00,0x60,0x01,0x9B,0x00,0x73
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xC0,0x40,0x60,0x00,0xC0,0xE0,0x60,0x00,0xC1,0xF0,0x60,0x00,0xC2,0x78,0x60,0x00
 		.byte		0xC4,0x3C,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E8C9:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E8C9:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x8D,0x01,0x8D,0x00,0x76,0x01,0x9B,0x00,0x89
 		.byte		0x7F,0xFF,0xC0,0x00,0xFF,0xFF,0xE0,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xC0,0x40,0x60,0x00,0xC0,0xE0,0x60,0x00,0xC1,0xF0,0x60,0x00,0xC2,0x08,0x60,0x00
 		.byte		0xC4,0x04,0x60,0x00,0xCF,0xFE,0x60,0x00,0xC0,0x00,0x60,0x00,0xC0,0x00,0x60,0x00
 		.byte		0xFF,0xFF,0xE0,0x00,0x7F,0xFF,0xC0,0x00
-		.align	2
-obj_0046E91D:	.long		kHeaderSize + 52 + kFlagsBinary
+		.align  8
+obj_0046E91D:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x9D,0x00,0x9D,0x00,0x4B,0x00,0xA6,0x00,0x52
 		.byte		0xFC,0x00,0x00,0x00,0xFC,0x00,0x00,0x00,0xF8,0x00,0x00,0x00,0xF0,0x00,0x00,0x00
 		.byte		0xE0,0x00,0x00,0x00,0xC0,0x00,0x00,0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 		.byte		0x00,0x00,0x00,0x00
-		.align	2
-obj_0046E95D:	.long		kHeaderSize + 52 + kFlagsBinary
+		.align  8
+obj_0046E95D:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x9E,0x00,0x9E,0x00,0x2E,0x00,0xA7,0x00,0x34
 		.byte		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80,0x00,0x00,0x00,0xC0,0x00,0x00,0x00
 		.byte		0xE0,0x00,0x00,0x00,0xF0,0x00,0x00,0x00,0xF8,0x00,0x00,0x00,0xFC,0x00,0x00,0x00
 		.byte		0xFC,0x00,0x00,0x00
-		.align	2
-obj_0046E99D:	.long		kHeaderSize + 52 + kFlagsBinary
+		.align  8
+obj_0046E99D:	Ref    kHeaderSize + 52 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x00,0xAE,0x00,0xAE,0x01,0x34,0x00,0xB7,0x01,0x39
 		.byte		0x08,0x00,0x00,0x00,0x18,0x00,0x00,0x00,0x38,0x00,0x00,0x00,0x78,0x00,0x00,0x00
 		.byte		0xF8,0x00,0x00,0x00,0x78,0x00,0x00,0x00,0x38,0x00,0x00,0x00,0x18,0x00,0x00,0x00
 		.byte		0x08,0x00,0x00,0x00
-		.align	2
-obj_0046E9DD:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046E9DD:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x97,0x01,0x97,0x01,0x76,0x01,0xA5,0x01,0x82
 		.byte		0x7F,0xF0,0x00,0x00,0xFF,0xF0,0x00,0x00,0xC0,0x10,0x00,0x00,0xCF,0x90,0x00,0x00
 		.byte		0xCF,0x90,0x00,0x00,0xC0,0x10,0x00,0x00,0xCF,0x90,0x00,0x00,0xCF,0x90,0x00,0x00
 		.byte		0xC0,0x10,0x00,0x00,0xCF,0x90,0x00,0x00,0xCF,0x90,0x00,0x00,0xC0,0x10,0x00,0x00
 		.byte		0xFF,0xF0,0x00,0x00,0x7F,0xF0,0x00,0x00
-		.align	2
-obj_0046EA31:	.long		kHeaderSize + 72 + kFlagsBinary
+		.align  8
+obj_0046EA31:	Ref    kHeaderSize + 72 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMbits)
 		.byte		0x00,0x00,0x00,0x00,0x00,0x04,0x01,0x97,0x01,0x97,0x01,0x82,0x01,0xA5,0x01,0x8E
 		.byte		0xFF,0xF0,0x00,0x00,0xFF,0xF0,0x00,0x00,0x80,0x30,0x00,0x00,0x80,0x30,0x00,0x00
 		.byte		0x9F,0x30,0x00,0x00,0x9F,0x30,0x00,0x00,0x80,0x30,0x00,0x00,0x80,0x30,0x00,0x00
 		.byte		0x9F,0x30,0x00,0x00,0x9F,0x30,0x00,0x00,0x80,0x30,0x00,0x00,0x80,0x30,0x00,0x00
 		.byte		0xFF,0xF0,0x00,0x00,0xFF,0xF0,0x00,0x00
-		.align	2
+		.align  8
 		.globl	rulerPicts
 rulerPicts:	ArrayObj(17, MAKEPTR(SYMarray))
 		Ref		MAKEPTR(obj_0046E5AD),MAKEPTR(obj_0046E601),MAKEPTR(obj_0046E655),MAKEPTR(obj_0046E6A9),MAKEPTR(obj_0046E6FD),MAKEPTR(obj_0046E731),MAKEPTR(obj_0046E765),MAKEPTR(obj_0046E799),MAKEPTR(obj_0046E7CD),MAKEPTR(obj_0046E821),MAKEPTR(obj_0046E875),MAKEPTR(obj_0046E8C9),MAKEPTR(obj_0046E91D),MAKEPTR(obj_0046E95D),MAKEPTR(obj_0046E99D),MAKEPTR(obj_0046E9DD)
 		Ref		MAKEPTR(obj_0046EA31)
 		.globl	otherCategoryName
-otherCategoryName:	.long		kHeaderSize + 12 + kFlagsBinary
+otherCategoryName:	Ref    kHeaderSize + 12 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x4F00,0x7400,0x6800,0x6500,0x7200,0
-		.align	2
+		.align  8
 canonicalCaretInfo_map:	FrameMapObj(2)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMview),MAKEPTR(SYMinfo)
 		.globl	canonicalCaretInfo
@@ -21735,10 +21732,10 @@ saveDataToEntry_map:	FrameMapObj(5)
 saveDataToEntry:	FrameObj(5, saveDataToEntry_map)
 		Ref		0x00000032,MAKEPTR(obj_006284CD),MAKEPTR(obj_00628509),NILREF,0x00040008
 		.globl	mathName
-mathName:	.long		kHeaderSize + 10 + kFlagsBinary
+mathName:	Ref    kHeaderSize + 10 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'm','a','t','h',0
-		.align	2
+		.align  8
 canonicalKeyCommandCategory_map:	FrameMapObj(2)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMcategory),MAKEPTR(SYMkeyCommands)
 		.globl	canonicalKeyCommandCategory
@@ -21768,11 +21765,11 @@ obj_004305E1_map:	FrameMapObj(4)
 		Ref		0x00000008,NILREF,MAKEPTR(SYMleft),MAKEPTR(SYMtop),MAKEPTR(SYMright),MAKEPTR(SYMbottom)
 obj_004305E1:	FrameObj(4, obj_004305E1_map)
 		Ref		0x00000000,0x00000000,0x00000000,0x00000038
-obj_004305A5:	.long		kHeaderSize + 24 + kFlagsBinary
+obj_004305A5:	Ref    kHeaderSize + 24 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x03,0x18,0x39,0x6F,0x00,0x16,0x03,0x19,0x38,0x00,0x22,0x03,0x1A,0x39,0x00
 		.byte		0x27,0x00,0x1A,0x5F,0x00,0x17,0x22,0x02
-		.align	2
+		.align  8
 obj_004305C9:	ArrayObj(3, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMTrackHilite),MAKEPTR(SYMclick),MAKEPTR(SYMhilite)
 obj_004305FD_map:	FrameMapObj(5)
@@ -21812,7 +21809,7 @@ constantFunctions_map:	FrameMapObj(0)
 		Ref		0x00000008,NILREF
 		.globl	constantFunctions
 constantFunctions:	FrameObj(0, constantFunctions_map)
-obj_05805EB9:	.long		kHeaderSize + 92 + kFlagsBinary
+obj_05805EB9:	Ref    kHeaderSize + 92 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x70,0x19,0x91,0xA4,0x7C,0x1A,0x29,0x6F,0x00,0x3D,0x7C,0x22,0xC7,0x00,0x11,0xA6
 		.byte		0x5F,0x00,0x34,0x7E,0x24,0xC2,0xA5,0x7D,0x1B,0x91,0x7B,0x1B,0x91,0xC4,0x6F,0x00
@@ -21820,15 +21817,15 @@ obj_05805EB9:	.long		kHeaderSize + 92 + kFlagsBinary
 		.byte		0x3A,0x00,0x7E,0x05,0x7E,0x06,0x6F,0x00,0x13,0x22,0x22,0xA6,0x00,0x7B,0x1F,0x00
 		.byte		0x08,0x1F,0x00,0x09,0x2A,0x6F,0x00,0x55,0x7B,0x7B,0x1F,0x00,0x08,0x39,0x00,0x7B
 		.byte		0x1F,0x00,0x08,0x22,0x98,0x7B,0x1F,0x00,0x0A,0x22,0x99,0x02
-		.align	2
-obj_05806011:	.long		kHeaderSize + 28 + kFlagsBinary
+		.align  8
+obj_05806011:	Ref    kHeaderSize + 28 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'E','x','t','r','a','s',' ','D','r','a','w','e','r',0
-		.align	2
-obj_05806061:	.long		kHeaderSize + 266 + kFlagsBinary
+		.align  8
+obj_05806061:	Ref    kHeaderSize + 266 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	'T','h','e',' ','a','p','p','l','i','c','a','t','i','o','n',' ','y','o','u',' ','j','u','s','t',' ','i','n','s','t','a','l','l','e','d',' ','c','o','n','f','l','i','c','t','s',' ','w','i','t','h',' ','a','n','o','t','h','e','r',' ','a','p','p','l','i','c','a','t','i','o','n','.',' ','P','l','e','a','s','e',' ','c','o','n','t','a','c','t',' ','t','h','e',' ','a','p','p','l','i','c','a','t','i','o','n',' ','v','e','n','d','o','r',' ','f','o','r',' ','a','n',' ','u','p','d','a','t','e','d',' ','v','e','r','s','i','o','n','.',0
-		.align	2
+		.align  8
 obj_05805F29:	ArrayObj(11, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMvars),MAKEPTR(SYMextras),MAKEPTR(SYMIsArray),MAKEPTR(SYMapp),MAKEPTR(obj_05806011),MAKEPTR(obj_05806061),MAKEPTR(SYMGetRoot),MAKEPTR(SYMNotify),MAKEPTR(SYMdevInstallScript),MAKEPTR(SYMHasSlot),MAKEPTR(SYMInstallScript)
 formInstallScript_map:	FrameMapObj(5)
@@ -21836,10 +21833,10 @@ formInstallScript_map:	FrameMapObj(5)
 		.globl	formInstallScript
 formInstallScript:	FrameObj(5, formInstallScript_map)
 		Ref		0x00000032,MAKEPTR(obj_05805EB9),MAKEPTR(obj_05805F29),NILREF,0x000C0004
-obj_05806271:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_05806271:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x19,0x2A,0x6F,0x00,0x0E,0x7B,0x7B,0x18,0x39,0x5F,0x00,0x0F,0x22,0x02
-		.align	2
+		.align  8
 obj_05806295:	ArrayObj(2, MAKEPTR(SYMliterals))
 		Ref		MAKEPTR(SYMdevRemoveScript),MAKEPTR(SYMHasSlot)
 formRemoveScript_map:	FrameMapObj(5)
@@ -21847,10 +21844,10 @@ formRemoveScript_map:	FrameMapObj(5)
 		.globl	formRemoveScript
 formRemoveScript:	FrameObj(5, formRemoveScript_map)
 		Ref		0x00000032,MAKEPTR(obj_05806271),MAKEPTR(obj_05806295),NILREF,0x00000004
-obj_0580631D:	.long		kHeaderSize + 16 + kFlagsBinary
+obj_0580631D:	Ref    kHeaderSize + 16 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMinstructions)
 		.byte		0x7B,0x18,0x91,0x19,0x81,0x1A,0x29,0xA4,0x7B,0x7C,0x7B,0x1B,0x3A,0x00,0x7C,0x02
-		.align	2
+		.align  8
 obj_05806375:	ArrayObj(2, 0x00000008)
 		Ref		NILREF,MAKEPTR(SYMremoveScript)
 obj_05806341:	ArrayObj(4, MAKEPTR(SYMliterals))
@@ -21861,22 +21858,22 @@ autoInstallScript_map:	FrameMapObj(5)
 autoInstallScript:	FrameObj(5, autoInstallScript_map)
 		Ref		0x00000032,MAKEPTR(obj_0580631D),MAKEPTR(obj_05806341),NILREF,0x00000008
 		.globl	space
-space:	.long		kHeaderSize + 4 + kFlagsBinary
+space:	Ref    kHeaderSize + 4 + kFlagsBinary
 		Ref		0, MAKEPTR(SYMstring)
 		.short	0x2000,0
-		.align	2
+		.align  8
 		.globl	cFunctionPrototype
 cFunctionPrototype_map:	FrameMapObj(3)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs)
 cFunctionPrototype:	FrameObj(3, cFunctionPrototype_map)
 		Ref		0x00000132,0x00000000,MAKEINT(0)
-		.align	2
+		.align  8
 		.globl	debugCFunctionPrototype
 debugCFunctionPrototype_map:	FrameMapObj(4)
 		Ref		0,NILREF,MAKEPTR(SYMclass),MAKEPTR(SYMfuncPtr),MAKEPTR(SYMnumArgs),MAKEPTR(SYMdocString)
 debugCFunctionPrototype:	FrameObj(4, debugCFunctionPrototype_map)
 		Ref		0x00000132,0x00000000,MAKEINT(0),NILREF
-		.align	2
+		.align  8
 #include "MagicPointers.s"
 		.globl	_gROMDataEnd
 _gROMDataEnd:

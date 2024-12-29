@@ -10,8 +10,10 @@ Ref ReadStreamFile(RefArg inRcvr, RefArg inFilename);
 }
 #include "protoProtoEditor.h"
 
+#if 0 // MATT
 Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj) { return NILREF; }
 Ref FUnDefineGlobalConstant(RefArg inRcvr, RefArg inTag) { return NILREF; }
+#endif // MATT
 Ref FDefPureFn(RefArg inRcvr, RefArg inTag, RefArg inFn) { return NILREF; }
 Ref FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass) { return NILREF; }
 Ref ReadStreamFile(RefArg inRcvr, RefArg inFilename) { return NILREF; }

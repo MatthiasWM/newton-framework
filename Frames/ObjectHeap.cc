@@ -44,9 +44,9 @@ Ref	FStats(RefArg inRcvr);
 Ref	FGetHeapStats(RefArg rcvr, RefArg inOptions);
 Ref	FUriah(RefArg inRcvr);
 Ref	FUriahBinaryObjects(RefArg inRcvr, RefArg inDoFile);
-#if defined(forNTK)
+//#if defined(forNTK) // MATT
 Ref	FVerboseGC(RefArg rcvr, RefArg on);
-#endif
+//#endif // MATT
 }
 
 
@@ -890,7 +890,7 @@ FGC(RefArg inRcvr)
 	return NILREF;
 }
 
-#if defined(forNTK)
+//#if defined(forNTK) // MATT
 Ref
 FVerboseGC(RefArg rcvr, RefArg on)
 {
@@ -898,7 +898,7 @@ FVerboseGC(RefArg rcvr, RefArg on)
 	gGC.verbose = NOTNIL(on);
 	return MAKEBOOLEAN(prevState);
 }
-#endif
+//#endif // MATT
 
 #pragma mark -
 /*----------------------------------------------------------------------

@@ -81,18 +81,18 @@ int main(int argc, char **argv)
 //
 //INIVAR(your_var, 55, 'M', "THE NAME");
 
-#if 0
+#if 1
   Ref src = MakeStringFromCString("7*6");
   Ref fn = ParseString(src);
   Ref ret = DoBlock(fn, RA(NILREF));
   PrintObject(ret, 0); puts("");
   Disassemble(fn);
   PrintCode(fn); puts("");
-#endif
-
+#elif 0
   NewtonPackage pkg(pkg_path);
   Ref part = pkg.partRef(0);
   PrintObject(part, 0); puts("");
   Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
   PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+#endif
 }

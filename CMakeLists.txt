@@ -12,7 +12,6 @@ project (Newton
 set (CMAKE_CXX_STANDARD 20)
 
 set ( SRCFILES
-  test.cpp
   Dates.cc
   Dictionaries.cc
   ErrorString.cc
@@ -101,10 +100,19 @@ set ( SRCFILES
   Protocols/ProtocolProto.cc
 #  Protocols/ProtocolProto.s
   Protocols/Protocols.cc
-  ROMData/forNewton/RSData.s
-  ROMData/forNewton/RSSymbols.s
-  ROMData/forNewton/RefData.s
-  ROMData/forNewton/RefSymbols.s
+# ifndef forNTK
+#  ROMData/forNewton/MagicPointers.s
+#  ROMData/forNewton/RSData.s
+#  ROMData/forNewton/RSSymbols.s
+#  ROMData/forNewton/RefData.s
+#  ROMData/forNewton/RefSymbols.s
+# else
+#  ROMData/forNTK/MagicPointers.s
+  ROMData/forNTK/RSData.s
+  ROMData/forNTK/RSSymbols.s
+  ROMData/forNTK/RefData.s
+  ROMData/forNTK/RefSymbols.s
+# endif
   Recognition/Array.cc
   Recognition/InkGeometry.cc
   Recognition/RecArea.cc
@@ -164,13 +172,6 @@ set ( SRCFILES
 )
 
 set ( HEADERFILES
-  test.cpp
-  Dates.cc
-  Dictionaries.cc
-  ErrorString.cc
-  IA.cc
-  Locales.cc
-  NTKStubs.cc
   NewtConfig.h
   Newton.h
   NewtonDebug.h
@@ -526,14 +527,8 @@ SET ( UNUSED_SRC_FILES
   main.m
 )
 
-source_group(
-  TREE "${CMAKE_CURRENT_SOURCE_DIR}"
-  PREFIX "Source Files"
-  FILES ${SRCFILES} ${HEADERFILES}
-)
-
-add_executable (test ${SRCFILES} ${HEADERFILES})
-target_compile_definitions(test PRIVATE forMac forFramework)
+add_executable (test test.cpp ${SRCFILES} ${HEADERFILES})
+target_compile_definitions(test PRIVATE forMac forFramework hasGlobalConstantFunctions) #forNTK)
 target_compile_definitions(test PRIVATE __LP64__=1)
 target_include_directories ( test PRIVATE
   ${CMAKE_SOURCE_DIR}
@@ -1252,3 +1247,62 @@ target_link_libraries ( MessagePad PRIVATE
   "-framework AudioUnit"
   "-framework IOKit"
 )
+
+
+set ( NTX_FILES
+  NTX/main.cc
+  NTX/AppDelegate.h
+  NTX/AppDelegate.cc
+  NTX/ProjectDocument.h
+  NTX/ProjectDocument.cc
+)
+
+add_executable(ntx
+  ${NTX_FILES} ${SRCFILES} ${HEADERFILES}
+)
+target_compile_definitions(ntx PRIVATE forMac forFramework hasGlobalConstantFunctions) #forNTK)
+target_compile_definitions(ntx PRIVATE __LP64__=1)
+target_include_directories (ntx PRIVATE
+  ${CMAKE_SOURCE_DIR}
+#  ${CMAKE_SOURCE_DIR}/NTX
+  ${CMAKE_SOURCE_DIR}/Frames
+  ${CMAKE_SOURCE_DIR}/UtilityClasses
+  ${CMAKE_SOURCE_DIR}/OS
+  ${CMAKE_SOURCE_DIR}/NTK
+  ${CMAKE_SOURCE_DIR}/CommAPI
+  ${CMAKE_SOURCE_DIR}/Frames/Compiler
+  ${CMAKE_SOURCE_DIR}/Views
+  ${CMAKE_SOURCE_DIR}/Graphics
+  ${CMAKE_SOURCE_DIR}/Protocols
+  ${CMAKE_SOURCE_DIR}/Stores
+  ${CMAKE_SOURCE_DIR}/Utilities
+  ${CMAKE_SOURCE_DIR}/Recognition
+  ${CMAKE_SOURCE_DIR}/Cards
+  ${CMAKE_SOURCE_DIR}/Sound
+  ${CMAKE_SOURCE_DIR}/Sound/Codecs
+  ${CMAKE_SOURCE_DIR}/Toolbox
+  ${CMAKE_SOURCE_DIR}/Packages
+  ${CMAKE_SOURCE_DIR}/Compression
+  ${CMAKE_SOURCE_DIR}/Memory\ Manager
+  ${CMAKE_SOURCE_DIR}/Communications
+  ${CMAKE_SOURCE_DIR}/Compression/LZCompression
+  ${CMAKE_SOURCE_DIR}/Compression/ZippyCompression
+  ${CMAKE_SOURCE_DIR}/Compression/UnicodeCompression
+)
+
+target_link_libraries(ntx PRIVATE
+  "-framework Cocoa"
+  "-framework CoreServices"
+  "-framework ApplicationServices"
+  "-framework AudioUnit"
+  "-framework IOKit"
+)
+
+source_group(
+  TREE "${CMAKE_CURRENT_SOURCE_DIR}"
+  PREFIX "Source Files"
+  FILES test.cc ${SRCFILES} ${HEADERFILES} ${NTX_FILES}
+)
+
+
+
