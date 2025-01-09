@@ -32,6 +32,9 @@ CGColorRef		gGrayColor;
 CGColorRef		gLightGrayColor;
 CGColorRef		gWhiteColor;
 
+QDGlobals qdGlobals = { 0 }; // 0x0C107D88
+bool gQDRunning = false;
+
 
 /*------------------------------------------------------------------------------
 	Initialize the graphics system.
@@ -43,9 +46,35 @@ CGColorRef		gWhiteColor;
 void
 InitGraf(void)
 {
+    if (gQDRunning)
+        return;
+
+    // initialize qdGlobals;
+    memset( &qdGlobals, 0, sizeof(QDGlobals));
+    qdGlobals.x00 = 1;
+
+    // initialize patterns
+    // 0x002E43BC ...
+
 	InitScreen();
 	InitQDCompression();
 
+    //o newtGlobals = GetNewtGlobals();
+    //o someGrafPort = NewPtr(84);
+    //o newtGlobals.x0c = someGrafPort;
+    //o if (!someGrafPort) MemError();
+    //o OpenPort(someGrafPort);
+    //o InvalidateQDTempBuf(void);
+    //o initialise a TDrawInterface
+    //o pinPad = TPinPad::ClassInfo(void);
+    //o pinPad->(TClassInfo::)Register(void);
+    //o initialise antialiasing driver
+    //o grayShrink = TGrayShrink::ClassInfo(void);
+    //o grayShrink->(TClassInfo::)Register(void);
+
+    gQDRunning = true;
+
+    // -- Quarz stuff follows
 	// draw in RGB color space
 	CGColorSpaceRef	rgbSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
@@ -838,7 +867,7 @@ GetStdGrayPattern(ULong inR, ULong inG, ULong inB)
 {
 #if 0
 	GrafPtr			thePort = GetCurrentPort();
-	PixelMap *		pix = IsPrinterPort(thePort) ? &gScreenPixelMap : &thePort->portBits;
+	PixelMap *		pix = IsPrinterPort(thePort) ? &qdGlobals.pixelMap : &thePort->portBits;
 	long				depth = PixelDepth(pix);
 	long				numOfBytes = 8 * depth;
 	PatternHandle  thePattern = (PatternHandle) NewHandle(sizeof(PixelMap) + numOfBytes);	// NOTE NewHandle deprecated

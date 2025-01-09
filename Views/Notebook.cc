@@ -195,12 +195,14 @@ DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect 
 
 void
 CNotebook::drawSplashScreen(void)
+// 0x0014602C: TNotebook::DrawSplashScreen(void)
 {
 	Rect box;
 
-	QDStartDrawing(NULL, NULL);
+	QDStartDrawing(NULL, NULL); // not in the original code!
 	// paint the screen black
 	SetRect(&box, 0, 0, gScreenWidth, gScreenHeight);
+    //o PaintRect__FP4Rect
 	CGContextSetFillColorWithColor(quartz, gBlackColor);
 	CGContextFillRect(quartz, MakeCGRect(box));
 
@@ -292,6 +294,7 @@ DrawUnicodeText(str, Ustrlen(str), &box, gWhiteColor, vjCenterH);
 */
 
 	}
+//    QDStopDrawing(NULL, &Rect(0, 0, 320, 480));
 }
 
 

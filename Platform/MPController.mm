@@ -30,6 +30,7 @@ void
 SetPlatformAlarm(int64_t inDelta)
 {
 	// set one-shot timer to fire in inDelta ms
+    // source, start, interval, leeway
 	dispatch_source_set_timer(alarmSource, dispatch_time(DISPATCH_TIME_NOW, inDelta * NSEC_PER_USEC), DISPATCH_TIME_FOREVER, 1000ull);
 	if (!gIsAlarmSet)
 	{

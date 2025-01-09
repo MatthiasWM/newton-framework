@@ -123,9 +123,18 @@ UnionRect(Rect * rect, Point pt)
 	}
 }
 
+/**
+ Calculate a rectangle that fits inside all following rectangles.
 
-bool
-RSect(Rect * result, long count, const Rect * r1, ...)
+ The resulting rectangle is the continuous intersection of all rectangles
+ in the varag list, or an empty rectangle, if the rectangles have no overlpas.
+
+ \param[out] result the intersection of all following rectangles, or an empty rect
+ \param[in] count the number of rectangles that follow
+ \param[in] r1, ... one or more rectangles
+ \return true if there is an intersection, false if any of the rectangles is empty, or if they don't intersect
+ */
+bool RSect(Rect * result, long count, const Rect * r1, ...)
 {
 	Rect *	rn;
 	va_list	args;
@@ -135,7 +144,7 @@ RSect(Rect * result, long count, const Rect * r1, ...)
 	short	sectTop = r1->top;
 	short	sectRight = r1->right;
 	short	sectBottom = r1->bottom;
-	if (sectRight < sectLeft || sectBottom < sectTop)
+	if (sectRight <= sectLeft || sectBottom <= sectTop)
 		goto fail;
 
 	for (count--; count > 0; count--)
@@ -145,7 +154,7 @@ RSect(Rect * result, long count, const Rect * r1, ...)
 		sectTop = MAX(sectTop, rn->top);
 		sectRight = MIN(sectRight, rn->right);
 		sectBottom = MIN(sectBottom, rn->bottom);
-		if (sectRight < sectLeft || sectBottom < sectTop)
+		if (sectRight <= sectLeft || sectBottom <= sectTop)
 			goto fail;
 	}
 	va_end(args);
@@ -159,8 +168,14 @@ fail:
 }
 
 
-bool
-SectRect(const Rect * src1, const Rect * src2, Rect * dstRect)
+/**
+ Calculate the intersection of two rectangles.
+
+ \param[in] src1, src2 source rectangles
+ \param[dstRect] resulting intersection, or an empty rect if the sources don't intersect
+ \return true if there is an intersection, false if any of the rectangles is empty, or if they don't intersect
+ */
+bool SectRect(const Rect * src1, const Rect * src2, Rect * dstRect)
 {
 	return RSect(dstRect, 2, src1, src2);
 }
@@ -186,16 +201,26 @@ Overlaps(const Rect * r1, const Rect * r2)
 }
 
 
-bool
-Intersects(const Rect * r1, const Rect * r2)
+/**
+ Check if two rectangles intersect another.
+
+ \param[in] r1, r2 source rectangles
+ \return true if there is an intersection, false if any of the rectangles is empty, or if they don't intersect
+ */
+bool Intersects(const Rect * r1, const Rect * r2)
 {
 	Rect	nullRect;
 	return SectRect(r1, r2, &nullRect);
 }
 
 
-bool
-EqualRect(const Rect * rect1, const Rect * rect2)
+/**
+ Check if two rectangles are the same.
+
+ \param[in] rect1, rect2 source rectangles
+ \return true if the rectangles are the same, even if they are empty, else false
+ */
+bool EqualRect(const Rect * rect1, const Rect * rect2)
 {
 	return rect1->left == rect2->left
 		 && rect1->top == rect2->top
@@ -203,9 +228,16 @@ EqualRect(const Rect * rect1, const Rect * rect2)
 		 && rect1->bottom == rect2->bottom;
 }
 
+/**
+ Check if a rectangle is empty.
 
-bool
-EmptyRect(const Rect * rect)
+ A rectangle is empty if it has no surface or a negative surface area. If left is the
+ same as right, or bottom is the same as top, it has no surface area.
+
+ \param[in] rect check this rectangle
+ \return true if the rectable has no or a negative area.
+ */
+bool EmptyRect(const Rect * rect)
 {
 	return rect->right <= rect->left || rect->bottom <= rect->top;
 }

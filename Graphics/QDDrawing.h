@@ -22,8 +22,8 @@ typedef void (*FillFunc)(ShapePtr);
 
 
 // don’t think we need these, but they’re frequently used in the original
-extern void		StartDrawing(NativePixelMap * inPixmap, Rect * inBounds);
-extern void		StopDrawing(NativePixelMap * inPixmap, Rect * inBounds);
+extern void		StartDrawing(NativePixelMap * inPixmap, const Rect * inBounds);
+extern void		StopDrawing(NativePixelMap * inPixmap, const Rect * inBounds);
 
 // might need this while you’re drawing
 extern void		BusyBoxSend(int inSelector);

@@ -450,8 +450,10 @@ DoTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRu
 void
 DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect * inBox, CGColorRef inColor, ULong inJustify)	// SRB
 {
+
 #ifdef NFW_USE_SDL
 
+    StartDrawing(nullptr, inBox);
     //    static unsigned int t2 = SDL_GetTicks();
     //    unsigned int t2 = SDL_GetTicks();
     //    float delta = (t2 - t1) / 1000.0f;
@@ -472,7 +474,7 @@ DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect 
         }
     }
     SDL_UnlockSurface(gSDLPixels);
-
+    StopDrawing(nullptr, inBox);
 
 #else // NFW_USE_SDL
 

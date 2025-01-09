@@ -257,6 +257,7 @@ CMainDisplayDriver::blit(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * i
 	size_t	pixmapWidth = RectGetWidth(inPixmap->bounds);
 	size_t	pixmapHeight = RectGetHeight(inPixmap->bounds);
 	size_t	pixmapDepth = PixelDepth(inPixmap);
+    printf("----- blit...\n");
 
 #ifdef NFW_USE_SDL
 
@@ -274,9 +275,10 @@ CMainDisplayDriver::blit(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * i
     SDL_LockSurface(gSDLPixels);
 
     unsigned int *p = (unsigned int*)gSDLPixels->pixels;
-    for (int i=0; i<20; i++) {
-//        p[i] = 0xff0000ff;
-        p[i] = col;
+    for (int i=0; i<16; i++) {
+        for (int j=0; j<16; j++) {
+            p[i+320*j] = col;
+        }
     }
 //    {
 //        int pitch = gSDLPixels->pitch;

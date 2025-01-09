@@ -81,7 +81,6 @@ struct ScreenParams
 };
 
 extern const ScreenParams	gScreenConstants;
-extern NativePixelMap		gScreenPixelMap;
 
 extern int	gScreenWidth;
 extern int	gScreenHeight;
@@ -96,8 +95,8 @@ void			SetOrientation(int inOrientation);
 void			SetGrafInfo(int inSelector, int inValue);
 NewtonErr	GetGrafInfo(int inSelector, void * outInfo);
 
-void			StartDrawing(NativePixelMap * inPixmap, Rect * inBounds);
-void			StopDrawing(NativePixelMap * inPixmap, Rect * inBounds);
+void			StartDrawing(NativePixelMap * inPixmap, const Rect * inBounds);
+void			StopDrawing(NativePixelMap * inPixmap, const Rect * inBounds);
 
 
 #endif	/* __SCREEN_H */

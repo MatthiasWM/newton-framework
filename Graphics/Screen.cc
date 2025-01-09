@@ -72,9 +72,6 @@ const ScreenParams gScreenConstants =		// was qdConstants 00380BCC
 	{ 0, 0x1F, 0x0F, 0, 0x07, 0, 0, 0, 0x03, 0, 0, 0, 0, 0, 0, 0, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	// xMask
 	{ 0, 1, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0 } };	// maskIndex[bitsPerPixel]
 
-NativePixelMap	gScreenPixelMap;				// was qd.pixmap
-
-
 /* -----------------------------------------------------------------------------
 	D a t a
 ----------------------------------------------------------------------------- */
@@ -89,7 +86,7 @@ struct
 	CScreenDriver *		driver;			// +00	 actually CMainDisplayDriver protocol
 	CScreenDriver *		auxDriver;		// +04
 	int						f08;				// +08
-	Rect						dirtyBounds;	// +0C
+	Rect						dirtyBounds;	// +0C 0C101A58
 	CUTask *					updateTask;		// +14
 	CUSemaphoreGroup *	semaphore;		// +18
 	CUSemaphoreOpList *	f1C;				// acquire display
@@ -101,7 +98,7 @@ struct
 	CUSemaphoreOpList *	f34;
 	CUSemaphoreOpList *	f38;
 	CULockingSemaphore *	lock;				// +3C
-} gScreen;	// 0C101A4C
+} gTheScreen;	// 0C101A4C
 
 
 struct AlertScreenInfo
@@ -174,30 +171,32 @@ InitScreen(void)
 #if !defined(forFramework)
 	// initialize the driver(s)
 	SetupScreen();
-	gScreen.driver->screenSetup();
-	gScreen.driver->powerInit();
+	gTheScreen.driver->screenSetup();
+	gTheScreen.driver->powerInit();
 
 	// initialize the QD pixmap
 	SetupScreenPixelMap();
-	if (gScreenPixelMap.baseAddr == NULL)
+	if (qdGlobals.pixelMap.baseAddr == NULL)
 	{
 	// allocate enough memory for either screen orientation
 		ScreenInfo info;
 		int			landscapePix, portraitPix, screenPix;
 		int			pixAlignment, screenBytes;
 
-		gScreen.driver->getScreenInfo(&info);
+		gTheScreen.driver->getScreenInfo(&info);
 		pixAlignment = 8 * 8 / info.depth;
 		landscapePix = (((info.width + pixAlignment - 1) & -pixAlignment) / 8) * info.height;
 		portraitPix = (((info.height + pixAlignment - 1) & -pixAlignment) / 8) * info.width;
 		screenPix = (landscapePix > portraitPix) ? landscapePix : portraitPix;
 		screenBytes = screenPix * info.depth;
-		gScreenPixelMap.baseAddr = NewPtr(screenBytes);
-		memset(gScreenPixelMap.baseAddr, 0, screenBytes);
+		qdGlobals.pixelMap.baseAddr = NewPtr(screenBytes);
+		memset(qdGlobals.pixelMap.baseAddr, 0, screenBytes);
 		SetScreenInfo();
 	}
 
-	SetEmptyRect(&gScreen.dirtyBounds);
+	SetEmptyRect(&gTheScreen.dirtyBounds);
+    //o SetEmptyRect(gScreenDirtyRect);
+
 	InitScreenTask();
 #endif
 }
@@ -212,9 +211,9 @@ InitScreen(void)
 static void
 SetupScreen(void)
 {
-	gScreen.driver = (CScreenDriver *)MakeByName("CScreenDriver", "CMainDisplayDriver");
-	gScreen.auxDriver = NULL;
-	gScreen.f08 = 0;
+	gTheScreen.driver = (CScreenDriver *)MakeByName("CScreenDriver", "CMainDisplayDriver");
+	gTheScreen.auxDriver = NULL;
+	gTheScreen.f08 = 0;
 }
 
 
@@ -230,14 +229,14 @@ SetupScreenPixelMap(void)
 	ScreenInfo info;
 	int			pixAlignment;
 
-	gScreen.driver->getScreenInfo(&info);
+	gTheScreen.driver->getScreenInfo(&info);
 	pixAlignment = 8 * 8 / info.depth;
-	gScreenPixelMap.rowBytes = (((info.width + pixAlignment - 1) & -pixAlignment) * info.depth) / 8;
-	SetRect(&gScreenPixelMap.bounds, 0, 0, info.width, info.height);
-	gScreenPixelMap.pixMapFlags = kPixMapPtr + info.depth;
-	gScreenPixelMap.deviceRes.h = info.resolution.h;
-	gScreenPixelMap.deviceRes.v = info.resolution.v;
-	gScreenPixelMap.grayTable = NULL;
+	qdGlobals.pixelMap.rowBytes = (((info.width + pixAlignment - 1) & -pixAlignment) * info.depth) / 8;
+	SetRect(&qdGlobals.pixelMap.bounds, 0, 0, info.width, info.height);
+	qdGlobals.pixelMap.pixMapFlags = kPixMapPtr + info.depth;
+	qdGlobals.pixelMap.deviceRes.h = info.resolution.h;
+	qdGlobals.pixelMap.deviceRes.v = info.resolution.v;
+	qdGlobals.pixelMap.grayTable = NULL;
 
 	SetScreenInfo();
 }
@@ -254,20 +253,20 @@ SetScreenInfo(void)
 {
 	AlertScreenInfo info;
 
-	info.display = gScreen.driver;
+	info.display = gTheScreen.driver;
 
-	if (gScreenPixelMap.baseAddr)
-		info.pixmap = gScreenPixelMap;	// sic
-	info.pixmap.rowBytes = gScreenPixelMap.rowBytes;
-	info.pixmap.bounds.top = gScreenPixelMap.bounds.top;
-	info.pixmap.bounds.bottom = gScreenPixelMap.bounds.bottom;
-	info.pixmap.bounds.left = gScreenPixelMap.bounds.left;
-	info.pixmap.bounds.right = gScreenPixelMap.bounds.right;
-	info.pixmap.pixMapFlags = gScreenPixelMap.pixMapFlags;
-	info.pixmap.deviceRes = gScreenPixelMap.deviceRes;
-	info.pixmap.grayTable = gScreenPixelMap.grayTable;
+	if (qdGlobals.pixelMap.baseAddr)
+		info.pixmap = qdGlobals.pixelMap;	// sic
+	info.pixmap.rowBytes = qdGlobals.pixelMap.rowBytes;
+	info.pixmap.bounds.top = qdGlobals.pixelMap.bounds.top;
+	info.pixmap.bounds.bottom = qdGlobals.pixelMap.bounds.bottom;
+	info.pixmap.bounds.left = qdGlobals.pixelMap.bounds.left;
+	info.pixmap.bounds.right = qdGlobals.pixelMap.bounds.right;
+	info.pixmap.pixMapFlags = qdGlobals.pixelMap.pixMapFlags;
+	info.pixmap.deviceRes = qdGlobals.pixelMap.deviceRes;
+	info.pixmap.grayTable = qdGlobals.pixelMap.grayTable;
 
-	info.orientation = gScreen.driver->getFeature(4);
+	info.orientation = gTheScreen.driver->getFeature(4);
 	
 	SetAlertScreenInfo(&info);
 }
@@ -391,23 +390,23 @@ SetGrafInfo(int inSelector, int inValue)
 	switch (inSelector)
 	{
 	case kGrafContrast:
-		if (gScreen.driver)
-			gScreen.driver->setFeature(0, inValue);
+		if (gTheScreen.driver)
+			gTheScreen.driver->setFeature(0, inValue);
 /*		CADC *	adc = GetADCObject();
 		if (adc)
 			adc->getSample(10, 1000, ContrastTempSample, NULL);
 */		break;
 
 	case kGrafOrientation:
-		if (gScreen.driver)
-			gScreen.driver->setFeature(4, inValue);
+		if (gTheScreen.driver)
+			gTheScreen.driver->setFeature(4, inValue);
 		SetupScreenPixelMap();
-		memset(PixelMapBits(&gScreenPixelMap), 0, (gScreenPixelMap.bounds.bottom - gScreenPixelMap.bounds.top) * gScreenPixelMap.rowBytes);
+		memset(PixelMapBits(&qdGlobals.pixelMap), 0, (qdGlobals.pixelMap.bounds.bottom - qdGlobals.pixelMap.bounds.top) * qdGlobals.pixelMap.rowBytes);
 		break;
 
 	case kGrafBacklight:
-		if (gScreen.driver)
-			gScreen.driver->setFeature(2, inValue);
+		if (gTheScreen.driver)
+			gTheScreen.driver->setFeature(2, inValue);
 		break;
 	}
 }
@@ -428,20 +427,20 @@ GetGrafInfo(int inSelector, void * outInfo)
 	switch (inSelector)
 	{
 	case kGrafPixelMap:
-		*(NativePixelMap *)outInfo = gScreenPixelMap;
+		*(NativePixelMap *)outInfo = qdGlobals.pixelMap;
 		break;
 
 	case kGrafResolution:
-		*(Point *)outInfo = gScreenPixelMap.deviceRes;
+		*(Point *)outInfo = qdGlobals.pixelMap.deviceRes;
 		break;
 
 	case kGrafPixelDepth:
-		*(ULong *)outInfo = PixelDepth(&gScreenPixelMap);
+		*(ULong *)outInfo = PixelDepth(&qdGlobals.pixelMap);
 		break;
 
 	case kGrafContrast:
-		if (gScreen.driver)
-			*(int*)outInfo = gScreen.driver->getFeature(0);
+		if (gTheScreen.driver)
+			*(int*)outInfo = gTheScreen.driver->getFeature(0);
 		else
 		{
 			*(int*)outInfo = 0;
@@ -450,8 +449,8 @@ GetGrafInfo(int inSelector, void * outInfo)
 		break;
 
 	case kGrafOrientation:
-		if (gScreen.driver)
-			*(int*)outInfo = gScreen.driver->getFeature(4);
+		if (gTheScreen.driver)
+			*(int*)outInfo = gTheScreen.driver->getFeature(4);
 		else
 		{
 			*(int*)outInfo = 2;	// 1 in the original, but we prefer portrait
@@ -460,8 +459,8 @@ GetGrafInfo(int inSelector, void * outInfo)
 		break;
 
 	case kGrafBacklight:
-		if (gScreen.driver)
-			*(int*)outInfo = gScreen.driver->getFeature(2);
+		if (gTheScreen.driver)
+			*(int*)outInfo = gTheScreen.driver->getFeature(2);
 		else
 		{
 			*(int*)outInfo = 0;	// no display, no backlight
@@ -470,8 +469,8 @@ GetGrafInfo(int inSelector, void * outInfo)
 		break;
 
 	case 6:
-		if (gScreen.driver)
-			*(int*)outInfo = gScreen.driver->getFeature(5);
+		if (gTheScreen.driver)
+			*(int*)outInfo = gTheScreen.driver->getFeature(5);
 		else
 		{
 			*(int*)outInfo = 10;
@@ -480,8 +479,8 @@ GetGrafInfo(int inSelector, void * outInfo)
 		break;
 
 	case kGrafScreen:
-		if (gScreen.driver)
-			gScreen.driver->getScreenInfo((ScreenInfo *)outInfo);
+		if (gTheScreen.driver)
+			gTheScreen.driver->getScreenInfo((ScreenInfo *)outInfo);
 		else
 			err = -1;
 		break;
@@ -498,58 +497,58 @@ void
 InitScreenTask(void)
 {
 #if !defined(forFramework)
-	if (gScreen.semaphore == NULL)
+	if (gTheScreen.semaphore == NULL)
 	{
 		CUSemaphoreGroup *	semGroup;	// size +08
 		semGroup = new CUSemaphoreGroup;
-		gScreen.semaphore = semGroup;
+		gTheScreen.semaphore = semGroup;
 		semGroup->init(3);
 
 		CULockingSemaphore *	semLock;		// size +0C
 		semLock = new CULockingSemaphore;
-		gScreen.lock = semLock;
+		gTheScreen.lock = semLock;
 		semLock->init();
 
 		CUSemaphoreOpList *	semList;		// size +08
 		semList = new CUSemaphoreOpList;
-		gScreen.f24 = semList;
+		gTheScreen.f24 = semList;
 		semList->init(1, MAKESEMLISTITEM(2,1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f28 = semList;
+		gTheScreen.f28 = semList;
 		semList->init(1, MAKESEMLISTITEM(2,-1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f38 = semList;
+		gTheScreen.f38 = semList;
 		semList->init(3, MAKESEMLISTITEM(2,-1), MAKESEMLISTITEM(2,0), MAKESEMLISTITEM(2,1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f2C = semList;
+		gTheScreen.f2C = semList;
 		semList->init(1, MAKESEMLISTITEM(1,1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f1C = semList;
+		gTheScreen.f1C = semList;
 		semList->init(2, MAKESEMLISTITEM(0,0), MAKESEMLISTITEM(0,1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f20 = semList;
+		gTheScreen.f20 = semList;
 		semList->init(1, MAKESEMLISTITEM(0,-1));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f30 = semList;
+		gTheScreen.f30 = semList;
 		semList->init(4, MAKESEMLISTITEM(0,0), MAKESEMLISTITEM(0,1), MAKESEMLISTITEM(1,-1), MAKESEMLISTITEM(2,0));
 
 		semList = new CUSemaphoreOpList;
-		gScreen.f34 = semList;
+		gTheScreen.f34 = semList;
 		semList->init(1, MAKESEMLISTITEM(0,-1));
 
 // we donÕt use this frame-buffering scheme
 #if defined(correct) || defined(NFW_USE_SDL)
 		CUTask * task = new CUTask;
-		gScreen.updateTask = task;
+		gTheScreen.updateTask = task;
 		task->init(ScreenUpdateTask, 4*KByte, 0, NULL, kScreenTaskPriority, 'scrn');
 
-		gScreen.driver->powerOn();
+		gTheScreen.driver->powerOn();
 		task->start();
 #endif
 	}
@@ -566,15 +565,16 @@ ScreenUpdateTask(void * inTask, size_t inSize, ObjectId inArg)
 
 	for (;;)
 	{
-		gScreen.semaphore->semOp(gScreen.f30, kWaitOnBlock);
-		gScreen.lock->acquire(kWaitOnBlock);
+        putchar('+');
+		gTheScreen.semaphore->semOp(gTheScreen.f30, kWaitOnBlock);
+		gTheScreen.lock->acquire(kWaitOnBlock);
 
-//        nextUpdateTime = TimeFromNow(30*kMilliseconds);
-        nextUpdateTime = TimeFromNow(30*kMilliseconds*100);
+        nextUpdateTime = TimeFromNow(30*kMilliseconds);
+//        nextUpdateTime = TimeFromNow(30*kMilliseconds*100);
 		UpdateHardwareScreen();
 
-		gScreen.lock->release();
-		gScreen.semaphore->semOp(gScreen.f34, kWaitOnBlock);
+		gTheScreen.lock->release();
+		gTheScreen.semaphore->semOp(gTheScreen.f34, kWaitOnBlock);
 
 		if (GetGlobalTime() > nextUpdateTime)
 		{
@@ -597,18 +597,34 @@ ScreenUpdateTask(void * inTask, size_t inSize, ObjectId inArg)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
+#if 1
+
 void
 UpdateHardwareScreen(void)
 {
 	Rect r;
+//    printf("UpdateHardwareScreen...\n");
 
 	// only bother if the dirty area is actually on-screen
-	if (SectRect(&gScreen.dirtyBounds, &gScreenPixelMap.bounds, &r))
-		BlitToScreens(&gScreenPixelMap, &r, &r, modeCopy);
+	if (SectRect(&gTheScreen.dirtyBounds, &qdGlobals.pixelMap.bounds, &r))
+		BlitToScreens(&qdGlobals.pixelMap, &r, &r, modeCopy);
 	// it's no longer dirty
-	SetEmptyRect(&gScreen.dirtyBounds);
+	SetEmptyRect(&gTheScreen.dirtyBounds);
 }
 
+#else
+
+void UpdateHardwareScreen(void)
+{
+    // qdGlobals: 0x0C107D88
+    // Initialised in 0x002E4388: InitGraf(void) (struct is 60 bytes)
+    Rect r;
+    if (SectRect(gScreenDirtyRect, qdGlobals.d12, r)) {
+        BlitToScreen(qdGlobals.d04, r, r, modeCopy);
+    }
+}
+
+#endif
 
 /*------------------------------------------------------------------------------
 	Blit a pixmap to the display.
@@ -623,10 +639,10 @@ UpdateHardwareScreen(void)
 void
 BlitToScreens(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * inDstBounds, int inTransferMode)
 {
-	gScreen.driver->blit(inPixmap, inSrcBounds, inDstBounds, inTransferMode);
+	gTheScreen.driver->blit(inPixmap, inSrcBounds, inDstBounds, inTransferMode);
 
-	if (gScreen.auxDriver)
-		gScreen.auxDriver->blit(inPixmap, inSrcBounds, inDstBounds, inTransferMode);
+	if (gTheScreen.auxDriver)
+		gTheScreen.auxDriver->blit(inPixmap, inSrcBounds, inDstBounds, inTransferMode);
 
 #if !defined(forFramework)
 	WeAreDirty();
@@ -636,52 +652,52 @@ BlitToScreens(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * inDstBounds,
 #pragma mark -
 
 void
-StartDrawing(NativePixelMap * inPixmap, Rect * inBounds)
+StartDrawing(NativePixelMap * inPixmap, const Rect * inBounds)
 {
 	if (inPixmap == NULL)
 #if defined(correct)
 		inPixmap = &GetCurrentPort()->portBits;
 #else
-		inPixmap = &gScreenPixelMap;
+		inPixmap = &qdGlobals.pixelMap;
 #endif
 
 #if !defined(forFramework)
-	if (PixelMapBits(inPixmap) == PixelMapBits(&gScreenPixelMap))
+	if (PixelMapBits(inPixmap) == PixelMapBits(&qdGlobals.pixelMap))
 		// drawing direct onto screen
-		gScreen.semaphore->semOp(gScreen.f24, kWaitOnBlock);
+		gTheScreen.semaphore->semOp(gTheScreen.f24, kWaitOnBlock);
 #endif
 }
 
 
 void
-StopDrawing(NativePixelMap * inPixmap, Rect * inBounds)
+StopDrawing(NativePixelMap * inPixmap, const Rect * inBounds)
 {
 	if (inPixmap == NULL)
 #if defined(correct)
 		inPixmap = &GetCurrentPort()->portBits;
 #else
-		inPixmap = &gScreenPixelMap;
+		inPixmap = &qdGlobals.pixelMap;
 #endif
 
-	if (PixelMapBits(inPixmap) == PixelMapBits(&gScreenPixelMap))
+	if (PixelMapBits(inPixmap) == PixelMapBits(&qdGlobals.pixelMap))
 	{
 		// drawing direct onto screen
 		if (inBounds)
 		{
 			Rect	bbox = *inBounds;
 			OffsetRect(&bbox, -inPixmap->bounds.left, -inPixmap->bounds.top);
-			UnionRect(&bbox, &gScreen.dirtyBounds, &gScreen.dirtyBounds);
+			UnionRect(&bbox, &gTheScreen.dirtyBounds, &gTheScreen.dirtyBounds);
 		}
 
 #if !defined(forFramework)
-		if (gScreen.semaphore->semOp(gScreen.f38, kNoWaitOnBlock) == 0)
+		if (gTheScreen.semaphore->semOp(gTheScreen.f38, kNoWaitOnBlock) == 0)
 		{
-			gScreen.semaphore->semOp(gScreen.f1C, kWaitOnBlock);
+			gTheScreen.semaphore->semOp(gTheScreen.f1C, kWaitOnBlock);
 			UpdateHardwareScreen();
-			gScreen.lock->release();
-			gScreen.semaphore->semOp(gScreen.f20, kWaitOnBlock);
+			gTheScreen.lock->release();
+			gTheScreen.semaphore->semOp(gTheScreen.f20, kWaitOnBlock);
 		}
-		gScreen.semaphore->semOp(gScreen.f28, kNoWaitOnBlock);
+		gTheScreen.semaphore->semOp(gTheScreen.f28, kNoWaitOnBlock);
 #endif
 	}
 }
@@ -694,13 +710,13 @@ QDStartDrawing(NativePixelMap * inPixmap, Rect * inBounds)
 #if defined(correct)
 		inPixmap = &GetCurrentPort()->portBits;
 #else
-		inPixmap = &gScreenPixelMap;
+		inPixmap = &qdGlobals.pixelMap;
 #endif
 
 #if !defined(forFramework)
-	if (PixelMapBits(inPixmap) == PixelMapBits(&gScreenPixelMap))
+	if (PixelMapBits(inPixmap) == PixelMapBits(&qdGlobals.pixelMap))
 		//	weÕre drawing to the display so acquire a lock
-		gScreen.lock->acquire(kWaitOnBlock);
+		gTheScreen.lock->acquire(kWaitOnBlock);
 #endif
 }
 
@@ -712,24 +728,24 @@ QDStopDrawing(NativePixelMap * inPixmap, Rect * inBounds)
 #if defined(correct)
 		inPixmap = &GetCurrentPort()->portBits;
 #else
-		inPixmap = &gScreenPixelMap;
+		inPixmap = &qdGlobals.pixelMap;
 #endif
 
-	if (PixelMapBits(inPixmap) == PixelMapBits(&gScreenPixelMap))
+	if (PixelMapBits(inPixmap) == PixelMapBits(&qdGlobals.pixelMap))
 	{
-		bool	isAnythingToDraw = !EmptyRect(&gScreen.dirtyBounds);
+		bool	isAnythingToDraw = !EmptyRect(&gTheScreen.dirtyBounds);
 		if (inBounds)
 		{
 			Rect	bbox = *inBounds;
 			OffsetRect(&bbox, -inPixmap->bounds.left, -inPixmap->bounds.top);
-			UnionRect(&bbox, &gScreen.dirtyBounds, &gScreen.dirtyBounds);
+			UnionRect(&bbox, &gTheScreen.dirtyBounds, &gTheScreen.dirtyBounds);
 		}
 
 #if !defined(forFramework)
 		if (!isAnythingToDraw)
-			gScreen.semaphore->semOp(gScreen.f2C, kWaitOnBlock);
+			gTheScreen.semaphore->semOp(gTheScreen.f2C, kWaitOnBlock);
 		//	weÕre drawing to the display so release the lock
-		gScreen.lock->release();
+		gTheScreen.lock->release();
 printf("QDStopDrawing() -- ");
 		WeAreDirty();
 #endif
@@ -741,7 +757,7 @@ void
 BlockLCDActivity(bool doIt)
 {
 #if !defined(forFramework)
-	gScreen.semaphore->semOp(doIt ? gScreen.f1C : gScreen.f20, kWaitOnBlock);
+	gTheScreen.semaphore->semOp(doIt ? gTheScreen.f1C : gTheScreen.f20, kWaitOnBlock);
 #endif
 }
 
@@ -750,7 +766,7 @@ void
 ReleaseScreenLock(void)
 {
 #if !defined(forFramework)
-	while (gScreen.semaphore->semOp(gScreen.f28, kNoWaitOnBlock) == 0)
+	while (gTheScreen.semaphore->semOp(gTheScreen.f28, kNoWaitOnBlock) == 0)
 		;
 #endif
 }

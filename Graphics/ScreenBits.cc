@@ -268,11 +268,11 @@ CSaveScreenBits::allocateBuffers(Rect * inBounds)
 	{
 		if (inBounds == NULL)
 		{
-			Rect	box = gScreenPixelMap.bounds;	// sic - why not bounds = gScreenPixelMap.bounds ?
+			Rect	box = qdGlobals.pixelMap.bounds;	// sic - why not bounds = qdGlobals.pixelMap.bounds ?
 			SetRect(&bounds, box.left, box.top, box.right, box.bottom);
 			inBounds = &bounds;
 		}
-		long	pixDepth = PixelDepth(&gScreenPixelMap);
+		long	pixDepth = PixelDepth(&qdGlobals.pixelMap);
 		fPixMap.rowBytes = ALIGN(inBounds->right - inBounds->left, 32) * pixDepth / 8;
 
 		if ((fPixMap.baseAddr = NewPtr((inBounds->bottom - inBounds->top) * fPixMap.rowBytes)) = NULL)

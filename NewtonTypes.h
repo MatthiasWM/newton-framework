@@ -11,6 +11,13 @@
 
 #include <stdint.h>
 
+/* types used when final type is not known yet */
+typedef uintptr_t unknown_return_t;
+typedef uintptr_t unknown_ptr_t;
+typedef uintptr_t unknown32_t;
+typedef uint16_t unknown16_t;
+typedef uint8_t unknown8_t;
+
 /* Base types */
 
 typedef int8_t		SChar;

@@ -112,6 +112,22 @@ struct NativePixelMap
 	UChar *		grayTable;		// gray tone table
 };
 
+/**
+ Global QuickDraw state, used to access patterns and bitmaps and more.
+ */
+typedef struct {    // original is 60 bytes
+    unknown32_t x00;
+    NativePixelMap pixelMap;
+    unknown32_t x20;
+    unknown32_t x24;
+    unknown32_t x28;
+    unknown32_t x2c;
+    unknown32_t x30;
+    unknown32_t x34;
+    unknown32_t x38;
+} QDGlobals;
+
+
 // pixMapFlags bits
 #define	kPixMapStorage			0xC0000000	// to mask off the appropriate bits
 #define	kPixMapHandle			0x00000000	// baseAddr is a handle
@@ -138,6 +154,17 @@ struct NativePixelMap
 
 #define	kPixMapVersion1		(0x0 << kVersionShift)
 #define	kPixMapVersion2		(0x1 << kVersionShift)
+
+/**
+ Set if QuickDraw is already initialised
+ */
+extern bool gQDRunning; // 0x0C105410
+
+/**
+ Access to current QD state, patterns, and screen pixelmap
+ */
+extern QDGlobals qdGlobals; // 0x0C107D88
+
 
 // PixelMap accessors
 inline bool		GrayTableExists(const PixelMap * pixmap)	{ return pixmap->pixMapFlags & kPixMapGrayTable; }

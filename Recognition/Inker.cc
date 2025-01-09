@@ -215,7 +215,7 @@ void	InkerLine(const Point inPt1, const Point inPt2, Rect * outRect, const Point
 void
 InkerLine(const Point inPt1, const Point inPt2, Rect * outRect, const Point inPenSize)
 {
-	InkerLine(inPt1, inPt2, outRect, inPenSize, &gScreenPixelMap);
+	InkerLine(inPt1, inPt2, outRect, inPenSize, &qdGlobals.pixelMap);
 }
 
 
@@ -448,7 +448,7 @@ CLiveInker::init(void)
 	XTRY
 	{
 	// create 64x64 PixelMap
-		int	pixDepth = PixelDepth(&gScreenPixelMap);		// in screen params
+		int	pixDepth = PixelDepth(&qdGlobals.pixelMap);		// in screen params
 		int	depthShift = gScreenConstants.depthShift[pixDepth];
 		fPixDepthShift = depthShift;
 		fPixMemSize = 64 * (64 >> depthShift);
@@ -485,7 +485,7 @@ CLiveInker::startLiveInk(void)
 {
 	mapLCDExtent(&fInkBounds, &fPixMap.bounds);
 	fPixMap.rowBytes = (fPixMap.bounds.right - fPixMap.bounds.left) >> fPixDepthShift;
-	if (SectRect(&fPixMap.bounds, &gScreenPixelMap.bounds, &fPixMap.bounds))
+	if (SectRect(&fPixMap.bounds, &qdGlobals.pixelMap.bounds, &fPixMap.bounds))
 		memset(fPixMem, 0, (fPixMap.bounds.bottom - fPixMap.bounds.top) * fPixMap.rowBytes);
 }
 

@@ -3,12 +3,14 @@
 
 #define __MACMEMORY__
 #include "SDLController.h"
+
+#include "messagepad_SDL.h"
 #include "Platform.h"
 #include "NewtonTime.h"
 #include "NewtonTypes.h"
 #include "UserGlobals.h"
 
-#include "messagepad_SDL.h"
+#include <mutex>
 
 #define forLayerDrawing 1
 
@@ -23,11 +25,14 @@ extern void            PreemptiveTimerInterruptHandler(void * inQueue);
 //dispatch_queue_t gTimerQ;
 //dispatch_source_t schedulerSource;
 //dispatch_source_t alarmSource;
+std::mutex gAlarmMutex;
 bool gIsAlarmSet = false;
+SDL_TimerID gActiveAlarm = 0;
+
 ULong gPendingInterrupt = 0;
 
 #define kIntSourceTimer            0x0020
-#define kIntSourceScheduler    0x0040
+//#define kIntSourceScheduler    0x0040
 extern void    DispatchFakeInterrupt(uint32_t inSourceMask);
 extern ULong gCPSR;
 
@@ -39,9 +44,31 @@ extern "C" void    PenDown(float inX, float inY);
 extern "C" void    PenMoved(float inX, float inY);
 extern "C" void    PenUp(void);
 
-void
-SetPlatformAlarm(int64_t inDelta)
+Uint32 platform_alarm_cb(Uint32, void*) 
 {
+    gAlarmMutex.lock();
+    gActiveAlarm = 0;
+    gIsAlarmSet = false;
+    gAlarmMutex.unlock();
+
+    if (FLAGTEST(gCPSR, kIRQDisable)) {
+        gPendingInterrupt |= kIntSourceTimer;
+    } else {
+        // handle the timer interrupt
+        putchar('!');
+        DispatchFakeInterrupt(kIntSourceTimer);
+    }
+    return 0;
+}
+/**
+ Host platform call to set an alarm in inDelta microseconds.
+ \param inDelta[in] set alerm in microseconds after now
+ \todo We have to check if alarms accumulate (unlikely), or if we replace a currently
+    pending alarm with the new alarm time.
+ */
+void SetPlatformAlarm(int64_t inDelta)
+{
+#if 0
 //    // set one-shot timer to fire in inDelta ms
 //    dispatch_source_set_timer(alarmSource, dispatch_time(DISPATCH_TIME_NOW, inDelta * NSEC_PER_USEC), DISPATCH_TIME_FOREVER, 1000ull);
     if (!gIsAlarmSet)
@@ -54,6 +81,22 @@ SetPlatformAlarm(int64_t inDelta)
 //        typedef Uint32 (SDLCALL * SDL_TimerCallback) (Uint32 interval, void *param);
 //        dispatch_resume(alarmSource);
     }
+#else
+    gAlarmMutex.lock();
+    if (gActiveAlarm) {
+        printf("Clearing previous alarm\n");
+        SDL_RemoveTimer(gActiveAlarm);
+        gActiveAlarm = 0;
+    }
+    Uint32 delta_ms = (Uint32)(inDelta / 1000) + 1; // microseconds to milliseconds
+    printf("SetPlatformAlarm(inDelta=%dms)\n", delta_ms);
+    gActiveAlarm = SDL_AddTimer(delta_ms,
+                                platform_alarm_cb,
+                                nullptr);
+    gIsAlarmSet = true;
+    gAlarmMutex.unlock();
+#endif
+
 }
 
 
@@ -69,13 +112,6 @@ WeAreDirty(void)
         nullptr
     };
     SDL_PushEvent((SDL_Event*)&user_event);
-//#if 0
-//    ((MPView *)wc.window.contentView).needsDisplay = true;
-//#else
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        ((MPView *)wc.window.contentView).needsDisplay = true;
-//    });
-//#endif
 }
 
 
