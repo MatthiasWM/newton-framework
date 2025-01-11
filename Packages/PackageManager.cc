@@ -43,7 +43,7 @@ struct RegistryInfo
 		RegistryInfo(ULong inType, ULong inArg2);
 
 	ULong		fType;
-	ULong		f04;
+	ULong		f04; // packageID
 };
 
 
@@ -804,7 +804,7 @@ printf("CPackageEventHandler::loadNextPart() index=%d\n", fPartIndex);
 	{
 		if (fPipe != NULL) {
 			fPipe->close();
-			delete fPipe, fPipe = NULL;
+			delete fPipe; fPipe = NULL;
 			fBuffer = NULL;
 		}
 		newton_try
@@ -838,7 +838,7 @@ printf("CPackageEventHandler::loadNextPart() index=%d\n", fPartIndex);
 			newton_catch_all	// original says newton_catch("")
 			{ }
 			end_try;
-			delete fPkg, fPkg = NULL;
+			delete fPkg; fPkg = NULL;
 		}
 		fPkgInfo = NULL;
 		f1C = false;
@@ -895,6 +895,7 @@ printf("CPackageEventHandler::installPart()\n");
 				size_t replySize;
 printf("sending CPkPartInstallEvent to port %d\n", existingPart.packageId);
 				err = appPort.sendRPC(&replySize, &installEvent, sizeof(CPkPartInstallEvent), &reply, sizeof(CPkPartInstallEventReply));
+printf("-> error %d\n", err);
 				if (err == noErr) {
 					err = installEvent.fEventErr;
 				}

@@ -164,6 +164,7 @@ printf("LoadHighROMPackages(%s)\n", inFrames? "frames":"drivers");
 			NewtonErr err = noErr;
 			// iterate over them -- theyÕre contiguous in memory
 			for (long pkgOffset = 0; err == noErr || err == kOSErrPackageAlreadyExists || err == kOSErrPartTypeNotRegistered; pkgOffset += CANONICAL_LONG(pkg->size)) {
+printf("..Loading package at offset %ld from REx %d\n", pkgOffset, i);
 				newton_try
 				{
 					// point to pkg directory
@@ -199,11 +200,18 @@ printf("LoadHighROMPackages(%s)\n", inFrames? "frames":"drivers");
 				{ }
 				end_try;
 printf("=> err=%d\n", err);
+				switch (err) {
+					case kOSErrPartTypeNotRegistered: puts("   = kOSErrPartTypeNotRegistered"); break;
+					case kOSErrBadPackage: puts("   = kOSErrBadPackage"); break;
+				}
 			}
 		}
 	}
 
-// this should be a protocol part in the ROM extension (Package-8)
+	// this should be a protocol part in the ROM extension (Package-8)
+	// Matt: this loads/overrides the display driver that will ultimately
+	// output the screen pixels on the native device, currently done via
+	// Cocoa/CoreGraphics on macOS.
 	if (!inFrames)
 	{
 		CMainDisplayDriver::classInfo()->registerProtocol();

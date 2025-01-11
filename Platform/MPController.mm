@@ -138,12 +138,16 @@ extern void SetUpFakeTablet(void);
 }
 
 - (void)setupDrawing {
+	// The following call returns NULL for macOS 13.7.1 and probably up, but
+	// that seems ok for now. I won't dive deeper into this because for cross
+	// platform compatibility, a port to SDL makes more sense.
+	//   - Matt
 	CGContextRef windowContext = self.window.graphicsContext.CGContext;
 #if defined(forLayerDrawing)
 	//create a CGLayer and draw into its context
 	MPView * theView = (MPView *)self.window.contentView;
 	CGLayerRef drgLayer = CGLayerCreateWithContext(windowContext, theView.frame.size, NULL);
-	theView.qContext = windowContext;
+	theView.qContext = CGLayerGetContext(drgLayer);
 	theView.qLayer = drgLayer;
 	quartz = CGLayerGetContext(drgLayer);
 #else
@@ -175,6 +179,7 @@ extern void SetUpFakeTablet(void);
 #endif
 	// draw into quartz context
 	// StopDrawing() -> WeAreDirty() -> set needsDisplay on the contentView
+	[self.window.contentView setNeedsDisplay:YES];
 	SetUpFakeTablet();
 }
 @end
@@ -199,7 +204,7 @@ WeAreDirty(void)
     ((MPView *)wc.window.contentView).needsDisplay = true;
 #else
     dispatch_async(dispatch_get_main_queue(), ^{
-		 ((MPView *)wc.window.contentView).needsDisplay = true;
+		 [((MPView *)wc.window.contentView) setNeedsDisplay:YES];
     });
 #endif
 }
@@ -210,10 +215,16 @@ WeAreDirty(void)
 #if defined(forLayerDrawing)
 - (void)drawRect:(NSRect)dirtyRect
 {
-	if (self.qContext) {
-//printf("-[MPView drawRect:]\n");
-		CGContextDrawLayerAtPoint(self.qContext, CGPointZero, self.qLayer);
+//	printf("-[MPView drawRect:]\n");
+	CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
+	CGContextSaveGState(context);
+	if (self.qLayer) {
+		CGContextDrawLayerAtPoint(context, CGPointZero, self.qLayer);
+	} else {
+		CGContextSetRGBFillColor(context, 0, 0, 0, 1);
+		CGContextFillRect(context, dirtyRect);
 	}
+	CGContextRestoreGState(context);
 }
 #endif
 

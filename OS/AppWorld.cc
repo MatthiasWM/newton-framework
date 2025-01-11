@@ -925,11 +925,13 @@ CAppWorld::eventLoop(CAppWorldState * inState)
 
 		releaseMutex();
 		NewtonErr err = fAppState->waitForEvent(tmOut);
-//printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
+// printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
+if (tmOut==0) printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
 		acquireMutex();
 
 		if (err != kOSErrMessageTimedOut)
 		{
+			printf("CAppWorld::eventLoop() received an event : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
 			fAppState->fErr = err;
 			if (err == noErr || err == kOSErrSizeTooLargeCopyTruncated)
 			{
@@ -939,6 +941,7 @@ CAppWorld::eventLoop(CAppWorldState * inState)
 				&&  msgToken->getReplyId() != 0)
 					fAppState->fMsgTokenBuf.replyRPC(fAppState->fEvent, fAppState->fEventSize, err);
 			}
+			printf("CAppWorld::eventLoop() done with event : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
 		}
 	} while (!fAppState->fDone);
 

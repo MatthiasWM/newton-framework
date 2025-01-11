@@ -1,5 +1,10 @@
 
-Create by Matt on Jan 10 2025
+Created by Matt on Jan 10 2025
+==============================
+
+
+Initial Work
+------------
 
 So far we have one version of the Framework with all assembler code replaced
 with C++. The compiler, interpreter, and decompiler are test for basic
@@ -12,19 +17,21 @@ was rewritten in ARM32 and Intel32/64, but not ARM64. To stay independent of
 future CPUs that may be used, we need to rewrite al machine code in (modern)
 C++.
 
+
+Xcoe 15.2 on Intel
+------------------
+
 So as of today (Jan 10 2025), the MessagePad project compiles on 64bit Intel,
 Xcode 15.2, and runs under macOS Venture 13.17.1 . We do get audio output,
 but no screen output. The app locks up in `LoadHighROMFramesPackages()`, which
 is pretty far down the boot process.
 
+
+Screen Output 1
+---------------
+
 So far, there are no Newton QuickDraw routins implemented. The startup note
 is drawn using Cocoa/CoreGraphics calls.
-
-Next:
-- Check if the routine to copy disply changes to the frame buffer is ever launched.
-- Check if the timer is running and the display task can be triggered
-- Check if the display task does copy pixels to the Cocoa screen and if those
-  pixels become visible.
 
 CMainDisplayDriver::screenSetup() is called from CNewtWorld::mainConstructor()
 via InitScreen(). fPixMap.baseAddr points to the screen bitmap and is set to a
@@ -46,7 +53,61 @@ get actual pixels onto the screen?
 WeAreDirty() should tell Cocoa to finally update what's on the macOS screen.
 
 We can trigger blit with the current code by clicking on the screen which
-calls CInker::drawInk() and then CLiveInker::stopLiveInk(). It *does* call
-WeAreDirty(), but nothing is drawn on the macOS screen.
+calls CInker::drawInk() and then CLiveInker::stopLiveInk(). This copies changes
+into our Cocoa layer, then calls WeAreDirty(), which then copies the layer data
+to the macOS screen.
 
+
+Loading and Installing Newton.rex
+---------------------------------
+
+Checking CPackageEventHandler::beginLoadPackage()
+CPackageEventHandler::loadNextPart
+CPackageEventHandler::installPart
+We will hang in sendRPC.CPkPartInstallEvent for part 0 of "Cardfile" (kInstallPartEventId)
+This should be handled in CPartEventHandler::eventHandlerProc(), but
+CPartEventHandler never receives the kInstallPartEventId.
+Part ID is 'auto', size is 144308.
+Event is 'newt' 'pckm' 'prti', compressor is 0xa9
+
+OS/Newton.rex is added to the MessagePad bundle and it is read into memory
+by RExScanner().
+
+LoadHighROMPackages():
+	There are 10 packages in the 717006 ROM:
+	 1 Cardfile app    -> 'auto', ROMData/Package-1.newtonpkg etc., are they 32bit MSB first?
+	 2	Connection app  -> 'form'
+	 3	FaxViewer app
+	 4	Formulas app
+	 5	Help book
+	 6	ListView
+	 7	TScreenMemory:TReservedContiguousMemory protocol
+	 8	TMainDisplayDriver:TScreenDriver protocol
+	 9	Setup app
+	10	WorldData soup
+
+Now: where do we get stuck?
+
+As it seems right now, the 'pkgm' event handler is recursively calling pkgm
+to install the part it just loaded, but it's not ready to receive new events yet?
+
+Also look at CPackageEventHandler::searchRegistry, CAppWorld::eventLoop...
+
+Note: when installing drivers, this will return kOSErrPartTypeNotRegistered and
+      not try to install "Cardfile". The next package returns kOSErrBadPackage,
+      so there seems to be an error reading the package from memory (probably
+      32 vs. 64 bit?!).
+
+Next:
+- How do we link to Cardfile.pkg? There should be 8 packages or so in the REx0,
+  but we fail after the first package. Why?
+- If we can load more packages, will they also install, or will we hang earlier?
+
+Next:
+- Check if the routine to copy disply changes to the frame buffer is ever launched.
+- Check if the timer is running and the display task can be triggered
+- Check if the display task does copy pixels to the Cocoa screen and if those
+  pixels become visible.
+
+Note: CPackageEventHandler::installPart outArgs are 32 bit, but should be 64!
 Note: when we get there: InitFonts() is commented out.
