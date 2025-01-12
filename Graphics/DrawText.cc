@@ -520,10 +520,10 @@ DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect 
 	CGPathRelease(path);
 #endif
 
-/*	char str[256];
+	char str[256];
 	int strLen = MIN(inLength, 255);
 	ConvertFromUnicode((const UniChar *)inStr, str, strLen);
-	printf("%s @ %d,%d\n", str, inBox->left, inBox->bottom); */
+	printf("---- \"%s\" @ %d,%d\n", str, inBox->left, inBox->bottom);
 }
 
 

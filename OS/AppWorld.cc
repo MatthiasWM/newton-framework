@@ -925,8 +925,8 @@ CAppWorld::eventLoop(CAppWorldState * inState)
 
 		releaseMutex();
 		NewtonErr err = fAppState->waitForEvent(tmOut);
-// printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
-if (tmOut==0) printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
+//printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
+ if (tmOut==0) printf("CAppWorld::eventLoop() : %c%c%c%c waitForEvent(%d) -> %d\n", fName>>24,fName>>16,fName>>8,fName,tmOut,err);
 		acquireMutex();
 
 		if (err != kOSErrMessageTimedOut)

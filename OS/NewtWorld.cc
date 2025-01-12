@@ -876,12 +876,12 @@ CNewtWorld::preMain(void)
 {
 	gStrokeWorld.blockStrokes();
 	gLastWakeupTime = GetGlobalTime();
-	LoadHighROMFramesPackages();
+// Matt: temporarily disabled:	LoadHighROMFramesPackages();
 
 	RefVar	stores(GetStores());
 	RefVar	internal(GetArraySlot(stores, 0));
 	RefVar	pkgSoup(StoreGetSoup(internal, RA(extrasSoupName)));
-	SoupSetInfo(pkgSoup, SYMA(initialized), SYMA(extrasState));
+// Matt: temporarily disabled:	SoupSetInfo(pkgSoup, SYMA(initialized), SYMA(extrasState));
 
 	gApplication->run();
 

@@ -58,10 +58,14 @@ void
 DrawPicture(RefArg inIcon, const Rect * inFrame, ULong inJustify, int inTransferMode)
 {
 	Rect  iconRect;
+	printf("---- DrawPicture(0x%p, (%d, %d, %d, %d), %08x, %d)\n",
+			 &inIcon, inFrame->left, inFrame->top, inFrame->right, inFrame->bottom,
+			 inJustify, inTransferMode);
 
 	if (IsBinary(inIcon) && EQ(ClassOf(inIcon), SYMA(picture)))
 	{
 		CDataPtr	iconData(inIcon);
+// TODO: this output PICT encoded data, or here it is supposed to draw a png form the resources.
 //		DrawPicture(iconData, Length(inIcon), Justify(PictureBounds(iconData, &iconRect), inFrame, inJustify));
 	}
 
@@ -587,6 +591,12 @@ static const unsigned char * colorTable[5] = { NULL, colorTable1bit, colorTable2
 void
 DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 {
+//	[myView lockFocus];
+//	imageContext = (CGContextRef)[[NSGraphicsContext currentContext]
+//											graphicsPort];
+//	...
+//	[myView unlockFocus];
+
 	CPixelObj	pix;
 	newton_try
 	{

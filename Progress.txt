@@ -86,8 +86,6 @@ LoadHighROMPackages():
 	 9	Setup app
 	10	WorldData soup
 
-Now: where do we get stuck?
-
 As it seems right now, the 'pkgm' event handler is recursively calling pkgm
 to install the part it just loaded, but it's not ready to receive new events yet?
 
@@ -98,15 +96,55 @@ Note: when installing drivers, this will return kOSErrPartTypeNotRegistered and
       so there seems to be an error reading the package from memory (probably
       32 vs. 64 bit?!).
 
-Next:
+Newton.rex is only 145kB bytes, which corresponds to package 1. All
+packages together are 844kB. OS/REx.config has all package but 1 commented
+out, so this may be intentional. The REx starts at 0x10000000 ?! "Cardfile"
+seems to be a custom extension that we don;t really need, so I disable
+loading the REx for now.
+
+Later:
 - How do we link to Cardfile.pkg? There should be 8 packages or so in the REx0,
   but we fail after the first package. Why?
 - If we can load more packages, will they also install, or will we hang earlier?
 
+
+NewtonScript User Exception
+---------------------------
+
+Starting the OS without the REx will lead to an
+"Unhandled exception evt.ex.fr.intrp;type.ref.frame -- warm reboot!"
+Error code = -48809 (kNSErrUndefinedMethod) in DoSend, implementor is NIL,
+DoMessage, SoupSetInfo
+
+CNewtWorld::preMain(): pkgSoup:SetInfo([initialized, extrasState]);
+
+Disabeling this call for now.
+
+
+Event Loop
+----------
+
+So now we actually reach CAppWorld::eventLoop().
+
+
+Drawing Stuff
+-------------
+
+Clicking on the screen will
+launch NS code trying to load NotePad that eventually crashes somewhere
+using CoreGraphics with an invalid context drawing an image or drawing text.
+
+Graphics/DrawImage.cc/DrawBitmap()
+../DrawPicture()
+../FCopyBits() (t=434, l=240, b=434, r=240)
+
 Next:
-- Check if the routine to copy disply changes to the frame buffer is ever launched.
-- Check if the timer is running and the display task can be triggered
-- Check if the display task does copy pixels to the Cocoa screen and if those
+- Replcae all CoreGraphics call with the original code that writes into the
+  Newton screen buffer (basically find all occurences of `quartz` and instead
+  translate the original Newton QD code).
+- Make sure that the routine to copy disply changes to the frame buffer is launched.
+- Make sure that the timer is running and the display task can be triggered
+- Make sure that the display task does copy pixels to the Cocoa screen and if those
   pixels become visible.
 
 Note: CPackageEventHandler::installPart outArgs are 32 bit, but should be 64!
