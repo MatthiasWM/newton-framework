@@ -596,6 +596,136 @@ DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 //											graphicsPort];
 //	...
 //	[myView unlockFocus];
+// Original code disassembled:
+#if 0
+DrawBitmap__FRC6RefVarP5TRectl:         @ 0x0003E9B8: DrawBitmap(RefVar const &, TRect *, long)
+    @ label = 'DrawBitmap__FRC6RefVarP5TRectl'
+    @ ARM R0 = type: 'RefVar' (unknown indirection)
+    @ ARM R1 = type: 'TRect'*
+    @ ARM R2 = type: 'long'             
+    @ name = 'DrawBitmap'
+    mov     r12, sp                     @ 0x0003E9B8 0xE1A0C00D - .... 
+	// r12 = function frame
+    stmdb   sp!, {r4-r6, r11, r12, lr-pc}   @ 0x0003E9BC 0xE92DD870 - .-.p
+	// save registers
+    sub     r11, r12, #4                @ [ 0x00000004 ] 0x0003E9C0 0xE24CB004 - .L..
+	// r11 = function frame plus space
+	 mov     r6, r0                      @ 0x0003E9C4 0xE1A06000 - ..`.
+	// r6 = inBitmap_Ref
+	 mov     r4, r1                      @ 0x0003E9C8 0xE1A04001 - ..@.
+	// r4 = inRect_Ptr
+    mov     r5, r2                      @ 0x0003E9CC 0xE1A05002 - ..P.
+	// r5 = inTransferMode
+    sub     sp, sp, #52                 @ [ 0x00000034 ] 0x0003E9D0 0xE24DD034 - .M.4
+	// make room for 52 bytes on the stack
+	 mov     r0, sp                      @ 0x0003E9D4 0xE1A0000D - ....
+	// r0 = top of stack
+	 bl      VEC___ct__9TPixelObjFv      @ 0x0003E9D8 0xEB6A857D - .j.}
+	// create  a PixelObj on the stack
+    mov     r0, #0                      @ [ 0x00000000 ] 0x0003E9DC 0xE3A00000 - ....
+	// r0 = 0
+    str     r0, [sp, #-108]!            @ 0x0003E9E0 0xE52D006C - .-.l
+	// sp-108 = 0
+    add     r0, sp, #8                  @ [ 0x00000008 ] 0x0003E9E4 0xE28D0008 - ....
+	// r0 = sp+8 (&jmp_buf)
+    bl      VEC_setjmp                  @ 0x0003E9E8 0xEB6DCFE1 - .m..
+	// fill the jump buffer with the current state so we can return here on error
+    teq     r0, #0                      @ [ 0x00000000 ] 0x0003E9EC 0xE3300000 - .0..
+	// setjump original call, or return from longjmp?
+    bne     L0003EABC                   @ 0x0003E9F0 0x1A000031 - ...1
+	// jump if we come from longjmp (an error occured)
+    mov     r0, sp                      @ 0x0003E9F4 0xE1A0000D - ....
+	// r0 points to top of stack where we wrote 0 (arg 0: CatchHeader*)
+    bl      VEC_AddExceptionHandler     @ 0x0003E9F8 0xEB6E859F - .n..
+	// Add the exception handle (so longjmp is the start of an exception)
+    mov     r1, r6                      @ 0x0003E9FC 0xE1A01006 - ....
+	// r1 = inBitmap_Ref (arg 1: Bitmap)
+    add     r0, sp, #108                @ [ 0x0000006C ] 0x0003EA00 0xE28D006C - ...l
+	// r0 = PixelObj on stack (arg 0)
+    bl      VEC_Init__9TPixelObjFRC6RefVar  @ 0x0003EA04 0xEB6A8574 - .j.t
+	// void CPixelObj::init(RefArg inBitmap)
+    ldr     r6, [sp, #140]              @ 0x0003EA08 0xE59D608C - ..`.
+	// space on stack
+    ldr     r0, [r4, #2]                @ 0x0003EA0C 0xE5940002 - ....
+    mov     r0, r0, asr #16             @ 0x0003EA10 0xE1A00840 - ...@
+	// r0 = inRect->left?
+    ldr     r1, [r4, #6]                @ 0x0003EA14 0xE5941006 - ....
+	// r1 = inRect->right?
+    teq     r0, r1, asr #16             @ 0x0003EA18 0xE1300841 - .0.A
+	// are they the same?
+    bne     L0003EA70                   @ 0x0003EA1C 0x1A000013 - ....
+	// if not, jump. If they are the same, take the width from the Bitmap?
+    ldr     r1, [r6, #14]               @ 0x0003EA20 0xE596100E - ....
+    mov     r1, r1, lsr #16             @ 0x0003EA24 0xE1A01821 - ...! 
+    add     r1, r0, r1                  @ 0x0003EA28 0xE0801001 - ....
+    ldr     r0, [r6, #10]               @ 0x0003EA2C 0xE596000A - .... 
+    mov     r0, r0, lsr #16             @ 0x0003EA30 0xE1A00820 - .... 
+    sub     r0, r1, r0                  @ 0x0003EA34 0xE0410000 - .A..
+    strb    r0, [r4, #7]                @ 0x0003EA38 0xE5C40007 - .... 
+    mov     r0, r0, asr #8              @ 0x0003EA3C 0xE1A00440 - ...@ 
+    strb    r0, [r4, #6]                @ 0x0003EA40 0xE5C40006 - .... 
+    ldr     r0, [r6, #12]               @ 0x0003EA44 0xE596000C - .... 
+    mov     r0, r0, lsr #16             @ 0x0003EA48 0xE1A00820 - .... 
+    ldr     r1, [r4]                    @ 0x0003EA4C 0xE5941000 - ....
+    mov     r1, r1, lsr #16             @ 0x0003EA50 0xE1A01821 - ...! 
+    add     r1, r0, r1                  @ 0x0003EA54 0xE0801001 - ....
+    ldr     r0, [r6, #8]                @ 0x0003EA58 0xE5960008 - .... 
+    mov     r0, r0, lsr #16             @ 0x0003EA5C 0xE1A00820 - .... 
+    sub     r0, r1, r0                  @ 0x0003EA60 0xE0410000 - .A..
+    strb    r0, [r4, #5]                @ 0x0003EA64 0xE5C40005 - .... 
+    mov     r0, r0, asr #8              @ 0x0003EA68 0xE1A00440 - ...@ 
+    strb    r0, [r4, #4]                @ 0x0003EA6C 0xE5C40004 - .... 
+L0003EA70:
+    sub     sp, sp, #4                  @ [ 0x00000004 ] 0x0003EA70 0xE24DD004 - .M.. 
+	// make room for 4 more bytes on the stack (GrafPort Ptr)
+    mov     r0, sp                      @ 0x0003EA74 0xE1A0000D - ....
+	// r0 = top of stack (arg 0)
+    bl      VEC_GetPort__FPP8GrafPort   @ 0x0003EA78 0xEB6EC349 - .n.I
+	// get the grafport pointer: GetPort(GrafPort **)
+    mov     r3, #0                      @ [ 0x00000000 ] 0x0003EA7C 0xE3A03000 - ..0.
+	// r3 = 0 (arg5, Region**)
+    mov     r2, r5                      @ 0x0003EA80 0xE1A02005 - ....
+	// r2 = inTransferMode (arg4)
+    stmdb   sp!, {r2, r3}               @ 0x0003EA84 0xE92D000C - .-..
+	// push r2 and r3
+    add     r2, r6, #8                  @ [ 0x00000008 ] 0x0003EA88 0xE2862008 - ....
+	// r2 = pixelmap rect (arg2)
+    mov     r3, r4                      @ 0x0003EA8C 0xE1A03004 - ..0.
+	// r3 = inRect? (arg3)
+    mov     r0, r6                      @ 0x0003EA90 0xE1A00006 - ....
+	// r0 = pixelmap (arg0)
+    ldr     r1, [sp, #8]                @ 0x0003EA94 0xE59D1008 - ....
+	// r1 = address on stack (GarfPort*)
+    bl      VEC_CopyBits__FP8PixelMapT1P4RectT3lPP6Region  @ 0x0003EA98 0xEB6EC340 - .n.@
+	// CopyBits(PixelMap *, PixelMap *, Rect *, Rect *, long, Region **)
+    add     sp, sp, #12                 @ [ 0x0000000C ] 0x0003EA9C 0xE28DD00C - ....
+	// restore sp
+    mov     r0, sp                      @ 0x0003EAA0 0xE1A0000D - ....
+	// r0 = exception handle
+    bl      VEC_ExitHandler             @ 0x0003EAA4 0xEB6E8983 - .n..
+	// ExitHandler(handler)
+    add     sp, sp, #108                @ [ 0x0000006C ] 0x0003EAA8 0xE28DD06C - ...l
+	// pop exception data
+    mov     r0, sp                      @ 0x0003EAAC 0xE1A0000D - ....
+    mov     r1, #0                      @ [ 0x00000000 ] 0x0003EAB0 0xE3A01000 - .... 
+    bl      VEC___dt__9TPixelObjFv      @ 0x0003EAB4 0xEB6A8547 - .j.G
+	// call the TPixelObj destructor
+    ldmdb   r11, {r4-r6, r11, sp, pc}   @ 0x0003EAB8 0xE91BA870 - ...p
+	// and return from the function
+L0003EABC:
+	// Exception handler exits here
+    add     r0, sp, #108                @ [ 0x0000006C ] 0x0003EABC 0xE28D006C - ...l
+	// fix the stack
+    mov     r1, #0                      @ [ 0x00000000 ] 0x0003EAC0 0xE3A01000 - ....
+    bl      VEC___dt__9TPixelObjFv      @ 0x0003EAC4 0xEB6A8543 - .j.C
+	// destroy the PixelObj
+    mov     r0, sp                      @ 0x0003EAC8 0xE1A0000D - ....
+    bl      VEC_NextHandler             @ 0x0003EACC 0xEB6E8DA0 - .n..
+	// call the next exception handler
+    b       L0003EABC                   @ 0x0003EAD0 0xEAFFFFF9 - ....
+	// huh??? Does the call above not return?
+
+#endif
 
 	CPixelObj	pix;
 	newton_try
@@ -708,6 +838,129 @@ DrawBits(const char * inBits, unsigned inHeight, unsigned inWidth, unsigned inRo
 				inTransferMode
 	Return:	NILREF
 ------------------------------------------------------------------------------*/
+
+#if 0
+CopyBits__FP8PixelMapT1P4RectT3lPP6Region:  @ 0x002AE440: CopyBits(PixelMap *, PixelMap *, Rect *, Rect *, long, Region **)
+    @ label = 'CopyBits__FP8PixelMapT1P4RectT3lPP6Region'
+    @ ARM R0 = type: 'PixelMap'*
+    @ ARM R1 = type: 'PixelMap'*
+    @ ARM R2 = type: 'Rect'*
+    @ ARM R3 = type: 'Rect'*
+    @ frame[-4] = type: 'long'
+    @ frame[-8] = type: 'Region' (unknown indirection)
+    @ name = 'CopyBits'
+    mov     r12, sp                     @ 0x002AE440 0xE1A0C00D - .... 
+    stmdb   sp!, {r4-r12, lr-pc}        @ 0x002AE444 0xE92DDFF0 - .-.. 
+    sub     r11, r12, #4                @ [ 0x00000004 ] 0x002AE448 0xE24CB004 - .L.. 
+    mov     r5, r0                      @ 0x002AE44C 0xE1A05000 - ..P. 
+    mov     r4, r1                      @ 0x002AE450 0xE1A04001 - ..@.
+    mov     r6, r2                      @ 0x002AE454 0xE1A06002 - ..`.
+    mov     r7, r3                      @ 0x002AE458 0xE1A07003 - ..p. 
+    ldr     r9, [r11, #8]               @ 0x002AE45C 0xE59B9008 - .... 
+    ldr     r10, [r11, #4]              @ 0x002AE460 0xE59BA004 - .... 
+    bl      VEC_GetCurrentPort__Fv      @ 0x002AE464 0xEB6284D4 - .b..
+	// GetCurrentPort(void)
+    mov     r8, r0                      @ 0x002AE468 0xE1A08000 - ....
+    mov     r1, r6                      @ 0x002AE46C 0xE1A01006 - .... 
+    mov     r0, r5                      @ 0x002AE470 0xE1A00005 - .... 
+    bl      VEC_StartProtectSrcBits__FP8PixelMapP4Rect  @ 0x002AE474 0xEB62996E - .b.n
+	// StartProtectSrcBits(PixelMap *, Rect *) : does not do anything
+    teq     r8, #0                      @ [ 0x00000000 ] 0x002AE478 0xE3380000 - .8..
+    beq     L002AE4EC                   @ 0x002AE47C 0x0A00001A - ....
+    tst     r8, #1                      @ [ 0x00000001 ] 0x002AE480 0xE3180001 - .... 
+    bne     L002AE4EC                   @ 0x002AE484 0x1A000018 - ....
+    mov     r0, r8                      @ 0x002AE488 0xE1A00008 - .... 
+    bl      VEC_GetPixelMapBits__FP8PixelMap  @ 0x002AE48C 0xEB65785D - .ex] 
+	// GetPixelMapBits(PixelMap *)
+    str     r0, [sp, #-4]!              @ 0x002AE490 0xE52D0004 - .-..
+    mov     r0, r4                      @ 0x002AE494 0xE1A00004 - ....
+    bl      VEC_GetPixelMapBits__FP8PixelMap  @ 0x002AE498 0xEB65785A - .exZ
+	// GetPixelMapBits(PixelMap *)
+    ldr     r1, [sp], #4                @ 0x002AE49C 0xE49D1004 - ....
+    teq     r1, r0                      @ 0x002AE4A0 0xE1310000 - .1..
+    ldreq   r0, [r8, #8]                @ 0x002AE4A4 0x05980008 - .... 
+    moveq   r0, r0, asr #16             @ 0x002AE4A8 0x01A00840 - ...@ 
+    ldreq   r1, [r4, #8]                @ 0x002AE4AC 0x05941008 - .... 
+    teqeq   r0, r1, asr #16             @ 0x002AE4B0 0x01300841 - .0.A 
+    ldreq   r0, [r8, #10]               @ 0x002AE4B4 0x0598000A - .... 
+    moveq   r0, r0, asr #16             @ 0x002AE4B8 0x01A00840 - ...@ 
+    ldreq   r1, [r4, #10]               @ 0x002AE4BC 0x0594100A - .... 
+    teqeq   r0, r1, asr #16             @ 0x002AE4C0 0x01300841 - .0.A 
+    bne     L002AE4EC                   @ 0x002AE4C4 0x1A000008 - ....
+    mov     r3, r9                      @ 0x002AE4C8 0xE1A03009 - ..0.
+    stmdb   sp!, {r3}                   @ 0x002AE4CC 0xE92D0008 - .-.. 
+    mov     r3, r10                     @ 0x002AE4D0 0xE1A0300A - ..0.
+    mov     r2, r7                      @ 0x002AE4D4 0xE1A02007 - ....
+    mov     r1, r6                      @ 0x002AE4D8 0xE1A01006 - ....
+    mov     r0, r5                      @ 0x002AE4DC 0xE1A00005 - ....
+    bl      VEC_CallBits__FP8PixelMapP4RectT2lPP6Region  @ 0x002AE4E0 0xEB627860 - .bx`
+	// CallBits(PixelMap *, Rect *, Rect *, long, Region **)
+    add     sp, sp, #4                  @ [ 0x00000004 ] 0x002AE4E4 0xE28DD004 - ....
+    b       L002AE530                   @ 0x002AE4E8 0xEA000010 - ....
+L002AE4EC:
+    ldr     r0, L002AE53C               @ [ wideHandle (0x0C1056F0) ] 0x002AE4EC 0xE59F0048 - ...H
+    teq     r9, #0                      @ [ 0x00000000 ] 0x002AE4F0 0xE3390000 - .9.. 
+    movne   r3, r9                      @ 0x002AE4F4 0x11A03009 - ..0.
+    ldreq   r3, [r0]                    @ 0x002AE4F8 0x05903000 - ..0.
+    stmdb   sp!, {r3}                   @ 0x002AE4FC 0xE92D0008 - .-.. 
+    ldr     r0, [r0]                    @ 0x002AE500 0xE5900000 - ....
+    mov     r3, r0                      @ 0x002AE504 0xE1A03000 - ..0.
+    stmdb   sp!, {r3}                   @ 0x002AE508 0xE92D0008 - .-.. 
+    mov     r3, r0                      @ 0x002AE50C 0xE1A03000 - ..0.
+    mov     r2, r10                     @ 0x002AE510 0xE1A0200A - ....
+    stmdb   sp!, {r2, r3}               @ 0x002AE514 0xE92D000C - .-.. 
+    mov     r3, r7                      @ 0x002AE518 0xE1A03007 - ..0.
+    mov     r2, r6                      @ 0x002AE51C 0xE1A02006 - ....
+    mov     r1, r4                      @ 0x002AE520 0xE1A01004 - ....
+    mov     r0, r5                      @ 0x002AE524 0xE1A00005 - ....
+    bl      VEC_StretchBits__FP8PixelMapT1P4RectT3lPP6RegionN26  @ 0x002AE528 0xEB629951 - .b.Q
+	// StretchBits(PixelMap *, PixelMap *, Rect *, Rect *, long, Region **, Region **, Region **)
+    add     sp, sp, #16                 @ [ 0x00000010 ] 0x002AE52C 0xE28DD010 - ....
+L002AE530:
+    mov     r0, r5                      @ 0x002AE530 0xE1A00005 - ....
+    ldmdb   r11, {r4-r11, sp, lr}       @ 0x002AE534 0xE91B6FF0 - ..o.
+    b       VEC_StopProtectSrcBits__FP8PixelMap  @ 0x002AE538 0xEA62994C - .b.L
+	// StopProtectSrcBits__FP8PixelMap : does not do anything
+L002AE53C:
+    .word   0x0C1056F0          @ 0x002AE53C "..V." 202397424 (flags_type_arm_word) wideHandle?
+
+// This jumps to one of the drawing calls in qdConstants
+CallBits__FP8PixelMapP4RectT2lPP6Region:    @ 0x002AD604: CallBits(PixelMap *, Rect *, Rect *, long, Region **)
+    @ label = 'CallBits__FP8PixelMapP4RectT2lPP6Region'
+    @ ARM R0 = type: 'PixelMap'*
+    @ ARM R1 = type: 'Rect'*
+    @ ARM R2 = type: 'Rect'*
+    @ ARM R3 = type: 'long'
+    @ frame[-4] = type: 'Region' (unknown indirection)
+    @ name = 'CallBits'
+    mov     r12, sp                     @ 0x002AD604 0xE1A0C00D - ....
+    stmdb   sp!, {r4-r8, r11, r12, lr-pc}   @ 0x002AD608 0xE92DD9F0 - .-.. 
+    sub     r11, r12, #4                @ [ 0x00000004 ] 0x002AD60C 0xE24CB004 - .L.. 
+    mov     r7, r0                      @ 0x002AD610 0xE1A07000 - ..p. 
+    mov     r6, r1                      @ 0x002AD614 0xE1A06001 - ..`. 
+    mov     r5, r2                      @ 0x002AD618 0xE1A05002 - ..P. 
+    mov     r4, r3                      @ 0x002AD61C 0xE1A04003 - ..@. 
+    ldr     r8, [r11, #4]               @ 0x002AD620 0xE59B8004 - .... 
+    bl      VEC_GetCurrentPort__Fv      @ 0x002AD624 0xEB628864 - .b.d 
+    ldr     r0, [r0, #64]               @ 0x002AD628 0xE5900040 - ...@ 
+    teq     r0, #0                      @ [ 0x00000000 ] 0x002AD62C 0xE3300000 - .0.. 
+    ldrne   r12, [r0, #4]!              @ 0x002AD630 0x15B0C004 - .... 
+    ldreq   r0, L002AD660               @ [ qdConstants (0x00380BCC) ] 0x002AD634 0x059F0024 - ...$
+    ldreq   r12, [r0, #4]!              @ 0x002AD638 0x05B0C004 - .... 
+    mov     r3, r8                      @ 0x002AD63C 0xE1A03008 - ..0.
+    stmdb   sp!, {r3}                   @ 0x002AD640 0xE92D0008 - .-.. 
+    mov     r3, r4                      @ 0x002AD644 0xE1A03004 - ..0. 
+    mov     r2, r5                      @ 0x002AD648 0xE1A02005 - .... 
+    mov     r1, r6                      @ 0x002AD64C 0xE1A01006 - .... 
+    mov     r0, r7                      @ 0x002AD650 0xE1A00007 - .... 
+    mov     lr, pc                      @ 0x002AD654 0xE1A0E00F - .... 
+    mov     pc, r12                     // probably calling StdBits here
+    ldmdb   r11, {r4-r8, r11, sp, pc}   @ 0x002AD65C 0xE91BA9F0 - ....
+L002AD660:
+    .word   0x00380BCC          @ 0x002AD660 ".8.." 3673036 (flags_type_arm_word) qdConstants?
+
+#endif
+
 #include "View.h"
 #if !defined(forFramework)
 extern CView *	FailGetView(RefArg inContext);

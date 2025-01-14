@@ -138,8 +138,30 @@ Graphics/DrawImage.cc/DrawBitmap()
 ../DrawPicture()
 ../FCopyBits() (t=434, l=240, b=434, r=240)
 
+Disassembling DrawBitmap() and trying to understand how to go from ARM32 to C++.
+It calls CopyBits() which we shoudl translate next. It's marked in the code
+as "The dreaded CopyBits", so I assume thsi will be hard... .
+
+This calls CallBits() then StdBits(), or StretchBits().
+
+StdBits() calls PutPixMap__FP8PixelMap() or PutGrayTable__FP8PixelMap()
+or PutPicWord__Fl() or PutPicData__FPcl(), PutPicByte__Fc(),
+PutPicRgn__FPP6Region(), or StretchBits__FP8PixelMapT1P4RectT3lPP6RegionN26().
+
+PutPicData(char *, long) calls StdPutPic(), which call BlockMove(). That
+should probably be it?!
+
+StretchBits__FP8PixelMapT1P4RectT3lPP6RegionN26 seems to be the standard route
+we take here. That function is *really* long...
+
+Hardware Screen Memory is at physical address 0x043c00000 ??
+OS Screen Memeory is at 0x0ca6b000 ??
+
+( Unscaled1to4__FPlN21l BlitModeCopy__FPlN21lN24 )
+Command at 0x002aeddc in BlitModeCopy writes image data?
+
 Next:
-- Replcae all CoreGraphics call with the original code that writes into the
+- Replace all CoreGraphics call with the original code that writes into the
   Newton screen buffer (basically find all occurences of `quartz` and instead
   translate the original Newton QD code).
 - Make sure that the routine to copy disply changes to the frame buffer is launched.
