@@ -155,7 +155,7 @@ set ( SRCFILES
   Testing/TestAgent.cc
   Toolbox/Maths.cc
   Utilities/DataStuffing.cc
-  Utilities/UStringUtils.c
+  Utilities/UStringUtils.cc
   Utilities/Unicode.cc
   UtilityClasses/DynamicArray.cc
   UtilityClasses/List.cc
@@ -652,7 +652,7 @@ set ( MP_SRC_FILES
   OS/UserPorts.cc
   OS/UserSharedMem.cc
   OS/UserTasks.cc
-  Utilities/UStringUtils.c
+  Utilities/UStringUtils.cc
   Views/View.cc
   Views/ViewObject.cc
   Views/ViewUtils.cc

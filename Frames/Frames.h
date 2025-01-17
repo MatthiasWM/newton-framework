@@ -13,8 +13,8 @@
 #include "Objects.h"
 
 //	useful symbol hash values
-#define k_protoHash  0x6622439B
-#define k_parentHash 0xC5D5F0A1
+constexpr uint32_t k_protoHash = 0x6622439B;
+constexpr uint32_t k_parentHash = 0xC5D5F0A1;
 
 
 void			FindOffsetCacheClear(void);

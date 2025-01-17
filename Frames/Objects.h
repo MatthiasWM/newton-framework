@@ -33,33 +33,38 @@
 	R e f   T a g   B i t s
 ------------------------------------------------------------------------------*/
 
-#define kRefTagBits		  2
+constexpr int kRefTagBits = 2;
+constexpr int kRefValueBits = sizeof(Ref)*8 - kRefTagBits;
+constexpr Ref kRefValueMask =	~((Ref)0) << kRefTagBits;
+constexpr Ref kRefTagMask = ~kRefValueMask;
+constexpr int kRefImmedBits = 2;
+constexpr Ref kRefImmedMask = kRefValueMask << kRefTagBits;
+
+enum {
+    kTagInteger,
+    kTagPointer,
+    kTagImmed,
+    kTagMagicPtr
+};
+
+enum {
+    kImmedSpecial,
+    kImmedChar,
+    kImmedBoolean,
+    kImmedReserved
+};
+
 #if __LP64__
-#define kRefValueBits	 62
+static_assert(kRefValueBits == 62);
+static_assert(kRefValueMask == 0xfffffffffffffffc);
+static_assert(kRefTagMask   == 0x0000000000000003);
+static_assert(kRefImmedMask == 0xfffffffffffffff0);
 #else
-#define kRefValueBits	 30
+static_assert(kRefValueBits == 30);
+static_assert(kRefValueMask == 0xfffffffc);
+static_assert(kRefTagMask   == 0x00000003);
+static_assert(kRefImmedMask == 0xfffffff0);
 #endif
-#define kRefValueMask	(~0UL << kRefTagBits)
-#define kRefTagMask		 ~kRefValueMask
-
-#define kRefImmedBits	 2
-#define kRefImmedMask	(~0UL << kRefImmedBits)
-
-enum
-{
-	kTagInteger,
-	kTagPointer,
-	kTagImmed,
-	kTagMagicPtr
-};
-
-enum
-{
-	kImmedSpecial,
-	kImmedChar,
-	kImmedBoolean,
-	kImmedReserved
-};
 
 
 /*------------------------------------------------------------------------------
@@ -67,18 +72,31 @@ enum
 ------------------------------------------------------------------------------*/
 
 // CLANG: Shifting a negative signed value is undefined
-#define MAKEINT(i)          ((Ref)(((unsigned long)i)<<kRefTagBits))
-#define	MAKEIMMED(t, v)		((((((long) (v)) << kRefImmedBits) | ((long) (t))) << kRefTagBits) | kTagImmed)
-#define	MAKECHAR(c)				MAKEIMMED(kImmedChar, (unsigned) c)
-#define	MAKEBOOLEAN(b)			(b ? TRUEREF : FALSEREF)
-#define	MAKEPTR(p)				((Ref)((char*)p + 1))
+constexpr Ref MAKEINT(long i) { return (Ref)(((unsigned long)i)<<kRefTagBits); }
+constexpr Ref INVALIDPTRREF = MAKEINT(0);
+constexpr Ref MAKEIMMED(int t, long v) { return (Ref)((((((unsigned long)v)<<kRefImmedBits) | ((unsigned long)t))<<kRefTagBits) | kTagImmed); }
+constexpr Ref NILREF = MAKEIMMED(kImmedSpecial, 0);
+constexpr Ref TRUEREF = MAKEIMMED(kImmedBoolean, 1);
+constexpr Ref FALSEREF = NILREF;
+constexpr Ref MAKEBOOLEAN(bool b) { return b ? TRUEREF : FALSEREF; }
+constexpr Ref MAKECHAR(UniChar c) { return MAKEIMMED(kImmedChar, c); }
+//constexpr Ref MAKEPTR(void *p) {  return (p); }
+inline Ref MAKEPTR(void *p) { return (Ref)(((char*)p)+1); }
+//#define    MAKEPTR(p)                ((Ref)((char*)p + 1))
 #define	MAKEMAGICPTR(index)	((Ref) (((long) (index)) << kRefTagBits) | kTagMagicPtr)
 
-// constant values for comparison with a Ref
-#define	NILREF			MAKEIMMED(kImmedSpecial, 0)
-#define	TRUEREF			MAKEIMMED(kImmedBoolean, 1)
-#define	FALSEREF			NILREF
-#define	INVALIDPTRREF	MAKEINT(0)
+#if __LP64__
+static_assert(MAKEINT(0)    == 0x0000000000000000);
+static_assert(MAKEINT(100)  == 0x0000000000000190);
+static_assert(MAKEINT(-100) == 0xfffffffffffffe70);
+static_assert(MAKEIMMED(kImmedChar, 'a') == 0x0000000000000616);
+static_assert(MAKECHAR('A') == 0x0000000000000416);
+static_assert(NILREF        == 0x0000000000000002);
+static_assert(TRUEREF       == 0x000000000000001a);
+//static_assert(MAKEPTR(nullptr) == 0x0000000000000001);
+#else
+#endif
+
 
 /*------------------------------------------------------------------------------
 	I m m e d i a t e   C l a s s   C o n s t a n t s

@@ -744,7 +744,7 @@
 		66393E3A04C7F0F400A80002 /* Interrupt.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Interrupt.cc; sourceTree = "<group>"; };
 		66393E3B04C7F0F400A80002 /* KernelObjects.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = KernelObjects.cc; sourceTree = "<group>"; };
 		66393E3C04C7F0F400A80002 /* KernelObjects.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelObjects.h; sourceTree = "<group>"; };
-		66393E3D04C7F0F400A80002 /* KernelTasks.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = KernelTasks.cc; sourceTree = "<group>"; };
+		66393E3D04C7F0F400A80002 /* KernelTasks.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = KernelTasks.cc; sourceTree = "<group>"; tabWidth = 3; };
 		66393E3E04C7F0F400A80002 /* KernelTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelTypes.h; sourceTree = "<group>"; };
 		66393E3F04C7F0F400A80002 /* LongTime.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = LongTime.h; sourceTree = "<group>"; };
 		66393E4004C7F0F400A80002 /* MemObjManager.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = MemObjManager.cc; sourceTree = "<group>"; };
@@ -844,7 +844,7 @@
 		667F5255050F173400A80002 /* KernelMonitor.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = KernelMonitor.cc; sourceTree = "<group>"; };
 		667F5259050F188B00A80002 /* KernelMonitor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelMonitor.h; sourceTree = "<group>"; };
 		667F525D050F1B5600A80002 /* KernelPorts.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelPorts.h; sourceTree = "<group>"; };
-		667F525F050F287700A80002 /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Scheduler.h; sourceTree = "<group>"; };
+		667F525F050F287700A80002 /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Scheduler.h; sourceTree = "<group>"; tabWidth = 3; };
 		667F5261050F291E00A80002 /* Scheduler.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Scheduler.cc; sourceTree = "<group>"; };
 		66885A9B04D7E47900C79417 /* MagicPointers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MagicPointers.h; sourceTree = "<group>"; };
 		669C09F70508FD5200A80002 /* KernelTasks.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = KernelTasks.h; sourceTree = "<group>"; };
@@ -1171,8 +1171,8 @@
 		F4BAF348124948E8000C2433 /* SplashScreenProto.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = SplashScreenProto.s; sourceTree = "<group>"; };
 		F4BAF3721249546F000C2433 /* PackageEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PackageEvents.h; sourceTree = "<group>"; };
 		F4BB348F06BBAD250038DF69 /* Shapes.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Shapes.cc; sourceTree = "<group>"; };
-		F4BC0A84195324820096738D /* SWIGlue.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = SWIGlue.s; path = "asm-LP64/SWIGlue.s"; sourceTree = "<group>"; };
-		F4BC0A85195324820096738D /* SWIHandler.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = SWIHandler.s; path = "asm-LP64/SWIHandler.s"; sourceTree = "<group>"; };
+		F4BC0A84195324820096738D /* SWIGlue.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = SWIGlue.s; path = "asm-LP64/SWIGlue.s"; sourceTree = "<group>"; tabWidth = 3; };
+		F4BC0A85195324820096738D /* SWIHandler.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = SWIHandler.s; path = "asm-LP64/SWIHandler.s"; sourceTree = "<group>"; tabWidth = 3; };
 		F4BC0AB8195C70FD0096738D /* Lexer.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Lexer.cc; sourceTree = "<group>"; };
 		F4BC0ABC195C74550096738D /* Tokens.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Tokens.h; sourceTree = "<group>"; };
 		F4BC0ABD195C7B1B0096738D /* Parser.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Parser.cc; sourceTree = "<group>"; };

@@ -6,10 +6,6 @@
 
 	Written by:	Newton Research Group.
 */
-// define some useful C++ stuff
-typedef char bool;
-#define true 1
-#define false 0
 
 #include "Unicode.h"
 #include "UnicodePrivate.h"

@@ -22,14 +22,14 @@ typedef uint8_t	UByte;
 typedef int16_t	SShort;
 typedef uint16_t	UShort;
 
-typedef int32_t	SLong;
+typedef int32_t	SLong; // warning: on 64 bit machines, 'long' is 64 bit
 typedef uint32_t	ULong;
 
 /* Array/String index -- also used to define length */
 typedef uint32_t	ArrayIndex;
 #define kIndexNotFound -1
 
-typedef unsigned long	offs_t;
+//typedef unsigned long	offs_t;
 
 /* Error codes -- need to hold codes less than -32767 */
 typedef int	NewtonErr;
@@ -39,14 +39,13 @@ typedef uint32_t	ObjectId;
 typedef uint32_t	HammerIORef;
 
 /* Address types */
-typedef unsigned long	VAddr;
-typedef unsigned long	PAddr;
-
-typedef unsigned long	OpaqueRef;
+using VAddr = intptr_t;
+using PAddr = intptr_t;
 
 /* Ref types */
 
-typedef long Ref;
+using Ref = intptr_t;
+using OpaqueRef = intptr_t;
 
 typedef struct
 {

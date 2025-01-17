@@ -50,6 +50,7 @@ typedef Ref (*MapSlotsFunction)(RefArg tag, RefArg value, ULong anything);
 /*------------------------------------------------------------------------------
 	R e f   T a g   B i t s
 ------------------------------------------------------------------------------*/
+#error See Frames/Objects.h
 
 #define kRefTagBits		  2
 #define kRefValueBits	 30
