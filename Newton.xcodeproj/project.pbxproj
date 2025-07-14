@@ -710,7 +710,7 @@
 		66393DCE04C7F08100A80002 /* MagicPointers.cc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = MagicPointers.cc; sourceTree = "<group>"; };
 		66393DCF04C7F08100A80002 /* NewtonScript.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NewtonScript.h; sourceTree = "<group>"; };
 		66393DD004C7F08100A80002 /* NewtonScript.l */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.lex; path = NewtonScript.l; sourceTree = "<group>"; };
-		66393DD104C7F08100A80002 /* NewtonScript.y */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.yacc; path = NewtonScript.y; sourceTree = "<group>"; };
+		66393DD104C7F08100A80002 /* NewtonScript.y */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 3; lastKnownFileType = sourcecode.yacc; path = NewtonScript.y; sourceTree = "<group>"; tabWidth = 3; };
 		66393DD204C7F08100A80002 /* ObjectHeap.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ObjectHeap.cc; sourceTree = "<group>"; };
 		66393DD304C7F08100A80002 /* ObjectHeap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ObjectHeap.h; sourceTree = "<group>"; };
 		66393DD404C7F08100A80002 /* ObjectPrinter.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ObjectPrinter.cc; sourceTree = "<group>"; };

@@ -109,7 +109,7 @@ GetWordsHints(RefArg inWords)
 UChar
 CanonicalCharacter(UniChar inChar)
 {
-	UChar		str[1];
+	UChar		str[2];
 	UniChar ustr[1];
 	ustr[0] = inChar;
 	UpperCaseNoDiacriticsText(ustr, 1);

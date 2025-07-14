@@ -1,6 +1,7 @@
 
 
 #include "Frames/Frames.h"
+#include "Frames/StreamObjects.h"
 #include "Funcs.h"
 #include "NewtonPackage.h"
 
@@ -56,7 +57,6 @@ extern Ref *RSSYMviewer;
 int main(int argc, char **argv)
 {
   InitObjectSystem();
-  printf("Hello world\n");
 //  DefGlobalVar(SYMA(printDepth), MAKEINT(7));
 //    RefVar  fn(NSGetGlobalFn(inSym));
 //  newton_try
@@ -89,10 +89,73 @@ int main(int argc, char **argv)
   Disassemble(fn);
   PrintCode(fn); puts("");
 #endif
-
+#if 1
   NewtonPackage pkg(pkg_path);
   Ref part = pkg.partRef(0);
   PrintObject(part, 0); puts("");
   Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
   PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+#endif
+#if 0
+  Ref src = MakeStringFromCString("if 1+2=3 then begin toast(3); trust(4); return test(2); end else return 3");
+  Ref fn = ParseString(src);
+//  Ref ret = DoBlock(fn, RA(NILREF));
+//  PrintObject(ret, 0); puts("");
+  puts("----");
+  Disassemble(fn);
+  puts("----");
+  PrintCode(fn); puts("");
+#endif
+#if 0
+
+  /*
+   So ParseFile:
+
+   Compile a file and interpret it.
+   Top-level expressions are compiled and interpreted in sequence.
+   Exceptions are caught and notified to gREPout but not rethrown.
+   Args:    inFilename    path of file containing NewtonScript
+   Return:  result of final codeblock execution
+
+   RefVar data(*(RefStruct *)CurrentException()->data);
+   if (IsFrame(data)
+   &&  ISNIL(GetFrameSlot(data, SYMA(filename))))
+   {
+   SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
+   SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+   }
+   gREPout->exceptionNotify(CurrentException());
+
+   Global Variables used:
+    ParseFile:
+      showCodeBlocks
+      showLoadResults
+    CCompile::compile
+      LLVM
+      compilerCompatibility (int) -> gCompilerCompatibility, 0=NOS1, 1=NOS2
+
+
+   */
+
+
+
+
+  const char *fname = "/Users/matt/dev/test.ns";
+  const char *sname = "/Users/matt/dev/test.nsof";
+  if (argc==2 || argc==3)
+    fname = argv[1];
+  if (argc==3)
+    sname = argv[2];
+
+  Ref func = ParseFile(fname);
+  {
+    CStdIOPipe pipe("/Users/matt/dev/test.nsof", "w");
+    CObjectWriter writer(func, pipe, false);
+    //writer.setCompressLargeBinaries();
+    writer.write();
+  }
+  printf("Compiled %s to %s\n", fname, sname);
+
+#endif
+  return 0;
 }

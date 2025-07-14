@@ -195,7 +195,7 @@ NegativeNumberProtoStr(void)
 		UniChar *	protoStr = PositiveNumberProtoStr();
 		UniChar *	prefixStr = GetUString(gLocaleStrCache->minusPrefix);
 		UniChar *	suffixStr = GetUString(gLocaleStrCache->minusSuffix);
-		UniChar *	str = (UniChar *)calloc(Ustrlen(protoStr) + Ustrlen(prefixStr) + Ustrlen(suffixStr), sizeof(UniChar));
+		UniChar *	str = (UniChar *)calloc(Ustrlen(protoStr) + Ustrlen(prefixStr) + Ustrlen(suffixStr) + 1, sizeof(UniChar));
 		if (str != NULL)
 		{
 			Ustrcpy(str, prefixStr);
@@ -230,7 +230,7 @@ NegativeIntProtoStr(void)
 		UniChar *	protoStr = PositiveIntProtoStr();
 		UniChar *	prefixStr = GetUString(gLocaleStrCache->minusPrefix);
 		UniChar *	suffixStr = GetUString(gLocaleStrCache->minusSuffix);
-		UniChar *	str = (UniChar *)calloc(Ustrlen(protoStr) + Ustrlen(prefixStr) + Ustrlen(suffixStr), sizeof(UniChar));
+		UniChar *	str = (UniChar *)calloc(Ustrlen(protoStr) + Ustrlen(prefixStr) + Ustrlen(suffixStr) + 1, sizeof(UniChar));
 		if (str != NULL)
 		{
 			Ustrcpy(str, prefixStr);
