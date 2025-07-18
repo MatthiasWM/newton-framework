@@ -4,6 +4,7 @@
 #include "Frames/StreamObjects.h"
 #include "Funcs.h"
 #include "NewtonPackage.h"
+#include "NewtonPackageWriter.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -50,7 +51,8 @@ extern void PrintCode(RefArg obj);
 
 
 
-const char *pkg_path = "/Users/matt/dev/Newton/Software/mpg.pkg";
+const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
+//const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";
 
 extern Ref *RSSYMviewer;
 
@@ -91,10 +93,15 @@ int main(int argc, char **argv)
 #endif
 #if 1
   NewtonPackage pkg(pkg_path);
-  Ref part = pkg.partRef(0);
-  PrintObject(part, 0); puts("");
-  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
-  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+  Ref package = pkg.packageRef();
+  PrintObject(package, 0); puts("");
+//  Ref part = pkg.partRef(0);
+//  PrintObject(part, 0); puts("");
+//  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
+//  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+  
+//  writePackageToFile(package, "/Users/matt/dev/Newton/Software/Fahrenheit.out.pkg");
+  writePackageToFile(package, "/Users/matt/dev/Newton/Software/PeggySu.out.pkg");
 #endif
 #if 0
   Ref src = MakeStringFromCString("if 1+2=3 then begin toast(3); trust(4); return test(2); end else return 3");

@@ -278,8 +278,8 @@ extern	bool		IsRealPtr(Ref r);
 
 extern	Ref		AddressToRef(void *);
 extern	void *	RefToAddress(Ref r);
-extern	int		RefToInt(Ref r);			
-extern	UniChar	RefToUniChar(Ref r);		
+extern	int		RefToInt(Ref r);
+extern	UniChar	RefToUniChar(Ref r);
 
 //______________________________________________________________________________
 // Object Class Functions
@@ -337,7 +337,7 @@ extern	void		SetArraySlot(RefArg array, ArrayIndex slot, RefArg value);
 // Sorts an array
 // test = '|<|, '|>|, '|str<|, '|str>|, or any function object returning -1,0,1 (as strcmp)
 // key = NILREF (use the element directly), or a path, or any function object
-extern	void		SortArray(RefArg array, RefArg test, RefArg key);		
+extern	void		SortArray(RefArg array, RefArg test, RefArg key);
 
 //______________________________________________________________________________
 // Frame & Slot Functions
@@ -362,7 +362,7 @@ extern	void		SetLength(RefArg obj, ArrayIndex length);
 // Symbol Functions
 
 extern	Ref		MakeSymbol(const char * name);	// Create or return a symbol
-extern	const char *	SymbolName(Ref sym);					// Return a symbolÕs name
+extern	const char *	SymbolName(Ref sym);					// Return a symbolï¿½s name
 extern	ULong		SymbolHash(Ref sym);					// Return a symbol's hash value
 extern	int		SymbolCompareLexRef(Ref sym1, Ref sym2);
 extern	int		SymbolCompareLex(RefArg sym1, RefArg sym2);
@@ -373,6 +373,7 @@ extern	int		symcmp(const char * s1, const char * s2);		// Case-insensitive compa
 
 extern	Ref		ASCIIString(RefArg str);
 extern	Ref		MakeStringFromCString(const char * str);
+extern	Ref		MakeStringFromCString(const char * str, ArrayIndex numChars);
 extern	Ref		MakeString(const UniChar * str);
 extern	UniChar*	GetUString(RefArg str);
 extern	bool		StrBeginsWith(RefArg str, RefArg prefix);

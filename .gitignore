@@ -10,6 +10,7 @@ xcshareddata
 Xcuserdata
 
 /.vs
+/.vscode
 /out
 /build
 /Newton.xcodeproj/xcuserdata/

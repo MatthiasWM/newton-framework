@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include "PackageParts.h"
 
+#include <string>
+
 /* -----------------------------------------------------------------------------
 	N e w t o n P a c k a g e
 ----------------------------------------------------------------------------- */
@@ -34,6 +36,7 @@ public:
 	const PartEntry *	partEntry(ArrayIndex inPartNo);
 	Ref					partRef(ArrayIndex inPartNo);
 	MemAllocation *	partPkgData(ArrayIndex inPartNo);
+	Ref					packageRef();
 
 private:
 	FILE * pkgFile;
@@ -43,7 +46,7 @@ private:
 	char * relocationData;
 	MemAllocation * pkgPartData;
 	MemAllocation part0Data;
+  char *align4flag;
 };
-
 
 #endif	/* __NEWTONPACKAGE_H */

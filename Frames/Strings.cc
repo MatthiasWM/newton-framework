@@ -81,6 +81,21 @@ MakeStringFromCString(const char * str)
 
 
 /*------------------------------------------------------------------------------
+	Make a new string object from a C string.
+	Args:		str		the C string
+	            numChars number of characters to copy
+	Return:	Ref		the NS string
+------------------------------------------------------------------------------*/
+
+Ref
+MakeStringFromCString(const char * str, ArrayIndex numChars)
+{
+	RefVar obj(AllocateBinary(SYMA(string), (numChars + 1) * sizeof(UniChar)));
+	ConvertToUnicode(str, (UniChar *)BinaryData(obj), numChars);
+	return obj;
+}
+
+/*------------------------------------------------------------------------------
 	Make a new string object from a unicode string.
 	Args:		str		the unicode string
 	Return:	Ref		the NS string
@@ -274,7 +289,7 @@ FNumberStr(RefArg inRcvr, RefArg inNum)
 	Args:		ioStr
 				ioOffset
 				inIgnore		true => ignore placeholders (used in conditional phrases)
-				inSuppress	true => donÕt parse ^ placeholders, delete them
+				inSuppress	true => donï¿½t parse ^ placeholders, delete them
 				inArgs
 	Return:	offset to last char parsed successfully
 ------------------------------------------------------------------------------*/
@@ -393,11 +408,11 @@ ParamStrParse(CRichString * ioStr, ArrayIndex ioOffset, bool inIgnore, bool inSu
 		}
 
 		else if (ch == '|')
-			// weÕve reached a conditional phrase - stop now and return this offset to caller
+			// weï¿½ve reached a conditional phrase - stop now and return this offset to caller
 			break;
 
 		else
-			// itÕs not an interesting character, just move along
+			// itï¿½s not an interesting character, just move along
 			ioOffset++;
 		if (sp04)
 			break;
@@ -521,7 +536,7 @@ ASCIIString(RefArg inStr)
 				ch			the character to find
 				startPos	the index at which to start searching
 	Return:	ArrayIndex	the character position
-								kIndexNotFound => wasnÕt found
+								kIndexNotFound => wasnï¿½t found
 ------------------------------------------------------------------------------*/
 
 ArrayIndex
@@ -530,10 +545,10 @@ CharacterPosition(RefArg str, RefArg ch, int startPos)
 	CRichString	richStr(str);
 	ArrayIndex	strLen = richStr.length();
 	ArrayIndex	pos = kIndexNotFound;
-	
+
 	if (startPos < 0)
 		startPos = 0;
-	
+
 	for ( ; startPos < strLen; startPos++)
 	{
 		if (richStr.getChar(startPos) == ch)
@@ -743,7 +758,7 @@ StrMunger(RefArg s1, ArrayIndex s1start, ArrayIndex s1count,
 				substr	the string to find
 				startPos	the index at which to start searching
 	Return:	the position
-				-1 => wasnÕt found
+				-1 => wasnï¿½t found
 ------------------------------------------------------------------------------*/
 
 ArrayIndex
@@ -754,7 +769,7 @@ StrPosition(RefArg str, RefArg substr, ArrayIndex startPos)
 	ArrayIndex	strLen = richStr.length();
 	ArrayIndex	substrLen = richSubstr.length();
 	ArrayIndex	pos = kIndexNotFound;
-	
+
 	for ( ; startPos + substrLen < strLen; startPos++)
 	{
 		if (richStr.compareSubStringCommon(richSubstr, startPos, substrLen) == 0)
@@ -979,7 +994,7 @@ FCharPos(RefArg inRcvr, RefArg inStr, RefArg inChar, RefArg inStart)
 {
 	ArrayIndex  pos = CharacterPosition(inStr, RCHAR(inChar), RINT(inStart));
 	return (pos == kIndexNotFound) ? NILREF : MAKEINT(pos);
-	
+
 }
 
 Ref
@@ -1112,7 +1127,7 @@ RecurseFindStringInFrame(RefArg inSlot, RefArg ioPath, RefArg outResult, const C
 				  &&  pathDepth < 10)
 			{
 				Ref	wasFound;
-				// itÕs a frame or array, so recurse
+				// itï¿½s a frame or array, so recurse
 				if (NOTNIL(outResult))
 					SetArraySlot(ioPath, inDepth, iter.tag());
 				wasFound = RecurseFindStringInFrame(iter.value(), ioPath, outResult, inStr, pathDepth);
@@ -1288,7 +1303,7 @@ FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont)
 	ArrayIndex fitLen = MeasureRichString(str, 0, strLen, &style, gZeroFPoint, &options, &boundsInfo);
 	if (fitLen < strLen)
 	{
-		// doesnÕt fit -- truncate string and append ellipsis
+		// doesnï¿½t fit -- truncate string and append ellipsis
 		// measure width of ellipsis char
 		StyleRecord * stylePtr = &style;
 		MeasureTextOnce((void *)gEllipsis, 1, &stylePtr, NULL, gZeroFPoint, &options, &boundsInfo);

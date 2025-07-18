@@ -20,6 +20,7 @@ set ( SRCFILES
   Locales.cc
   NTKStubs.cc
   NewtonPackage.cc
+  NewtonPackageWriter.cc
   ObjectSystem.cc
   Power.cc
   Preference.cc
@@ -178,6 +179,7 @@ set ( HEADERFILES
   NewtonExceptions.h
   NewtonMemory.h
   NewtonPackage.h
+  NewtonPackageWriter.h
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h
