@@ -373,16 +373,22 @@ x	• The compiler allows the use of \u escape sequences in symbols when surroun
 UniChar
 CCompiler::consumeChar(void)
 {
+  static UniChar prevChar = 0; // TODO: this is, of course, wrong, but helping us out in a pinch
+
 	theChar = stream->getch();
 
 	// update our location in the source -- we can probably do better than this
 	if (theChar == '\r')		// someone, somewhere, translates \n -> \r
-	{
-		++lineNumber;
-		colmNumber = 0;
-	}
-	else
-		++colmNumber;
+  {
+    ++lineNumber;
+    colmNumber = 0;
+  } else if (theChar == '\n' && prevChar != '\r') { // BAD
+    ++lineNumber; // BAD
+    colmNumber = 0; // BAD
+  } else {
+    ++colmNumber;
+  }
+  prevChar = theChar; // BAD
 
 	return theChar;
 }
@@ -733,7 +739,7 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 	consumeChar();	// consume leading delimiter
 	while (1)
 	{
-		if (buf == NULL || index >= bufLen - 2 * sizeof(UniChar))
+		if ( (buf == NULL) || (index >= ((bufLen-1) / sizeof(UniChar))) )
 		{
 			// grow the UniChar text buffer in 64-char chunks
 			bufLen += 64 * sizeof(UniChar);

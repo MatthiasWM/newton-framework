@@ -292,10 +292,12 @@ FStuffPString(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inStr)
 Ref
 FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass)
 {
-	if (!ISPTR(inHexStr) || (ObjectFlags(inHexStr) & kObjSlotted) != 0 || !IsSymbol(inClass))
+	if (!IsString(inHexStr) || !IsSymbol(inClass))
 		ThrowErr(exFrames, kNSErrBadArgs);
 
-	ArrayIndex i, numOfChars = Length(inHexStr);
+  // Length returns binary length, one UTF-16 char is 2 bytes, remove the trailing NUL
+	ArrayIndex i, numOfChars = Length(inHexStr)/2-1;
+
 	// we’re expecting a sequence of hex chars -- should be paired to make bytes
 	RefVar obj(AllocateBinary(inClass, numOfChars/2));
 	LockRef(inHexStr); LockRef(obj);
@@ -306,7 +308,7 @@ FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass)
 	{
 		uc1 = *s++ - '0'; if (uc1 > 9) uc1 -= 7;
 		uc2 = *s++ - '0'; if (uc2 > 9) uc2 -= 7;
-		*p++ = (uc1 << 8) + (uc2 & 0x0F);
+		*p++ = (uc1 << 4) + (uc2 & 0x0F);
 	}
 	UnlockRef(obj); UnlockRef(inHexStr);
 	return obj;

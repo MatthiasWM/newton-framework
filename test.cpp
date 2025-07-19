@@ -3,8 +3,11 @@
 #include "Frames/Frames.h"
 #include "Frames/StreamObjects.h"
 #include "Funcs.h"
+#include "NewtGlobals.h"
 #include "NewtonPackage.h"
 #include "NewtonPackageWriter.h"
+#include "Utilities/DataStuffing.h"
+#include "Frames/Interpreter.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -59,6 +62,7 @@ extern Ref *RSSYMviewer;
 int main(int argc, char **argv)
 {
   InitObjectSystem();
+
 //  DefGlobalVar(SYMA(printDepth), MAKEINT(7));
 //    RefVar  fn(NSGetGlobalFn(inSym));
 //  newton_try
@@ -91,7 +95,7 @@ int main(int argc, char **argv)
   Disassemble(fn);
   PrintCode(fn); puts("");
 #endif
-#if 1
+#if 0
   NewtonPackage pkg(pkg_path);
   Ref package = pkg.packageRef();
   PrintObject(package, 0); puts("");
@@ -102,6 +106,22 @@ int main(int argc, char **argv)
   
 //  writePackageToFile(package, "/Users/matt/dev/Newton/Software/Fahrenheit.out.pkg");
   writePackageToFile(package, "/Users/matt/dev/Newton/Software/PeggySu.out.pkg");
+#endif
+#if 1
+//  DefGlobalVar(SYMA(trace), RA(NILREF));
+//  DefGlobalVar(SYMA(printDepth), MAKEINT(3));
+//  DefGlobalVar(SYMA(prettyPrint), RA(TRUEREF));
+
+  Ref hexFn = AllocateFrame();
+  SetFrameSlot(hexFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(hexFn, MakeSymbol("function"), (Ref)FStuffHex);
+  SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
+
+  Ref package = ParseFile("/Users/matt/dev/test.ns");
+  PrintObject(package, 0); puts("");
+//  Ref package = ParseFile("/Users/matt/dev/newton-framework/adjusto.txt");
+  writePackageToFile(package, "/Users/matt/dev/newton-framework/adjusto.pkg");
 #endif
 #if 0
   Ref src = MakeStringFromCString("if 1+2=3 then begin toast(3); trust(4); return test(2); end else return 3");

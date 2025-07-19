@@ -96,7 +96,7 @@ CStdioInputStream::getch(void)
 	if (c == EOF)
 		return EOF;
 
-	UniChar	ch[1];
+	UniChar	ch[2]; // ch[0] is the converted character. ch[1] will be kEndOfString
 	ConvertToUnicode(&c, ch, 1);
 	return ch[0];
 }

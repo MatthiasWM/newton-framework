@@ -411,9 +411,9 @@ ConvertFromUnicodeFunc_Segmented16(const UniChar * inStr, void * outStr, void * 
 char
 A_CONST_CHAR(UniChar unic)
 {
-	char ch;
-	ConvertFromUnicode(&unic, &ch, 1);
-	return ch;
+	char ch[2];
+	ConvertFromUnicode(&unic, ch, 1);
+	return ch[0];
 }
 
 #pragma mark -
