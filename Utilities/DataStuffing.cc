@@ -306,8 +306,18 @@ FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass)
 	unsigned char * p = (unsigned char *)BinaryData(obj);
 	for (i = 0; i < numOfChars; i += 2)
 	{
-		uc1 = *s++ - '0'; if (uc1 > 9) uc1 -= 7;
-		uc2 = *s++ - '0'; if (uc2 > 9) uc2 -= 7;
+    UniChar c = *s++;
+    uc1 = 0;
+    if ((c >= '0') && (c <= '9')) uc1 = c - '0';
+    else if ((c >= 'A') && (c <= 'F')) uc1 = c - 'A' + 10;
+    else if ((c >= 'a') && (c <= 'f')) uc1 = c - 'a' + 10;
+
+    c = *s++;
+    uc2 = 0;
+    if ((c >= '0') && (c <= '9')) uc2 = c - '0';
+    else if ((c >= 'A') && (c <= 'F')) uc2 = c - 'A' + 10;
+    else if ((c >= 'a') && (c <= 'f')) uc2 = c - 'a' + 10;
+
 		*p++ = (uc1 << 4) + (uc2 & 0x0F);
 	}
 	UnlockRef(obj); UnlockRef(inHexStr);
