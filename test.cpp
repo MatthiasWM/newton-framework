@@ -108,19 +108,22 @@ int main(int argc, char **argv)
   writePackageToFile(package, "/Users/matt/dev/Newton/Software/PeggySu.out.pkg");
 #endif
 #if 1
-//  DefGlobalVar(SYMA(trace), RA(NILREF));
-//  DefGlobalVar(SYMA(printDepth), MAKEINT(3));
-//  DefGlobalVar(SYMA(prettyPrint), RA(TRUEREF));
-
+  /*
+   This block reads a NewtonScript source code file and saves it as a
+   .pkg package file.
+   */
+  // Register the 'MakeBinaryFromHex' global function.
   Ref hexFn = AllocateFrame();
   SetFrameSlot(hexFn, MakeSymbol("class"), kPlainCFunctionClass);
   SetFrameSlot(hexFn, MakeSymbol("function"), (Ref)FStuffHex);
   SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
-
+  // Read the source code file an parse it into a NewtonScript object tree.
   Ref package = ParseFile("/Users/matt/dev/test.ns");
+  // Print the object for verification with the source code.
   PrintObject(package, 0); puts("");
-//  Ref package = ParseFile("/Users/matt/dev/newton-framework/adjusto.txt");
+  // Create a package and write that to disk. A correct package should read into
+  // a Newton and register as an app or whatever else we wrote.
   writePackageToFile(package, "/Users/matt/dev/newton-framework/adjusto.pkg");
 #endif
 #if 0
@@ -186,3 +189,32 @@ int main(int argc, char **argv)
 #endif
   return 0;
 }
+
+
+// NTK uses these (and possibly more) global methods to assemble views
+// fgUseStepChildren -> kUseStepChildren -> projectSettings.useStepChildren
+// for all options, see newton-toolkit: buildPkg in ProjectDocument.mm
+// stepChildren hold user created view templates (the contents of a group)
+// viewChildren hold system created views, like the clock in the app window
+#if 0
+Ref
+AddStepForm(RefArg parent, RefArg child) {
+  RefVar childArraySym(fgUseStepChildren? SYMA(stepChildren) : SYMA(viewChildren));
+  if (!FrameHasSlot(parent, childArraySym)) {
+    SetFrameSlot(parent, childArraySym, AllocateArray(childArraySym, 0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childArraySym), child);
+}
+
+Ref
+StepDeclare(RefArg parent, RefArg child, RefArg tag) {
+  RefVar childContextArraySym(fgUseStepChildren? SYMA(stepAllocateContext) : SYMA(allocateContext));
+  if (!FrameHasSlot(parent, childContextArraySym)) {
+    SetFrameSlot(parent, childContextArraySym, MakeArray(0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), tag);
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
+}
+#endif
+
+
