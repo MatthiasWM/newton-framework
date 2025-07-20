@@ -307,8 +307,14 @@ void
 CSoupIndex::setNodeNo(NodeHeader * inNode, int inSlot, ULong inNodeNum)
 {
 	KeyField * kf = keyFieldAddr(inNode, inSlot);
-	ULong * nodeNumPtr = (ULong *)kf - 1;
-	*nodeNumPtr = inNodeNum;	// needs to handle misaligned pointer!
+
+  // Matt: nodeNumPtr may not be byte aligned. Use this trick to retrieve the number anyway.
+  void *nodeNumPtr = (ULong *)kf - 1;
+  memcpy(nodeNumPtr, &inNodeNum, sizeof(ULong));
+
+
+	//ULong * nodeNumPtr = (ULong *)kf - 1;
+	//*nodeNumPtr = inNodeNum;	// needs to handle misaligned pointer!
 }
 
 
@@ -672,8 +678,13 @@ CSoupIndex::kfNextDupId(KeyField * inField)
 	if (inField->type == KeyField::kDupData)
 	{
 		char * nextDup = (char *)inField + inField->length;
-		PSSId * nextDupId = (PSSId *)nextDup - 1;
-		return *nextDupId;	// need to handle misaligned pointer
+    // Matt: nodeNumPtr may not be byte aligned. Use this trick to retrieve the number anyway.
+    void *nextDupId = (ULong *)nextDup - 1;
+    ULong retVal;
+    memcpy(&retVal, nextDupId, sizeof(ULong));
+    return retVal;
+		//PSSId * nextDupId = (PSSId *)nextDup - 1;
+		//return *nextDupId;	// need to handle misaligned pointer
 	}
 	return 0;
 }
@@ -684,8 +695,11 @@ CSoupIndex::kfSetNextDupId(KeyField * inField, PSSId inId)
 	if (inField->type == 1)
 	{
 		char * nextDup = (char *)inField + inField->length;
-		PSSId * nextDupId = (PSSId *)nextDup - 1;
-		*nextDupId = inId;	// need to handle misaligned pointer
+    // Matt: nodeNumPtr may not be byte aligned. Use this trick to retrieve the number anyway.
+    void *nextDupId = (ULong *)nextDup - 1;
+    memcpy(nextDupId, &inId, sizeof(ULong));
+		//PSSId * nextDupId = (PSSId *)nextDup - 1;
+		//*nextDupId = inId;	// need to handle misaligned pointer
 	}
 }
 

@@ -166,13 +166,6 @@ set ( SRCFILES
 )
 
 set ( HEADERFILES
-#  test.cpp
-#  Dates.cc
-#  Dictionaries.cc
-#  ErrorString.cc
-#  IA.cc
-#  Locales.cc
-#  NTKStubs.cc
   NewtConfig.h
   Newton.h
   NewtonDebug.h
@@ -185,12 +178,6 @@ set ( HEADERFILES
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h
-  ObjectSystem.cc
-  Power.cc
-  Preference.cc
-  REP.cc
-  SerialNumber.cc
-  Stubs.cc
   Cards/CardEvents.h
   Compression/Compression.h
   Compression/LZCompression/CopyOffset_bin.h
