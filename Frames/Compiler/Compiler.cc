@@ -1520,7 +1520,7 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 			break;
 
 		case TOKENBuildArray:
-			for (i = 0, count = Length(p1); i < count; i += 2)
+			for (i = 0, count = Length(p1); i < count; ++i)
 				WalkNodes(GetArraySlot(p1, i), inContext, inWalker, inPostProcessing);
 			break;
 
