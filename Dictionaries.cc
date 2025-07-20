@@ -39,6 +39,7 @@
 #include "View.h"
 
 
+
 /*------------------------------------------------------------------------------
 	T y p e s
 ------------------------------------------------------------------------------*/
@@ -638,6 +639,9 @@ DoneChains(CDictChain ** inChains)
 ULong
 CountCustomDictionaries(CView * inView)
 {
+#if defined(forNTK)
+  assert(0);
+#else
 	ULong recFlags = inView->viewFlags & vRecognitionAllowed;
 	if ((recFlags & vAnythingAllowed) == vAnythingAllowed
 	||  (recFlags & vCustomDictionaries) == 0)
@@ -648,6 +652,7 @@ CountCustomDictionaries(CView * inView)
 #else
 	RefVar dicts(inView->getVar(SYMA(dictionaries)));
 	return NOTNIL(dicts) ? Length(dicts) : 0;
+#endif
 #endif
 }
 

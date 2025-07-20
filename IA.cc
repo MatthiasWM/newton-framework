@@ -25,6 +25,8 @@
 #include "Entries.h"
 #include "RootView.h"
 
+#include <cassert>
+
 extern "C" void	PrintObject(Ref inObj, int indent);
 
 extern bool	IsRichString(RefArg inObj);
@@ -1801,6 +1803,10 @@ FPhraseFilter(RefArg inRcvr, RefArg inStrs)
 Ref
 FParseUtter(RefArg inRcvr, RefArg inString)
 {
+#if forNTK
+  assert(0);
+  return NILREF;
+#else
 	// open the assistant slip and show the phrase in its entry line
 	gRootView->setParsingUtterance(true);
 	RefVar assistant(GetFrameSlot(gRootView->fContext, SYMA(assistant)));	//sp18
@@ -1947,6 +1953,7 @@ FParseUtter(RefArg inRcvr, RefArg inString)
 	// it didn’t work out
 	DoMessage(assistant, SYMA(Duh), MakeArray(1));
 	return NILREF;
+#endif
 }
 
 
@@ -2007,6 +2014,10 @@ IAInputErrors(RefArg inRcvr, RefArg inAssistant)
 Ref
 FIAatWork(RefArg inRcvr, RefArg inProgressSlip)
 {
+#if forNTK
+  assert(0);
+  return NILREF;
+#else
 	RefVar interpretation;
 
 	newton_try
@@ -2067,6 +2078,7 @@ FIAatWork(RefArg inRcvr, RefArg inProgressSlip)
 	end_try;
 
 	return interpretation;
+#endif
 }
 
 

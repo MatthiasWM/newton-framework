@@ -21,6 +21,7 @@ set ( SRCFILES
   NTKStubs.cc
   NewtonPackage.cc
   NewtonPackageWriter.cc
+  NewtonPackagePrinter.cc
   ObjectSystem.cc
   Power.cc
   Preference.cc
@@ -165,13 +166,13 @@ set ( SRCFILES
 )
 
 set ( HEADERFILES
-  test.cpp
-  Dates.cc
-  Dictionaries.cc
-  ErrorString.cc
-  IA.cc
-  Locales.cc
-  NTKStubs.cc
+#  test.cpp
+#  Dates.cc
+#  Dictionaries.cc
+#  ErrorString.cc
+#  IA.cc
+#  Locales.cc
+#  NTKStubs.cc
   NewtConfig.h
   Newton.h
   NewtonDebug.h
@@ -180,6 +181,7 @@ set ( HEADERFILES
   NewtonMemory.h
   NewtonPackage.h
   NewtonPackageWriter.h
+  NewtonPackagePrinter.h
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h

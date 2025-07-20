@@ -97,11 +97,10 @@ CStoreCompanderWrapper::make(void)
 void
 CStoreCompanderWrapper::destroy(void)
 {
-	char	buf[128];
-
 	if (fDecompressor)
 	{
 #if 0
+    char  buf[128];
 // we don’t implement xxxCleanup companders anywhere, and this is a cause of crashes in NCX
 		sprintf(buf, "%sCleanup", fCompanderName);
 

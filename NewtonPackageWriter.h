@@ -4,7 +4,7 @@
 	Abstract:	Takes a Newton Ref describing the package and writes it in
             package0 or package1 format.
 
-	Written by:	Newton Research Group, 2015.
+	Written by:	Matt, 2025.
 */
 
 #if !defined(__NEWTONPACKAGEWRITER_H)

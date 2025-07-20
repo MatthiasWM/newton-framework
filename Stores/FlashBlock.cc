@@ -73,6 +73,7 @@ CFlashPhysBlock::init(CFlashStore * inStore, ZAddr inPhysAddr)
 	fEraseCount = 1;
 	f14 = false;
 	fIsReserved = false;
+  return noErr;
 }
 
 

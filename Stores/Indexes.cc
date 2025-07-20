@@ -975,8 +975,14 @@ ULong
 CSoupIndex::leftNodeNo(NodeHeader * inNode, int inSlot)
 {
 	KeyField * kf = keyFieldAddr(inNode, inSlot);
-	ULong * nodeNumPtr = (ULong *)kf - 1;
-	return *nodeNumPtr;	// need to handle misaligned pointer
+
+  // Matt: nodeNumPtr may not be byte aligned. Use this trick to retrieve the number anyway.
+  void *nodeNumPtr = (ULong *)kf - 1;
+  ULong nodeNum;
+  memcpy(&nodeNum, nodeNumPtr, sizeof(ULong));
+  return nodeNum;
+  //ULong * nodeNumPtr = (ULong *)kf - 1;
+	//return *nodeNumPtr;	// need to handle misaligned pointer
 }
 
 
@@ -984,8 +990,14 @@ ULong
 CSoupIndex::rightNodeNo(NodeHeader * inNode, int inSlot)
 {
 	KeyField * kf = keyFieldAddr(inNode, inSlot+1);
-	ULong * nodeNumPtr = (ULong *)kf - 1;
-	return *nodeNumPtr;	// need to handle misaligned pointer
+
+  // Matt: nodeNumPtr may not be byte aligned. Use this trick to retrieve the number anyway.
+  void *nodeNumPtr = (ULong *)kf - 1;
+  ULong nodeNum;
+  memcpy(&nodeNum, nodeNumPtr, sizeof(ULong));
+  return nodeNum;
+  //ULong * nodeNumPtr = (ULong *)kf - 1;
+  //return *nodeNumPtr;  // need to handle misaligned pointer
 }
 
 
@@ -2676,7 +2688,7 @@ CSoupIndex::first(SKey * outKey, SKey * outData)
 int
 CSoupIndex::last(SKey * outKey, SKey * outData)
 {
-	int status;
+	long status;
 	bool failed = false;
 	newton_try
 	{

@@ -6,6 +6,7 @@
 #include "NewtGlobals.h"
 #include "NewtonPackage.h"
 #include "NewtonPackageWriter.h"
+#include "NewtonPackagePrinter.h"
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
 
@@ -15,7 +16,7 @@
 #include <string>
 
 extern "C" void InitObjectSystem(void);
-extern "C" void  PrintObject(Ref inObj, int indent);
+extern "C" void PrintObject(Ref inObj, int indent);
 extern Ref ParseString(RefArg inStr);
 extern Ref ParseFile(const char * inFilename);
 extern void Disassemble(RefArg inFunc);
@@ -122,6 +123,7 @@ int main(int argc, char **argv)
   Ref package = ParseFile("/Users/matt/dev/test.ns");
   // Print the object for verification with the source code.
   PrintObject(package, 0); puts("");
+  printPackage(package);
   // Create a package and write that to disk. A correct package should read into
   // a Newton and register as an app or whatever else we wrote.
   writePackageToFile(package, "/Users/matt/dev/newton-framework/adjusto.pkg");
