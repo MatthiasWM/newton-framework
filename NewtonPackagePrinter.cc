@@ -55,25 +55,9 @@
 
  */
 
-#include "Newton.h"
+#include "NewtonPackagePrinter.h"
 
-#include "Objects.h"
-#include "ObjHeader.h"
-#include "ROMResources.h"
-#include "Symbols.h"
-#include "Globals.h"
 #include "Iterators.h"
-
-#include <stdio.h>
-#include <ios>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <cassert>
-#include <string>
-#include <memory>
-#include <vector>
-#include <map>
 
 
 // struct Node { value_t value; std::vector<std::shared_ptr<Node>> children; std::weak_ptr<Node> parent; };
@@ -88,27 +72,97 @@
 // Write the commands to resolve all cyclic dependencies
 
 
-class Node {
-public:
-  Ref ref = NILREF;
-  std::string label;
-  std::vector<std::shared_ptr<Node>> children;
-  //std::vector<std::weak_ptr<Node>> parents;  // Maybe numParents is enough?
-  int numParents = 0;
-  bool special = false;
-  bool printed = false;
-  bool visited = false;
-  int tag = 0; // find cyclic dependency
-  Node(Ref r) : ref(r) { }
-  bool IsSpecial() { return special || (numParents > 1); }
-};
+#if 0
 
-std::map<Ref, std::shared_ptr<Node>> map;
+switch (a) {
+  case 0:
+    switch (b) {
+      case 0: bc.bc = BC::Pop; break;
+      case 1: bc.bc = BC::Dup; break;
+      case 2: bc.bc = BC::Return; break;
+      case 3: bc.bc = BC::PushSelf; break;
+      case 4: bc.bc = BC::SetLexScope; break;
+      case 5: bc.bc = BC::IterNext; break;
+      case 6: bc.bc = BC::IterDone; break;
+      case 7: bc.bc = BC::PopHandlers; break;
+      default:
+        std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
+        break;
+    }
+    break;
+  case 3: bc.bc = BC::Push; bc.arg = (int16_t)b; break;
+  case 4: bc.bc = BC::PushConst; bc.arg = (int16_t)b; break;
+  case 5: bc.bc = BC::Call; bc.arg = (int16_t)b; break;
+  case 6: bc.bc = BC::Invoke; bc.arg = (int16_t)b; break;
+  case 7: bc.bc = BC::Send; bc.arg = (int16_t)b; break;
+  case 8: bc.bc = BC::SendIfDefined; bc.arg = (int16_t)b; break;
+  case 9: bc.bc = BC::Resend; bc.arg = (int16_t)b; break;
+  case 10: bc.bc = BC::ResendIfDefined; bc.arg = (int16_t)b; break;
+  case 11: bc.bc = BC::Branch; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
+  case 12: bc.bc = BC::BranchIfTrue; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
+  case 13: bc.bc = BC::BranchIfFalse; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
+  case 14: bc.bc = BC::FindVar; bc.arg = (int16_t)b; break;
+  case 15: bc.bc = BC::GetVar; bc.arg = (int16_t)b; break;
+  case 16: bc.bc = BC::MakeFrame; bc.arg = (int16_t)b; break;
+  case 17: bc.bc = BC::MakeArray; bc.arg = (int16_t)b; break;
+  case 18: bc.bc = BC::GetPath; bc.arg = (int16_t)b; break;
+  case 19: bc.bc = BC::SetPath; bc.arg = (int16_t)b; break;
+  case 20: bc.bc = BC::SetVar; bc.arg = (int16_t)b; break;
+  case 21: bc.bc = BC::FindAndSetVar; bc.arg = (int16_t)b; break;
+  case 22: bc.bc = BC::IncrVar; bc.arg = (int16_t)b; break;
+  case 23: bc.bc = BC::BranchLoop; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
+  case 24:
+    switch (b) {
+      case 0: bc.bc = BC::Add; break;
+      case 1: bc.bc = BC::Subtract; break;
+      case 2: bc.bc = BC::ARef; break;
+      case 3: bc.bc = BC::SetARef; break;
+      case 4: bc.bc = BC::Equals; break;
+      case 5: bc.bc = BC::Not; break;
+      case 6: bc.bc = BC::NotEquals; break;
+      case 7: bc.bc = BC::Multiply; break;
+      case 8: bc.bc = BC::Divide; break;
+      case 9: bc.bc = BC::Div; break;
+      case 10: bc.bc = BC::LessThan; break;
+      case 11: bc.bc = BC::GreaterThan; break;
+      case 12: bc.bc = BC::GreaterOrEqual; break;
+      case 13: bc.bc = BC::LessOrEqual; break;
+      case 14: bc.bc = BC::BitAnd; break;
+      case 15: bc.bc = BC::BitOr; break;
+      case 16: bc.bc = BC::BitNot; break;
+      case 17: bc.bc = BC::NewIter; break;
+      case 18: bc.bc = BC::Length; break;
+      case 19: bc.bc = BC::Clone; break;
+      case 20: bc.bc = BC::SetClass; break;
+      case 21: bc.bc = BC::AddArraySlot; break;
+      case 22: bc.bc = BC::Stringer; break;
+      case 23: bc.bc = BC::HasPath; break;
+      case 24: bc.bc = BC::ClassOf; break;
+      default:
+        std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
+        break;
+    }
+    break;
+  case 25: bc.bc = BC::NewHandler; bc.arg = (int16_t)b;
+    for (int i=0; i<b; i++) {
+      auto &exc_pc_bc = func[pc-2*i-1];
+      if ((exc_pc_bc.bc == BC::PushConst) && ((exc_pc_bc.arg&3)==0)) {
+        int exc_pc = exc_pc_bc.arg >> 2;
+        func[pc_map[exc_pc]].references++;
+      } else {
+        std::cout << "ERROR: Transcoding new_handler at "<<pc<<": unexpected bytecodes.\n";
+      }
+    }
+    break;
+  default:
+    std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
+    break;
+}
 
-void AddObject(Ref obj);
-void AddRef(Ref ref);
-void PrintDependents(Ref ref);
-void PrintPartialTree(Ref ref);
+#endif
+
+
+
 
 
 /**
@@ -119,7 +173,7 @@ void PrintPartialTree(Ref ref);
 
  This will create a node if none was created yet.
  */
-bool HasNode(Ref ref)
+bool NewtonPackagePrinter::HasNode(Ref ref)
 {
   if (map.find(ref)!=map.end()) return true;
   if (IsReal(ref)) return false;
@@ -130,7 +184,7 @@ bool HasNode(Ref ref)
   return false;
 }
 
-void PrintDependents(Ref ref)
+void NewtonPackagePrinter::PrintDependents(Ref ref)
 {
   //printf("PrintDependents: 0x%016llx\n", (uint64_t)ref);
   if (ISREALPTR(ref)) {
@@ -153,13 +207,91 @@ void PrintDependents(Ref ref)
   }
 }
 
-void PrintIndent(int indent) {
+void NewtonPackagePrinter::PrintIndent(int indent) {
   for (int i=0; i<indent; i++) printf("  ");
 }
 
-void PrintRef(Ref ref, int indent) {
+
+/**
+ \brief Print a frame that contains NewtonScript function.
+ Check if tis is actually NewtonScript. No support for native or binary.
+ Must be `class: #0x32` for newer apps, and
+ \note For now, this simply prints the Frame as is. We need to decompile
+ the `instructions` and merge them with the `literals`. For the old function
+ call, we should also name the locals and arguments correctly.
+ \note Decompiling NewtonScript is not too complicated. It has a few quirks,
+ for example it generates unused bytecode. It's important to test continuously.
+  - decompress the bytecode into "wordcode"
+  - find all jump target addresses and store the source address
+  - generate an AST and reduce it as much as possible
+  - now try to find the typical pattern for control flow, reduce, and try again
+ - if nothing can be applied anymore, the root of the AST should be a single value
+   with the entire tree behind it. It should now be easy to generate source
+    code for every node in the AST.
+ - make sure that the source code is nicely formatted ;-)
+
+ ```
+ `DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));`
+ - `class: #0x32`:
+ - `instructions`: 'instructions bytecode as binary data
+ - `literals`: 'literals, an array of values
+ - `numArgs`: bits 31 to 16 are the number of locals
+ - `argFrame`: always `nil` in this format, bits 15 to 0 are the number of arguments
+ ```
+
+ ```
+ `DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));`
+  - `class`: 'CodeBlock,
+  - `instructions`:
+  - `literals`:
+  - `argFrame`: {
+        _nextArgFrame: {
+        _nextArgFrame: nil,
+        _parent: nil,
+        _implementor: nil
+      },
+      _parent: nil,
+      _implementor: nil,
+      ab: nil,  // Argument 0
+      cd: nil,  // Argument 1 (see numArgs)
+      x: nil,   // Local 0
+      y: nil,   // ...
+      z: nil    // Local 2
+    },
+  - `numArgs`: 2
+  ```
+ */
+void NewtonPackagePrinter::PrintFunction(Ref ref, int indent)
+{
+  printf("{\n");
+  bool first = true;
+  CObjectIterator iter(ref, false);
+  for ( ; !iter.done(); iter.next()) {
+    if (!first) printf(",\n");
+    if (first) first = false;
+    PrintIndent(indent+1);
+    Ref tag = iter.tag();
+    if (IsSymbol(tag))
+      printf("%s", SymbolName(tag));
+    else
+      PrintObject(iter.tag(), 0);
+    printf(": ");
+    Ref slot = iter.value();
+    if (HasNode(slot) && map[slot]->IsSpecial()) {
+      printf("%s", map[slot]->label.c_str());
+    } else {
+      PrintRef(slot, indent+1);
+    }
+  }
+  if (!first) printf("\n");
+  PrintIndent(indent); printf("}");
+}
+
+void NewtonPackagePrinter::PrintRef(Ref ref, int indent) {
   if (ISREALPTR(ref)) {
-    if (IsFrame(ref)) {
+    if (IsFunction(ref)) {
+      PrintFunction(ref, indent);
+    } else if (IsFrame(ref)) {
       printf("{\n");
       bool first = true;
       CObjectIterator iter(ref, false);
@@ -212,7 +344,7 @@ void PrintRef(Ref ref, int indent) {
   }
 }
 
-void PrintPartialTree(Ref ref)
+void NewtonPackagePrinter::PrintPartialTree(Ref ref)
 {
   if (HasNode(ref)) {
     Node *nd = map[ref].get();
@@ -228,7 +360,7 @@ void PrintPartialTree(Ref ref)
 
 
 
-void AddObject(Ref ref)
+void NewtonPackagePrinter::AddObject(Ref ref)
 {
   map[ref]->visited = true;
   if (ISREALPTR(ref)) {
@@ -250,7 +382,7 @@ void AddObject(Ref ref)
   }
 }
 
-void AddRef(Ref ref)
+void NewtonPackagePrinter::AddRef(Ref ref)
 {
   if (HasNode(ref)) {
     if (!map[ref]->visited)
@@ -260,7 +392,7 @@ void AddRef(Ref ref)
   }
 }
 
-void SetNodeLabels() {
+void NewtonPackagePrinter::SetNodeLabels() {
   for (auto &ndi: map) {
     Node *nd = ndi.second.get();
     if (nd->label.empty()) {
@@ -271,17 +403,14 @@ void SetNodeLabels() {
   }
 }
 
-void BuildNodeTree(Ref package)
+void NewtonPackagePrinter::BuildNodeTree(Ref package)
 {
   AddRef(package);
   map[package]->special = true;
   SetNodeLabels();
 }
 
-
-
-
-void printPackage(Ref package)
+void NewtonPackagePrinter::TestPrint(Ref package)
 {
   BuildNodeTree(package);
   map[package]->label = "package";
@@ -289,4 +418,9 @@ void printPackage(Ref package)
   PrintPartialTree(package);
   printf("%s;\n", map[package]->label.c_str());
 
+}
+
+void printPackage(Ref package) {
+  NewtonPackagePrinter p;
+  p.TestPrint(package);
 }

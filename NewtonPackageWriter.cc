@@ -99,7 +99,7 @@ NewtonPackageWriter::NewtonPackageWriter()
   {
     signature: 'package0, // or 'package1
     id: "xxxx",           // optional FourCC string or binary, defaults ot "xxxx"
-    flags {               // flags are optional and set to true or nil, nil by default
+    flags: {              // flags are optional and set to true or nil, nil by default
       autoRemove: nil,
       copyProtect: nil,
       invisible: nil,
@@ -118,6 +118,23 @@ NewtonPackageWriter::NewtonPackageWriter()
     ]
   }
   ```
+  The part header is defined as:
+  ```
+  {
+    type: "form", // FourCC
+    flags: {
+      type: 'nos, // 'protocol, 'raw', and 'package are not supported
+      autoLoad: nil,
+      autoRemove: nil,
+      compressed: nil,
+      notify: nil,
+      autoCopy: nil,
+      nos2: nil
+    },
+    info: "A Newton Toolkit Application.", // ASCII String
+    data: {  ... the NewtonOS FORM ... }
+  }
+ ```
  */
 void NewtonPackageWriter::save(RefArg pkg, const std::string &filename)
 {

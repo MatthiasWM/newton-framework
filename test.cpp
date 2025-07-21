@@ -120,6 +120,7 @@ int main(int argc, char **argv)
   SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
   // Read the source code file an parse it into a NewtonScript object tree.
+  //DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
   Ref package = ParseFile("/Users/matt/dev/test.ns");
   // Print the object for verification with the source code.
   PrintObject(package, 0); puts("");
