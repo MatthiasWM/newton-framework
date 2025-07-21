@@ -256,12 +256,12 @@ CNewInternalFlash::findRange(PAddr inAddr, CFlashRange *& outRange)
 NewtonErr
 CNewInternalFlash::internalInit(CMemoryAllocator * inAllocator, eInitHWOption inOptions)
 {
-	NewtonErr err;
+	NewtonErr err = noErr;
 	XTRY
 	{
 		XFAIL(err = initializeState(inAllocator, inOptions))
 
-		bool bank1, bank2;
+		bool bank1 = false, bank2 = false;
 		XFAIL(err = flashAllowedLocations(&bank1, &bank2))
 
 		VAddr roAddr = kFlashBank1ROAddress;	// R flash memory, bank 1, virtual address

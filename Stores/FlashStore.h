@@ -179,59 +179,59 @@ private:
 	bool			cardWPAlertProc(ULong inArg1, void * inArg2);
 	NewtonErr	sendAlertMgrWPBitch(int inSelector);
 
-	CFlash *				fFlash;				// +10
-	bool					fIsMounted;			// +14
-	bool					fIsStoreRemovable;// +15
-	bool					fIsInTransaction;	// +16
-	bool					f17;					// +17
-	char *				fStoreAddr;			// +18	base address of ROM store
-	ArrayIndex			fSocketNo;			// +1C
-	ArrayIndex			fLSN;					// +20	Log Sequence Number
-	CFlashPhysBlock *	fPhysBlock;			// +24
-	CFlashBlock *		fWorkingBlock;		// +28
-	CFlashBlock **		fBlock;				// +2C
-	CFlashBlock *		fLogicalBlock;		// +30
-	CFlashStoreLookupCache *	fCache;	// +34
-	int					f38;
-	bool					fIsErasing;			// +3C
-	bool					fIsSRAM;				// +3D
-	bool					f3E;
-	bool					fIsROM;				// +3F
+	CFlash *				fFlash { nullptr };				// +10
+	bool					fIsMounted { false };			// +14
+	bool					fIsStoreRemovable { false };// +15
+	bool					fIsInTransaction { false };	// +16
+	bool					f17 { false };					// +17
+	char *				fStoreAddr { nullptr };			// +18	base address of ROM store
+	ArrayIndex			fSocketNo { 0 };			// +1C
+	ArrayIndex			fLSN { 0 };					// +20	Log Sequence Number
+	CFlashPhysBlock *	fPhysBlock { nullptr };			// +24
+	CFlashBlock *		fWorkingBlock { nullptr };		// +28
+	CFlashBlock **		fBlock { nullptr };				// +2C
+	CFlashBlock *		fLogicalBlock { nullptr };		// +30
+	CFlashStoreLookupCache *	fCache { nullptr };	// +34
+	int					f38 { 0 };
+	bool					fIsErasing { false };			// +3C
+	bool					fIsSRAM { false };				// +3D
+	bool					f3E { false };
+	bool					fIsROM { false };				// +3F
 	ULong					fEraseBlockAddr;	// +40
-	ArrayIndex			fAvEraseCount;		// +44
-	ULong					fDirtyBits;			// +48
-	ULong					fVirginBits;		// +4C
-	size_t				fBlockSize;			// +50
-	ArrayIndex			fNumOfBlocks;		// +54
-	ArrayIndex			fBlockSizeShift;	// +58
-	ULong					fBlockSizeMask;	// +5C
-	ULong					f60;
-	ULong					f64;
-	ULong					f68;
-	size_t				fBucketSize;		// +6C
-	ArrayIndex			fBucketCount;		// +70
-	int					fLockCount;			// +74
-	CCardHandler *		fCardHandler;		// +78
-	CStoreObjRef *		fObjListTail;		// +7C
-	CStoreObjRef *		fObjListHead;		// +80
-	CFlashTracker *	fTracker;			// +84
-	CStoreDriver *		fStoreDriver;		// +88
-	SCompactState *	fCompact;			// +8C
-	bool					fIsFormatReqd;		// +90
-	bool					fUseRAM;				// +91
-	bool					f92;
-	bool					fIsFormatting;		// +94
-	bool					f95;
-	bool					f96;
-	bool					fIsInternalFlash;	// +97
-	long					fA0;
-	CStoreDriver		fA4;
-	int					fLockROCount;		// +D4
-	long					fD8;					// +D8	actually CStore *?
-	bool					fE4;
-	bool					fE5;
-	ArrayIndex			fE8;
-	size_t				fCachedUsedSize;	// +EC
+	ArrayIndex			fAvEraseCount { 0 };		// +44
+	ULong					fDirtyBits { 0 };			// +48
+	ULong					fVirginBits { 0 };		// +4C
+	size_t				fBlockSize { 0 };			// +50
+	ArrayIndex			fNumOfBlocks { 0 };		// +54
+	ArrayIndex			fBlockSizeShift { 0 };	// +58
+	ULong					fBlockSizeMask { 0 };	// +5C
+	ULong					f60 { 0 };
+	ULong					f64 { 0 };
+	ULong					f68 { 0 };
+	size_t				fBucketSize { 0 };		// +6C
+	ArrayIndex			fBucketCount { 0 };		// +70
+	int					fLockCount { 0 };			// +74
+	CCardHandler *		fCardHandler { nullptr };		// +78
+	CStoreObjRef *		fObjListTail { nullptr };		// +7C
+	CStoreObjRef *		fObjListHead { nullptr };		// +80
+	CFlashTracker *	fTracker { nullptr };			// +84
+	CStoreDriver *		fStoreDriver { nullptr };		// +88
+	SCompactState *	fCompact { nullptr };			// +8C
+	bool					fIsFormatReqd { false };		// +90
+	bool					fUseRAM { false };				// +91
+	bool					f92 { false };
+	bool					fIsFormatting { false };		// +94
+	bool					f95 { false };
+	bool					f96 { false };
+	bool					fIsInternalFlash { false };	// +97
+	long					fA0 { 0 };
+	CStoreDriver		fA4 { 0 };
+	int					fLockROCount { 0 };		// +D4
+	long					fD8 { 0 };					// +D8	actually CStore *?
+	bool					fE4 { false };
+	bool					fE5 { false };
+	ArrayIndex			fE8 { 0 };
+	size_t				fCachedUsedSize { 0 };	// +EC
 // size +F0
 };
 

@@ -44,9 +44,11 @@
 
 #ifdef hasNoProtocols
 #define VIRTUAL				virtual
+#define OVERRIDE				override
 #define ENDVIRTUAL			= 0
 #else
 #define VIRTUAL				/*nothing*/
+#define OVERRIDE				/*nothing*/
 #define ENDVIRTUAL			/*nothing*/
 #endif
 

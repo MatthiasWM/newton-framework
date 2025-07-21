@@ -979,10 +979,10 @@ MakeByName(const char * inInterface, const char * inImplementation, const char *
 CProtocol *
 AllocInstanceByName(const char * inInterface, const char * inImplementation)
 {
-	CProtocol * instance = NULL;
-	const CClassInfo * classInfo;
-	if (gProtocolRegistry != NULL
-	&&  (classInfo = gProtocolRegistry->satisfy(inInterface, inImplementation, (ULong)0)) != NULL)
+	CProtocol *instance = nullptr;
+	const CClassInfo *classInfo = nullptr;
+	if (gProtocolRegistry != nullptr
+	&&  (classInfo = gProtocolRegistry->satisfy(inInterface, inImplementation, (ULong)0)) != nullptr)
 	{
 		AllocProcPtr allocFn;
 		if ((allocFn = classInfo->allocProc()) != NULL)

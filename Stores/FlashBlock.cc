@@ -255,6 +255,7 @@ ENTER_FUNC
 			StoreObjHeader obj;
 			XFAILIF(err = nextObject(objAddr, &objAddr, true), if (err == kStoreErrNoMoreObjects) err = noErr;)	// loop exit
 			XFAIL(err = readObjectAt(objAddr, &obj))
+      if (obj.id == 0x0fffffff) break; // MATT: KLUDGE
 PRINTF(("object = { id:%d, size:%d, x2:%d }%s\n", obj.id, obj.size, obj.x2, (obj.zapped==0)?" ZAPPED!":""));
 			// step to next
 			fNextObjAddr = objAddr + sizeof(StoreObjHeader) + LONGALIGN(obj.size);

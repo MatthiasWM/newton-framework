@@ -52,8 +52,11 @@ extern void PrintCode(RefArg obj);
 //uintptr_t RSYMGetDefaultStore = MAKEPTR(&SYMGetDefaultStore);
 //uintptr_t RSSYMGetDefaultStore = RSYMGetDefaultStore; // _RSSYMGetDefaultStore
 
-
-
+#ifdef forDebug
+void DebugStr(const char *text) {
+  printf("DBG: %s", text);
+}
+#endif
 
 const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
 //const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";

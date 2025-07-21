@@ -231,22 +231,22 @@ private:
 	void			internalVppOn(void);
 	void			internalVppOff(void);
 
-	CMemoryAllocator *	fAllocator;	//+10
-	ArrayIndex		fNumOfRanges;		//+14
-	size_t			fStoreSize;			//+18
-	size_t			fBlockSize;			//+1C
-	CFlashDriver *	fDriver[6];			//+20
-	CFlashRange *	fRange[2];			//+38
-	int				f40;
-	CFlashRange *	f44;
-	NewtonErr		fEraseErr;			//+48
-	ArrayIndex		fNumOfDrivers;		//+4C
-	CBankControlRegister * fBCR;		//+50
-	eInitHWOption	f54;					//+54
-	bool				f58;
-	UShort *			fBlockMap;			//+5C
-	ArrayIndex		fNumOfBlocks;		//+60
-	ULong				f64;	// possibly UShort: it’s an entry in the fBlockMap
+	CMemoryAllocator *	fAllocator { nullptr };	//+10
+	ArrayIndex		fNumOfRanges { 0 };		//+14
+	size_t			fStoreSize { 0 };			//+18
+	size_t			fBlockSize { 0 };			//+1C
+	CFlashDriver *	fDriver[6] { nullptr };			//+20
+	CFlashRange *	fRange[2] { nullptr };			//+38
+	int				f40 { 0 };
+	CFlashRange *	f44 { 0 };
+	NewtonErr		fEraseErr { 0 };			//+48
+	ArrayIndex		fNumOfDrivers { 0 };		//+4C
+	CBankControlRegister * fBCR { nullptr };		//+50
+	eInitHWOption	f54 { kHWNoMMU };					//+54
+	bool				f58 { false };
+	UShort *			fBlockMap { nullptr };			//+5C
+	ArrayIndex		fNumOfBlocks { 0 };		//+60
+	ULong				f64 { 0 };	// possibly UShort: it’s an entry in the fBlockMap
 //	CULockingSemaphore *	fSemaphore;	//+68
 //size+6C
 };

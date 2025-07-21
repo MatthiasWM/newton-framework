@@ -94,13 +94,13 @@ public:
 	bool			isReserved(void) const;
 
 private:
-	CFlashStore *	fStore;
-	ZAddr				f04;
-	ZAddr				fBlockAddr;			// +08
-	ZAddr				fLogEntryOffset;	// +0C
-	ArrayIndex		fEraseCount;		// +10
-	bool				f14;					// isErased?
-	bool				fIsReserved;		// +15
+	CFlashStore *	fStore { nullptr };
+	ZAddr				f04 { 0 };
+	ZAddr				fBlockAddr { 0 };			// +08
+	ZAddr				fLogEntryOffset { 0 };	// +0C
+	ArrayIndex		fEraseCount{ 0 };		// +10
+	bool				f14 { false };					// isErased?
+	bool				fIsReserved { false };		// +15
 };
 
 
@@ -177,14 +177,14 @@ public:
 private:
 	friend class CFlashIterator;
 
-	CFlashStore *	fStore;					//+00
-	ZAddr				fFirstObjAddr;			//+04
-	ZAddr				fPhysBlockAddr;		//+08
-	ZAddr				fDirBase;				//+0C
-	ZAddr				fNextObjAddr;			//+10
-	size_t			fZappedSize;			//+14
-	PSSId				fAvailableId;			//+18
-	ULong				fValidity;				//+1C
+	CFlashStore *	fStore { nullptr };					//+00
+	ZAddr				fFirstObjAddr { 0 };			//+04
+	ZAddr				fPhysBlockAddr { 0 };		//+08
+	ZAddr				fDirBase { 0 };				//+0C
+	ZAddr				fNextObjAddr { 0 };			//+10
+	size_t			fZappedSize { 0 };			//+14
+	PSSId				fAvailableId { 0 };			//+18
+	ULong				fValidity { 0 };				//+1C
 // size+20
 };
 

@@ -73,18 +73,18 @@ struct StoreObjHeader
 {
 	bool		isValid(CFlashStore * inStore);
 
-	unsigned int x63:1;			//+00
-	unsigned int zapped:1;		//x62
-	unsigned int x61:1;
-	unsigned int x60:1;
-	unsigned int id:28;
+	unsigned int x63:1 { 0 };			//+00
+	unsigned int zapped:1 { 0 };		//x62
+	unsigned int x61:1 { 0 };
+	unsigned int x60:1 { 0 };
+	unsigned int id:28 { 0 };
 
-	unsigned int size:16;		//+32
-	unsigned int transBits:8;	//+48
-	unsigned int x7:1;
-	unsigned int x6:4;
-	unsigned int x2:2;
-	unsigned int validity:1;
+	unsigned int size:16 { 0 };		//+32
+	unsigned int transBits:8 { 0 };	//+48
+	unsigned int x7:1 { 0 };
+	unsigned int x6:4 { 0 };
+	unsigned int x2:2 { 0 };
+	unsigned int validity:1 { 0 };
 };
 
 

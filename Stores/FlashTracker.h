@@ -35,11 +35,11 @@ public:
 private:
 	friend class CFlashIterator;
 
-	ArrayIndex	fSize;
-	ArrayIndex	fIndex;
-	PSSId *		fList;
-	bool			fIsFull;
-	ArrayIndex	fLockCount;
+	ArrayIndex	fSize { 0 };
+	ArrayIndex	fIndex { 0 };
+	PSSId *		fList { nullptr };
+	bool			fIsFull { false };
+	ArrayIndex	fLockCount { 0 };
 };
 
 inline bool			CFlashTracker::isFull(void) const	{ return fIsFull; }

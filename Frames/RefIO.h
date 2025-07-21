@@ -40,7 +40,7 @@ public:
 	PUnflattenPtr *	make(void) override;
 	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
+	Ref			translate(void * inParms, CPipeCallback * inCallback) OVERRIDE;
 };
 
 struct UnflattenPtrParms
@@ -63,7 +63,7 @@ public:
 	PUnflattenRef *	make(void) override;
 	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
+	Ref			translate(void * inParms, CPipeCallback * inCallback) OVERRIDE;
 };
 
 struct UnflattenRefParms
@@ -86,7 +86,7 @@ public:
 	PStreamInRef *	make(void) override;
 	void			destroy(void) override;
 
-	Ref			translate(void * inParms, CPipeCallback * inCallback) override;
+	Ref			translate(void * inParms, CPipeCallback * inCallback) OVERRIDE;
 };
 
 class CEndpoint;
@@ -136,7 +136,7 @@ public:
 	PFlattenPtr *	make(void) override;
 	void			destroy(void) override;
 
-	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) override;
+	OpaqueRef	translate(void * inParms, CPipeCallback * inCallback) OVERRIDE;
 };
 
 struct FlattenPtrParms

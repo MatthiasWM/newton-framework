@@ -45,10 +45,10 @@ public:
 	void			forgetAll(void);
 
 private:
-	FlashStoreLookupCacheEntry *	fCache;
-	ArrayIndex	fCacheSize;		// must be a power of 2
-	ArrayIndex	fIndex;
-	ArrayIndex	fSetSize;
+	FlashStoreLookupCacheEntry *	fCache { nullptr };
+	ArrayIndex	fCacheSize { 0 };		// must be a power of 2
+	ArrayIndex	fIndex { 0 };
+	ArrayIndex	fSetSize { 0 };
 };
 
 
