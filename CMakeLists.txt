@@ -22,6 +22,7 @@ set ( SRCFILES
   NewtonPackage.cc
   NewtonPackageWriter.cc
   NewtonPackagePrinter.cc
+  MattsDecompiler.cc
   ObjectSystem.cc
   Power.cc
   Preference.cc
@@ -175,6 +176,7 @@ set ( HEADERFILES
   NewtonPackage.h
   NewtonPackageWriter.h
   NewtonPackagePrinter.h
+  MattsDecompiler.h
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h

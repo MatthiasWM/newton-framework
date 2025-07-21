@@ -23,6 +23,11 @@ extern void Disassemble(RefArg inFunc);
 extern Ref MakeStringFromCString(const char * str);
 extern void PrintCode(RefArg obj);
 
+
+// Note: in Stores/FlashRange.cc:138, the flash memeory is mapped to a file on the PC:
+// fpath  const char *  "/Users/matt/Library/Application Support/Newton/Internal"  0x000000010115a980
+// If forNTK is not defined, the flash file is filled with 0xFF at every launch.
+
 //  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CEndpointPipe * inPipe, ObjectId * outPackageId, bool inWillRemove = true);
 //  ./Packages/PartHandler.h:NewtonErr  LoadPackage(CPipe * inPipe, ObjectId * outPackageId, bool inWillRemove = true);
 //  ./Packages/PartHandler.h:NewtonErr  LoadPackage(Ptr buffer, SourceType inType, ObjectId * outPackageId);
@@ -123,7 +128,7 @@ int main(int argc, char **argv)
   SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
   // Read the source code file an parse it into a NewtonScript object tree.
-  //DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
+  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
   Ref package = ParseFile("/Users/matt/dev/test.ns");
   // Print the object for verification with the source code.
   PrintObject(package, 0); puts("");
