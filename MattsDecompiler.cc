@@ -10,95 +10,6 @@
 #include "MattsDecompiler.h"
 
 
-#if 0
-
-switch (a) {
-  case 0:
-    switch (b) {
-      case 0: bc.bc = BC::Pop; break;
-      case 1: bc.bc = BC::Dup; break;
-      case 2: bc.bc = BC::Return; break;
-      case 3: bc.bc = BC::PushSelf; break;
-      case 4: bc.bc = BC::SetLexScope; break;
-      case 5: bc.bc = BC::IterNext; break;
-      case 6: bc.bc = BC::IterDone; break;
-      case 7: bc.bc = BC::PopHandlers; break;
-      default:
-        std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
-        break;
-    }
-    break;
-  case 3: bc.bc = BC::Push; bc.arg = (int16_t)b; break;
-  case 4: bc.bc = BC::PushConst; bc.arg = (int16_t)b; break;
-  case 5: bc.bc = BC::Call; bc.arg = (int16_t)b; break;
-  case 6: bc.bc = BC::Invoke; bc.arg = (int16_t)b; break;
-  case 7: bc.bc = BC::Send; bc.arg = (int16_t)b; break;
-  case 8: bc.bc = BC::SendIfDefined; bc.arg = (int16_t)b; break;
-  case 9: bc.bc = BC::Resend; bc.arg = (int16_t)b; break;
-  case 10: bc.bc = BC::ResendIfDefined; bc.arg = (int16_t)b; break;
-  case 11: bc.bc = BC::Branch; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
-  case 12: bc.bc = BC::BranchIfTrue; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
-  case 13: bc.bc = BC::BranchIfFalse; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
-  case 14: bc.bc = BC::FindVar; bc.arg = (int16_t)b; break;
-  case 15: bc.bc = BC::GetVar; bc.arg = (int16_t)b; break;
-  case 16: bc.bc = BC::MakeFrame; bc.arg = (int16_t)b; break;
-  case 17: bc.bc = BC::MakeArray; bc.arg = (int16_t)b; break;
-  case 18: bc.bc = BC::GetPath; bc.arg = (int16_t)b; break;
-  case 19: bc.bc = BC::SetPath; bc.arg = (int16_t)b; break;
-  case 20: bc.bc = BC::SetVar; bc.arg = (int16_t)b; break;
-  case 21: bc.bc = BC::FindAndSetVar; bc.arg = (int16_t)b; break;
-  case 22: bc.bc = BC::IncrVar; bc.arg = (int16_t)b; break;
-  case 23: bc.bc = BC::BranchLoop; bc.arg = (int)pc_map[b]; func[bc.arg].references++; break;
-  case 24:
-    switch (b) {
-      case 0: bc.bc = BC::Add; break;
-      case 1: bc.bc = BC::Subtract; break;
-      case 2: bc.bc = BC::ARef; break;
-      case 3: bc.bc = BC::SetARef; break;
-      case 4: bc.bc = BC::Equals; break;
-      case 5: bc.bc = BC::Not; break;
-      case 6: bc.bc = BC::NotEquals; break;
-      case 7: bc.bc = BC::Multiply; break;
-      case 8: bc.bc = BC::Divide; break;
-      case 9: bc.bc = BC::Div; break;
-      case 10: bc.bc = BC::LessThan; break;
-      case 11: bc.bc = BC::GreaterThan; break;
-      case 12: bc.bc = BC::GreaterOrEqual; break;
-      case 13: bc.bc = BC::LessOrEqual; break;
-      case 14: bc.bc = BC::BitAnd; break;
-      case 15: bc.bc = BC::BitOr; break;
-      case 16: bc.bc = BC::BitNot; break;
-      case 17: bc.bc = BC::NewIter; break;
-      case 18: bc.bc = BC::Length; break;
-      case 19: bc.bc = BC::Clone; break;
-      case 20: bc.bc = BC::SetClass; break;
-      case 21: bc.bc = BC::AddArraySlot; break;
-      case 22: bc.bc = BC::Stringer; break;
-      case 23: bc.bc = BC::HasPath; break;
-      case 24: bc.bc = BC::ClassOf; break;
-      default:
-        std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
-        break;
-    }
-    break;
-  case 25: bc.bc = BC::NewHandler; bc.arg = (int16_t)b;
-    for (int i=0; i<b; i++) {
-      auto &exc_pc_bc = func[pc-2*i-1];
-      if ((exc_pc_bc.bc == BC::PushConst) && ((exc_pc_bc.arg&3)==0)) {
-        int exc_pc = exc_pc_bc.arg >> 2;
-        func[pc_map[exc_pc]].references++;
-      } else {
-        std::cout << "ERROR: Transcoding new_handler at "<<pc<<": unexpected bytecodes.\n";
-      }
-    }
-    break;
-  default:
-    std::cout << "WARNING: unknown byte code a:" << (int)a << ", b:" << (int)b << ", ip:" << (int)ip << "." << std::endl;
-    break;
-}
-
-#endif
-
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
 constexpr int kProvidesUnknown = -1;  // We don't know yet how many values will be on the stack
 constexpr int kSpecialNode = -2;      // First or Last node. Stop searching.
@@ -147,13 +58,14 @@ public:
   ASTJumpTarget(int pc) : ASTNode(pc) { }
   void print(int i) override {
     indent(i);
-    printf("<%04d: jumptarget fwd:", pc_);
+    printf("<%04d: jumptarget from:", pc_);
     for (auto a: origins_) printf(" %d", a);
     printf(">\n");
   }
   int provides() override { return kJumpTarget; }
   void addOrigin(int origin) { origins_.push_back(origin); };
   bool containsOrigin(int o) { return std::find(origins_.begin(), origins_.end(), o) != origins_.end(); }
+  bool containsOnly(int o) { return (origins_.size() == 1) && (origins_[0] == o); }
   void removeOrigin(int o) {
     auto it = std::find(origins_.begin(), origins_.end(), o);
     if (it != origins_.end()) origins_.erase(it);
@@ -190,14 +102,22 @@ protected:
 public:
   ASTBytecodeNode(int pc, int a, int b)
   : ASTNode(pc), a_(a), b_(b) { }
-  void print(int i) override { indent(i); printf("<%04d: bytecode %d %d>\n", pc_, a_, b_); }
+  void print(int i) override { indent(i); printf("<%04d: bytecode A=%d B=%d>\n", pc_, a_, b_); }
+};
+
+// (A=0, B=7): --
+class AST_PopHandlers : public ASTBytecodeNode {
+public:
+  AST_PopHandlers(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
+  void print(int i) override { indent(i); printf("<%04d: BC:PopHandlers>\n", pc_); }
+  int provides() override { return kProvidesNone; }
 };
 
 // (A=3): -- literal
 class AST_Push : public ASTBytecodeNode {
 public:
   AST_Push(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:Push %d>\n", pc_, b_); }
+  void print(int i) override { indent(i); printf("<%04d: BC:Push literal[%d]>\n", pc_, b_); }
   int provides() override { return 1; }
 };
 
@@ -206,7 +126,7 @@ class AST_PushConst : public ASTBytecodeNode {
 public:
   AST_PushConst(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:PushConst %d>\n", pc_, b_); }
+  void print(int i) override { indent(i); printf("<%04d: BC:PushConst value:%d>\n", pc_, b_); }
   int provides() override { return 1; }
 };
 
@@ -216,16 +136,16 @@ public:
   AST_Branch(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
   int provides() override { return kBranch; }
   void print(int i) override {
-    indent(i); printf("<%04d: BC:Branch>\n", pc_);
+    indent(i); printf("<%04d: BC:Branch pc:%d>\n", pc_, b_);
   }
 };
 
-//(A=0, b=3):  -- RCVR
+//(A=0, B=3):  -- RCVR
 class AST_PushSelf : public ASTBytecodeNode {
 public:
   AST_PushSelf(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:PushSelf %d>\n", pc_, b_); }
+  void print(int i) override { indent(i); printf("<%04d: BC:PushSelf>\n", pc_); }
   int provides() override { return 1; }
 };
 
@@ -234,7 +154,16 @@ class AST_FindVar : public ASTBytecodeNode {
 public:
   AST_FindVar(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:FindVar %d>\n", pc_, b_); }
+  void print(int i) override { indent(i); printf("<%04d: BC:FindVar literal[%d]>\n", pc_, b_); }
+  int provides() override { return 1; }
+};
+
+// (A=15): -- value
+class AST_GetVar : public ASTBytecodeNode {
+public:
+  AST_GetVar(int pc, int a, int b)
+  : ASTBytecodeNode(pc, a, b) { }
+  void print(int i) override { indent(i); printf("<%04d: BC:GetVar local[%d]>\n", pc_, b_); }
   int provides() override { return 1; }
 };
 
@@ -264,14 +193,31 @@ public:
   }
 };
 
+// (A=12): value --
+class AST_BranchIfTrue : public AST_Consume1 {
+public:
+  AST_BranchIfTrue(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:BranchIfTrue pc:%d>\n", pc_, b_);
+  }
+  ASTNode *simplify(int *changes) override {
+    return next;
+  }
+};
+
 // (A=13): value --
+// NOTE: if...then...else... creates the same bytecode as "and"
+// NOTE: "if not..." generates "not" and "BranchIfFalse" and is not optimized into "BranchIfTrue"
+// NOTE: BranchIfTrue is generated by an "or" operation
 class AST_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BranchIfFalse(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
   void print(int i) override {
     printChildren(i+1);
-    indent(i); printf("<%04d: BC:BranchIfFalse>\n", pc_);
+    indent(i); printf("<%04d: BC:BranchIfFalse pc:%d>\n", pc_, b_);
   }
   ASTNode *simplify(int *changes) override {
     // p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
@@ -293,7 +239,7 @@ public:
     // ---- Followed by a Jump Target with this node as the origin
     if (nd->provides() != kJumpTarget) return next;
     ASTJumpTarget *jt = static_cast<ASTJumpTarget*>(nd);
-    if (!jt->containsOrigin(pc_)) return next; // TODO: and no other?!
+    if (!jt->containsOnly(pc_)) return next;
     nd = nd->next;
     // ---- We are in the 'else' branch: Skip any number of statements
     while (nd->provides() == kProvidesNone) { numElse++; nd = nd->next; }
@@ -334,14 +280,50 @@ public:
   }
 };
 
+// (A=0, B=0): value --
+class AST_Pop : public AST_Consume1 {
+public:
+  AST_Pop(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Pop>\n", pc_);
+  }
+};
+
+// (A=0, B=1): x -- x x
+class AST_Dup : public AST_Consume1 {
+public:
+  AST_Dup(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  // TODO: provides(2) does not match any consumers!
+  // NOTE: we must find an actuall use case and the corresponding source code
+  // NOTE: it may make sense to split this into a dup1 and dup2 node?!
+  int provides() override { if (in_) return 2; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Dup>\n", pc_);
+  }
+};
+
+// (A=0, B=4): func -- closure
+class AST_SetLexScope : public AST_Consume1 {
+public:
+  AST_SetLexScope(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:AST_SetLexScope>\n", pc_);
+  }
+};
+
 // (A=20): value --
 class AST_SetVar : public AST_Consume1 {
 public:
   AST_SetVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  int provides() override { return kProvidesNone; }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void print(int i) override {
     printChildren(i+1);
-    indent(i); printf("<%04d: BC:SetVar>\n", pc_);
+    indent(i); printf("<%04d: BC:SetVar local[%d]>\n", pc_, b_);
   }
 };
 
@@ -349,10 +331,94 @@ public:
 class AST_FindAndSetVar : public AST_Consume1 {
 public:
   AST_FindAndSetVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  int provides() override { return kProvidesNone; }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void print(int i) override {
     printChildren(i+1);
-    indent(i); printf("<%04d: BC:FindAndSetVar %d>\n", pc_, b_);
+    indent(i); printf("<%04d: BC:FindAndSetVar literal[%d]>\n", pc_, b_);
+  }
+};
+
+// (A=24, B=5): value -- value
+class AST_Not : public AST_Consume1 {
+public:
+  AST_Not(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Not>\n", pc_);
+  }
+};
+
+// (A=24, B=18): object -- length
+class AST_Length : public AST_Consume1 {
+public:
+  AST_Length(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Length>\n", pc_);
+  }
+};
+
+// (A=24, B=19): object -- clone
+class AST_Clone : public AST_Consume1 {
+public:
+  AST_Clone(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Clone>\n", pc_);
+  }
+};
+
+// (A=24, B=22): array -- string
+class AST_Stringer : public AST_Consume1 {
+public:
+  AST_Stringer(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Stringer>\n", pc_);
+  }
+};
+
+// (A=24, B=24): object -- class
+class AST_ClassOf : public AST_Consume1 {
+public:
+  AST_ClassOf(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:ClassOf>\n", pc_);
+  }
+};
+
+
+// (A=22) addend -- addend value
+class AST_IncrVar : public AST_Consume1 {
+public:
+  AST_IncrVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return 2; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:IncrVar local[%d]>\n", pc_, b_);
+  }
+};
+
+// (A=0, B=5) iterator --
+class AST_IterNext : public AST_Consume1 {
+public:
+  AST_IterNext(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:IterNext>\n", pc_);
+  }
+};
+
+// (A=0, B=6) iterator -- done
+class AST_IterDone : public AST_Consume1 {
+public:
+  AST_IterDone(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return 1; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:IterDone>\n", pc_);
   }
 };
 
@@ -385,6 +451,26 @@ public:
   }
 };
 
+// (A=17, B=0xFFFF): size class -- array
+class AST_NewArray : public AST_Consume2 {
+public:
+  AST_NewArray(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:NewArray>\n", pc_);
+  }
+};
+
+// (A=18): object pathExpr -- value
+class AST_GetPath : public AST_Consume2 {
+public:
+  AST_GetPath(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:GetPath b:%d>\n", pc_, b_);
+  }
+};
+
 // (A=24, B=0): num1 num2 -- result
 class AST_Add : public AST_Consume2 {
 public:
@@ -404,6 +490,292 @@ public:
     indent(i); printf("<%04d: BC:Sub>\n", pc_);
   }
 };
+
+// (A=24, B=4): num1 num2 -- result
+class AST_Equals : public AST_Consume2 {
+public:
+  AST_Equals(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Equals>\n", pc_);
+  }
+};
+
+// (A=24, B=6): num1 num2 -- result
+class AST_NotEquals : public AST_Consume2 {
+public:
+  AST_NotEquals(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:NotEquals>\n", pc_);
+  }
+};
+
+// (A=24, B=10): num1 num2 -- result
+class AST_LessThan : public AST_Consume2 {
+public:
+  AST_LessThan(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:LessThan>\n", pc_);
+  }
+};
+
+// (A=24, B=11): num1 num2 -- result
+class AST_GreaterThan : public AST_Consume2 {
+public:
+  AST_GreaterThan(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:GreaterThan>\n", pc_);
+  }
+};
+
+// (A=24, B=12): num1 num2 -- result
+class AST_GreaterOrEqual : public AST_Consume2 {
+public:
+  AST_GreaterOrEqual(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:GreaterOrEqual>\n", pc_);
+  }
+};
+
+// (A=24, B=13): num1 num2 -- result
+class AST_LessOrEqual : public AST_Consume2 {
+public:
+  AST_LessOrEqual(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:LessOrEqual>\n", pc_);
+  }
+};
+
+// (A=24, B=7): num1 num2 -- result
+class AST_Multiply : public AST_Consume2 {
+public:
+  AST_Multiply(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Multiply>\n", pc_);
+  }
+};
+
+// (A=24, B=8): num1 num2 -- result
+class AST_Divide : public AST_Consume2 {
+public:
+  AST_Divide(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Divide>\n", pc_);
+  }
+};
+
+// (A=24, B=9): num1 num2 -- result
+class AST_Div : public AST_Consume2 {
+public:
+  AST_Div(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Div>\n", pc_);
+  }
+};
+
+// (A=24, B=14): num1 num2 -- result
+class AST_BitAnd : public AST_Consume2 {
+public:
+  AST_BitAnd(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:BitAnd>\n", pc_);
+  }
+};
+
+// (A=24, B=15): num1 num2 -- result
+class AST_BitOr : public AST_Consume2 {
+public:
+  AST_BitOr(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:BitOr>\n", pc_);
+  }
+};
+
+// (A=24, B=16): num1 num2 -- result
+class AST_BitNot : public AST_Consume2 {
+public:
+  AST_BitNot(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:BitNot>\n", pc_);
+  }
+};
+
+// (A=24, B=2): object index -- element
+class AST_ARef : public AST_Consume2 {
+public:
+  AST_ARef(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:ARef>\n", pc_);
+  }
+};
+
+// (A=24, B=20): object class -- object
+class AST_SetClass : public AST_Consume2 {
+public:
+  AST_SetClass(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:SetClass>\n", pc_);
+  }
+};
+
+// (A=24, B=21): array object -- object
+class AST_AddArraySlot : public AST_Consume2 {
+public:
+  AST_AddArraySlot(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:AddArraySlot>\n", pc_);
+  }
+};
+
+// (A=24, B=23): object pathExpr -- result
+class AST_HasPath : public AST_Consume2 {
+public:
+  AST_HasPath(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:HasPath>\n", pc_);
+  }
+};
+
+// (A=24, B=17): object deeply -- iterator
+class AST_NewIter : public AST_Consume2 {
+public:
+  AST_NewIter(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:NewIter>\n", pc_);
+  }
+};
+
+// (A=19)
+//    B=0: object pathExpr value --
+//    B=1: object pathExpr value -- value
+class AST_SetPath : public ASTBytecodeNode {
+protected:
+  ASTNode *object_ { nullptr };
+  ASTNode *path_ { nullptr };
+  ASTNode *value_ { nullptr };
+public:
+  AST_SetPath(int pc, int a, int b)
+  : ASTBytecodeNode(pc, a, b) { }
+  void printChildren(int i) {
+    if (object_) object_->print(i);
+    if (path_) path_->print(i);
+    if (value_) value_->print(i);
+  }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:SetARef>\n", pc_);
+  }
+  int provides() override {
+    if (object_ && path_ && value_)
+      return (b_ == 0) ? kProvidesNone : 1;
+    else
+      return kProvidesUnknown;
+  }
+  int consumes() override { return 3; }
+  ASTNode *simplify(int *changes) override {
+    if (object_ && path_ && value_) return next; // nothing more to do
+    if (   (prev->provides() == 1)
+        && (prev->prev->provides() == 1)
+        && (prev->prev->provides() == 1)) {
+      value_ = prev; prev->unlink();
+      path_ = prev; prev->unlink();
+      object_ = prev; prev->unlink();
+      (*changes)++;
+      return this;
+    }
+    return next;
+  }
+};
+
+// (A=24, B=3): object index element -- element
+class AST_SetARef : public ASTBytecodeNode {
+protected:
+  ASTNode *object_ { nullptr };
+  ASTNode *index_ { nullptr };
+  ASTNode *element_ { nullptr };
+public:
+  AST_SetARef(int pc, int a, int b)
+  : ASTBytecodeNode(pc, a, b) { }
+  void printChildren(int i) {
+    if (object_) object_->print(i);
+    if (index_) index_->print(i);
+    if (element_) element_->print(i);
+  }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:SetARef>\n", pc_);
+  }
+  int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
+  int consumes() override { return 3; }
+  ASTNode *simplify(int *changes) override {
+    if (object_ && index_ && element_) return next; // nothing more to do
+    if (   (prev->provides() == 1)
+        && (prev->prev->provides() == 1)
+        && (prev->prev->provides() == 1)) {
+      element_ = prev; prev->unlink();
+      index_ = prev; prev->unlink();
+      object_ = prev; prev->unlink();
+      (*changes)++;
+      return this;
+    }
+    return next;
+  }
+};
+
+// (A=23) incr index limit --
+class AST_BranchLoop : public ASTBytecodeNode {
+protected:
+  ASTNode *incr_ { nullptr };
+  ASTNode *index_ { nullptr };
+  ASTNode *limit_ { nullptr };
+public:
+  AST_BranchLoop(int pc, int a, int b)
+  : ASTBytecodeNode(pc, a, b) { }
+  void printChildren(int i) {
+    if (incr_) incr_->print(i);
+    if (index_) index_->print(i);
+    if (limit_) limit_->print(i);
+  }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BranchLoop pc:%d>\n", pc_, b_);
+  }
+  int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
+  int consumes() override { return 3; }
+  ASTNode *simplify(int *changes) override {
+    // SetVar n   = expr (start)
+    // SetVar n+1 = expr (limit)
+    // SetVar n+2 = expr (index)
+    // GetVar n+2
+    // GetVar n
+    // A: Branch C
+    // B: JumpTarget from D
+    // x * stmt (body)
+    // GetVar n+2
+    // IncrVar
+    // C: JumpTarget from A
+    // GetVar n+1
+    // D: BranchLoop B
+    return next;
+  }
+};
+
 
 class AST_ConsumeN : public ASTBytecodeNode {
 protected:
@@ -446,7 +818,19 @@ public:
   : AST_ConsumeN(pc, a, b, b+1) { }
   void print(int i) override {
     printChildren(i+1);
-    indent(i); printf("<%04d: BC:Call %d>\n", pc_, numIns_);
+    indent(i); printf("<%04d: BC:Call nArgs:%d>\n", pc_, numIns_);
+  }
+};
+
+// (A=6): arg1 arg2 ... argN name receiver -- result
+// call ... with (...)
+class AST_Invoke : public AST_ConsumeN {
+public:
+  AST_Invoke(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+2) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Invoke nArgs:%d>\n", pc_, numIns_);
   }
 };
 
@@ -457,14 +841,77 @@ public:
   : AST_ConsumeN(pc, a, b, b+2) { }
   void print(int i) override {
     printChildren(i+1);
-    indent(i); printf("<%04d: BC:Send %d>\n", pc_, numIns_);
+    indent(i); printf("<%04d: BC:Send nArgs:%d>\n", pc_, numIns_);
   }
 };
 
-// (A:13) AST_BranchIfFalse
-// (A:11) AST_Branch
-// ASTIfTheElse:
-// p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
+// (A=8): arg1 arg2 ... argN name receiver -- result
+class AST_SendIfDefined : public AST_ConsumeN {
+public:
+  AST_SendIfDefined(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+2) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:SendIfDefined nArgs:%d>\n", pc_, numIns_);
+  }
+};
+
+// (A=9): arg1 arg2 ... argN name -- result
+// inherited:Print(3);
+class AST_Resend : public AST_ConsumeN {
+public:
+  AST_Resend(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:Resend nArgs:%d>\n", pc_, numIns_);
+  }
+};
+
+// (A=10): arg1 arg2 ... argN name -- result
+// inherited:?Print(3);
+class AST_ResendIfDefined : public AST_ConsumeN {
+public:
+  AST_ResendIfDefined(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:ResendIfDefined nArgs:%d>\n", pc_, numIns_);
+  }
+};
+
+// (A=16, B=numVal) val1 val2 ... valN map -- frame
+class AST_MakeFrame : public AST_ConsumeN {
+public:
+  AST_MakeFrame(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:MakeFrame nArgs:%d>\n", pc_, numIns_-1);
+  }
+};
+
+// (A=17, B=numVal):  val1 val2 ... valN class -- array): arg1 arg2 ... argN name -- result
+class AST_MakeArray : public AST_ConsumeN {
+public:
+  AST_MakeArray(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:MakeArray nArgs:%d>\n", pc_, numIns_-1);
+  }
+};
+
+// (A=25): sym1 pc1 sym2 pc2 ... symN pcN --
+class AST_NewHandler : public AST_ConsumeN {
+public:
+  AST_NewHandler(int pc, int a, int b)
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:NewHandler nArgs:%d>\n", pc_, numIns_-1);
+  }
+};
 
 // -----------------------------------------------------------------------------
 
@@ -567,25 +1014,71 @@ ASTBytecodeNode *Decompiler::NewBytecodeNode(int pc, int a, int b)
   switch (a) {
     case 0:
       switch (b) {
+        case 0: return new AST_Pop(pc, a, b);
+        case 1: return new AST_Dup(pc, a, b);
         case 2: return new AST_Return(pc, a, b);
         case 3: return new AST_PushSelf(pc, a, b);
+        case 4: return new AST_SetLexScope(pc, a, b);//        case 4: bc.bc = BC::SetLexScope; break;
+        case 5: return new AST_IterNext(pc, a, b);
+        case 6: return new AST_IterDone(pc, a, b);
+        case 7: return new AST_PopHandlers(pc, a, b);
       };
       break;
     case 3: return new AST_Push(pc, a, b);
     case 4: return new AST_PushConst(pc, a, b);
     case 5: return new AST_Call(pc, a, b);
+    case 6: return new AST_Invoke(pc, a, b);
     case 7: return new AST_Send(pc, a, b);
+    case 8: return new AST_SendIfDefined(pc, a, b);
+    case 9: return new AST_Resend(pc, a, b);
+    case 10: return new AST_ResendIfDefined(pc, a, b);
     case 11: return new AST_Branch(pc, a, b);
+    case 12: return new AST_BranchIfTrue(pc, a, b);
     case 13: return new AST_BranchIfFalse(pc, a, b);
     case 14: return new AST_FindVar(pc, a, b);
+    case 15: return new AST_GetVar(pc, a, b);
+    case 16: return new AST_MakeFrame(pc, a, b);
+    case 17:
+      if (b == 0xFFFF)
+        return new AST_NewArray(pc, a, b);
+      else
+        return new AST_MakeArray(pc, a, b);
+    case 18: return new AST_GetPath(pc, a, b);
+    case 19: return new AST_SetPath(pc, a, b);
     case 20: return new AST_SetVar(pc, a, b);
     case 21: return new AST_FindAndSetVar(pc, a, b);
+    case 22: return new AST_IncrVar(pc, a, b);
+    case 23: return new AST_BranchLoop(pc, a, b);
     case 24:
       switch (b) {
         case 0: return new AST_Add(pc, a, b);
         case 1: return new AST_Sub(pc, a, b);
+        case 2: return new AST_ARef(pc, a, b);
+        case 3: return new AST_SetARef(pc, a, b);
+        case 4: return new AST_Equals(pc, a, b);
+        case 5: return new AST_Not(pc, a, b);
+        case 6: return new AST_NotEquals(pc, a, b);
+        case 7: return new AST_Multiply(pc, a, b);
+        case 8: return new AST_Divide(pc, a, b);
+        case 9: return new AST_Div(pc, a, b);
+        case 10: return new AST_LessThan(pc, a, b);
+        case 11: return new AST_GreaterThan(pc, a, b);
+        case 12: return new AST_GreaterOrEqual(pc, a, b);
+        case 13: return new AST_LessOrEqual(pc, a, b);
+        case 14: return new AST_BitAnd(pc, a, b);
+        case 15: return new AST_BitOr(pc, a, b);
+        case 16: return new AST_BitNot(pc, a, b);
+        case 17: return new AST_NewIter(pc, a, b);
+        case 18: return new AST_Length(pc, a, b);
+        case 19: return new AST_Clone(pc, a, b);
+        case 20: return new AST_SetClass(pc, a, b);
+        case 21: return new AST_AddArraySlot(pc, a, b);
+        case 22: return new AST_Stringer(pc, a, b);
+        case 23: return new AST_HasPath(pc, a, b);
+        case 24: return new AST_ClassOf(pc, a, b);
       }
       break;
+    case 25: return new AST_NewHandler(pc, a, b);
   }
   return new ASTBytecodeNode(pc, a, b);
 }
