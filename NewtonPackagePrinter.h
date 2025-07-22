@@ -47,7 +47,7 @@ public:
   void PrintDependents(Ref ref);
   void PrintIndent(int indent);
   void PrintFunction(Ref ref, int indent);
-  void PrintRef(Ref ref, int indent);
+  void PrintRef(Ref ref, int indent, bool noTick = false);
   void PrintPartialTree(Ref ref);
   void AddObject(Ref ref);
   void AddRef(Ref ref);

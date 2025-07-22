@@ -151,7 +151,7 @@ void NewtonPackagePrinter::PrintFunction(Ref ref, int indent)
   mDecompile(ref, *this);
 }
 
-void NewtonPackagePrinter::PrintRef(Ref ref, int indent) {
+void NewtonPackagePrinter::PrintRef(Ref ref, int indent, bool noTick) {
   if (ISREALPTR(ref)) {
     if (IsFunction(ref)) {
       PrintFunction(ref, indent);
@@ -200,6 +200,8 @@ void NewtonPackagePrinter::PrintRef(Ref ref, int indent) {
       }
       if (!first) printf("\n");
       PrintIndent(indent); printf("]");
+    } else if (noTick && IsSymbol(ref)) {
+      printf("%s", SymbolName(ref));
     } else {
       PrintObject(ref, indent);
     }
