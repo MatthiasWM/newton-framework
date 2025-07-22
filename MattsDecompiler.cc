@@ -102,6 +102,9 @@ switch (a) {
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
 constexpr int kProvidesUnknown = -1;  // We don't know yet how many values will be on the stack
 constexpr int kSpecialNode = -2;      // First or Last node. Stop searching.
+constexpr int kJumpTarget = -3;
+constexpr int kBranch = -4;
+constexpr int kBranchIfFalse = -5;
 
 class ASTNode {
 protected:
@@ -111,6 +114,7 @@ public:
   ASTNode(int pc) : pc_(pc) { }
   ASTNode *prev { nullptr };
   ASTNode *next { nullptr };
+  int pc() { return pc_; }
   virtual ~ASTNode() = default;
   virtual void print(int i) { indent(i); printf("<Error:base>\n"); }
   virtual int provides() { return kProvidesUnknown; }
@@ -118,6 +122,11 @@ public:
   virtual ASTNode *simplify(int *changes) { (void)changes; return next; }
   void indent(int indent) { for (int i=0; i<indent; i++) printf("  "); }
   void unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; }
+  void replaceWith(ASTNode *nd) {
+    prev->next = nd; next->prev = nd;
+    nd->prev = prev; nd->next = next;
+    prev = next = nullptr;
+  }
 };
 
 class ASTFirstNode : public ASTNode {
@@ -133,21 +142,45 @@ public:
 };
 
 class ASTJumpTarget : public ASTNode {
-  std::vector<int> fwd_;
-  std::vector<int> back_;
+  std::vector<int> origins_;
 public:
   ASTJumpTarget(int pc) : ASTNode(pc) { }
   void print(int i) override {
     indent(i);
     printf("<%04d: jumptarget fwd:", pc_);
-    for (auto a: fwd_) printf(" %d", a);
-    printf(", back:");
-    for (auto a: back_) printf(" %d", a);
+    for (auto a: origins_) printf(" %d", a);
     printf(">\n");
   }
-  void addOrigin(int origin) {
-    if (origin < pc_) fwd_.push_back(origin); else back_.push_back(origin);
-  };
+  int provides() override { return kJumpTarget; }
+  void addOrigin(int origin) { origins_.push_back(origin); };
+  bool containsOrigin(int o) { return std::find(origins_.begin(), origins_.end(), o) != origins_.end(); }
+  void removeOrigin(int o) {
+    auto it = std::find(origins_.begin(), origins_.end(), o);
+    if (it != origins_.end()) origins_.erase(it);
+  }
+  bool empty() { return origins_.empty(); }
+
+};
+
+class ASTIfThenElseNode: public ASTNode {
+  ASTNode *cond_ { nullptr };
+  std::vector<ASTNode*> ifBranch_;
+  std::vector<ASTNode*> elseBranch_;
+public:
+  ASTIfThenElseNode(int pc) : ASTNode(pc) { }
+  void print(int i) override {
+    indent(i); printf("<%04d: if>\n", pc_);
+    cond_->print(i+1);
+    indent(i); printf("<%04d: then>\n", pc_);
+    for (auto *nd: ifBranch_) nd->print(i+1);
+    indent(i); printf("<%04d: else>\n", pc_);
+    for (auto *nd: elseBranch_) nd->print(i+1);
+    indent(i); printf("<%04d: IfThenElse %zu %zu>\n", pc_, ifBranch_.size(), elseBranch_.size());
+  }
+  void setCond(ASTNode *nd) { cond_ = nd; }
+  void addIf(ASTNode *nd) { ifBranch_.push_back(nd); }
+  void addElse(ASTNode *nd) { elseBranch_.push_back(nd); }
+  int provides() override { return 1; }
 };
 
 class ASTBytecodeNode : public ASTNode {
@@ -175,6 +208,16 @@ public:
   : ASTBytecodeNode(pc, a, b) { }
   void print(int i) override { indent(i); printf("<%04d: BC:PushConst %d>\n", pc_, b_); }
   int provides() override { return 1; }
+};
+
+// (A=11): --
+class AST_Branch : public ASTBytecodeNode {
+public:
+  AST_Branch(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
+  int provides() override { return kBranch; }
+  void print(int i) override {
+    indent(i); printf("<%04d: BC:Branch>\n", pc_);
+  }
 };
 
 //(A=0, b=3):  -- RCVR
@@ -221,7 +264,64 @@ public:
   }
 };
 
-// TODO: the very last return probably doesn;t need to be printed
+// (A=13): value --
+class AST_BranchIfFalse : public AST_Consume1 {
+public:
+  AST_BranchIfFalse(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
+  void print(int i) override {
+    printChildren(i+1);
+    indent(i); printf("<%04d: BC:BranchIfFalse>\n", pc_);
+  }
+  ASTNode *simplify(int *changes) override {
+    // p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
+    // -- Resolve the condition first
+    if (!in_) return AST_Consume1::simplify(changes);
+    // -- We have the source of the condition. Now check if the rest matches if...then...else...
+    int numIf = 1;
+    int numElse = 1;
+    ASTNode *nd = next;
+    // ---- Skip any number of statements
+    while (nd->provides() == kProvidesNone) { numIf++; nd = nd->next; }
+    // ---- There must be exactly one expression
+    if (nd->provides() != 1) return next;
+    nd = nd->next;
+    // ---- Followed by an unconditional branch
+    if (nd->provides() != kBranch) return next;
+    int branch_pc = nd->pc();
+    nd = nd->next;
+    // ---- Followed by a Jump Target with this node as the origin
+    if (nd->provides() != kJumpTarget) return next;
+    ASTJumpTarget *jt = static_cast<ASTJumpTarget*>(nd);
+    if (!jt->containsOrigin(pc_)) return next; // TODO: and no other?!
+    nd = nd->next;
+    // ---- We are in the 'else' branch: Skip any number of statements
+    while (nd->provides() == kProvidesNone) { numElse++; nd = nd->next; }
+    // ---- There must be exactly one expression
+    if (nd->provides() != 1) return next;
+    nd = nd->next;
+    // ---- Followed by a Jump Target with the unconditional jump as the origin
+    if (nd->provides() != kJumpTarget) return next;
+    ASTJumpTarget *jt2 = static_cast<ASTJumpTarget*>(nd);
+    if (!jt2->containsOrigin(branch_pc)) return next;
+
+    // -- If we made it here, this is an if...then...else... construct
+    ASTIfThenElseNode *ite = new ASTIfThenElseNode(pc());
+    ite->setCond(in_);
+    for (int i=0; i<numIf; i++) { ite->addIf(next); next->unlink(); }
+    next->unlink(); // branch
+    next->unlink(); // jump target
+    for (int i=0; i<numElse; i++) { ite->addElse(next); next->unlink(); }
+    // ---- Unlink this only if there are no more origins!
+    jt2->removeOrigin(branch_pc);
+    if (jt2->empty()) jt2->unlink(); // jump target
+    replaceWith(ite); // replace this node with the ite node
+    (*changes)++;
+    return ite->next;
+  }
+};
+
+// TODO: the very last return probably doesn't need to be printed
 // TODO: return NIL is implied if there is no return statement
 // (A=0, B=2): --
 class AST_Return : public AST_Consume1 {
@@ -361,6 +461,10 @@ public:
   }
 };
 
+// (A:13) AST_BranchIfFalse
+// (A:11) AST_Branch
+// ASTIfTheElse:
+// p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
 
 // -----------------------------------------------------------------------------
 
@@ -471,6 +575,8 @@ ASTBytecodeNode *Decompiler::NewBytecodeNode(int pc, int a, int b)
     case 4: return new AST_PushConst(pc, a, b);
     case 5: return new AST_Call(pc, a, b);
     case 7: return new AST_Send(pc, a, b);
+    case 11: return new AST_Branch(pc, a, b);
+    case 13: return new AST_BranchIfFalse(pc, a, b);
     case 14: return new AST_FindVar(pc, a, b);
     case 20: return new AST_SetVar(pc, a, b);
     case 21: return new AST_FindAndSetVar(pc, a, b);
