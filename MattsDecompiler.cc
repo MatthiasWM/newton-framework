@@ -37,9 +37,9 @@ class Decompiler {
   int numArgs_ = 0;
   RefVar args_;
   int numLocals_ = 0;
-  RefVar locals_;
+  RefVar locals_;         // Frame of symbol and value
   int numLiterals_ = 0;
-  RefVar literals_;
+  RefVar literals_;       // Array of Refs
   ASTNode *first_ { nullptr };
   ASTNode *last_ { nullptr };
   std::map<int, ASTJumpTarget*> targets;
@@ -53,6 +53,9 @@ public:
   void printLiteral(int ix) {
     printer_.PrintRef(GetArraySlot(literals_, ix), 0, true);
   }
+  void printLocal(int ix) {
+    printer_.PrintRef(GetArraySlot(locals_, ix), 0, true);
+  }
   void decompile(Ref ref);
   void solve();
   void generateAST(Ref instructions);
@@ -60,11 +63,25 @@ public:
 
 class PState {
 public:
+  enum class Type { bytecode, deep, script };
   Decompiler &dc;
+  Type type { Type::bytecode };
   int indent { 0 };
   int precedence { 0 };
+  bool indentPending_ { false };
+  const char *textPending_ { nullptr };
 
-  PState(Decompiler &decompiler) : dc( decompiler ) { }
+  PState(Decompiler &decompiler, Type t) : dc( decompiler ), type( t ) { }
+  void ClearDivider() { textPending_ = nullptr; }
+  void Begin(int delta=0) {
+    indent += delta;
+    if (textPending_) { printf("%s", textPending_); textPending_ = nullptr; }
+    if (indentPending_) { puts(""); for (int i=0; i<indent; i++) printf("  "); indentPending_ = false; }
+  }
+  void NewLine(const char *div, int delta=0) { textPending_ = div; indentPending_ = true; indent += delta; }
+  void NewLine(int delta=0) { NewLine(nullptr, delta); }
+  void Divider(const char *div) { textPending_ = div; }
+  void End(int delta=0) { indent += delta; }
 };
 
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
@@ -85,11 +102,12 @@ public:
   ASTNode *next { nullptr };
   int pc() { return pc_; }
   virtual ~ASTNode() = default;
-  virtual void print(int i) { indent(i); printf("<Error:base>\n"); }
   virtual int provides() { return kProvidesUnknown; }
   virtual int consumes() { return 0; }
   virtual ASTNode *simplify(int *changes) { (void)changes; return next; }
-  void indent(int indent) { for (int i=0; i<indent; i++) printf("  "); }
+  void indent(int inIndent) { for (int i=0; i<inIndent; i++) printf("  "); }
+  void newline(int inIndent) { putchar('\n'); indent(inIndent); }
+  void printHeader() { printf("###[%2d] ", provides()); }
   void unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; }
   void replaceWith(ASTNode *nd) {
     prev->next = nd; next->prev = nd;
@@ -97,32 +115,41 @@ public:
     prev = next = nullptr;
   }
   virtual void printSource(PState &p) { }
+
+  virtual bool Resolved() = 0;
+  virtual void Print(PState &p) = 0;
 };
 
 class ASTFirstNode : public ASTNode {
 public:
-  void print(int i) override { indent(i); printf("<first>\n"); }
   int provides() override { return kSpecialNode; }
-  void printSource(PState &p) override { printf("begin\n"); indent(++p.indent);  }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin(); printf("begin"); p.NewLine(+1);
+    } else {
+      p.Begin(); printHeader(); printf("ASTFirstNode ###"); p.NewLine();
+    }
+  }
 };
 
 class ASTLastNode : public ASTNode {
 public:
-  void print(int i) override { indent(i); printf("<last>\n"); }
   int provides() override { return kSpecialNode; }
-  void printSource(PState &p) override { printf("end\n"); indent(--p.indent); }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin(-1); printf("end"); p.NewLine();
+    } else {
+      p.Begin(); printHeader(); printf("ASTLastNode ###\n"); p.NewLine();
+    }
+  }
 };
 
 class ASTJumpTarget : public ASTNode {
   std::vector<int> origins_;
 public:
   ASTJumpTarget(int pc) : ASTNode(pc) { }
-  void print(int i) override {
-    indent(i);
-    printf("<%04d: jumptarget from:", pc_);
-    for (auto a: origins_) printf(" %d", a);
-    printf(">\n");
-  }
   int provides() override { return kJumpTarget; }
   void addOrigin(int origin) { origins_.push_back(origin); };
   bool containsOrigin(int o) { return std::find(origins_.begin(), origins_.end(), o) != origins_.end(); }
@@ -132,7 +159,15 @@ public:
     if (it != origins_.end()) origins_.erase(it);
   }
   bool empty() { return origins_.empty(); }
-
+  /// Node can never be resolved, but will be removed if all origins were resolved
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    p.Begin();
+    printHeader(); printf("%3d: ASTJumpTarget from", pc_);
+    for (auto a: origins_) printf(" %d", a);
+    printf(" ###");
+    p.NewLine();
+  }
 };
 
 class ASTIfThenElseNode: public ASTNode {
@@ -141,37 +176,42 @@ class ASTIfThenElseNode: public ASTNode {
   std::vector<ASTNode*> elseBranch_;
 public:
   ASTIfThenElseNode(int pc) : ASTNode(pc) { }
-  void print(int i) override {
-    indent(i); printf("<%04d: if>\n", pc_);
-    cond_->print(i+1);
-    indent(i); printf("<%04d: then>\n", pc_);
-    for (auto *nd: ifBranch_) nd->print(i+1);
-    indent(i); printf("<%04d: else>\n", pc_);
-    for (auto *nd: elseBranch_) nd->print(i+1);
-    indent(i); printf("<%04d: IfThenElse %zu %zu>\n", pc_, ifBranch_.size(), elseBranch_.size());
-  }
   void setCond(ASTNode *nd) { cond_ = nd; }
   void addIf(ASTNode *nd) { ifBranch_.push_back(nd); }
   void addElse(ASTNode *nd) { elseBranch_.push_back(nd); }
   int provides() override { return 1; }
-  void printSource(PState &p) override {
-    printf("if "); cond_->printSource(p); printf("then begin\n"); indent(++p.indent);
-    size_t last = ifBranch_.size()-1;
-    for (size_t i = 0; i < last; i++) {
-      ifBranch_[i]->printSource(p);
+  /// This node only exists if all nodes involved are resolved.
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      // >> if (condition) the begin
+      p.Begin(); printf("if "); cond_->Print(p); printf(" then begin"); p.NewLine(+1);
+      // >>   if-Branch
+      for (auto &nd: ifBranch_) {
+        p.Begin(); nd->Print(p); p.Divider(";");
+      }
+      // >> end else if
+      p.ClearDivider(); p.Begin(-1); printf("end else begin"); p.NewLine(+1);
+      // >>   else-Branch
+      for (auto &nd: elseBranch_) {
+        p.Begin(); nd->Print(p); p.Divider(";");
+      }
+      p.ClearDivider(); p.Begin(-1); printf("end"); p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) {
+        p.Begin(); printHeader(); printf("%3d: ASTIfThenElseNode: if ###", pc_); p.NewLine(+1);
+        cond_->Print(p);
+        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: then ###", pc_); p.NewLine(+1);
+        for (auto *nd: ifBranch_) nd->Print(p);
+        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: else ###", pc_); p.NewLine(+1);
+        for (auto *nd: elseBranch_) nd->Print(p);
+        p.indent--;
+      }
+      p.Begin(); printHeader();
+      printf("%3d: ASTIfThenElseNode: %zu %zu ###", pc_, ifBranch_.size(), elseBranch_.size());
+      p.NewLine();
     }
-    p.indent--;
-    if (!ifBranch_.empty()) ifBranch_[last]->printSource(p);
-    printf("end else begin\n"); indent(++p.indent);
-    last = elseBranch_.size()-1;
-    for (size_t i = 0; i < last; i++) {
-      elseBranch_[i]->printSource(p);
-    }
-    p.indent--;
-    if (!elseBranch_.empty()) elseBranch_[last]->printSource(p);
-    printf("end;\n"); indent(p.indent);
   }
-
 };
 
 class ASTBytecodeNode : public ASTNode {
@@ -181,24 +221,45 @@ protected:
 public:
   ASTBytecodeNode(int pc, int a, int b)
   : ASTNode(pc), a_(a), b_(b) { }
-  void print(int i) override { indent(i); printf("<%04d: bytecode A=%d B=%d>\n", pc_, a_, b_); }
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    p.Begin(); printHeader();
+    printf("%3d: ERROR: ASTBytecodeNode a=%d, b=%d ###", pc_, a_, b_);
+    p.NewLine();
+  }
 };
 
 // (A=0, B=7): --
 class AST_PopHandlers : public ASTBytecodeNode {
 public:
   AST_PopHandlers(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:PopHandlers>\n", pc_); }
   int provides() override { return kProvidesNone; }
+  // Don't know yet
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    p.Begin(); printHeader();
+    printf("%3d: AST_PopHandlers ###", pc_);
+    p.NewLine();
+  }
 };
 
 // (A=3): -- literal
 class AST_Push : public ASTBytecodeNode {
 public:
   AST_Push(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:Push literal[%d]>\n", pc_, b_); }
   int provides() override { return 1; }
-  void printSource(PState &p) override { p.dc.printLiteral(b_); }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      p.dc.printLiteral(b_);
+      p.End();
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: AST_Push literal[%d] ###", pc_, b_);
+      p.NewLine();
+    }
+  }
 };
 
 // (A=4, B=signed): -- value
@@ -206,9 +267,19 @@ class AST_PushConst : public ASTBytecodeNode {
 public:
   AST_PushConst(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:PushConst value:%d>\n", pc_, b_); }
   int provides() override { return 1; }
-  void printSource(PState &p) override { PrintObject(b_, 0); }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      PrintObject(b_, 0);
+      p.End();
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: AST_PushConst value:%d ###", pc_, b_);
+      p.NewLine();
+    }
+  }
 };
 
 // (A=11): --
@@ -216,18 +287,32 @@ class AST_Branch : public ASTBytecodeNode {
 public:
   AST_Branch(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
   int provides() override { return kBranch; }
-  void print(int i) override {
-    indent(i); printf("<%04d: BC:Branch pc:%d>\n", pc_, b_);
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    p.Begin(); printHeader();
+    printf("%3d: AST_Branch pc:%d ###", pc_, b_);
+    p.NewLine();
   }
 };
 
-//(A=0, B=3):  -- RCVR
+// (A=0, B=3):  -- RCVR
 class AST_PushSelf : public ASTBytecodeNode {
 public:
   AST_PushSelf(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:PushSelf>\n", pc_); }
   int provides() override { return 1; }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("self");
+      p.End();
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: AST_PushSelf ###", pc_);
+      p.NewLine();
+    }
+  }
 };
 
 // (A=14): -- value
@@ -235,9 +320,17 @@ class AST_FindVar : public ASTBytecodeNode {
 public:
   AST_FindVar(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:FindVar literal[%d]>\n", pc_, b_); }
   int provides() override { return 1; }
-  void printSource(PState &p) override { p.dc.printLiteral(b_); }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin(); p.dc.printLiteral(b_); p.End();
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: AST_FindVar literal[%d] ###", pc_, b_);
+      p.NewLine();
+    }
+  }
 };
 
 // (A=15): -- value
@@ -245,8 +338,19 @@ class AST_GetVar : public ASTBytecodeNode {
 public:
   AST_GetVar(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void print(int i) override { indent(i); printf("<%04d: BC:GetVar local[%d]>\n", pc_, b_); }
   int provides() override { return 1; }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      p.dc.printLocal(b_-4);
+      p.End();
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: AST_GetVar local[%d] ###", pc_, b_);
+      p.NewLine();
+    }
+  }
 };
 
 class AST_Consume1 : public ASTBytecodeNode {
@@ -255,13 +359,6 @@ protected:
 public:
   AST_Consume1(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void printChildren(int i) {
-    if (in_) in_->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: Consume1>\n", pc_);
-  }
   int provides() override { if (in_) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
   ASTNode *simplify(int *changes) override {
@@ -273,6 +370,16 @@ public:
     }
     return next;
   }
+  bool Resolved() override { return (in_ != nullptr); }
+  void PrintChildren(PState &p) {
+    if (in_) { p.indent++; in_->Print(p); p.indent--; }
+  }
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: ERROR: AST_Consume1 ###", pc_);
+    p.NewLine();
+  }
 };
 
 // (A=12): value --
@@ -280,12 +387,14 @@ class AST_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BranchIfTrue(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfTrue; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:BranchIfTrue pc:%d>\n", pc_, b_);
-  }
   ASTNode *simplify(int *changes) override {
     return next;
+  }
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_BranchIfTrue pc:%d ###", pc_, b_);
+    p.NewLine();
   }
 };
 
@@ -300,10 +409,6 @@ class AST_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BranchIfFalse(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:BranchIfFalse pc:%d>\n", pc_, b_);
-  }
   ASTNode *simplify(int *changes) override {
     // p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
     // -- Resolve the condition first
@@ -352,6 +457,13 @@ public:
     (*changes)++;
     return ite->next;
   }
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_BranchIfFalse pc:%d ###", pc_, b_);
+    p.NewLine();
+  }
 };
 
 // TODO: the very last return probably doesn't need to be printed
@@ -361,14 +473,18 @@ class AST_Return : public AST_Consume1 {
 public:
   AST_Return(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { return kProvidesNone; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Return>\n", pc_);
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("return "); in_->Print(p);
+      p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_Return ###", pc_);
+      p.NewLine();
+    }
   }
-  void printSource(PState &p) override {
-    if (in_) { printf("return "); in_->printSource(p); printf(";\n"); }
-  }
-
 };
 
 // (A=0, B=0): value --
@@ -376,12 +492,15 @@ class AST_Pop : public AST_Consume1 {
 public:
   AST_Pop(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Pop>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in_) { in_->printSource(p); printf(";\n"); indent(p.indent); }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin(); p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_Pop ###", pc_);
+      p.NewLine();
+    }
   }
 };
 
@@ -390,12 +509,14 @@ class AST_Dup : public AST_Consume1 {
 public:
   AST_Dup(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   // TODO: provides(2) does not match any consumers!
-  // NOTE: we must find an actuall use case and the corresponding source code
+  // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Dup>\n", pc_);
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_Dup ###", pc_);
+    p.NewLine();
   }
 };
 
@@ -404,9 +525,11 @@ class AST_SetLexScope : public AST_Consume1 {
 public:
   AST_SetLexScope(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:AST_SetLexScope>\n", pc_);
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_SetLexScope ###", pc_);
+    p.NewLine();
   }
 };
 
@@ -415,9 +538,19 @@ class AST_SetVar : public AST_Consume1 {
 public:
   AST_SetVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:SetVar local[%d]>\n", pc_, b_);
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      p.dc.printLocal(b_-4);
+      printf(" := ");
+      in_->Print(p);
+      p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_SetVar local[%d] ###", pc_, b_);
+      p.NewLine();
+    }
   }
 };
 
@@ -426,12 +559,19 @@ class AST_FindAndSetVar : public AST_Consume1 {
 public:
   AST_FindAndSetVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:FindAndSetVar literal[%d]>\n", pc_, b_);
-  }
-  void printSource(PState &p) override {
-    if (in_) { p.dc.printLiteral(b_); printf(" := "); in_->printSource(p); printf(";\n"); indent(p.indent); }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      p.dc.printLiteral(b_);
+      printf(" := ");
+      in_->Print(p);
+      p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_FindAndSetVar literal[%d] ###", pc_, b_);
+      p.NewLine();
+    }
   }
 };
 
@@ -439,9 +579,22 @@ public:
 class AST_Not : public AST_Consume1 {
 public:
   AST_Not(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Not>\n", pc_);
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      int ppp = p.precedence;
+      bool brackets = (p.precedence > 2);
+      p.precedence = 2;
+      p.Begin();
+      if (brackets) printf("(");
+      printf("not ");
+      in_->Print(p);
+      if (brackets) printf(")");
+      p.End();
+      p.precedence = ppp;
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Not ###", pc_); p.NewLine();
+    }
   }
 };
 
@@ -449,12 +602,17 @@ public:
 class AST_Length : public AST_Consume1 {
 public:
   AST_Length(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Length>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in_) { printf("Length("); in_->printSource(p); printf(")"); }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("length(");
+      in_->Print(p);
+      printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Length ###", pc_); p.NewLine();
+    }
   }
 };
 
@@ -462,15 +620,16 @@ public:
 class AST_Clone : public AST_Consume1 {
 public:
   AST_Clone(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Clone>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in_) {
-      printf("Clone(");
-      in_->printSource(p);
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("clone(");
+      in_->Print(p);
       printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Clone ###", pc_); p.NewLine();
     }
   }
 };
@@ -479,9 +638,17 @@ public:
 class AST_Stringer : public AST_Consume1 {
 public:
   AST_Stringer(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Stringer>\n", pc_);
+  void Print(PState &p) override {
+//    if ((p.type == PState::Type::script) && Resolved()) {
+//      p.Begin();
+//      printf("clone(");
+//      in_->Print(p);
+//      printf(")");
+//      p.End();
+//    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Stringer ###", pc_); p.NewLine();
+//    }
   }
 //  TODO: The input is an Array with at least two elements
 //  a '1 && 2' is handled as a '1 & " " & 2', generating an array with three values
@@ -500,28 +667,49 @@ public:
 class AST_ClassOf : public AST_Consume1 {
 public:
   AST_ClassOf(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:ClassOf>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in_) {
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
       printf("ClassOf(");
-      in_->printSource(p);
+      in_->Print(p);
       printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_ClassOf ###", pc_); p.NewLine();
     }
   }
 };
 
+// (A=24, B=16): num -- result
+class AST_BitNot : public AST_Consume1 {
+public:
+  AST_BitNot(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("bNot(");
+      in_->Print(p);
+      printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_BitNot ###", pc_); p.NewLine();
+    }
+  }
+};
 
 // (A=22) addend -- addend value
 class AST_IncrVar : public AST_Consume1 {
 public:
   AST_IncrVar(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:IncrVar local[%d]>\n", pc_, b_);
+  void Print(PState &p) override {
+//    if ((p.type == PState::Type::script) && Resolved()) {
+//    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_IncrVar local[%d] ###", pc_, b_); p.NewLine();
+//    }
   }
 };
 
@@ -530,9 +718,12 @@ class AST_IterNext : public AST_Consume1 {
 public:
   AST_IterNext(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:IterNext>\n", pc_);
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_IterNext ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -541,9 +732,12 @@ class AST_IterDone : public AST_Consume1 {
 public:
   AST_IterDone(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return 1; else return kProvidesUnknown; }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:IterDone>\n", pc_);
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_IterDone ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -554,14 +748,6 @@ protected:
 public:
   AST_Consume2(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void printChildren(int i) {
-    if (in1_) in1_->print(i);
-    if (in2_) in2_->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: Consume2>\n", pc_);
-  }
   int provides() override { if (in1_ && in2_) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
   ASTNode *simplify(int *changes) override {
@@ -574,15 +760,82 @@ public:
     }
     return next;
   }
+  bool Resolved() override { return (in1_ != nullptr) && (in2_ != nullptr); }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    if (in1_) in1_->Print(p);
+    if (in2_) in2_->Print(p);
+    p.indent--;
+  }
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: ERROR: AST_Consume2 ###", pc_); p.NewLine();
+  }
+};
+
+// num1 num2 -- result
+class AST_BinaryFunction : public AST_Consume2 {
+protected:
+  const char *func_ { nullptr };
+public:
+  AST_BinaryFunction(int pc, int a, int b, const char *func)
+  : AST_Consume2(pc, a, b), func_(func) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      int ppp = p.precedence;
+      p.precedence = 0;
+      p.Begin();
+      printf("%s(", func_);
+      in1_->Print(p);
+      printf(", ");
+      in2_->Print(p);
+      printf(")");
+      p.End();
+      p.precedence = ppp;
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_BinaryFunction \"%s\" ###", pc_, func_); p.NewLine();
+    }
+  }
+};
+
+// num1 num2 -- result
+class AST_BinaryOperator : public AST_Consume2 {
+protected:
+  const char *op_ { nullptr };
+  int precedence_ { 0 };
+public:
+  AST_BinaryOperator(int pc, int a, int b, const char *op, int precedence)
+  : AST_Consume2(pc, a, b), op_(op), precedence_(precedence) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      int ppp = p.precedence;
+      bool brackets = (p.precedence > precedence_);
+      p.precedence = precedence_;
+      p.Begin();
+      if (brackets) printf("(");
+      in1_->Print(p); printf(" %s ", op_); in2_->Print(p);
+      if (brackets) printf(")");
+      p.End();
+      p.precedence = ppp;
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_BinaryOperator \"%s\" ###", pc_, op_); p.NewLine();
+    }
+  }
 };
 
 // (A=17, B=0xFFFF): size class -- array
 class AST_NewArray : public AST_Consume2 {
 public:
   AST_NewArray(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:NewArray>\n", pc_);
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_NewArray ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -590,171 +843,13 @@ public:
 class AST_GetPath : public AST_Consume2 {
 public:
   AST_GetPath(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:GetPath b:%d>\n", pc_, b_);
-  }
-};
-
-// (A=24, B=4): num1 num2 -- result
-class AST_Equals : public AST_Consume2 {
-public:
-  AST_Equals(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Equals>\n", pc_);
-  }
-};
-
-// (A=24, B=6): num1 num2 -- result
-class AST_NotEquals : public AST_Consume2 {
-public:
-  AST_NotEquals(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:NotEquals>\n", pc_);
-  }
-};
-
-// (A=24, B=10): num1 num2 -- result
-class AST_LessThan : public AST_Consume2 {
-public:
-  AST_LessThan(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:LessThan>\n", pc_);
-  }
-};
-
-// (A=24, B=11): num1 num2 -- result
-class AST_GreaterThan : public AST_Consume2 {
-public:
-  AST_GreaterThan(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:GreaterThan>\n", pc_);
-  }
-};
-
-// (A=24, B=12): num1 num2 -- result
-class AST_GreaterOrEqual : public AST_Consume2 {
-public:
-  AST_GreaterOrEqual(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:GreaterOrEqual>\n", pc_);
-  }
-};
-
-// (A=24, B=13): num1 num2 -- result
-class AST_LessOrEqual : public AST_Consume2 {
-public:
-  AST_LessOrEqual(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:LessOrEqual>\n", pc_);
-  }
-};
-
-// (A=24, B=0): num1 num2 -- result
-class AST_Add : public AST_Consume2 {
-public:
-  AST_Add(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Add>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in1_ && in2_) {
-      int ppp = p.precedence;
-      bool brackets = (p.precedence > 6);
-      p.precedence = 6;
-      if (brackets) printf("(");
-      in1_->printSource(p); printf(" + "); in2_->printSource(p);
-      if (brackets) printf(")");
-      p.precedence = ppp;
-    }
-  }
-};
-
-// (A=24, B=1): num1 num2 -- result
-class AST_Sub : public AST_Consume2 {
-public:
-  AST_Sub(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Sub>\n", pc_);
-  }
-};
-
-// (A=24, B=7): num1 num2 -- result
-class AST_Multiply : public AST_Consume2 {
-public:
-  AST_Multiply(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Multiply>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in1_ && in2_) {
-      int ppp = p.precedence;
-      bool brackets = (p.precedence > 7);
-      p.precedence = 7;
-      if (brackets) printf("(");
-      in1_->printSource(p); printf(" * "); in2_->printSource(p);
-      if (brackets) printf(")");
-      p.precedence = ppp;
-    }
-  }
-};
-
-// (A=24, B=8): num1 num2 -- result
-class AST_Divide : public AST_Consume2 {
-public:
-  AST_Divide(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Divide>\n", pc_);
-  }
-};
-
-// (A=24, B=9): num1 num2 -- result
-class AST_Div : public AST_Consume2 {
-public:
-  AST_Div(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Div>\n", pc_);
-  }
-};
-
-// (A=24, B=14): num1 num2 -- result
-class AST_BitAnd : public AST_Consume2 {
-public:
-  AST_BitAnd(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:BitAnd>\n", pc_);
-  }
-};
-
-// (A=24, B=15): num1 num2 -- result
-class AST_BitOr : public AST_Consume2 {
-public:
-  AST_BitOr(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:BitOr>\n", pc_);
-  }
-};
-
-// (A=24, B=16): num1 num2 -- result
-class AST_BitNot : public AST_Consume2 {
-public:
-  AST_BitNot(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:BitNot>\n", pc_);
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_GetPath b:%d ###", pc_, b_); p.NewLine();
+    //    }
   }
 };
 
@@ -762,16 +857,16 @@ public:
 class AST_ARef : public AST_Consume2 {
 public:
   AST_ARef(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:ARef>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in1_ && in2_) {
-      in1_->printSource(p);
-      printf("[");
-      in2_->printSource(p);
-      printf("]");
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      in1_->Print(p);
+      printf("["); in2_->Print(p); printf("]");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_ARef ###", pc_); p.NewLine();
     }
   }
 };
@@ -780,9 +875,13 @@ public:
 class AST_SetClass : public AST_Consume2 {
 public:
   AST_SetClass(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:SetClass>\n", pc_);
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_SetClass ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -790,17 +889,17 @@ public:
 class AST_AddArraySlot : public AST_Consume2 {
 public:
   AST_AddArraySlot(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:AddArraySlot>\n", pc_);
-  }
-  void printSource(PState &p) override {
-    if (in1_ && in2_) {
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
       printf("AddArraySlot(");
-      in1_->printSource(p);
-      printf(", ");
-      in2_->printSource(p);
-      printf(")");
+      in1_->Print(p); printf(", ");
+      in2_->Print(p); printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_AddArraySlot ###", pc_); p.NewLine();
     }
   }
 };
@@ -809,9 +908,13 @@ public:
 class AST_HasPath : public AST_Consume2 {
 public:
   AST_HasPath(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:HasPath>\n", pc_);
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_HasPath ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -819,9 +922,13 @@ public:
 class AST_NewIter : public AST_Consume2 {
 public:
   AST_NewIter(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:NewIter>\n", pc_);
+  bool Resolved() override { return false; }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_NewIter ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -836,24 +943,15 @@ protected:
 public:
   AST_SetPath(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void printChildren(int i) {
-    if (object_) object_->print(i);
-    if (path_) path_->print(i);
-    if (value_) value_->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:SetARef>\n", pc_);
-  }
   int provides() override {
-    if (object_ && path_ && value_)
+    if (Resolved())
       return (b_ == 0) ? kProvidesNone : 1;
     else
       return kProvidesUnknown;
   }
   int consumes() override { return 3; }
   ASTNode *simplify(int *changes) override {
-    if (object_ && path_ && value_) return next; // nothing more to do
+    if (Resolved()) return next; // nothing more to do
     if (   (prev->provides() == 1)
         && (prev->prev->provides() == 1)
         && (prev->prev->provides() == 1)) {
@@ -865,6 +963,22 @@ public:
     }
     return next;
   }
+  bool Resolved() override { return (object_ != nullptr) && (path_ != nullptr) && (value_ != nullptr); }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    if (object_) object_->Print(p);
+    if (path_) path_->Print(p);
+    if (value_) value_->Print(p);
+    p.indent--;
+  }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_SetPath ###", pc_); p.NewLine();
+    //    }
+  }
+
 };
 
 // (A=24, B=3): object index element -- element
@@ -876,19 +990,10 @@ protected:
 public:
   AST_SetARef(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void printChildren(int i) {
-    if (object_) object_->print(i);
-    if (index_) index_->print(i);
-    if (element_) element_->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:SetARef>\n", pc_);
-  }
   int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   ASTNode *simplify(int *changes) override {
-    if (object_ && index_ && element_) return next; // nothing more to do
+    if (Resolved()) return next; // nothing more to do
     if (   (prev->provides() == 1)
         && (prev->prev->provides() == 1)
         && (prev->prev->provides() == 1)) {
@@ -899,6 +1004,21 @@ public:
       return this;
     }
     return next;
+  }
+  bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    if (object_) object_->Print(p);
+    if (index_) index_->Print(p);
+    if (element_) element_->Print(p);
+    p.indent--;
+  }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_SetARef ###", pc_); p.NewLine();
+    //    }
   }
 };
 
@@ -911,15 +1031,6 @@ protected:
 public:
   AST_BranchLoop(int pc, int a, int b)
   : ASTBytecodeNode(pc, a, b) { }
-  void printChildren(int i) {
-    if (incr_) incr_->print(i);
-    if (index_) index_->print(i);
-    if (limit_) limit_->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BranchLoop pc:%d>\n", pc_, b_);
-  }
   int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   ASTNode *simplify(int *changes) override {
@@ -938,6 +1049,21 @@ public:
     // D: BranchLoop B
     return next;
   }
+  bool Resolved() override { return (incr_ != nullptr) && (index_ != nullptr) && (limit_ != nullptr); }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    if (incr_) incr_->Print(p);
+    if (index_) index_->Print(p);
+    if (limit_) limit_->Print(p);
+    p.indent--;
+  }
+  void Print(PState &p) override {
+    //    if ((p.type == PState::Type::script) && Resolved()) {
+    //    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: AST_BranchLoop ###", pc_); p.NewLine();
+    //    }
+  }
 };
 
 
@@ -948,17 +1074,10 @@ protected:
 public:
   AST_ConsumeN(int pc, int a, int b, int n)
   : ASTBytecodeNode(pc, a, b), numIns_(n) { }
-  void printChildren(int i) {
-    for (auto &nd: ins_) nd->print(i);
-  }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: ConsumeN>\n", pc_);
-  }
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
   ASTNode *simplify(int *changes) override {
-    if (!ins_.empty()) return next; // nothing more to do
+    if (Resolved()) return next; // nothing more to do
     ASTNode *nd = this;
     for (int i=0; i<numIns_; i++) {
       nd = nd->prev;
@@ -973,6 +1092,16 @@ public:
     (*changes)++;
     return this;
   }
+  bool Resolved() override { return (ins_.size() == (size_t)numIns_); }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    for (auto &nd: ins_) nd->Print(p);
+    p.indent--;
+  }
+  void Print(PState &p) override {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader(); printf("%3d: ERROR: AST_ConsumeN ###", pc_); p.NewLine();
+  }
 };
 
 // (A=5): arg1 arg2 ... argN name -- result
@@ -980,80 +1109,117 @@ class AST_Call : public AST_ConsumeN {
 public:
   AST_Call(int pc, int a, int b)
   : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Call nArgs:%d>\n", pc_, numIns_-1);
-  }
   // TODO: the following special functions (reserved words) need to be written "a op b"
-  // div, mod, <<, >>, (note the precedence! 7, 7, 8, 8)
+  // mod, <<, >>, (note the precedence! 7, 8, 8)
   // HasVar(a) can also be written as "a exists", but both are legal
-  void printSource(PState &p) override {
-    if (!ins_.empty()) {
-      ins_[numIns_-1]->printSource(p);
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      ins_[numIns_-1]->Print(p);
       printf("(");
-      for (int i=0; i<numIns_-2; i++) { ins_[i]->printSource(p); printf(", "); }
-      if (numIns_ > 1) ins_[numIns_-2]->printSource(p);
-      printf(")");
+      for (int i=0; i<numIns_-1; i++) {
+        p.Begin(); ins_[i]->Print(p); p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf(")"); p.End();
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Call n=%d ###", pc_, b_); p.NewLine();
     }
   }
-
 };
 
-// (A=6): arg1 arg2 ... argN name receiver -- result
+// (A=6): arg1 arg2 ... argN func -- result
 // call ... with (...)
 class AST_Invoke : public AST_ConsumeN {
 public:
   AST_Invoke(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+2) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Invoke nArgs:%d>\n", pc_, numIns_);
+  : AST_ConsumeN(pc, a, b, b+1) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("invoke ");
+      ins_[numIns_-1]->Print(p);
+      printf(" with (");
+      for (int i=0; i<numIns_-1; i++) {
+        p.Begin(); ins_[i]->Print(p); p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf(")"); p.End();
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_Invoke n=%d ###", pc_, numIns_); p.NewLine();
+    }
   }
 };
 
 // (A=7): arg1 arg2 ... argN name receiver -- result
 class AST_Send : public AST_ConsumeN {
+protected:
+  bool ifDefined_ { false };
 public:
-  AST_Send(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+2) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Send nArgs:%d>\n", pc_, numIns_);
-  }
-};
-
-// (A=8): arg1 arg2 ... argN name receiver -- result
-class AST_SendIfDefined : public AST_ConsumeN {
-public:
-  AST_SendIfDefined(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+2) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:SendIfDefined nArgs:%d>\n", pc_, numIns_);
+  AST_Send(int pc, int a, int b, bool ifDefined)
+  : AST_ConsumeN(pc, a, b, b+2), ifDefined_(ifDefined) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      ins_[numIns_-2]->Print(p);
+      if (ifDefined_)
+        printf(":?");
+      else
+        printf(":");
+      ins_[numIns_-1]->Print(p);
+      printf("(");
+      for (int i=0; i<numIns_-2; i++) {
+        p.Begin(); ins_[i]->Print(p); p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf(")"); p.End();
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      if (ifDefined_)
+        printf("%3d: AST_Send if defined n=%d ###", pc_, numIns_);
+      else
+        printf("%3d: AST_Send n=%d ###", pc_, numIns_);
+      p.NewLine();
+    }
   }
 };
 
 // (A=9): arg1 arg2 ... argN name -- result
 // inherited:Print(3);
 class AST_Resend : public AST_ConsumeN {
+protected:
+  bool ifDefined_ { false };
 public:
-  AST_Resend(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:Resend nArgs:%d>\n", pc_, numIns_);
-  }
-};
-
-// (A=10): arg1 arg2 ... argN name -- result
-// inherited:?Print(3);
-class AST_ResendIfDefined : public AST_ConsumeN {
-public:
-  AST_ResendIfDefined(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:ResendIfDefined nArgs:%d>\n", pc_, numIns_);
+  AST_Resend(int pc, int a, int b, bool ifDefined)
+  : AST_ConsumeN(pc, a, b, b+1), ifDefined_(ifDefined) { }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("inherited:");
+      if (ifDefined_) printf("?");
+      ins_[numIns_-1]->Print(p);
+      printf("(");
+      for (int i=0; i<numIns_-1; i++) {
+        p.Begin(); ins_[i]->Print(p); p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf(")"); p.End();
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      if (ifDefined_)
+        printf("%3d: AST_Resend if defined n=%d ###", pc_, numIns_);
+      else
+        printf("%3d: AST_Resend n=%d ###", pc_, numIns_);
+      p.NewLine();
+    }
   }
 };
 
@@ -1062,9 +1228,14 @@ class AST_MakeFrame : public AST_ConsumeN {
 public:
   AST_MakeFrame(int pc, int a, int b)
   : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:MakeFrame nArgs:%d>\n", pc_, numIns_-1);
+  void Print(PState &p) override {
+//    if ((p.type == PState::Type::script) && Resolved()) {
+//    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_MakeFrame n=%d ###", pc_, numIns_);
+      p.NewLine();
+//    }
   }
 };
 
@@ -1073,9 +1244,14 @@ class AST_MakeArray : public AST_ConsumeN {
 public:
   AST_MakeArray(int pc, int a, int b)
   : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:MakeArray nArgs:%d>\n", pc_, numIns_-1);
+  void Print(PState &p) override {
+//    if ((p.type == PState::Type::script) && Resolved()) {
+//    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_MakeArray n=%d ###", pc_, numIns_);
+    p.NewLine();
+//    }
   }
 };
 
@@ -1083,10 +1259,15 @@ public:
 class AST_NewHandler : public AST_ConsumeN {
 public:
   AST_NewHandler(int pc, int a, int b)
-  : AST_ConsumeN(pc, a, b, b+1) { }
-  void print(int i) override {
-    printChildren(i+1);
-    indent(i); printf("<%04d: BC:NewHandler nArgs:%d>\n", pc_, numIns_-1);
+  : AST_ConsumeN(pc, a, b, b*2) { }
+  void Print(PState &p) override {
+//    if ((p.type == PState::Type::script) && Resolved()) {
+//    } else {
+    if (p.type == PState::Type::deep) PrintChildren(p);
+    p.Begin(); printHeader();
+    printf("%3d: AST_NewHandler n=%d ###", pc_, numIns_);
+    p.NewLine();
+//    }
   }
 };
 
@@ -1181,10 +1362,10 @@ ASTBytecodeNode *Decompiler::NewBytecodeNode(int pc, int a, int b)
     case 4: return new AST_PushConst(pc, a, b);
     case 5: return new AST_Call(pc, a, b);
     case 6: return new AST_Invoke(pc, a, b);
-    case 7: return new AST_Send(pc, a, b);
-    case 8: return new AST_SendIfDefined(pc, a, b);
-    case 9: return new AST_Resend(pc, a, b);
-    case 10: return new AST_ResendIfDefined(pc, a, b);
+    case 7: return new AST_Send(pc, a, b, false); // Send
+    case 8: return new AST_Send(pc, a, b, true); // SendIfDefined
+    case 9: return new AST_Resend(pc, a, b, false); // Resend
+    case 10: return new AST_Resend(pc, a, b, true); // ResendIfDefined
     case 11: return new AST_Branch(pc, a, b);
     case 12: return new AST_BranchIfTrue(pc, a, b);
     case 13: return new AST_BranchIfFalse(pc, a, b);
@@ -1204,22 +1385,22 @@ ASTBytecodeNode *Decompiler::NewBytecodeNode(int pc, int a, int b)
     case 23: return new AST_BranchLoop(pc, a, b);
     case 24:
       switch (b) {
-        case 0: return new AST_Add(pc, a, b);
-        case 1: return new AST_Sub(pc, a, b);
+        case 0: return new AST_BinaryOperator(pc, a, b, "+", 6); // Add
+        case 1: return new AST_BinaryOperator(pc, a, b, "-", 6); // Sub
         case 2: return new AST_ARef(pc, a, b);
         case 3: return new AST_SetARef(pc, a, b);
-        case 4: return new AST_Equals(pc, a, b);
+        case 4: return new AST_BinaryOperator(pc, a, b, "=", 3); // Equals
         case 5: return new AST_Not(pc, a, b);
-        case 6: return new AST_NotEquals(pc, a, b);
-        case 7: return new AST_Multiply(pc, a, b);
-        case 8: return new AST_Divide(pc, a, b);
-        case 9: return new AST_Div(pc, a, b);
-        case 10: return new AST_LessThan(pc, a, b);
-        case 11: return new AST_GreaterThan(pc, a, b);
-        case 12: return new AST_GreaterOrEqual(pc, a, b);
-        case 13: return new AST_LessOrEqual(pc, a, b);
-        case 14: return new AST_BitAnd(pc, a, b);
-        case 15: return new AST_BitOr(pc, a, b);
+        case 6: return new AST_BinaryOperator(pc, a, b, "<>", 3); // NotEquals
+        case 7: return new AST_BinaryOperator(pc, a, b, "*", 7); // Multiply
+        case 8: return new AST_BinaryOperator(pc, a, b, "/", 7); // Divide
+        case 9: return new AST_BinaryOperator(pc, a, b, "div", 7); // 'div'
+        case 10: return new AST_BinaryOperator(pc, a, b, "<", 3); // LessThan
+        case 11: return new AST_BinaryOperator(pc, a, b, ">", 3); // GreaterThan
+        case 12: return new AST_BinaryOperator(pc, a, b, ">=", 3); // GreaterOrEqual
+        case 13: return new AST_BinaryOperator(pc, a, b, "<=", 3); // LessOrEqual
+        case 14: return new AST_BinaryFunction(pc, a, b, "bAnd"); // BitAnd
+        case 15: return new AST_BinaryFunction(pc, a, b, "bOr"); // BitOr
         case 16: return new AST_BitNot(pc, a, b);
         case 17: return new AST_NewIter(pc, a, b);
         case 18: return new AST_Length(pc, a, b);
@@ -1312,19 +1493,33 @@ void Decompiler::solve()
 void Decompiler::print()
 {
   puts("---- AST -------");
+  PState pState(*this, PState::Type::deep);
   for (ASTNode *nd = first_; nd; nd = nd->next) {
-    nd->print(0);
+    nd->Print(pState);
   }
   puts("----------------");
 }
 
 void Decompiler::printSource()
 {
-  PState pState(*this);
+  PState pState(*this, PState::Type::script);
   puts("---- Source code -------");
-  for (ASTNode *nd = first_; nd; nd = nd->next) {
-    nd->printSource(pState);
+  first_->Print(pState);
+  if (numLocals_) {
+    for (int i = 0; i < numLocals_; ++i) {
+      pState.Begin();
+      printf("local ");
+      printLocal(i);
+      printf(";");
+      pState.NewLine();
+    }
+    pState.Begin(); pState.NewLine();
   }
+  // TODO: MUST list locals first! "local a;" ...
+  for (ASTNode *nd = first_->next; nd; nd = nd->next) {
+    nd->Print(pState);
+  }
+  pState.Begin(); pState.End();
   puts("------------------------");
 }
 
