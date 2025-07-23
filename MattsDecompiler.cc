@@ -1460,6 +1460,13 @@ void Decompiler::decompile(Ref ref)
       snprintf(buf, 30, "arg_%04d", i);
       SetArraySlot(args_, i, MakeSymbol(buf));
     }
+    // TODO: args_ are just locals_ in the range from 3 to 3+numArgs
+    // locals_[0] = _nextArgFrame
+    // locals_[1] = _parent: nil,
+    // locals_[2] = _implementor: nil,
+    // followed by args
+    // followed by user defined locals
+
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
   }
@@ -1662,6 +1669,8 @@ void Decompiler::printSource()
   PState pState(*this, PState::Type::script);
   puts("---- Source code -------");
   first_->Print(pState);
+
+  // list locals first! "local a;" ...
   if (numLocals_) {
     for (int i = 0; i < numLocals_; ++i) {
       pState.Begin();
@@ -1672,11 +1681,12 @@ void Decompiler::printSource()
     }
     pState.Begin(); pState.NewLine();
   }
-  // TODO: MUST list locals first! "local a;" ...
+
+  // now print the source code for all AST nodes
   for (ASTNode *nd = first_->next; nd; nd = nd->next) {
     nd->Print(pState);
   }
-  pState.Begin(); pState.End();
+  pState.ClearDivider(); pState.Begin(); pState.End();
   puts("------------------------");
 }
 
@@ -1703,8 +1713,8 @@ void Decompiler::printSource()
  - `class: #0x32`:
  - `instructions`: 'instructions bytecode as binary data
  - `literals`: 'literals, an array of values
- - `numArgs`: bits 31 to 16 are the number of locals
- - `argFrame`: always `nil` in this format, bits 15 to 0 are the number of arguments
+ - `numArgs`: bits 31 to 16 are the number of locals, bits 15 to 0 are the number of arguments
+ - `argFrame`: always `nil` in this format
  ```
 
  ```
