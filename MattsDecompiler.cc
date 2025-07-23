@@ -26,6 +26,19 @@
  0: assign :=
  */
 
+/*
+ Control Flow:
+ - for:     `for` counter := expr `to` inital [`by` increment] `do` expr
+ - foreach: `foreach` slot [, value] [`deeply`] `in` frame_or_array (`do` or `collect`) expr
+ - loop     `loop` expr
+ - while    `while` condition `do` expression
+ - repeat   `repeat` expression `until` condition
+ - break    can appear anywhere inside those loops
+            generates "expr branch pop",
+            the pop seems to be never reached, but turns `break` into a statement.
+ - exceptions: try [begin] ... onexception ... do ... [end]
+               throw(...) , rethrow()
+ */
 
 class ASTNode;
 class ASTBytecodeNode;
@@ -49,6 +62,7 @@ class Decompiler {
 public:
   Decompiler(NewtonPackagePrinter &printer) : printer_( printer ) { }
   void print();
+  void printRoot();
   void printSource();
   void printLiteral(int ix) {
     printer_.PrintRef(GetArraySlot(literals_, ix), 0, true);
@@ -61,6 +75,46 @@ public:
   void generateAST(Ref instructions);
 };
 
+/**
+ * @class PState
+ * @brief A helper class that manages indents and dividing semicolons and commas.
+ *
+ * This works by deferring dividers, indents, and newlines until we actually print
+ * the next chunk. That way, these parameters can be modified before they are
+ * finally applied.
+ *
+ * @note This scheme should probably be ported to the NewtonPackagePrinter class,
+ *       so that it can be used for printing packages as well.
+ *
+ * @enum Type
+ *   - bytecode: Formatting for bytecode output.
+ *   - deep: Formatting for deep analysis output.
+ *   - script: Formatting for script output.
+ *
+ * @var Decompiler& dc
+ *   Reference to the associated Decompiler instance.
+ * @var Type type
+ *   Current formatting type.
+ * @var int indent
+ *   Current indentation level.
+ * @var int precedence
+ *   Current precedence level for formatting. Controls if expressions must be wrapped in parentheses.
+ *
+ * @fn PState(Decompiler &decompiler, Type t)
+ *   Constructs a PState with the given Decompiler and formatting type.
+ * @fn void ClearDivider()
+ *   Clears any pending divider text.
+ * @fn void Begin(int delta=0)
+ *   Begins a new formatting block, optionally adjusting indentation.
+ * @fn void NewLine(const char *div, int delta=0)
+ *   Starts a new line with an optional divider and indentation adjustment.
+ * @fn void NewLine(int delta=0)
+ *   Starts a new line with optional indentation adjustment.
+ * @fn void Divider(const char *div)
+ *   Sets a divider text to be output before the next line.
+ * @fn void End(int delta=0)
+ *   Ends a formatting block, optionally adjusting indentation.
+ */
 class PState {
 public:
   enum class Type { bytecode, deep, script };
@@ -80,8 +134,8 @@ public:
   }
   void NewLine(const char *div, int delta=0) { textPending_ = div; indentPending_ = true; indent += delta; }
   void NewLine(int delta=0) { NewLine(nullptr, delta); }
-  void Divider(const char *div) { textPending_ = div; }
-  void End(int delta=0) { indent += delta; }
+  void Divider(const char *div) { textPending_ = div; }  // Should this reset indentPending_?
+  void End(int delta=0) { indent += delta; } // Should this reset textPending_ and indentPending_?
 };
 
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
@@ -158,6 +212,7 @@ public:
     auto it = std::find(origins_.begin(), origins_.end(), o);
     if (it != origins_.end()) origins_.erase(it);
   }
+  int size() { return (int)origins_.size(); }
   bool empty() { return origins_.empty(); }
   /// Node can never be resolved, but will be removed if all origins were resolved
   bool Resolved() override { return false; }
@@ -167,50 +222,6 @@ public:
     for (auto a: origins_) printf(" %d", a);
     printf(" ###");
     p.NewLine();
-  }
-};
-
-class ASTIfThenElseNode: public ASTNode {
-  ASTNode *cond_ { nullptr };
-  std::vector<ASTNode*> ifBranch_;
-  std::vector<ASTNode*> elseBranch_;
-public:
-  ASTIfThenElseNode(int pc) : ASTNode(pc) { }
-  void setCond(ASTNode *nd) { cond_ = nd; }
-  void addIf(ASTNode *nd) { ifBranch_.push_back(nd); }
-  void addElse(ASTNode *nd) { elseBranch_.push_back(nd); }
-  int provides() override { return 1; }
-  /// This node only exists if all nodes involved are resolved.
-  bool Resolved() override { return true; }
-  void Print(PState &p) override {
-    if ((p.type == PState::Type::script) && Resolved()) {
-      // >> if (condition) the begin
-      p.Begin(); printf("if "); cond_->Print(p); printf(" then begin"); p.NewLine(+1);
-      // >>   if-Branch
-      for (auto &nd: ifBranch_) {
-        p.Begin(); nd->Print(p); p.Divider(";");
-      }
-      // >> end else if
-      p.ClearDivider(); p.Begin(-1); printf("end else begin"); p.NewLine(+1);
-      // >>   else-Branch
-      for (auto &nd: elseBranch_) {
-        p.Begin(); nd->Print(p); p.Divider(";");
-      }
-      p.ClearDivider(); p.Begin(-1); printf("end"); p.NewLine(";");
-    } else {
-      if (p.type == PState::Type::deep) {
-        p.Begin(); printHeader(); printf("%3d: ASTIfThenElseNode: if ###", pc_); p.NewLine(+1);
-        cond_->Print(p);
-        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: then ###", pc_); p.NewLine(+1);
-        for (auto *nd: ifBranch_) nd->Print(p);
-        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: else ###", pc_); p.NewLine(+1);
-        for (auto *nd: elseBranch_) nd->Print(p);
-        p.indent--;
-      }
-      p.Begin(); printHeader();
-      printf("%3d: ASTIfThenElseNode: %zu %zu ###", pc_, ifBranch_.size(), elseBranch_.size());
-      p.NewLine();
-    }
   }
 };
 
@@ -398,62 +409,198 @@ public:
   }
 };
 
+/**
+ \brief This node replaces an if/then/else pattern.
+ \note In an if/then/else expression, if the else-branch is just pushing the
+  `nil` constant, the else-branch need not be printed as a script.
+ \note if this creates a short `if a then b else nil` expression, this may
+  originally have been an `a and b` statement.
+ \see AST_BranchIfFalse
+ */
+class ASTIfThenElseNode: public ASTNode {
+  ASTNode *cond_ { nullptr };
+  std::vector<ASTNode*> ifBranch_;
+  std::vector<ASTNode*> elseBranch_;
+  bool returnsAValue_ { false };
+public:
+  ASTIfThenElseNode(int pc, bool returnsAValue) : ASTNode(pc), returnsAValue_(returnsAValue) { }
+  void setCond(ASTNode *nd) { cond_ = nd; }
+  void addIf(ASTNode *nd) { ifBranch_.push_back(nd); }
+  void addElse(ASTNode *nd) { elseBranch_.push_back(nd); }
+  int provides() override { return returnsAValue_ ? 1 : 0; }
+  /// This node only exists if all nodes involved are resolved.
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      bool needBeginEnd = ((ifBranch_.size() > 1) || (elseBranch_.size() > 1));
+      // >> if (condition) the begin
+      p.Begin(); printf("if "); cond_->Print(p); printf(" then");
+      if (needBeginEnd) printf(" begin");
+      p.NewLine(+1);
+      // >>   if-Branch
+      for (auto &nd: ifBranch_) {
+        p.Begin(); nd->Print(p); p.Divider(";");
+      }
+      if (returnsAValue_) p.NewLine(";");
+      if (!elseBranch_.empty()) {
+        // >> end else if
+        p.Begin(-1);
+        if (needBeginEnd) printf("end else begin"); else printf("else");
+        p.NewLine(+1);
+        // >>   else-Branch
+        for (auto &nd: elseBranch_) {
+          p.Begin(); nd->Print(p); p.Divider(";");
+        }
+        if (returnsAValue_) p.NewLine(";");
+      }
+      if (needBeginEnd) {
+        p.Begin(-1); printf("end"); p.NewLine(";");
+      } else {
+        p.indent--;
+      }
+    } else {
+      if (p.type == PState::Type::deep) {
+        p.Begin(); printHeader(); printf("%3d: ASTIfThenElseNode: if ###", pc_); p.NewLine(+1);
+        cond_->Print(p);
+        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: then ###", pc_); p.NewLine(+1);
+        for (auto *nd: ifBranch_) nd->Print(p);
+        p.Begin(-1); printHeader(); printf("%3d: ASTIfThenElseNode: else ###", pc_); p.NewLine(+1);
+        for (auto *nd: elseBranch_) nd->Print(p);
+        p.indent--;
+      }
+      p.Begin(); printHeader();
+      printf("%3d: ASTIfThenElseNode %s- %zu %zu ###", pc_,
+             returnsAValue_ ? "Expression " : "",
+             ifBranch_.size(), elseBranch_.size());
+      p.NewLine();
+    }
+  }
+};
+
 // (A=13): value --
-// NOTE: if...then...else... creates the same bytecode as "and"
-// NOTE: "if not..." generates "not" and "BranchIfFalse" and is not optimized into "BranchIfTrue"
-// NOTE: BranchIfTrue is generated by an "or" operation
-// TODO: if the result of the 'if' operation is used, the last BC of both
-// branches provides 1 and both branches must exist
-// If the result is not used, all statements return 0, and we may not have an 'else' branch!
+/**
+ \brief Based on this node, find the pattern of an if/then or if/then/else structure in the AST.
+
+ This class checks for three different pattern, generating one of three possible variations
+ of the ASTIfThenElseNode. If one of the pattern matches, the new ASTIfThenElseNode
+ will replace all other code involved. Note that the terminating BranchTarget is only
+ removed if if has no other origins.
+
+ Pattern one is a simple if/then statement:
+ - BranchIfFalse B, n*statement, Target B
+
+ The second pattern adds and 'else' branch:
+ - BranchIfFalse A, n*statement, Branch B, Target A, n*statement, Target B
+
+ A third pattern generates an expression instead of a statement, laving a ref on the stack.
+ This pattern exists only as if/then/else. An missing 'else' branch in the source
+ creates an 'else' branch that pushes 'nil':
+ - BranchIfFalse A, n*statement, expr, Branch B, Target A, n*statement, expr, Target B
+
+ \note if...then...else... creates the same bytecode as *and*. `a and b` generates
+  `if a then b else nil`.
+ \note `if not...` generates "not" and "BranchIfFalse" and is not optimized into "BranchIfTrue".
+ \note BranchIfTrue is used to generated an `or` operation.
+ \note A `break` command is not allowed in the branches unless the *if* stament
+  is inside an other loop.
+ \see ASTIfThenElseNode
+ */
 class AST_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BranchIfFalse(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
   ASTNode *simplify(int *changes) override {
-    // p(1) / AST_BranchIfFalse(A) / n * p(0) / p(1) / AST_Branch(B) / jumptarget(A) / n * p(0) / p(1) / jumptarget(B)
-    // -- Resolve the condition first
-    if (!in_) return AST_Consume1::simplify(changes);
-    // -- We have the source of the condition. Now check if the rest matches if...then...else...
+    // Track if the if/then/else returns a value
+    bool returnsAValue = false;
+    ASTJumpTarget *jt1 = nullptr;
+    ASTJumpTarget *jt2 = nullptr;
     int numIf = 0;
     int numElse = 0;
-    ASTNode *nd = next;
-    // ---- Skip any number of statements
-    while (nd->provides() == kProvidesNone) { numIf++; nd = nd->next; }
-    // ---- There must be none or one expression
-//    if (nd->provides() != 1) return next;
-//    nd = nd->next;
-    if (nd->provides() == 1) { numIf++; nd = nd->next; }
-    // ---- Followed by an unconditional branch
-    if (nd->provides() != kBranch) return next;
-    int branch_pc = nd->pc();
-    nd = nd->next;
-    // ---- Followed by a Jump Target with this node as the origin
-    if (nd->provides() != kJumpTarget) return next;
-    ASTJumpTarget *jt = static_cast<ASTJumpTarget*>(nd);
-    if (!jt->containsOnly(pc_)) return next;
-    nd = nd->next;
-    // ---- We are in the 'else' branch: Skip any number of statements
-    while (nd->provides() == kProvidesNone) { numElse++; nd = nd->next; }
-    // ---- There must be none or one expression
-//    if (nd->provides() != 1) return next;
-//    nd = nd->next;
-    if (nd->provides() == 1) { numElse++; nd = nd->next; }
-    // ---- Followed by a Jump Target with the unconditional jump as the origin
-    if (nd->provides() != kJumpTarget) return next;
-    ASTJumpTarget *jt2 = static_cast<ASTJumpTarget*>(nd);
-    if (!jt2->containsOrigin(branch_pc)) return next;
+    int jt2origin = pc_;
 
-    // -- If we made it here, this is an if...then...else... construct
-    ASTIfThenElseNode *ite = new ASTIfThenElseNode(pc());
+    // Step 1: Make sure the condition input is resolved
+    if (!in_) return AST_Consume1::simplify(changes);
+
+    // Step 2: Start pattern matching for if/then/else structure
+    ASTNode *nd = next;
+
+    // Step 3: Count statements in the 'if' branch (nodes that provide nothing)
+    while (nd->provides() == kProvidesNone) {
+      numIf++;
+      nd = nd->next;
+    }
+
+    // Step 4: Check if the next node is an expression (provides a value)
+    // If so, this is an if/then/else expression, not just a statement
+    if (nd->provides() == 1) {
+      returnsAValue = true;
+      numIf++;
+      nd = nd->next;
+    }
+
+    // Step 5: Check for the presence of an 'else' branch
+    if (nd->provides() == kBranch) {
+      // Save the branch's program counter
+      int branch_pc = nd->pc();
+      nd = nd->next;
+
+      // Step 6: The next node must be a jump target for the 'if' branch
+      if (nd->provides() != kJumpTarget) return next;
+      jt1 = static_cast<ASTJumpTarget*>(nd);
+      if (!jt1->containsOnly(pc_)) return next;
+      nd = nd->next;
+
+      // Step 7: Count statements in the 'else' branch
+      while (nd->provides() == kProvidesNone) {
+        numElse++;
+        nd = nd->next;
+      }
+
+      // Step 8: If this is an expression, check for a single value in the else branch
+      if (returnsAValue) {
+        if (nd->provides() != 1) return next;
+        numElse++;
+        nd = nd->next;
+      }
+
+      // Step 9: The next node must be a jump target for the unconditional branch
+      if (nd->provides() != kJumpTarget) return next;
+      jt2 = static_cast<ASTJumpTarget*>(nd);
+      if (!jt2->containsOrigin(branch_pc)) return next;
+      jt2origin = branch_pc;
+    } else if (nd->provides() == kJumpTarget) {
+      // Step 10: Handle the case with no else branch (simple if/then)
+      jt2 = static_cast<ASTJumpTarget*>(nd);
+      if (!jt2->containsOrigin(pc_)) return next;
+    } else {
+      // Pattern does not match any known if/then/else structure
+      return next;
+    }
+
+    // Step 11: Build the ASTIfThenElseNode and replace the matched nodes
+    ASTIfThenElseNode *ite = new ASTIfThenElseNode(pc(), returnsAValue);
     ite->setCond(in_);
-    for (int i=0; i<numIf; i++) { ite->addIf(next); next->unlink(); }
-    next->unlink(); // branch
-    next->unlink(); // jump target
-    for (int i=0; i<numElse; i++) { ite->addElse(next); next->unlink(); }
-    // ---- Unlink this only if there are no more origins!
-    jt2->removeOrigin(branch_pc);
+    // Add all nodes from the 'if' branch
+    for (int i=0; i<numIf; i++) {
+      ite->addIf(next);
+      next->unlink();
+    }
+    if (numElse > 0) {
+      // Remove branch and jump target nodes before the else branch
+      next->unlink(); // branch
+      next->unlink(); // jump target
+      // Add all nodes from the 'else' branch
+      for (int i=0; i<numElse; i++) {
+        ite->addElse(next);
+        next->unlink();
+      }
+    }
+    // Step 12: Remove the jump target if it has no more origins
+    jt2->removeOrigin(jt2origin);
     if (jt2->empty()) jt2->unlink(); // jump target
-    replaceWith(ite); // replace this node with the ite node
+
+    // Step 13: Replace this node with the new if/then/else node
+    replaceWith(ite);
     (*changes)++;
     return ite->next;
   }
@@ -582,13 +729,13 @@ public:
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       int ppp = p.precedence;
-      bool brackets = (p.precedence > 2);
+      bool parentheses = (p.precedence > 2);
       p.precedence = 2;
       p.Begin();
-      if (brackets) printf("(");
+      if (parentheses) printf("(");
       printf("not ");
       in_->Print(p);
-      if (brackets) printf(")");
+      if (parentheses) printf(")");
       p.End();
       p.precedence = ppp;
     } else {
@@ -810,12 +957,12 @@ public:
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       int ppp = p.precedence;
-      bool brackets = (p.precedence > precedence_);
+      bool parentheses = (p.precedence > precedence_);
       p.precedence = precedence_;
       p.Begin();
-      if (brackets) printf("(");
+      if (parentheses) printf("(");
       in1_->Print(p); printf(" %s ", op_); in2_->Print(p);
-      if (brackets) printf(")");
+      if (parentheses) printf(")");
       p.End();
       p.precedence = ppp;
     } else {
@@ -1303,7 +1450,7 @@ void Decompiler::decompile(Ref ref)
     locals_ = MakeArray(numLocals_);
     for (int i=0; i<numLocals_; i++) {
       char buf[32];
-      snprintf(buf, 30, "loc_%04d", i);
+      snprintf(buf, 30, "loc_%d", i);
       SetArraySlot(locals_, i, MakeSymbol(buf));
     }
     // Make the list of names of the arguments
@@ -1500,6 +1647,16 @@ void Decompiler::print()
   puts("----------------");
 }
 
+void Decompiler::printRoot()
+{
+  puts("---- Root -------");
+  PState pState(*this, PState::Type::bytecode);
+  for (ASTNode *nd = first_; nd; nd = nd->next) {
+    nd->Print(pState);
+  }
+  puts("-----------------");
+}
+
 void Decompiler::printSource()
 {
   PState pState(*this, PState::Type::script);
@@ -1576,6 +1733,7 @@ NewtonErr mDecompile(Ref ref, NewtonPackagePrinter &printer)
 {
   Decompiler d(printer);
   d.decompile(ref);
+  d.printRoot();
   d.printSource();
   return noErr;
 }
