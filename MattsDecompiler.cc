@@ -48,9 +48,9 @@ class Decompiler {
   NewtonPackagePrinter &printer_;
   int nos_ = 0;
   int numArgs_ = 0;
-  RefVar args_;
   int numLocals_ = 0;
-  RefVar locals_;         // Frame of symbol and value
+  RefVar locals_;         ///< An array of the symbols in argFrame:
+  ///< _nextArgFrame, _parent, _implementor, parameters, locals
   int numLiterals_ = 0;
   RefVar literals_;       // Array of Refs
   ASTNode *first_ { nullptr };
@@ -158,11 +158,11 @@ public:
   virtual ~ASTNode() = default;
   virtual int provides() { return kProvidesUnknown; }
   virtual int consumes() { return 0; }
-  virtual ASTNode *simplify(int *changes) { (void)changes; return next; }
+  virtual ASTNode *Resolve(int *changes) { (void)changes; return next; }
   void indent(int inIndent) { for (int i=0; i<inIndent; i++) printf("  "); }
   void newline(int inIndent) { putchar('\n'); indent(inIndent); }
   void printHeader() { printf("###[%2d] ", provides()); }
-  void unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; }
+  ASTNode *unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; return this; }
   void replaceWith(ASTNode *nd) {
     prev->next = nd; next->prev = nd;
     nd->prev = prev; nd->next = next;
@@ -170,6 +170,7 @@ public:
   }
   virtual void printSource(PState &p) { }
 
+  virtual bool IsNIL() { return false; }
   virtual bool Resolved() = 0;
   virtual void Print(PState &p) = 0;
 };
@@ -232,6 +233,7 @@ protected:
 public:
   ASTBytecodeNode(int pc, int a, int b)
   : ASTNode(pc), a_(a), b_(b) { }
+  int b() { return b_; }
   bool Resolved() override { return false; }
   void Print(PState &p) override {
     p.Begin(); printHeader();
@@ -291,6 +293,7 @@ public:
       p.NewLine();
     }
   }
+  bool IsNIL() override { return (b_ == NILREF); }
 };
 
 // (A=11): --
@@ -354,7 +357,7 @@ public:
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin();
-      p.dc.printLocal(b_-4);
+      p.dc.printLocal(b_);
       p.End();
     } else {
       p.Begin(); printHeader();
@@ -372,7 +375,7 @@ public:
   : ASTBytecodeNode(pc, a, b) { }
   int provides() override { if (in_) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     if (in_) return next; // nothing more to do
     if (prev->provides() == 1) {
       in_ = prev; prev->unlink();
@@ -398,7 +401,7 @@ class AST_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BranchIfTrue(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfTrue; else return kProvidesUnknown; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     return next;
   }
   void Print(PState &p) override {
@@ -509,7 +512,7 @@ class AST_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BranchIfFalse(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     // Track if the if/then/else returns a value
     bool returnsAValue = false;
     ASTJumpTarget *jt1 = nullptr;
@@ -519,7 +522,7 @@ public:
     int jt2origin = pc_;
 
     // Step 1: Make sure the condition input is resolved
-    if (!in_) return AST_Consume1::simplify(changes);
+    if (!in_) return AST_Consume1::Resolve(changes);
 
     // Step 2: Start pattern matching for if/then/else structure
     ASTNode *nd = next;
@@ -634,11 +637,45 @@ public:
   }
 };
 
+class AST_Break : public AST_Consume1 {
+public:
+  AST_Break(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("break");
+      if (!in_->IsNIL()) {
+        printf(" ");
+        in_->Print(p);
+      }
+      p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_Break target=%d ###", pc_, b_);
+      p.NewLine();
+    }
+  }
+};
+
 // (A=0, B=0): value --
 class AST_Pop : public AST_Consume1 {
 public:
   AST_Pop(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  ASTNode *Resolve(int *changes) override {
+    if (Resolved()) return next;
+    // If the sequence is 'branch; pop;', the pop can never be reached, which
+    // appears to be an unoptimizes NS `break` instruction. So ATS_Pop with AST_Break;
+    if (prev && dynamic_cast<AST_Branch*>(prev)) {
+      AST_Break *breakNode = new AST_Break(pc_, 0, ((AST_Branch*)prev)->b());
+      delete prev->unlink();
+      this->replaceWith(breakNode);
+      return breakNode;
+    }
+    return AST_Consume1::Resolve(changes);
+  }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin(); p.NewLine(";");
@@ -688,7 +725,7 @@ public:
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin();
-      p.dc.printLocal(b_-4);
+      p.dc.printLocal(b_);
       printf(" := ");
       in_->Print(p);
       p.NewLine(";");
@@ -897,7 +934,7 @@ public:
   : ASTBytecodeNode(pc, a, b) { }
   int provides() override { if (in1_ && in2_) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     if (in1_ && in2_) return next; // nothing more to do
     if ((prev->provides() == 1) && (prev->prev->provides() == 1)) {
       in2_ = prev; prev->unlink();
@@ -1024,11 +1061,16 @@ public:
   AST_SetClass(int pc, int a, int b) : AST_Consume2(pc, a, b) { }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(PState &p) override {
-    //    if ((p.type == PState::Type::script) && Resolved()) {
-    //    } else {
-    if (p.type == PState::Type::deep) PrintChildren(p);
-    p.Begin(); printHeader(); printf("%3d: AST_SetClass ###", pc_); p.NewLine();
-    //    }
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("SetClass(");
+      in1_->Print(p); printf(", ");
+      in2_->Print(p); printf(")");
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_SetClass ###", pc_); p.NewLine();
+    }
   }
 };
 
@@ -1097,7 +1139,7 @@ public:
       return kProvidesUnknown;
   }
   int consumes() override { return 3; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     if (Resolved()) return next; // nothing more to do
     if (   (prev->provides() == 1)
         && (prev->prev->provides() == 1)
@@ -1139,7 +1181,7 @@ public:
   : ASTBytecodeNode(pc, a, b) { }
   int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     if (Resolved()) return next; // nothing more to do
     if (   (prev->provides() == 1)
         && (prev->prev->provides() == 1)
@@ -1180,7 +1222,7 @@ public:
   : ASTBytecodeNode(pc, a, b) { }
   int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     // SetVar n   = expr (start)
     // SetVar n+1 = expr (limit)
     // SetVar n+2 = expr (index)
@@ -1223,7 +1265,7 @@ public:
   : ASTBytecodeNode(pc, a, b), numIns_(n) { }
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
-  ASTNode *simplify(int *changes) override {
+  ASTNode *Resolve(int *changes) override {
     if (Resolved()) return next; // nothing more to do
     ASTNode *nd = this;
     for (int i=0; i<numIns_; i++) {
@@ -1429,17 +1471,13 @@ void Decompiler::decompile(Ref ref)
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
     numArgs_ = RefToInt(numArgs);
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
-    numLocals_ = Length(argFrame) - 3 - numArgs_;
+    int argFrameLength = Length(argFrame);
+    numLocals_ = argFrameLength - 3 - numArgs_;
+    locals_ = MakeArray(argFrameLength);
     // Make the list of names of the locals
     Ref map = ((FrameObject *)ObjectPtr(argFrame))->map;
-    locals_ = MakeArray(numLocals_);
-    for (int i=0; i<numLocals_; i++) {
-      SetArraySlot(locals_, i, GetArraySlot(map, i + 4 + numArgs_));
-    }
-    // Make the list of names of the arguments
-    args_ = MakeArray(numArgs_);
-    for (int i=0; i<numArgs_; i++) {
-      SetArraySlot(args_, i, GetArraySlot(map, i + 4));
+    for (int i=0; i<argFrameLength; i++) {
+      SetArraySlot(locals_, i, GetArraySlot(map, i));
     }
   } else if (klass == kPlainFuncClass) {
     nos_ = 2;
@@ -1447,26 +1485,22 @@ void Decompiler::decompile(Ref ref)
     numArgs_ = static_cast<int>((numArgs>>2) & 0x00003fff);
     numLocals_ = static_cast<int>(numArgs >> 18);
     // Make up names for the locals:
-    locals_ = MakeArray(numLocals_);
-    for (int i=0; i<numLocals_; i++) {
-      char buf[32];
-      snprintf(buf, 30, "loc_%d", i);
-      SetArraySlot(locals_, i, MakeSymbol(buf));
-    }
-    // Make the list of names of the arguments
-    args_ = MakeArray(numArgs_);
+    // _nextArgFrame, _parent, _implementor, parameters, locals
+    int argFrameLength = 3 + numArgs_ + numLocals_;
+    locals_ = MakeArray(argFrameLength);
+    SetArraySlot(locals_, 0, SYMA(_nextArgFrame));
+    SetArraySlot(locals_, 0, SYMA(_parent));
+    SetArraySlot(locals_, 0, SYMA(_implementor));
     for (int i=0; i<numArgs_; i++) {
       char buf[32];
-      snprintf(buf, 30, "arg_%04d", i);
-      SetArraySlot(args_, i, MakeSymbol(buf));
+      snprintf(buf, 30, "arg%d", i);
+      SetArraySlot(locals_, i + 3, MakeSymbol(buf));
     }
-    // TODO: args_ are just locals_ in the range from 3 to 3+numArgs
-    // locals_[0] = _nextArgFrame
-    // locals_[1] = _parent: nil,
-    // locals_[2] = _implementor: nil,
-    // followed by args
-    // followed by user defined locals
-
+    for (int i=0; i<numLocals_; i++) {
+      char buf[32];
+      snprintf(buf, 30, "loc%d", i);
+      SetArraySlot(locals_, i + 3 + numArgs_, MakeSymbol(buf));
+    }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
   }
@@ -1633,7 +1667,7 @@ void Decompiler::solve()
     int changes = 0;
     ASTNode *nd = first_;
     while (nd) {
-      nd = nd->simplify(&changes);
+      nd = nd->Resolve(&changes);
       if (changes > 0) {
         print();
         solved = false;
@@ -1675,7 +1709,7 @@ void Decompiler::printSource()
     for (int i = 0; i < numLocals_; ++i) {
       pState.Begin();
       printf("local ");
-      printLocal(i);
+      printLocal(i + 3 + numArgs_);
       printf(";");
       pState.NewLine();
     }
