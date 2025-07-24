@@ -296,12 +296,77 @@ public:
   bool IsNIL() override { return (b_ == NILREF); }
 };
 
+// TODO: name nodes so that we can see the difference between a Bytecode and a generated node
+// TODO: generated nodes should derive from another subclass
+// TODO: This is a bug in the ByteCode: loop does not leave a value on the stack, but return assumes that there is one!
+// Is that a bug in newton_framework, or is that in the original compiler too?
+class ASTLoop : public ASTNode {
+protected:
+  std::vector<ASTNode*> body_;
+public:
+  ASTLoop(int pc) : ASTNode(pc) { }
+  void add(ASTNode *nd) { body_.push_back(nd); }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      if (body_.size() > 1) {
+        printf("loop begin"); p.NewLine(+1);
+        for (auto &nd: body_) {
+          nd->Print(p); p.NewLine(";");
+        }
+        p.Begin(-1); printf("end"); p.NewLine(";");
+      } else if (body_.size() == 1) {
+        printf("loop "); p.NewLine(+1); // loop only one instruction forever (could be an if...break)
+        body_[0]->Print(p); p.indent--;
+      } else {
+        printf("loop nil"); // special case, loops forever
+      }
+      p.NewLine(";");
+    } else {
+      p.Begin(); printHeader();
+      printf("%3d: ASTLoop ###", pc_);
+      p.NewLine();
+    }
+  };
+};
+
 // (A=11): --
 class AST_Branch : public ASTBytecodeNode {
 public:
   AST_Branch(int pc, int a, int b) : ASTBytecodeNode(pc, a, b) { }
   int provides() override { return kBranch; }
   bool Resolved() override { return false; }
+  ASTNode *Resolve(int *changes) override {
+    if (b_ < pc_) {
+      // `loop`: JumpTarget A; n*stmt; branch A;
+      int numStmt = 0;
+      ASTNode *nd = prev;
+      while (nd->provides() == kProvidesNone) {
+        numStmt++;
+        nd = nd->prev;
+      }
+      ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
+      if (!jt) return next;
+      if (!jt->containsOrigin(pc_)) return next;
+
+      // It's a loop! Build a new node.
+      ASTLoop *loop = new ASTLoop(pc_);
+      nd = jt->next;
+      jt->removeOrigin(pc_);
+      if (jt->empty()) delete jt->unlink();
+      for (int i=numStmt; i>0; --i) {
+        ASTNode *nx = nd->next;
+        loop->add(nd);
+        nd->unlink();
+        nd = nx;
+      }
+      this->replaceWith(loop);
+      return loop;
+    }
+
+    return next;
+  }
   void Print(PState &p) override {
     p.Begin(); printHeader();
     printf("%3d: AST_Branch pc:%d ###", pc_, b_);
@@ -666,11 +731,33 @@ public:
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   ASTNode *Resolve(int *changes) override {
     if (Resolved()) return next;
-    // If the sequence is 'branch; pop;', the pop can never be reached, which
-    // appears to be an unoptimizes NS `break` instruction. So ATS_Pop with AST_Break;
-    if (prev && dynamic_cast<AST_Branch*>(prev)) {
-      AST_Break *breakNode = new AST_Break(pc_, 0, ((AST_Branch*)prev)->b());
-      delete prev->unlink();
+    AST_Branch *branch = prev ? dynamic_cast<AST_Branch*>(prev) : nullptr;
+    if (branch && (branch->b() > pc_)) {
+      // If the sequence is 'branch; pop;', the pop can never be reached, which
+      // appears to be an unoptimizes NS `break` instruction.
+      // So replace ATS_Pop with AST_Break;
+
+      // NOTE: We must also release the target, but that leaves us no way to
+      // verify that this is the matching break statement
+      ASTNode *nd = next;
+      int target = branch->b();
+      for (;;) {
+        if (nd == nullptr) {
+          ThrowMsg("AST_Pop:Resolve: break target node not found!");
+          return next;
+        }
+        if ((nd->pc() == target) && (nd->provides() == kJumpTarget)) break;
+        nd = nd->next;
+      }
+      ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
+      if (!jt) ThrowMsg("AST_Pop:Resolve: should have been a Jump Target!");
+      if (!jt->containsOrigin(branch->pc())) ThrowMsg("AST_Pop:Resolve: address of `break` not in Jump Target!");
+      jt->removeOrigin(branch->pc());
+      if (jt->empty()) delete jt->unlink();
+
+      // Replace this node and the previous branch with an AST_Break
+      AST_Break *breakNode = new AST_Break(branch->pc(), 0, branch->b());
+      delete branch->unlink();
       this->replaceWith(breakNode);
       return breakNode;
     }
@@ -678,7 +765,7 @@ public:
   }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
-      p.Begin(); p.NewLine(";");
+      p.Begin(); in_->Print(p); p.NewLine(";");
     } else {
       if (p.type == PState::Type::deep) PrintChildren(p);
       p.Begin(); printHeader();
