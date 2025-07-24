@@ -162,7 +162,6 @@ public:
   virtual ~ASTNode() = default;
   virtual int provides() { return kProvidesUnknown; }
   virtual int consumes() { return 0; } // Never called
-  virtual ASTNode *Resolve(int *changes) { (void)changes; return next; }
   void printHeader() { printf("###[%2d] ", provides()); }
 
   /** Remove this node from the linked list. Don;t use this for First and Last. */
@@ -186,11 +185,7 @@ public:
    \return true if the call changed the AST
    \return the next node in the list
    */
-  virtual auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> {
-    int changes = 0;
-    ASTNode *next = Resolve(&changes);
-    return { (changes != 0), next };
-  }
+  virtual auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> { return { false, next }; }
   /** Return true if we know everything there is to know about this node. */
   virtual bool Resolved() = 0;
 
@@ -348,7 +343,7 @@ protected:
 public:
   ASTLoop(Decompiler *d, int pc) : ASTNode(d, pc) { }
   void add(ASTNode *nd) { body_.push_back(nd); }
-  int provides() override { return kProvidesNone; }
+  int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
@@ -367,6 +362,11 @@ public:
       }
       p.NewLine(";");
     } else {
+      if (p.type == PState::Type::deep) {
+        p.indent++;
+        for (auto &nd: body_) nd->Print(p);
+        p.indent--;
+      }
       p.Begin(); printHeader();
       printf("%3d: ASTLoop ###", pc_);
       p.NewLine();
@@ -380,18 +380,17 @@ public:
   AST_Branch(Decompiler *d, int pc, int a, int b) : ASTBytecodeNode(d, pc, a, b) { }
   int provides() override { return kBranch; }
   bool Resolved() override { return false; }
-  ASTNode *Resolve(int *changes) override {
-    if (b_ < pc_) {
+  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
+    do {
       // `loop`: JumpTarget A; n*stmt; branch A;
+      if (b_ > pc_) break;
       int numStmt = 0;
       ASTNode *nd = prev;
-      while (nd->IsStatement()) {
-        numStmt++;
-        nd = nd->prev;
-      }
+      while (nd->IsStatement()) { numStmt++; nd = nd->prev; }
       ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
-      if (!jt) return next;
-      if (!jt->containsOrigin(pc_)) return next;
+      if (!jt) break;;
+      if (!jt->containsOrigin(pc_)) break;;
 
       // It's a loop! Build a new node.
       ASTLoop *loop = new ASTLoop(decompiler_, pc_);
@@ -405,10 +404,9 @@ public:
         nd = nx;
       }
       this->ReplaceWith(loop);
-      return loop;
-    }
-
-    return next;
+      return { true, loop };
+    } while(0);
+    return { false, next };
   }
   void Print(PState &p) override {
     p.Begin(); printHeader();
@@ -481,16 +479,16 @@ protected:
 public:
   AST_Consume1(Decompiler *d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
-  int provides() override { if (in_) return 1; else return kProvidesUnknown; }
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
-  ASTNode *Resolve(int *changes) override {
-    if (in_) return next; // nothing more to do
-    if (prev->IsExpr()) {
-      in_ = prev; prev->Unlink();
-      (*changes)++;
-      return this;
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (!Resolved() && prev->IsExpr()) {
+      in_ = prev;
+      prev->Unlink();
+      return { true, next };
+    } else {
+      return { false, next };
     }
-    return next;
   }
   bool Resolved() override { return (in_ != nullptr); }
   void PrintChildren(PState &p) {
@@ -545,7 +543,8 @@ class AST_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BranchIfTrue(Decompiler *d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   int provides() override { if (in_) return kBranchIfTrue; else return kProvidesUnknown; }
-  ASTNode *Resolve(int *changes) override {
+  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
     // TODO: used in "or"
     // `while...do...` Branch A; Target B; n*stmt; Target A; expr; BranchIfTrue B; PushNIL;
     do {
@@ -587,10 +586,10 @@ public:
         nd = nx;
       }
       this->ReplaceWith(wd);
-      return wd;
+      return { true, wd };
 
     } while (0);
-    return next;
+    return { false, next };
   }
   void Print(PState &p) override {
     if (p.type == PState::Type::deep) PrintChildren(p);
@@ -700,7 +699,8 @@ class AST_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BranchIfFalse(Decompiler *d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
-  ASTNode *Resolve(int *changes) override {
+  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
     // Track if the if/then/else returns a value
     bool returnsAValue = false;
     ASTJumpTarget *jt1 = nullptr;
@@ -710,7 +710,7 @@ public:
     int jt2origin = pc_;
 
     // Step 1: Make sure the condition input is resolved
-    if (!in_) return AST_Consume1::Resolve(changes);
+    if (!in_) return AST_Consume1::ResolveDataFlow(); // TODO: control flow?
 
     // Step 2: Start pattern matching for if/then/else structure
     ASTNode *nd = next;
@@ -736,9 +736,9 @@ public:
       nd = nd->next;
 
       // Step 6: The next node must be a jump target for the 'if' branch
-      if (nd->provides() != kJumpTarget) return next;
+      if (nd->provides() != kJumpTarget) return { false, next };
       jt1 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt1->containsOnly(pc_)) return next;
+      if (!jt1->containsOnly(pc_)) return { false, next };
       nd = nd->next;
 
       // Step 7: Count statements in the 'else' branch
@@ -749,23 +749,23 @@ public:
 
       // Step 8: If this is an expression, check for a single value in the else branch
       if (returnsAValue) {
-        if (!nd->IsExpr()) return next;
+        if (!nd->IsExpr()) return { false, next };
         numElse++;
         nd = nd->next;
       }
 
       // Step 9: The next node must be a jump target for the unconditional branch
-      if (nd->provides() != kJumpTarget) return next;
+      if (nd->provides() != kJumpTarget) return { false, next };
       jt2 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt2->containsOrigin(branch_pc)) return next;
+      if (!jt2->containsOrigin(branch_pc)) return { false, next };
       jt2origin = branch_pc;
     } else if (nd->provides() == kJumpTarget) {
       // Step 10: Handle the case with no else branch (simple if/then)
       jt2 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt2->containsOrigin(pc_)) return next;
+      if (!jt2->containsOrigin(pc_)) return { false, next };
     } else {
       // Pattern does not match any known if/then/else structure
-      return next;
+      return { false, next };
     }
 
     // Step 11: Build the ASTIfThenElseNode and replace the matched nodes
@@ -792,8 +792,7 @@ public:
 
     // Step 13: Replace this node with the new if/then/else node
     ReplaceWith(ite);
-    (*changes)++;
-    return ite->next;
+    return { true, ite };
   }
   bool Resolved() override { return false; }
   void Print(PState &p) override {
@@ -852,8 +851,8 @@ class AST_Pop : public AST_Consume1 {
 public:
   AST_Pop(Decompiler *d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  ASTNode *Resolve(int *changes) override {
-    if (Resolved()) return next;
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
     AST_Branch *branch = prev ? dynamic_cast<AST_Branch*>(prev) : nullptr;
     if (branch && (branch->b() > pc_)) {
       // If the sequence is 'branch; pop;', the pop can never be reached, which
@@ -867,7 +866,7 @@ public:
       for (;;) {
         if (nd == nullptr) {
           ThrowMsg("AST_Pop:Resolve: break target node not found!");
-          return next;
+          return { false, next };
         }
         if ((nd->pc() == target) && (nd->provides() == kJumpTarget)) break;
         nd = nd->next;
@@ -882,9 +881,9 @@ public:
       AST_Break *breakNode = new AST_Break(decompiler_, branch->pc(), 0, branch->b());
       delete branch->Unlink();
       this->ReplaceWith(breakNode);
-      return breakNode;
+      return { true, breakNode };
     }
-    return AST_Consume1::Resolve(changes);
+    return AST_Consume1::ResolveDataFlow();
   }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
@@ -905,7 +904,7 @@ public:
   // TODO: provides(2) does not match any consumers!
   // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
-  int provides() override { if (in_) return 2; else return kProvidesUnknown; }
+  int provides() override { if (Resolved()) return 2; else return kProvidesUnknown; }
   void Print(PState &p) override {
     if (p.type == PState::Type::deep) PrintChildren(p);
     p.Begin(); printHeader();
@@ -1142,17 +1141,16 @@ protected:
 public:
   AST_Consume2(Decompiler *d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
-  int provides() override { if (in1_ && in2_) return 1; else return kProvidesUnknown; }
+  int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
-  ASTNode *Resolve(int *changes) override {
-    if (in1_ && in2_) return next; // nothing more to do
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next }; // nothing more to do
     if ((prev->IsExpr()) && (prev->prev->IsExpr())) {
       in2_ = prev; prev->Unlink();
       in1_ = prev; prev->Unlink();
-      (*changes)++;
-      return this;
+      return { true, this };
     }
-    return next;
+    return { false, next };
   }
   bool Resolved() override { return (in1_ != nullptr) && (in2_ != nullptr); }
   void PrintChildren(PState &p) {
@@ -1368,18 +1366,17 @@ public:
       return kProvidesUnknown;
   }
   int consumes() override { return 3; }
-  ASTNode *Resolve(int *changes) override {
-    if (Resolved()) return next; // nothing more to do
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next }; // nothing more to do
     if (   (prev->IsExpr())
         && (prev->prev->IsExpr())
-        && (prev->prev->IsExpr())) {
-      value_ = prev; prev->Unlink();
-      path_ = prev; prev->Unlink();
-      object_ = prev; prev->Unlink();
-      (*changes)++;
-      return this;
+        && (prev->prev->prev->IsExpr())) {
+      value_ = prev->Unlink();
+      path_ = prev->Unlink();
+      object_ = prev->Unlink();
+      return { true, this };
     }
-    return next;
+    return { false, next };
   }
   bool Resolved() override { return (object_ != nullptr) && (path_ != nullptr) && (value_ != nullptr); }
   void PrintChildren(PState &p) {
@@ -1410,18 +1407,17 @@ public:
   : ASTBytecodeNode(d, pc, a, b) { }
   int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  ASTNode *Resolve(int *changes) override {
-    if (Resolved()) return next; // nothing more to do
+  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next }; // nothing more to do
     if (   (prev->IsExpr())
         && (prev->prev->IsExpr())
         && (prev->prev->IsExpr())) {
       element_ = prev; prev->Unlink();
       index_ = prev; prev->Unlink();
       object_ = prev; prev->Unlink();
-      (*changes)++;
-      return this;
+      return { true, this };
     }
-    return next;
+    return { false, next };
   }
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
   void PrintChildren(PState &p) {
@@ -1451,7 +1447,7 @@ public:
   : ASTBytecodeNode(d, pc, a, b) { }
   int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  ASTNode *Resolve(int *changes) override {
+//  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> {
     // SetVar n   = expr (start)
     // SetVar n+1 = expr (limit)
     // SetVar n+2 = expr (index)
@@ -1465,8 +1461,8 @@ public:
     // C: JumpTarget from A
     // GetVar n+1
     // D: BranchLoop B
-    return next;
-  }
+//    return next;
+//  }
   bool Resolved() override { return (incr_ != nullptr) && (index_ != nullptr) && (limit_ != nullptr); }
   void PrintChildren(PState &p) {
     p.indent++;
@@ -1494,21 +1490,20 @@ public:
   : ASTBytecodeNode(d, pc, a, b), numIns_(n) { }
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
-  ASTNode *Resolve(int *changes) override {
-    if (Resolved()) return next; // nothing more to do
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next }; // nothing more to do
     ASTNode *nd = this;
     for (int i=0; i<numIns_; i++) {
       nd = nd->prev;
       if (!nd->IsExpr()) { nd = nullptr; break; }
     }
-    if (nd == nullptr) return next;
+    if (nd == nullptr) return { false, next };
     for (int i=0; i<numIns_; i++) {
       ins_.push_back(nd);
       nd = nd->next;
       nd->prev->Unlink();
     }
-    (*changes)++;
-    return this;
+    return { true, this };
   }
   bool Resolved() override { return (ins_.size() == (size_t)numIns_); }
   void PrintChildren(PState &p) {
@@ -1531,6 +1526,7 @@ public:
   // mod, <<, >>, (note the precedence! 7, 8, 8)
   // HasVar(a) can also be written as "a exists", but both are legal
   auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
     do {
       if (numIns_ != 3) break;
       auto nameNode = dynamic_cast<AST_Push*>(prev);
@@ -1919,22 +1915,6 @@ void Decompiler::AddToTargets(int target, int origin) {
  */
 void Decompiler::solve()
 {
-#if 0
-  bool solved = true;
-  do {
-    solved = true;
-    int changes = 0;
-    ASTNode *nd = first_;
-    while (nd) {
-      nd = nd->Resolve(&changes);
-      if (changes > 0) {
-        print();
-        solved = false;
-        changes = 0;
-      }
-    }
-  } while (!solved);
-#else
   // Repeat everything until there are no more changes in the AST.
   bool astChanged = false;
   for (;;) {
@@ -1975,7 +1955,6 @@ void Decompiler::solve()
     // We have done all that we could
     if (!astChanged) break;
   }
-#endif
   // TODO: Refine: remove faulty code (double return) and unnecessary code.
 }
 
@@ -2083,3 +2062,55 @@ NewtonErr mDecompile(Ref ref, NewtonPackagePrinter &printer)
   return noErr;
 }
 
+#if 0
+
+###[-2] ASTFirstNode ###
+###[ 1]   0: AST_PushConst value:4 ###
+###[-1]   1: AST_FindAndSetVar literal[0] ###
+###[-3]   2: ASTJumpTarget from 4 ###
+###[ 1]   2: AST_PushConst value:2 ###
+###[-1]   3: AST_Pop ###
+###[-4]   4: AST_Branch pc:2 ###
+###[-1]   5: AST_Pop ###
+###[ 1]   6: AST_PushConst value:8 ###
+###[-1]   9: AST_FindAndSetVar literal[0] ###
+###[-3]  10: ASTJumpTarget from 14 ###
+###[ 1]  10: AST_PushConst value:4 ###
+###[ 1]  11: AST_Push literal[1] ###
+###[-1]  12: AST_Call n=1 ###
+###[-1]  13: AST_Pop ###
+###[-4]  14: AST_Branch pc:10 ###
+###[-1]  17: AST_Pop ###
+###[ 1]  18: AST_PushConst value:12 ###
+###[-1]  21: AST_FindAndSetVar literal[0] ###
+
+###[-3]  22: ASTJumpTarget from 39 ###    0
+###[ 1]  22: AST_PushConst value:8 ###    1
+###[ 1]  25: AST_Push literal[1] ###      2
+###[-1]  26: AST_Call n=1 ###             1
+###[-1]  27: AST_Pop ###                  0
+###[ 1]  28: AST_PushConst value:4 ###    1
+###[-4]  29: AST_Branch pc:42 ###         ->
+###[-1]  32: AST_Pop ###                  0
+###[ 1]  33: AST_PushConst value:12 ###   1
+###[ 1]  36: AST_Push literal[1] ###      2
+###[-1]  37: AST_Call n=1 ###             1
+###[-1]  38: AST_Pop ###                  0
+###[-4]  39: AST_Branch pc:22 ###        <-
+###[-3]  42: ASTJumpTarget from 29 ###    1 <-
+###[-1]  42: AST_Pop ###                  0
+
+###[ 1]  43: AST_PushConst value:16 ###       1
+###[-1]  46: AST_FindAndSetVar literal[0] ### 0
+###[-3]  47: ASTJumpTarget from 53 57 ###
+###[ 1]  47: AST_PushConst value:16 ###
+###[ 1]  50: AST_Push literal[1] ###
+###[-1]  51: AST_Call n=1 ###
+###[-1]  52: AST_Pop ###
+###[-4]  53: AST_Branch pc:47 ###
+###[-1]  56: AST_Pop ###
+###[-4]  57: AST_Branch pc:47 ###
+###[ 0]  60: AST_Return ###
+###[-2] ASTLastNode ###
+
+#endif

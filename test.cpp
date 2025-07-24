@@ -121,6 +121,15 @@ int main(int argc, char **argv)
    This block reads a NewtonScript source code file and saves it as a
    .pkg package file.
    */
+
+#if 0
+      NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
+      Ref pkgRef = pkg.packageRef();
+    //  PrintObject(pkgRef, 0); puts("");
+      printPackage(pkgRef);
+      return 0;
+#endif
+
   // Register the 'MakeBinaryFromHex' global function.
   Ref hexFn = AllocateFrame();
   SetFrameSlot(hexFn, MakeSymbol("class"), kPlainCFunctionClass);
