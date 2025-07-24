@@ -306,6 +306,7 @@ protected:
 public:
   ASTLoop(int pc) : ASTNode(pc) { }
   void add(ASTNode *nd) { body_.push_back(nd); }
+  int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
@@ -461,12 +462,92 @@ public:
   }
 };
 
+class ASTWhileDo : public ASTNode {
+protected:
+  ASTNode *cond_ { nullptr };
+  std::vector<ASTNode*> body_;
+public:
+  ASTWhileDo(int pc, ASTNode *condition) : ASTNode(pc), cond_(condition) { }
+  void add(ASTNode *nd) { body_.push_back(nd); }
+  int provides() override { return kProvidesNone; }
+  bool Resolved() override { return true; }
+  void Print(PState &p) override {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      printf("while "); cond_->Print(p); printf(" do");
+      if (body_.size() > 1) {
+        printf(" begin"); p.NewLine(+1);
+        for (auto &nd: body_) {
+          nd->Print(p); p.NewLine(";");
+        }
+        p.Begin(-1); printf("end"); p.NewLine(";");
+      } else if (body_.size() == 1) {
+        p.NewLine(+1); // loop only one instruction forever (could be an if...break)
+        body_[0]->Print(p); p.indent--;
+      } else {
+        printf("nil"); // special case, loops forever
+      }
+      p.NewLine(";");
+    } else {
+      // TODO: Print children, same for ASTLoop!
+      p.Begin(); printHeader();
+      printf("%3d: ASTWhileDo ###", pc_);
+      p.NewLine();
+    }
+  };
+};
+
+
 // (A=12): value --
 class AST_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BranchIfTrue(int pc, int a, int b) : AST_Consume1(pc, a, b) { }
   int provides() override { if (in_) return kBranchIfTrue; else return kProvidesUnknown; }
   ASTNode *Resolve(int *changes) override {
+    // TODO: used in "or"
+    // `while...do...` Branch A; Target B; n*stmt; Target A; expr; BranchIfTrue B; PushNIL;
+    do {
+      // We expect that we jump backwards
+      if (b_ > pc_) break;
+      int numStmts = 0;
+      ASTNode *nd = prev;
+      // Next line must push NIL on the stack
+//      if (!next->IsNIL()) break;
+      // Previous must be an expression
+      if (nd->provides() != 1) break;
+      nd = nd->prev;
+      // Now we want a jump target, check the origin when we know where the loop starts
+      ASTJumpTarget *jt2 = dynamic_cast<ASTJumpTarget*>(nd);
+      if (!jt2) break;
+      nd = nd->prev;
+      // Skip over any number of statements
+      while (nd->provides() == 0) { numStmts++; nd = nd->prev; }
+      ASTNode *stmts = nd->next;
+      // We must find the jump target for this branch node now
+      ASTJumpTarget *jt1 = dynamic_cast<ASTJumpTarget*>(nd);
+      if (!jt1 || !jt1->containsOnly(this->pc_)) break;
+      nd = nd->prev;
+      // Finally, we expect an unconditional jump to jt2
+      AST_Branch *branch = dynamic_cast<AST_Branch*>(nd);
+      if (!branch || (branch->b() != jt2->pc())) break;
+      if (!jt2->containsOnly(branch->pc())) break;
+
+      // We did it. This is a while...do... construct!
+      ASTWhileDo *wd = new ASTWhileDo(pc(), prev->unlink());
+      delete branch->unlink();
+      delete jt1->unlink();
+      delete jt2->unlink();
+      nd = stmts;
+      for (int i=numStmts; i>0; --i) {
+        ASTNode *nx = nd->next;
+        wd->add(nd);
+        nd->unlink();
+        nd = nx;
+      }
+      this->replaceWith(wd);
+      return wd;
+
+    } while (0);
     return next;
   }
   void Print(PState &p) override {
