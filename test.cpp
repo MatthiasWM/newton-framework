@@ -122,7 +122,7 @@ int main(int argc, char **argv)
    .pkg package file.
    */
 
-#if 0
+#if 1
       NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
       Ref pkgRef = pkg.packageRef();
     //  PrintObject(pkgRef, 0); puts("");

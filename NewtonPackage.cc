@@ -17,6 +17,7 @@
 #include "ROMResources.h"
 #include "Symbols.h"
 
+#include <cassert>
 
 #if __LP64__
 /* -----------------------------------------------------------------------------
@@ -578,7 +579,7 @@ ScanRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ScanRefMap & io
 		} else {
 			refSize += (objSize - sizeof(BinaryObject32));
 		}
-		return LONGALIGN(refSize);
+		return MEMALIGN(refSize);
 	}
 	// else it’s an immediate
 	return 0;
@@ -640,12 +641,13 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 			// adjust for change in header size
 			dstSize = srcSize - sizeof(BinaryObject32) + sizeof(BinaryObject);
 		}
+
 		dstPtr->size = dstSize;
 		dstPtr->flags = kObjReadOnly | (srcPtr->flags & kObjMask);
 		dstPtr->gc.stuff = 0;
 
 		//	update/align ioDstPtr to next object
-		ioDstPtr = (ArrayObject *)((char *)ioDstPtr + LONGALIGN(dstSize));
+		ioDstPtr = (ArrayObject *)((char *)ioDstPtr + MEMALIGN(dstSize));
 		// for frames, class is actually the map which needs fixing too; non-slotted refs may need byte-swapping anyway so we always need to do this
 		dstPtr->objClass = CopyRef(srcPtr->objClass, inPartAddr, inPartOffset, ioDstPtr, ioMap);
 
