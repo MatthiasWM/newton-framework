@@ -492,6 +492,14 @@ StepDeclare(RefArg parent, RefArg child, RefArg tag) {
 
 extern void handleArgHello() {
   const char *script = R"*(
+    
+myLabel := {
+  text: "Hello, world!",
+  viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
+  viewJustify: 8388614,
+  _proto: @218
+};
+
 {
   signature: 'package0,
   id: "xxxx",
@@ -520,13 +528,7 @@ extern void handleArgHello() {
           viewBounds: { left: -12, top: 56, right: 140, bottom: 152 },
           viewClickScript: func(arg) begin end,
           stepChildren: [
-            stepChildren:
-            {
-              text: "Hello, world!",
-              viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
-              viewJustify: 8388614,
-              _proto: @218
-            }
+            stepChildren: myLabel
           ],
           _proto: @180,
           appSymbol: '|hello:SIG|
