@@ -33,6 +33,9 @@ extern void PrintCode(RefArg obj);
 
 int currentRefIndex = 0;
 
+extern void handleArgHello();
+
+
 /**
  \brief Initialize the newtc tool and the NewtonScript toolkit.
  */
@@ -252,14 +255,16 @@ void handleArgPrint()
     - [x] -run filename : read, compile, and run some Newton Script
     - [x] -s "script" : compile the script, result is stored in a global ref#
     - [x] -r "script" : compile and run the script, result is stored in a global ref#
+    - [x] -hello : create the a Hello, Wold! application object
   - Controller:
-    - [x] -nos1 : compile into NewtonOS 1.x format
+    - [x] -nos1 : compile into NewtonOS 1.x format (default)
     - [x] -nos2 : compile into NewtonOS 2.x format
     - [ ] -pkg0 name symbol : generate a minimal `package0` package object
     - [ ] -pkg1 name symbol : generate a minimal `package1` package object
     - [ ] -addpart ??? : add the most recent object as the next part to ref0
     - [x] -clear : clear all ref# and start over at ref0
     - [ ] -debug level : (may be a bit pattern at some point)
+    - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
   - Writer:
     - [x] -opkg filename : write ref0 as a package
     - [x] -onsof filename : write ref0 as a Newton Script Object File
@@ -267,6 +272,7 @@ void handleArgPrint()
     - [ ] -decompile : print ref0 to stdout, decompile all functions
     - [ ] -decompose directory : decompile, and extract all known binary resources
     - [ ] -hex : write as a hexadecimal dump
+    - [ ] -diff : compare the decompiled text output of ref0 and ref1
     - [x] -- : same as -print
  */
 int main(int argc, char **argv)
@@ -307,6 +313,8 @@ int main(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing script after -r ... ."));
         handleArgR(std::string(argv[argi++]));
+      } else if (cmd == "-hello") {
+        handleArgHello();
       } else if (cmd == "-nos1") {
         handleArgNos1();
       } else if (cmd == "-nos2") {
@@ -348,25 +356,78 @@ int main(int argc, char **argv)
 
 
 /*
- pkg :=
- {
- signature: 'package0,
- id: "xxxx",
- flags: {
- noCompression: true
- },
- version: 1,
- copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
- name: "loop:SIG",
- size: 2408,
- creationdate: 3836221195,
- modifyDate: 0,
- reserved3: 0,
- directorySize: 280,
- info: "Newton Toolkit 1.6.4",
- part: [
- ]
- };
+  pkg :=
+  {
+    signature: 'package0,
+    id: "xxxx",
+    flags: {
+      noCompression: true
+    },
+    version: 1,
+    copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
+    name: "loop:SIG",
+    size: 2408,
+    creationdate: 3836221195,
+    modifyDate: 0,
+    reserved3: 0,
+    directorySize: 280,
+    info: "Newton Toolkit 1.6.4",
+    part: [
+    ]
+  };
+
+  {
+    signature: 'package1,
+    id: "xxxx",
+    flags: {
+      noCompression: true
+    },
+    version: 1,
+    copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
+    name: "loop:SIG",
+    size: 1940,
+    creationdate: 3836323314,
+    modifyDate: 0,
+    reserved3: 0,
+    directorySize: 280,
+    info: "Newton Toolkit 1.6.4",
+    part: [
+      {
+        offset: 0,
+        size: 1660,
+        type: "form",
+        flags: {
+          type: 'nos,
+ #        nos2: true,
+          Notify: true
+        },
+        info: "Newton Toolkit 1.6.4; platform file Newton 2.0 v5",
+        data: {
+          app: '|loop:SIG|,
+          text: "loop",
+          icon: {
+            mask: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F0000003F001FFF7F003FFF7E003FFFFE003FFFFC003FFFFC003FFFF8003FFFF8003FFFF0003FFFF0003FFFE0003FFFE0003FFFC0003FFFC0003FFF80003FFF00003FFF80003FFF80003FFF80001FFF00001FFF00000FFE000000000000", 'mask),
+            bits: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F00000033001FFF7B003FFF6E003000CE0037FCCC0037FD9C0034059800355338003403300035567000340660003554E000340CC000354FC000340B8000360F000037FE800037FD8000300B8000180300001FFF00000FFE000000000000", 'bits),
+            bounds: {
+              left: 0,
+              top: 0,
+              right: 24,
+              bottom: 27
+            }
+          },
+          theForm: {
+          }
+          installScript: func(arg0)
+            begin
+              arg0:?devInstallScript(arg0);
+              if HasSlot(arg0, devInstallScript) then
+                RemoveSlot(arg0, devInstallScript);
+              return arg0.installScript := nil;
+            end
+        }
+      }
+    ]
+  }
  */
 
 
@@ -427,5 +488,62 @@ StepDeclare(RefArg parent, RefArg child, RefArg tag) {
   AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
 }
 #endif
+
+
+extern void handleArgHello() {
+  const char *script = R"*(
+{
+  signature: 'package0,
+  id: "xxxx",
+  flags: { noCompression: true },
+  version: 1,
+  copyright: "(c) 2025, newtc",
+  name: "hello:SIG",
+  modifyDate: 0,
+  info: "newt 0.1",
+  part: [
+    {
+      offset: 0,
+      size: 2296,
+      type: "form",
+      flags: { type: 'nos, Notify: true },
+      info: "newtc 0.1; platform file MessagePad v5",
+      data: {
+        app: '|hello:SIG|,
+        text: "Hello",
+        icon: {
+          mask: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F0000003F001FFF7F003FFF7E003FFFFE003FFFFC003FFFFC003FFFF8003FFFF8003FFFF0003FFFF0003FFFE0003FFFE0003FFFC0003FFFC0003FFF80003FFF00003FFF80003FFF80003FFF80001FFF00001FFF00000FFE000000000000", 'mask),
+          bits: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F00000033001FFF7B003FFF6E003000CE0037FCCC0037FD9C0034059800355338003403300035567000340660003554E000340CC000354FC000340B8000360F000037FE800037FD8000300B8000180300001FFF00000FFE000000000000", 'bits),
+          bounds: { left: 0, top: 0, right: 24, bottom: 27 }
+        },
+        theForm: {
+          viewBounds: { left: -12, top: 56, right: 140, bottom: 152 },
+          viewClickScript: func(arg) begin end,
+          stepChildren: [
+            stepChildren:
+            {
+              text: "Hello, world!",
+              viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
+              viewJustify: 8388614,
+              _proto: @218
+            }
+          ],
+          _proto: @180,
+          appSymbol: '|hello:SIG|
+        },
+        installScript: func(part)
+        begin
+          return nil;
+        end
+      }
+    }
+  ]
+};
+    )*";
+  Ref src = MakeStringFromCString(script);
+  Ref fn = ParseString(src);
+  Ref result = DoBlock(fn, RA(NILREF));
+  addGlobalRef(result);
+}
 
 

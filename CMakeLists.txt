@@ -531,15 +531,19 @@ add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
 set_property (TARGET newtc
   PROPERTY XCODE_SCHEME_ARGUMENTS
+    "-hello"
+#    "-script /Users/matt/dev/newton-framework/c"
+#    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
 #    "-nsof /Users/matt/dev/test.nsof"
 #    "-script /Users/matt/dev/test.ns"
 #    "-run /Users/matt/dev/test.ns"
 #    "-nos2"
 #    "-s \"1+1;\""
-    "-r \"1+1;\""
+#    "-r \"1+1;\""
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
+    "-opkg /Users/matt/hello.pkg"
     "-print"
 )
 
