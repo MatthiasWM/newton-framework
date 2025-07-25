@@ -1,0 +1,431 @@
+
+
+#include "Frames/Frames.h"
+#include "Frames/StreamObjects.h"
+#include "Funcs.h"
+#include "NewtGlobals.h"
+#include "NewtonPackage.h"
+#include "Matt/PackageWriter.h"
+#include "Matt/ObjectPrinter.h"
+#include "Utilities/DataStuffing.h"
+#include "Frames/Interpreter.h"
+
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+
+#include <iostream>
+#include <string>
+#include <exception>
+#include <stdexcept>
+
+
+extern "C" void InitObjectSystem(void);
+extern "C" void PrintObject(Ref inObj, int indent);
+extern Ref ParseString(RefArg inStr);
+extern Ref ParseFile(const char * inFilename);
+extern void Disassemble(RefArg inFunc);
+extern Ref MakeStringFromCString(const char * str);
+extern void PrintCode(RefArg obj);
+
+
+
+
+int currentRefIndex = 0;
+
+/**
+ \brief Initialize the newtc tool and the NewtonScript toolkit.
+ */
+bool init()
+{
+  InitObjectSystem();
+
+  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
+  // DefGlobalVar(SYMA(printDepth), MAKEINT(7));
+
+  Ref hexFn = AllocateFrame();
+  SetFrameSlot(hexFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(hexFn, MakeSymbol("function"), (Ref)FStuffHex);
+  SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
+
+  return true;
+}
+
+/**
+ \brief Create a new global variable `ref#` that will hold the incoming ref.
+ The # increments with every call to this function.
+ */
+void addGlobalRef(RefArg inRef)
+{
+  char buf[32];
+  snprintf(buf, 31, "ref%d", currentRefIndex);
+  RefVar symRefN = MakeSymbol(buf);
+  DefGlobalVar(symRefN, inRef);
+  currentRefIndex++;
+}
+
+/**
+ \brief Load a package file and write the resulting object into global ref.
+ */
+void handleArgPkg(const std::string &filename)
+{
+  NewtonPackage pkg(filename.c_str());
+  Ref package = pkg.packageRef();
+  if (package == NILREF) {
+    throw(std::runtime_error("Can't read package."));
+  }
+  addGlobalRef(package);
+}
+
+/**
+ \brief Load an NSOF file and write the resulting object into global ref.
+ */
+void handleArgNsof(const std::string &filename)
+{
+  CStdIOPipe inPipe(filename.c_str(), "rb");
+  CObjectReader reader(inPipe);
+  RefVar ref = reader.read();
+  if (ref == NILREF) {
+    throw(std::runtime_error("Can't read NSOF."));
+  }
+  addGlobalRef(ref);
+}
+
+/**
+ \brief Load a script from a text file and write the resulting object into ref#.
+ */
+void handleArgScript(const std::string &filename)
+{
+  Ref result = ParseFile(filename.c_str());
+  addGlobalRef(result);
+}
+
+/**
+ \brief Load a script from a text file, compile it, and write the result object into ref#.
+ \todo Check Newton exception handling
+ */
+void handleArgRun(const std::string &filename)
+{
+  Ref fn = ParseFile(filename.c_str());
+  Ref result = DoBlock(fn, RA(NILREF));
+  addGlobalRef(result);
+  //  newton_try
+  //  {
+  //    DoBlock(RA(bootRunInitScripts), RA(NILREF));
+  //  }
+  //  newton_catch(exRootException)
+  //  { }
+  //  end_try;
+}
+
+/**
+ \brief Compile a script and write the resulting object into ref#.
+ \todo This is supposed to return the literal if the input is a literal,
+ but returns a function that build the literal instead.
+ */
+void handleArgS(const std::string &script)
+{
+  Ref src = MakeStringFromCString(script.c_str());
+  Ref result = ParseString(src);
+  addGlobalRef(result);
+}
+
+/**
+ \brief Compile and run a script and write the resulting object into ref#.
+ */
+void handleArgR(const std::string &script)
+{
+  Ref src = MakeStringFromCString(script.c_str());
+  Ref fn = ParseString(src);
+  Ref result = DoBlock(fn, RA(NILREF));
+  addGlobalRef(result);
+}
+
+/**
+ \brief Switch compiler to generate NOS 1.x compatible code which also runs on 2.x.
+ */
+void handleArgNos1()
+{
+  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
+}
+
+/**
+ \brief Switch compiler to generate optimized code, but limited to run on NOS 2.x.
+ */
+void handleArgNos2()
+{
+  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
+}
+
+/**
+ \brief Create a new global variable `ref#` that will hold the incoming ref.
+ The # increments with every call to this function.
+ */
+void handleArgClear()
+{
+  for (int i=0; i<currentRefIndex; ++i) {
+    char buf[32];
+    snprintf(buf, 31, "ref%d", i);
+    RefVar symRefN = MakeSymbol(buf);
+    DefGlobalVar(symRefN, NILREF);
+  }
+  currentRefIndex = 0;
+}
+
+/**
+ \brief Write the object in global `ref0` as a package file.
+ \todo Error handling
+ */
+void handleArgOPkg(const std::string &filename)
+{
+  RefVar package = GetGlobalVar(MakeSymbol("ref0"));
+  writePackageToFile(package, filename);
+}
+
+/**
+ \brief Create an NSOF file form ref0.
+ */
+void handleArgONsof(const std::string &filename)
+{
+  CStdIOPipe outPipe(filename.c_str(), "wb");
+  RefVar ref = GetGlobalVar(MakeSymbol("ref0"));
+  CObjectWriter out(ref, outPipe, false);
+  out.write();
+}
+
+/*
+ Frames/StreamObjects.h:
+
+ CObjectReader(CPipe & inPipe);
+ CObjectReader(CPipe & inPipe, RefArg inOptions);
+ ~CObjectReader();
+ void      setPrecedentsForReading(void);
+ void      setFunctionsAllowed(bool inAllowed);
+ Ref      read(void);
+ ArrayIndex  size(void);                // NRG
+
+
+ CStdIOPipe pipe("/Users/matt/dev/test.nsof", "w");
+ CObjectWriter writer(func, pipe, false);
+ //writer.setCompressLargeBinaries();
+ writer.write();
+ */
+
+/**
+ \brief Write the object `ref0` as text to stdout.
+ */
+void handleArgPrint()
+{
+  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  ObjectPrinter p;
+  p.Print(ref0);
+  puts("");
+}
+
+
+/**
+ \brief The NewtonScript compiler and decompiler, main entry point.
+
+ This is a command line NewtonScript that will compile and run scripts, read
+ and write NSOF files, and read and create NewtonOS package files.
+
+ It can print detailed and decompiled Newton Object, that will create
+ functionally the same Newton Object when recompiled. This allows us to
+ decompile existing packages, apply fixes, and recompile them into a
+ package again.
+
+ In the future, newtc will be able to extract and reintegrate binary resources
+ for graphics and sounds.
+
+ Command line options that read data will store the result in the global
+ variable `ref#`, starting with #=0, incrementing the # with every newly created
+ object. Writing options will always write `ref0`.
+
+ Command line options:
+  - Reader:
+    - [x] -pkg filename : read a package and create one object that includes the
+      package description and all parts that could be read
+    - [x] -nsof filename : read a Newton Script Object file and hold the contents
+      as and object.
+    - [x] -script filename : read a NewtonScript file and compile the script
+    - [x] -run filename : read, compile, and run some Newton Script
+    - [x] -s "script" : compile the script, result is stored in a global ref#
+    - [x] -r "script" : compile and run the script, result is stored in a global ref#
+  - Controller:
+    - [x] -nos1 : compile into NewtonOS 1.x format
+    - [x] -nos2 : compile into NewtonOS 2.x format
+    - [ ] -pkg0 name symbol : generate a minimal `package0` package object
+    - [ ] -pkg1 name symbol : generate a minimal `package1` package object
+    - [ ] -addpart ??? : add the most recent object as the next part to ref0
+    - [x] -clear : clear all ref# and start over at ref0
+    - [ ] -debug level : (may be a bit pattern at some point)
+  - Writer:
+    - [x] -opkg filename : write ref0 as a package
+    - [x] -onsof filename : write ref0 as a Newton Script Object File
+    - [x] -print : print ref0 to stdout, don't print the contents of binary objects
+    - [ ] -decompile : print ref0 to stdout, decompile all functions
+    - [ ] -decompose directory : decompile, and extract all known binary resources
+    - [ ] -hex : write as a hexadecimal dump
+    - [x] -- : same as -print
+ */
+int main(int argc, char **argv)
+{
+  if (!init()) {
+    printf("newtc: ERROR: Can't initialize.\n");
+    return -1;
+  }
+  int argi = 1;
+  RefVar symRef0 = MakeSymbol("ref0");
+  DefGlobalVar(symRef0, NILREF);
+  try {
+    while (argi < argc) {
+      std::string cmd = argv[argi++];
+      if (cmd.empty()) {
+        // just skip an empty arg
+      } else if (cmd == "-pkg") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -pkg ... ."));
+        handleArgPkg(std::string(argv[argi++]));
+      } else if (cmd == "-nsof") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -nsof ... ."));
+        handleArgNsof(std::string(argv[argi++]));
+      } else if (cmd == "-script") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -script ... ."));
+        handleArgScript(std::string(argv[argi++]));
+      } else if (cmd == "-run") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -run ... ."));
+        handleArgRun(std::string(argv[argi++]));
+      } else if (cmd == "-s") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing script after -s ... ."));
+        handleArgS(std::string(argv[argi++]));
+      } else if (cmd == "-r") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing script after -r ... ."));
+        handleArgR(std::string(argv[argi++]));
+      } else if (cmd == "-nos1") {
+        handleArgNos1();
+      } else if (cmd == "-nos2") {
+        handleArgNos2();
+      } else if (cmd == "-clear") {
+        handleArgClear();
+      } else if (cmd == "-opkg") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -opkg ... ."));
+        handleArgOPkg(std::string(argv[argi++]));
+      } else if (cmd == "-onsof") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -onsof ... ."));
+        handleArgONsof(std::string(argv[argi++]));
+      } else if ((cmd == "--") || (cmd == "-print")) {
+        handleArgPrint();
+      } else {
+        throw(std::runtime_error("Unknown command line argument: \"" + cmd + "\"."));
+      }
+    }
+  } catch (const std::exception &ex) {
+    std::cout << "newtc: ERROR: " << ex.what() << std::endl;
+  } catch (... ) {
+    printf("newtc: ERROR: Unknown error.\n");
+    return -1;
+  }
+  return 0;
+}
+
+/*
+ newton_try
+ {
+ ExceptionNotify(inException);
+ }
+ newton_catch(exRootException)
+ { }
+ end_try;
+ */
+
+
+/*
+ pkg :=
+ {
+ signature: 'package0,
+ id: "xxxx",
+ flags: {
+ noCompression: true
+ },
+ version: 1,
+ copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
+ name: "loop:SIG",
+ size: 2408,
+ creationdate: 3836221195,
+ modifyDate: 0,
+ reserved3: 0,
+ directorySize: 280,
+ info: "Newton Toolkit 1.6.4",
+ part: [
+ ]
+ };
+ */
+
+
+// Just some leftovers from previous version to give me a reminder
+
+// NOTE: in Stores/FlashRange.cc:138, the flash memory is mapped to a file on the PC:
+// fpath  const char *  "/Users/matt/Library/Application Support/Newton/Internal"  0x000000010115a980
+// If forNTK is not defined, the flash file is filled with 0xFF at every launch.
+
+//const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
+//const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";
+//      NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
+
+//extern Ref *RSSYMviewer;
+
+//  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
+//  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+
+//  PrintObject(package, 0); puts("");
+//  printPackage(package);
+
+//  RefVar data(*(RefStruct *)CurrentException()->data);
+//  if (IsFrame(data)
+//      &&  ISNIL(GetFrameSlot(data, SYMA(filename))))
+//  {
+//    SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
+//    SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+//  }
+//  gREPout->exceptionNotify(CurrentException());
+
+//  const char *fname = "/Users/matt/dev/test.ns";
+//  const char *sname = "/Users/matt/dev/test.nsof";
+
+
+
+// NTK uses these (and possibly more) global methods to assemble views
+// fgUseStepChildren -> kUseStepChildren -> projectSettings.useStepChildren
+// for all options, see newton-toolkit: buildPkg in ProjectDocument.mm
+// stepChildren hold user created view templates (the contents of a group)
+// viewChildren hold system created views, like the clock in the app window
+#if 0
+Ref
+AddStepForm(RefArg parent, RefArg child) {
+  RefVar childArraySym(fgUseStepChildren? SYMA(stepChildren) : SYMA(viewChildren));
+  if (!FrameHasSlot(parent, childArraySym)) {
+    SetFrameSlot(parent, childArraySym, AllocateArray(childArraySym, 0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childArraySym), child);
+}
+
+Ref
+StepDeclare(RefArg parent, RefArg child, RefArg tag) {
+  RefVar childContextArraySym(fgUseStepChildren? SYMA(stepAllocateContext) : SYMA(allocateContext));
+  if (!FrameHasSlot(parent, childContextArraySym)) {
+    SetFrameSlot(parent, childContextArraySym, MakeArray(0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), tag);
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
+}
+#endif
+
+

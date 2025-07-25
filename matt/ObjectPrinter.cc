@@ -1,5 +1,5 @@
 /*
- File:    NewtonPackagePrinter.cc
+ File:    ObjectPrinter.cc
 
  Prints a NewtonScript object tree that resembles a Package into a
  source file that can be recompiled into the same Package.
@@ -55,10 +55,10 @@
 
  */
 
-#include "NewtonPackagePrinter.h"
+#include "Matt/ObjectPrinter.h"
 
 #include "Iterators.h"
-#include "MattsDecompiler.h"
+#include "Matt/Decompiler.h"
 
 // struct Node { value_t value; std::vector<std::shared_ptr<Node>> children; std::weak_ptr<Node> parent; };
 
@@ -80,7 +80,7 @@
 
  This will create a node if none was created yet.
  */
-bool NewtonPackagePrinter::HasNode(Ref ref)
+bool ObjectPrinter::HasNode(Ref ref)
 {
   if (map.find(ref)!=map.end()) return true;
   if (IsReal(ref)) return false;
@@ -91,7 +91,7 @@ bool NewtonPackagePrinter::HasNode(Ref ref)
   return false;
 }
 
-void NewtonPackagePrinter::PrintDependents(Ref ref)
+void ObjectPrinter::PrintDependents(Ref ref)
 {
   //printf("PrintDependents: 0x%016llx\n", (uint64_t)ref);
   if (ISREALPTR(ref)) {
@@ -114,7 +114,7 @@ void NewtonPackagePrinter::PrintDependents(Ref ref)
   }
 }
 
-void NewtonPackagePrinter::PrintIndent(int indent) {
+void ObjectPrinter::PrintIndent(int indent) {
   for (int i=0; i<indent; i++) printf("  ");
 }
 
@@ -122,7 +122,7 @@ void NewtonPackagePrinter::PrintIndent(int indent) {
 /**
  \brief Print a frame that contains NewtonScript function.
  */
-void NewtonPackagePrinter::PrintFunction(Ref ref, int indent)
+void ObjectPrinter::PrintFunction(Ref ref, int indent)
 {
 #if 1
   printf("{\n");
@@ -151,7 +151,22 @@ void NewtonPackagePrinter::PrintFunction(Ref ref, int indent)
   mDecompile(ref, *this);
 }
 
-void NewtonPackagePrinter::PrintRef(Ref ref, int indent, bool noTick) {
+
+// TODO: Sooooo, if this is a literal *and* a slotted object, the '[' or '{'
+// must be preceded with a tick ('), *and* all symbols inside the object
+// must *not* be preceded with a tick, aso it's either:
+// a := '[test, toast, [butter]]; or a := ['test, 'toast, ['butter]];
+// The first is generated at compile time, the second at run time, resulting
+// in the same object at the end (but at very different execution speeds).
+// In NewtonScriptProgramLanguage.pdf, see 'object' vs. 'constructor'
+//
+// TODO: Ok, well, to get this perfect, we need to look at
+// Frames/Compiler/y.tab.c , generated from Frames/Compiler/NewtonScript.y
+// which gives us not only the entire syntax, but also hints at what
+// bytecodes and objects make up a nodes in the syntax tree. If we want to do
+// this right, we implement everything based on that source.
+//
+void ObjectPrinter::PrintRef(Ref ref, int indent, bool symbolTick) {
   if (ISREALPTR(ref)) {
     if (IsFunction(ref)) {
       PrintFunction(ref, indent);
@@ -200,7 +215,7 @@ void NewtonPackagePrinter::PrintRef(Ref ref, int indent, bool noTick) {
       }
       if (!first) printf("\n");
       PrintIndent(indent); printf("]");
-    } else if (noTick && IsSymbol(ref)) {
+    } else if ((symbolTick == false) && IsSymbol(ref)) {
       printf("%s", SymbolName(ref));
     } else {
       PrintObject(ref, indent);
@@ -210,7 +225,7 @@ void NewtonPackagePrinter::PrintRef(Ref ref, int indent, bool noTick) {
   }
 }
 
-void NewtonPackagePrinter::PrintPartialTree(Ref ref)
+void ObjectPrinter::PrintPartialTree(Ref ref)
 {
   if (HasNode(ref)) {
     Node *nd = map[ref].get();
@@ -226,7 +241,7 @@ void NewtonPackagePrinter::PrintPartialTree(Ref ref)
 
 
 
-void NewtonPackagePrinter::AddObject(Ref ref)
+void ObjectPrinter::AddObject(Ref ref)
 {
   map[ref]->visited = true;
   if (ISREALPTR(ref)) {
@@ -241,14 +256,14 @@ void NewtonPackagePrinter::AddObject(Ref ref)
         if (HasNode(slot)) {
           map[ref]->children.push_back(map[slot]);
           map[slot]->numParents++;
-          printf("Link 0x%016lx to 0x%016lx, %d\n", map[ref]->ref, map[slot]->ref, map[slot]->numParents);
+          //printf("Link 0x%016lx to 0x%016lx, %d\n", map[ref]->ref, map[slot]->ref, map[slot]->numParents);
         }
       }
     }
   }
 }
 
-void NewtonPackagePrinter::AddRef(Ref ref)
+void ObjectPrinter::AddRef(Ref ref)
 {
   if (HasNode(ref)) {
     if (!map[ref]->visited)
@@ -258,7 +273,7 @@ void NewtonPackagePrinter::AddRef(Ref ref)
   }
 }
 
-void NewtonPackagePrinter::SetNodeLabels() {
+void ObjectPrinter::SetNodeLabels() {
   for (auto &ndi: map) {
     Node *nd = ndi.second.get();
     if (nd->label.empty()) {
@@ -269,14 +284,14 @@ void NewtonPackagePrinter::SetNodeLabels() {
   }
 }
 
-void NewtonPackagePrinter::BuildNodeTree(Ref package)
+void ObjectPrinter::BuildNodeTree(Ref package)
 {
   AddRef(package);
   map[package]->special = true;
   SetNodeLabels();
 }
 
-void NewtonPackagePrinter::TestPrint(Ref package)
+void ObjectPrinter::TestPrint(Ref package)
 {
   BuildNodeTree(package);
   map[package]->label = "package";
@@ -287,6 +302,18 @@ void NewtonPackagePrinter::TestPrint(Ref package)
 }
 
 void printPackage(Ref package) {
-  NewtonPackagePrinter p;
+  ObjectPrinter p;
   p.TestPrint(package);
 }
+
+void ObjectPrinter::Print(RefArg ref)
+{
+  map.clear();
+  if (IsArray(ref) || IsFrame(ref)) {
+    BuildNodeTree(ref);
+    PrintPartialTree(ref);
+  } else {
+    PrintRef(ref, 0);
+  }
+}
+

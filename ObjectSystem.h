@@ -44,7 +44,7 @@ class RefVar;
 
 typedef const RefVar & RefArg;
 
-typedef Ref (*MapSlotsFunction)(RefArg tag, RefArg value, ULong anything);
+typedef Ref (*MapSlotsFunction)(RefArg tag, RefArg value, uintptr_t anything);
 
 
 /*------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ extern	long		Length(Ref obj);		// Length in bytes or slots
 	// MapSlots calls a function on each slot of an array or frame object, giving it
 	// the tag (integer or symbol) and contents of each slot.  "Anything" is passed to
 	// func.  If func returns anything but NILREF, MapSlots terminates.
-extern	void		MapSlots(RefArg obj, MapSlotsFunction func, unsigned anything);
+extern	void		MapSlots(RefArg obj, MapSlotsFunction func, uintptr_t anything);
 extern	void		RemoveSlot(RefArg frame, RefArg tag);
 extern	void		SetFramePath(RefArg obj, RefArg thePath, RefArg value);
 extern	void		SetFrameSlot(RefArg obj, RefArg slot, RefArg value);

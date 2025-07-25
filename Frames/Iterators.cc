@@ -26,7 +26,7 @@ extern "C" bool	OnStack(void *);
 ----------------------------------------------------------------------*/
 
 void
-MapSlots(RefArg context, MapSlotsFunction func, unsigned anything)
+MapSlots(RefArg context, MapSlotsFunction func, uintptr_t anything)
 {
 	if (!(ObjectFlags(context) & kObjSlotted))
 		return;

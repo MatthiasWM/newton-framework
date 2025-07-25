@@ -11,7 +11,7 @@
 
 #include "Objects.h"
 #include "NewtonPackage.h"
-#include "NewtonPackageWriter.h"
+#include "Matt/PackageWriter.h"
 #include "PackageTypes.h"
 #include "ObjHeader.h"
 #include "Ref32.h"

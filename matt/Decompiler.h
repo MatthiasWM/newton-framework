@@ -10,11 +10,11 @@
 #if !defined(__MATTSDECOMPILER_H)
 #define __MATTSDECOMPILER_H 1
 
-#include "NewtonPackagePrinter.h"
+#include "Matt/ObjectPrinter.h"
 
-class NewtonPackagePrinter;
+class ObjectPrinter;
 
-NewtonErr mDecompile(Ref ref, NewtonPackagePrinter &printer);
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer);
 
 
 #endif  /* __MATTSDECOMPILER_H */

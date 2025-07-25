@@ -1,5 +1,5 @@
 /*
- File:    NewtonPackagePrinter.h
+ File:    ObjectPrinter.h
 
  Prints a NewtonScript object tree that resembles a Package into a
  source file that can be recompiled into the same Package.
@@ -7,8 +7,8 @@
  Written by:  Matt, 2025.
  */
 
-#if !defined(__NEWTONPACKAGEPRINTER_H)
-#define __NEWTONPACKAGEPRINTER_H 1
+#ifndef MATT_OBJECT_PRINTER
+#define MATT_OBJECT_PRINTER 1
 
 #include "Newton.h"
 
@@ -24,7 +24,7 @@
 #include <map>
 
 
-class NewtonPackagePrinter {
+class ObjectPrinter {
 public:
   class Node {
   public:
@@ -42,21 +42,23 @@ public:
   };
   std::map<Ref, std::shared_ptr<Node>> map;
 
-  NewtonPackagePrinter() = default;
+  ObjectPrinter() = default;
   bool HasNode(Ref ref);
   void PrintDependents(Ref ref);
   void PrintIndent(int indent);
   void PrintFunction(Ref ref, int indent);
-  void PrintRef(Ref ref, int indent, bool noTick = false);
+  void PrintRef(Ref ref, int indent, bool symbolTick = true);
   void PrintPartialTree(Ref ref);
   void AddObject(Ref ref);
   void AddRef(Ref ref);
   void SetNodeLabels();
   void BuildNodeTree(Ref package);
   void TestPrint(Ref package);
+
+  void Print(RefArg ref);
 };
 
 
 void printPackage(Ref package);
 
-#endif  /* __NEWTONPACKAGEPRINTER_H */
+#endif // MATT_OBJECT_PRINTER

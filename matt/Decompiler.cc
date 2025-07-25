@@ -7,9 +7,11 @@
  Written by:  Matt, 2025.
  */
 
-#include "MattsDecompiler.h"
+#include "Matt/Decompiler.h"
 
 #include <tuple>
+
+// Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
 /*
  Precedence Table:
@@ -26,6 +28,31 @@
  2: not
  1: and, or
  0: assign :=
+
+ case '.':            return PRECEDENCEFrameAccessor;
+ case ':':
+ case TOKENsendIfDefined:  return PRECEDENCEMessageSend;
+ case '[':            return PRECEDENCEArrayAccessor;
+ case TOKENLShift:
+ case TOKENRShift:        return PRECEDENCEShiftOperator;
+ case '*':
+ case '/':
+ case TOKENdiv:
+ case TOKENmod:          return PRECEDENCEMulOperator;
+ case '+':
+ case '-':            return PRECEDENCEAddOperator;
+ case '&':
+ case TOKENAmperAmper:    return PRECEDENCEStrOperator;
+ case TOKENexists:        return PRECEDENCEExists;
+ case '<': case TOKENLEQ:
+ case '>': case TOKENGEQ:
+ case TOKENEQL:
+ case TOKENNEQ:          return PRECEDENCERelOperator;
+ case TOKENnot:          return PRECEDENCEUnaryNot;
+ case TOKENand:
+ case TOKENor:          return PRECEDENCELogOperator;
+ case TOKENassign:        return PRECEDENCEAssign;
+
  */
 
 /*
@@ -47,7 +74,7 @@ class ASTBytecodeNode;
 class ASTJumpTarget;
 
 class Decompiler {
-  NewtonPackagePrinter &printer_;
+  ObjectPrinter &printer_;
   int nos_ = 0;
   int numArgs_ = 0;
   int numLocals_ = 0;
@@ -62,18 +89,21 @@ class Decompiler {
   ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
   ASTBytecodeNode *NewBytecodeNode(int pc, int a, int b);
 public:
-  Decompiler(NewtonPackagePrinter &printer) : printer_( printer ) { }
+  Decompiler(ObjectPrinter &printer) : printer_( printer ) { }
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
+  ObjectPrinter *Printer() { return &printer_; }
   void print();
   void printRoot();
   void printSource();
-  void printLiteral(int ix) {
-    printer_.PrintRef(GetArraySlot(literals_, ix), 0, true);
+  void printLiteral(int ix, bool tickSymbols = false) {
+    // TODO: if the literal is slotted, we may need to precede it with a tick (').
+    printer_.PrintRef(GetArraySlot(literals_, ix), 0, tickSymbols);
   }
-  void printLocal(int ix) {
-    printer_.PrintRef(GetArraySlot(locals_, ix), 0, true);
+  void printLocal(int ix, bool tickSymbols = false) {
+    printer_.PrintRef(GetArraySlot(locals_, ix), 0, tickSymbols);
   }
   void decompile(Ref ref);
+  void printPathExpr(RefArg pathExpr);
   void solve();
   void generateAST(Ref instructions);
 };
@@ -86,7 +116,7 @@ public:
  * the next chunk. That way, these parameters can be modified before they are
  * finally applied.
  *
- * @note This scheme should probably be ported to the NewtonPackagePrinter class,
+ * @note This scheme should probably be ported to the ObjectPrinter class,
  *       so that it can be used for printing packages as well.
  *
  * @enum Type
@@ -171,6 +201,8 @@ public:
 
   /** Return true if all this node does is put a NIL on the stack */
   virtual bool IsNIL() { return false; }
+  /** Return true if the node returns a symbol (does not catch all cases!) */
+  virtual bool IsSymbol() { return false; }
   /** Return if the node pushes a single value on the stack. */
   bool IsExpr() { return (provides() == 1); }
   /** Return if the node pushes no value on the stack and is not a control node. */
@@ -298,11 +330,12 @@ class AST_Push : public ASTBytecodeNode {
 public:
   AST_Push(Decompiler *d, int pc, int a, int b) : ASTBytecodeNode(d, pc, a, b) { }
   int provides() override { return 1; }
+  bool IsSymbol() override { return ::IsSymbol(decompiler_->GetLiteral(b_)); }
   bool Resolved() override { return true; }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin();
-      p.dc.printLiteral(b_);
+      decompiler_->printLiteral(b_);
       p.End();
     } else {
       p.Begin(); printHeader();
@@ -1256,11 +1289,20 @@ public:
   AST_GetPath(Decompiler *d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(PState &p) override {
-    //    if ((p.type == PState::Type::script) && Resolved()) {
-    //    } else {
-    if (p.type == PState::Type::deep) PrintChildren(p);
-    p.Begin(); printHeader(); printf("%3d: AST_GetPath b:%d ###", pc_, b_); p.NewLine();
-    //    }
+    if ((p.type == PState::Type::script) && Resolved()) {
+      in1_->Print(p);
+      printf(".");
+      if (in2_->IsSymbol()) {
+        // if in2_ generates a symbol, print that (AST_Push literal[18])
+        in2_->Print(p);
+      } else {
+        // but if in2_ is a pathExpr, put in2 in parentheses (AST_FindVar literal[17])
+        printf("("); in2_->Print(p); printf(")");
+      }
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_GetPath b:%d ###", pc_, b_); p.NewLine();
+    }
   }
 };
 
@@ -1387,11 +1429,19 @@ public:
     p.indent--;
   }
   void Print(PState &p) override {
-    //    if ((p.type == PState::Type::script) && Resolved()) {
-    //    } else {
-    if (p.type == PState::Type::deep) PrintChildren(p);
-    p.Begin(); printHeader(); printf("%3d: AST_SetPath ###", pc_); p.NewLine();
-    //    }
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      object_->Print(p);
+      printf(".");
+      //decompiler_->printPathExpr(path_);
+      path_->Print(p);
+      printf(" := ");
+      value_->Print(p);
+      p.NewLine(";");
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader(); printf("%3d: AST_SetPath ###", pc_); p.NewLine();
+    }
   }
 
 };
@@ -1533,7 +1583,7 @@ public:
       if (!nameNode) break;
       if (!prev->prev->IsExpr() || !prev->prev->prev->IsExpr()) break;
       RefVar sym = decompiler_->GetLiteral(nameNode->b());
-      if (!IsSymbol(sym)) break;
+      if (!::IsSymbol(sym)) break;
       const char *name = SymbolName(sym);
       if (!name) break;
       AST_BinaryOperator *op = nullptr;
@@ -1669,13 +1719,43 @@ public:
   AST_MakeFrame(Decompiler *d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   void Print(PState &p) override {
-//    if ((p.type == PState::Type::script) && Resolved()) {
-//    } else {
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      // TODO: read the map!
+      RefVar map = NILREF;
+      int mapSize = numIns_-1;
+      do {
+        AST_Push *mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1]);
+        if (!map) break;
+        RefVar maybeMap = decompiler_->GetLiteral(mapNode->b());
+        if (!IsArray(maybeMap)) break;
+        map = maybeMap;
+        mapSize = Length(map)-1; // mapSize is allowed to be greater than numIns_-1,
+        // adding slots with value NIL (add 1 for the supermap entry)!
+      } while (0);
+      printf("{");
+      for (int i=0; i<mapSize; i++) {
+        p.Begin();
+        if (map == NILREF)
+          printf("map%d", i);
+        else
+          decompiler_->Printer()->PrintRef(GetArraySlot(map, i+1), 0, false);
+        printf(": ");
+        if (i >= numIns_-1)
+          printf("nil");
+        else
+          ins_[i]->Print(p);
+        p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf("}"); p.End();
+      p.End();
+    } else {
       if (p.type == PState::Type::deep) PrintChildren(p);
       p.Begin(); printHeader();
       printf("%3d: AST_MakeFrame n=%d ###", pc_, numIns_);
       p.NewLine();
-//    }
+    }
   }
 };
 
@@ -1685,13 +1765,25 @@ public:
   AST_MakeArray(Decompiler *d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   void Print(PState &p) override {
-//    if ((p.type == PState::Type::script) && Resolved()) {
-//    } else {
-    if (p.type == PState::Type::deep) PrintChildren(p);
-    p.Begin(); printHeader();
-    printf("%3d: AST_MakeArray n=%d ###", pc_, numIns_);
-    p.NewLine();
-//    }
+    if ((p.type == PState::Type::script) && Resolved()) {
+      p.Begin();
+      // TODO: we could check if ins_[numIns_-1] is AST_Push and the pushed
+      // literal is 'array, and not write the array class.
+      printf("[");
+      ins_[numIns_-1]->Print(p);
+      printf(": ");
+      for (int i=0; i<numIns_-1; i++) {
+        p.Begin(); ins_[i]->Print(p); p.Divider(", ");
+      }
+      p.ClearDivider();
+      p.Begin(); printf("]"); p.End();
+      p.End();
+    } else {
+      if (p.type == PState::Type::deep) PrintChildren(p);
+      p.Begin(); printHeader();
+      printf("%3d: AST_MakeArray n=%d ###", pc_, numIns_);
+      p.NewLine();
+    }
   }
 };
 
@@ -1724,12 +1816,11 @@ void Decompiler::decompile(Ref ref)
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
     int argFrameLength = Length(argFrame);
     numLocals_ = argFrameLength - 3 - numArgs_;
-    locals_ = MakeArray(argFrameLength);
+    locals_ = MakeArray(0);
     // Make the list of names of the locals
-    Ref map = ((FrameObject *)ObjectPtr(argFrame))->map;
-    for (int i=0; i<argFrameLength; i++) {
-      SetArraySlot(locals_, i, GetArraySlot(map, i));
-    }
+    MapSlots(argFrame,
+             [](RefArg tag, RefArg, unsigned long locals)->long { AddArraySlot(locals, tag); return NILREF; },
+             locals_);
   } else if (klass == kPlainFuncClass) {
     nos_ = 2;
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
@@ -1740,8 +1831,8 @@ void Decompiler::decompile(Ref ref)
     int argFrameLength = 3 + numArgs_ + numLocals_;
     locals_ = MakeArray(argFrameLength);
     SetArraySlot(locals_, 0, SYMA(_nextArgFrame));
-    SetArraySlot(locals_, 0, SYMA(_parent));
-    SetArraySlot(locals_, 0, SYMA(_implementor));
+    SetArraySlot(locals_, 1, SYMA(_parent));
+    SetArraySlot(locals_, 2, SYMA(_implementor));
     for (int i=0; i<numArgs_; i++) {
       char buf[32];
       snprintf(buf, 30, "arg%d", i);
@@ -2005,6 +2096,20 @@ void Decompiler::printSource()
 }
 
 /**
+ A path expression can take one of three forms:
+ - an integer
+ - a symbol
+ - an array of class pathExpr
+ */
+void Decompiler::printPathExpr(RefArg pathExpr)
+{
+  printf("<<");
+  PrintObject(pathExpr, 0);
+  printf(">>");
+}
+
+
+/**
  \brief Print a frame that contains NewtonScript function.
  Check if tis is actually NewtonScript. No support for native or binary.
  Must be `class: #0x32` for newer apps, and
@@ -2053,7 +2158,7 @@ void Decompiler::printSource()
  - `numArgs`: 2
  ```
  */
-NewtonErr mDecompile(Ref ref, NewtonPackagePrinter &printer)
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer)
 {
   Decompiler d(printer);
   d.decompile(ref);
@@ -2062,55 +2167,3 @@ NewtonErr mDecompile(Ref ref, NewtonPackagePrinter &printer)
   return noErr;
 }
 
-#if 0
-
-###[-2] ASTFirstNode ###
-###[ 1]   0: AST_PushConst value:4 ###
-###[-1]   1: AST_FindAndSetVar literal[0] ###
-###[-3]   2: ASTJumpTarget from 4 ###
-###[ 1]   2: AST_PushConst value:2 ###
-###[-1]   3: AST_Pop ###
-###[-4]   4: AST_Branch pc:2 ###
-###[-1]   5: AST_Pop ###
-###[ 1]   6: AST_PushConst value:8 ###
-###[-1]   9: AST_FindAndSetVar literal[0] ###
-###[-3]  10: ASTJumpTarget from 14 ###
-###[ 1]  10: AST_PushConst value:4 ###
-###[ 1]  11: AST_Push literal[1] ###
-###[-1]  12: AST_Call n=1 ###
-###[-1]  13: AST_Pop ###
-###[-4]  14: AST_Branch pc:10 ###
-###[-1]  17: AST_Pop ###
-###[ 1]  18: AST_PushConst value:12 ###
-###[-1]  21: AST_FindAndSetVar literal[0] ###
-
-###[-3]  22: ASTJumpTarget from 39 ###    0
-###[ 1]  22: AST_PushConst value:8 ###    1
-###[ 1]  25: AST_Push literal[1] ###      2
-###[-1]  26: AST_Call n=1 ###             1
-###[-1]  27: AST_Pop ###                  0
-###[ 1]  28: AST_PushConst value:4 ###    1
-###[-4]  29: AST_Branch pc:42 ###         ->
-###[-1]  32: AST_Pop ###                  0
-###[ 1]  33: AST_PushConst value:12 ###   1
-###[ 1]  36: AST_Push literal[1] ###      2
-###[-1]  37: AST_Call n=1 ###             1
-###[-1]  38: AST_Pop ###                  0
-###[-4]  39: AST_Branch pc:22 ###        <-
-###[-3]  42: ASTJumpTarget from 29 ###    1 <-
-###[-1]  42: AST_Pop ###                  0
-
-###[ 1]  43: AST_PushConst value:16 ###       1
-###[-1]  46: AST_FindAndSetVar literal[0] ### 0
-###[-3]  47: ASTJumpTarget from 53 57 ###
-###[ 1]  47: AST_PushConst value:16 ###
-###[ 1]  50: AST_Push literal[1] ###
-###[-1]  51: AST_Call n=1 ###
-###[-1]  52: AST_Pop ###
-###[-4]  53: AST_Branch pc:47 ###
-###[-1]  56: AST_Pop ###
-###[-4]  57: AST_Branch pc:47 ###
-###[ 0]  60: AST_Return ###
-###[-2] ASTLastNode ###
-
-#endif

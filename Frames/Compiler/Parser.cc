@@ -369,29 +369,29 @@ Token::precedence(void)
 {
 	switch (id)
 	{
-	case '.':						return PRECEDENCEFrameAccessor;
-	case ':':
-	case TOKENsendIfDefined:	return PRECEDENCEMessageSend;
-	case '[':						return PRECEDENCEArrayAccessor;
-	case TOKENLShift:
-	case TOKENRShift:				return PRECEDENCEShiftOperator;
-	case '*':
-	case '/':
-	case TOKENdiv:
-	case TOKENmod:					return PRECEDENCEMulOperator;
-	case '+':
-	case '-':						return PRECEDENCEAddOperator;
-	case '&':
-	case TOKENAmperAmper:		return PRECEDENCEStrOperator;
-	case TOKENexists:				return PRECEDENCEExists;
-	case '<': case TOKENLEQ:
-	case '>': case TOKENGEQ:
-	case TOKENEQL:
-	case TOKENNEQ:					return PRECEDENCERelOperator;
-	case TOKENnot:					return PRECEDENCEUnaryNot;
-	case TOKENand:
-	case TOKENor:					return PRECEDENCELogOperator;
-	case TOKENassign:				return PRECEDENCEAssign;
+    case '.':            return PRECEDENCEFrameAccessor;
+    case ':':
+    case TOKENsendIfDefined:  return PRECEDENCEMessageSend;
+    case '[':            return PRECEDENCEArrayAccessor;
+    case TOKENLShift:
+    case TOKENRShift:        return PRECEDENCEShiftOperator;
+    case '*':
+    case '/':
+    case TOKENdiv:
+    case TOKENmod:          return PRECEDENCEMulOperator;
+    case '+':
+    case '-':            return PRECEDENCEAddOperator;
+    case '&':
+    case TOKENAmperAmper:    return PRECEDENCEStrOperator;
+    case TOKENexists:        return PRECEDENCEExists;
+    case '<': case TOKENLEQ:
+    case '>': case TOKENGEQ:
+    case TOKENEQL:
+    case TOKENNEQ:          return PRECEDENCERelOperator;
+    case TOKENnot:          return PRECEDENCEUnaryNot;
+    case TOKENand:
+    case TOKENor:          return PRECEDENCELogOperator;
+    case TOKENassign:        return PRECEDENCEAssign;
 	}
 	return -1;
 }

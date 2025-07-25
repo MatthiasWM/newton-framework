@@ -10,9 +10,10 @@ project (Newton
 )
 
 set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
 
 set ( SRCFILES
-  test.cpp
+  newtc.cc
   Dates.cc
   Dictionaries.cc
   ErrorString.cc
@@ -20,15 +21,15 @@ set ( SRCFILES
   Locales.cc
   NTKStubs.cc
   NewtonPackage.cc
-  NewtonPackageWriter.cc
-  NewtonPackagePrinter.cc
-  MattsDecompiler.cc
   ObjectSystem.cc
   Power.cc
   Preference.cc
   REP.cc
   SerialNumber.cc
   Stubs.cc
+  Matt/PackageWriter.cc
+  Matt/ObjectPrinter.cc
+  Matt/Decompiler.cc
   Cards/CardEvents.cc
   Compression/ArithmeticCompression/Compression.cc
   Compression/Compression.cc
@@ -174,12 +175,12 @@ set ( HEADERFILES
   NewtonExceptions.h
   NewtonMemory.h
   NewtonPackage.h
-  NewtonPackageWriter.h
-  NewtonPackagePrinter.h
-  MattsDecompiler.h
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h
+  Matt/PackageWriter.h
+  Matt/ObjectPrinter.h
+  Matt/Decompiler.h
   Cards/CardEvents.h
   Compression/Compression.h
   Compression/LZCompression/CopyOffset_bin.h
@@ -525,10 +526,28 @@ source_group(
   FILES ${SRCFILES} ${HEADERFILES}
 )
 
-add_executable (test ${SRCFILES} ${HEADERFILES})
-target_compile_definitions(test PRIVATE forNTK forMac forFramework)
-target_compile_definitions(test PRIVATE __LP64__=1)
-target_include_directories ( test PRIVATE
+
+add_executable (newtc ${SRCFILES} ${HEADERFILES})
+
+set_property (TARGET newtc
+  PROPERTY XCODE_SCHEME_ARGUMENTS
+#    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
+#    "-nsof /Users/matt/dev/test.nsof"
+#    "-script /Users/matt/dev/test.ns"
+#    "-run /Users/matt/dev/test.ns"
+#    "-nos2"
+#    "-s \"1+1;\""
+    "-r \"1+1;\""
+#    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
+#    "-onsof /Users/matt/dev/test.out.nsof"
+    "-print"
+)
+
+target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)
+target_compile_definitions(newtc PRIVATE __LP64__=1)
+target_compile_options(newtc PUBLIC -fsanitize=undefined)
+target_link_options(newtc PUBLIC -fsanitize=undefined)
+target_include_directories (newtc PRIVATE
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/Frames
   ${CMAKE_SOURCE_DIR}/UtilityClasses
@@ -555,7 +574,7 @@ target_include_directories ( test PRIVATE
   ${CMAKE_SOURCE_DIR}/Compression/UnicodeCompression
 )
 
-target_link_libraries ( test PRIVATE
+target_link_libraries (newtc PRIVATE
   "-framework Cocoa"
   "-framework CoreServices"
   "-framework ApplicationServices"
