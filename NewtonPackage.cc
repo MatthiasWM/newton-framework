@@ -18,6 +18,7 @@
 #include "Symbols.h"
 
 #include <cassert>
+#include <arpa/inet.h>
 
 #if __LP64__
 /* -----------------------------------------------------------------------------

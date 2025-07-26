@@ -1,6 +1,6 @@
 #include <sys/cdefs.h>
 #ifndef lint
-#if 0
+#if 1
 static char yysccsid[] = "@(#)yaccpar	1.9 (Berkeley) 02/21/93";
 #else
 __IDSTRING(yyrcsid, "$NetBSD: skeleton.c,v 1.14 1997/10/20 03:41:16 lukem Exp $");

@@ -22,6 +22,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <vector>
 
 
 class ObjectPrinter {

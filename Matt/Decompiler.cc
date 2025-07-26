@@ -9,6 +9,7 @@
 
 #include "Matt/Decompiler.h"
 
+#include <algorithm>
 #include <tuple>
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
