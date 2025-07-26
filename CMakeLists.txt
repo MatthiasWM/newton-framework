@@ -28,6 +28,7 @@ set ( SRCFILES
   SerialNumber.cc
   Stubs.cc
   Matt/PackageWriter.cc
+  Matt/Printer.cc
   Matt/ObjectPrinter.cc
   Matt/Decompiler.cc
   Cards/CardEvents.cc
@@ -179,6 +180,7 @@ set ( HEADERFILES
   NewtonTypes.h
   NewtonWidgets.h
   Matt/PackageWriter.h
+  Matt/Printer.h
   Matt/ObjectPrinter.h
   Matt/Decompiler.h
   Cards/CardEvents.h
@@ -543,8 +545,9 @@ set_property (TARGET newtc
 #    "-r \"func() print([1, 2, 3, 4]);\""
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
-    "-opkg /Users/matt/hello.pkg"
-    "-print"
+#    "-opkg /Users/matt/hello.pkg"
+#    "-print"
+    "-decompile"
 )
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)

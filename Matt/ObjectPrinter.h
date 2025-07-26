@@ -10,6 +10,8 @@
 #ifndef MATT_OBJECT_PRINTER
 #define MATT_OBJECT_PRINTER 1
 
+#include "Matt/Printer.h"
+
 #include "Newton.h"
 
 #include "Objects.h"
@@ -25,7 +27,10 @@
 #include <vector>
 
 
-class ObjectPrinter {
+class ObjectPrinter : public Printer
+{
+  bool optionDecompile_ { false };
+
 public:
   class Node {
   public:
@@ -43,7 +48,6 @@ public:
   };
   std::map<Ref, std::shared_ptr<Node>> map;
 
-  ObjectPrinter() = default;
   bool HasNode(Ref ref);
   void PrintDependents(Ref ref);
   void PrintIndent(int indent);
@@ -56,7 +60,11 @@ public:
   void BuildNodeTree(Ref package);
   void TestPrint(Ref package);
 
+  ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
   void Print(RefArg ref);
+  void Decompile(RefArg ref);
+
+  void OptionDecompile(bool v) { optionDecompile_ = v;}
 };
 
 

@@ -244,9 +244,19 @@ void handleArgONsof(const std::string &filename)
 void handleArgPrint()
 {
   RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
-  ObjectPrinter p;
+  ObjectPrinter p(std::cout);
   p.Print(ref0);
-  puts("");
+}
+
+/**
+ \brief Write the object `ref0` as text to stdout.
+ Decompile functions as we encounter them.
+ */
+void handleArgDecompile()
+{
+  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  ObjectPrinter p(std::cout);
+  p.Decompile(ref0);
 }
 
 
@@ -292,7 +302,7 @@ void handleArgPrint()
     - [x] -opkg filename : write ref0 as a package
     - [x] -onsof filename : write ref0 as a Newton Script Object File
     - [x] -print : print ref0 to stdout, don't print the contents of binary objects
-    - [ ] -decompile : print ref0 to stdout, decompile all functions
+    - [x] -decompile : print ref0 to stdout, decompile all functions
     - [ ] -decompose directory : decompile, and extract all known binary resources
     - [ ] -hex : write as a hexadecimal dump
     - [ ] -diff : compare the decompiled text output of ref0 and ref1
@@ -356,6 +366,8 @@ int main(int argc, char **argv)
         handleArgONsof(std::string(argv[argi++]));
       } else if ((cmd == "--") || (cmd == "-print")) {
         handleArgPrint();
+      } else if (cmd == "-decompile") {
+        handleArgDecompile();
       } else {
         throw(std::runtime_error("Unknown command line argument: \"" + cmd + "\"."));
       }
@@ -369,153 +381,11 @@ int main(int argc, char **argv)
   return 0;
 }
 
-/*
- newton_try
- {
- ExceptionNotify(inException);
- }
- newton_catch(exRootException)
- { }
- end_try;
+/**
+ \brief Create a Newton Object tree that generates a package of a Hello World! app.
+ just call `newtc -hello -opkg hello.pkg` from the command line.
  */
-
-
-/*
-  pkg :=
-  {
-    signature: 'package0,
-    id: "xxxx",
-    flags: {
-      noCompression: true
-    },
-    version: 1,
-    copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
-    name: "loop:SIG",
-    size: 2408,
-    creationdate: 3836221195,
-    modifyDate: 0,
-    reserved3: 0,
-    directorySize: 280,
-    info: "Newton Toolkit 1.6.4",
-    part: [
-    ]
-  };
-
-  {
-    signature: 'package1,
-    id: "xxxx",
-    flags: {
-      noCompression: true
-    },
-    version: 1,
-    copyright: "\2031993-1995 Apple Computer, Inc.  All rights reserved.",
-    name: "loop:SIG",
-    size: 1940,
-    creationdate: 3836323314,
-    modifyDate: 0,
-    reserved3: 0,
-    directorySize: 280,
-    info: "Newton Toolkit 1.6.4",
-    part: [
-      {
-        offset: 0,
-        size: 1660,
-        type: "form",
-        flags: {
-          type: 'nos,
- #        nos2: true,
-          Notify: true
-        },
-        info: "Newton Toolkit 1.6.4; platform file Newton 2.0 v5",
-        data: {
-          app: '|loop:SIG|,
-          text: "loop",
-          icon: {
-            mask: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F0000003F001FFF7F003FFF7E003FFFFE003FFFFC003FFFFC003FFFF8003FFFF8003FFFF0003FFFF0003FFFE0003FFFE0003FFFC0003FFFC0003FFF80003FFF00003FFF80003FFF80003FFF80001FFF00001FFF00000FFE000000000000", 'mask),
-            bits: MakeBinaryFromHex("000000000004000000000000001B0018000000000000000000001C0000003F00000033001FFF7B003FFF6E003000CE0037FCCC0037FD9C0034059800355338003403300035567000340660003554E000340CC000354FC000340B8000360F000037FE800037FD8000300B8000180300001FFF00000FFE000000000000", 'bits),
-            bounds: {
-              left: 0,
-              top: 0,
-              right: 24,
-              bottom: 27
-            }
-          },
-          theForm: {
-          }
-          installScript: func(arg0)
-            begin
-              arg0:?devInstallScript(arg0);
-              if HasSlot(arg0, devInstallScript) then
-                RemoveSlot(arg0, devInstallScript);
-              return arg0.installScript := nil;
-            end
-        }
-      }
-    ]
-  }
- */
-
-
-// Just some leftovers from previous version to give me a reminder
-
-// NOTE: in Stores/FlashRange.cc:138, the flash memory is mapped to a file on the PC:
-// fpath  const char *  "/Users/matt/Library/Application Support/Newton/Internal"  0x000000010115a980
-// If forNTK is not defined, the flash file is filled with 0xFF at every launch.
-
-//const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
-//const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";
-//      NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
-
-//extern Ref *RSSYMviewer;
-
-//  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
-//  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
-
-//  PrintObject(package, 0); puts("");
-//  printPackage(package);
-
-//  RefVar data(*(RefStruct *)CurrentException()->data);
-//  if (IsFrame(data)
-//      &&  ISNIL(GetFrameSlot(data, SYMA(filename))))
-//  {
-//    SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
-//    SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
-//  }
-//  gREPout->exceptionNotify(CurrentException());
-
-//  const char *fname = "/Users/matt/dev/test.ns";
-//  const char *sname = "/Users/matt/dev/test.nsof";
-
-
-
-// NTK uses these (and possibly more) global methods to assemble views
-// fgUseStepChildren -> kUseStepChildren -> projectSettings.useStepChildren
-// for all options, see newton-toolkit: buildPkg in ProjectDocument.mm
-// stepChildren hold user created view templates (the contents of a group)
-// viewChildren hold system created views, like the clock in the app window
-#if 0
-Ref
-AddStepForm(RefArg parent, RefArg child) {
-  RefVar childArraySym(fgUseStepChildren? SYMA(stepChildren) : SYMA(viewChildren));
-  if (!FrameHasSlot(parent, childArraySym)) {
-    SetFrameSlot(parent, childArraySym, AllocateArray(childArraySym, 0));
-  }
-  AddArraySlot(GetFrameSlot(parent, childArraySym), child);
-}
-
-Ref
-StepDeclare(RefArg parent, RefArg child, RefArg tag) {
-  RefVar childContextArraySym(fgUseStepChildren? SYMA(stepAllocateContext) : SYMA(allocateContext));
-  if (!FrameHasSlot(parent, childContextArraySym)) {
-    SetFrameSlot(parent, childContextArraySym, MakeArray(0));
-  }
-  AddArraySlot(GetFrameSlot(parent, childContextArraySym), tag);
-  AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
-}
-#endif
-
-
-extern void handleArgHello() {
+void handleArgHello() {
   const char *script = R"*(
     
 myLabel := {
@@ -577,3 +447,60 @@ myLabel := {
 }
 
 
+// Just some leftovers from previous version to give me a reminder
+
+// NOTE: in Stores/FlashRange.cc:138, the flash memory is mapped to a file on the PC:
+// fpath  const char *  "/Users/matt/Library/Application Support/Newton/Internal"  0x000000010115a980
+// If forNTK is not defined, the flash file is filled with 0xFF at every launch.
+
+//const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
+//const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";
+//      NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
+
+//extern Ref *RSSYMviewer;
+
+//  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
+//  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
+
+//  PrintObject(package, 0); puts("");
+//  printPackage(package);
+
+//  RefVar data(*(RefStruct *)CurrentException()->data);
+//  if (IsFrame(data)
+//      &&  ISNIL(GetFrameSlot(data, SYMA(filename))))
+//  {
+//    SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
+//    SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+//  }
+//  gREPout->exceptionNotify(CurrentException());
+
+//  const char *fname = "/Users/matt/dev/test.ns";
+//  const char *sname = "/Users/matt/dev/test.nsof";
+
+
+
+// NTK uses these (and possibly more) global methods to assemble views
+// fgUseStepChildren -> kUseStepChildren -> projectSettings.useStepChildren
+// for all options, see newton-toolkit: buildPkg in ProjectDocument.mm
+// stepChildren hold user created view templates (the contents of a group)
+// viewChildren hold system created views, like the clock in the app window
+#if 0
+Ref
+AddStepForm(RefArg parent, RefArg child) {
+  RefVar childArraySym(fgUseStepChildren? SYMA(stepChildren) : SYMA(viewChildren));
+  if (!FrameHasSlot(parent, childArraySym)) {
+    SetFrameSlot(parent, childArraySym, AllocateArray(childArraySym, 0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childArraySym), child);
+}
+
+Ref
+StepDeclare(RefArg parent, RefArg child, RefArg tag) {
+  RefVar childContextArraySym(fgUseStepChildren? SYMA(stepAllocateContext) : SYMA(allocateContext));
+  if (!FrameHasSlot(parent, childContextArraySym)) {
+    SetFrameSlot(parent, childContextArraySym, MakeArray(0));
+  }
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), tag);
+  AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
+}
+#endif

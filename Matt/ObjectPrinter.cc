@@ -60,6 +60,8 @@
 #include "Iterators.h"
 #include "Matt/Decompiler.h"
 
+#include <iostream>
+
 // struct Node { value_t value; std::vector<std::shared_ptr<Node>> children; std::weak_ptr<Node> parent; };
 
 // Run the graph and build a dependency tree.
@@ -124,31 +126,32 @@ void ObjectPrinter::PrintIndent(int indent) {
  */
 void ObjectPrinter::PrintFunction(Ref ref, int indent)
 {
-#if 1
-  printf("{\n");
-  bool first = true;
-  CObjectIterator iter(ref, false);
-  for ( ; !iter.done(); iter.next()) {
-    if (!first) printf(",\n");
-    if (first) first = false;
-    PrintIndent(indent+1);
-    Ref tag = iter.tag();
-    if (IsSymbol(tag))
-      printf("%s", SymbolName(tag));
-    else
-      PrintObject(iter.tag(), 0);
-    printf(": ");
-    Ref slot = iter.value();
-    if (HasNode(slot) && map[slot]->IsSpecial()) {
-      printf("%s", map[slot]->label.c_str());
-    } else {
-      PrintRef(slot, indent+1);
+  if (optionDecompile_) {
+    mDecompile(ref, *this);
+  } else {
+    printf("{\n");
+    bool first = true;
+    CObjectIterator iter(ref, false);
+    for ( ; !iter.done(); iter.next()) {
+      if (!first) printf(",\n");
+      if (first) first = false;
+      PrintIndent(indent+1);
+      Ref tag = iter.tag();
+      if (IsSymbol(tag))
+        printf("%s", SymbolName(tag));
+      else
+        PrintObject(iter.tag(), 0);
+      printf(": ");
+      Ref slot = iter.value();
+      if (HasNode(slot) && map[slot]->IsSpecial()) {
+        printf("%s", map[slot]->label.c_str());
+      } else {
+        PrintRef(slot, indent+1);
+      }
     }
+    if (!first) printf("\n");
+    PrintIndent(indent); printf("}");
   }
-  if (!first) printf("\n");
-  PrintIndent(indent); printf("}");
-#endif
-  mDecompile(ref, *this);
 }
 
 
@@ -302,7 +305,7 @@ void ObjectPrinter::TestPrint(Ref package)
 }
 
 void printPackage(Ref package) {
-  ObjectPrinter p;
+  ObjectPrinter p(std::cout);
   p.TestPrint(package);
 }
 
@@ -315,6 +318,13 @@ void ObjectPrinter::Print(RefArg ref)
   } else {
     PrintRef(ref, 0);
   }
+  puts("");
+}
+
+void ObjectPrinter::Decompile(RefArg ref)
+{
+  OptionDecompile(true);
+  Print(ref);
 }
 
 #if 0
