@@ -9,6 +9,8 @@
 #include "Matt/ObjectPrinter.h"
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
+#include "Frames/Compiler/InputStreams.h"
+#include "Frames/Compiler/Compiler.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -101,6 +103,7 @@ void handleArgNsof(const std::string &filename)
 void handleArgScript(const std::string &filename)
 {
   Ref result = ParseFile(filename.c_str());
+  // TODO: ParseFile calls Ref InterpretBlock(RefArg codeBlock, RefArg args)
   addGlobalRef(result);
 }
 
@@ -111,6 +114,7 @@ void handleArgScript(const std::string &filename)
 void handleArgRun(const std::string &filename)
 {
   Ref fn = ParseFile(filename.c_str());
+  // TODO: ParseFile calls Ref InterpretBlock(RefArg codeBlock, RefArg args)
   Ref result = DoBlock(fn, RA(NILREF));
   addGlobalRef(result);
   //  newton_try
@@ -126,12 +130,36 @@ void handleArgRun(const std::string &filename)
  \brief Compile a script and write the resulting object into ref#.
  \todo This is supposed to return the literal if the input is a literal,
  but returns a function that build the literal instead.
+ \see CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions) to fix the above?
  */
 void handleArgS(const std::string &script)
 {
+#if 1
   Ref src = MakeStringFromCString(script.c_str());
   Ref result = ParseString(src);
   addGlobalRef(result);
+// TODO: look at these:
+//  Ref  InterpretBlock(RefArg codeBlock, RefArg args);
+//  Ref  DoBlock(RefArg codeBlock, RefArg args);
+//  Ref  DoScript(RefArg rcvr, RefArg script, RefArg args);
+
+#else
+  RefVar src = MakeStringFromCString(script.c_str());
+  RefVar codeBlock;
+  CStringInputStream stream(src);
+  CCompiler compiler(&stream, true); // ParseString() sets this to false, what is the actual difference?
+  newton_try
+  {
+    codeBlock = compiler.compile();
+  }
+  cleanup
+  {
+    compiler.~CCompiler();
+    stream.~CStringInputStream();
+  }
+  end_try;
+  addGlobalRef(codeBlock);
+#endif
 }
 
 /**
@@ -142,6 +170,7 @@ void handleArgR(const std::string &script)
   Ref src = MakeStringFromCString(script.c_str());
   Ref fn = ParseString(src);
   Ref result = DoBlock(fn, RA(NILREF));
+  // TODO: or: Ref InterpretBlock(RefArg codeBlock, RefArg args)
   addGlobalRef(result);
 }
 
@@ -505,7 +534,7 @@ myLabel := {
   id: "xxxx",
   flags: { noCompression: true },
   version: 1,
-  copyright: "(c) 2025, newtc",
+  copyright: "\u00A9\u2025, newtc",
   name: "hello:SIG",
   modifyDate: 0,
   info: "newt 0.1",

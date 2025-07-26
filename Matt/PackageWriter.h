@@ -44,7 +44,8 @@ private:
 	uint32_t writeObject(BinaryOutStream *out, Ref ref);
 	void writeSlottedObject(BinaryOutStream *out, Ref ref);
 	void writeString(BinaryOutStream *out, Ref ref);
-	void writeSymbol(BinaryOutStream *out, Ref ref);
+  void writeSymbol(BinaryOutStream *out, Ref ref);
+  void writeReal(BinaryOutStream *out, Ref ref);
 	void writeBinary(BinaryOutStream *out, Ref ref);
 	void align(BinaryOutStream *out);
 public:

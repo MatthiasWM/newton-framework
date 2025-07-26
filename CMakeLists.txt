@@ -539,11 +539,11 @@ set_property (TARGET newtc
 #    "-script /Users/matt/dev/test.ns"
 #    "-run /Users/matt/dev/test.ns"
 #    "-nos2"
-#    "-s \"1+1;\""
+#    "-s \"func() begin end\""
 #    "-r \"1+1;\""
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
-    "-opkg /Users/matt/hello.pkg"
+#    "-opkg /Users/matt/hello.pkg"
     "-print"
 )
 

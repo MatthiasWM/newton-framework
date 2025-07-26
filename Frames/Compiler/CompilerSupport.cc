@@ -187,6 +187,17 @@ CFunctionState::computeArgFrame(void)
 		if (fNumOfLocals != 0)
 			ArrayMunger(argFrTags, 3 + fNumOfArgs, fNumOfLocals, fLocals, 0, fNumOfLocals);
 		fArgFrame = AllocateFrameWithMap(AllocateMapWithTags(NILREF, argFrTags));
+
+    // Matt: this is not elegant, but at least fro writing Packages, it seems
+    // to be important that _nextArgFrame points to a unique _nextArgFrame, and
+    // not one that is shared among others.
+    SetLength(argFrTags, 3);
+    SetArraySlot(argFrTags, kArgFrameNextArgFrameIndex, SYMA(_nextArgFrame));
+    SetArraySlot(argFrTags, kArgFrameParentIndex, SYMA(_parent));
+    SetArraySlot(argFrTags, kArgFrameImplementorIndex, SYMA(_implementor));
+    RefVar fArgFrameFrame = AllocateFrameWithMap(AllocateMapWithTags(NILREF, argFrTags));
+    SetArraySlot(fArgFrame, kArgFrameNextArgFrameIndex, fArgFrameFrame);
+    // Matt: done
 	}
 
 	else

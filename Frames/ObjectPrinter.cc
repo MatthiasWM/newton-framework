@@ -16,6 +16,8 @@
 #include "UStringUtils.h"
 #include "ROMResources.h"
 
+#include <string>
+
 extern "C" const char * GetMagicPointerString(int inMP);
 
 /*------------------------------------------------------------------------------
@@ -492,14 +494,38 @@ IsAggregate(Ref obj)
 void
 SafelyPrintString(UniChar * str)
 {
+  static char hexLUT[] = "0123456789ABCDEF";
 	char	buf[256];
+#if 0
+  // The code below converts to ASCII with Apple MacRoman code page
 	int	bufLen;
 	for (int len = Ustrlen(str); len > 0; len -= bufLen, str += bufLen)
 	{
-		bufLen = MIN(len, 255);
-		ConvertFromUnicode(str, buf, bufLen);
 		REPprintf("%s", buf);
 	}
+#else
+  int n = (int)Ustrlen(str);
+  int bi = 0;
+  for (int i = 0; i < n; ++i) {
+    UniChar c = str[i];
+    if (c > 126) {
+      buf[bi++] = '\\'; buf[bi++] = 'u';
+      buf[bi++] = hexLUT[(c>>12)&15];
+      buf[bi++] = hexLUT[(c>>8)&15];
+      buf[bi++] = hexLUT[(c>>4)&15];
+      buf[bi++] = hexLUT[(c>>0)&15];
+      buf[bi++] = '\\'; buf[bi++] = 'u';
+// TODO: handle \n, \t, then ascii printable, then all others (what about \r vs. \n and Apple vs Unix?
+// Tested: NTK converts \r to r (no control character), \n to \n, \t to \t
+    } else {
+      buf[bi++] = (char)c;
+    }
+    if ((bi > 240) || (i == n-1)) {
+      buf[bi] = 0;
+      REPprintf("%s", buf);
+    }
+  }
+#endif
 }
 
 

@@ -549,6 +549,24 @@ void NewtonPackageWriter::writeSymbol(BinaryOutStream *out, Ref ref)
     writeObject(out, sym->objClass);
 }
 
+void NewtonPackageWriter::writeReal(BinaryOutStream *out, Ref ref)
+{
+  assert(IsReal(ref));
+  BinaryObject *bin = (BinaryObject*)ObjectPtr(ref);
+  uint32_t dataSize = bin->size - sizeof(ObjHeader) - sizeof(Ref);
+  *out << (uint32_t)(((12 + dataSize) << 8)|kObjReadOnly|bin->flags);
+  *out << (uint32_t)0;
+  writeRef(out, bin->objClass);
+  if (dataSize == 8) { // to be expected
+    uint8_t *d = (uint8_t*)bin->data;
+    *out << d[7] << d[6] << d[5] << d[4] << d[3] << d[2] << d[1] << d[0];
+  } else { // fallback
+    out->write(bin->data, dataSize);
+  }
+  align(out);
+  if (ISREALPTR(bin->objClass))
+    writeObject(out, bin->objClass);
+}
 
 /**
   \brief Write a binary object to the output stream.
@@ -601,6 +619,8 @@ uint32_t NewtonPackageWriter::writeObject(BinaryOutStream *out, Ref ref)
     writeString(out, ref);
   } else if (IsSymbol(ref)) {
     writeSymbol(out, ref);
+  } else if (IsReal(ref)) {
+    writeReal(out, ref);
   } else {
     writeBinary(out, ref);
   }
