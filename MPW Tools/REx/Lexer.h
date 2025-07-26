@@ -12,7 +12,8 @@
 #include "NewtonKit.h"
 #include <iostream>
 #include <vector>
-using namespace std;
+using namespace std;  // TODO: Please remove this.
+
 
 
 /* -----------------------------------------------------------------------------

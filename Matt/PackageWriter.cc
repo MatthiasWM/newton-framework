@@ -449,7 +449,11 @@ void NewtonPackageWriter::writePartDir(int index, RefArg package) {
 }
 
 
-void NewtonPackageWriter::writePart(int index, RefArg data) {
+void NewtonPackageWriter::writePart(int index, RefArg data)
+{
+  precedent_.clear();
+  fixup_.clear();
+
   // In OS 2.0, the low-order bit of the second long of this array—normally set to zero in all
   // objects—is used as an alignment flag. If the bit is set, the objects in the part are padded to
   // four-byte boundaries. Otherwise, the objects are padded to eight-byte boundaries.
@@ -460,10 +464,6 @@ void NewtonPackageWriter::writePart(int index, RefArg data) {
   else
     *out << (uint32_t)0x00000000;  // nos1 8 byte alignment
   *out << (uint32_t)0x00000002;    // array type is NIL
-  // TODO: insert offset to first Ref in Part hierarchy here
-  precedent_.clear();
-  fixup_.clear();
-
   // Remember to fix this reference later.
   auto pos = out->str().size();
   fixup_.insert(std::make_pair(pos, data));
@@ -479,6 +479,8 @@ void NewtonPackageWriter::writePart(int index, RefArg data) {
     if (p == precedent_.end()) ThrowMsg("A fixup address has no precedent");
     *out << (uint32_t)(p->second + partOffset_ + 1);
   }
+  // set the cursor to the end, just in case
+  out->seekp(0, std::ios_base::end);
 }
 
 void NewtonPackageWriter::align(BinaryOutStream *out)

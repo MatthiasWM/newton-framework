@@ -504,7 +504,11 @@ StoreHasSoup(RefArg inRcvr, RefArg inName)
 Ref
 StoreGetSoup(RefArg inRcvr, RefArg inName)
 {
-  return NILREF; // MATT: TODO: KLUDGE: BAD: avoid an endless loop, probably because some variable was not initialized
+  return NILREF;
+  // MATT: TODO: KLUDGE: BAD: avoid an endless loop, probably because some variable was not initialized
+  // After some research, I find that alignment is off occasionally. Make
+  // sure we use MEMORYALIGN instead of WORDALIGN when we deal with 64 bit members
+
 	RefVar	proto(GetFrameSlot(inRcvr, SYMA(_proto)));
 	if (ISNIL(proto))
 		ThrowOSErr(kNSErrInvalidStore);

@@ -188,6 +188,8 @@ CFunctionState::computeArgFrame(void)
 			ArrayMunger(argFrTags, 3 + fNumOfArgs, fNumOfLocals, fLocals, 0, fNumOfLocals);
 		fArgFrame = AllocateFrameWithMap(AllocateMapWithTags(NILREF, argFrTags));
 
+#if 0
+    // TODO: Nope, that was not it! fArgFrame itself seems to be shared! Not sure if that does nay damage.
     // Matt: this is not elegant, but at least fro writing Packages, it seems
     // to be important that _nextArgFrame points to a unique _nextArgFrame, and
     // not one that is shared among others.
@@ -198,6 +200,7 @@ CFunctionState::computeArgFrame(void)
     RefVar fArgFrameFrame = AllocateFrameWithMap(AllocateMapWithTags(NILREF, argFrTags));
     SetArraySlot(fArgFrame, kArgFrameNextArgFrameIndex, fArgFrameFrame);
     // Matt: done
+#endif
 	}
 
 	else

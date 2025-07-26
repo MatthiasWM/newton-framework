@@ -14,7 +14,7 @@
 #include <cassert>
 #include <stdarg.h>
 
-using namespace std;  // FIXME: no!
+using namespace std;  // TODO: Please remove this.
 
 #include "Objects.h"
 #include "RefMemory.h"

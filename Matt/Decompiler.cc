@@ -13,6 +13,15 @@
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
+// FIXME: when writing symbols, we must *really* know when to precede them with a tick and when not!
+// So, for example, "if HasSlot(p, devInstallScript) then"
+// should actually be "if HasSlot(p, 'devInstallScript) then"!
+// See the difference?!
+
+// TODO: in NTK< we can check a box to create debug information. The decompiler should be aware of
+// debug information in the code. Especially with nos2, this can restore argument
+// names. In any format, it can give names to our views in the stepChildren array.
+
 /*
  Precedence Table:
  12: slot access '.'
@@ -368,8 +377,6 @@ public:
 
 // TODO: name nodes so that we can see the difference between a Bytecode and a generated node
 // TODO: generated nodes should derive from another subclass
-// TODO: This is a bug in the ByteCode: loop does not leave a value on the stack, but return assumes that there is one!
-// Is that a bug in newton_framework, or is that in the original compiler too?
 class ASTLoop : public ASTNode {
 protected:
   std::vector<ASTNode*> body_;
@@ -544,6 +551,11 @@ public:
   void add(ASTNode *nd) { body_.push_back(nd); }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
+  void PrintChildren(PState &p) {
+    p.indent++;
+    for (auto &nd: body_) nd->Print(p);
+    p.indent--;
+  }
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin();
@@ -562,7 +574,7 @@ public:
       }
       p.NewLine(";");
     } else {
-      // TODO: Print children, same for ASTLoop!
+      if (p.type == PState::Type::deep) PrintChildren(p);
       p.Begin(); printHeader();
       printf("%3d: ASTWhileDo ###", pc_);
       p.NewLine();
@@ -837,7 +849,9 @@ public:
 };
 
 // TODO: the very last return probably doesn't need to be printed
-// TODO: return NIL is implied if there is no return statement
+// It's actually a bug in the newt-framework compiler. NTK does not generate the extra return bytecode
+// TODO: return NIL is implied if there is no return statement in the source code
+// TODO: handle implied return values nicely, so we don;t generate "return a := b;"
 // (A=0, B=2): --
 class AST_Return : public AST_Consume1 {
 public:
@@ -1721,7 +1735,7 @@ public:
   void Print(PState &p) override {
     if ((p.type == PState::Type::script) && Resolved()) {
       p.Begin();
-      // TODO: read the map!
+      // TODO: What is the correct call to traverse the map or find a map entry by index?
       RefVar map = NILREF;
       int mapSize = numIns_-1;
       do {

@@ -373,7 +373,9 @@ x	• The compiler allows the use of \u escape sequences in symbols when surroun
 UniChar
 CCompiler::consumeChar(void)
 {
-  static UniChar prevChar = 0; // TODO: this is, of course, wrong, but helping us out in a pinch
+  // TODO: this is, of course, wrong, but helping us out in a pinch
+  // Create flag in the CCompiler class for this.
+  static UniChar prevChar = 0;
 
 	theChar = stream->getch();
 
