@@ -74,6 +74,8 @@ protected:
   ASTNode *first_ { nullptr };
   ASTNode *last_ { nullptr };
   std::map<int, ASTJumpTarget*> targets;
+  bool debugAST_ { false };
+
   void AddToTargets(int target, int origin);
   ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
   ASTBytecodeNode *NewBytecodeNode(int pc, int a, int b);
@@ -81,6 +83,7 @@ public:
   Decompiler(ObjectPrinter &printer) : p( printer ) { }
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
   ObjectPrinter *Printer() { return &p; }
+  void DebugAST(bool v) { debugAST_ = v;}
   void print();
   void printRoot();
   void printSource();
@@ -1800,7 +1803,7 @@ public:
 
 void Decompiler::decompile(Ref ref)
 {
-  puts("\n==== Matt's Decompiler:");
+  if (debugAST_) puts("\n==== Matt's Decompiler:");
   Ref klass = GetFrameSlot(ref, SYMA(class));
   if (IsSymbol(klass) && SymbolCompare(klass, SYMA(CodeBlock))==0) {
     nos_ = 1;
@@ -1996,7 +1999,7 @@ void Decompiler::AddToTargets(int target, int origin) {
   else
     t = it->second;
   t->addOrigin(origin);
-  printf("Jump Target: %d to %d\n", origin, target);
+  if (debugAST_) printf("Jump Target: %d to %d\n", origin, target);
 }
 
 /**
@@ -2049,6 +2052,7 @@ void Decompiler::solve()
 
 void Decompiler::print()
 {
+  if (!debugAST_) return;
   puts("---- AST -------");
   PState pState;
   output = Print::deep;
@@ -2060,6 +2064,7 @@ void Decompiler::print()
 
 void Decompiler::printRoot()
 {
+  if (!debugAST_) return;
   puts("---- Root -------");
   PState pState;
   output = Print::bytecode;
@@ -2167,9 +2172,10 @@ void Decompiler::printPathExpr(RefArg pathExpr)
  - `numArgs`: 2
  ```
  */
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer)
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST)
 {
   Decompiler d(printer);
+  d.DebugAST(debugAST);
   d.decompile(ref);
   d.printRoot();
   d.printSource();

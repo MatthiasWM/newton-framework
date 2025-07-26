@@ -127,7 +127,7 @@ void ObjectPrinter::PrintIndent(int indent) {
 void ObjectPrinter::PrintFunction(Ref ref, int indent)
 {
   if (optionDecompile_) {
-    mDecompile(ref, *this);
+    mDecompile(ref, *this, debugAST_);
   } else {
     printf("{\n");
     bool first = true;

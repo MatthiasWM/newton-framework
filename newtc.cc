@@ -36,6 +36,8 @@ extern void PrintCode(RefArg obj);
 
 int currentRefIndex = 0;
 
+static bool debugAST_ { false };
+
 extern void handleArgHello();
 
 
@@ -200,6 +202,14 @@ void handleArgClear()
 }
 
 /**
+ \brief Set debugging flags.
+ */
+void handleArgDebug(const std::string &flag)
+{
+  if (flag == "ast") debugAST_ = true;
+}
+
+/**
  \brief Write the object in global `ref0` as a package file.
  \todo Error handling
  */
@@ -220,24 +230,6 @@ void handleArgONsof(const std::string &filename)
   out.write();
 }
 
-/*
- Frames/StreamObjects.h:
-
- CObjectReader(CPipe & inPipe);
- CObjectReader(CPipe & inPipe, RefArg inOptions);
- ~CObjectReader();
- void      setPrecedentsForReading(void);
- void      setFunctionsAllowed(bool inAllowed);
- Ref      read(void);
- ArrayIndex  size(void);                // NRG
-
-
- CStdIOPipe pipe("/Users/matt/dev/test.nsof", "w");
- CObjectWriter writer(func, pipe, false);
- //writer.setCompressLargeBinaries();
- writer.write();
- */
-
 /**
  \brief Write the object `ref0` as text to stdout.
  */
@@ -256,6 +248,7 @@ void handleArgDecompile()
 {
   RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
   ObjectPrinter p(std::cout);
+  p.DebugAST(debugAST_);
   p.Decompile(ref0);
 }
 
@@ -296,7 +289,7 @@ void handleArgDecompile()
     - [ ] -pkg1 name symbol : generate a minimal `package1` package object
     - [ ] -addpart ??? : add the most recent object as the next part to ref0
     - [x] -clear : clear all ref# and start over at ref0
-    - [ ] -debug level : (may be a bit pattern at some point)
+    - [x] -debug level : (may be a bit pattern at some point)
     - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
   - Writer:
     - [x] -opkg filename : write ref0 as a package
@@ -356,6 +349,10 @@ int main(int argc, char **argv)
         handleArgNos2();
       } else if (cmd == "-clear") {
         handleArgClear();
+      } else if (cmd == "-debug") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing description after -debug ... ."));
+        handleArgDebug(std::string(argv[argi++]));
       } else if (cmd == "-opkg") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -opkg ... ."));
@@ -388,13 +385,6 @@ int main(int argc, char **argv)
 void handleArgHello() {
   const char *script = R"*(
     
-myLabel := {
-  text: "Hello, world!",
-  viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
-  viewJustify: 8388614,
-  _proto: @218
-};
-
 {
   signature: 'package0,
   id: "xxxx",
@@ -423,7 +413,12 @@ myLabel := {
           viewBounds: { left: -12, top: 56, right: 140, bottom: 152 },
           viewClickScript: func(arg) begin end,
           stepChildren: [
-            stepChildren: myLabel
+            stepChildren: {
+              text: "Hello, world!",
+              viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
+              viewJustify: 8388614,
+              _proto: @218
+            }
           ],
           _proto: @180,
           appSymbol: '|hello:SIG|

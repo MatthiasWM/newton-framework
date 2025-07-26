@@ -30,6 +30,7 @@
 class ObjectPrinter : public Printer
 {
   bool optionDecompile_ { false };
+  bool debugAST_ { false };
 
 public:
   class Node {
@@ -65,6 +66,7 @@ public:
   void Decompile(RefArg ref);
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}
+  void DebugAST(bool v) { debugAST_ = v;}
 };
 
 

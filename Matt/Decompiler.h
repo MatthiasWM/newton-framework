@@ -14,7 +14,7 @@
 
 class ObjectPrinter;
 
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer);
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST);
 
 
 #endif  /* __MATTSDECOMPILER_H */
