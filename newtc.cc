@@ -11,6 +11,7 @@
 #include "Frames/Interpreter.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
+#include "REPTranslators.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -103,7 +104,6 @@ void handleArgNsof(const std::string &filename)
 void handleArgScript(const std::string &filename)
 {
   Ref result = ParseFile(filename.c_str());
-  // TODO: ParseFile calls Ref InterpretBlock(RefArg codeBlock, RefArg args)
   addGlobalRef(result);
 }
 
@@ -114,52 +114,46 @@ void handleArgScript(const std::string &filename)
 void handleArgRun(const std::string &filename)
 {
   Ref fn = ParseFile(filename.c_str());
-  // TODO: ParseFile calls Ref InterpretBlock(RefArg codeBlock, RefArg args)
-  Ref result = DoBlock(fn, RA(NILREF));
+  Ref result = InterpretBlock(fn, RA(NILREF));
   addGlobalRef(result);
-  //  newton_try
-  //  {
-  //    DoBlock(RA(bootRunInitScripts), RA(NILREF));
-  //  }
-  //  newton_catch(exRootException)
-  //  { }
-  //  end_try;
 }
 
 /**
  \brief Compile a script and write the resulting object into ref#.
- \todo This is supposed to return the literal if the input is a literal,
- but returns a function that build the literal instead.
- \see CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions) to fix the above?
  */
 void handleArgS(const std::string &script)
 {
-#if 1
-  Ref src = MakeStringFromCString(script.c_str());
-  Ref result = ParseString(src);
-  addGlobalRef(result);
-// TODO: look at these:
-//  Ref  InterpretBlock(RefArg codeBlock, RefArg args);
-//  Ref  DoBlock(RefArg codeBlock, RefArg args);
-//  Ref  DoScript(RefArg rcvr, RefArg script, RefArg args);
-
-#else
-  RefVar src = MakeStringFromCString(script.c_str());
+  RefVar result;
   RefVar codeBlock;
+  RefVar src = MakeStringFromCString(script.c_str());
   CStringInputStream stream(src);
-  CCompiler compiler(&stream, true); // ParseString() sets this to false, what is the actual difference?
+
+  CCompiler compiler(&stream, true);
+
   newton_try
   {
-    codeBlock = compiler.compile();
+    while (!stream.end())
+    {
+      codeBlock = compiler.compile();
+      result = NOTNIL(codeBlock) ? InterpretBlock(codeBlock, RA(NILREF)) : NILREF;
+    }
   }
-  cleanup
+  newton_catch(exRefException)
   {
-    compiler.~CCompiler();
-    stream.~CStringInputStream();
+    RefVar data(*(RefStruct *)CurrentException()->data);
+    if (IsFrame(data)) {
+      SetFrameSlot(data, SYMA(filename), MakeStringFromCString("<script>"));
+      SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+    }
+    gREPout->exceptionNotify(CurrentException());
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
   }
   end_try;
-  addGlobalRef(codeBlock);
-#endif
+  
+  addGlobalRef(result);
 }
 
 /**
@@ -169,8 +163,8 @@ void handleArgR(const std::string &script)
 {
   Ref src = MakeStringFromCString(script.c_str());
   Ref fn = ParseString(src);
-  Ref result = DoBlock(fn, RA(NILREF));
-  // TODO: or: Ref InterpretBlock(RefArg codeBlock, RefArg args)
+  Ref result = InterpretBlock(fn, RA(NILREF));
+  addGlobalRef(result);
   addGlobalRef(result);
 }
 
@@ -303,6 +297,8 @@ void handleArgPrint()
     - [ ] -hex : write as a hexadecimal dump
     - [ ] -diff : compare the decompiled text output of ref0 and ref1
     - [x] -- : same as -print
+
+  \todo not much of a difference between -s and -r, or -script and -run, right?
  */
 int main(int argc, char **argv)
 {
@@ -564,7 +560,10 @@ myLabel := {
         },
         installScript: func(part)
         begin
-          return nil;
+          part:?devInstallScript(part);
+          if HasSlot(part, 'devInstallScript) then
+            RemoveSlot(part, 'devInstallScript);
+          return part.installScript := nil;
         end
       }
     }

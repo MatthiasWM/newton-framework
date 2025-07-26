@@ -49,9 +49,9 @@ public:
 	virtual void		ungetch(UniChar inCh);
 #endif
 
-protected:
 	bool					end(void);
 
+protected:
 	RefVar	fStr;
 	ULong		fIndex;
 };
