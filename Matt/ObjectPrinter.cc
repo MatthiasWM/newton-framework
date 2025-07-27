@@ -61,6 +61,9 @@
 #include "Matt/Decompiler.h"
 
 #include <iostream>
+#include <cctype>
+
+extern bool IsPathExpr(RefArg inObj);
 
 // struct Node { value_t value; std::vector<std::shared_ptr<Node>> children; std::weak_ptr<Node> parent; };
 
@@ -536,17 +539,17 @@ expr:				constant
 					/* nothing to do here */
 				;
 
-constant:		kTokenConst
-					{	$$ = AllocatePT1(kTokenConst, $1); }
-				|	kTokenInteger
-					{	$$ = AllocatePT1(kTokenConst, $1); }
-				|	kTokenReal
-					{	$$ = AllocatePT1(kTokenConst, $1); }
-				|	'\'' sexpr
-					{	$$ = AllocatePT1(kTokenConst, $2); }
-				|	kTokenRefConst
-					{	$$ = AllocatePT1(kTokenConst, $1); }
-				;
+//constant:		kTokenConst
+//					{	$$ = AllocatePT1(kTokenConst, $1); }
+//				|	kTokenInteger
+//					{	$$ = AllocatePT1(kTokenConst, $1); }
+//				|	kTokenReal
+//					{	$$ = AllocatePT1(kTokenConst, $1); }
+//				|	'\'' sexpr
+//					{	$$ = AllocatePT1(kTokenConst, $2); }
+//				|	kTokenRefConst
+//					{	$$ = AllocatePT1(kTokenConst, $1); }
+//				;
 
 lvalue:			kTokenSymbol
 					{	$$ = AllocatePT1(kTokenSymbol, $1); }
@@ -901,79 +904,329 @@ frame_slot_plus:	kTokenSymbol ':' expr
 						SetFrameSlot($$, $3, $5); }
 				;
 
-sexpr:			kTokenConst
-					/* nothing to do here */
-				|	kTokenInteger
-					/* nothing to do here */
-				|	'-' kTokenInteger
-					{	$$ = MAKEINT(-RINT($2)); }
-				|	kTokenReal
-					/* nothing to do here */
-				|	'-' kTokenReal
-					{	$$ = MakeReal(-CDouble($2)); }
-				|	kTokenRefConst
-					/* nothing to do here */
-				|	path_expr
-					/* nothing to do here */
-				|	'[' sexpr_star ']'
-					{	$$ = $2; }
-				|	'[' kTokenSymbol ':' sexpr_star ']'
-					{	$$ = $4;
-						SetClass($4, $2); }
-				|	'{' sexpr_frame_slot_star '}'
-					{	$$ = $2; }
-				;
+//sexpr:			kTokenConst
+//					/* nothing to do here */
+//				|	kTokenInteger
+//					/* nothing to do here */
+//				|	'-' kTokenInteger
+//					{	$$ = MAKEINT(-RINT($2)); }
+//				|	kTokenReal
+//					/* nothing to do here */
+//				|	'-' kTokenReal
+//					{	$$ = MakeReal(-CDouble($2)); }
+//				|	kTokenRefConst
+//					/* nothing to do here */
+//				|	path_expr
+//					/* nothing to do here */
+//				|	'[' sexpr_star ']'
+//					{	$$ = $2; }
+//				|	'[' kTokenSymbol ':' sexpr_star ']'
+//					{	$$ = $4;
+//						SetClass($4, $2); }
+//				|	'{' sexpr_frame_slot_star '}'
+//					{	$$ = $2; }
+//				;
 
-path_expr:		kTokenSymbol
-					/* nothing to do here */
-				|	path_expr '.' kTokenSymbol
-					{	if (EQ(ClassOf($1), SYMA(pathExpr)))
-						{
-							AddArraySlot($1, $3);
-							$$ = $1;
-						}
-						else
-						{
-							$$ = AllocateArray(SYMA(pathExpr), 2);
-							SetArraySlot($$, 0, $1);
-							SetArraySlot($$, 1, $3);
-						} }
-				;
+//path_expr:		kTokenSymbol
+//					/* nothing to do here */
+//				|	path_expr '.' kTokenSymbol
+//					{	if (EQ(ClassOf($1), SYMA(pathExpr)))
+//						{
+//							AddArraySlot($1, $3);
+//							$$ = $1;
+//						}
+//						else
+//						{
+//							$$ = AllocateArray(SYMA(pathExpr), 2);
+//							SetArraySlot($$, 0, $1);
+//							SetArraySlot($$, 1, $3);
+//						} }
+//				;
 
-sexpr_star:		/* empty */
-					{	$$ = MakeArray(0); }
-				|	sexpr_plus
-					/* nothing to do here */
-				;
+//sexpr_star:		/* empty */
+//					{	$$ = MakeArray(0); }
+//				|	sexpr_plus
+//					/* nothing to do here */
+//				;
 
-sexpr_plus:		sexpr
-					{	$$ = MakeArray(1);
-						SetArraySlot($$, 0, $1); }
-				|	sexpr_plus ',' sexpr
-					{	$$ = $1;
-						AddArraySlot($1, $3); }
-				;
+//sexpr_plus:		sexpr
+//					{	$$ = MakeArray(1);
+//						SetArraySlot($$, 0, $1); }
+//				|	sexpr_plus ',' sexpr
+//					{	$$ = $1;
+//						AddArraySlot($1, $3); }
+//				;
 
-sexpr_frame_slot_star :	/* empty */
-					{	$$ = AllocateFrame(); }
-				|	sexpr_frame_slot_plus
-					/* nothing to do here */
-				;
+//sexpr_frame_slot_star :	/* empty */
+//					{	$$ = AllocateFrame(); }
+//				|	sexpr_frame_slot_plus
+//					/* nothing to do here */
+//				;
 
-sexpr_frame_slot_plus:	kTokenSymbol ':' sexpr
-					{	$$ = AllocateFrame();
-						SetFrameSlot($$, $1, $3); }
-				|	sexpr_frame_slot_plus ',' kTokenSymbol ':' sexpr
-					{	$$ = $1;
-						if (FrameHasSlot($$, $3))
-						{
-							Str255	str;
-							sprintf(str, "duplicate slot name: %s", SymbolName($3));
-							warning(str);
-						}
-						SetFrameSlot($$, $3, $5); }
-				;
+//sexpr_frame_slot_plus:	kTokenSymbol ':' sexpr
+//					{	$$ = AllocateFrame();
+//						SetFrameSlot($$, $1, $3); }
+//				|	sexpr_frame_slot_plus ',' kTokenSymbol ':' sexpr
+//					{	$$ = $1;
+//						if (FrameHasSlot($$, $3))
+//						{
+//							Str255	str;
+//							sprintf(str, "duplicate slot name: %s", SymbolName($3));
+//							warning(str);
+//						}
+//						SetFrameSlot($$, $3, $5); }
+//				;
 
 %%
 
 #endif
+
+// plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*
+// piped symbol: ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+// symbol-character: <any ASCII character with code 32–127 except '|' or '\'>
+void ObjectPrinter::PrintSymbol(RefArg ref)
+{
+  std::function isSymStart = [](char c) -> bool { return (c > 31) && (c < 127) && (std::isalpha(c) || (c =='_')); };
+  std::function isSymCont = [](char c) -> bool { return (c > 31) && (c < 127) && (std::isalnum(c) || (c =='_')); };
+  assert(IsSymbol(ref));
+  const char *sym = SymbolName(ref);
+  bool piped = true;
+  const char *s = sym;
+  // Scan every character in the symbol to see if the symbol must be put between '|'s.
+  if (isSymStart(*s++)) {
+    char c = *s++;
+    while (c) {
+      if (!isSymCont(c)) break;
+      c = *s++;
+    }
+    if (c == 0) piped = false;
+  }
+  if (piped) {
+    Print("|");
+    Print(sym);
+    Print("|");
+  } else {
+    Print(sym);
+  }
+}
+
+// Print the NIL constant
+void ObjectPrinter::PrintNil(RefArg ref) {
+  assert(ref == NILREF);
+  Print("nil");
+}
+
+// Print the True constant
+void ObjectPrinter::PrintTrue(RefArg ref) {
+  assert(ref == TRUEREF);
+  Print("true");
+}
+
+// A UTF-16 based text string
+// '"' [ char | '\\' | '\"' | '\n' | '\t' | '\uXXXX\u' ]* '"'
+void ObjectPrinter::PrintString(RefArg ref) {
+  assert(IsString(ref));
+  char buf[32];
+  UniChar c, *s = (UniChar *)BinaryData(ref);
+  int n = Length(ref)/sizeof(UniChar) - 1;
+  Print("\"");
+  for ( ; n > 0; --n) {
+    c = *s++;
+    if (c == '\\') {
+      strcpy(buf, "\\\\");
+    } else if (c >= 32 && c < 127) {
+      buf[0] = (char)c; buf[1] = 0;
+    } else if (c == '\n') {
+      strcpy(buf, "\\n");
+    } else if (c == '\t') {
+      strcpy(buf, "\\t");
+    } else if (c < 32) {
+      snprintf(buf, 31, "\\%02X", c);
+    } else {
+      snprintf(buf, 31, "\\u%04X\\u", c);
+    }
+    Print(buf);
+  }
+  Print("\"");
+}
+
+// A UTF-16 character (X= capitalized hex digit)
+// '$' [ character | `\\` | '\n' | '\t' | `\XX' | '\uXXXX` ]
+void ObjectPrinter::PrintCharacter(RefArg ref) {
+  assert(IsChar(ref));
+  char buf[32];
+  UniChar c = RefToUniChar(ref);
+  if (c == '\\') {
+    strcpy(buf, "$\\\\");
+  } else if (c >= 32 && c < 127) {
+    snprintf(buf, 31, "$%c", c);
+  } else if (c == '\n') {
+    strcpy(buf, "$\\n");
+  } else if (c == '\t') {
+    strcpy(buf, "$\\t");
+  } else if (c < 32) {
+    snprintf(buf, 21, "$\\%02X", c);
+  } else {
+    snprintf(buf, 21, "$\\u%04X", c);
+  }
+  return Print(buf);
+}
+
+// kTokenConst is true, nil, a string, a character
+void ObjectPrinter::PrintTokenConst(RefArg ref) {
+  if (ref == NILREF)
+    return PrintNil(ref);
+  else if (ref == TRUEREF)
+    return PrintTrue(ref);
+  else if (IsString(ref))
+    return PrintString(ref);
+  else if (IsChar(ref))
+    return PrintCharacter(ref);
+  assert(0);
+}
+
+// Print an integer (signed, hex '0x' notation is allowed
+void ObjectPrinter::PrintInteger(RefArg ref) {
+  assert(IsInt(ref));
+  char buf[48];
+  snprintf(buf, 47, "%d", RefToInt(ref));
+  return Print(buf);
+}
+
+// Print a floating point "double"
+//
+void ObjectPrinter::PrintReal(RefArg ref) {
+  assert(IsReal(ref));
+  char buf[48];
+  double v = CDouble(ref);
+  double absValue = std::abs(v);
+  if ((absValue != 0.0 && (absValue < 1e-4 || absValue >= 1e+7))) {
+    // Scientific, don;t change it
+    snprintf(buf, 47, "%e", v);
+  } else {
+    // Remove trailing zeros after the first character after the decimal point
+    snprintf(buf, 47, "%.9f", v);
+    int n = (int)strlen(buf) - 1;
+    for ( ; n>0; --n) {
+      if (buf[n-1] == '.') break;
+      if (buf[n] != '0') break;
+      buf[n] = 0;
+    }
+  }
+  Print(buf);
+}
+
+// path_expr
+// kTokenSymbol | path_expr '.' kTokenSymbol
+// Path Expressions can also be a single integer or a single symbol.
+void ObjectPrinter::PrintPathExpr(RefArg ref) {
+  assert(IsPathExpr(ref));
+  if (IsInt(ref))
+    return PrintInteger(ref);
+  else if (IsSymbol(ref))
+    return PrintSymbol(ref);
+  else {
+    int n = Length(ref);
+    for (int i = 0; i < n; ++i) {
+      RefVar slot = GetArraySlot(ref, i);
+      PrintSymbol(slot);
+      if (i < n-1) Print(".");
+    }
+  }
+}
+
+// sexpr_star
+// '[' { kTokenSymbol ':' } [ SExpr ',']* ']'
+void ObjectPrinter::PrintSExprArray(RefArg ref) {
+  assert(IsArray(ref));
+  RefVar klass = ClassOf(ref);
+  Print("[");
+  DeepList(",");
+  if (IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {
+    Tag(); PrintSymbol(klass); Print(":");
+  }
+  int n = Length(ref);
+  for (int i = 0; i < n; ++i) {
+    RefVar slot = GetArraySlot(ref, i);
+    Item(); PrintSExpr(slot); ItemDone();
+  }
+  Finalize(); Print("]");
+  EndList();
+  ItemDone();
+}
+
+// sexpr_frame_slot_star
+// '{' [ kTokenSymbol ':' SExpr ',' ]* '}'
+void ObjectPrinter::PrintSExprFrame(RefArg ref) {
+  assert(IsFrame(ref));
+  Print("{");
+  DeepList(",");
+  CObjectIterator iter(ref, false);
+  for ( ; !iter.done(); iter.next()) {
+    Item();
+    PrintSymbol(iter.tag());
+    Print(": ");
+    PrintSExpr(iter.value());
+    ItemDone();
+  }
+  Finalize(); Print("}");
+  EndList();
+  ItemDone();
+}
+
+//  "sexpr : kTokenConst",
+//  "sexpr : kTokenInteger",
+//  "sexpr : '-' kTokenInteger",
+//  "sexpr : kTokenReal",
+//  "sexpr : '-' kTokenReal",
+//  "sexpr : kTokenRefConst",
+//  "sexpr : path_expr",
+//  "sexpr : '[' sexpr_star ']'",
+//  "sexpr : '[' kTokenSymbol ':' sexpr_star ']'",
+//  "sexpr : '{' sexpr_frame_slot_star '}'",
+void ObjectPrinter::PrintSExpr(RefArg ref)
+{
+  if ((ref==NILREF) || (ref==TRUEREF) || IsString(ref) || IsChar(ref))
+    return PrintTokenConst(ref);
+  else if (IsInt(ref))
+    return PrintInteger(ref);
+  else if (IsReal(ref))
+    return PrintReal(ref);
+  else if (IsMagicPtr(ref))
+    return PrintRefConst(ref);
+  else if (IsPathExpr(ref))
+    return PrintPathExpr(ref);
+  else if (IsArray(ref))
+    return PrintSExprArray(ref);
+  else if (IsFrame(ref))
+    return PrintSExprFrame(ref);
+  assert(0);
+}
+
+// A Magic Value @32
+// '@' [ integer ]
+void ObjectPrinter::PrintRefConst(RefArg ref)
+{
+  assert(IsMagicPtr(ref));
+  Printer::Print("@");
+  Printer::Print((int)RVALUE(ref));
+}
+
+//  "constant : kTokenConst",
+//  "constant : kTokenInteger",
+//  "constant : kTokenReal",
+//  "constant : '\\'' sexpr",
+//  "constant : kTokenRefConst",
+void ObjectPrinter::PrintConstant(RefArg ref)
+{
+  if ((ref==NILREF) || (ref==TRUEREF) || IsString(ref) || IsChar(ref))
+    return PrintTokenConst(ref);
+  else if (IsInt(ref))
+    return PrintInteger(ref);
+  else if (IsReal(ref))
+    return PrintReal(ref);
+  else if (IsMagicPtr(ref))
+    return PrintRefConst(ref);
+  else
+  { Print("'"); PrintSExpr(ref); return; }
+}

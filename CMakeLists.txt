@@ -533,22 +533,22 @@ add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
 set_property (TARGET newtc
   PROPERTY XCODE_SCHEME_ARGUMENTS
-    "-debug ast"
-    "-hello"
-#    "-script /Users/matt/dev/newton-framework/a.txt"
+#    "-debug ast"
+#    "-hello"
+    "-script /Users/matt/dev/a.txt"
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
 #    "-nsof /Users/matt/dev/test.nsof"
 #    "-script /Users/matt/dev/test.ns"
 #    "-run /Users/matt/dev/test.ns"
 #    "-nos2"
-#    "-s \"func() print([1, 2, 3, 4]);\""
+#    "-s \"1+1;\""
 #    "-r \"func() print([1, 2, 3, 4]);\""
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
 #    "-opkg /Users/matt/hello.pkg"
-#    "-print"
-    "-decompile"
+    "-print"
+#    "-decompile"
 )
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)

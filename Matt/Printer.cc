@@ -44,11 +44,11 @@ void Printer::PrintSeparator()
 //  if (!state.deep_) out << " ";
 }
 
-void Printer::PrintNewLine(int delta)
+void Printer::PrintNewLine()
 {
   State &state = stack_.back();
   out << std::endl;
-  for (size_t i = stack_.size()-1+delta; i > 0; --i) out << "  ";
+  for (size_t i = stack_.size() + state.indentDelta_ -1; i > 0; --i) out << "  ";
 }
 
 void Printer::DoStartItem()
@@ -98,15 +98,15 @@ void Printer::ItemDone()
 void Printer::EndList()
 {
   assert(stack_.size()); // Called EndList() without calling StartList()
-  State &state = stack_.back();
-  state.suppressSeparator_ = true;
   stack_.pop_back();
 }
 
 void Printer::Finalize()
 {
   State &state = stack_.back();
-  if (state.deep_) PrintNewLine(-1);
+  state.indentDelta_--;
+  state.prevSuppressSeparator_ = true;
+  Tag();
 }
 
 void Printer::Print(const std::string &token)

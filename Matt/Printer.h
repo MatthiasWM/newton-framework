@@ -24,6 +24,7 @@ class Printer {
   int chars_ { 0 };
   using State = struct State {
     std::string separator_ { "" };
+    int indentDelta_ { 0 };
     bool deep_ { false };
     bool suppressSeparator_ { false };
     bool prevSuppressSeparator_ { true };
@@ -33,7 +34,7 @@ class Printer {
   std::vector<State> stack_;
 
   void PrintSeparator();
-  void PrintNewLine(int delta = 0);
+  void PrintNewLine();
   void DoStartItem();
 
 public:

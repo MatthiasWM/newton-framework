@@ -68,6 +68,24 @@ public:
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}
   void DebugAST(bool v) { debugAST_ = v;}
+
+  // --- Print Refs following Grammar Rules:
+  void PrintSymbol(RefArg ref);
+
+  void PrintNil(RefArg ref);
+  void PrintTrue(RefArg ref);
+  void PrintString(RefArg ref);
+  void PrintCharacter(RefArg ref);
+  void PrintTokenConst(RefArg ref);
+  void PrintInteger(RefArg ref);
+  void PrintReal(RefArg ref);
+  void PrintPathExpr(RefArg ref);
+  void PrintSExprArray(RefArg ref);
+  void PrintSExprFrame(RefArg ref);
+  void PrintSExpr(RefArg ref);
+  void PrintRefConst(RefArg ref);
+  void PrintConstant(RefArg ref);
+
 };
 
 

@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <clocale>
 
 #include <iostream>
 #include <string>
@@ -46,6 +47,8 @@ extern void handleArgHello();
  */
 bool init()
 {
+  std::setlocale(LC_ALL, "C");
+
   InitObjectSystem();
 
   DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
@@ -237,7 +240,8 @@ void handleArgPrint()
 {
   RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
   ObjectPrinter p(std::cout);
-  p.Print(ref0);
+  //p.Print(ref0);
+  p.PrintConstant(ref0);
 }
 
 /**
@@ -423,10 +427,8 @@ void handleArgHello() {
           _proto: @180,
           appSymbol: '|hello:SIG|
         },
-        installScript: func(part, port)
+        installScript: func(part)
         begin
-          local a := 3;
-          local b := 3;
           part:?devInstallScript(part);
           if HasSlot(part, 'devInstallScript) then
             RemoveSlot(part, 'devInstallScript);
