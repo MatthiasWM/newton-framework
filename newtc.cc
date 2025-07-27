@@ -423,8 +423,10 @@ void handleArgHello() {
           _proto: @180,
           appSymbol: '|hello:SIG|
         },
-        installScript: func(part)
+        installScript: func(part, port)
         begin
+          local a := 3;
+          local b := 3;
           part:?devInstallScript(part);
           if HasSlot(part, 'devInstallScript) then
             RemoveSlot(part, 'devInstallScript);

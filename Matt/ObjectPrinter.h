@@ -63,6 +63,7 @@ public:
 
   ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
   void Print(RefArg ref);
+  void Print(const std::string &token) { Printer::Print(token); }
   void Decompile(RefArg ref);
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}

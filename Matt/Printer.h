@@ -16,26 +16,48 @@
 
 
 class Printer {
+  int wrapAt_ { 80 };
+  int wrapAfter_ { 64 };
+  int indent_ { 0 };
+  int line_ { 0 };
+  int column_ { 0 };
+  int chars_ { 0 };
+  using State = struct State {
+    std::string separator_ { "" };
+    bool deep_ { false };
+    bool suppressSeparator_ { false };
+    bool prevSuppressSeparator_ { true };
+    bool firstItem_ { true };
+    bool itemEmpty_ { true };
+  };
+  std::vector<State> stack_;
+
+  void PrintSeparator();
+  void PrintNewLine(int delta = 0);
+  void DoStartItem();
+
 public:
   std::ostream &out;
 
   Printer(std::ostream &oStream);
-  
-  void Indent(int delta=0) { indent_ += delta; }
-  void ClearDivider() { dividerPending_ = nullptr; }
-  void Begin(int delta=0) {
-    indent_ += delta;
-    if (dividerPending_) { printf("%s", dividerPending_); dividerPending_ = nullptr; }
-    if (indentPending_) { puts(""); for (int i=0; i<indent_; i++) printf("  "); indentPending_ = false; }
-  }
-  void NewLine(const char *div, int delta=0) { dividerPending_ = div; indentPending_ = true; indent_ += delta; }
-  void NewLine(int delta=0) { NewLine(nullptr, delta); }
-  void Divider(const char *div) { dividerPending_ = div; }  // Should this reset indentPending_?
-  void End(int delta=0) { indent_ += delta; } // Should this reset textPending_ and indentPending_?
-protected:
-  int indent_ { 0 };
-  bool indentPending_ { false };
-  const char *dividerPending_ { nullptr };
+
+  void WrapAt(int column);
+  void WrapAfter(int numChars);
+
+  void StartList(const std::string &separator, int numCharsExpected=0);
+  void DeepList(const std::string &separator = "");
+  void Tag();
+  void Item();
+  void ItemDone();
+  void EndList();
+  void Finalize();
+
+  void Print(const std::string &token);
+  void Print(int value);
+  void Print(double value);
+  void Printf(const char*, ...);
+
+  void PrintDivider(const std::string &text);
 };
 
 #endif // MATT_PRINTER

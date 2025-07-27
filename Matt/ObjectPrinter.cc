@@ -323,8 +323,33 @@ void ObjectPrinter::Print(RefArg ref)
 
 void ObjectPrinter::Decompile(RefArg ref)
 {
+#if 1
   OptionDecompile(true);
   Print(ref);
+#else
+
+  DeepList(";");
+
+  Tag(); Printer::Print("x := [");
+  DeepList(",");
+
+  Tag(); Printer::Print("array:");
+  Tag(); Printer::Print("array:");
+  Item(); Printer::Print("dings");
+  Tag(); Printer::Print("array:");
+  Item(); Printer::Print("dings");
+  Item(); Printer::Print("dings");
+
+  EndList();
+  Item(); Printer::Print("]");
+
+  Item(); Printer::Print("b := ..."); ItemDone();
+  EmptyLines(2); Printer::Print("\n");
+
+  EndList();
+
+
+#endif
 }
 
 #if 0
