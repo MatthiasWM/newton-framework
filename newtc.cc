@@ -36,6 +36,7 @@ extern void PrintCode(RefArg obj);
 
 
 int currentRefIndex = 0;
+std::string currentFileName = "<undefined>";
 
 static bool debugAST_ { false };
 
@@ -81,6 +82,7 @@ void addGlobalRef(RefArg inRef)
  */
 void handleArgPkg(const std::string &filename)
 {
+  currentFileName = filename;
   NewtonPackage pkg(filename.c_str());
   Ref package = pkg.packageRef();
   if (package == NILREF) {
@@ -94,6 +96,7 @@ void handleArgPkg(const std::string &filename)
  */
 void handleArgNsof(const std::string &filename)
 {
+  currentFileName = filename;
   CStdIOPipe inPipe(filename.c_str(), "rb");
   CObjectReader reader(inPipe);
   RefVar ref = reader.read();
@@ -108,6 +111,7 @@ void handleArgNsof(const std::string &filename)
  */
 void handleArgScript(const std::string &filename)
 {
+  currentFileName = filename;
   Ref result = ParseFile(filename.c_str());
   addGlobalRef(result);
 }
@@ -118,6 +122,7 @@ void handleArgScript(const std::string &filename)
  */
 void handleArgRun(const std::string &filename)
 {
+  currentFileName = filename;
   Ref fn = ParseFile(filename.c_str());
   Ref result = InterpretBlock(fn, RA(NILREF));
   addGlobalRef(result);
@@ -128,6 +133,7 @@ void handleArgRun(const std::string &filename)
  */
 void handleArgS(const std::string &script)
 {
+  currentFileName = "<script>";
   RefVar result;
   RefVar codeBlock;
   RefVar src = MakeStringFromCString(script.c_str());
@@ -166,6 +172,7 @@ void handleArgS(const std::string &script)
  */
 void handleArgR(const std::string &script)
 {
+  currentFileName = "<script>";
   Ref src = MakeStringFromCString(script.c_str());
   Ref fn = ParseString(src);
   Ref result = InterpretBlock(fn, RA(NILREF));
@@ -257,66 +264,70 @@ void handleArgDecompile()
   p.Decompile(ref0);
 }
 
-
 /**
- \brief The NewtonScript compiler and decompiler, main entry point.
-
- This is a command line NewtonScript that will compile and run scripts, read
- and write NSOF files, and read and create NewtonOS package files.
-
- It can print detailed and decompiled Newton Object, that will create
- functionally the same Newton Object when recompiled. This allows us to
- decompile existing packages, apply fixes, and recompile them into a
- package again.
-
- In the future, newtc will be able to extract and reintegrate binary resources
- for graphics and sounds.
-
- Command line options that read data will store the result in the global
- variable `ref#`, starting with #=0, incrementing the # with every newly created
- object. Writing options will always write `ref0`.
-
- Command line options:
-  - Reader:
-    - [x] -pkg filename : read a package and create one object that includes the
-      package description and all parts that could be read
-    - [x] -nsof filename : read a Newton Script Object file and hold the contents
-      as and object.
-    - [x] -script filename : read a NewtonScript file and compile the script
-    - [x] -run filename : read, compile, and run some Newton Script
-    - [x] -s "script" : compile the script, result is stored in a global ref#
-    - [x] -r "script" : compile and run the script, result is stored in a global ref#
-    - [x] -hello : create the a Hello, Wold! application object
-  - Controller:
-    - [x] -nos1 : compile into NewtonOS 1.x format (default)
-    - [x] -nos2 : compile into NewtonOS 2.x format
-    - [ ] -pkg0 name symbol : generate a minimal `package0` package object
-    - [ ] -pkg1 name symbol : generate a minimal `package1` package object
-    - [ ] -addpart ??? : add the most recent object as the next part to ref0
-    - [x] -clear : clear all ref# and start over at ref0
-    - [x] -debug level : (may be a bit pattern at some point)
-    - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
-  - Writer:
-    - [x] -opkg filename : write ref0 as a package
-    - [x] -onsof filename : write ref0 as a Newton Script Object File
-    - [x] -print : print ref0 to stdout, don't print the contents of binary objects
-    - [x] -decompile : print ref0 to stdout, decompile all functions
-    - [ ] -decompose directory : decompile, and extract all known binary resources
-    - [ ] -hex : write as a hexadecimal dump
-    - [ ] -diff : compare the decompiled text output of ref0 and ref1
-    - [x] -- : same as -print
-
-  \todo not much of a difference between -s and -r, or -script and -run, right?
+ \brief Write the object `ref0` as text to stdout.
+ Decompile functions as we encounter them.
  */
-int main(int argc, char **argv)
+void handleArgStats()
 {
-  if (!init()) {
-    printf("newtc: ERROR: Can't initialize.\n");
-    return -1;
-  }
+  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  bool like = false;
+  do {
+    std::cout << "# ";
+    if (!IsFrame(ref0)) { std::cout << "ERROR: can't read file."; break; }
+
+    Ref signature = GetFrameSlot(ref0, MakeSymbol("signature"));
+    if (!IsSymbol(signature)) { std::cout << ("ERROR: needs a signature."); break; }
+    if (SymbolCompare(signature, MakeSymbol("package0"))==0) {
+      std::cout << "Package0, ";
+    } else if (SymbolCompare(signature, MakeSymbol("package1"))==0) {
+      std::cout << "Package0, ";
+    } else {
+      std::cout << ("ERROR: unknown signature"); break;
+    }
+
+    Ref size = GetFrameSlot(ref0, MakeSymbol("size"));
+    if (!IsInt(size)) { std::cout << ("ERROR: unknown size."); break; }
+    std::cout << RefToInt(size)/1024 << " kBytes, ";
+
+    // Flags: "autoRemove" "copyProtect" "invisible" "noCompression" "relocation" "useFasterCompression"
+
+    Ref parts = GetFrameSlot(ref0, MakeSymbol("part"));
+    if (!IsArray(parts)) { std::cout << ("ERROR: no parts found."); break; }
+    std::cout << Length(parts) << " parts, ";
+    if (Length(parts) != 1) { std::cout << ("ERROR: only exactly 1 part supported."); break; }
+
+    Ref part = GetArraySlot(parts, 0);
+    if (!IsFrame(part)) { std::cout << ("ERROR: part must be of type frame"); break; }
+
+    Ref partFlags = GetFrameSlot(part, MakeSymbol("flags"));
+    if (!IsFrame(partFlags)) { std::cout << ("ERROR: part flags must be of type frame"); break; }
+
+    Ref partFlagsType = GetFrameSlot(partFlags, MakeSymbol("type"));
+    if (!IsSymbol(partFlagsType) || (SymbolCompare(partFlagsType, MakeSymbol("nos"))!=0))
+    { std::cout << ("ERROR: flags type must be 'nos"); break; }
+
+    Ref partType = GetFrameSlot(part, MakeSymbol("type"));
+    std::cout << "nos:";
+    PrintObject(partType, 0);
+    std::cout << std::endl;
+
+    Ref c = GetFrameSlot(ref0, MakeSymbol("copyright"));
+    std::cout << "# Copy: "; PrintObject(c, 0); std::cout << std::endl;
+    Ref i = GetFrameSlot(ref0, MakeSymbol("info"));
+    std::cout << "# Info: "; PrintObject(i, 0); // std::cout << std::endl;
+
+    like = true;
+  } while(0);
+  std::cout << std::endl;
+  if (!like) std::cout << "# ";
+  std::cout << currentFileName << std::endl << std::endl;
+}
+
+
+int handleArgs(int argc, char **argv)
+{
   int argi = 1;
-  RefVar symRef0 = MakeSymbol("ref0");
-  DefGlobalVar(symRef0, NILREF);
   try {
     while (argi < argc) {
       std::string cmd = argv[argi++];
@@ -370,12 +381,15 @@ int main(int argc, char **argv)
         handleArgPrint();
       } else if (cmd == "-decompile") {
         handleArgDecompile();
+      } else if (cmd == "-stats") {
+        handleArgStats();
       } else {
         throw(std::runtime_error("Unknown command line argument: \"" + cmd + "\"."));
       }
     }
   } catch (const std::exception &ex) {
     std::cout << "newtc: ERROR: " << ex.what() << std::endl;
+    return -1;
   } catch (... ) {
     printf("newtc: ERROR: Unknown error.\n");
     return -1;
@@ -384,10 +398,110 @@ int main(int argc, char **argv)
 }
 
 /**
+ \brief The NewtonScript compiler and decompiler, main entry point.
+
+ This is a command line NewtonScript that will compile and run scripts, read
+ and write NSOF files, and read and create NewtonOS package files.
+
+ It can print detailed and decompiled Newton Object, that will create
+ functionally the same Newton Object when recompiled. This allows us to
+ decompile existing packages, apply fixes, and recompile them into a
+ package again.
+
+ In the future, newtc will be able to extract and reintegrate binary resources
+ for graphics and sounds.
+
+ Command line options that read data will store the result in the global
+ variable `ref#`, starting with #=0, incrementing the # with every newly created
+ object. Writing options will always write `ref0`.
+
+ Command line options:
+ - Reader:
+ - [x] -pkg filename : read a package and create one object that includes the
+ package description and all parts that could be read
+ - [x] -nsof filename : read a Newton Script Object file and hold the contents
+ as and object.
+ - [x] -script filename : read a NewtonScript file and compile the script
+ - [x] -run filename : read, compile, and run some Newton Script
+ - [x] -s "script" : compile the script, result is stored in a global ref#
+ - [x] -r "script" : compile and run the script, result is stored in a global ref#
+ - [x] -hello : create the a Hello, Wold! application object
+ - Controller:
+ - [x] -nos1 : compile into NewtonOS 1.x format (default)
+ - [x] -nos2 : compile into NewtonOS 2.x format
+ - [ ] -pkg0 name symbol : generate a minimal `package0` package object
+ - [ ] -pkg1 name symbol : generate a minimal `package1` package object
+ - [ ] -addpart ??? : add the most recent object as the next part to ref0
+ - [x] -clear : clear all ref# and start over at ref0
+ - [x] -debug level : (may be a bit pattern at some point)
+ - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
+ - Writer:
+ - [x] -opkg filename : write ref0 as a package
+ - [x] -onsof filename : write ref0 as a Newton Script Object File
+ - [x] -print : print ref0 to stdout, don't print the contents of binary objects
+ - [x] -decompile : print ref0 to stdout, decompile all functions
+ - [ ] -decompose directory : decompile, and extract all known binary resources
+ - [ ] -hex : write as a hexadecimal dump
+ - [ ] -diff : compare the decompiled text output of ref0 and ref1
+ - [x] -- : same as -print
+
+ \todo not much of a difference between -s and -r, or -script and -run, right?
+
+ \todo make ref# a stack system, so that we can have stack operations. For example:
+ Compare two packages: newtc -pkg a -pkg b -diff
+ Verify the decompile/compile: newtc -pkg a -odecompile tmp.txt -compile tmp.txt -diff
+
+ */
+int main(int argc, char **argv) {
+  if (!init()) {
+    printf("newtc: ERROR: Can't initialize.\n");
+    return -1;
+  }
+  int argi = 1;
+  int ret = 0;
+  RefVar symRef0 = MakeSymbol("ref0");
+  DefGlobalVar(symRef0, NILREF);
+
+  std::string cmd = argv[argi++];
+  if (cmd.empty()) { cmd = argv[argi++]; }
+
+  if (cmd == "-pkglist") {
+    char pkgname[2048];
+    if ((argi >= argc) || (argv[argi][0] == '-'))
+      throw(std::runtime_error("Missing filename after -pkglist ... ."));
+    FILE *f = fopen(argv[argi++], "r");
+    if (f == nullptr) {
+      printf("newtc: ERROR: can't open package list. %s.\n", strerror(errno));
+      return 0;
+    }
+    while (!feof(f)) {
+      if (fgets(pkgname, 2027, f) == nullptr) break;
+      char *c = strrchr(pkgname, '\n'); if (c) *c = 0;
+      c = strrchr(pkgname, '\r'); if (c) *c = 0;
+      if ((pkgname[0] == '\0') || (pkgname[0] == '#') || (pkgname[0] == ';')) continue;
+      if ((pkgname[0] == '/') && (pkgname[1] == '/')) continue;
+      handleArgClear();
+      try {
+        handleArgPkg(std::string(pkgname));
+      }
+      catch(...) { }
+      handleArgs(argc-2, argv+2);
+    }
+    fclose(f);
+  } else {
+    ret = handleArgs(argc, argv);
+  }
+  return ret;
+}
+
+
+
+/**
  \brief Create a Newton Object tree that generates a package of a Hello World! app.
  just call `newtc -hello -opkg hello.pkg` from the command line.
  */
 void handleArgHello() {
+  currentFileName = "<hello>";
   const char *script = R"*(
     
 {

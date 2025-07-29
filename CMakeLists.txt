@@ -529,13 +529,17 @@ source_group(
 )
 
 
+execute_process(COMMAND ls -asl build/Xcode/Newton.xcodeproj/)
+
 add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
 set_property (TARGET newtc
   PROPERTY XCODE_SCHEME_ARGUMENTS
+#    "-pkglist /Users/matt/dev/a.list"
+    "-pkglist /Users/matt/dev/unna.list"
 #    "-debug ast"
 #    "-hello"
-    "-script /Users/matt/dev/a.txt"
+#    "-script /Users/matt/dev/a.txt"
 #    "-script /Users/matt/dev/adjusto.txt"
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
@@ -548,8 +552,9 @@ set_property (TARGET newtc
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
 #    "-opkg /Users/matt/hello.pkg"
-    "-print"
+#    "-print"
 #    "-decompile"
+    "-stats"
 )
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)
