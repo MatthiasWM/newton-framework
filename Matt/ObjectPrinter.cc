@@ -981,10 +981,32 @@ frame_slot_plus:	kTokenSymbol ':' expr
 
 #endif
 
+void ObjectPrinter::PrintBinary(RefArg ref) {
+  assert(IsBinary(ref));
+  Print("MakeBinaryFromHex(\"");
+  uint8_t *data = (uint8_t*)BinaryData(ref);
+  int n = Length(ref);
+  for (int i = 0; i < n; ++i) {
+    Printf("%02X", data[i]);
+  }
+  Print("\", ");
+  PrintSymbol(ClassOf(ref));
+  Print(")");
+}
+
+void ObjectPrinter::PrintFunction(RefArg ref) {
+  assert(0);
+}
+
 // plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*
 // piped symbol: ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
 // symbol-character: <any ASCII character with code 32–127 except '|' or '\'>
-void ObjectPrinter::PrintSymbol(RefArg ref)
+void ObjectPrinter::PrintSymbol(RefArg ref) {
+  Print("'");
+  PrintTag(ref);
+}
+
+void ObjectPrinter::PrintTag(RefArg ref)
 {
   std::function isSymStart = [](char c) -> bool { return (c > 31) && (c < 127) && (std::isalpha(c) || (c =='_')); };
   std::function isSymCont = [](char c) -> bool { return (c > 31) && (c < 127) && (std::isalnum(c) || (c =='_')); };
@@ -1129,7 +1151,7 @@ void ObjectPrinter::PrintPathExpr(RefArg ref) {
     int n = Length(ref);
     for (int i = 0; i < n; ++i) {
       RefVar slot = GetArraySlot(ref, i);
-      PrintSymbol(slot);
+      PrintTag(slot);
       if (i < n-1) Print(".");
     }
   }
@@ -1164,7 +1186,7 @@ void ObjectPrinter::PrintSExprFrame(RefArg ref) {
   CObjectIterator iter(ref, false);
   for ( ; !iter.done(); iter.next()) {
     Item();
-    PrintSymbol(iter.tag());
+    PrintTag(iter.tag());
     Print(": ");
     PrintSExpr(iter.value());
     ItemDone();
@@ -1198,8 +1220,14 @@ void ObjectPrinter::PrintSExpr(RefArg ref)
     return PrintPathExpr(ref);
   else if (IsArray(ref))
     return PrintSExprArray(ref);
+  else if (IsFunction(ref))   // check before frame
+    return PrintFunction(ref);
   else if (IsFrame(ref))
     return PrintSExprFrame(ref);
+  else if (IsBinary(ref))
+    return PrintBinary(ref);
+  // TODO: handle binaries that can be created programmatically, but are not
+  // TODO: part of the Grammar (functions, for example...)
   assert(0);
 }
 
@@ -1230,3 +1258,51 @@ void ObjectPrinter::PrintConstant(RefArg ref)
   else
   { Print("'"); PrintSExpr(ref); return; }
 }
+
+void ObjectPrinter::PrintRef(RefArg ref)
+{
+//#define OBJHEADER \
+//  union { \
+//    struct { \
+//      uint32_t size  : 24; \
+//      uint32_t flags :  8; \
+//    }; \
+//    Ref alignment_helper; \
+//  }; \
+//  union { \
+//    struct { \
+//      uint32_t  locks :  8; \
+//      uint32_t  slots : 24; \
+//    } count; \
+//    Ref stuff; \
+//    Ref destRef; \
+//  } gc;
+  // 20 00 00 81 00 00 00 00 00 00 00 00 00 00 00 00
+  // 20 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+  //  kObjSlotted    = 0x01,
+  //  kObjFrame    = 0x02,
+  //  kObjFree      = 0x04,
+  //  kObjMarked    = 0x08,
+  //  kObjLocked    = 0x10,
+  //  kObjForward    = 0x20,
+  //  kObjReadOnly  = 0x40, 
+  //  kObjDirty    = 0x80,  ?!?!?!?!  ISDIRTY, EntryDirty1
+
+  // DirtyObject : if (!ISREADONLY(oPtr))
+  // UndirtyObject
+  // FIsDirty
+
+  if (ISREALPTR(ref)) {
+    ObjHeader *o = ObjectPtr(ref);
+    uint8_t *p = (uint8_t*)o;
+    for (int i=0; i<16; i++) Printf("%02X ", p[i]);
+    Printf("\n");
+  }
+
+  if (IsReadOnly(ref)) {
+    PrintConstant(ref);
+  } else {
+    printf("PrintExpr()");
+  }
+}
+

@@ -82,6 +82,7 @@ PrintFramesErrorMsg(const char * inStr, RefArg inData)
 {
 	char tagName[16];		// original allocs this when tagLen is known, but tag names are short
 	const char * s;
+
 	for (s = inStr; *s != 0; s++)
 	{
 		if (*s == '%')
@@ -440,6 +441,7 @@ REPExceptionNotify(Exception * inException)
 				{
 					CDataPtr filenameStr(ASCIIString(filename));
 					gREPout->print(kExceptionBuildErrorStr, (char *)filenameStr, RINT(lineNumber));
+          if (str[0] != '-') gREPout->print("%d, ", RefToInt(err));
 					PrintFramesErrorMsg(str, data);
 					gREPout->print("\n");
 				}

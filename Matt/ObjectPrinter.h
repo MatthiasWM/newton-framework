@@ -70,8 +70,11 @@ public:
   void DebugAST(bool v) { debugAST_ = v;}
 
   // --- Print Refs following Grammar Rules:
-  void PrintSymbol(RefArg ref);
 
+  void PrintFunction(RefArg ref);
+  void PrintBinary(RefArg ref);
+  void PrintSymbol(RefArg ref);
+  void PrintTag(RefArg ref);
   void PrintNil(RefArg ref);
   void PrintTrue(RefArg ref);
   void PrintString(RefArg ref);
@@ -85,6 +88,7 @@ public:
   void PrintSExpr(RefArg ref);
   void PrintRefConst(RefArg ref);
   void PrintConstant(RefArg ref);
+  void PrintRef(RefArg ref);
 
 };
 

@@ -214,6 +214,12 @@ public:
   }
 };
 
+class AST_Compound : public ASTNode {
+  // ... hold a list of statements, presenting itself as a single statement.
+  // The last node may or may not be an expression, turning the entire compound
+  // into a single expression
+};
+
 class ASTJumpTarget : public ASTNode {
   std::vector<int> origins_;
 public:
