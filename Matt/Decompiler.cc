@@ -89,10 +89,12 @@ public:
   void printSource();
   void printLiteral(int ix, bool tickSymbols = false) {
     // TODO: if the literal is slotted, we may need to precede it with a tick (').
-    p.PrintRef(GetArraySlot(literals_, ix), 0, tickSymbols);
+//    p.PrintRef(GetArraySlot(literals_, ix), 0, tickSymbols);
+    p.PrintRef(GetArraySlot(literals_, ix));
   }
   void printLocal(int ix, bool tickSymbols = false) {
-    p.PrintRef(GetArraySlot(locals_, ix), 0, tickSymbols);
+//    p.PrintRef(GetArraySlot(locals_, ix), 0, tickSymbols);
+    p.PrintRef(GetArraySlot(locals_, ix));
   }
   void decompile(Ref ref);
   void printPathExpr(RefArg pathExpr);
@@ -1726,10 +1728,12 @@ public:
       dec.p.Printf("{");
       for (int i=0; i<mapSize; i++) {
         dec.p.Item();
-        if (map == NILREF)
+        if (map == NILREF) {
           dec.p.Printf("map%d", i);
-        else
-          dec.Printer()->PrintRef(GetArraySlot(map, i+1), 0, false);
+        } else {
+//          dec.Printer()->PrintRef(GetArraySlot(map, i+1), 0, false);
+          dec.Printer()->PrintRef(GetArraySlot(map, i+1));
+        }
         dec.p.Printf(": ");
         if (i >= numIns_-1)
           dec.p.Printf("nil");

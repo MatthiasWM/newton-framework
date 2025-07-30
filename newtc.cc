@@ -247,9 +247,7 @@ void handleArgPrint()
 {
   RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
   ObjectPrinter p(std::cout);
-  // Matt: Restore p.Print(ref0); ?!
-  //p.PrintConstant(ref0);
-  p.PrintRef(ref0);
+  p.Print(ref0, {});
 }
 
 /**

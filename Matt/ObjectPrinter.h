@@ -29,48 +29,63 @@
 
 class ObjectPrinter : public Printer
 {
+  int labelSerialNo_ { 0 };
   bool optionDecompile_ { false };
   bool debugAST_ { false };
 
 public:
+
+  enum class Option {
+    Raw,              // Binaries are always printed as raw data, Arrays are not checks for type
+    Vanilla,          // The default, recognize 'real, 'pathExpr arrays
+    Decompile,        // Recognize and decompile function frames
+    Package,          // Make a package printout easier to read: recognize 'stepChildren
+    DebugASTProgress, // Print the abstract syntax tree as we decompile functions
+    DebugAST,         // Print the final abstract syntax tree after decompilation
+    DebugBC,          // Print the Bytecode of functions
+  };
+
+  // Nodes cache information for objects.
+  // - If objects are referenced multiple times, they must be printed first.
+  // - Some objects should be printed first for clarity, so mark that here.
+  // - Some objects have a known name, so store that here.
+  // - Before we print an array or frame, we must know length, so we can decide
+  //   if we print it in-line or one line per element.
   class Node {
   public:
-    Ref ref = NILREF;
-    std::string label;
-    std::vector<std::shared_ptr<Node>> children;
-    //std::vector<std::weak_ptr<Node>> parents;  // Maybe numParents is enough?
-    int numParents = 0;
-    bool special = false;
-    bool printed = false;
-    bool visited = false;
-    int tag = 0; // find cyclic dependency
-    Node(Ref r) : ref(r) { }
-    bool IsSpecial() { return special || (numParents > 1); }
+    std::string label_;
+    int length_ { 0 };
+    int numRefs_ { 0 };
+    bool printed_ { false };
+
+//    Ref ref = NILREF;
+//    std::string label;
+//    std::vector<std::shared_ptr<Node>> children;
+//    //std::vector<std::weak_ptr<Node>> parents;  // Maybe numParents is enough?
+//    int numParents = 0;
+//    bool special = false;
+//    bool printed = false;
+//    bool visited = false;
+//    int tag = 0; // find cyclic dependency
+//    Node(Ref r) : ref(r) { }
+//    bool IsSpecial() { return special || (numParents > 1); }
   };
-  std::map<Ref, std::shared_ptr<Node>> map;
+  std::map<Ref, Node> map;
 
-  bool HasNode(Ref ref);
-  void PrintDependents(Ref ref);
-  void PrintIndent(int indent);
-  void PrintFunction(Ref ref, int indent);
-  void PrintRef(Ref ref, int indent, bool symbolTick = true);
-  void PrintPartialTree(Ref ref);
-  void AddObject(Ref ref);
-  void AddRef(Ref ref);
-  void SetNodeLabels();
-  void BuildNodeTree(Ref package);
-  void TestPrint(Ref package);
+  void BuildRefMapBranch(RefArg ref);
+  void BuildRefMap(RefArg ref);
 
-  ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
-  void Print(RefArg ref);
-  void Print(const std::string &token) { Printer::Print(token); }
-  void Decompile(RefArg ref);
+
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}
   void DebugAST(bool v) { debugAST_ = v;}
 
-  // --- Print Refs following Grammar Rules:
+#pragma mark - updated stuff
 
+  ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
+
+  int TextLength(RefArg ref, RefArg sameSym = NILREF);
+  
   void PrintFunction(RefArg ref);
   void PrintBinary(RefArg ref);
   void PrintSymbol(RefArg ref);
@@ -88,11 +103,23 @@ public:
   void PrintSExpr(RefArg ref);
   void PrintRefConst(RefArg ref);
   void PrintConstant(RefArg ref);
-  void PrintRef(RefArg ref);
+  void PrintArray(RefArg ref);
+  void PrintFrame(RefArg ref);
+  
+  void PrintImmed(RefArg ref);
 
+  void PrintRef(RefArg ref, bool ignoreMap = false);
+  void PrintFunction(Ref ref, int indent);
+
+  void PrintDependents(RefArg ref);   // TODO: find better way
+  void PrintPartialTree(RefArg ref);  // TODO: find better way
+
+  void Print(const std::string &token) { Printer::Print(token); }
+  void Print(RefArg ref, const std::vector<Option> &options);
+  void Decompile(RefArg ref);
 };
 
 
-void printPackage(Ref package);
+void printPackage(RefArg package);
 
 #endif // MATT_OBJECT_PRINTER

@@ -37,6 +37,16 @@ void Printer::WrapAfter(int numChars)
   wrapAfter_ = numChars;
 }
 
+void Printer::Offset(int delta) {
+  State &state = stack_.back();
+  state.indentDelta_ += delta;
+}
+
+void Printer::SetIndent(int n) {
+  State &state = stack_.back();
+  state.indentDelta_ = (int)-stack_.size() + n + 1;
+}
+
 void Printer::PrintSeparator()
 {
   State &state = stack_.back();
@@ -48,7 +58,9 @@ void Printer::PrintNewLine()
 {
   State &state = stack_.back();
   out << std::endl;
-  for (size_t i = stack_.size() + state.indentDelta_ -1; i > 0; --i) out << "  ";
+  int i = (int)stack_.size() + state.indentDelta_ -1;
+  if (i > 0)
+    for ( ; i > 0; --i) out << "  ";
 }
 
 void Printer::DoStartItem()
@@ -65,8 +77,10 @@ void Printer::DoStartItem()
 
 void Printer::StartList(const std::string &separator, int numCharsExpected)
 {
+  State &state = stack_.back();
   State newState;
   newState.separator_ = separator;
+  newState.indentDelta_ = state.indentDelta_;
   if (numCharsExpected >= wrapAfter_) newState.deep_ = true;
   stack_.push_back(newState);
 }
@@ -101,12 +115,13 @@ void Printer::EndList()
   stack_.pop_back();
 }
 
-void Printer::Finalize()
+void Printer::Trailer()
 {
   State &state = stack_.back();
   state.indentDelta_--;
+  state.firstItem_ = true;
+  state.itemEmpty_ = true;
   state.prevSuppressSeparator_ = true;
-  Tag();
 }
 
 void Printer::Print(const std::string &token)

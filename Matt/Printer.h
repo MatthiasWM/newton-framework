@@ -45,13 +45,16 @@ public:
   void WrapAt(int column);
   void WrapAfter(int numChars);
 
+  void Offset(int delta);
+  void SetIndent(int column);
+
   void StartList(const std::string &separator, int numCharsExpected=0);
   void DeepList(const std::string &separator = "");
   void Tag();
   void Item();
   void ItemDone();
   void EndList();
-  void Finalize();
+  void Trailer();
 
   void Print(const std::string &token);
   void Print(int value);
