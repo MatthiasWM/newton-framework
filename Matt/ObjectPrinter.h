@@ -31,13 +31,14 @@ class ObjectPrinter : public Printer
 {
   int labelSerialNo_ { 0 };
   bool optionDecompile_ { false };
+  bool optionPackage_ { false };
+  bool debugASTProgress_ { false };
   bool debugAST_ { false };
+  bool debugBC_ { false };
 
 public:
 
   enum class Option {
-    Raw,              // Binaries are always printed as raw data, Arrays are not checks for type
-    Vanilla,          // The default, recognize 'real, 'pathExpr arrays
     Decompile,        // Recognize and decompile function frames
     Package,          // Make a package printout easier to read: recognize 'stepChildren
     DebugASTProgress, // Print the abstract syntax tree as we decompile functions
@@ -57,21 +58,13 @@ public:
     int length_ { 0 };
     int numRefs_ { 0 };
     bool printed_ { false };
-
-//    Ref ref = NILREF;
-//    std::string label;
-//    std::vector<std::shared_ptr<Node>> children;
-//    //std::vector<std::weak_ptr<Node>> parents;  // Maybe numParents is enough?
-//    int numParents = 0;
-//    bool special = false;
-//    bool printed = false;
-//    bool visited = false;
-//    int tag = 0; // find cyclic dependency
-//    Node(Ref r) : ref(r) { }
-//    bool IsSpecial() { return special || (numParents > 1); }
+    bool visited_ { false };
+    bool EarlyPrint() { return (numRefs_ > 1); }
   };
   std::map<Ref, Node> map;
 
+  int TextLength(RefArg ref, RefArg sameSym = NILREF);
+  void BuildRefMapLength(RefArg ref);
   void BuildRefMapBranch(RefArg ref);
   void BuildRefMap(RefArg ref);
 
@@ -84,8 +77,6 @@ public:
 
   ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
 
-  int TextLength(RefArg ref, RefArg sameSym = NILREF);
-  
   void PrintFunction(RefArg ref);
   void PrintBinary(RefArg ref);
   void PrintSymbol(RefArg ref);
@@ -115,7 +106,7 @@ public:
   void PrintPartialTree(RefArg ref);  // TODO: find better way
 
   void Print(const std::string &token) { Printer::Print(token); }
-  void Print(RefArg ref, const std::vector<Option> &options);
+  void Print(RefArg ref);
   void Decompile(RefArg ref);
 };
 

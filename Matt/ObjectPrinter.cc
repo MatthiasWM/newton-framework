@@ -455,7 +455,7 @@ void ObjectPrinter::PrintRef(RefArg ref, bool ignoreMap)
   }
   if (ignoreMap == false) {
     Node &nd = map[ref];
-    if (nd.numRefs_ > 1) {
+    if (nd.EarlyPrint()) {
       Print(nd.label_);
       return;
     }
@@ -518,7 +518,7 @@ void ObjectPrinter::PrintDependents(RefArg ref)
     if (IsArray(ref) || IsFrame(ref)) {
       FOREACH(ref, slot); {
         if (ISREALPTR(slot)) {
-          if (map[slot].numRefs_ > 1) {
+          if (map[slot].EarlyPrint()) {
             PrintPartialTree(slot);
           } else {
             PrintDependents(slot);
@@ -561,6 +561,41 @@ void ObjectPrinter::PrintPartialTree(RefArg ref)
 }
 
 /**
+ \brief Walk the tree and annotate the accumulated text length for all entries.
+ */
+void ObjectPrinter::BuildRefMapLength(RefArg ref)
+{
+  // Not needed.
+  if (!ISREALPTR(ref))
+    return;
+
+  // Now handle slotted objects and binaries.
+  Node &nd = map[ref];
+  if (nd.visited_) return;
+
+  nd.visited_ = true;
+  nd.length_ = true;
+  if (IsArray(ref) || IsFrame(ref)) {
+    FOREACH(ref, slot) {
+      BuildRefMapLength(slot);
+      if (ISREALPTR(slot) && map[slot].EarlyPrint())
+        nd.length_ += map[slot].label_.length();
+      else
+        nd.length_ += TextLength(slot);
+    } END_FOREACH;
+    nd.length_ += ::Length(ref) * 2 + 3;
+    if (IsArray(ref)) nd.length_ += TextLength(ClassOf(ref), SYMA(array)) + 2;
+  } else if (IsBinary(ref)) {
+    // TODO: check the various known binary types to get a better length
+    // Last resort: MakeBinaryFromHex("", 'symbol)
+    nd.length_ = Length(ref) + TextLength(ClassOf(ref), SYMA(binary)) + 24;
+  } else {
+    assert(0);
+  }
+}
+
+
+/**
  \brief Walk the tree and build a map with annotations, recursive part.
  \note Here is one good place to find more expressive names for labels.
  */
@@ -581,15 +616,15 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
     if (IsArray(ref) || IsFrame(ref)) {
       FOREACH(ref, slot) {
         BuildRefMapBranch(slot);
-        nd.length_ += TextLength(slot);
+//        nd.length_ += TextLength(slot);
       } END_FOREACH;
       // TODO: if this is a function, we may need to change the text length
-      nd.length_ += ::Length(ref) * 2 + 3;
-      if (IsArray(ref)) nd.length_ += TextLength(ClassOf(ref), SYMA(array)) + 2;
+//      nd.length_ += ::Length(ref) * 2 + 3;
+//      if (IsArray(ref)) nd.length_ += TextLength(ClassOf(ref), SYMA(array)) + 2;
     } else if (IsBinary(ref)) {
       // TODO: check the various known binary types to get a better length
       // Last resort: MakeBinaryFromHex("", 'symbol)
-      nd.length_ += Length(ref) + TextLength(ClassOf(ref), SYMA(binary)) + 24;
+//      nd.length_ = Length(ref) + TextLength(ClassOf(ref), SYMA(binary)) + 24;
     } else {
       assert(0);
     }
@@ -612,6 +647,9 @@ void ObjectPrinter::BuildRefMap(RefArg ref)
   labelSerialNo_ = 0;
   // Recursively walk the object tree down every branch.
   BuildRefMapBranch(ref);
+  // Walk the tree again to find the text length of mapped refs
+  for (auto &nd: map) nd.second.visited_ = false;
+  BuildRefMapLength(ref);
 }
 
 
@@ -627,7 +665,7 @@ void ObjectPrinter::BuildRefMap(RefArg ref)
 
  \todo Implement options.
  */
-void ObjectPrinter::Print(RefArg ref, const std::vector<Option> &options)
+void ObjectPrinter::Print(RefArg ref)
 {
   map.clear();
   DeepList(";\n"); SetIndent(0);
@@ -648,7 +686,7 @@ void ObjectPrinter::Print(RefArg ref, const std::vector<Option> &options)
 void ObjectPrinter::Decompile(RefArg ref)
 {
   OptionDecompile(true);
-  Print(ref, { Option::Decompile, Option::DebugASTProgress });
+  Print(ref);
 }
 
 /**
@@ -657,5 +695,5 @@ void ObjectPrinter::Decompile(RefArg ref)
  */
 void printPackage(RefArg package) {
   ObjectPrinter p(std::cout);
-  p.Print(package, { });
+  p.Print(package);
 }
