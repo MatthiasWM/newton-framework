@@ -13,6 +13,58 @@
 #include "Matt/ObjectPrinter.h"
 
 class ObjectPrinter;
+class ASTNode;
+class ASTJumpTarget;
+class ASTBytecodeNode;
+
+enum class Print { bytecode, deep, script };
+
+class Decompiler {
+public:
+  ObjectPrinter &p;
+protected:
+  int nos_ = 0;
+  int numArgs_ = 0;
+  int numLocals_ = 0;
+  RefVar locals_;         ///< An array of the symbols in argFrame:
+  ///< _nextArgFrame, _parent, _implementor, parameters, locals
+  int numLiterals_ = 0;
+  RefVar literals_;       // Array of Refs
+  ASTNode *first_ { nullptr };
+  ASTNode *last_ { nullptr };
+  std::map<int /* destination pc*/, std::map<int /* origin pc */, ASTJumpTarget*>> targetMap_;
+  bool debugAST_ { false };
+
+  void AddToTargets(int target, int origin);
+  ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
+  ASTBytecodeNode *NewBytecodeNode(int pc, int a, int b);
+public:
+  Decompiler(ObjectPrinter &printer) : p( printer ) { }
+  Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
+  ObjectPrinter *Printer() { return &p; }
+  void DebugAST(bool v) { debugAST_ = v;}
+  void printAST();
+  void printASTRoot();
+  void printSource();
+  void printLiteralAsTag(int ix) {
+    p.PrintTag(GetArraySlot(literals_, ix));
+  }
+  void printLiteral(int ix) {
+    p.PrintRef(GetArraySlot(literals_, ix));
+  }
+  // TODO: are locals always symbols?
+  void printLocal(int ix, bool tickSymbols = false) {
+    p.PrintTag(GetArraySlot(locals_, ix));
+  }
+  void decompile(Ref ref);
+  void printPathExpr(RefArg pathExpr);
+  void solve();
+  void generateAST(Ref instructions);
+
+  // Print state:
+  Print output { Print::bytecode };
+  int precedence { 0 }; // During printout, store the precedence of the current operation
+};
 
 NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST);
 

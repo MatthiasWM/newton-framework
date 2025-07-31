@@ -31,6 +31,10 @@ set ( SRCFILES
   Matt/Printer.cc
   Matt/ObjectPrinter.cc
   Matt/Decompiler.cc
+  Matt/AST.cc
+  Matt/ASTAdmin.cc
+  Matt/ASTDataFlow.cc
+  Matt/ASTControlFlow.cc
   Cards/CardEvents.cc
   Compression/ArithmeticCompression/Compression.cc
   Compression/Compression.cc
@@ -183,6 +187,10 @@ set ( HEADERFILES
   Matt/Printer.h
   Matt/ObjectPrinter.h
   Matt/Decompiler.h
+  Matt/AST.h
+  Matt/ASTAdmin.h
+  Matt/ASTDataFlow.h
+  Matt/ASTControlFlow.h
   Cards/CardEvents.h
   Compression/Compression.h
   Compression/LZCompression/CopyOffset_bin.h
