@@ -17,6 +17,7 @@
 class AST_Push : public ASTBytecodeNode {
 public:
   AST_Push(Decompiler &d, int pc, int a, int b) : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_Push"; }
   int provides() override { return 1; }
   bool IsSymbol() override;
   bool Resolved() override { return true; }
@@ -28,6 +29,7 @@ class AST_PushConst : public ASTBytecodeNode {
 public:
   AST_PushConst(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_PushConst"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print() override;
@@ -39,6 +41,7 @@ class AST_PushSelf : public ASTBytecodeNode {
 public:
   AST_PushSelf(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_PushSelf"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print() override;
@@ -51,6 +54,7 @@ class AST_FindVar : public ASTBytecodeNode {
 public:
   AST_FindVar(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_FindVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print() override;
@@ -61,6 +65,7 @@ class AST_GetVar : public ASTBytecodeNode {
 public:
   AST_GetVar(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_GetVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print() override;
@@ -70,8 +75,9 @@ public:
 class AST_Pop : public AST_Consume1 {
 public:
   AST_Pop(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Pop"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   void Print() override;
 };
 
@@ -79,6 +85,7 @@ public:
 class AST_Dup : public AST_Consume1 {
 public:
   AST_Dup(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Dup"; }
   // TODO: provides(2) does not match any consumers!
   // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
@@ -91,6 +98,7 @@ public:
 class AST_SetVar : public AST_Consume1 {
 public:
   AST_SetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_SetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -99,6 +107,7 @@ public:
 class AST_FindAndSetVar : public AST_Consume1 {
 public:
   AST_FindAndSetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_FindAndSetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -107,6 +116,7 @@ public:
 class AST_Not : public AST_Consume1 {
 public:
   AST_Not(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Not"; }
   void Print() override;
 };
 
@@ -114,6 +124,7 @@ public:
 class AST_Length : public AST_Consume1 {
 public:
   AST_Length(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Length"; }
   void Print() override;
 };
 
@@ -121,6 +132,7 @@ public:
 class AST_Clone : public AST_Consume1 {
 public:
   AST_Clone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Clone"; }
   void Print() override;
 };
 
@@ -128,6 +140,7 @@ public:
 class AST_Stringer : public AST_Consume1 {
 public:
   AST_Stringer(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_Stringer"; }
   void Print() override;
 };
 
@@ -135,6 +148,7 @@ public:
 class AST_ClassOf : public AST_Consume1 {
 public:
   AST_ClassOf(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_ClassOf"; }
   void Print() override;
 };
 
@@ -142,6 +156,7 @@ public:
 class AST_BitNot : public AST_Consume1 {
 public:
   AST_BitNot(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_BitNot"; }
   void Print() override;
 };
 
@@ -149,7 +164,8 @@ class AST_BinaryExpression : public AST_Consume2 {
 public:
   AST_BinaryExpression(Decompiler &d, int pc, int a, int b)
   : AST_Consume2(d, pc, a, b) { }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  const char *Class() override { return "AST_BinaryExpression"; }
+  ASTNode *Resolve(Pass pass) override;
 };
 
 // num1 num2 -- result
@@ -160,6 +176,7 @@ protected:
 public:
   AST_BinaryFunction(Decompiler &d, int pc, int a, int b, const char *func)
   : AST_BinaryExpression(d, pc, a, b), func_(func) { }
+  const char *Class() override { return "AST_BinaryFunction"; }
   void Print() override;
 };
 
@@ -173,6 +190,7 @@ public:
   AST_BinaryOperator(Decompiler &d, int pc, int a, int b, const char *op, int precedence)
   : AST_BinaryExpression(d, pc, a, b), op_(op), precedence_(precedence)
   { }
+  const char *Class() override { return "AST_BinaryOperator"; }
   void Print() override;
 };
 
@@ -180,6 +198,7 @@ public:
 class AST_NewArray : public AST_Consume2 {
 public:
   AST_NewArray(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_NewArray"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -194,6 +213,7 @@ public:
 class AST_GetPath : public AST_Consume2 {
 public:
   AST_GetPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_GetPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -202,6 +222,7 @@ public:
 class AST_ARef : public AST_Consume2 {
 public:
   AST_ARef(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_ARef"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -210,6 +231,7 @@ public:
 class AST_SetClass : public AST_Consume2 {
 public:
   AST_SetClass(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_SetClass"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -218,6 +240,7 @@ public:
 class AST_AddArraySlot : public AST_Consume2 {
 public:
   AST_AddArraySlot(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_AddArraySlot"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -226,6 +249,7 @@ public:
 class AST_HasPath : public AST_Consume2 {
 public:
   AST_HasPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_HasPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print() override;
 };
@@ -245,11 +269,12 @@ protected:
 public:
   AST_SetPath(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_SetPath"; }
+  void PrintChildren(bool deep);
   int provides() override;
   int consumes() override { return 3; }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (path_ != nullptr) && (value_ != nullptr); }
-  void PrintChildren();
   void Print() override;
 };
 
@@ -262,11 +287,12 @@ protected:
 public:
   AST_SetARef(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_SetARef"; }
+  void PrintChildren(bool deep);
   int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
-  void PrintChildren();
   void Print() override;
 };
 
@@ -282,6 +308,7 @@ class AST_MakeFrame : public AST_ConsumeN {
 public:
   AST_MakeFrame(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "AST_MakeFrame"; }
   void Print() override;
 };
 
@@ -297,6 +324,7 @@ class AST_MakeArray : public AST_ConsumeN {
 public:
   AST_MakeArray(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "AST_MakeArray"; }
   void Print() override;
 };
 

@@ -16,35 +16,41 @@
 #include <vector>
 
 
+class AST_INVALID_Node : public ASTNode {
+public:
+  AST_INVALID_Node(Decompiler &d, int pc, int a, int b)
+  : ASTNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_INVALID_Node"; }
+  bool Resolved() override { return false; }
+};
+
+
 class ASTFirstNode : public ASTNode {
 public:
   ASTFirstNode(Decompiler &d) : ASTNode(d) { }
+  const char *Class() override { return "ASTFirstNode"; }
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
-  void Print() override;
 };
 
 
 class ASTLastNode : public ASTNode {
 public:
   ASTLastNode(Decompiler &d) : ASTNode(d) { }
+  const char *Class() override { return "ASTLastNode"; }
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
-  void Print() override;
 };
 
 
 class ASTBytecodeNode : public ASTNode {
 protected:
-  int a_ = 0;
-  int b_ = 0;
   void PrintPathExpr(ASTNode *inNode);
 public:
   ASTBytecodeNode(Decompiler &d, int pc, int a, int b)
-  : ASTNode(d, pc), a_(a), b_(b) { }
-  int b() { return b_; }
+  : ASTNode(d, pc, a, b) { }
+  const char *Class() override { return "ASTBytecodeNode"; }
   bool Resolved() override { return false; }
-  void Print() override;
 };
 
 
@@ -54,12 +60,12 @@ protected:
 public:
   AST_Consume1(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_Consume1"; }
+  void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (in_ != nullptr); }
-  void PrintChildren();
-  void Print() override;
 };
 
 
@@ -70,12 +76,12 @@ protected:
 public:
   AST_Consume2(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
+  const char *Class() override { return "AST_Consume2"; }
+  void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (in1_ != nullptr) && (in2_ != nullptr); }
-  void PrintChildren();
-  void Print() override;
 };
 
 
@@ -86,12 +92,12 @@ protected:
 public:
   AST_ConsumeN(Decompiler &d, int pc, int a, int b, int n)
   : ASTBytecodeNode(d, pc, a, b), numIns_(n) { }
+  const char *Class() override { return "AST_ConsumeN"; }
+  void PrintChildren(bool deep) override;
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
-  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override;
+  ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (ins_.size() == (size_t)numIns_); }
-  void PrintChildren();
-  void Print() override;
   void PrintResolvedCall(int nArgs);
 };
 

@@ -23,8 +23,6 @@
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
 // TODO: don't print local variables that are used in iterators ( 'i, followed by '|i|iter| )
-// TODO: the separation into ResolveDataFlow and ResolveControlFlow was a bad idea.
-//       Restore the old "Resolve()" and add a priority argument, if we actually need it.
 /* TODO: Remove these kind of sequences:
     Found at the end of a while loop:
       ###[ 1]  11: AST_FindVar literal[0] ###
@@ -334,45 +332,16 @@ void Decompiler::AddToTargets(int target, int origin)
  */
 void Decompiler::solve()
 {
-  // Repeat everything until there are no more changes in the AST.
-  bool astChanged = false;
-  for (;;) {
-    astChanged = false;
-    // Resolve the easiest part, all simple expressions, first.
-    bool dataFlowChanged = false;
-    // Repeat until everything we can solve in data flow is solved.
-    for (;;) {
-      dataFlowChanged = false;
-      ASTNode *nd = first_;
-      for (;;) {
-        // Call Resolve on one node.
-        auto [changed, next] = nd->ResolveDataFlow();
-        // If something changed, start over.
-        // NOTE: this is pretty crass and may be tuned to use `next` instead of `first`
-        if (changed) { dataFlowChanged = true; nd = first_; printAST(); continue; }
-        // If we are at the end of the list, abort
-        if (next == nullptr) break;
-        nd = next;
-      }
-      if (dataFlowChanged == false) break;
-      astChanged = true;
+  for (;;) { // ControlFlow Pass: outer loop, run untile neither changes anything
+    for (;;) { // DataFlow Pass: rerun this until there are no more changes
+      numASTChanges = 0;
+      for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::DataFlow)) { }
+      if (numASTChanges == 0) break;
+      printAST();
     }
-    // Resolve the control flow Next.
-    bool controlFlowChanged = false;
-    ASTNode *nd = first_;
-    for (;;) {
-      // Call Resolve on one node.
-      auto [changed, next] = nd->ResolveControlFlow();
-      // If something changed, start over from the very beginning.
-      // NOTE: this is pretty crass and may need to be tuned.
-      if (changed) { controlFlowChanged = true; printAST(); break; }
-      // If we are at the end of the list, abort
-      if (next == nullptr) break;
-      nd = next;
-    }
-    if (controlFlowChanged) { astChanged = true; continue; }
-    // We have done all that we could
-    if (!astChanged) break;
+    for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::ControlFlow)) { }
+    if (numASTChanges == 0) break;
+    printAST();
   }
 }
 
@@ -391,7 +360,7 @@ void Decompiler::printAST()
   p.DeepList();
   output = Print::deep;
   for (ASTNode *nd = first_; nd; nd = nd->next) {
-    nd->Print();
+    nd->PrintNode(true);
   }
   p.EndList();
   p.PrintDivider("");
@@ -412,7 +381,7 @@ void Decompiler::printASTRoot()
   p.DeepList("");
   output = Print::bytecode;
   for (ASTNode *nd = first_; nd; nd = nd->next) {
-    nd->Print();
+    nd->PrintNode(false);
   }
   p.EndList();
   p.PrintDivider("");

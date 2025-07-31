@@ -15,35 +15,13 @@
 
 extern bool IsPathExpr(RefArg inObj);
 
-#pragma mark -
+#pragma mark - ASTFirstNode
 
-void ASTFirstNode::Print() {
-  if (dec.output == Print::script) {
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("ASTFirstNode ###");
-  }
-}
 
-#pragma mark -
+#pragma mark - ASTLastNode
 
-void ASTLastNode::Print() {
-  if (dec.output == Print::script) {
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("ASTLastNode ###\n");
-  }
-}
 
-#pragma mark -
-
-void ASTBytecodeNode::Print() {
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: ERROR: ASTBytecodeNode a=%d, b=%d ###", pc_, a_, b_);
-}
+#pragma mark - ASTBytecodeNode
 
 void ASTBytecodeNode::PrintPathExpr(ASTNode *inNode) {
   AST_Push *pushLiteral { nullptr };
@@ -63,88 +41,75 @@ void ASTBytecodeNode::PrintPathExpr(ASTNode *inNode) {
   }
 }
 
-#pragma mark -
+#pragma mark - AST_Consume1
 
-auto AST_Consume1::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
-  if (!Resolved() && prev->IsExpr()) {
+void AST_Consume1::PrintChildren(bool deep)
+{
+  if (in_) in_->PrintNode(deep);
+}
+
+ASTNode *AST_Consume1::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+
+  if (prev->IsExpr()) {
     in_ = prev;
     prev->Unlink();
-    return { true, next };
+    dec.numASTChanges++;
+    return next;
   } else {
-    return { false, next };
+    return next;
   }
 }
 
-void AST_Consume1::PrintChildren() {
-  if (in_) {
-    dec.p.DeepList();
-    in_->Print();
-    dec.p.EndList();
-  }
+
+#pragma mark - AST_Consume2
+
+void AST_Consume2::PrintChildren(bool deep)
+{
+  if (in1_) in1_->PrintNode(deep);
+  if (in1_) in2_->PrintNode(deep);
 }
 
-void AST_Consume1::Print() {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: ERROR: AST_Consume1 ###", pc_);
-}
+ASTNode *AST_Consume2::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
 
-#pragma mark -
-
-auto AST_Consume2::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
-  if (Resolved()) return { false, next }; // nothing more to do
   if ((prev->IsExpr()) && (prev->prev->IsExpr())) {
     in2_ = prev; prev->Unlink();
     in1_ = prev; prev->Unlink();
-    return { true, this };
+    dec.numASTChanges++;
+    return this;
   }
-  return { false, next };
+  return next;
 }
 
-void AST_Consume2::PrintChildren() {
-  dec.p.DeepList();
-  if (in1_) in1_->Print();
-  if (in2_) in2_->Print();
-  dec.p.EndList();
+
+#pragma mark - AST_ConsumeN
+
+void AST_ConsumeN::PrintChildren(bool deep)
+{
+  for (auto &in: ins_)
+    if (in) in->PrintNode(deep);
 }
 
-void AST_Consume2::Print() {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: ERROR: AST_Consume2 ###", pc_);
-}
+ASTNode *AST_ConsumeN::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
 
-#pragma mark -
-
-auto AST_ConsumeN::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
-  if (Resolved()) return { false, next }; // nothing more to do
   ASTNode *nd = this;
   for (int i=0; i<numIns_; i++) {
     nd = nd->prev;
     if (!nd->IsExpr()) { nd = nullptr; break; }
   }
-  if (nd == nullptr) return { false, next };
+  if (nd == nullptr) return next;
   for (int i=0; i<numIns_; i++) {
     ins_.push_back(nd);
     nd = nd->next;
     nd->prev->Unlink();
   }
-  return { true, this };
-}
-
-void AST_ConsumeN::PrintChildren() {
-  dec.p.DeepList();
-  for (auto &nd: ins_) nd->Print();
-  dec.p.EndList();
-}
-
-void AST_ConsumeN::Print() {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: ERROR: AST_ConsumeN ###", pc_);
+  dec.numASTChanges++;
+  return this;
 }
 
 void AST_ConsumeN::PrintResolvedCall(int nArgs) {

@@ -20,8 +20,10 @@ class ASTBytecodeNode;
 enum class Print { bytecode, deep, script };
 
 class Decompiler {
+  friend ASTNode;
 public:
   ObjectPrinter &p;
+  int numASTChanges = 0; // While resolving, this number will increase whenever a node is resolved
 protected:
   int nos_ = 0;
   int numArgs_ = 0;

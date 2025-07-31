@@ -23,27 +23,50 @@ constexpr int kBranch = -4;
 constexpr int kBranchIfFalse = -5;
 constexpr int kBranchIfTrue = -6;
 
-class ASTNode {
+class ASTNode
+{
 protected:
   Decompiler &dec;  // Quick access to the decompiler state and the ObjectPrinter (dec.p.)
   int pc_ = -1;
+  int a_ = 0;
+  int b_ = 0;
+  
 public:
+  // ---- Type declarations used within nodes
+  // Resolve nodes following this priority.
+  enum class Pass {
+    DataFlow,
+    // CombineStatments,
+    ControlFlow,
+    // Exceptions
+  };
 
+  // ---- constructors and destructor
   ASTNode(Decompiler &d) : dec(d) { }
-  ASTNode(Decompiler &d, int pc) : dec(d), pc_(pc) { }
-  ASTNode *prev { nullptr };
-  ASTNode *next { nullptr };
-  int pc() { return pc_; }
+  ASTNode(Decompiler &d, int pc, int a=0, int b=0) : dec(d), pc_(pc), a_(a), b_(b) { }
   virtual ~ASTNode() = default;
+
+  // ---- debugging
+  virtual const char *Class() { return "ASTNode"; }
+  virtual void PrintChildren(bool deep);
+  virtual void PrintNode(bool deep);
+
+  // ---- setter and getter
+  int pc() { return pc_; }
+  int a() { return a_; }
+  int b() { return b_; }
+
+  // ---- virtual methods that can be overridden by derived classes
+  // -- Resolve the AST
   virtual int provides() { return kProvidesUnknown; }
   virtual int consumes() { return 0; } // Never called
-  void printHeader();
-
-  /** Remove this node from the linked list. Don;t use this for First and Last. */
-  ASTNode *Unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; return this; }
-  void UnlinkRange(ASTNode *last);
-  void ReplaceWith(ASTNode *nd);
-
+  virtual ASTNode *Resolve(Pass pass);
+  /** Return true if we know everything there is to know about this node. */
+  virtual bool Resolved() = 0;
+  // -- Print the result
+  /** Print the node, either for debugging or for the final script reconstruction. */
+  virtual void Print() { }
+  // -- Helpers
   /** Return true if all this node does is put a NIL on the stack */
   virtual bool IsNIL() { return false; }
   /** Return true if the node returns a symbol (does not catch all cases!) */
@@ -53,21 +76,14 @@ public:
   /** Return if the node pushes no value on the stack and is not a control node. */
   bool IsStatement() { return (provides() == 0); }
 
-  /** Resolve all data flow patterns.
-   \return true if the call changed the AST
-   \return the next node in the list
-   */
-  virtual auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> { return {false, next}; }
-  /** Resolve all control flow patterns.
-   \return true if the call changed the AST
-   \return the next node in the list
-   */
-  virtual auto ResolveControlFlow() -> std::tuple<bool, ASTNode*> { return { false, next }; }
-  /** Return true if we know everything there is to know about this node. */
-  virtual bool Resolved() = 0;
-
-  /** Print the node, either for debugging or for the final script reconstruction. */
-  virtual void Print() = 0;
+  // ---- Helpers for the doubly linked list
+  ASTNode *prev { nullptr };
+  ASTNode *next { nullptr };
+  /** Remove this node from the linked list. Don;t use this for First and Last. */
+  ASTNode *Unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; return this; }
+  void UnlinkRange(ASTNode *last);
+  void ReplaceWith(ASTNode *nd);
+  int FindStatementsFwd(ASTNode **crsr, ASTNode **start);
 };
 
 

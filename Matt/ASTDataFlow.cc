@@ -15,7 +15,7 @@
 
 #include "Frames/Frames.h"
 
-#pragma mark -
+#pragma mark - AST_Push
 
 bool AST_Push::IsSymbol()
 {
@@ -23,16 +23,11 @@ bool AST_Push::IsSymbol()
 }
 
 void AST_Push::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.printLiteral(b_);
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_Push literal[%d] ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.printLiteral(b_);
 }
 
-#pragma mark -
+#pragma mark - AST_PushConst
 
 bool AST_PushConst::IsNIL()
 {
@@ -40,55 +35,37 @@ bool AST_PushConst::IsNIL()
 }
 
 void AST_PushConst::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.PrintConstant(b_);
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_PushConst value:%d ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.PrintConstant(b_);
 }
 
-#pragma mark -
+#pragma mark - AST_PushSelf
 
 void AST_PushSelf::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Printf("self");
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_PushSelf ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Printf("self");
 }
 
-#pragma mark -
+#pragma mark - AST_FindVar
 
 void AST_FindVar::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.printLiteralAsTag(b_);
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_FindVar literal[%d] ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.printLiteralAsTag(b_);
 }
 
-#pragma mark -
+#pragma mark - AST_GetVar
 
 void AST_GetVar::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.printLocal(b_);
-  } else {
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_GetVar local[%d] ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.printLocal(b_);
 }
 
-#pragma mark -
+#pragma mark - AST_Pop
 
-auto AST_Pop::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
-  if (Resolved()) return { false, next };
+ASTNode *AST_Pop::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+
   AST_Branch *branch = prev ? dynamic_cast<AST_Branch*>(prev) : nullptr;
   if (branch && (branch->b() > pc_)) {
     // If the sequence is 'branch; pop;', the pop can never be reached
@@ -100,130 +77,82 @@ auto AST_Pop::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
     AST_Break *breakNode = new AST_Break(dec, branch->pc(), 0, branch->b());
     delete branch->Unlink();
     this->ReplaceWith(breakNode);
-    return { true, breakNode };
+    dec.numASTChanges++;
+    return breakNode;
   }
-  return AST_Consume1::ResolveDataFlow();
+  return AST_Consume1::Resolve(pass);
 }
 
 void AST_Pop::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    in_->Print();
-    dec.p.Item();
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_Pop ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  in_->Print();
+// ??  dec.p.Item();
 }
 
-#pragma mark -
+#pragma mark - AST_Dup
 
 void AST_Dup::Print() {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: AST_Dup ###", pc_);
+  if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark -
+#pragma mark - AST_SetVar
 
 void AST_SetVar::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.printLocal(b_);
-    dec.p.Printf(" := ");
-    in_->Print();
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_SetVar local[%d] ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.printLocal(b_);
+  dec.p.Printf(" := ");
+  in_->Print();
 }
 
-#pragma mark -
+#pragma mark - AST_FindAndSetVar
 
 void AST_FindAndSetVar::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.printLiteralAsTag(b_);
-    dec.p.Printf(" := ");
-    in_->Print();
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_FindAndSetVar literal[%d] ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.printLiteralAsTag(b_);
+  dec.p.Printf(" := ");
+  in_->Print();
 }
 
-#pragma mark -
+#pragma mark - AST_Not
 
 void AST_Not::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    int ppp = dec.precedence;
-    bool parentheses = (dec.precedence > 2);
-    dec.precedence = 2;
-    dec.p.Item();
-    if (parentheses) dec.p.Printf("(");
-    dec.p.Printf("not ");
-    in_->Print();
-    if (parentheses) dec.p.Printf(")");
-    dec.precedence = ppp;
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_Not ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  int ppp = dec.precedence;
+  bool parentheses = (dec.precedence > 2);
+  dec.precedence = 2;
+  dec.p.Item();
+  if (parentheses) dec.p.Printf("(");
+  dec.p.Printf("not ");
+  in_->Print();
+  if (parentheses) dec.p.Printf(")");
+  dec.precedence = ppp;
 }
 
-#pragma mark -
+#pragma mark - AST_Length
 
 void AST_Length::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("length(");
-    in_->Print();
-    dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_Length ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("length(");
+  in_->Print();
+  dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_Clone
 
 void AST_Clone::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("clone(");
-    in_->Print();
-    dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_Clone ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("clone(");
+  in_->Print();
+  dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_Stringer
 
 void AST_Stringer::Print() {
-  //    if ((dec.output == Print::script) && Resolved()) {
-  //      dec.p.Item();
-  //      dec.p.Printf("clone(");
-  //      in_->Print();
-  //      dec.p.Printf(")");
-  //    } else {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: AST_Stringer ###", pc_);
-  //    }
+  if (!Resolved()) return PrintNode(false);
 }
 //  TODO: The input is an Array with at least two elements
 //  a '1 && 2' is handled as a '1 & " " & 2', generating an array with three values
@@ -237,178 +166,121 @@ void AST_Stringer::Print() {
 //    }
 //  }
 
-#pragma mark -
+#pragma mark - AST_ClassOf
 
 void AST_ClassOf::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("ClassOf(");
-    in_->Print();
-    dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_ClassOf ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("ClassOf(");
+  in_->Print();
+  dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_BitNot
 
 void AST_BitNot::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("bNot(");
-    in_->Print();
-    dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_BitNot ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("bNot(");
+  in_->Print();
+  dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_BinaryExpression
 
-auto AST_BinaryExpression::ResolveDataFlow() -> std::tuple<bool, ASTNode*>
+ASTNode *AST_BinaryExpression::Resolve(Pass pass)
 {
-  if (!Resolved() && (prev->IsExpr()) && (prev->prev->IsExpr())) {
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+
+  if ((prev->IsExpr()) && (prev->prev->IsExpr())) {
     in2_ = prev->Unlink();
     in1_ = prev->Unlink();
-    return { true, this };
+    dec.numASTChanges++;
+    return this;
   } else {
-    return { false, next };
+    return next;
   }
 }
 
-#pragma mark -
+#pragma mark - AST_BinaryFunction
 
 void AST_BinaryFunction::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    int ppp = dec.precedence;
-    dec.precedence = 0;
-    dec.p.Item();
-    dec.p.Printf("%s(", func_);
-    in1_->Print();
-    dec.p.Printf(", ");
-    in2_->Print();
-    dec.p.Printf(")");
-    dec.precedence = ppp;
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_BinaryFunction \"%s\" ###", pc_, func_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  int ppp = dec.precedence;
+  dec.precedence = 0;
+  dec.p.Item();
+  dec.p.Printf("%s(", func_);
+  in1_->Print();
+  dec.p.Printf(", ");
+  in2_->Print();
+  dec.p.Printf(")");
+  dec.precedence = ppp;
 }
 
-#pragma mark -
+#pragma mark - AST_BinaryOperator
 
 void AST_BinaryOperator::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    int ppp = dec.precedence;
-    bool parentheses = (dec.precedence > precedence_);
-    dec.precedence = precedence_;
-    if (parentheses) dec.p.Print("(");
-    in1_->Print(); dec.p.Printf(" %s ", op_); in2_->Print();
-    if (parentheses) dec.p.Print(")");
-    dec.precedence = ppp;
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_BinaryOperator \"%s\" ###", pc_, op_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  int ppp = dec.precedence;
+  bool parentheses = (dec.precedence > precedence_);
+  dec.precedence = precedence_;
+  if (parentheses) dec.p.Print("(");
+  in1_->Print(); dec.p.Printf(" %s ", op_); in2_->Print();
+  if (parentheses) dec.p.Print(")");
+  dec.precedence = ppp;
 }
 
-#pragma mark -
+#pragma mark - AST_NewArray
 
 void AST_NewArray::Print() {
-  //    if ((dec.output == Print::script) && Resolved()) {
-  //    } else {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: AST_NewArray ###", pc_);
-  //    }
+  if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark -
+#pragma mark - AST_GetPath
 
 void AST_GetPath::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    in1_->Print();
-    dec.p.Printf(".");
-    PrintPathExpr(in2_);
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_GetPath b:%d ###", pc_, b_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  in1_->Print();
+  dec.p.Printf(".");
+  PrintPathExpr(in2_);
 }
 
-#pragma mark -
+#pragma mark - AST_ARef
 
 void AST_ARef::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    in1_->Print();
-    dec.p.Printf("["); in2_->Print(); dec.p.Printf("]");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_ARef ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  in1_->Print();
+  dec.p.Printf("["); in2_->Print(); dec.p.Printf("]");
 }
 
-#pragma mark -
+#pragma mark - AST_SetClass
 
 void AST_SetClass::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("SetClass(");
-    in1_->Print(); dec.p.Printf(", ");
-    in2_->Print(); dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_SetClass ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("SetClass(");
+  in1_->Print(); dec.p.Printf(", ");
+  in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_AddArraySlot
 
 void AST_AddArraySlot::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Item();
-    dec.p.Printf("AddArraySlot(");
-    in1_->Print(); dec.p.Printf(", ");
-    in2_->Print(); dec.p.Printf(")");
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_AddArraySlot ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Item();
+  dec.p.Printf("AddArraySlot(");
+  in1_->Print(); dec.p.Printf(", ");
+  in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark -
+#pragma mark - AST_HasPath
 
 void AST_HasPath::Print() {
-  //    if ((dec.output == Print::script) && Resolved()) {
-  //    } else {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: AST_HasPath ###", pc_);
-  //    }
+  if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark -
+#pragma mark - AST_SetPath
 
 int AST_SetPath::provides() {
   if (Resolved())
@@ -417,129 +289,106 @@ int AST_SetPath::provides() {
     return kProvidesUnknown;
 }
 
-auto AST_SetPath::ResolveDataFlow() -> std::tuple<bool, ASTNode*> {
-  if (Resolved()) return { false, next }; // nothing more to do
+ASTNode *AST_SetPath::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+
   if (   (prev->IsExpr())
       && (prev->prev->IsExpr())
       && (prev->prev->prev->IsExpr())) {
     value_ = prev->Unlink();
     path_ = prev->Unlink();
     object_ = prev->Unlink();
-    return { true, this };
+    dec.numASTChanges++;
+    return next;
   }
-  return { false, next };
+  return next;
 }
 
-void AST_SetPath::PrintChildren() {
-  dec.p.DeepList();
-  if (object_) object_->Print();
-  if (path_) path_->Print();
-  if (value_) value_->Print();
-  dec.p.EndList();
+void AST_SetPath::PrintChildren(bool deep) {
+  if (object_) object_->PrintNode(deep);
+  if (path_) path_->PrintNode(deep);
+  if (value_) value_->PrintNode(deep);
 }
 
 void AST_SetPath::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    object_->Print();
-    dec.p.Print(".");
-    PrintPathExpr(path_);
-    dec.p.Print(" := ");
-    value_->Print();
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_SetPath ###", pc_);
-  }
+  if (!Resolved()) return PrintNode(false);
+  object_->Print();
+  dec.p.Print(".");
+  PrintPathExpr(path_);
+  dec.p.Print(" := ");
+  value_->Print();
 }
 
-#pragma mark -
+#pragma mark - AST_SetARef
 
-auto AST_SetARef::ResolveControlFlow() -> std::tuple<bool, ASTNode*> {
-  if (Resolved()) return { false, next }; // nothing more to do
+ASTNode *AST_SetARef::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+
   if (   (prev->IsExpr())
       && (prev->prev->IsExpr())
       && (prev->prev->IsExpr())) {
     element_ = prev; prev->Unlink();
     index_ = prev; prev->Unlink();
     object_ = prev; prev->Unlink();
-    return { true, this };
+    dec.numASTChanges++;
+    return this;
   }
-  return { false, next };
+  return next;
 }
 
-void AST_SetARef::PrintChildren() {
-  dec.p.DeepList();
-  if (object_) object_->Print();
-  if (index_) index_->Print();
-  if (element_) element_->Print();
-  dec.p.EndList();
+void AST_SetARef::PrintChildren(bool deep) {
+  if (object_) object_->PrintNode(deep);
+  if (index_) index_->PrintNode(deep);
+  if (element_) element_->PrintNode(deep);
 }
 
 void AST_SetARef::Print() {
-  //    if ((dec.output == Print::script) && Resolved()) {
-  //    } else {
-  if (dec.output == Print::deep) PrintChildren();
-  dec.p.Item();
-  printHeader();
-  dec.p.Printf("%3d: AST_SetARef ###", pc_);
-  //    }
+  if (!Resolved()) return PrintNode(false);
 }
 
 
-#pragma mark -
+#pragma mark - AST_MakeFrame
 
 void AST_MakeFrame::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    AST_Push *mapNode { nullptr };
-    if ( (mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1])) ) {
-      dec.p.Print("{");
-      dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
-      Ref map = dec.GetLiteral(mapNode->b());
-      int n = ComputeMapSize(map);
-      for (int i = 0; i < n; i++) {
-        dec.p.Item();
-        Ref tag = GetTag(map, i);
-        dec.p.PrintTag(tag);
-        dec.p.Print(": ");
-        if (i >= numIns_-1)
-          dec.p.Printf("nil");
-        else
-          ins_[i]->Print();
-        dec.p.ItemDone();
-      }
-      dec.p.Trailer(); dec.p.Print("}");
-      dec.p.EndList();
-    } else {
-      assert(0);
+  if (!Resolved()) return PrintNode(false);
+  AST_Push *mapNode { nullptr };
+  if ( (mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1])) ) {
+    dec.p.Print("{");
+    dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+    Ref map = dec.GetLiteral(mapNode->b());
+    int n = ComputeMapSize(map);
+    for (int i = 0; i < n; i++) {
+      dec.p.Item();
+      Ref tag = GetTag(map, i);
+      dec.p.PrintTag(tag);
+      dec.p.Print(": ");
+      if (i >= numIns_-1)
+        dec.p.Printf("nil");
+      else
+        ins_[i]->Print();
+      dec.p.ItemDone();
     }
+    dec.p.Trailer(); dec.p.Print("}");
+    dec.p.EndList();
   } else {
-    if (dec.output == Print::deep) PrintChildren();
-    dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_MakeFrame n=%d ###", pc_, numIns_);
+    assert(0);
   }
 }
 
-
-#pragma mark -
+#pragma mark - AST_MakeArray
 
 void AST_MakeArray::Print() {
-  if ((dec.output == Print::script) && Resolved()) {
-    dec.p.Print("[");
-    dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
-    for (int i = 0; i < numIns_-1; i++) {
-      dec.p.Item();
-      ins_[i]->Print();
-      dec.p.ItemDone();
-    }
-    dec.p.Trailer(); dec.p.Print("]");
-    dec.p.EndList();
-  } else {
-    if (dec.output == Print::deep) PrintChildren();
+  if (!Resolved()) return PrintNode(false);
+  dec.p.Print("[");
+  dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+  for (int i = 0; i < numIns_-1; i++) {
     dec.p.Item();
-    printHeader();
-    dec.p.Printf("%3d: AST_MakeArray n=%d ###", pc_, numIns_);
+    ins_[i]->Print();
+    dec.p.ItemDone();
   }
+  dec.p.Trailer(); dec.p.Print("]");
+  dec.p.EndList();
 }
 
