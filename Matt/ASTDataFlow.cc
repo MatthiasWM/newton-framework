@@ -13,6 +13,8 @@
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
 
+#include "Frames/Frames.h"
+
 #pragma mark -
 
 bool AST_Push::IsSymbol()
@@ -484,4 +486,60 @@ void AST_SetARef::Print() {
   //    }
 }
 
+
+#pragma mark -
+
+void AST_MakeFrame::Print() {
+  if ((dec.output == Print::script) && Resolved()) {
+    AST_Push *mapNode { nullptr };
+    if ( (mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1])) ) {
+      dec.p.Print("{");
+      dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+      Ref map = dec.GetLiteral(mapNode->b());
+      int n = ComputeMapSize(map);
+      for (int i = 0; i < n; i++) {
+        dec.p.Item();
+        Ref tag = GetTag(map, i);
+        dec.p.PrintTag(tag);
+        dec.p.Print(": ");
+        if (i >= numIns_-1)
+          dec.p.Printf("nil");
+        else
+          ins_[i]->Print();
+        dec.p.ItemDone();
+      }
+      dec.p.Trailer(); dec.p.Print("}");
+      dec.p.EndList();
+    } else {
+      assert(0);
+    }
+  } else {
+    if (dec.output == Print::deep) PrintChildren();
+    dec.p.Item();
+    printHeader();
+    dec.p.Printf("%3d: AST_MakeFrame n=%d ###", pc_, numIns_);
+  }
+}
+
+
+#pragma mark -
+
+void AST_MakeArray::Print() {
+  if ((dec.output == Print::script) && Resolved()) {
+    dec.p.Print("[");
+    dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+    for (int i = 0; i < numIns_-1; i++) {
+      dec.p.Item();
+      ins_[i]->Print();
+      dec.p.ItemDone();
+    }
+    dec.p.Trailer(); dec.p.Print("]");
+    dec.p.EndList();
+  } else {
+    if (dec.output == Print::deep) PrintChildren();
+    dec.p.Item();
+    printHeader();
+    dec.p.Printf("%3d: AST_MakeArray n=%d ###", pc_, numIns_);
+  }
+}
 

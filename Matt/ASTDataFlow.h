@@ -270,5 +270,37 @@ public:
   void Print() override;
 };
 
+// (A=16, B=numVal) val1 val2 ... valN map -- frame
+// Makes a frame and fills in its slots using values from the stack. The B
+// field contains the number of slot values on the stack. The slot values are
+// on the stack in index order, followed by the map to use for the frame.
+// The slot values and map are removed from the stack, and a reference to the
+// newly-allocated frame is pushed onto the stack. The B field may contain a
+// number less than the number of slots in the frame, in which
+// case the remaining slots at the end of the frame are set to nil.
+class AST_MakeFrame : public AST_ConsumeN {
+public:
+  AST_MakeFrame(Decompiler &d, int pc, int a, int b)
+  : AST_ConsumeN(d, pc, a, b, b+1) { }
+  void Print() override;
+};
+
+
+// (A=17, B=numVal):  val1 val2 ... valN class -- array): arg1 arg2 ... argN name -- result
+// Makes an array and fills in its slots using values from the stack.
+// The B field contains the size of the array. An array of that size and class
+// class is allocated. The values for the array slots, on the stack in index
+// order, are copied into the slots of the array. The values are removed from
+// the stack, and a reference to the array is pushed onto the stack.
+// \see AST_NewArray
+class AST_MakeArray : public AST_ConsumeN {
+public:
+  AST_MakeArray(Decompiler &d, int pc, int a, int b)
+  : AST_ConsumeN(d, pc, a, b, b+1) { }
+  void Print() override;
+};
+
+
+
 
 #endif  /* __MATT_AST_DATAFLOW_H */
