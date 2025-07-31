@@ -9,8 +9,12 @@
 
 #include "Matt/Decompiler.h"
 
+#include "Frames/Frames.h"
+
 #include <algorithm>
 #include <tuple>
+
+extern bool IsPathExpr(RefArg inObj);
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
@@ -87,14 +91,15 @@ public:
   void print();
   void printRoot();
   void printSource();
-  void printLiteral(int ix, bool tickSymbols = false) {
-    // TODO: if the literal is slotted, we may need to precede it with a tick (').
-//    p.PrintRef(GetArraySlot(literals_, ix), 0, tickSymbols);
+  void printLiteralAsTag(int ix) {
+    p.PrintTag(GetArraySlot(literals_, ix));
+  }
+  void printLiteral(int ix) {
     p.PrintRef(GetArraySlot(literals_, ix));
   }
+  // TODO: are locals always symbols?
   void printLocal(int ix, bool tickSymbols = false) {
-//    p.PrintRef(GetArraySlot(locals_, ix), 0, tickSymbols);
-    p.PrintRef(GetArraySlot(locals_, ix));
+    p.PrintTag(GetArraySlot(locals_, ix));
   }
   void decompile(Ref ref);
   void printPathExpr(RefArg pathExpr);
@@ -185,11 +190,7 @@ public:
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
   void Print() override {
-    if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Tag();
-      dec.p.Printf("begin");
-      dec.p.DeepList(";");
-      dec.p.Item();
+    if (dec.output == Print::script) {
     } else {
       dec.p.Item();
       printHeader();
@@ -204,10 +205,7 @@ public:
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
   void Print() override {
-    if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      dec.p.Printf("end");
-      dec.p.EndList();
+    if (dec.output == Print::script) {
     } else {
       dec.p.Item();
       printHeader();
@@ -304,7 +302,7 @@ public:
   bool Resolved() override { return true; }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      PrintObject(b_, 0);
+      dec.p.PrintConstant(b_);
     } else {
       dec.p.Item();
       printHeader();
@@ -417,6 +415,8 @@ public:
 };
 
 // (A=14): -- value
+// Performs a variable lookup. The B field is the zero-based index in the
+// literals array of a symbol (here called name) naming the variable.
 class AST_FindVar : public ASTBytecodeNode {
 public:
   AST_FindVar(Decompiler &d, int pc, int a, int b)
@@ -425,7 +425,7 @@ public:
   bool Resolved() override { return true; }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.printLiteral(b_);
+      dec.printLiteralAsTag(b_);
     } else {
       dec.p.Item();
       printHeader();
@@ -807,7 +807,10 @@ public:
 class AST_Return : public AST_Consume1 {
 public:
   AST_Return(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  int provides() override { return kProvidesNone; }
+  // Even though the return command leaves the function immediately,
+  // technically it is an expression and leaves a value on the stack.
+  // So `a := 3 + return 4;` is a valid statement. It compiles, but just never runs.
+  int provides() override { return Resolved() ? 1 : kProvidesUnknown; }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
       dec.p.Printf("return "); in_->Print();
@@ -853,7 +856,7 @@ public:
     if (branch && (branch->b() > pc_)) {
       // If the sequence is 'branch; pop;', the pop can never be reached, which
       // appears to be an unoptimizes NS `break` instruction.
-      // So replace ATS_Pop with AST_Break;
+      // So replace AST_Pop with AST_Break;
 
       // NOTE: We must also release the target, but that leaves us no way to
       // verify that this is the matching break statement
@@ -950,8 +953,7 @@ public:
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      dec.printLiteral(b_);
+      dec.printLiteralAsTag(b_);
       dec.p.Printf(" := ");
       in_->Print();
     } else {
@@ -1264,6 +1266,10 @@ public:
 };
 
 // (A=18): object pathExpr -- value
+/*
+ Retrieves the value corresponding to pathExpr in the frame or array object. The B
+ field may be zero or one.
+ */
 class AST_GetPath : public AST_Consume2 {
 public:
   AST_GetPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
@@ -1272,11 +1278,20 @@ public:
     if ((dec.output == Print::script) && Resolved()) {
       in1_->Print();
       dec.p.Printf(".");
-      if (in2_->IsSymbol()) {
-        // if in2_ generates a symbol, print that (AST_Push literal[18])
-        in2_->Print();
+      AST_Push *pushLiteral { nullptr };
+      if ( (pushLiteral  = dynamic_cast<AST_Push*>(in2_)) ) {
+        Ref lit = dec.GetLiteral(pushLiteral->b());
+        if (IsInt(lit)) {
+          dec.p.PrintInteger(lit);
+        } else if (::IsSymbol(lit)) {
+          dec.p.PrintTag(lit);
+        } else if (IsPathExpr(lit)) {
+          dec.p.PrintPathExpr(lit);
+        } else {
+          assert(0);
+        }
       } else {
-        // but if in2_ is a pathExpr, put in2 in parentheses (AST_FindVar literal[17])
+        // encountered FindVar and GetPath, handle any expression, assuming it's correct.
         dec.p.Printf("("); in2_->Print(); dec.p.Printf(")");
       }
     } else {
@@ -1561,9 +1576,28 @@ public:
     printHeader();
     dec.p.Printf("%3d: ERROR: AST_ConsumeN ###", pc_);
   }
+  void PrintResolvedCall(int nArgs) {
+    // Called by AST_Call, AST_Send, and AST_Resend
+    AST_Push *pushLiteral = dynamic_cast<AST_Push*>(ins_[numIns_-1]);
+    if (pushLiteral) {
+      dec.printLiteralAsTag(pushLiteral->b());
+    } else {
+      assert(0);
+    }
+    dec.p.Printf("(");          // Print a list of all arguments
+    dec.p.StartList(",");
+    for (int i=0; i<nArgs; i++) {
+      dec.p.Item(); ins_[i]->Print(); dec.p.ItemDone();
+    }
+    dec.p.Trailer(); dec.p.Printf(")");
+    dec.p.EndList();
+  }
 };
 
 // (A=5): arg1 arg2 ... argN name -- result
+// Calls a global function. The function arguments (if any) are on the stack
+// in left-to-right order, followed by a symbol giving the name of the function
+// to call. The B field contains the number of arguments on the stack.
 class AST_Call : public AST_ConsumeN {
 public:
   AST_Call(Decompiler &d, int pc, int a, int b)
@@ -1571,6 +1605,7 @@ public:
   // The following special functions (reserved words) need to be written "a op b"
   // mod, <<, >>, (note the precedence! 7, 8, 8)
   // HasVar(a) can also be written as "a exists", but both are legal
+  // TODO: we should probably do this at creation time!
   auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
     if (Resolved()) return { false, next };
     do {
@@ -1600,13 +1635,7 @@ public:
   }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      ins_[numIns_-1]->Print();
-      dec.p.Printf("(");
-      for (int i=0; i<numIns_-1; i++) {
-        dec.p.Item(); ins_[i]->Print();
-      }
-      dec.p.Item(); dec.p.Printf(")");
+      PrintResolvedCall(numIns_-1);
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1618,20 +1647,24 @@ public:
 
 // (A=6): arg1 arg2 ... argN func -- result
 // call ... with (...)
+// Performs a function call. The function arguments (if any) are on the stack
+// in left-to-right order, followed by the function object to call. The B field
+// contains the number of arguments on the stack.
 class AST_Invoke : public AST_ConsumeN {
 public:
   AST_Invoke(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      dec.p.Printf("invoke ");
+      dec.p.Printf("call ");
       ins_[numIns_-1]->Print();
       dec.p.Printf(" with (");
+      dec.p.StartList(",");
       for (int i=0; i<numIns_-1; i++) {
-        dec.p.Item(); ins_[i]->Print();
+        dec.p.Item(); ins_[i]->Print(); dec.p.ItemDone();
       }
-      dec.p.Item(); dec.p.Printf(")");
+      dec.p.Trailer(); dec.p.Printf(")");
+      dec.p.EndList();
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1642,6 +1675,11 @@ public:
 };
 
 // (A=7): arg1 arg2 ... argN name receiver -- result
+// Performs a message send or a conditional send (send if defined).
+// The function arguments (if any) are on the stack in left-to-right order,
+// followed by the message name (a symbol), followed by the receiver. The B
+// field contains the number of arguments on the stack.
+// TODO: the order of name and receiver is flipped! Is that a compiler bug or a documentation bug?
 class AST_Send : public AST_ConsumeN {
 protected:
   bool ifDefined_ { false };
@@ -1650,18 +1688,10 @@ public:
   : AST_ConsumeN(d, pc, a, b, b+2), ifDefined_(ifDefined) { }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      ins_[numIns_-2]->Print();
-      if (ifDefined_)
-        dec.p.Printf(":?");
-      else
-        dec.p.Printf(":");
-      ins_[numIns_-1]->Print();
-      dec.p.Printf("(");
-      for (int i=0; i<numIns_-2; i++) {
-        dec.p.Item(); ins_[i]->Print();
-      }
-      dec.p.Item(); dec.p.Printf(")");
+      ins_[numIns_-2]->Print();   // Print the receiver
+      dec.p.Print(":");           // Print the operator
+      if (ifDefined_) dec.p.Printf("?");
+      PrintResolvedCall(numIns_-2);
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1676,6 +1706,9 @@ public:
 
 // (A=9): arg1 arg2 ... argN name -- result
 // inherited:Print(3);
+// Performs an inherited message send. The function arguments (if any) are on
+// the stack in left-to-right order, followed by the message name (a symbol).
+// The B field contains the number of arguments on the stack.
 class AST_Resend : public AST_ConsumeN {
 protected:
   bool ifDefined_ { false };
@@ -1684,15 +1717,9 @@ public:
   : AST_ConsumeN(d, pc, a, b, b+1), ifDefined_(ifDefined) { }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      dec.p.Printf("inherited:");
+      dec.p.Print("inherited:");        // Print the receiver and operator
       if (ifDefined_) dec.p.Printf("?");
-      ins_[numIns_-1]->Print();
-      dec.p.Printf("(");
-      for (int i=0; i<numIns_-1; i++) {
-        dec.p.Item(); ins_[i]->Print();
-      }
-      dec.p.Item(); dec.p.Printf(")");
+      PrintResolvedCall(numIns_-1);
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1706,41 +1733,41 @@ public:
 };
 
 // (A=16, B=numVal) val1 val2 ... valN map -- frame
+// Makes a frame and fills in its slots using values from the stack. The B
+// field contains the number of slot values on the stack. The slot values are
+// on the stack in index order, followed by the map to use for the frame.
+// The slot values and map are removed from the stack, and a reference to the
+// newly-allocated frame is pushed onto the stack. The B field may contain a
+// number less than the number of slots in the frame, in which
+// case the remaining slots at the end of the frame are set to nil.
 class AST_MakeFrame : public AST_ConsumeN {
 public:
   AST_MakeFrame(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      // TODO: What is the correct call to traverse the map or find a map entry by index?
-      RefVar map = NILREF;
-      int mapSize = numIns_-1;
-      do {
-        AST_Push *mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1]);
-        if (!map) break;
-        RefVar maybeMap = dec.GetLiteral(mapNode->b());
-        if (!IsArray(maybeMap)) break;
-        map = maybeMap;
-        mapSize = Length(map)-1; // mapSize is allowed to be greater than numIns_-1,
-        // adding slots with value NIL (add 1 for the supermap entry)!
-      } while (0);
-      dec.p.Printf("{");
-      for (int i=0; i<mapSize; i++) {
-        dec.p.Item();
-        if (map == NILREF) {
-          dec.p.Printf("map%d", i);
-        } else {
-//          dec.Printer()->PrintRef(GetArraySlot(map, i+1), 0, false);
-          dec.Printer()->PrintRef(GetArraySlot(map, i+1));
+      AST_Push *mapNode { nullptr };
+      if ( (mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1])) ) {
+        dec.p.Print("{");
+        dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+        Ref map = dec.GetLiteral(mapNode->b());
+        int n = ComputeMapSize(map);
+        for (int i = 0; i < n; i++) {
+          dec.p.Item();
+          Ref tag = GetTag(map, i);
+          dec.p.PrintTag(tag);
+          dec.p.Print(": ");
+          if (i >= numIns_-1)
+            dec.p.Printf("nil");
+          else
+            ins_[i]->Print();
+          dec.p.ItemDone();
         }
-        dec.p.Printf(": ");
-        if (i >= numIns_-1)
-          dec.p.Printf("nil");
-        else
-          ins_[i]->Print();
+        dec.p.Trailer(); dec.p.Print("}");
+        dec.p.EndList();
+      } else {
+        assert(0);
       }
-      dec.p.Item(); dec.p.Printf("}");
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1751,22 +1778,27 @@ public:
 };
 
 // (A=17, B=numVal):  val1 val2 ... valN class -- array): arg1 arg2 ... argN name -- result
+// Makes an array and fills in its slots using values from the stack.
+// The B field contains the size of the array. An array of that size and class
+// class is allocated. The values for the array slots, on the stack in index
+// order, are copied into the slots of the array. The values are removed from
+// the stack, and a reference to the array is pushed onto the stack.
+// \see AST_NewArray
 class AST_MakeArray : public AST_ConsumeN {
 public:
   AST_MakeArray(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Item();
-      // TODO: we could check if ins_[numIns_-1] is AST_Push and the pushed
-      // literal is 'array, and not write the array class.
-      dec.p.Printf("[");
-      ins_[numIns_-1]->Print();
-      dec.p.Printf(": ");
-      for (int i=0; i<numIns_-1; i++) {
-        dec.p.Item(); ins_[i]->Print();
+      dec.p.Print("[");
+      dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+      for (int i = 0; i < numIns_-1; i++) {
+        dec.p.Item();
+        ins_[i]->Print();
+        dec.p.ItemDone();
       }
-      dec.p.Item(); dec.p.Printf("]");
+      dec.p.Trailer(); dec.p.Print("]");
+      dec.p.EndList();
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -2073,6 +2105,8 @@ void Decompiler::printSource()
 {
   output = Print::script;
 
+  // Print the function header and argument list
+  p.Tag();
   p.Print("func(");
   p.StartList(",");
   for (int i=0; i<numArgs_; i++) {
@@ -2081,11 +2115,12 @@ void Decompiler::printSource()
   p.EndList();
   p.Print(")");
 
+  // Print the begin statement
   p.Tag();
   p.Print("begin");
   p.DeepList(";");
 
-  // list locals first! "local a;" ...
+  // List all locals first! "local a;" ...
   if (numLocals_) {
     for (int i = 0; i < numLocals_; ++i) {
       p.Item();
@@ -2093,31 +2128,22 @@ void Decompiler::printSource()
       printLocal(i + 3 + numArgs_);
       p.ItemDone();
     }
-    p.Print("\n");
+    p.Tag(); p.Print(""); // generate an empty line
   }
 
-  // now print the source code for all AST nodes
-  // This will also print the last node which closes our list
+  // Now print all the top level nodes from the AST.
+  // If everything was decompiled correctly, this should be 0 or more
+  // statements, followed by one expression
   for (ASTNode *nd = first_->next; nd; nd = nd->next) {
+    p.Item();
     nd->Print();
+    p.ItemDone();
   }
 
-//  pState.ClearDivider(); pState.Begin(); pState.End();
+  // Print the end marker of the function
+  p.Trailer(); p.Print("end");
+  p.EndList();
 }
-
-/**
- A path expression can take one of three forms:
- - an integer
- - a symbol
- - an array of class pathExpr
- */
-void Decompiler::printPathExpr(RefArg pathExpr)
-{
-  printf("<<");
-  PrintObject(pathExpr, 0);
-  printf(">>");
-}
-
 
 /**
  \brief Print a frame that contains NewtonScript function.

@@ -7,6 +7,9 @@
  Written by:  Matt, 2025.
  */
 
+// TODO: do not map symbols, or at least don't print them early
+// TODO: probably the same for 'argFrame
+
 /*
  This class will take an NS Object tree and print it as a source code file,
  so it can be recompiled into the same object tree. It focuses and understanding
@@ -103,13 +106,15 @@ void ObjectPrinter::PrintBinary(RefArg ref) {
 }
 
 void ObjectPrinter::PrintFunction(RefArg ref) {
-  assert(0);
+  assert(IsFunction(ref));
+  mDecompile(ref, *this, debugAST_);
 }
 
 // plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*
 // piped symbol: ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
 // symbol-character: <any ASCII character with code 32–127 except '|' or '\'>
 void ObjectPrinter::PrintSymbol(RefArg ref) {
+  assert(IsSymbol(ref));
   Print("'");
   PrintTag(ref);
 }
@@ -259,7 +264,13 @@ void ObjectPrinter::PrintPathExpr(RefArg ref) {
     int n = Length(ref);
     for (int i = 0; i < n; ++i) {
       RefVar slot = GetArraySlot(ref, i);
-      PrintTag(slot);
+      if (IsSymbol(slot)) {
+        PrintTag(slot);
+      } else if (IsInt(slot)) {
+        PrintInteger(slot);
+      } else {
+        assert(0);
+      }
       if (i < n-1) Print(".");
     }
   }
@@ -368,18 +379,6 @@ void ObjectPrinter::PrintConstant(RefArg ref)
   }
 }
 
-/**
- \brief Print a function using the decompiler.
- */
-void ObjectPrinter::PrintFunction(Ref ref, int indent)
-{
-  if (optionDecompile_) {
-    mDecompile(ref, *this, debugAST_);
-  } else {
-    PrintFrame(ref);
-  }
-}
-
 // TODO: notice special arrays (pathExpr) and print them elsewhere
 /**
  \brief Print the array and all the slot in it.
@@ -420,6 +419,11 @@ void ObjectPrinter::PrintFrame(RefArg ref) {
   }
   Trailer(); Print("}");
   EndList();
+
+  // TODO: while we are debugging, print both.
+  if (optionDecompile_ && IsFunction(ref))
+    PrintFunction(ref);
+
   ItemDone();
 }
 

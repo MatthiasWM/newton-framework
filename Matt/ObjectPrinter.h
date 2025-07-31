@@ -68,8 +68,6 @@ public:
   void BuildRefMapBranch(RefArg ref);
   void BuildRefMap(RefArg ref);
 
-
-
   void OptionDecompile(bool v) { optionDecompile_ = v;}
   void DebugAST(bool v) { debugAST_ = v;}
 
@@ -100,7 +98,6 @@ public:
   void PrintImmed(RefArg ref);
 
   void PrintRef(RefArg ref, bool ignoreMap = false);
-  void PrintFunction(Ref ref, int indent);
 
   void PrintDependents(RefArg ref);   // TODO: find better way
   void PrintPartialTree(RefArg ref);  // TODO: find better way
