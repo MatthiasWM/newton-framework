@@ -18,10 +18,7 @@ extern bool IsPathExpr(RefArg inObj);
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
-// FIXME: when writing symbols, we must *really* know when to precede them with a tick and when not!
-// So, for example, "if HasSlot(p, devInstallScript) then"
-// should actually be "if HasSlot(p, 'devInstallScript) then"!
-// See the difference?!
+// TODO: don't print local variables that are used in iterators ( 'i, followed by '|i|iter| )
 
 // TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
 // debug information in the code. Especially with nos2, this can restore argument
@@ -77,7 +74,7 @@ protected:
   RefVar literals_;       // Array of Refs
   ASTNode *first_ { nullptr };
   ASTNode *last_ { nullptr };
-  std::map<int, ASTJumpTarget*> targets;
+  std::map<int /* destination pc*/, std::map<int /* origin pc */, ASTJumpTarget*>> targetMap_;
   bool debugAST_ { false };
 
   void AddToTargets(int target, int origin);
@@ -88,8 +85,8 @@ public:
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
   ObjectPrinter *Printer() { return &p; }
   void DebugAST(bool v) { debugAST_ = v;}
-  void print();
-  void printRoot();
+  void printAST();
+  void printASTRoot();
   void printSource();
   void printLiteralAsTag(int ix) {
     p.PrintTag(GetArraySlot(literals_, ix));
@@ -214,34 +211,18 @@ public:
   }
 };
 
-class AST_Compound : public ASTNode {
-  // ... hold a list of statements, presenting itself as a single statement.
-  // The last node may or may not be an expression, turning the entire compound
-  // into a single expression
-};
-
 class ASTJumpTarget : public ASTNode {
-  std::vector<int> origins_;
+  int origin_ { -1 }; // Initialize to impossible pc.
 public:
-  ASTJumpTarget(Decompiler &d, int pc) : ASTNode(d, pc) { }
+  ASTJumpTarget(Decompiler &d, int pc, int origin) : ASTNode(d, pc), origin_(origin) { }
   int provides() override { return kJumpTarget; }
-  void addOrigin(int origin) { origins_.push_back(origin); };
-  bool containsOrigin(int o) { return std::find(origins_.begin(), origins_.end(), o) != origins_.end(); }
-  bool containsOnly(int o) { return (origins_.size() == 1) && (origins_[0] == o); }
-  void removeOrigin(int o) {
-    auto it = std::find(origins_.begin(), origins_.end(), o);
-    if (it != origins_.end()) origins_.erase(it);
-  }
-  int size() { return (int)origins_.size(); }
-  bool empty() { return origins_.empty(); }
+  int Origin() { return origin_; }
   /// Node can never be resolved, but will be removed if all origins were resolved
   bool Resolved() override { return false; }
   void Print() override {
     dec.p.Item();
     printHeader();
-    dec.p.Printf("%3d: ASTJumpTarget from", pc_);
-    for (auto a: origins_) dec.p.Printf(" %d", a);
-    dec.p.Printf(" ###");
+    dec.p.Printf("%3d: ASTJumpTarget from %d ###", pc_, origin_);
   }
 };
 
@@ -249,6 +230,7 @@ class ASTBytecodeNode : public ASTNode {
 protected:
   int a_ = 0;
   int b_ = 0;
+  void PrintPathExpr(ASTNode *inNode);
 public:
   ASTBytecodeNode(Decompiler &d, int pc, int a, int b)
   : ASTNode(d, pc), a_(a), b_(b) { }
@@ -312,8 +294,9 @@ public:
   bool IsNIL() override { return (b_ == NILREF); }
 };
 
-// TODO: name nodes so that we can see the difference between a Bytecode and a generated node
-// TODO: generated nodes should derive from another subclass
+/**
+ \brief This node is used to replace a `loop` construct when detected by AST_Branch.
+ */
 class ASTLoop : public ASTNode {
 protected:
   std::vector<ASTNode*> body_;
@@ -327,11 +310,12 @@ public:
       if (body_.size() > 1) {
         dec.p.Printf("loop begin");
         dec.p.DeepList(";");
-        dec.p.Item();
         for (auto &nd: body_) {
+          dec.p.Item();
           nd->Print();
+          dec.p.ItemDone();
         }
-        dec.p.Item(); dec.p.Printf("end");
+        dec.p.Trailer(); dec.p.Printf("end");
         dec.p.EndList();
       } else if (body_.size() == 1) {
         dec.p.Printf("loop "); // loop only one instruction forever (could be an if...break)
@@ -371,13 +355,12 @@ public:
       while (nd->IsStatement()) { numStmt++; nd = nd->prev; }
       ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
       if (!jt) break;;
-      if (!jt->containsOrigin(pc_)) break;;
+      if (jt->Origin() != pc_) break;
 
       // It's a loop! Build a new node.
       ASTLoop *loop = new ASTLoop(dec, pc_);
       nd = jt->next;
-      jt->removeOrigin(pc_);
-      if (jt->empty()) delete jt->Unlink();
+      delete jt->Unlink();
       for (int i=numStmt; i>0; --i) {
         ASTNode *nx = nd->next;
         loop->add(nd);
@@ -530,6 +513,8 @@ public:
 
 
 // (A=12): value --
+// A value is popped from the stack. If it is nil, execution continues with the
+// next instruction. Otherwise, PC is set to the B field value.
 class AST_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BranchIfTrue(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
@@ -557,12 +542,12 @@ public:
       ASTNode *stmts = nd->next;
       // We must find the jump target for this branch node now
       ASTJumpTarget *jt1 = dynamic_cast<ASTJumpTarget*>(nd);
-      if (!jt1 || !jt1->containsOnly(this->pc_)) break;
+      if (!jt1 || (jt1->Origin() != this->pc_)) break;
       nd = nd->prev;
       // Finally, we expect an unconditional jump to jt2
       AST_Branch *branch = dynamic_cast<AST_Branch*>(nd);
       if (!branch || (branch->b() != jt2->pc())) break;
-      if (!jt2->containsOnly(branch->pc())) break;
+      if (jt2->Origin() != branch->pc()) break;
 
       // We did it. This is a while...do... construct!
       ASTWhileDo *wd = new ASTWhileDo(dec, pc(), prev->Unlink());
@@ -615,29 +600,33 @@ public:
     if ((dec.output == Print::script) && Resolved()) {
       bool needBeginEnd = ((ifBranch_.size() > 1) || (elseBranch_.size() > 1));
       // >> if (condition) the begin
-      dec.p.Printf("if "); cond_->Print(); dec.p.Printf(" then");
+      dec.p.Print("if ");
+      int pp = dec.precedence; dec.precedence = 0;
+      cond_->Print();
+      dec.precedence = pp;
+      dec.p.Print(" then");
       if (needBeginEnd) dec.p.Printf(" begin");
       // >>   if-Branch
       dec.p.DeepList(";");
       for (auto &nd: ifBranch_) {
-        nd->Print();
+        dec.p.Item(); nd->Print(); dec.p.ItemDone();
       }
-      dec.p.EndList();
-      //if (returnsAValue_) dec.p.NewLine(";");
+      if (elseBranch_.empty()) {
+        if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
+        dec.p.EndList();
+      }
       if (!elseBranch_.empty()) {
         // >> end else if
-        dec.p.Tag();
+        dec.p.Trailer();
         if (needBeginEnd) dec.p.Printf("end else begin"); else dec.p.Printf("else");
+        dec.p.EndList();
         // >>   else-Branch
         dec.p.DeepList(";");
         for (auto &nd: elseBranch_) {
-          nd->Print();
+          dec.p.Item(); nd->Print(); dec.p.ItemDone();
         }
+        if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
         dec.p.EndList();
-//        if (returnsAValue_) dec.p.NewLine(";");
-      }
-      if (needBeginEnd) {
-        dec.p.Printf("end");
       }
     } else {
       if (dec.output == Print::deep) {
@@ -669,8 +658,7 @@ public:
 
  This class checks for three different pattern, generating one of three possible variations
  of the ASTIfThenElseNode. If one of the pattern matches, the new ASTIfThenElseNode
- will replace all other code involved. Note that the terminating BranchTarget is only
- removed if if has no other origins.
+ will replace all other code involved.
 
  Pattern one is a simple if/then statement:
  - BranchIfFalse B, n*statement, Target B
@@ -734,7 +722,7 @@ public:
       // Step 6: The next node must be a jump target for the 'if' branch
       if (nd->provides() != kJumpTarget) return { false, next };
       jt1 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt1->containsOnly(pc_)) return { false, next };
+      if (jt1->Origin() != pc_) return { false, next };
       nd = nd->next;
 
       // Step 7: Count statements in the 'else' branch
@@ -753,12 +741,12 @@ public:
       // Step 9: The next node must be a jump target for the unconditional branch
       if (nd->provides() != kJumpTarget) return { false, next };
       jt2 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt2->containsOrigin(branch_pc)) return { false, next };
+      if (jt2->Origin() != branch_pc) return { false, next };
       jt2origin = branch_pc;
     } else if (nd->provides() == kJumpTarget) {
       // Step 10: Handle the case with no else branch (simple if/then)
       jt2 = static_cast<ASTJumpTarget*>(nd);
-      if (!jt2->containsOrigin(pc_)) return { false, next };
+      if (jt2->Origin() != pc_) return { false, next };
     } else {
       // Pattern does not match any known if/then/else structure
       return { false, next };
@@ -782,9 +770,8 @@ public:
         next->Unlink();
       }
     }
-    // Step 12: Remove the jump target if it has no more origins
-    jt2->removeOrigin(jt2origin);
-    if (jt2->empty()) jt2->Unlink(); // jump target
+    // Step 12: Remove the jump target, it's no longer needed and in the way now
+    delete jt2->Unlink(); // jump target
 
     // Step 13: Replace this node with the new if/then/else node
     ReplaceWith(ite);
@@ -802,7 +789,7 @@ public:
 // TODO: the very last return probably doesn't need to be printed
 // It's actually a bug in the newt-framework compiler. NTK does not generate the extra return bytecode
 // TODO: return NIL is implied if there is no return statement in the source code
-// TODO: handle implied return values nicely, so we don;t generate "return a := b;"
+// TODO: handle implied return values nicely, so we don't generate "return a := b;"
 // (A=0, B=2): --
 class AST_Return : public AST_Consume1 {
 public:
@@ -813,8 +800,8 @@ public:
   int provides() override { return Resolved() ? 1 : kProvidesUnknown; }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
-      dec.p.Printf("return "); in_->Print();
-      dec.p.Item();
+      dec.p.Printf("return ");
+      in_->Print();
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -828,6 +815,22 @@ class AST_Break : public AST_Consume1 {
 public:
   AST_Break(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  auto ResolveDataFlow() -> std::tuple<bool, ASTNode*> override {
+    if (Resolved()) return { false, next };
+    auto [changed, nextNode] = AST_Consume1::ResolveDataFlow();
+    if (in_) { // It's resolved. Remove the jump target from the AST.
+      ASTNode *nd = next;
+      while (nd) {
+        ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
+        if (jt && (jt->Origin() == pc_) && (jt->pc() == b_)) {
+          delete nd->Unlink();
+          break;
+        }
+        nd = nd->next;
+      }
+    }
+    return { changed, nextNode };
+  }
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
       dec.p.Printf("break");
@@ -854,29 +857,12 @@ public:
     if (Resolved()) return { false, next };
     AST_Branch *branch = prev ? dynamic_cast<AST_Branch*>(prev) : nullptr;
     if (branch && (branch->b() > pc_)) {
-      // If the sequence is 'branch; pop;', the pop can never be reached, which
-      // appears to be an unoptimizes NS `break` instruction.
-      // So replace AST_Pop with AST_Break;
-
-      // NOTE: We must also release the target, but that leaves us no way to
-      // verify that this is the matching break statement
-      ASTNode *nd = next;
-      int target = branch->b();
-      for (;;) {
-        if (nd == nullptr) {
-          ThrowMsg("AST_Pop:Resolve: break target node not found!");
-          return { false, next };
-        }
-        if ((nd->pc() == target) && (nd->provides() == kJumpTarget)) break;
-        nd = nd->next;
-      }
-      ASTJumpTarget *jt = dynamic_cast<ASTJumpTarget*>(nd);
-      if (!jt) ThrowMsg("AST_Pop:Resolve: should have been a Jump Target!");
-      if (!jt->containsOrigin(branch->pc())) ThrowMsg("AST_Pop:Resolve: address of `break` not in Jump Target!");
-      jt->removeOrigin(branch->pc());
-      if (jt->empty()) delete jt->Unlink();
-
-      // Replace this node and the previous branch with an AST_Break
+      // If the sequence is 'branch; pop;', the pop can never be reached
+      // because there is no jump target between them.
+      // Lucky for us, break operations are by definition expressions, so
+      // the pop is needed, which makes this a reliable way to find a
+      // break instruction.
+      // The AST_Break will take care of the jump target when resolved.
       AST_Break *breakNode = new AST_Break(dec, branch->pc(), 0, branch->b());
       delete branch->Unlink();
       this->ReplaceWith(breakNode);
@@ -1235,10 +1221,9 @@ public:
       int ppp = dec.precedence;
       bool parentheses = (dec.precedence > precedence_);
       dec.precedence = precedence_;
-      dec.p.Item();
-      if (parentheses) dec.p.Printf("(");
+      if (parentheses) dec.p.Print("(");
       in1_->Print(); dec.p.Printf(" %s ", op_); in2_->Print();
-      if (parentheses) dec.p.Printf(")");
+      if (parentheses) dec.p.Print(")");
       dec.precedence = ppp;
     } else {
       if (dec.output == Print::deep) PrintChildren();
@@ -1266,10 +1251,12 @@ public:
 };
 
 // (A=18): object pathExpr -- value
-/*
- Retrieves the value corresponding to pathExpr in the frame or array object. The B
- field may be zero or one.
- */
+// Retrieves the value corresponding to pathExpr in the frame or array object.
+// The B field may be zero or one.
+// The value corresponding to a path expression is the value that would be
+// found by doing array and frame accesses corresponding to each element of
+// the path expression. Integers represent array accesses to the given array
+// index; symbols represent frame accesses to the given frame slot.
 class AST_GetPath : public AST_Consume2 {
 public:
   AST_GetPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
@@ -1278,22 +1265,7 @@ public:
     if ((dec.output == Print::script) && Resolved()) {
       in1_->Print();
       dec.p.Printf(".");
-      AST_Push *pushLiteral { nullptr };
-      if ( (pushLiteral  = dynamic_cast<AST_Push*>(in2_)) ) {
-        Ref lit = dec.GetLiteral(pushLiteral->b());
-        if (IsInt(lit)) {
-          dec.p.PrintInteger(lit);
-        } else if (::IsSymbol(lit)) {
-          dec.p.PrintTag(lit);
-        } else if (IsPathExpr(lit)) {
-          dec.p.PrintPathExpr(lit);
-        } else {
-          assert(0);
-        }
-      } else {
-        // encountered FindVar and GetPath, handle any expression, assuming it's correct.
-        dec.p.Printf("("); in2_->Print(); dec.p.Printf(")");
-      }
+      PrintPathExpr(in2_);
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1397,6 +1369,10 @@ public:
 // (A=19)
 //    B=0: object pathExpr value --
 //    B=1: object pathExpr value -- value
+// Sets the value corresponding to pathExpr in the frame or array object
+// to value.The B field may be zero or one. The object, path, and value are
+// popped from the stack. If the B field is one, the value is
+// pushed back onto the stack.
 class AST_SetPath : public ASTBytecodeNode {
 protected:
   ASTNode *object_ { nullptr };
@@ -1435,12 +1411,10 @@ public:
   void Print() override {
     if ((dec.output == Print::script) && Resolved()) {
       object_->Print();
-      dec.p.Printf(".");
-      //dec.printPathExpr(path_);
-      path_->Print();
-      dec.p.Printf(" := ");
+      dec.p.Print(".");
+      PrintPathExpr(path_);
+      dec.p.Print(" := ");
       value_->Print();
-      if (b_ == 0) dec.p.Item();
     } else {
       if (dec.output == Print::deep) PrintChildren();
       dec.p.Item();
@@ -1674,12 +1648,12 @@ public:
   }
 };
 
-// (A=7): arg1 arg2 ... argN name receiver -- result
+// (A=7): arg1 arg2 ... argN receiver name -- result
 // Performs a message send or a conditional send (send if defined).
 // The function arguments (if any) are on the stack in left-to-right order,
 // followed by the message name (a symbol), followed by the receiver. The B
 // field contains the number of arguments on the stack.
-// TODO: the order of name and receiver is flipped! Is that a compiler bug or a documentation bug?
+// \note the order of name and receiver is flipped in the original documentation!
 class AST_Send : public AST_ConsumeN {
 protected:
   bool ifDefined_ { false };
@@ -1826,6 +1800,26 @@ public:
 
 // -----------------------------------------------------------------------------
 
+void ASTBytecodeNode::PrintPathExpr(ASTNode *inNode) {
+  AST_Push *pushLiteral { nullptr };
+  if ( (pushLiteral  = dynamic_cast<AST_Push*>(inNode)) ) {
+    Ref lit = dec.GetLiteral(pushLiteral->b());
+    if (IsInt(lit)) {
+      dec.p.PrintInteger(lit);
+    } else if (::IsSymbol(lit)) {
+      dec.p.PrintTag(lit);
+    } else if (IsPathExpr(lit)) {
+      dec.p.PrintPathExpr(lit);
+    } else {
+      assert(0);
+    }
+  } else {
+    dec.p.Printf("("); inNode->Print(); dec.p.Printf(")");
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 void Decompiler::decompile(Ref ref)
 {
   if (debugAST_) puts("\n==== Matt's Decompiler:");
@@ -1873,7 +1867,7 @@ void Decompiler::decompile(Ref ref)
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
-  print();
+  printAST();
   solve();
 }
 
@@ -1969,10 +1963,16 @@ ASTBytecodeNode *Decompiler::NewBytecodeNode(int pc, int a, int b)
 }
 
 
+
+/* TODO: Rethink jump targets:
+ * One jump target has only a single origin.
+ * For the same PC, jump targets are sorted by the PC of their origin.
+ */
+
 /**
  \brief Create the initial AST which is not a tree at all, just a list of nodes.
 
- Convert every instruction into one or more nodes and chain them together in
+ Convert every bytecode instruction into one or more nodes and chain them together in
  a doubly linked list. Jump instruction generate additional "jump targets" at
  their jump destination that are linked into the list as well. One address
  can only hold one jump target, but the target can hold multiple jump
@@ -1991,6 +1991,8 @@ void Decompiler::generateAST(Ref instructions)
     uint8_t a = (cmd & 0xf8) >> 3;
     uint16_t b = (cmd & 0x07);
     if (b==7) { b = bc[i+1]<<8 | bc[i+2]; i += 2; }
+    // branch, brach-if-true, branch-if-false, branch-if-loop-not-done
+    // TODO: a = 25, new-handlers
     if ((a==11)||(a==12)||(a==13)||(a==23))
       AddToTargets(b, pc);
   }
@@ -2003,9 +2005,11 @@ void Decompiler::generateAST(Ref instructions)
     uint8_t a = (cmd & 0xf8) >> 3;
     uint16_t b = (cmd & 0x07);
     if (b==7) { b = bc[i+1]<<8 | bc[i+2]; i += 2; }
-    auto it = targets.find(pc);
-    if (it != targets.end())
-      nd = Append(nd, it->second);
+    if (targetMap_.contains(pc)) {
+      auto &target = targetMap_[pc];
+      for (auto &t : target)
+        nd = Append(nd, t.second);
+    }
     nd = Append(nd, NewBytecodeNode(pc, a, b));
   }
   last_ = Append(nd, new ASTLastNode(*this));
@@ -2016,19 +2020,46 @@ void Decompiler::generateAST(Ref instructions)
     delete nd->Unlink();
 }
 
-void Decompiler::AddToTargets(int target, int origin) {
-  ASTJumpTarget *t = nullptr;
-  auto it = targets.find(target);
-  if (it == targets.end())
-    targets.insert(std::make_pair(target, t = new ASTJumpTarget(*this, target)));
-  else
-    t = it->second;
-  t->addOrigin(origin);
-  if (debugAST_) printf("Jump Target: %d to %d\n", origin, target);
+void Decompiler::AddToTargets(int target, int origin)
+{
+  // Use negative numbers to sort forward jumps closest to furthest.
+  // BAckward jumps are automatically closest to furthest.
+  int sort = origin < target ? -origin : target;
+  targetMap_[target][sort] = new ASTJumpTarget(*this, target, origin);
+  if (debugAST_) printf("Jump Target: from %d to %d\n", origin, target);
 }
 
+
 /**
- Decompile the AST as much as possible in multiple runs.
+ \brief Decompile the AST as much as possible in multiple loops.
+ The AST starts as a linear list of Bytecode nodes. The solver runs over the
+ root nodes front to back, finding patterns that can be resolved into
+ dependencies. It does that until no more patterns are found.
+
+ For example:
+ ```
+ push 3 (provides 1 value)
+ push 3 (provides 1 value)
+ add (consumes 2 values, but doesn't know yet what it provides)
+ ```
+
+ `push` provides a value on the stack. `add` expects two values on the stack,
+ so the `push` nodes become dependent on `add`
+
+ Resolving to:
+ ```
+   push 3 (resolved, no longer checked)
+   push 5 (resolved)
+ add (provides 1 value)
+ ```
+
+ One trick is that unresolved nodes can not be part of pattern. Only if all
+ inputs exist will the decompiler take them into account.
+
+ To figure out control flow, jump commands and the jump destinations are
+ AST nodes as well. This will avoid conflict between data flow and
+ control flow analysis. Nevertheless, data flow has always priority, and
+ control flow is checked in a secondary loop.
  */
 void Decompiler::solve()
 {
@@ -2047,7 +2078,7 @@ void Decompiler::solve()
         auto [changed, next] = nd->ResolveDataFlow();
         // If something changed, start over.
         // NOTE: this is pretty crass and may be tuned to use `next` instead of `first`
-        if (changed) { dataFlowChanged = true; nd = first_; print(); continue; }
+        if (changed) { dataFlowChanged = true; nd = first_; printAST(); continue; }
         // If we are at the end of the list, abort
         if (next == nullptr) break;
         nd = next;
@@ -2063,7 +2094,7 @@ void Decompiler::solve()
       auto [changed, next] = nd->ResolveControlFlow();
       // If something changed, start over from the very beginning.
       // NOTE: this is pretty crass and may need to be tuned.
-      if (changed) { controlFlowChanged = true; print(); break; }
+      if (changed) { controlFlowChanged = true; printAST(); break; }
       // If we are at the end of the list, abort
       if (next == nullptr) break;
       nd = next;
@@ -2072,10 +2103,17 @@ void Decompiler::solve()
     // We have done all that we could
     if (!astChanged) break;
   }
-  // TODO: Refine: remove faulty code (double return) and unnecessary code.
 }
 
-void Decompiler::print()
+
+/**
+ \brief Print the full Abstract Syntax Tree.
+ This prints the list of root nodes and all their dependencies.
+
+ NS Bytecode's data flow is stack oriented. Dependencies are printed first
+ with an indent to make it easy to follow the data flow.
+ */
+void Decompiler::printAST()
 {
   if (!debugAST_) return;
   p.PrintDivider("AST");
@@ -2088,7 +2126,15 @@ void Decompiler::print()
   p.PrintDivider("");
 }
 
-void Decompiler::printRoot()
+
+/**
+ \brief Print all nodes in the first layer of the AST.
+ The decompiler only ever looks at the first layer of AST nodes. Printing this
+ out help us to find patterns where the decompiler git stuck.
+ A completely resolved ST has a list of 0 or more statements and a single
+ final expression.
+ */
+void Decompiler::printASTRoot()
 {
   if (!debugAST_) return;
   p.PrintDivider("AST Root Nodes");
@@ -2101,6 +2147,13 @@ void Decompiler::printRoot()
   p.PrintDivider("");
 }
 
+
+/**
+ \brief Convert an Abstarct Syntax Tree (AST) back into reabale NewtonScript source code.
+ Walks the tree and lets nodes output the appropriate source code.
+ If a node can not print itself, it will output an AST node description for
+ debugging.
+ */
 void Decompiler::printSource()
 {
   output = Print::script;
@@ -2145,24 +2198,21 @@ void Decompiler::printSource()
   p.EndList();
 }
 
-/**
- \brief Print a frame that contains NewtonScript function.
- Check if tis is actually NewtonScript. No support for native or binary.
- Must be `class: #0x32` for newer apps, and
- \note For now, this simply prints the Frame as is. We need to decompile
- the `instructions` and merge them with the `literals`. For the old function
- call, we should also name the locals and arguments correctly.
- \note Decompiling NewtonScript is not too complicated. It has a few quirks,
- for example it generates unused bytecode. It's important to test continuously.
- - decompress the bytecode into "wordcode"
- - find all jump target addresses and store the source address
- - generate an AST and reduce it as much as possible
- - now try to find the typical pattern for control flow, reduce, and try again
- - if nothing can be applied anymore, the root of the AST should be a single value
- with the entire tree behind it. It should now be easy to generate source
- code for every node in the AST.
- - make sure that the source code is nicely formatted ;-)
 
+/**
+ \brief Print a frame that contains a NewtonScript function.
+ Check if this is actually NewtonScript. No support for native or binary.
+ Is `class: #0x32` for newer apps.
+ - decompress the bytecode into a flat AST
+ - find all jump target addresses and store them as AST nodes as well
+ - reduce the AST as much as possible, generating an actual tree
+    - find data flow and move nodes into dependencies
+    - find control flow patterns and reorder nodes
+    - if nothing can be applied anymore, the root of the AST should be a list
+      of 0 or more statements, followed by exactly one expression
+ - now walk the tree and generate nicely readable source code.
+
+ This is a description of the newer function format, using an abbreviated frame
  ```
  `DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));`
  - `class: #0x32`:
@@ -2172,6 +2222,8 @@ void Decompiler::printSource()
  - `argFrame`: always `nil` in this format
  ```
 
+ This is the older format that still contains a lot of variable names that help
+ us generate more readable code.
  ```
  `DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));`
  - `class`: 'CodeBlock,
@@ -2199,7 +2251,7 @@ NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST)
   Decompiler d(printer);
   d.DebugAST(debugAST);
   d.decompile(ref);
-  d.printRoot();
+  d.printASTRoot();
   d.printSource();
   return noErr;
 }

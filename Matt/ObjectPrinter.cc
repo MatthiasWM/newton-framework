@@ -614,6 +614,7 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
   if (nd.numRefs_ == 0) {
     // If we are here the first time, fill in the node.
     nd.numRefs_ = 1; // avoid endless recursions
+    if (IsSymbol(ref)) nd.suppressEarlyPrint_ = true;
     char buffer[32];
     snprintf(buffer, 32, "Ref_%d", labelSerialNo_++);
     nd.label_ = std::string(buffer);

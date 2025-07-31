@@ -542,6 +542,7 @@ set_property (TARGET newtc
     "-script /Users/matt/dev/a.txt"
 #    "-script /Users/matt/dev/adjusto.txt"
 #    "-pkg /Users/matt/hello.pkg"
+#    "-pkg /Users/matt/dev/Gauges.pkg"
 #    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
 #    "-nsof /Users/matt/dev/test.nsof"
 #    "-script /Users/matt/dev/test.ns"
