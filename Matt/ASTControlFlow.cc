@@ -132,16 +132,13 @@ ASTNode *AST_Branch::ResolveLoop()
   // ---- Check for the loop... pattern
   do {
     // -- Store the result of our exploration here
-    ASTNode *it = prev;
-    ASTNode *firstStmt = nullptr;
-    ASTJumpTarget *jt = nullptr;
-    int numStmt = 0;
+    /* target 1 */  ASTJumpTarget *jt = nullptr;
+    /* n-stmts  */  ASTNode *firstStmt = nullptr;
+    /* expr     */  int numStmt = 0;
+    /* branch 1 */  // <-- you are here
 
     // -- Try this pattern
-    /* target 1 */
-    /* n-stmts  */
-    /* expr     */
-    /* branch 1 */ // <-- you are here
+    ASTNode *it = prev;
     if (b_ > pc_) break; // Jump must be backward
     numStmt = FindStatementsBwd(&it, &firstStmt);
     if (!(jt = dynamic_cast<ASTJumpTarget*>(it))) break;
@@ -203,33 +200,27 @@ void AST_Branch::Print() {
 
 #pragma mark - ASTWhileDo
 
+ASTWhileDo::ASTWhileDo(Decompiler &d, int pc, ASTNode *condition)
+: ASTCodeBlock(d, pc, kProvidesNone), cond_(condition)
+{ }
+
 void ASTWhileDo::PrintChildren(bool deep) {
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### ---> Condition");
   if (cond_) cond_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--> Body");
+  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--- Body");
 }
 
 void ASTWhileDo::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Printf("while "); cond_->Print(); dec.p.Printf(" do");
+  dec.p.Printf("while "); cond_->Print();
   if (body_.size() > 1) {
-    dec.p.Printf(" begin");
-    dec.p.DeepList(";");
-    for (auto &nd: body_) {
-      dec.p.Item();
-      nd->Print();
-      dec.p.ItemDone();
-    }
-    dec.p.Trailer(); dec.p.Printf("end");
-    dec.p.EndList();
+    PrintBody(" do begin", ";", "end", body_);
   } else if (body_.size() == 1) {
-    // loop only one instruction forever (could be an if...break)
-    dec.p.DeepList(";");
-    dec.p.Item();
-    body_[0]->Print();
-    dec.p.ItemDone();
-    dec.p.EndList();
+    PrintBody(" do", ";", "", body_);
   } else {
-    dec.p.Printf("nil"); // special case, loops forever
+    dec.p.Printf(" do nil"); // special case, loops forever
   }
 };
 
@@ -278,47 +269,36 @@ ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
   // TODO: used in "or"
   // `while...do...` Branch A; Target B; n*stmt; Target A; expr; BranchIfTrue B; PushNIL;
   do {
-    // We expect that we jump backwards
-    if (b_ > pc_) break;
-    int numStmts = 0;
-    ASTNode *nd = prev;
-    // Next line must push NIL on the stack
-    //      if (!next->IsNIL()) break;
-    // Previous must be an expression
-    if (!nd->IsExpr()) break;
-    nd = nd->prev;
-    // Now we want a jump target, check the origin when we know where the loop starts
-    ASTJumpTarget *jt2 = dynamic_cast<ASTJumpTarget*>(nd);
-    if (!jt2) break;
-    nd = nd->prev;
-    // Skip over any number of statements
-    while (nd->IsStatement()) { numStmts++; nd = nd->prev; }
-    ASTNode *stmts = nd->next;
-    // We must find the jump target for this branch node now
-    ASTJumpTarget *jt1 = dynamic_cast<ASTJumpTarget*>(nd);
-    if (!jt1 || (jt1->Origin() != this->pc_)) break;
-    nd = nd->prev;
-    // Finally, we expect an unconditional jump to jt2
-    AST_Branch *branch = dynamic_cast<AST_Branch*>(nd);
-    if (!branch || (branch->b() != jt2->pc())) break;
-    if (jt2->Origin() != branch->pc()) break;
+    // -- Here is our pattern. Store the result of our exploration here:
+    /* branch 2 */  AST_Branch *branch2 = nullptr;
+    /* target 1 */  ASTJumpTarget *jt1 = nullptr;
+    /* n-stmts  */  ASTNode *stmts = nullptr;
+    /*          */  int numStmts = 0;
+    /* target 2 */  ASTJumpTarget *jt2 = nullptr;
+    /* expr     */  ASTNode *cond = nullptr;
+    /* c.brch 1 */  // <-- you are here
 
+    // -- Try the pattern
+    if (b_ > pc_) break;  // jump backwards
+    ASTNode *it = prev;
+    if (it->IsExpr()) { cond = it; it = it->prev; } else break;
+    if ((jt2 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    numStmts = FindStatementsBwd(&it, &stmts);
+    if ((jt1 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
+    if (!(branch2 = dynamic_cast<AST_Branch*>(it))) break;
+    if ((branch2->b() != jt2->pc()) || (branch2->pc() != jt2->Origin())) break;
+
+    // -- The pattern matches. Replace everything with a ASTLoop node
     // We did it. This is a while...do... construct!
-    ASTWhileDo *wd = new ASTWhileDo(dec, pc(), prev->Unlink());
-    delete branch->Unlink();
+    ASTWhileDo *wd = new ASTWhileDo(dec, pc(), cond->Unlink());
+    delete branch2->Unlink();
     delete jt1->Unlink();
     delete jt2->Unlink();
-    nd = stmts;
-    for (int i=numStmts; i>0; --i) {
-      ASTNode *nx = nd->next;
-      wd->add(nd);
-      nd->Unlink();
-      nd = nx;
-    }
-    this->ReplaceWith(wd);
+    wd->moveToBody(stmts, numStmts);
+    ReplaceWith(wd);
     dec.numASTChanges++;
     return wd;
-
   } while (0);
   return next;
 }

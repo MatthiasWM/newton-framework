@@ -67,17 +67,14 @@ public:
   void Print() override;
 };
 
-class ASTWhileDo : public ASTNode {
+class ASTWhileDo : public ASTCodeBlock {
 protected:
   ASTNode *cond_ { nullptr };
-  std::vector<ASTNode*> body_;
 public:
-  ASTWhileDo(Decompiler &d, int pc, ASTNode *condition) : ASTNode(d, pc), cond_(condition) { }
+  ASTWhileDo(Decompiler &d, int pc, ASTNode *condition);
   const char *Class() override { return "ASTWhileDo"; }
   void PrintChildren(bool deep) override;
   void add(ASTNode *nd) { body_.push_back(nd); }
-  int provides() override { return kProvidesNone; }
-  bool Resolved() override { return true; }
   void Print() override;
 };
 
