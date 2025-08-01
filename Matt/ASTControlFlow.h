@@ -21,6 +21,7 @@ class ASTJumpTarget : public ASTNode {
 public:
   ASTJumpTarget(Decompiler &d, int pc, int origin) : ASTNode(d, pc), origin_(origin) { }
   const char *Class() override { return "ASTJumpTarget"; }
+  void Print() override;
   void PrintNode(bool deep) override;
   int provides() override { return kJumpTarget; }
   int Origin() { return origin_; }
@@ -74,21 +75,16 @@ public:
   ASTWhileDo(Decompiler &d, int pc, ASTNode *condition);
   const char *Class() override { return "ASTWhileDo"; }
   void PrintChildren(bool deep) override;
-  void add(ASTNode *nd) { body_.push_back(nd); }
   void Print() override;
 };
 
-class ASTRepeatUntil : public ASTNode {
+class ASTRepeatUntil : public ASTCodeBlock {
 protected:
   ASTNode *cond_ { nullptr };
-  std::vector<ASTNode*> body_;
 public:
-  ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition) : ASTNode(d, pc), cond_(condition) { }
+  ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition);
   const char *Class() override { return "ASTRepeatUntil"; }
   void PrintChildren(bool deep) override;
-  void add(ASTNode *nd) { body_.push_back(nd); }
-  int provides() override { return kProvidesNone; }
-  bool Resolved() override { return true; }
   void Print() override;
 };
 
@@ -160,6 +156,8 @@ public:
   AST_BranchIfFalse(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BranchIfFalse"; }
   int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
+  ASTNode *ResolveIfTheElse();
+  ASTNode *ResolveRepeatUntil();
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print() override;

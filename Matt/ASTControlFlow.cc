@@ -15,9 +15,18 @@
 
 #pragma mark - ASTJumpTarget
 
-void ASTJumpTarget::PrintNode(bool deep) {
+/**
+ \brief Print jump targets that have not been resolved and are still in the AST.
+ */
+void ASTJumpTarget::Print()
+{
+  PrintNode(true);
+}
+
+void ASTJumpTarget::PrintNode(bool deep)
+{
   ASTNode::PrintNode(deep);
-  dec.p.Printf("from %d", origin_);
+  dec.p.Printf(" from %d", origin_);
 }
 
 #pragma mark - ASTCodeBlock
@@ -205,9 +214,9 @@ ASTWhileDo::ASTWhileDo(Decompiler &d, int pc, ASTNode *condition)
 { }
 
 void ASTWhileDo::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> Condition");
+  dec.p.Tag(); dec.p.Print("##### ---> while");
   if (cond_) cond_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> Body");
+  dec.p.Tag(); dec.p.Print("##### <--> do");
   for (auto &nd: body_) if (nd) nd->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Body");
 }
@@ -226,37 +235,29 @@ void ASTWhileDo::Print() {
 
 #pragma mark - ASTRepeatUntil
 
+ASTRepeatUntil::ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition)
+: ASTCodeBlock(d, pc, kProvidesNone), cond_(condition)
+{ }
+
 void ASTRepeatUntil::PrintChildren(bool deep) {
+  dec.p.Tag(); dec.p.Print("##### ---> Repeat");
   for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--> Until");
   if (cond_) cond_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--- Condition");
 }
 
 void ASTRepeatUntil::Print() {
   if (!Resolved()) return PrintNode(false);
+
   dec.p.Printf("repeat");
-  if (body_.size() > 1) {
-    dec.p.Printf(" begin");
-    dec.p.DeepList(";");
-    for (auto &nd: body_) {
-      dec.p.Item();
-      nd->Print();
-      dec.p.ItemDone();
-    }
-    dec.p.Trailer(); dec.p.Printf("end");
-  } else if (body_.size() == 1) {
-    // loop only one instruction forever (could be an if...break)
-    dec.p.DeepList(";");
+  dec.p.DeepList(";");
+  for (auto &nd: body_) {
     dec.p.Item();
-    body_[0]->Print();
+    nd->Print();
     dec.p.ItemDone();
-    dec.p.Trailer();
-  } else {
-    dec.p.DeepList(";");
-    dec.p.Item();
-    dec.p.Printf("nil"); // special case, loops forever
-    dec.p.Trailer();
   }
-  dec.p.Printf("until "); cond_->Print();
+  dec.p.Trailer(); dec.p.Printf("until "); cond_->Print();
   dec.p.EndList();
 };
 
@@ -266,8 +267,7 @@ ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
 {
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
 
-  // TODO: used in "or"
-  // `while...do...` Branch A; Target B; n*stmt; Target A; expr; BranchIfTrue B; PushNIL;
+  // TODO: also used in "or", but how do we know which was used?
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     /* branch 2 */  AST_Branch *branch2 = nullptr;
@@ -357,30 +357,6 @@ void ASTIfThenElseNode::Print() {
   }
 }
 
-// TODO: better debug output needed?
-//  } else {
-//    if (dec.output == Print::deep) {
-//      dec.p.Item(); printHeader(); dec.p.Printf("%3d: ASTIfThenElseNode: if ###", pc_);
-//      dec.p.DeepList(); cond_->Print(); dec.p.EndList();
-//
-//      dec.p.Item(); printHeader(); dec.p.Printf("%3d: ASTIfThenElseNode: then ###", pc_);
-//      dec.p.DeepList();
-//      for (auto *nd: ifBranch_) nd->Print();
-//      dec.p.EndList();
-//
-//      dec.p.Item(); printHeader(); dec.p.Printf("%3d: ASTIfThenElseNode: else ###", pc_);
-//      dec.p.DeepList();
-//      for (auto *nd: elseBranch_) nd->Print();
-//      dec.p.EndList();
-//    }
-//    dec.p.Item();
-//    printHeader();
-//    dec.p.Printf("%3d: ASTIfThenElseNode %s- %zu %zu ###", pc_,
-//                 returnsAValue_ ? "Expression " : "",
-//                 ifBranch_.size(), elseBranch_.size());
-//  }
-//}
-
 #pragma mark - AST_BranchIfFalse
 
 /**
@@ -394,10 +370,7 @@ void ASTIfThenElseNode::Print() {
  and this node is replaced with a ASTIfThenElseNode, holding the instructions
  inside the 'then' and 'else' branch.
  */
-ASTNode *AST_BranchIfFalse::Resolve(Pass pass)
-{
-  if ((pass != Pass::ControlFlow) || Resolved()) return next;
-
+ASTNode *AST_BranchIfFalse::ResolveIfTheElse() {
   // ---- Check for the if...then...else... pattern
   do { // If any of the pattern checks fail, we can escape using 'break'.
     // -- Store the result of our exploration here
@@ -442,6 +415,44 @@ ASTNode *AST_BranchIfFalse::Resolve(Pass pass)
     dec.numASTChanges++;
     return ite;
   } while (0);
+  return nullptr;
+}
+
+ASTNode *AST_BranchIfFalse::ResolveRepeatUntil() {
+  do {
+    // -- Here is our pattern. Store the result of our exploration here:
+    /* target 1 */  ASTJumpTarget *jt1 = nullptr;
+    /* n-stmts  */  ASTNode *stmts = nullptr;
+    /*          */  int numStmts = 0;
+    /* expr     */  ASTNode *cond = nullptr;
+    /* c.brch 1 */  // <-- you are here
+
+    // -- Try the pattern
+    if (b_ > pc_) break;  // jump backwards
+    ASTNode *it = prev;
+    if (it->IsExpr()) { cond = it; it = it->prev; } else break;
+    numStmts = FindStatementsBwd(&it, &stmts);
+    if ((jt1 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
+
+    // -- The pattern matches. Replace everything with a ASTLoop node
+    // We did it. This is a while...do... construct!
+    ASTRepeatUntil *ru = new ASTRepeatUntil(dec, pc(), cond->Unlink());
+    delete jt1->Unlink();
+    ru->moveToBody(stmts, numStmts);
+    ReplaceWith(ru);
+    dec.numASTChanges++;
+    return ru;
+  } while (0);
+  return nullptr;
+}
+
+ASTNode *AST_BranchIfFalse::Resolve(Pass pass)
+{
+  if ((pass != Pass::ControlFlow) || Resolved()) return next;
+  ASTNode *nextNode = nullptr;
+  if ((nextNode = ResolveIfTheElse())) return nextNode;
+  if ((nextNode = ResolveRepeatUntil())) return nextNode;
   return next;
 }
 
