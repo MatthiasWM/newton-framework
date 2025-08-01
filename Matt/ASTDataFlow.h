@@ -77,7 +77,7 @@ public:
   AST_Pop(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_Pop"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  ASTNode *Resolve(Pass pass) override;
+  // Use superclass Resolve()
   void Print() override;
 };
 
@@ -270,7 +270,7 @@ public:
   AST_SetPath(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
   const char *Class() override { return "AST_SetPath"; }
-  void PrintChildren(bool deep);
+  void PrintChildren(bool deep) override;
   int provides() override;
   int consumes() override { return 3; }
   ASTNode *Resolve(Pass pass) override;
@@ -288,7 +288,7 @@ public:
   AST_SetARef(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
   const char *Class() override { return "AST_SetARef"; }
-  void PrintChildren(bool deep);
+  void PrintChildren(bool deep) override;
   int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   ASTNode *Resolve(Pass pass) override;

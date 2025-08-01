@@ -16,6 +16,7 @@
 class Decompiler;
 
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
+constexpr int kProvidesOne = 1;
 constexpr int kProvidesUnknown = -1;  // We don't know yet how many values will be on the stack
 constexpr int kSpecialNode = -2;      // First or Last node. Stop searching.
 constexpr int kJumpTarget = -3;
@@ -84,6 +85,8 @@ public:
   void UnlinkRange(ASTNode *last);
   void ReplaceWith(ASTNode *nd);
   int FindStatementsFwd(ASTNode **crsr, ASTNode **start);
+  int FindStatementsBwd(ASTNode **crsr, ASTNode **start);
+  void DeleteJumpTarget(int origin, int target);
 };
 
 

@@ -62,31 +62,9 @@ void AST_GetVar::Print() {
 
 #pragma mark - AST_Pop
 
-ASTNode *AST_Pop::Resolve(Pass pass)
-{
-  if ((pass != Pass::DataFlow) || Resolved()) return next;
-
-  AST_Branch *branch = prev ? dynamic_cast<AST_Branch*>(prev) : nullptr;
-  if (branch && (branch->b() > pc_)) {
-    // If the sequence is 'branch; pop;', the pop can never be reached
-    // because there is no jump target between them.
-    // Lucky for us, break operations are by definition expressions, so
-    // the pop is needed, which makes this a reliable way to find a
-    // break instruction.
-    // The AST_Break will take care of the jump target when resolved.
-    AST_Break *breakNode = new AST_Break(dec, branch->pc(), 0, branch->b());
-    delete branch->Unlink();
-    this->ReplaceWith(breakNode);
-    dec.numASTChanges++;
-    return breakNode;
-  }
-  return AST_Consume1::Resolve(pass);
-}
-
 void AST_Pop::Print() {
   if (!Resolved()) return PrintNode(false);
   in_->Print();
-// ??  dec.p.Item();
 }
 
 #pragma mark - AST_Dup

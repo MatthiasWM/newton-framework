@@ -9,14 +9,17 @@
 
 #include "Matt/AST.h"
 #include "Matt/ASTAdmin.h"
+#include "Matt/ASTControlFlow.h"
 #include "Matt/Decompiler.h"
 
 /*
     ASTNode --+-- ASTFirstNode
               +-- ASTLastNode
               +-- ASTByteCodeNode --+-- ASTConsume1
-                                    +-- ASTConsume2
-                                    +-- ASTConsumeN
+              |                     +-- ASTConsume2
+              |                     +-- ASTConsumeN
+              +-- ASTCodeBlock -----+-- ASTLoop
+              |                     +-- ASTIfThenElseNode
 
 
  */
@@ -93,7 +96,7 @@ ASTNode *ASTNode::Resolve(Pass pass)
 
 /**
  \brief Collect all Statement style nodes next in the list.
- \param[inout] crsr start at this node, walk down 'next', and return the first
+ \param[inout] crsr start at this node, walk along 'next', and return the first
     node that is not a statement.
  \param[out] first returns the first node that was a statement, or the initial crsr if there was none
  \return the number of statements found
@@ -109,4 +112,48 @@ int ASTNode::FindStatementsFwd(ASTNode **crsr, ASTNode **start)
   }
   *crsr = nd;
   return n;
+}
+
+/**
+ \brief Collect all Statement style nodes prev in the list.
+ \param[inout] crsr start at this node, walk along 'prev', and return the first
+    node that is not a statement.
+ \param[out] first returns the first node that was a statement, or the initial crsr if there was none
+ \return the number of statements found
+ */
+int ASTNode::FindStatementsBwd(ASTNode **crsr, ASTNode **start)
+{
+  ASTNode *nd = *crsr;
+  int n = 0;
+  while (nd->IsStatement()) {
+    n++;
+    nd = nd->prev;
+  }
+  if (start) *start = nd->next;
+  *crsr = nd;
+  return n;
+}
+
+
+/**
+ \brief Delete a jump target.
+ */
+void ASTNode::DeleteJumpTarget(int origin, int target) {
+  ASTJumpTarget *jt = nullptr;
+  if (pc() > target) { // search backward
+    for (ASTNode *it = this; it; it = it->prev) {
+      jt = dynamic_cast<ASTJumpTarget*>(it);
+      if (jt && (jt->pc() == target) && (jt->Origin() == origin)) break;
+    }
+  } else { // search forward
+    for (ASTNode *it = this; it; it = it->next) {
+      jt = dynamic_cast<ASTJumpTarget*>(it);
+      if (jt && (jt->pc() == target) && (jt->Origin() == origin)) break;
+    }
+  }
+  if (jt) {
+    delete jt->Unlink();
+  } else {
+    assert(0); // Tried to delete a jump target that does not exist!
+  }
 }

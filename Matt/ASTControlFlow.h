@@ -28,28 +28,41 @@ public:
   bool Resolved() override { return false; }
 };
 
-/**
- \brief This node is used to replace a `loop` construct when detected by AST_Branch.
- */
-class ASTLoop : public ASTNode {
+
+class ASTCodeBlock : public ASTNode {
 protected:
+  int provides_ = kProvidesNone;
   std::vector<ASTNode*> body_;
+  void moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body);
+  void PrintBody(const std::string &prolog,
+                 const std::string &separator,
+                 const std::string &epilog,
+                 std::vector<ASTNode*> &body);
 public:
-  ASTLoop(Decompiler &d, int pc) : ASTNode(d, pc) { }
-  const char *Class() override { return "ASTLoop"; }
+  ASTCodeBlock(Decompiler &d, int pc, int inProvides);
+  const char *Class() override { return "ASTCodeBlock"; }
+  void PrintChildren(bool deep) override;
   void add(ASTNode *nd) { body_.push_back(nd); }
-  int provides() override { return 1; }
+  void moveToBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
+  int provides() override { return provides_; }
   bool Resolved() override { return true; }
+};
+
+class ASTLoop : public ASTCodeBlock {
+public:
+  ASTLoop(Decompiler &d, int pc);
+  const char *Class() override { return "ASTLoop"; }
   void Print() override;
 };
 
-// (A=11): --
 class AST_Branch : public ASTBytecodeNode {
 public:
   AST_Branch(Decompiler &d, int pc, int a, int b) : ASTBytecodeNode(d, pc, a, b) { }
   const char *Class() override { return "AST_Branch"; }
   int provides() override { return kBranch; }
   bool Resolved() override { return false; }
+  ASTNode *ResolveLoop();
+  ASTNode *ResolveBreak();
   ASTNode *Resolve(Pass pass) override;
   void Print() override;
 };
@@ -61,7 +74,7 @@ protected:
 public:
   ASTWhileDo(Decompiler &d, int pc, ASTNode *condition) : ASTNode(d, pc), cond_(condition) { }
   const char *Class() override { return "ASTWhileDo"; }
-  void PrintChildren(bool deep);
+  void PrintChildren(bool deep) override;
   void add(ASTNode *nd) { body_.push_back(nd); }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
@@ -75,7 +88,7 @@ protected:
 public:
   ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition) : ASTNode(d, pc), cond_(condition) { }
   const char *Class() override { return "ASTRepeatUntil"; }
-  void PrintChildren(bool deep);
+  void PrintChildren(bool deep) override;
   void add(ASTNode *nd) { body_.push_back(nd); }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
@@ -103,25 +116,18 @@ public:
  originally have been an `a and b` statement.
  \see AST_BranchIfFalse
  */
-class ASTIfThenElseNode: public ASTNode {
+class ASTIfThenElseNode: public ASTCodeBlock {
   ASTNode *cond_ { nullptr };
-  std::vector<ASTNode*> ifBranch_;
-  std::vector<ASTNode*> elseBranch_;
-  bool returnsAValue_ { false };
-  void moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body);
+  std::vector<ASTNode*> elseBody_;
 public:
-  ASTIfThenElseNode(Decompiler &d, int pc, bool returnsAValue) : ASTNode(d, pc), returnsAValue_(returnsAValue) { }
+  ASTIfThenElseNode(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue);
   const char *Class() override { return "ASTIfThenElseNode"; }
-  void setCond(ASTNode *nd) { cond_ = nd; }
-  void addIf(ASTNode *nd) { ifBranch_.push_back(nd); }
-  void addElse(ASTNode *nd) { elseBranch_.push_back(nd); }
-  int provides() override { return returnsAValue_ ? 1 : 0; }
-  /// This node only exists if all nodes involved are resolved.
+  void PrintChildren(bool deep) override;
   bool Resolved() override { return true; }
   void Print() override;
 
-  void moveToIfBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, ifBranch_); }
-  void moveToElseBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, elseBranch_); }
+  void moveToIfBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
+  void moveToElseBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, elseBody_); }
 
 };
 
@@ -178,12 +184,13 @@ public:
   void Print() override;
 };
 
-class AST_Break : public AST_Consume1 {
+class AST_Break : public ASTNode {
+  ASTNode *in_ = nullptr;
 public:
-  AST_Break(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  AST_Break(Decompiler &d, int origin, int target, ASTNode *input);
   const char *Class() override { return "AST_Break"; }
-  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  ASTNode *Resolve(Pass pass) override;
+  int provides() override { return kProvidesNone; }
+  bool Resolved() override { return true; }
   void Print() override;
 };
 
@@ -324,7 +331,7 @@ public:
   AST_BranchLoop(Decompiler &d, int pc, int a, int b)
   : ASTBytecodeNode(d, pc, a, b) { }
   const char *Class() override { return "AST_BranchLoop"; }
-  void PrintChildren(bool deep);
+  void PrintChildren(bool deep) override;
   int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   bool Resolved() override { return (incr_ != nullptr) && (index_ != nullptr) && (limit_ != nullptr); }
