@@ -84,6 +84,8 @@ public:
   int consumes() override { return 2; }
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (in1_ != nullptr) && (in2_ != nullptr); }
+  ASTNode *input1() { return in1_; }
+  ASTNode *input2() { return in2_; }
 };
 
 

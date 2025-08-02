@@ -296,38 +296,39 @@ void AST_CF_ForLoop::Print()
 
 #pragma mark - AST_CF_ForEachSlotDo
 
-AST_CF_ForEachSlotDo::AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr)
-: AST_CodeBlock(d, pc, kProvidesOne),
-iter_(iter), limit_(limit), incr_(incr)
+AST_CF_ForEachSlotDo::AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply)
+: AST_CodeBlock(d, pc, kProvidesNone),
+object_(obj), slot_(slot), value_(value), deeply_(deeply)
 { }
 
 void AST_CF_ForEachSlotDo::PrintChildren(bool deep)
 {
-  dec.p.Tag(); dec.p.Print("##### ---> For start");
-  if (iter_) iter_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> to ");
-  if (limit_) limit_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> by ");
-  if (incr_) incr_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> For Body ");
+  dec.p.Tag();
+  dec.p.Print("##### ---> Foreach ");
+  if (slot_ != -1) {
+    dec.printLocal(slot_);
+    dec.p.Print(", ");
+  }
+  dec.printLocal(value_);
+  if (deeply_) dec.p.Print(" deeply");
+  dec.p.Print(" in");
+  if (object_) object_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--> do ");
   for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- For Done");
+  dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
 }
 
 void AST_CF_ForEachSlotDo::Print()
 {
-  bool printBy = true;
-  AST_BC_PushConst *incrValNode = dynamic_cast<AST_BC_PushConst*>(incr_);
-  if (incrValNode && (incrValNode->b() == MAKEINT(1))) printBy = false;
-
-  dec.p.Print("for ");
-  iter_->Print();
-  dec.p.Print(" to ");
-  limit_->Print();
-  if (printBy) {
-    dec.p.Print(" by ");
-    incr_->Print();
+  dec.p.Print("foreach ");
+  if (slot_ != -1) {
+    dec.printLocal(slot_);
+    dec.p.Print(", ");
   }
+  dec.printLocal(value_);
+  if (deeply_) dec.p.Print(" deeply");
+  dec.p.Print(" in ");
+  object_->Print();
   if (body_.size() <= 1)
     PrintBody(" do", ";", "", body_);
   else

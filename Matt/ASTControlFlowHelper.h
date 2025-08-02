@@ -121,11 +121,12 @@ public:
 };
 
 class AST_CF_ForEachSlotDo : public AST_CodeBlock {
-  ASTNode *iter_ = nullptr;
-  ASTNode *limit_ = nullptr;
-  ASTNode *incr_ = nullptr;
+  ASTNode *object_ = nullptr;
+  int slot_ = -1;
+  int value_ = -1;
+  bool deeply_ = false;
 public:
-  AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr);
+  AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply);
   const char *Class() override { return "AST_CF_ForEachSlotDo"; }
   void PrintChildren(bool deep) override;
   void Print() override;

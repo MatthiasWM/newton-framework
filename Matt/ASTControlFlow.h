@@ -90,11 +90,12 @@ class AST_BC_NewIter : public AST_Consume2 {
 public:
   AST_BC_NewIter(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_NewIter"; }
+  int provides() override { return kProvidesUnknown; }
   bool Resolved() override { return false; }
   ASTNode *Resolve(Pass pass) override;
-  ASTNode *ResolveForeachSlotDo();
+  ASTNode *ResolveForeachValueDo();
   ASTNode *ResolveForeachSlotKeyDo();
-  ASTNode *ResolveForeachSlotCollect();
+  ASTNode *ResolveForeachValueCollect();
   ASTNode *ResolveForeachSlotKeyCollect();
   void Print() override;
 };
@@ -104,7 +105,7 @@ class AST_BC_IterNext : public AST_Consume1 {
 public:
   AST_BC_IterNext(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IterNext"; }
-  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  int provides() override { return kProvidesUnknown; }
   void Print() override;
 };
 
@@ -113,7 +114,7 @@ class AST_BC_IterDone : public AST_Consume1 {
 public:
   AST_BC_IterDone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IterDone"; }
-  int provides() override { if (in_) return 1; else return kProvidesUnknown; }
+  int provides() override { return kProvidesUnknown; }
   void Print() override;
 };
 

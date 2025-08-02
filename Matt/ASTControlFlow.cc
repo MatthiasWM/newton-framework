@@ -384,7 +384,7 @@ ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
     if ((jt2->Origin() != pc()) || (jt2->pc() != b())) break;
     if ((jt1->Origin() != branch->pc()) || (jt1->pc() != branch->b())) break;
 
-    // -- The pattern matches. Replace everything with a AST_CF_Loop node
+    // -- The pattern matches. Replace everything with a AST_CF_ForLoop node
     AST_CF_ForLoop *forLoopNode = new AST_CF_ForLoop(dec, pc(), setvar3, setvar2->input(), setvar1->input());
     forLoopNode->moveToBody(firstStmt, numStmt);
     setvar1->Unlink();
@@ -441,20 +441,20 @@ void AST_BC_NewIter::Print() {
 
 ASTNode *AST_BC_NewIter::Resolve(Pass pass)
 {
+  if ((pass != Pass::ControlFlow) || Resolved()) return next;
+
   ASTNode *ret = nullptr;
-  if ((ret = ResolveForeachSlotDo())) return ret;
+  if ((ret = ResolveForeachValueDo())) return ret;
   if ((ret = ResolveForeachSlotKeyDo())) return ret;
-  if ((ret = ResolveForeachSlotCollect())) return ret;
+  if ((ret = ResolveForeachValueCollect())) return ret;
   if ((ret = ResolveForeachSlotKeyCollect())) return ret;
   return next;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachSlotDo()
+ASTNode *AST_BC_NewIter::ResolveForeachValueDo()
 {
-  // TODO: write me
-//  ##### [P:-2] pc= -1: AST_FirstNode a=0, b=0
 //  ##### [P: 1] pc=  0: AST_BC_FindVar a=14, b=0
-//  ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=2 <-- nil is 'in', true is 'deeply in'
+//  ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=2
 //  ##### [P:-1] pc=  2: AST_BC_NewIter a=24, b=17
 //  ##### [P:-1] pc=  5: AST_BC_SetVar a=20, b=6
 //  ##### [P:-4] pc=  6: AST_BC_Branch a=11, b=19
@@ -467,8 +467,101 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotDo()
 //  ##### [P:-1] pc= 21: AST_BC_BranchIfFalse a=13, b=9
 //  ##### [P: 1] pc= 24: AST_BC_PushConst a=4, b=2
 //  ##### [P: 0] pc= 26: AST_BC_SetVar a=20, b=6
-//  ##### [P:-1] pc= 27: AST_BC_Return a=0, b=2
-//  ##### [P:-2] pc= -1: AST_LastNode a=0, b=0
+//  ##### [P:-1] pc= 27: AST_BC_Pop a=0, b=0
+//  ##### [P: 1] pc= 29: AST_BC_Return a=0, b=2
+
+  do {
+    // -- Here is our pattern. Store the result of our exploration here:
+    int slot = -1, value = -1, iter = -1;
+    /* expr         */  ASTNode *slottedObj;
+    /* pushconst    */  AST_BC_PushConst *deeplyNd;
+    /* newiter      */  // <---- you are here
+    /* setvar iter  */  AST_BC_SetVar *setvar1;
+    /* branch 1     */  AST_BC_Branch *branch;
+    /* jumptarget 2 */  AST_JumpTarget *jt2;
+    /* setvar slot  */  AST_BC_SetVar *setvar2;
+    /* | getvar       */  AST_BC_GetVar *slot_getvar;
+    /* | pushconst    */  AST_BC_PushConst *slot_pushconst;
+    /* | aref         */  AST_BC_ARef *slot_aref;
+    /* | setvar       */  AST_BC_SetVar *slot_setvar;
+    /* statements   */  ASTNode *firstStmt;
+    /*              */  int numStmts;
+    /* iternext     */  AST_BC_IterNext *iternext;
+    /* jumptarget 1 */  AST_JumpTarget *jt1;
+    /* iterdone     */  AST_BC_IterDone *iterdone;
+    /* c.branch 2   */  AST_BC_BranchIfFalse *cbranch;
+    /* pushconst nil*/  AST_BC_PushConst *cleanup1;
+    /* setvar iter  */  AST_BC_SetVar *cleanup2;
+    /* pop          */  AST_BC_Pop *cleanup3;
+
+    // -- Try the pattern. We must trace backwards.
+    // Walk backwards in the AST root
+    ASTNode *it = prev;
+    bool deeply = false;
+    if ( !(deeplyNd = ToBwd<AST_BC_PushConst>(&it, false)) ) break;
+    if (deeplyNd->b() == 2) deeply = false;
+    else if (deeplyNd->b() == 26) deeply = true;
+    else break;
+    slottedObj = it; if (!slottedObj->Resolved()) break;
+    // Now walk forwards
+    it = next;
+    if ( !(setvar1 = ToFwd<AST_BC_SetVar>(&it, false)) ) break;
+    iter = setvar1->b();
+    if ( !(branch = ToFwd<AST_BC_Branch>(&it, false)) ) break;
+    if ( !(jt2 = ToFwd<AST_JumpTarget>(&it, false)) ) break;
+    if ( !(setvar2 = ToFwd<AST_BC_SetVar>(&it, false)) ) break;
+    value = setvar2->b();
+    // If the original source code uses the 'slot' option, the following AST subtree must match:
+    // The statement here is: `local slot := |slotvalue|iter|[0];`
+    if ( (slot_setvar = dynamic_cast<AST_BC_SetVar*>(it)) ) {
+      if ( (slot_aref = dynamic_cast<AST_BC_ARef*>(slot_setvar->input())) ) {
+        slot_getvar = dynamic_cast<AST_BC_GetVar*>(slot_aref->input1());
+        slot_pushconst = dynamic_cast<AST_BC_PushConst*>(slot_aref->input2());
+        if ((slot_pushconst->b() == 0) && (slot_getvar->b() == iter)) {
+          slot = slot_setvar->b();
+          it = it->next;
+        }
+      }
+    }
+    if (slot == -1) slot_setvar = nullptr;
+    // The remaining statements form the body
+    numStmts = FindStatementsFwd(&it, &firstStmt);
+    // Now find the rest of the 'foreach' pattern
+    if ( !(iternext = ToFwd<AST_BC_IterNext>(&it, true)) ) break;
+    if ( !(jt1 = ToFwd<AST_JumpTarget>(&it, false)) ) break;
+    if ( !(iterdone = ToFwd<AST_BC_IterDone>(&it, false)) ) break;
+    if ( !(cbranch = ToFwd<AST_BC_BranchIfFalse>(&it, false)) ) break;
+    // cleanup
+    if ( !(cleanup1 = ToFwd<AST_BC_PushConst>(&it, false)) ) break;
+    if ( !(cleanup2 = ToFwd<AST_BC_SetVar>(&it, true)) ) break;
+    if ( !(cleanup3 = ToFwd<AST_BC_Pop>(&it, false)) ) break;
+    // TODO: we should still verify the two jump targets
+
+    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+    dec.useLocalAs(value, Decompiler::Local::Use::iter);
+    if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
+
+    // -- The pattern matches. Replace everything with a AST_CF_ForLoop node
+    AST_CF_ForEachSlotDo *foreachNode = new AST_CF_ForEachSlotDo(dec, pc_, slottedObj, slot, value, deeply);
+    foreachNode->moveToBody(firstStmt, numStmts);
+    slottedObj->Unlink();
+    deeplyNd->Unlink();
+    setvar1->Unlink();
+    branch->Unlink();
+    jt2->Unlink();
+    setvar2->Unlink();
+    iternext->Unlink();
+    jt1->Unlink();
+    iterdone->Unlink();
+    cbranch->Unlink();
+    cleanup1->Unlink();
+    cleanup2->Unlink();
+    cleanup3->Unlink();
+    if (slot_setvar) slot_setvar->Unlink();
+    ReplaceWith(foreachNode);
+    dec.numASTChanges++;
+
+  } while (0);
   return nullptr;
 }
 
@@ -478,7 +571,7 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyDo()
   return nullptr;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachSlotCollect()
+ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
 {
   // TODO: write me
   return nullptr;
@@ -489,8 +582,6 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyCollect()
   // TODO: write me
   return nullptr;
 }
-
-
 
 #pragma mark - AST_BC_IterNext
 
