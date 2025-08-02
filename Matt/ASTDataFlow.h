@@ -101,6 +101,7 @@ public:
   const char *Class() override { return "AST_BC_SetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print() override;
+  ASTNode *input() { return in_; }
 };
 
 // (A=21): value --

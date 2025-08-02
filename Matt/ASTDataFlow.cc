@@ -77,7 +77,6 @@ void AST_BC_Dup::Print() {
 
 void AST_BC_SetVar::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.printLocal(b_);
   dec.p.Printf(" := ");
   in_->Print();

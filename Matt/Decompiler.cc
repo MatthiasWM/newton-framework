@@ -23,6 +23,10 @@
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
+/* FIXME: all allocated AST nodes should be kept in a single vector and never
+    be deleted eval, but instead when the Decompiler is deleted. WHen new nodes
+    are created at eval time, the must be added to that same cleanup vector.
+ */
 /* TODO: Remove these kind of sequences:
     Found at the end of a while loop:
       ###[ 1]  11: AST_BC_FindVar literal[0] ###
@@ -74,19 +78,6 @@ class ASTNode;
 class AST_Bytecode;
 class AST_JumpTarget;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // -----------------------------------------------------------------------------
 
 void Decompiler::decompile(Ref ref)
@@ -112,7 +103,7 @@ void Decompiler::decompile(Ref ref)
              (uintptr_t)this);
     locals_[0].use = Local::Use::system; // _nextArgFrame
     locals_[1].use = Local::Use::system; // _parent
-    locals_[2].use =Local:: Use::system; // _implementor
+    locals_[2].use = Local:: Use::system; // _implementor
     for (int i=0; i<numArgs_; i++)
       locals_[i+3].use = Local::Use::arg;
     for (int i=0; i<numLocals_; i++)
@@ -427,15 +418,21 @@ void Decompiler::printSource()
 
   // List all locals first! "local a;" ...
   if (numLocals_) {
+    bool localsPrinted = false;
     for (int i = 0; i < numLocals_; ++i) {
-      // Don;t print locals that are used as iterators in 'for' or 'foreach'
-      if (localUsedAs(i + 3 + numArgs_, Local::Use::local))
-      p.Item();
-      p.Printf("local ");
-      printLocal(i + 3 + numArgs_);
-      p.ItemDone();
+      // Don't print locals that are used as iterators in 'for' or 'foreach'
+      if (localUsedAs(i + 3 + numArgs_, Local::Use::local)) {
+        p.Item();
+        p.Printf("local ");
+        printLocal(i + 3 + numArgs_);
+        p.ItemDone();
+        localsPrinted = true;
+      }
     }
-    p.Tag(); p.Print(""); // generate an empty line
+    if (localsPrinted) {
+      p.Tag();
+      p.Print(""); // generate an empty line
+    }
   }
 
   // Now print all the top level nodes from the AST.

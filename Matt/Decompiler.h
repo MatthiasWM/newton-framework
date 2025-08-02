@@ -67,6 +67,7 @@ public:
     p.PrintRef(GetArraySlot(literals_, ix));
   }
   bool localUsedAs(int ix, Local::Use sameUse) { return (locals_[ix].use == sameUse); }
+  void useLocalAs(int ix, Local::Use newUse) { locals_[ix].use = newUse; }
   void printLocal(int ix) {
     p.PrintTag(locals_[ix].ref);
   }

@@ -19,7 +19,7 @@
 // DONE: repeat...until...
 // DONE: while...do...
 // DONE: break
-// TODO: for...to...by...do...
+// DONE: for...to...by...do...
 // TODO: foreach...slot...in...do...
 // TODO: foreach...slot,value...in...do...
 // TODO: foreach...deeply in...do...
@@ -43,17 +43,17 @@ ASTNode *AST_BC_Branch::ResolveLoop()
   // ---- Check for the loop... pattern
   do {
     // -- Store the result of our exploration here
-    /* target 1 */  AST_JumpTarget *jt = nullptr;
-    /* n-stmts  */  ASTNode *firstStmt = nullptr;
-    /* expr     */  int numStmt = 0;
-    /* branch 1 */  // <-- you are here
+    /* target 1     */  AST_JumpTarget *jt = nullptr;
+    /* n statements */  ASTNode *firstStmt = nullptr;
+    /* expr         */  int numStmt = 0;
+    /* branch 1     */  // <-- you are here
 
     // -- Try this pattern
-    ASTNode *it = prev;
+    ASTNode *iter = prev;
     if (b_ > pc_) break; // Jump must be backward
-    numStmt = FindStatementsBwd(&it, &firstStmt);
-    if (!(jt = dynamic_cast<AST_JumpTarget*>(it))) break;
-    if ((jt->Origin() != pc()) || (jt->pc() != b())) break;
+    numStmt = FindStatementsBwd(&iter, &firstStmt);
+    if ( !(jt = ToBwd<AST_JumpTarget>(&iter, false)) )  break;
+    if ((jt->Origin() != pc()) || (jt->pc() != b()))    break;
 
     // -- The pattern matches. Replace everything with a AST_CF_Loop node
     // It's a loop! Build a new node.
@@ -308,11 +308,7 @@ void AST_BC_Return::Print() {
   in_->Print();
 }
 
-#pragma mark - AST_BC_SetLexScope
-
-void AST_BC_SetLexScope::Print() {
-  if (!Resolved()) return PrintNode(false);
-}
+#pragma mark - For loop -
 
 #pragma mark - AST_BC_IncrVar
 
@@ -320,7 +316,192 @@ void AST_BC_IncrVar::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
+#pragma mark - AST_BC_BranchLoop
+
+/*
+ This indicates the end of a 'for' loop. The pattern is:
+ local 5:i, 6:|i|limit|, 7:|i|incr|
+ AST_BC_SetVar b=5
+ AST_BC_SetVar b=6
+ AST_BC_SetVar b=7
+ AST_BC_GetVar b=7
+ AST_BC_GetVar b=5
+ AST_BC_Branch 1
+ AST_JumpTarget 2
+ Statements
+ AST_BC_IncrVar a=22, b=5
+ AST_JumpTarget 1
+ AST_BC_GetVar a=15, b=6
+ AST_BC_BranchLoop 2
+ */
+
+AST_BC_BranchLoop::AST_BC_BranchLoop(Decompiler &d, int pc, int a, int b)
+: AST_Bytecode(d, pc, a, b)
+{ }
+
+ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
+{
+  do {
+    // -- Here is our pattern. Store the result of our exploration here:
+    int iter = -1, limit = -1, incr = -1;
+    /* setvar iter  */  AST_BC_SetVar *setvar3 = nullptr;
+    /* setvar limit */  AST_BC_SetVar *setvar2 = nullptr;
+    /* setvar incr  */  AST_BC_SetVar *setvar1 = nullptr;
+    /* getvar incr  */  AST_BC_GetVar *getvar3 = nullptr;
+    /* getvar iter  */  AST_BC_GetVar *getvar2 = nullptr;
+    /* branch 1     */  AST_BC_Branch *branch = nullptr;
+    /* jumptarget 2 */  AST_JumpTarget *jt2 = nullptr;
+    /* n statments  */  ASTNode *firstStmt = nullptr;
+    /*              */  int numStmt = 0;
+    /* incrvar iter */  AST_BC_IncrVar *incrVar = nullptr;
+    /* jumptarget 1 */  AST_JumpTarget *jt1 = nullptr;
+    /* getvar limit */  AST_BC_GetVar *getvar1 = nullptr;
+    /* branchloop 2 */  // <-- you are here
+
+    // -- Try the pattern. We must trace backwards.
+    ASTNode *it = prev;
+    if ( !(getvar1  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
+    if ( !(jt1      = ToBwd<AST_JumpTarget>(&it, false)) )  break;
+    if ( !(incrVar  = ToBwd<AST_BC_IncrVar>(&it, false)) )  break;
+    numStmt = FindStatementsBwd(&it, &firstStmt);
+    if ( !(jt2      = ToBwd<AST_JumpTarget>(&it, false)) )  break;
+    if ( !(branch   = ToBwd<AST_BC_Branch>(&it, false)) )   break;
+    if ( !(getvar2  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
+    if ( !(getvar3  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
+    if ( !(setvar1  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
+    if ( !(setvar2  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
+    if ( !(setvar3  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
+
+    // Check us of variables
+    iter = getvar2->b();  dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+    limit = getvar1->b(); dec.useLocalAs(limit, Decompiler::Local::Use::iter);
+    incr = getvar3->b();  dec.useLocalAs(incr, Decompiler::Local::Use::iter);
+    if (setvar1->b() != incr) break;
+    if (setvar2->b() != limit) break;
+    if (setvar3->b() != iter) break;
+
+    // Check jump origins and destinations
+    if ((jt2->Origin() != pc()) || (jt2->pc() != b())) break;
+    if ((jt1->Origin() != branch->pc()) || (jt1->pc() != branch->b())) break;
+
+    // -- The pattern matches. Replace everything with a AST_CF_Loop node
+    AST_CF_ForLoop *forLoopNode = new AST_CF_ForLoop(dec, pc(), setvar3, setvar2->input(), setvar1->input());
+    forLoopNode->moveToBody(firstStmt, numStmt);
+    setvar1->Unlink();
+    setvar2->Unlink();  // Note: link only the input to the sevar
+    setvar3->Unlink();  // Note: we link the sevar node iteself
+    getvar1->Unlink();
+    getvar2->Unlink();
+    getvar3->Unlink();
+    incrVar->Unlink();
+    branch->Unlink();
+    jt1->Unlink();
+    jt2->Unlink();
+    ReplaceWith(forLoopNode);
+    dec.numASTChanges++;
+  } while (0);
+  return next;
+}
+
+#pragma mark - Foreach loop -
+
+#pragma mark - AST_BC_NewIter
+
+/**
+ \class AST_BC_NewIter
+ \brief Start a foreach loop.
+ ```
+ object deeply -- iterator
+ ```
+ Creates an iterator for object. If object is a frame and deeply is non-nil,
+ the iterator will follow _proto links in object. If object is not a frame or
+ array, bad type error NotAFrameOrArray is thrown.
+
+ This generates two locals for an array and three locals for a frame:
+  - slot, |slot|iter|
+  - slot, value, |slotvalue|iter|
+
+ If we choose 'collect' instead of 'do', another local variable |slot|result|
+ is added.
+
+ The iterator is a slotted object with the following members:
+  - 0: The tag of the current slot
+  - 1: The value of the current slot
+  - 3: If the second argument to new-iterator is true, the total number of
+    slots that will be visited by the iterator
+  - 5: The number of slots in object
+
+ \see AST_BC_IterNext
+ \see AST_BC_IterDone
+ */
+
+void AST_BC_NewIter::Print() {
+  if (!Resolved()) return PrintNode(false);
+}
+
+ASTNode *AST_BC_NewIter::Resolve(Pass pass)
+{
+  ASTNode *ret = nullptr;
+  if ((ret = ResolveForeachSlotDo())) return ret;
+  if ((ret = ResolveForeachSlotKeyDo())) return ret;
+  if ((ret = ResolveForeachSlotCollect())) return ret;
+  if ((ret = ResolveForeachSlotKeyCollect())) return ret;
+  return next;
+}
+
+ASTNode *AST_BC_NewIter::ResolveForeachSlotDo()
+{
+  // TODO: write me
+//  ##### [P:-2] pc= -1: AST_FirstNode a=0, b=0
+//  ##### [P: 1] pc=  0: AST_BC_FindVar a=14, b=0
+//  ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=2 <-- nil is 'in', true is 'deeply in'
+//  ##### [P:-1] pc=  2: AST_BC_NewIter a=24, b=17
+//  ##### [P:-1] pc=  5: AST_BC_SetVar a=20, b=6
+//  ##### [P:-4] pc=  6: AST_BC_Branch a=11, b=19
+//  ##### [P:-3] pc=  9: AST_JumpTarget a=0, b=0 from 21
+//  ##### [P: 0] pc= 12: AST_BC_SetVar a=20, b=5
+//  ##### [P: 0] pc= 16: AST_BC_Pop a=0, b=0
+//  ##### [P: 0] pc= 18: AST_BC_IterNext a=0, b=5
+//  ##### [P:-3] pc= 19: AST_JumpTarget a=0, b=0 from 6
+//  ##### [P: 1] pc= 20: AST_BC_IterDone a=0, b=6
+//  ##### [P:-1] pc= 21: AST_BC_BranchIfFalse a=13, b=9
+//  ##### [P: 1] pc= 24: AST_BC_PushConst a=4, b=2
+//  ##### [P: 0] pc= 26: AST_BC_SetVar a=20, b=6
+//  ##### [P:-1] pc= 27: AST_BC_Return a=0, b=2
+//  ##### [P:-2] pc= -1: AST_LastNode a=0, b=0
+  return nullptr;
+}
+
+ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyDo()
+{
+  // TODO: write me
+  return nullptr;
+}
+
+ASTNode *AST_BC_NewIter::ResolveForeachSlotCollect()
+{
+  // TODO: write me
+  return nullptr;
+}
+
+ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyCollect()
+{
+  // TODO: write me
+  return nullptr;
+}
+
+
+
 #pragma mark - AST_BC_IterNext
+
+/**
+ \class AST_BC_IterNext
+ \brief Continue a foreach operation
+ ```
+ iterator --
+ ```
+ Pops a reference to an iterator from the stack and advances it to the next slot.
+ */
 
 void AST_BC_IterNext::Print() {
   if (!Resolved()) return PrintNode(false);
@@ -328,77 +509,16 @@ void AST_BC_IterNext::Print() {
 
 #pragma mark - AST_BC_IterDone
 
-void AST_BC_IterDone::Print() {
-  if (!Resolved()) return PrintNode(false);
-}
-
-#pragma mark - AST_BC_NewIter
-
-/* This is the start of a foreach loop. These are the patterns:
-  (not sure yet what code the "deeply" keyword generates, maybe changes the iterator type?)
-
- foreach...slot...in...do...
-    locals 5:slot, 6:|slot|iter|
-    AST_BC_NewIter a=24, b=17
-    AST_BC_SetVar a=20, b=6
-    AST_BC_Branch 1
-  AST_JumpTarget 2
-    AST_BC_SetVar a=20, b=5
-    n * Statements
-    AST_BC_IterNext a=0, b=5
-  AST_JumpTarget 1
-    AST_BC_IterDone a=0, b=6
-    AST_BC_BranchIfFalse 2
-    AST_BC_PushConst a=4, b=2
-    AST_BC_SetVar a=20, b=6
-
- foreach...slot,value...in...do...
-    locals 5:slot, 6:value, 7:|slotvalue|iter|
-    AST_BC_NewIter a=24, b=17
-    AST_BC_SetVar a=20, b=7
-    AST_BC_Branch 1
-  AST_JumpTarget 2
-    AST_BC_SetVar a=20, b=6
-    AST_BC_SetVar a=20, b=5
-    n * Statements
-    AST_BC_IterNext a=0, b=5
-  AST_JumpTarget 1
-    AST_BC_IterDone a=0, b=6
-    AST_BC_BranchIfFalse 2
-    AST_BC_PushConst a=4, b=2
-    AST_BC_SetVar a=20, b=7
-
- foreach...slot...in...collect...
-    locals 5:slot, 6:|slot|iter|, 7:|slot|index|, 8:|slot|result|
- ##### [P:-1] pc=  2: AST_BC_NewIter a=24, b=17
- ##### [P:-1] pc=  5: AST_BC_SetVar a=20, b=6
- ##### [P: 0] pc= 15: AST_BC_SetVar a=20, b=8
- ##### [P: 0] pc= 19: AST_BC_SetVar a=20, b=7
- ##### [P:-4] pc= 22: AST_BC_Branch a=11, b=48
- ##### [P:-3] pc= 25: AST_JumpTarget a=0, b=0 from 50
- ##### [P: 0] pc= 28: AST_BC_SetVar a=20, b=5
- ##### [P: 0] pc= 38: AST_BC_SetARef a=24, b=3
- ##### [P:-1] pc= 39: AST_BC_Pop a=0, b=0
- ##### [P: 2] pc= 41: AST_BC_IncrVar a=22, b=7
- ##### [P:-1] pc= 44: AST_BC_Pop a=0, b=0
- ##### [P:-1] pc= 45: AST_BC_Pop a=0, b=0
- ##### [P: 0] pc= 47: AST_BC_IterNext a=0, b=5
- ##### [P:-3] pc= 48: AST_JumpTarget a=0, b=0 from 22
- ##### [P: 1] pc= 49: AST_BC_IterDone a=0, b=6
- ##### [P:-1] pc= 50: AST_BC_BranchIfFalse a=13, b=25
- ##### [P:-4] pc= 53: AST_BC_Branch a=11, b=61
- ##### [P:-1] pc= 56: AST_BC_SetVar a=20, b=8
- ##### [P:-1] pc= 59: AST_BC_Pop a=0, b=0
- ##### [P:-1] pc= 60: AST_BC_Pop a=0, b=0
- ##### [P:-3] pc= 61: AST_JumpTarget a=0, b=0 from 53
- ##### [P: 1] pc= 61: AST_BC_GetVar a=15, b=8
- ##### [P: 0] pc= 65: AST_BC_SetVar a=20, b=8
- ##### [P: 0] pc= 69: AST_BC_SetVar a=20, b=6
-
-
+/**
+ \class AST_BC_IterDone
+ \brief Finalizes a 'foreach' statement.
+ ```
+ iterator -- done?
+ ```
+ Pops a reference to an iterator from the stack. If iterator is exhausted,
+ pushes true onto the stack; otherwise, pushes nil onto the stack.
  */
-
-void AST_BC_NewIter::Print() {
+void AST_BC_IterDone::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
@@ -437,6 +557,12 @@ void AST_BC_PopHandlers::Print() {
 
 #pragma mark - Calls -
 
+#pragma mark - AST_BC_SetLexScope
+
+void AST_BC_SetLexScope::Print() {
+  if (!Resolved()) return PrintNode(false);
+}
+
 #pragma mark - AST_BC_Call
 
 ASTNode *AST_BC_Call::Resolve(Pass pass)
@@ -445,7 +571,7 @@ ASTNode *AST_BC_Call::Resolve(Pass pass)
 
   do {
     if (numIns_ != 3) break;
-    auto nameNode = dynamic_cast<AST_BC_Push*>(prev);
+    auto nameNode = dynamic_cast<AST_BC_Push*>(prev); // AST_BC_Push is always resolved
     if (!nameNode) break;
     if (!prev->prev->IsExpr() || !prev->prev->prev->IsExpr()) break;
     RefVar sym = dec.GetLiteral(nameNode->b());
@@ -509,31 +635,3 @@ void AST_BC_Resend::Print() {
   PrintResolvedCall(numIns_-1);
 }
 
-#pragma mark - AST_BC_BranchLoop
-
-/*
- This indicates the end of a 'for' loop. The pattern is:
-    local 5:i, 6:|i|limit|, 7:|i|incr|
-    AST_BC_SetVar b=5
-    AST_BC_SetVar b=6
-    AST_BC_SetVar b=7
-    AST_BC_GetVar b=7
-    AST_BC_GetVar b=5
-    AST_BC_Branch 1
-    AST_JumpTarget 2
-    Statements
-    AST_BC_IncrVar a=22, b=5
-    AST_JumpTarget 1
-    AST_BC_GetVar a=15, b=6
-    AST_BC_BranchLoop 2
- */
-
-void AST_BC_BranchLoop::PrintChildren(bool deep) {
-  if (incr_) incr_->PrintNode(deep);
-  if (index_) index_->PrintNode(deep);
-  if (limit_) limit_->PrintNode(deep);
-}
-
-void AST_BC_BranchLoop::Print() {
-  if (!Resolved()) return PrintNode(false);
-}

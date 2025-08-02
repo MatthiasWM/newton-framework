@@ -24,6 +24,11 @@ constexpr int kBranch = -4;
 constexpr int kBranchIfFalse = -5;
 constexpr int kBranchIfTrue = -6;
 
+using Direction =enum {
+  kFwd = 1,
+  kBwd = -1
+};
+
 class ASTNode
 {
 protected:
@@ -31,7 +36,7 @@ protected:
   int pc_ = -1;
   int a_ = 0;
   int b_ = 0;
-  
+
 public:
   // ---- Type declarations used within nodes
   // Resolve nodes following this priority.
@@ -66,7 +71,7 @@ public:
   virtual bool Resolved() = 0;
   // -- Print the result
   /** Print the node, either for debugging or for the final script reconstruction. */
-  virtual void Print() { }
+  virtual void Print() { PrintNode(false); }
   // -- Helpers
   /** Return true if all this node does is put a NIL on the stack */
   virtual bool IsNIL() { return false; }
@@ -76,6 +81,24 @@ public:
   bool IsExpr() { return (provides() == 1); }
   /** Return if the node pushes no value on the stack and is not a control node. */
   bool IsStatement() { return (provides() == 0); }
+
+  // ---- Helpers for finding patterns in the AST
+  template <class T>
+  static T *ToFwd(ASTNode **iter, bool mustBeResolved) {
+    ASTNode *nd = *iter;
+    if (!nd || (mustBeResolved && !nd->Resolved())) return nullptr;
+    T *ret = dynamic_cast<T*>(nd);
+    if (ret) *iter = nd->next;
+    return ret;
+  }
+  template <class T>
+  static T *ToBwd(ASTNode **iter, bool mustBeResolved) {
+    ASTNode *nd = *iter;
+    if (!nd || (mustBeResolved && !nd->Resolved())) return nullptr;
+    T *ret = dynamic_cast<T*>(nd);
+    if (ret) *iter = nd->prev;
+    return ret;
+  }
 
   // ---- Helpers for the doubly linked list
   ASTNode *prev { nullptr };

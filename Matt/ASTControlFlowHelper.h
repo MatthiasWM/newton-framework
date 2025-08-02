@@ -109,4 +109,27 @@ public:
   void Print() override;
 };
 
+class AST_CF_ForLoop : public AST_CodeBlock {
+  ASTNode *iter_ = nullptr;
+  ASTNode *limit_ = nullptr;
+  ASTNode *incr_ = nullptr;
+public:
+  AST_CF_ForLoop(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr);
+  const char *Class() override { return "AST_CF_ForLoop"; }
+  void PrintChildren(bool deep) override;
+  void Print() override;
+};
+
+class AST_CF_ForEachSlotDo : public AST_CodeBlock {
+  ASTNode *iter_ = nullptr;
+  ASTNode *limit_ = nullptr;
+  ASTNode *incr_ = nullptr;
+public:
+  AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr);
+  const char *Class() override { return "AST_CF_ForEachSlotDo"; }
+  void PrintChildren(bool deep) override;
+  void Print() override;
+};
+
+
 #endif  /* __MATT_AST_CONTROLFLOWHELPER_H */

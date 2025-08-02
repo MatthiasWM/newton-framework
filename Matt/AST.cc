@@ -9,6 +9,7 @@
 
 #include "Matt/AST.h"
 #include "Matt/ASTAdmin.h"
+#include "Matt/ASTDataFlow.h"
 #include "Matt/ASTControlFlow.h"
 #include "Matt/ASTControlFlowHelper.h"
 #include "Matt/Decompiler.h"
@@ -19,7 +20,7 @@
               +-- ASTByteCodeNode --+-- ASTConsume1
               |                     +-- ASTConsume2
               |                     +-- ASTConsumeN
-              +-- AST_CodeBlock -----+-- AST_CF_Loop
+              +-- AST_CodeBlock ----+-- AST_CF_Loop
               |                     +-- AST_CF_IfThen
 
 
@@ -158,3 +159,4 @@ void ASTNode::DeleteJumpTarget(int origin, int target) {
     assert(0); // Tried to delete a jump target that does not exist!
   }
 }
+

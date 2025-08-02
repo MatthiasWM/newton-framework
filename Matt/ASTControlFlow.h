@@ -61,14 +61,7 @@ public:
   void Print() override;
 };
 
-// (A=0, B=4): func -- closure
-class AST_BC_SetLexScope : public AST_Consume1 {
-public:
-  AST_BC_SetLexScope(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_SetLexScope"; }
-  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void Print() override;
-};
+#pragma mark - For loop -
 
 // (A=22) addend -- addend value
 class AST_BC_IncrVar : public AST_Consume1 {
@@ -76,6 +69,33 @@ public:
   AST_BC_IncrVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IncrVar"; }
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
+  void Print() override;
+};
+
+// (A=23) incr index limit --
+class AST_BC_BranchLoop : public AST_Bytecode {
+public:
+  AST_BC_BranchLoop(Decompiler &d, int pc, int a, int b);
+  const char *Class() override { return "AST_BC_BranchLoop"; }
+  int provides() override { return kProvidesUnknown; }
+  int consumes() override { return 3; }
+  bool Resolved() override { return false; }
+  ASTNode *Resolve(Pass pass) override;
+};
+
+#pragma mark - Foreach loop -
+
+// (A=24, B=17): object deeply -- iterator
+class AST_BC_NewIter : public AST_Consume2 {
+public:
+  AST_BC_NewIter(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
+  const char *Class() override { return "AST_BC_NewIter"; }
+  bool Resolved() override { return false; }
+  ASTNode *Resolve(Pass pass) override;
+  ASTNode *ResolveForeachSlotDo();
+  ASTNode *ResolveForeachSlotKeyDo();
+  ASTNode *ResolveForeachSlotCollect();
+  ASTNode *ResolveForeachSlotKeyCollect();
   void Print() override;
 };
 
@@ -94,32 +114,6 @@ public:
   AST_BC_IterDone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IterDone"; }
   int provides() override { if (in_) return 1; else return kProvidesUnknown; }
-  void Print() override;
-};
-
-// (A=24, B=17): object deeply -- iterator
-class AST_BC_NewIter : public AST_Consume2 {
-public:
-  AST_BC_NewIter(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_NewIter"; }
-  bool Resolved() override { return false; }
-  void Print() override;
-};
-
-// (A=23) incr index limit --
-class AST_BC_BranchLoop : public AST_Bytecode {
-protected:
-  ASTNode *incr_ { nullptr };
-  ASTNode *index_ { nullptr };
-  ASTNode *limit_ { nullptr };
-public:
-  AST_BC_BranchLoop(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_BranchLoop"; }
-  void PrintChildren(bool deep) override;
-  int provides() override { if (incr_ && index_ && limit_) return kProvidesNone; else return kProvidesUnknown; }
-  int consumes() override { return 3; }
-  bool Resolved() override { return (incr_ != nullptr) && (index_ != nullptr) && (limit_ != nullptr); }
   void Print() override;
 };
 
@@ -146,6 +140,15 @@ public:
 };
 
 #pragma mark - Calls -
+
+// (A=0, B=4): func -- closure
+class AST_BC_SetLexScope : public AST_Consume1 {
+public:
+  AST_BC_SetLexScope(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
+  const char *Class() override { return "AST_BC_SetLexScope"; }
+  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  void Print() override;
+};
 
 // (A=5): arg1 arg2 ... argN name -- result
 // Calls a global function. The function arguments (if any) are on the stack
