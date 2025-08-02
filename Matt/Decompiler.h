@@ -14,8 +14,8 @@
 
 class ObjectPrinter;
 class ASTNode;
-class ASTJumpTarget;
-class ASTBytecodeNode;
+class AST_JumpTarget;
+class AST_Bytecode;
 
 enum class Print { bytecode, deep, script };
 
@@ -45,12 +45,12 @@ protected:
   RefVar literals_;       // Array of Refs
   ASTNode *first_ { nullptr };
   ASTNode *last_ { nullptr };
-  std::map<int /* destination pc*/, std::map<int /* origin pc */, ASTJumpTarget*>> targetMap_;
+  std::map<int /* destination pc*/, std::map<int /* origin pc */, AST_JumpTarget*>> targetMap_;
   bool debugAST_ { false };
 
   void AddToTargets(int target, int origin);
   ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
-  ASTBytecodeNode *NewBytecodeNode(int pc, int a, int b);
+  AST_Bytecode *NewBytecodeNode(int pc, int a, int b);
 
 public:
   Decompiler(ObjectPrinter &printer) : p( printer ) { }

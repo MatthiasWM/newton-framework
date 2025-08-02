@@ -25,41 +25,41 @@ public:
 };
 
 
-class ASTFirstNode : public ASTNode {
+class AST_FirstNode : public ASTNode {
 public:
-  ASTFirstNode(Decompiler &d) : ASTNode(d) { }
-  const char *Class() override { return "ASTFirstNode"; }
+  AST_FirstNode(Decompiler &d) : ASTNode(d) { }
+  const char *Class() override { return "AST_FirstNode"; }
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
 };
 
 
-class ASTLastNode : public ASTNode {
+class AST_LastNode : public ASTNode {
 public:
-  ASTLastNode(Decompiler &d) : ASTNode(d) { }
-  const char *Class() override { return "ASTLastNode"; }
+  AST_LastNode(Decompiler &d) : ASTNode(d) { }
+  const char *Class() override { return "AST_LastNode"; }
   int provides() override { return kSpecialNode; }
   bool Resolved() override { return true; }
 };
 
 
-class ASTBytecodeNode : public ASTNode {
+class AST_Bytecode : public ASTNode {
 protected:
   void PrintPathExpr(ASTNode *inNode);
 public:
-  ASTBytecodeNode(Decompiler &d, int pc, int a, int b)
+  AST_Bytecode(Decompiler &d, int pc, int a, int b)
   : ASTNode(d, pc, a, b) { }
-  const char *Class() override { return "ASTBytecodeNode"; }
+  const char *Class() override { return "AST_Bytecode"; }
   bool Resolved() override { return false; }
 };
 
 
-class AST_Consume1 : public ASTBytecodeNode {
+class AST_Consume1 : public AST_Bytecode {
 protected:
   ASTNode *in_ { nullptr };
 public:
   AST_Consume1(Decompiler &d, int pc, int a, int b)
-  : ASTBytecodeNode(d, pc, a, b) { }
+  : AST_Bytecode(d, pc, a, b) { }
   const char *Class() override { return "AST_Consume1"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
@@ -69,13 +69,13 @@ public:
 };
 
 
-class AST_Consume2 : public ASTBytecodeNode {
+class AST_Consume2 : public AST_Bytecode {
 protected:
   ASTNode *in1_ { nullptr };
   ASTNode *in2_ { nullptr };
 public:
   AST_Consume2(Decompiler &d, int pc, int a, int b)
-  : ASTBytecodeNode(d, pc, a, b) { }
+  : AST_Bytecode(d, pc, a, b) { }
   const char *Class() override { return "AST_Consume2"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
@@ -85,13 +85,13 @@ public:
 };
 
 
-class AST_ConsumeN : public ASTBytecodeNode {
+class AST_ConsumeN : public AST_Bytecode {
 protected:
   int numIns_;
   std::vector<ASTNode *> ins_;
 public:
   AST_ConsumeN(Decompiler &d, int pc, int a, int b, int n)
-  : ASTBytecodeNode(d, pc, a, b), numIns_(n) { }
+  : AST_Bytecode(d, pc, a, b), numIns_(n) { }
   const char *Class() override { return "AST_ConsumeN"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }

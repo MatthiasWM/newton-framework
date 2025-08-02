@@ -16,11 +16,11 @@
 #include <vector>
 
 
-class ASTJumpTarget : public ASTNode {
+class AST_JumpTarget : public ASTNode {
   int origin_ { -1 }; // Initialize to impossible pc.
 public:
-  ASTJumpTarget(Decompiler &d, int pc, int origin) : ASTNode(d, pc), origin_(origin) { }
-  const char *Class() override { return "ASTJumpTarget"; }
+  AST_JumpTarget(Decompiler &d, int pc, int origin) : ASTNode(d, pc), origin_(origin) { }
+  const char *Class() override { return "AST_JumpTarget"; }
   void Print() override;
   void PrintNode(bool deep) override;
   int provides() override { return kJumpTarget; }
@@ -30,7 +30,7 @@ public:
 };
 
 
-class ASTCodeBlock : public ASTNode {
+class AST_CodeBlock : public ASTNode {
 protected:
   int provides_ = kProvidesNone;
   std::vector<ASTNode*> body_;
@@ -40,8 +40,8 @@ protected:
                  const std::string &epilog,
                  std::vector<ASTNode*> &body);
 public:
-  ASTCodeBlock(Decompiler &d, int pc, int inProvides);
-  const char *Class() override { return "ASTCodeBlock"; }
+  AST_CodeBlock(Decompiler &d, int pc, int inProvides);
+  const char *Class() override { return "AST_CodeBlock"; }
   void PrintChildren(bool deep) override;
   void add(ASTNode *nd) { body_.push_back(nd); }
   void moveToBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
@@ -49,29 +49,29 @@ public:
   bool Resolved() override { return true; }
 };
 
-class ASTLoop : public ASTCodeBlock {
+class AST_CF_Loop : public AST_CodeBlock {
 public:
-  ASTLoop(Decompiler &d, int pc);
-  const char *Class() override { return "ASTLoop"; }
+  AST_CF_Loop(Decompiler &d, int pc);
+  const char *Class() override { return "AST_CF_Loop"; }
   void Print() override;
 };
 
-class ASTWhileDo : public ASTCodeBlock {
+class AST_CF_While : public AST_CodeBlock {
 protected:
   ASTNode *cond_ { nullptr };
 public:
-  ASTWhileDo(Decompiler &d, int pc, ASTNode *condition);
-  const char *Class() override { return "ASTWhileDo"; }
+  AST_CF_While(Decompiler &d, int pc, ASTNode *condition);
+  const char *Class() override { return "AST_CF_While"; }
   void PrintChildren(bool deep) override;
   void Print() override;
 };
 
-class ASTRepeatUntil : public ASTCodeBlock {
+class AST_CF_Repeat : public AST_CodeBlock {
 protected:
   ASTNode *cond_ { nullptr };
 public:
-  ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition);
-  const char *Class() override { return "ASTRepeatUntil"; }
+  AST_CF_Repeat(Decompiler &d, int pc, ASTNode *condition);
+  const char *Class() override { return "AST_CF_Repeat"; }
   void PrintChildren(bool deep) override;
   void Print() override;
 };
@@ -82,14 +82,14 @@ public:
  `nil` constant, the else-branch need not be printed as a script.
  \note if this creates a short `if a then b else nil` expression, this may
  originally have been an `a and b` statement.
- \see AST_BranchIfFalse
+ \see AST_BC_BranchIfFalse
  */
-class ASTIfThenElseNode: public ASTCodeBlock {
+class AST_CF_IfThen: public AST_CodeBlock {
   ASTNode *cond_ { nullptr };
   std::vector<ASTNode*> elseBody_;
 public:
-  ASTIfThenElseNode(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue);
-  const char *Class() override { return "ASTIfThenElseNode"; }
+  AST_CF_IfThen(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue);
+  const char *Class() override { return "AST_CF_IfThen"; }
   void PrintChildren(bool deep) override;
   bool Resolved() override { return true; }
   void Print() override;
@@ -99,11 +99,11 @@ public:
 
 };
 
-class AST_Break : public ASTNode {
+class AST_CF_Break : public ASTNode {
   ASTNode *in_ = nullptr;
 public:
-  AST_Break(Decompiler &d, int origin, int target, ASTNode *input);
-  const char *Class() override { return "AST_Break"; }
+  AST_CF_Break(Decompiler &d, int origin, int target, ASTNode *input);
+  const char *Class() override { return "AST_CF_Break"; }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
   void Print() override;

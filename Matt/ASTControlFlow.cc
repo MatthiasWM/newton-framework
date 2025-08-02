@@ -29,7 +29,7 @@
 
 #pragma mark - conditions and loops -
 
-#pragma mark - AST_Branch
+#pragma mark - AST_BC_Branch
 
 /**
  \brief Try to resolve this bytecode as part of a 'loop' construct.
@@ -38,12 +38,12 @@
  bytecode is correct and does not check for break or return.
  \return the next node if this is a 'loop', or nullptr if no match was found.
  */
-ASTNode *AST_Branch::ResolveLoop()
+ASTNode *AST_BC_Branch::ResolveLoop()
 {
   // ---- Check for the loop... pattern
   do {
     // -- Store the result of our exploration here
-    /* target 1 */  ASTJumpTarget *jt = nullptr;
+    /* target 1 */  AST_JumpTarget *jt = nullptr;
     /* n-stmts  */  ASTNode *firstStmt = nullptr;
     /* expr     */  int numStmt = 0;
     /* branch 1 */  // <-- you are here
@@ -52,12 +52,12 @@ ASTNode *AST_Branch::ResolveLoop()
     ASTNode *it = prev;
     if (b_ > pc_) break; // Jump must be backward
     numStmt = FindStatementsBwd(&it, &firstStmt);
-    if (!(jt = dynamic_cast<ASTJumpTarget*>(it))) break;
+    if (!(jt = dynamic_cast<AST_JumpTarget*>(it))) break;
     if ((jt->Origin() != pc()) || (jt->pc() != b())) break;
 
-    // -- The pattern matches. Replace everything with a ASTLoop node
+    // -- The pattern matches. Replace everything with a AST_CF_Loop node
     // It's a loop! Build a new node.
-    ASTLoop *loop = new ASTLoop(dec, pc_);
+    AST_CF_Loop *loop = new AST_CF_Loop(dec, pc_);
     delete jt->Unlink();
     loop->moveToBody(firstStmt, numStmt);
     this->ReplaceWith(loop);
@@ -74,18 +74,18 @@ ASTNode *AST_Branch::ResolveLoop()
  Lucky for us, break operations are by definition expressions, so
  the pop is needed, which makes this a reliable way to find a
  break instruction.
- The AST_Break will take care of the jump target when resolved.
+ The AST_CF_Break will take care of the jump target when resolved.
  \return the next node if this is a 'break', or nullptr if no match was found.
  */
-ASTNode *AST_Branch::ResolveBreak()
+ASTNode *AST_BC_Branch::ResolveBreak()
 {
   do {
     // -- Check the pattern
     if (b_ < pc_) break;
     if (!prev->IsExpr()) break;
-    if (!dynamic_cast<AST_Pop*>(next)) break;
+    if (!dynamic_cast<AST_BC_Pop*>(next)) break;
     // -- It applies. Replace the instructions and remove the jump target.
-    AST_Break *breakNode = new AST_Break(dec, pc(), b(), prev->Unlink());
+    AST_CF_Break *breakNode = new AST_CF_Break(dec, pc(), b(), prev->Unlink());
     delete next->Unlink();
     DeleteJumpTarget(pc(), b());
     ReplaceWith(breakNode);
@@ -95,7 +95,7 @@ ASTNode *AST_Branch::ResolveBreak()
   return nullptr;
 }
 
-ASTNode *AST_Branch::Resolve(Pass pass)
+ASTNode *AST_BC_Branch::Resolve(Pass pass)
 {
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
   ASTNode *nextNode = nullptr;
@@ -104,30 +104,30 @@ ASTNode *AST_Branch::Resolve(Pass pass)
   return next;
 }
 
-void AST_Branch::Print() {
+void AST_BC_Branch::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_BranchIfTrue
+#pragma mark - AST_BC_BranchIfTrue
 
 /**
- \class AST_BranchIfTrue
+ \class AST_BC_BranchIfTrue
  \brief A conditional jump.
  A value is popped from the stack. If it is nil, execution continues with the
  next instruction. Otherwise, PC is set to the B field value.
  */
-ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
+ASTNode *AST_BC_BranchIfTrue::Resolve(Pass pass)
 {
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
 
   // TODO: also used in "or", but how do we know which was used?
   do {
     // -- Here is our pattern. Store the result of our exploration here:
-    /* branch 2 */  AST_Branch *branch2 = nullptr;
-    /* target 1 */  ASTJumpTarget *jt1 = nullptr;
+    /* branch 2 */  AST_BC_Branch *branch2 = nullptr;
+    /* target 1 */  AST_JumpTarget *jt1 = nullptr;
     /* n-stmts  */  ASTNode *stmts = nullptr;
     /*          */  int numStmts = 0;
-    /* target 2 */  ASTJumpTarget *jt2 = nullptr;
+    /* target 2 */  AST_JumpTarget *jt2 = nullptr;
     /* expr     */  ASTNode *cond = nullptr;
     /* c.brch 1 */  // <-- you are here
 
@@ -135,16 +135,16 @@ ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
     if (b_ > pc_) break;  // jump backwards
     ASTNode *it = prev;
     if (it->IsExpr()) { cond = it; it = it->prev; } else break;
-    if ((jt2 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    if ((jt2 = dynamic_cast<AST_JumpTarget*>(it))) it = it->prev; else break;
     numStmts = FindStatementsBwd(&it, &stmts);
-    if ((jt1 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    if ((jt1 = dynamic_cast<AST_JumpTarget*>(it))) it = it->prev; else break;
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
-    if (!(branch2 = dynamic_cast<AST_Branch*>(it))) break;
+    if (!(branch2 = dynamic_cast<AST_BC_Branch*>(it))) break;
     if ((branch2->b() != jt2->pc()) || (branch2->pc() != jt2->Origin())) break;
 
-    // -- The pattern matches. Replace everything with a ASTLoop node
+    // -- The pattern matches. Replace everything with a AST_CF_Loop node
     // We did it. This is a while...do... construct!
-    ASTWhileDo *wd = new ASTWhileDo(dec, pc(), cond->Unlink());
+    AST_CF_While *wd = new AST_CF_While(dec, pc(), cond->Unlink());
     delete branch2->Unlink();
     delete jt1->Unlink();
     delete jt2->Unlink();
@@ -156,18 +156,18 @@ ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
   return next;
 }
 
-void AST_BranchIfTrue::Print() {
+void AST_BC_BranchIfTrue::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_BranchIfFalse
+#pragma mark - AST_BC_BranchIfFalse
 
 /**
- \class AST_BranchIfFalse
+ \class AST_BC_BranchIfFalse
  \brief Based on this node, find the pattern of an if/then or if/then/else structure in the AST.
 
  This class checks for three different pattern, generating one of three possible variations
- of the ASTIfThenElseNode. If one of the pattern matches, the new ASTIfThenElseNode
+ of the AST_CF_IfThen. If one of the pattern matches, the new AST_CF_IfThen
  will replace all other code involved.
 
  Pattern one is a simple if/then statement:
@@ -187,7 +187,7 @@ void AST_BranchIfTrue::Print() {
  \note BranchIfTrue is used to generated an `or` operation.
  \note A `break` command is not allowed in the branches unless the *if* stament
  is inside an other loop.
- \see ASTIfThenElseNode
+ \see AST_CF_IfThen
  */
 
 /**
@@ -198,19 +198,19 @@ void AST_BranchIfTrue::Print() {
  and if-expr-then-stmt-else-stmt.
 
  If a matching pattern is found, branch commands and jump targets are removed
- and this node is replaced with a ASTIfThenElseNode, holding the instructions
+ and this node is replaced with a AST_CF_IfThen, holding the instructions
  inside the 'then' and 'else' branch.
  */
-ASTNode *AST_BranchIfFalse::ResolveIfTheElse() {
+ASTNode *AST_BC_BranchIfFalse::ResolveIfTheElse() {
   // ---- Check for the if...then...else... pattern
   do { // If any of the pattern checks fail, we can escape using 'break'.
     // -- Store the result of our exploration here
     ASTNode *it = next;
     ASTNode *firstIfStmt = nullptr;
     ASTNode *firstElseStmt = nullptr;
-    ASTJumpTarget *jt1 = nullptr;
-    ASTJumpTarget *jt2 = nullptr;
-    AST_Branch *bi2 = nullptr;
+    AST_JumpTarget *jt1 = nullptr;
+    AST_JumpTarget *jt2 = nullptr;
+    AST_BC_Branch *bi2 = nullptr;
     int numIf = 0;
     int numElse = 0;
     bool returnsAValue = false;
@@ -223,18 +223,18 @@ ASTNode *AST_BranchIfFalse::ResolveIfTheElse() {
     /* n-stmts  */  numIf = FindStatementsFwd(&it, &firstIfStmt); // 0 statements ok
     /* [expr]   */  if (it->IsExpr()) { returnsAValue = true; it = it->next; }
     /*          */  if ((numIf == 0) && !returnsAValue) break; // we have to have at least one statement or expression
-    /* [branch] */  if ((bi2 = dynamic_cast<AST_Branch*>(it))) { hasElse = true; it = it->next; }
-    /* target   */  if ((jt1 = dynamic_cast<ASTJumpTarget*>(it))) it = it->next; else break;
+    /* [branch] */  if ((bi2 = dynamic_cast<AST_BC_Branch*>(it))) { hasElse = true; it = it->next; }
+    /* target   */  if ((jt1 = dynamic_cast<AST_JumpTarget*>(it))) it = it->next; else break;
     /*          */  if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
     /*          */  if (hasElse) {
     /* n-stmts  */    numElse = FindStatementsFwd(&it, &firstElseStmt);
     /* [expr]   */    if (returnsAValue) { if (it->IsExpr()) it = it->next; else break; }
-    /* target   */    if (!(jt2 = dynamic_cast<ASTJumpTarget*>(it))) break;
+    /* target   */    if (!(jt2 = dynamic_cast<AST_JumpTarget*>(it))) break;
     /*          */    if ((jt2->Origin() != bi2->pc()) || (jt2->pc() != bi2->b())) break;
     /*          */  }
 
-    // -- The pattern matches. Replace everything with a ASTIfThenElseNode
-    ASTIfThenElseNode *ite = new ASTIfThenElseNode(dec, pc_, prev->Unlink(), returnsAValue);
+    // -- The pattern matches. Replace everything with a AST_CF_IfThen
+    AST_CF_IfThen *ite = new AST_CF_IfThen(dec, pc_, prev->Unlink(), returnsAValue);
     ite->moveToIfBody(firstIfStmt, numIf + returnsAValue);
     delete jt1->Unlink();
     if (hasElse) {
@@ -249,10 +249,10 @@ ASTNode *AST_BranchIfFalse::ResolveIfTheElse() {
   return nullptr;
 }
 
-ASTNode *AST_BranchIfFalse::ResolveRepeatUntil() {
+ASTNode *AST_BC_BranchIfFalse::ResolveRepeatUntil() {
   do {
     // -- Here is our pattern. Store the result of our exploration here:
-    /* target 1 */  ASTJumpTarget *jt1 = nullptr;
+    /* target 1 */  AST_JumpTarget *jt1 = nullptr;
     /* n-stmts  */  ASTNode *stmts = nullptr;
     /*          */  int numStmts = 0;
     /* expr     */  ASTNode *cond = nullptr;
@@ -263,12 +263,12 @@ ASTNode *AST_BranchIfFalse::ResolveRepeatUntil() {
     ASTNode *it = prev;
     if (it->IsExpr()) { cond = it; it = it->prev; } else break;
     numStmts = FindStatementsBwd(&it, &stmts);
-    if ((jt1 = dynamic_cast<ASTJumpTarget*>(it))) it = it->prev; else break;
+    if ((jt1 = dynamic_cast<AST_JumpTarget*>(it))) it = it->prev; else break;
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
 
-    // -- The pattern matches. Replace everything with a ASTLoop node
+    // -- The pattern matches. Replace everything with a AST_CF_Loop node
     // We did it. This is a while...do... construct!
-    ASTRepeatUntil *ru = new ASTRepeatUntil(dec, pc(), cond->Unlink());
+    AST_CF_Repeat *ru = new AST_CF_Repeat(dec, pc(), cond->Unlink());
     delete jt1->Unlink();
     ru->moveToBody(stmts, numStmts);
     ReplaceWith(ru);
@@ -278,7 +278,7 @@ ASTNode *AST_BranchIfFalse::ResolveRepeatUntil() {
   return nullptr;
 }
 
-ASTNode *AST_BranchIfFalse::Resolve(Pass pass)
+ASTNode *AST_BC_BranchIfFalse::Resolve(Pass pass)
 {
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
   ASTNode *nextNode = nullptr;
@@ -287,14 +287,14 @@ ASTNode *AST_BranchIfFalse::Resolve(Pass pass)
   return next;
 }
 
-void AST_BranchIfFalse::Print() {
+void AST_BC_BranchIfFalse::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_Return
+#pragma mark - AST_BC_Return
 
 /**
- \class AST_Return
+ \class AST_BC_Return
  \brief Return from this function.
  \todo the very last return probably doesn't need to be printed. It's actually
     a bug in the newt-framework compiler. NTK does not generate the extra return bytecode
@@ -302,150 +302,150 @@ void AST_BranchIfFalse::Print() {
  \todo handle implied return values nicely, so we don't generate "return a := b;"
  */
 
-void AST_Return::Print() {
+void AST_BC_Return::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("return ");
   in_->Print();
 }
 
-#pragma mark - AST_SetLexScope
+#pragma mark - AST_BC_SetLexScope
 
-void AST_SetLexScope::Print() {
+void AST_BC_SetLexScope::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_IncrVar
+#pragma mark - AST_BC_IncrVar
 
-void AST_IncrVar::Print() {
+void AST_BC_IncrVar::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_IterNext
+#pragma mark - AST_BC_IterNext
 
-void AST_IterNext::Print() {
+void AST_BC_IterNext::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_IterDone
+#pragma mark - AST_BC_IterDone
 
-void AST_IterDone::Print() {
+void AST_BC_IterDone::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_NewIter
+#pragma mark - AST_BC_NewIter
 
 /* This is the start of a foreach loop. These are the patterns:
   (not sure yet what code the "deeply" keyword generates, maybe changes the iterator type?)
 
  foreach...slot...in...do...
     locals 5:slot, 6:|slot|iter|
-    AST_NewIter a=24, b=17
-    AST_SetVar a=20, b=6
-    AST_Branch 1
-  ASTJumpTarget 2
-    AST_SetVar a=20, b=5
+    AST_BC_NewIter a=24, b=17
+    AST_BC_SetVar a=20, b=6
+    AST_BC_Branch 1
+  AST_JumpTarget 2
+    AST_BC_SetVar a=20, b=5
     n * Statements
-    AST_IterNext a=0, b=5
-  ASTJumpTarget 1
-    AST_IterDone a=0, b=6
-    AST_BranchIfFalse 2
-    AST_PushConst a=4, b=2
-    AST_SetVar a=20, b=6
+    AST_BC_IterNext a=0, b=5
+  AST_JumpTarget 1
+    AST_BC_IterDone a=0, b=6
+    AST_BC_BranchIfFalse 2
+    AST_BC_PushConst a=4, b=2
+    AST_BC_SetVar a=20, b=6
 
  foreach...slot,value...in...do...
     locals 5:slot, 6:value, 7:|slotvalue|iter|
-    AST_NewIter a=24, b=17
-    AST_SetVar a=20, b=7
-    AST_Branch 1
-  ASTJumpTarget 2
-    AST_SetVar a=20, b=6
-    AST_SetVar a=20, b=5
+    AST_BC_NewIter a=24, b=17
+    AST_BC_SetVar a=20, b=7
+    AST_BC_Branch 1
+  AST_JumpTarget 2
+    AST_BC_SetVar a=20, b=6
+    AST_BC_SetVar a=20, b=5
     n * Statements
-    AST_IterNext a=0, b=5
-  ASTJumpTarget 1
-    AST_IterDone a=0, b=6
-    AST_BranchIfFalse 2
-    AST_PushConst a=4, b=2
-    AST_SetVar a=20, b=7
+    AST_BC_IterNext a=0, b=5
+  AST_JumpTarget 1
+    AST_BC_IterDone a=0, b=6
+    AST_BC_BranchIfFalse 2
+    AST_BC_PushConst a=4, b=2
+    AST_BC_SetVar a=20, b=7
 
  foreach...slot...in...collect...
     locals 5:slot, 6:|slot|iter|, 7:|slot|index|, 8:|slot|result|
- ##### [P:-1] pc=  2: AST_NewIter a=24, b=17
- ##### [P:-1] pc=  5: AST_SetVar a=20, b=6
- ##### [P: 0] pc= 15: AST_SetVar a=20, b=8
- ##### [P: 0] pc= 19: AST_SetVar a=20, b=7
- ##### [P:-4] pc= 22: AST_Branch a=11, b=48
- ##### [P:-3] pc= 25: ASTJumpTarget a=0, b=0 from 50
- ##### [P: 0] pc= 28: AST_SetVar a=20, b=5
- ##### [P: 0] pc= 38: AST_SetARef a=24, b=3
- ##### [P:-1] pc= 39: AST_Pop a=0, b=0
- ##### [P: 2] pc= 41: AST_IncrVar a=22, b=7
- ##### [P:-1] pc= 44: AST_Pop a=0, b=0
- ##### [P:-1] pc= 45: AST_Pop a=0, b=0
- ##### [P: 0] pc= 47: AST_IterNext a=0, b=5
- ##### [P:-3] pc= 48: ASTJumpTarget a=0, b=0 from 22
- ##### [P: 1] pc= 49: AST_IterDone a=0, b=6
- ##### [P:-1] pc= 50: AST_BranchIfFalse a=13, b=25
- ##### [P:-4] pc= 53: AST_Branch a=11, b=61
- ##### [P:-1] pc= 56: AST_SetVar a=20, b=8
- ##### [P:-1] pc= 59: AST_Pop a=0, b=0
- ##### [P:-1] pc= 60: AST_Pop a=0, b=0
- ##### [P:-3] pc= 61: ASTJumpTarget a=0, b=0 from 53
- ##### [P: 1] pc= 61: AST_GetVar a=15, b=8
- ##### [P: 0] pc= 65: AST_SetVar a=20, b=8
- ##### [P: 0] pc= 69: AST_SetVar a=20, b=6
+ ##### [P:-1] pc=  2: AST_BC_NewIter a=24, b=17
+ ##### [P:-1] pc=  5: AST_BC_SetVar a=20, b=6
+ ##### [P: 0] pc= 15: AST_BC_SetVar a=20, b=8
+ ##### [P: 0] pc= 19: AST_BC_SetVar a=20, b=7
+ ##### [P:-4] pc= 22: AST_BC_Branch a=11, b=48
+ ##### [P:-3] pc= 25: AST_JumpTarget a=0, b=0 from 50
+ ##### [P: 0] pc= 28: AST_BC_SetVar a=20, b=5
+ ##### [P: 0] pc= 38: AST_BC_SetARef a=24, b=3
+ ##### [P:-1] pc= 39: AST_BC_Pop a=0, b=0
+ ##### [P: 2] pc= 41: AST_BC_IncrVar a=22, b=7
+ ##### [P:-1] pc= 44: AST_BC_Pop a=0, b=0
+ ##### [P:-1] pc= 45: AST_BC_Pop a=0, b=0
+ ##### [P: 0] pc= 47: AST_BC_IterNext a=0, b=5
+ ##### [P:-3] pc= 48: AST_JumpTarget a=0, b=0 from 22
+ ##### [P: 1] pc= 49: AST_BC_IterDone a=0, b=6
+ ##### [P:-1] pc= 50: AST_BC_BranchIfFalse a=13, b=25
+ ##### [P:-4] pc= 53: AST_BC_Branch a=11, b=61
+ ##### [P:-1] pc= 56: AST_BC_SetVar a=20, b=8
+ ##### [P:-1] pc= 59: AST_BC_Pop a=0, b=0
+ ##### [P:-1] pc= 60: AST_BC_Pop a=0, b=0
+ ##### [P:-3] pc= 61: AST_JumpTarget a=0, b=0 from 53
+ ##### [P: 1] pc= 61: AST_BC_GetVar a=15, b=8
+ ##### [P: 0] pc= 65: AST_BC_SetVar a=20, b=8
+ ##### [P: 0] pc= 69: AST_BC_SetVar a=20, b=6
 
 
  */
 
-void AST_NewIter::Print() {
+void AST_BC_NewIter::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
 #pragma mark - Exceptions -
 
-#pragma mark - AST_NewHandler
+#pragma mark - AST_BC_NewHandler
 
 /*
  This is the start of a 'try' block. The pattern is:
  try:
- n * AST_Push, AST_PushConst Tx
- AST_NewHandler(n)
+ n * AST_BC_Push, AST_BC_PushConst Tx
+ AST_BC_NewHandler(n)
  try_body:
  Instructions
- AST_PopHandlers
- AST_Branch 1
+ AST_BC_PopHandlers
+ AST_BC_Branch 1
  onexception x:
- ASTJumpTarget Tx
- AST_Branch 2
+ AST_JumpTarget Tx
+ AST_BC_Branch 2
  end_handlers:
- AST_PopHandlers
+ AST_BC_PopHandlers
  end_try
- ASTJumpTarget 1
+ AST_JumpTarget 1
  */
 
-void AST_NewHandler::Print() {
+void AST_BC_NewHandler::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
 
-#pragma mark - AST_PopHandlers
+#pragma mark - AST_BC_PopHandlers
 
-void AST_PopHandlers::Print() {
+void AST_BC_PopHandlers::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
 #pragma mark - Calls -
 
-#pragma mark - AST_Call
+#pragma mark - AST_BC_Call
 
-ASTNode *AST_Call::Resolve(Pass pass)
+ASTNode *AST_BC_Call::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
   do {
     if (numIns_ != 3) break;
-    auto nameNode = dynamic_cast<AST_Push*>(prev);
+    auto nameNode = dynamic_cast<AST_BC_Push*>(prev);
     if (!nameNode) break;
     if (!prev->prev->IsExpr() || !prev->prev->prev->IsExpr()) break;
     RefVar sym = dec.GetLiteral(nameNode->b());
@@ -470,14 +470,14 @@ ASTNode *AST_Call::Resolve(Pass pass)
   return AST_ConsumeN::Resolve(pass);
 }
 
-void AST_Call::Print() {
+void AST_BC_Call::Print() {
   if (!Resolved()) return PrintNode(false);
   PrintResolvedCall(numIns_-1);
 }
 
-#pragma mark - AST_Invoke
+#pragma mark - AST_BC_Invoke
 
-void AST_Invoke::Print() {
+void AST_BC_Invoke::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("call ");
   ins_[numIns_-1]->Print();
@@ -490,9 +490,9 @@ void AST_Invoke::Print() {
   dec.p.EndList();
 }
 
-#pragma mark - AST_Send
+#pragma mark - AST_BC_Send
 
-void AST_Send::Print() {
+void AST_BC_Send::Print() {
   if (!Resolved()) return PrintNode(false);
   ins_[numIns_-2]->Print();   // Print the receiver
   dec.p.Print(":");           // Print the operator
@@ -500,40 +500,40 @@ void AST_Send::Print() {
   PrintResolvedCall(numIns_-2);
 }
 
-#pragma mark - AST_Resend
+#pragma mark - AST_BC_Resend
 
-void AST_Resend::Print() {
+void AST_BC_Resend::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("inherited:");        // Print the receiver and operator
   if (ifDefined_) dec.p.Printf("?");
   PrintResolvedCall(numIns_-1);
 }
 
-#pragma mark - AST_BranchLoop
+#pragma mark - AST_BC_BranchLoop
 
 /*
  This indicates the end of a 'for' loop. The pattern is:
     local 5:i, 6:|i|limit|, 7:|i|incr|
-    AST_SetVar b=5
-    AST_SetVar b=6
-    AST_SetVar b=7
-    AST_GetVar b=7
-    AST_GetVar b=5
-    AST_Branch 1
-    ASTJumpTarget 2
+    AST_BC_SetVar b=5
+    AST_BC_SetVar b=6
+    AST_BC_SetVar b=7
+    AST_BC_GetVar b=7
+    AST_BC_GetVar b=5
+    AST_BC_Branch 1
+    AST_JumpTarget 2
     Statements
-    AST_IncrVar a=22, b=5
-    ASTJumpTarget 1
-    AST_GetVar a=15, b=6
-    AST_BranchLoop 2
+    AST_BC_IncrVar a=22, b=5
+    AST_JumpTarget 1
+    AST_BC_GetVar a=15, b=6
+    AST_BC_BranchLoop 2
  */
 
-void AST_BranchLoop::PrintChildren(bool deep) {
+void AST_BC_BranchLoop::PrintChildren(bool deep) {
   if (incr_) incr_->PrintNode(deep);
   if (index_) index_->PrintNode(deep);
   if (limit_) limit_->PrintNode(deep);
 }
 
-void AST_BranchLoop::Print() {
+void AST_BC_BranchLoop::Print() {
   if (!Resolved()) return PrintNode(false);
 }

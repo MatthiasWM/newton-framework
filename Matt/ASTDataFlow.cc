@@ -15,67 +15,67 @@
 
 #include "Frames/Frames.h"
 
-#pragma mark - AST_Push
+#pragma mark - AST_BC_Push
 
-bool AST_Push::IsSymbol()
+bool AST_BC_Push::IsSymbol()
 {
   return ::IsSymbol(dec.GetLiteral(b_));
 }
 
-void AST_Push::Print() {
+void AST_BC_Push::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteral(b_);
 }
 
-#pragma mark - AST_PushConst
+#pragma mark - AST_BC_PushConst
 
-bool AST_PushConst::IsNIL()
+bool AST_BC_PushConst::IsNIL()
 {
   return (b_ == NILREF);
 }
 
-void AST_PushConst::Print() {
+void AST_BC_PushConst::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.PrintConstant(b_);
 }
 
-#pragma mark - AST_PushSelf
+#pragma mark - AST_BC_PushSelf
 
-void AST_PushSelf::Print() {
+void AST_BC_PushSelf::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("self");
 }
 
-#pragma mark - AST_FindVar
+#pragma mark - AST_BC_FindVar
 
-void AST_FindVar::Print() {
+void AST_BC_FindVar::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteralAsTag(b_);
 }
 
-#pragma mark - AST_GetVar
+#pragma mark - AST_BC_GetVar
 
-void AST_GetVar::Print() {
+void AST_BC_GetVar::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.printLocal(b_);
 }
 
-#pragma mark - AST_Pop
+#pragma mark - AST_BC_Pop
 
-void AST_Pop::Print() {
+void AST_BC_Pop::Print() {
   if (!Resolved()) return PrintNode(false);
   in_->Print();
 }
 
-#pragma mark - AST_Dup
+#pragma mark - AST_BC_Dup
 
-void AST_Dup::Print() {
+void AST_BC_Dup::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_SetVar
+#pragma mark - AST_BC_SetVar
 
-void AST_SetVar::Print() {
+void AST_BC_SetVar::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.printLocal(b_);
@@ -83,18 +83,18 @@ void AST_SetVar::Print() {
   in_->Print();
 }
 
-#pragma mark - AST_FindAndSetVar
+#pragma mark - AST_BC_FindAndSetVar
 
-void AST_FindAndSetVar::Print() {
+void AST_BC_FindAndSetVar::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteralAsTag(b_);
   dec.p.Printf(" := ");
   in_->Print();
 }
 
-#pragma mark - AST_Not
+#pragma mark - AST_BC_Not
 
-void AST_Not::Print() {
+void AST_BC_Not::Print() {
   if (!Resolved()) return PrintNode(false);
   int ppp = dec.precedence;
   bool parentheses = (dec.precedence > 2);
@@ -107,9 +107,9 @@ void AST_Not::Print() {
   dec.precedence = ppp;
 }
 
-#pragma mark - AST_Length
+#pragma mark - AST_BC_Length
 
-void AST_Length::Print() {
+void AST_BC_Length::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("length(");
@@ -117,9 +117,9 @@ void AST_Length::Print() {
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_Clone
+#pragma mark - AST_BC_Clone
 
-void AST_Clone::Print() {
+void AST_BC_Clone::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("clone(");
@@ -127,26 +127,26 @@ void AST_Clone::Print() {
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_Stringer
+#pragma mark - AST_BC_Stringer
 
-void AST_Stringer::Print() {
+void AST_BC_Stringer::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 //  TODO: The input is an Array with at least two elements
 //  a '1 && 2' is handled as a '1 & " " & 2', generating an array with three values
-//  So the in_ node is AST_MakeArray which consumes the inputs and the 'array symbol
+//  So the in_ node is AST_BC_MakeArray which consumes the inputs and the 'array symbol
 //  void printSource() {
 //    if (in_) {
-//      AST_MakeArray *array = dynamic_cast<AST_MakeArray*>(in_);
+//      AST_BC_MakeArray *array = dynamic_cast<AST_BC_MakeArray*>(in_);
 //      if (array) {
 //        dec.p.Printf(array->in[0] " & " array->in[1] ... )
 //      }
 //    }
 //  }
 
-#pragma mark - AST_ClassOf
+#pragma mark - AST_BC_ClassOf
 
-void AST_ClassOf::Print() {
+void AST_BC_ClassOf::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("ClassOf(");
@@ -154,9 +154,9 @@ void AST_ClassOf::Print() {
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_BitNot
+#pragma mark - AST_BC_BitNot
 
-void AST_BitNot::Print() {
+void AST_BC_BitNot::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("bNot(");
@@ -208,33 +208,33 @@ void AST_BinaryOperator::Print() {
   dec.precedence = ppp;
 }
 
-#pragma mark - AST_NewArray
+#pragma mark - AST_BC_NewArray
 
-void AST_NewArray::Print() {
+void AST_BC_NewArray::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_GetPath
+#pragma mark - AST_BC_GetPath
 
-void AST_GetPath::Print() {
+void AST_BC_GetPath::Print() {
   if (!Resolved()) return PrintNode(false);
   in1_->Print();
   dec.p.Printf(".");
   PrintPathExpr(in2_);
 }
 
-#pragma mark - AST_ARef
+#pragma mark - AST_BC_ARef
 
-void AST_ARef::Print() {
+void AST_BC_ARef::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   in1_->Print();
   dec.p.Printf("["); in2_->Print(); dec.p.Printf("]");
 }
 
-#pragma mark - AST_SetClass
+#pragma mark - AST_BC_SetClass
 
-void AST_SetClass::Print() {
+void AST_BC_SetClass::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("SetClass(");
@@ -242,9 +242,9 @@ void AST_SetClass::Print() {
   in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark - AST_AddArraySlot
+#pragma mark - AST_BC_AddArraySlot
 
-void AST_AddArraySlot::Print() {
+void AST_BC_AddArraySlot::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Item();
   dec.p.Printf("AddArraySlot(");
@@ -252,9 +252,9 @@ void AST_AddArraySlot::Print() {
   in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark - AST_HasPath
+#pragma mark - AST_BC_HasPath
 
-void AST_HasPath::Print() {
+void AST_BC_HasPath::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
@@ -298,9 +298,9 @@ void AST_SetPath::Print() {
   value_->Print();
 }
 
-#pragma mark - AST_SetARef
+#pragma mark - AST_BC_SetARef
 
-ASTNode *AST_SetARef::Resolve(Pass pass)
+ASTNode *AST_BC_SetARef::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -316,23 +316,23 @@ ASTNode *AST_SetARef::Resolve(Pass pass)
   return next;
 }
 
-void AST_SetARef::PrintChildren(bool deep) {
+void AST_BC_SetARef::PrintChildren(bool deep) {
   if (object_) object_->PrintNode(deep);
   if (index_) index_->PrintNode(deep);
   if (element_) element_->PrintNode(deep);
 }
 
-void AST_SetARef::Print() {
+void AST_BC_SetARef::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
 
-#pragma mark - AST_MakeFrame
+#pragma mark - AST_BC_MakeFrame
 
-void AST_MakeFrame::Print() {
+void AST_BC_MakeFrame::Print() {
   if (!Resolved()) return PrintNode(false);
-  AST_Push *mapNode { nullptr };
-  if ( (mapNode = dynamic_cast<AST_Push*>(ins_[numIns_-1])) ) {
+  AST_BC_Push *mapNode { nullptr };
+  if ( (mapNode = dynamic_cast<AST_BC_Push*>(ins_[numIns_-1])) ) {
     dec.p.Print("{");
     dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
     Ref map = dec.GetLiteral(mapNode->b());
@@ -355,9 +355,9 @@ void AST_MakeFrame::Print() {
   }
 }
 
-#pragma mark - AST_MakeArray
+#pragma mark - AST_BC_MakeArray
 
-void AST_MakeArray::Print() {
+void AST_BC_MakeArray::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("[");
   dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?

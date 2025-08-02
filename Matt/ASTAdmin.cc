@@ -15,17 +15,17 @@
 
 extern bool IsPathExpr(RefArg inObj);
 
-#pragma mark - ASTFirstNode
+#pragma mark - AST_FirstNode
 
 
-#pragma mark - ASTLastNode
+#pragma mark - AST_LastNode
 
 
-#pragma mark - ASTBytecodeNode
+#pragma mark - AST_Bytecode
 
-void ASTBytecodeNode::PrintPathExpr(ASTNode *inNode) {
-  AST_Push *pushLiteral { nullptr };
-  if ( (pushLiteral  = dynamic_cast<AST_Push*>(inNode)) ) {
+void AST_Bytecode::PrintPathExpr(ASTNode *inNode) {
+  AST_BC_Push *pushLiteral { nullptr };
+  if ( (pushLiteral  = dynamic_cast<AST_BC_Push*>(inNode)) ) {
     Ref lit = dec.GetLiteral(pushLiteral->b());
     if (IsInt(lit)) {
       dec.p.PrintInteger(lit);
@@ -113,8 +113,8 @@ ASTNode *AST_ConsumeN::Resolve(Pass pass)
 }
 
 void AST_ConsumeN::PrintResolvedCall(int nArgs) {
-  // Called by AST_Call, AST_Send, and AST_Resend
-  AST_Push *pushLiteral = dynamic_cast<AST_Push*>(ins_[numIns_-1]);
+  // Called by AST_BC_Call, AST_BC_Send, and AST_BC_Resend
+  AST_BC_Push *pushLiteral = dynamic_cast<AST_BC_Push*>(ins_[numIns_-1]);
   if (pushLiteral) {
     dec.printLiteralAsTag(pushLiteral->b());
   } else {

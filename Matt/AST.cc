@@ -14,13 +14,13 @@
 #include "Matt/Decompiler.h"
 
 /*
-    ASTNode --+-- ASTFirstNode
-              +-- ASTLastNode
+    ASTNode --+-- AST_FirstNode
+              +-- AST_LastNode
               +-- ASTByteCodeNode --+-- ASTConsume1
               |                     +-- ASTConsume2
               |                     +-- ASTConsumeN
-              +-- ASTCodeBlock -----+-- ASTLoop
-              |                     +-- ASTIfThenElseNode
+              +-- AST_CodeBlock -----+-- AST_CF_Loop
+              |                     +-- AST_CF_IfThen
 
 
  */
@@ -140,15 +140,15 @@ int ASTNode::FindStatementsBwd(ASTNode **crsr, ASTNode **start)
  \brief Delete a jump target.
  */
 void ASTNode::DeleteJumpTarget(int origin, int target) {
-  ASTJumpTarget *jt = nullptr;
+  AST_JumpTarget *jt = nullptr;
   if (pc() > target) { // search backward
     for (ASTNode *it = this; it; it = it->prev) {
-      jt = dynamic_cast<ASTJumpTarget*>(it);
+      jt = dynamic_cast<AST_JumpTarget*>(it);
       if (jt && (jt->pc() == target) && (jt->Origin() == origin)) break;
     }
   } else { // search forward
     for (ASTNode *it = this; it; it = it->next) {
-      jt = dynamic_cast<ASTJumpTarget*>(it);
+      jt = dynamic_cast<AST_JumpTarget*>(it);
       if (jt && (jt->pc() == target) && (jt->Origin() == origin)) break;
     }
   }
