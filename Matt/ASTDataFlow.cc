@@ -98,7 +98,6 @@ void AST_BC_Not::Print() {
   int ppp = dec.precedence;
   bool parentheses = (dec.precedence > 2);
   dec.precedence = 2;
-  dec.p.Item();
   if (parentheses) dec.p.Printf("(");
   dec.p.Printf("not ");
   in_->Print();
@@ -110,7 +109,6 @@ void AST_BC_Not::Print() {
 
 void AST_BC_Length::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("length(");
   in_->Print();
   dec.p.Printf(")");
@@ -120,7 +118,6 @@ void AST_BC_Length::Print() {
 
 void AST_BC_Clone::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("clone(");
   in_->Print();
   dec.p.Printf(")");
@@ -147,7 +144,6 @@ void AST_BC_Stringer::Print() {
 
 void AST_BC_ClassOf::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("ClassOf(");
   in_->Print();
   dec.p.Printf(")");
@@ -157,7 +153,6 @@ void AST_BC_ClassOf::Print() {
 
 void AST_BC_BitNot::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("bNot(");
   in_->Print();
   dec.p.Printf(")");
@@ -185,7 +180,6 @@ void AST_BinaryFunction::Print() {
   if (!Resolved()) return PrintNode(false);
   int ppp = dec.precedence;
   dec.precedence = 0;
-  dec.p.Item();
   dec.p.Printf("%s(", func_);
   in1_->Print();
   dec.p.Printf(", ");
@@ -209,8 +203,36 @@ void AST_BinaryOperator::Print() {
 
 #pragma mark - AST_BC_NewArray
 
-void AST_BC_NewArray::Print() {
+// size class -- array
+
+// if the class is 'array, generate `Array(size, nil)`
+// with a custom class, generate `SetClass(Array(size, nil), 'class)`
+void AST_BC_NewArray::Print()
+{
   if (!Resolved()) return PrintNode(false);
+
+  // Check if the array class is defined and not 'array
+  bool setClass = false;
+  Ref klass = NILREF;
+  ASTNode *klassNd = in2_;
+  if (klassNd->a() == 3) { // AST_BC_Push
+    int literalIx = klassNd->b();
+    klass = dec.GetLiteral(literalIx);
+    if (::IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {
+      dec.p.Print("SetClass(");
+      setClass = true;
+    }
+  }
+  // Print all the members of the new array
+  dec.p.Print("Array(");
+  in1_->Print();
+  dec.p.Print(", nil)");
+  // Finish the 'SetClass' if we needed it
+  if (setClass) {
+    dec.p.Print(", ");
+    in2_->Print();
+    dec.p.Print(")");
+  }
 }
 
 #pragma mark - AST_BC_GetPath
@@ -226,7 +248,6 @@ void AST_BC_GetPath::Print() {
 
 void AST_BC_ARef::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   in1_->Print();
   dec.p.Printf("["); in2_->Print(); dec.p.Printf("]");
 }
@@ -235,7 +256,6 @@ void AST_BC_ARef::Print() {
 
 void AST_BC_SetClass::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("SetClass(");
   in1_->Print(); dec.p.Printf(", ");
   in2_->Print(); dec.p.Printf(")");
@@ -245,7 +265,6 @@ void AST_BC_SetClass::Print() {
 
 void AST_BC_AddArraySlot::Print() {
   if (!Resolved()) return PrintNode(false);
-  dec.p.Item();
   dec.p.Printf("AddArraySlot(");
   in1_->Print(); dec.p.Printf(", ");
   in2_->Print(); dec.p.Printf(")");
@@ -356,10 +375,21 @@ void AST_BC_MakeFrame::Print() {
 
 #pragma mark - AST_BC_MakeArray
 
+// val1 val2 ... valN class -- array
 void AST_BC_MakeArray::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("[");
   dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
+  // Check if the array class is defined and not 'array
+  ASTNode *klassNd = ins_.back();
+  if (klassNd->a() == 3) { // AST_BC_Push
+    int literalIx = klassNd->b();
+    Ref klass = dec.GetLiteral(literalIx);
+    if (::IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {
+      dec.p.Tag(); dec.p.PrintTag(klass); dec.p.Print(":");
+    }
+  }
+  // Print all the members of the new array
   for (int i = 0; i < numIns_-1; i++) {
     dec.p.Item();
     ins_[i]->Print();

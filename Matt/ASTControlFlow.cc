@@ -550,6 +550,63 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueDo()
 
 ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
 {
+// foreach slot value collect
+//  5: slot: nil,
+//  6: value: nil,
+//  7: |slotvalue|iter|: nil,
+//  8: |slotvalue|index|: nil,
+//  9: |slotvalue|result|: nil
+//    object expr
+//    ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2    nil, true: deeply
+//    ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17
+//    ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7      iter
+//    ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7      iter
+//    ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20   5
+//    ##### [P:-1] pc= 22: AST_BC_ARef a=24, b=2
+//    ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
+//    ##### [P:-1] pc= 24: AST_BC_NewArray a=17, b=65535
+//    ##### [P:-1] pc= 27: AST_BC_SetVar a=20, b=9      result
+//    ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0    0
+//    ##### [P:-1] pc= 31: AST_BC_SetVar a=20, b=8      index
+//    ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=72
+//    ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 76
+//    ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7      iter
+//    ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4    1
+//    ##### [P:-1] pc= 41: AST_BC_ARef a=24, b=2
+//    ##### [P:-1] pc= 42: AST_BC_SetVar a=20, b=6      value
+//      ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7    iter
+//      ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0  0
+//      ##### [P:-1] pc= 47: AST_BC_ARef a=24, b=2
+//      ##### [P:-1] pc= 48: AST_BC_SetVar a=20, b=5    slot
+//    ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9      result
+//    ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8      index
+//    body expr
+//    ##### [P:-1] pc= 60: AST_BC_SetARef a=24, b=3     result index expr -> expr
+//    ##### [P:-1] pc= 61: AST_BC_Pop a=0, b=0
+//    ##### [P: 1] pc= 62: AST_BC_PushConst a=4, b=4    1
+//    ##### [P:-1] pc= 63: AST_BC_IncrVar a=22, b=8     index
+//    ##### [P:-1] pc= 66: AST_BC_Pop a=0, b=0
+//    ##### [P:-1] pc= 67: AST_BC_Pop a=0, b=0
+//    ##### [P: 1] pc= 68: AST_BC_GetVar a=15, b=7      iter
+//    ##### [P:-1] pc= 71: AST_BC_IterNext a=0, b=5     value
+//    ##### [P:-3] pc= 72: AST_JumpTarget a=0, b=0 from 34
+//    ##### [P: 1] pc= 72: AST_BC_GetVar a=15, b=7      iter
+//    ##### [P:-1] pc= 75: AST_BC_IterDone a=0, b=6     value
+//    ##### [P:-1] pc= 76: AST_BC_BranchIfFalse a=13, b=37
+//    ##### [P:-4] pc= 79: AST_BC_Branch a=11, b=87
+//    ##### [P:-1] pc= 82: AST_BC_SetVar a=20, b=9      result
+//    ##### [P:-1] pc= 85: AST_BC_Pop a=0, b=0
+//    ##### [P:-1] pc= 86: AST_BC_Pop a=0, b=0
+//    ##### [P:-3] pc= 87: AST_JumpTarget a=0, b=0 from 79
+//    ##### [P: 1] pc= 87: AST_BC_GetVar a=15, b=9      result
+//    ##### [P: 1] pc= 90: AST_BC_PushConst a=4, b=2    nil
+//    ##### [P:-1] pc= 91: AST_BC_SetVar a=20, b=9      result
+//    ##### [P: 1] pc= 94: AST_BC_PushConst a=4, b=2    nil
+//    ##### [P:-1] pc= 95: AST_BC_SetVar a=20, b=7      iter
+//    collection is now on the stack
+
+
+
   // TODO: write me
   return nullptr;
 }
