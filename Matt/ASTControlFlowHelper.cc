@@ -296,12 +296,12 @@ void AST_CF_ForLoop::Print()
 
 #pragma mark - AST_CF_ForEachSlotDo
 
-AST_CF_ForEachSlotDo::AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply)
+AST_CF_ForEachSlotValueDo::AST_CF_ForEachSlotValueDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply)
 : AST_CodeBlock(d, pc, kProvidesNone),
 object_(obj), slot_(slot), value_(value), deeply_(deeply)
 { }
 
-void AST_CF_ForEachSlotDo::PrintChildren(bool deep)
+void AST_CF_ForEachSlotValueDo::PrintChildren(bool deep)
 {
   dec.p.Tag();
   dec.p.Print("##### ---> Foreach ");
@@ -318,7 +318,7 @@ void AST_CF_ForEachSlotDo::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
 }
 
-void AST_CF_ForEachSlotDo::Print()
+void AST_CF_ForEachSlotValueDo::Print()
 {
   dec.p.Print("foreach ");
   if (slot_ != -1) {

@@ -120,13 +120,13 @@ public:
   void Print() override;
 };
 
-class AST_CF_ForEachSlotDo : public AST_CodeBlock {
+class AST_CF_ForEachSlotValueDo : public AST_CodeBlock {
   ASTNode *object_ = nullptr;
   int slot_ = -1;
   int value_ = -1;
   bool deeply_ = false;
 public:
-  AST_CF_ForEachSlotDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply);
+  AST_CF_ForEachSlotValueDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply);
   const char *Class() override { return "AST_CF_ForEachSlotDo"; }
   void PrintChildren(bool deep) override;
   void Print() override;

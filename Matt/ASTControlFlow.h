@@ -93,10 +93,9 @@ public:
   int provides() override { return kProvidesUnknown; }
   bool Resolved() override { return false; }
   ASTNode *Resolve(Pass pass) override;
-  ASTNode *ResolveForeachValueDo();
-  ASTNode *ResolveForeachSlotKeyDo();
+  ASTNode *ResolveForeachSlotValueDo();
   ASTNode *ResolveForeachValueCollect();
-  ASTNode *ResolveForeachSlotKeyCollect();
+  ASTNode *ResolveForeachSlotValueCollect();
   void Print() override;
 };
 

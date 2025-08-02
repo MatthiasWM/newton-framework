@@ -444,32 +444,14 @@ ASTNode *AST_BC_NewIter::Resolve(Pass pass)
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
 
   ASTNode *ret = nullptr;
-  if ((ret = ResolveForeachValueDo())) return ret;
-  if ((ret = ResolveForeachSlotKeyDo())) return ret;
+  if ((ret = ResolveForeachSlotValueDo())) return ret;
   if ((ret = ResolveForeachValueCollect())) return ret;
-  if ((ret = ResolveForeachSlotKeyCollect())) return ret;
+  if ((ret = ResolveForeachSlotValueCollect())) return ret;
   return next;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachValueDo()
+ASTNode *AST_BC_NewIter::ResolveForeachSlotValueDo()
 {
-//  ##### [P: 1] pc=  0: AST_BC_FindVar a=14, b=0
-//  ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=2
-//  ##### [P:-1] pc=  2: AST_BC_NewIter a=24, b=17
-//  ##### [P:-1] pc=  5: AST_BC_SetVar a=20, b=6
-//  ##### [P:-4] pc=  6: AST_BC_Branch a=11, b=19
-//  ##### [P:-3] pc=  9: AST_JumpTarget a=0, b=0 from 21
-//  ##### [P: 0] pc= 12: AST_BC_SetVar a=20, b=5
-//  ##### [P: 0] pc= 16: AST_BC_Pop a=0, b=0
-//  ##### [P: 0] pc= 18: AST_BC_IterNext a=0, b=5
-//  ##### [P:-3] pc= 19: AST_JumpTarget a=0, b=0 from 6
-//  ##### [P: 1] pc= 20: AST_BC_IterDone a=0, b=6
-//  ##### [P:-1] pc= 21: AST_BC_BranchIfFalse a=13, b=9
-//  ##### [P: 1] pc= 24: AST_BC_PushConst a=4, b=2
-//  ##### [P: 0] pc= 26: AST_BC_SetVar a=20, b=6
-//  ##### [P:-1] pc= 27: AST_BC_Pop a=0, b=0
-//  ##### [P: 1] pc= 29: AST_BC_Return a=0, b=2
-
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     int slot = -1, value = -1, iter = -1;
@@ -542,7 +524,8 @@ ASTNode *AST_BC_NewIter::ResolveForeachValueDo()
     if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
 
     // -- The pattern matches. Replace everything with a AST_CF_ForLoop node
-    AST_CF_ForEachSlotDo *foreachNode = new AST_CF_ForEachSlotDo(dec, pc_, slottedObj, slot, value, deeply);
+    AST_CF_ForEachSlotValueDo *foreachNode =
+      new AST_CF_ForEachSlotValueDo(dec, pc_, slottedObj, slot, value, deeply);
     foreachNode->moveToBody(firstStmt, numStmts);
     slottedObj->Unlink();
     deeplyNd->Unlink();
@@ -565,19 +548,13 @@ ASTNode *AST_BC_NewIter::ResolveForeachValueDo()
   return nullptr;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyDo()
-{
-  // TODO: write me
-  return nullptr;
-}
-
 ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
 {
   // TODO: write me
   return nullptr;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachSlotKeyCollect()
+ASTNode *AST_BC_NewIter::ResolveForeachSlotValueCollect()
 {
   // TODO: write me
   return nullptr;
