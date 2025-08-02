@@ -19,16 +19,27 @@ class ASTBytecodeNode;
 
 enum class Print { bytecode, deep, script };
 
-class Decompiler {
+class Decompiler
+{
   friend ASTNode;
+
 public:
   ObjectPrinter &p;
   int numASTChanges = 0; // While resolving, this number will increase whenever a node is resolved
+  class Local {
+  public:
+    enum class Use { undefined, system, arg, local, loop, iter, limit };
+    Ref ref;
+    Use use = Use::undefined;
+  };
+
 protected:
   int nos_ = 0;
   int numArgs_ = 0;
   int numLocals_ = 0;
-  RefVar locals_;         ///< An array of the symbols in argFrame:
+
+  std::vector<Local> locals_;
+  //RefVar locals_;         ///< An array of the symbols in argFrame:
   ///< _nextArgFrame, _parent, _implementor, parameters, locals
   int numLiterals_ = 0;
   RefVar literals_;       // Array of Refs
@@ -40,6 +51,7 @@ protected:
   void AddToTargets(int target, int origin);
   ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
   ASTBytecodeNode *NewBytecodeNode(int pc, int a, int b);
+
 public:
   Decompiler(ObjectPrinter &printer) : p( printer ) { }
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
@@ -54,9 +66,9 @@ public:
   void printLiteral(int ix) {
     p.PrintRef(GetArraySlot(literals_, ix));
   }
-  // TODO: are locals always symbols?
-  void printLocal(int ix, bool tickSymbols = false) {
-    p.PrintTag(GetArraySlot(locals_, ix));
+  bool localUsedAs(int ix, Local::Use sameUse) { return (locals_[ix].use == sameUse); }
+  void printLocal(int ix) {
+    p.PrintTag(locals_[ix].ref);
   }
   void decompile(Ref ref);
   void printPathExpr(RefArg pathExpr);

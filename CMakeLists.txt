@@ -35,6 +35,7 @@ set ( SRCFILES
   Matt/ASTAdmin.cc
   Matt/ASTDataFlow.cc
   Matt/ASTControlFlow.cc
+  Matt/ASTControlFlowHelper.cc
   Cards/CardEvents.cc
   Compression/ArithmeticCompression/Compression.cc
   Compression/Compression.cc
@@ -191,6 +192,7 @@ set ( HEADERFILES
   Matt/ASTAdmin.h
   Matt/ASTDataFlow.h
   Matt/ASTControlFlow.h
+  Matt/ASTControlFlowHelper.h
   Cards/CardEvents.h
   Compression/Compression.h
   Compression/LZCompression/CopyOffset_bin.h

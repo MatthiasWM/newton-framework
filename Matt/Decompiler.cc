@@ -13,6 +13,7 @@
 #include "Matt/ASTAdmin.h"
 #include "Matt/ASTDataFlow.h"
 #include "Matt/ASTControlFlow.h"
+#include "Matt/ASTControlFlowHelper.h"
 
 #include "Frames/Frames.h"
 
@@ -22,7 +23,6 @@
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
-// TODO: don't print local variables that are used in iterators ( 'i, followed by '|i|iter| )
 /* TODO: Remove these kind of sequences:
     Found at the end of a while loop:
       ###[ 1]  11: AST_FindVar literal[0] ###
@@ -100,11 +100,23 @@ void Decompiler::decompile(Ref ref)
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
     int argFrameLength = Length(argFrame);
     numLocals_ = argFrameLength - 3 - numArgs_;
-    locals_ = MakeArray(0);
+    locals_.clear();
     // Make the list of names of the locals
     MapSlots(argFrame,
-             [](RefArg tag, RefArg, unsigned long locals)->long { AddArraySlot(locals, tag); return NILREF; },
-             locals_);
+             [](RefArg tag, RefArg, uintptr_t user_data)->long {
+                  Decompiler *self = (Decompiler*)user_data;
+                  Decompiler::Local l = { tag, Local::Use::undefined };
+                  self->locals_.push_back(l);
+                  return NILREF;
+                },
+             (uintptr_t)this);
+    locals_[0].use = Local::Use::system; // _nextArgFrame
+    locals_[1].use = Local::Use::system; // _parent
+    locals_[2].use =Local:: Use::system; // _implementor
+    for (int i=0; i<numArgs_; i++)
+      locals_[i+3].use = Local::Use::arg;
+    for (int i=0; i<numLocals_; i++)
+      locals_[i+3+numArgs_].use = Local::Use::local;
   } else if (klass == kPlainFuncClass) {
     nos_ = 2;
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
@@ -112,24 +124,24 @@ void Decompiler::decompile(Ref ref)
     numLocals_ = static_cast<int>(numArgs >> 18);
     // Make up names for the locals:
     // _nextArgFrame, _parent, _implementor, parameters, locals
-    int argFrameLength = 3 + numArgs_ + numLocals_;
-    locals_ = MakeArray(argFrameLength);
-    SetArraySlot(locals_, 0, SYMA(_nextArgFrame));
-    SetArraySlot(locals_, 1, SYMA(_parent));
-    SetArraySlot(locals_, 2, SYMA(_implementor));
+    locals_.clear();
+    locals_.push_back( { SYMA(_nextArgFrame), Local::Use::system } );
+    locals_.push_back( { SYMA(_parent), Local::Use::system } );
+    locals_.push_back( { SYMA(_implementor), Local::Use::system } );
     for (int i=0; i<numArgs_; i++) {
       char buf[32];
       snprintf(buf, 30, "arg%d", i);
-      SetArraySlot(locals_, i + 3, MakeSymbol(buf));
+      locals_.push_back( { MakeSymbol(buf), Local::Use::arg } );
     }
     for (int i=0; i<numLocals_; i++) {
       char buf[32];
       snprintf(buf, 30, "loc%d", i);
-      SetArraySlot(locals_, i + 3 + numArgs_, MakeSymbol(buf));
+      locals_.push_back( { MakeSymbol(buf), Local::Use::local } );
     }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
   }
+
   literals_ = GetFrameSlot(ref, SYMA(literals));
   if (!ISNIL(literals_))
     numLiterals_ = Length(literals_);
@@ -416,6 +428,8 @@ void Decompiler::printSource()
   // List all locals first! "local a;" ...
   if (numLocals_) {
     for (int i = 0; i < numLocals_; ++i) {
+      // Don;t print locals that are used as iterators in 'for' or 'foreach'
+      if (localUsedAs(i + 3 + numArgs_, Local::Use::local))
       p.Item();
       p.Printf("local ");
       printLocal(i + 3 + numArgs_);

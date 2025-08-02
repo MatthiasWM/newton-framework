@@ -10,6 +10,7 @@
 #include "Matt/AST.h"
 #include "Matt/ASTAdmin.h"
 #include "Matt/ASTControlFlow.h"
+#include "Matt/ASTControlFlowHelper.h"
 #include "Matt/Decompiler.h"
 
 /*

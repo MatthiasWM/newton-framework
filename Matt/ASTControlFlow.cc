@@ -3,129 +3,31 @@
  File:    Matt/ASTControlFlow.h
 
  Matt's decompiler Abstract Syntax Tree.
- Control Flow nodes.
+ Control Flow nodes based on bytecodes.
 
  Written by:  Matt, 2025.
  */
 
 #include "Matt/ASTControlFlow.h"
+#include "Matt/ASTControlFlowHelper.h"
 #include "Matt/ASTDataFlow.h"
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
 
-#pragma mark - ASTJumpTarget
+// DONE: if...then...else...
+// DONE: loop...
+// DONE: repeat...until...
+// DONE: while...do...
+// DONE: break
+// TODO: for...to...by...do...
+// TODO: foreach...slot...in...do...
+// TODO: foreach...slot,value...in...do...
+// TODO: foreach...deeply in...do...
+// TODO: foreach...in...collect...
+// TODO: foreach...deeply in...collect...
+// TODO: try...onexception...do...
 
-/**
- \brief Print jump targets that have not been resolved and are still in the AST.
- */
-void ASTJumpTarget::Print()
-{
-  PrintNode(true);
-}
-
-void ASTJumpTarget::PrintNode(bool deep)
-{
-  ASTNode::PrintNode(deep);
-  dec.p.Printf(" from %d", origin_);
-}
-
-#pragma mark - ASTCodeBlock
-
-/**
- \class ASTCodeBlock
- \brief A node that holds a block of statements, possibly followed by an expression.
- This is the base for control flow nodes.
-*/
-
-/**
- \brief Constructor called by derived classes.
- \param[in] d back link to the decompiler
- \param[in] pc original position in bytecode
- \param[in] inProvides sets the value that will be returned by Provides()
- */
-ASTCodeBlock::ASTCodeBlock(Decompiler &d, int pc, int inProvides)
-: ASTNode(d, pc),
-  provides_(inProvides)
-{ }
-
-/**
- \brief Remove nodes from the AST root an add them as dependencies to this node.
- \param[in] nd start with this node
- \param[in] numNodes number of nodes to move
- \param[in] append them to this list
- */
-void ASTCodeBlock::moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body)
-{
-  for (int i = 0; i < numNodes; ++i) {
-    ASTNode *nx = nd->next;
-    nd->Unlink();
-    body.push_back(nd);
-    nd = nx;
-  }
-}
-
-/**
- \brief Print the body nodes of a code block.
- */
-void ASTCodeBlock::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> Body");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- Body");
-}
-
-/**
- \brief Print a typical code block body.
- */
-void ASTCodeBlock::PrintBody(const std::string &prolog,
-                             const std::string &separator,
-                             const std::string &epilog,
-                             std::vector<ASTNode*> &body)
-{
-  dec.p.Print(prolog);
-  dec.p.DeepList(separator);
-  for (auto &nd: body) {
-    dec.p.Item();
-    nd->Print();
-    dec.p.ItemDone();
-  }
-  if (!epilog.empty()) {
-    dec.p.Trailer();
-    dec.p.Print(epilog);
-  }
-  dec.p.EndList();
-
-}
-
-#pragma mark - ASTLoop
-
-/**
- \class ASTLoop
- \brief Holds the code block of a 'loop' instruction.
- This node is created by resolving another node pattern.
- It is alway marked as resolved.
- */
-
-/**
- \brief Create a new node for a 'loop' instruction.
- The node returns a single value and is marked Resolved.
- */
-ASTLoop::ASTLoop(Decompiler &d, int pc)
-: ASTCodeBlock(d, pc, kProvidesOne)
-{ }
-
-/**
- \brief Print the source code for 'loop'.
- */
-void ASTLoop::Print() {
-  if (!Resolved()) return PrintNode(false);
-  if (body_.size() > 1) {
-    PrintBody("loop begin", ";", "end", body_);
-  } else if (body_.size() == 1) {
-    PrintBody("loop", ";", "", body_);
-  } else {
-    dec.p.Print("loop nil"); // special case, loops forever
-  }
-};
+#pragma mark - conditions and loops -
 
 #pragma mark - AST_Branch
 
@@ -206,63 +108,14 @@ void AST_Branch::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-
-#pragma mark - ASTWhileDo
-
-ASTWhileDo::ASTWhileDo(Decompiler &d, int pc, ASTNode *condition)
-: ASTCodeBlock(d, pc, kProvidesNone), cond_(condition)
-{ }
-
-void ASTWhileDo::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> while");
-  if (cond_) cond_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> do");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- Body");
-}
-
-void ASTWhileDo::Print() {
-  if (!Resolved()) return PrintNode(false);
-  dec.p.Printf("while "); cond_->Print();
-  if (body_.size() > 1) {
-    PrintBody(" do begin", ";", "end", body_);
-  } else if (body_.size() == 1) {
-    PrintBody(" do", ";", "", body_);
-  } else {
-    dec.p.Printf(" do nil"); // special case, loops forever
-  }
-};
-
-#pragma mark - ASTRepeatUntil
-
-ASTRepeatUntil::ASTRepeatUntil(Decompiler &d, int pc, ASTNode *condition)
-: ASTCodeBlock(d, pc, kProvidesNone), cond_(condition)
-{ }
-
-void ASTRepeatUntil::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> Repeat");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> Until");
-  if (cond_) cond_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- Condition");
-}
-
-void ASTRepeatUntil::Print() {
-  if (!Resolved()) return PrintNode(false);
-
-  dec.p.Printf("repeat");
-  dec.p.DeepList(";");
-  for (auto &nd: body_) {
-    dec.p.Item();
-    nd->Print();
-    dec.p.ItemDone();
-  }
-  dec.p.Trailer(); dec.p.Printf("until "); cond_->Print();
-  dec.p.EndList();
-};
-
 #pragma mark - AST_BranchIfTrue
 
+/**
+ \class AST_BranchIfTrue
+ \brief A conditional jump.
+ A value is popped from the stack. If it is nil, execution continues with the
+ next instruction. Otherwise, PC is set to the B field value.
+ */
 ASTNode *AST_BranchIfTrue::Resolve(Pass pass)
 {
   if ((pass != Pass::ControlFlow) || Resolved()) return next;
@@ -307,57 +160,35 @@ void AST_BranchIfTrue::Print() {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - ASTIfThenElseNode
-
-ASTIfThenElseNode::ASTIfThenElseNode(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue)
-: ASTCodeBlock(d, pc, returnsAValue ? kProvidesOne : kProvidesNone), cond_(condition)
-{ }
-
-void ASTIfThenElseNode::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> If Condition");
-  if (cond_) cond_->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> If Body ");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--> Else Body ");
-  for (auto &nd: elseBody_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- If Done");
-}
-
-void ASTIfThenElseNode::Print() {
-  if (!Resolved()) return PrintNode(false);
-  bool needBeginEnd = ((body_.size() > 1) || (elseBody_.size() > 1));
-  // >> if (condition) the begin
-  dec.p.Print("if ");
-  int pp = dec.precedence; dec.precedence = 0;
-  cond_->Print();
-  dec.precedence = pp;
-  dec.p.Print(" then");
-  if (needBeginEnd) dec.p.Printf(" begin");
-  // >>   if-Branch
-  dec.p.DeepList(";");
-  for (auto &nd: body_) {
-    dec.p.Item(); nd->Print(); dec.p.ItemDone();
-  }
-  if (elseBody_.empty()) {
-    if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
-    dec.p.EndList();
-  }
-  if (!elseBody_.empty()) {
-    // >> end else if
-    dec.p.Trailer();
-    if (needBeginEnd) dec.p.Printf("end else begin"); else dec.p.Printf("else");
-    dec.p.EndList();
-    // >>   else-Branch
-    dec.p.DeepList(";");
-    for (auto &nd: elseBody_) {
-      dec.p.Item(); nd->Print(); dec.p.ItemDone();
-    }
-    if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
-    dec.p.EndList();
-  }
-}
-
 #pragma mark - AST_BranchIfFalse
+
+/**
+ \class AST_BranchIfFalse
+ \brief Based on this node, find the pattern of an if/then or if/then/else structure in the AST.
+
+ This class checks for three different pattern, generating one of three possible variations
+ of the ASTIfThenElseNode. If one of the pattern matches, the new ASTIfThenElseNode
+ will replace all other code involved.
+
+ Pattern one is a simple if/then statement:
+ - BranchIfFalse B, n*statement, Target B
+
+ The second pattern adds and 'else' branch:
+ - BranchIfFalse A, n*statement, Branch B, Target A, n*statement, Target B
+
+ A third pattern generates an expression instead of a statement, laving a ref on the stack.
+ This pattern exists only as if/then/else. An missing 'else' branch in the source
+ creates an 'else' branch that pushes 'nil':
+ - BranchIfFalse A, n*statement, expr, Branch B, Target A, n*statement, expr, Target B
+
+ \note if...then...else... creates the same bytecode as *and*. `a and b` generates
+ `if a then b else nil`.
+ \note `if not...` generates "not" and "BranchIfFalse" and is not optimized into "BranchIfTrue".
+ \note BranchIfTrue is used to generated an `or` operation.
+ \note A `break` command is not allowed in the branches unless the *if* stament
+ is inside an other loop.
+ \see ASTIfThenElseNode
+ */
 
 /**
  \brief Find patterns around a branch-if-false instruction and resolve them.
@@ -462,37 +293,19 @@ void AST_BranchIfFalse::Print() {
 
 #pragma mark - AST_Return
 
+/**
+ \class AST_Return
+ \brief Return from this function.
+ \todo the very last return probably doesn't need to be printed. It's actually
+    a bug in the newt-framework compiler. NTK does not generate the extra return bytecode
+ \todo return NIL is implied if there is no return statement in the source code
+ \todo handle implied return values nicely, so we don't generate "return a := b;"
+ */
+
 void AST_Return::Print() {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("return ");
   in_->Print();
-}
-
-#pragma mark - AST_Break
-
-/**
- \brief This node writes out a 'break' instruction.
- */
-AST_Break::AST_Break(Decompiler &d, int origin, int target, ASTNode *input)
-: ASTNode(d, origin, 0, target), in_(input)
-{ }
-
-/**
- \brief Print the 'break' instruction.
- 'Break' takes an expression, but if that is 'nil', it's not written out in the source code.
- */
-void AST_Break::Print() {
-  dec.p.Printf("break");
-  if (!in_->IsNIL()) {
-    dec.p.Printf(" ");
-    in_->Print();
-  }
-}
-
-#pragma mark - AST_PopHandlers
-
-void AST_PopHandlers::Print() {
-  if (!Resolved()) return PrintNode(false);
 }
 
 #pragma mark - AST_SetLexScope
@@ -521,9 +334,108 @@ void AST_IterDone::Print() {
 
 #pragma mark - AST_NewIter
 
+/* This is the start of a foreach loop. These are the patterns:
+  (not sure yet what code the "deeply" keyword generates, maybe changes the iterator type?)
+
+ foreach...slot...in...do...
+    locals 5:slot, 6:|slot|iter|
+    AST_NewIter a=24, b=17
+    AST_SetVar a=20, b=6
+    AST_Branch 1
+  ASTJumpTarget 2
+    AST_SetVar a=20, b=5
+    n * Statements
+    AST_IterNext a=0, b=5
+  ASTJumpTarget 1
+    AST_IterDone a=0, b=6
+    AST_BranchIfFalse 2
+    AST_PushConst a=4, b=2
+    AST_SetVar a=20, b=6
+
+ foreach...slot,value...in...do...
+    locals 5:slot, 6:value, 7:|slotvalue|iter|
+    AST_NewIter a=24, b=17
+    AST_SetVar a=20, b=7
+    AST_Branch 1
+  ASTJumpTarget 2
+    AST_SetVar a=20, b=6
+    AST_SetVar a=20, b=5
+    n * Statements
+    AST_IterNext a=0, b=5
+  ASTJumpTarget 1
+    AST_IterDone a=0, b=6
+    AST_BranchIfFalse 2
+    AST_PushConst a=4, b=2
+    AST_SetVar a=20, b=7
+
+ foreach...slot...in...collect...
+    locals 5:slot, 6:|slot|iter|, 7:|slot|index|, 8:|slot|result|
+ ##### [P:-1] pc=  2: AST_NewIter a=24, b=17
+ ##### [P:-1] pc=  5: AST_SetVar a=20, b=6
+ ##### [P: 0] pc= 15: AST_SetVar a=20, b=8
+ ##### [P: 0] pc= 19: AST_SetVar a=20, b=7
+ ##### [P:-4] pc= 22: AST_Branch a=11, b=48
+ ##### [P:-3] pc= 25: ASTJumpTarget a=0, b=0 from 50
+ ##### [P: 0] pc= 28: AST_SetVar a=20, b=5
+ ##### [P: 0] pc= 38: AST_SetARef a=24, b=3
+ ##### [P:-1] pc= 39: AST_Pop a=0, b=0
+ ##### [P: 2] pc= 41: AST_IncrVar a=22, b=7
+ ##### [P:-1] pc= 44: AST_Pop a=0, b=0
+ ##### [P:-1] pc= 45: AST_Pop a=0, b=0
+ ##### [P: 0] pc= 47: AST_IterNext a=0, b=5
+ ##### [P:-3] pc= 48: ASTJumpTarget a=0, b=0 from 22
+ ##### [P: 1] pc= 49: AST_IterDone a=0, b=6
+ ##### [P:-1] pc= 50: AST_BranchIfFalse a=13, b=25
+ ##### [P:-4] pc= 53: AST_Branch a=11, b=61
+ ##### [P:-1] pc= 56: AST_SetVar a=20, b=8
+ ##### [P:-1] pc= 59: AST_Pop a=0, b=0
+ ##### [P:-1] pc= 60: AST_Pop a=0, b=0
+ ##### [P:-3] pc= 61: ASTJumpTarget a=0, b=0 from 53
+ ##### [P: 1] pc= 61: AST_GetVar a=15, b=8
+ ##### [P: 0] pc= 65: AST_SetVar a=20, b=8
+ ##### [P: 0] pc= 69: AST_SetVar a=20, b=6
+
+
+ */
+
 void AST_NewIter::Print() {
   if (!Resolved()) return PrintNode(false);
 }
+
+#pragma mark - Exceptions -
+
+#pragma mark - AST_NewHandler
+
+/*
+ This is the start of a 'try' block. The pattern is:
+ try:
+ n * AST_Push, AST_PushConst Tx
+ AST_NewHandler(n)
+ try_body:
+ Instructions
+ AST_PopHandlers
+ AST_Branch 1
+ onexception x:
+ ASTJumpTarget Tx
+ AST_Branch 2
+ end_handlers:
+ AST_PopHandlers
+ end_try
+ ASTJumpTarget 1
+ */
+
+void AST_NewHandler::Print() {
+  if (!Resolved()) return PrintNode(false);
+}
+
+
+#pragma mark - AST_PopHandlers
+
+void AST_PopHandlers::Print() {
+  if (!Resolved()) return PrintNode(false);
+}
+
+#pragma mark - Calls -
 
 #pragma mark - AST_Call
 
@@ -597,13 +509,24 @@ void AST_Resend::Print() {
   PrintResolvedCall(numIns_-1);
 }
 
-#pragma mark - AST_NewHandler
-
-void AST_NewHandler::Print() {
-  if (!Resolved()) return PrintNode(false);
-}
-
 #pragma mark - AST_BranchLoop
+
+/*
+ This indicates the end of a 'for' loop. The pattern is:
+    local 5:i, 6:|i|limit|, 7:|i|incr|
+    AST_SetVar b=5
+    AST_SetVar b=6
+    AST_SetVar b=7
+    AST_GetVar b=7
+    AST_GetVar b=5
+    AST_Branch 1
+    ASTJumpTarget 2
+    Statements
+    AST_IncrVar a=22, b=5
+    ASTJumpTarget 1
+    AST_GetVar a=15, b=6
+    AST_BranchLoop 2
+ */
 
 void AST_BranchLoop::PrintChildren(bool deep) {
   if (incr_) incr_->PrintNode(deep);
