@@ -163,7 +163,7 @@ void Decompiler::decompile(Ref ref)
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
-  printAST();
+  printAST("Initial AST");
   solve();
 }
 
@@ -359,19 +359,70 @@ void Decompiler::AddToTargets(int target, int origin)
  */
 void Decompiler::solve()
 {
-  for (;;) { // ControlFlow Pass: outer loop, run untile neither changes anything
-    for (;;) { // DataFlow Pass: rerun this until there are no more changes
-      numASTChanges = 0;
-      for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::DataFlow)) { }
-      if (numASTChanges == 0) break;
-      printAST();
-    }
+  for (;;) { // ControlFlow Pass: outer loop, run until neither changes anything
+    // ---- Data Flow Pass
+    numASTChanges = 0;
+    for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::DataFlow)) { }
+    if (numASTChanges > 0) { printAST("DataFlow Pass"); continue; }
+    p.Item(); p.Print("DataFlow passes done"); p.ItemDone();
+    // ---- Compression Pass
+    if (compressAST()) { printAST("Compression Pass"); continue; }
+    p.Item(); p.Print("Compression passes done"); p.ItemDone();
+    // ---- Control Flow Pass
+    numASTChanges = 0;
     for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::ControlFlow)) { }
-    if (numASTChanges == 0) break;
-    printAST();
+    if (numASTChanges > 0) { printAST("CodeFlow Pass"); continue; }
+    p.Item(); p.Print("CodeFlow passes done"); p.ItemDone();
+    // ---- No more changes on any level
+    break;
   }
 }
 
+/**
+ \brief Combine multiple statements into a single Code Block.
+
+ This method walks the Root layer of the AST and finds multiple consecutive
+ statements, or one or more statements followed by an expression, and groups
+ them into a new node that presents as a single statement or expression.
+
+ This resolves only the first occurrence of this pattern and then returns true.
+ To compress the entire AST, this method should be called until it returns false.
+
+ \return true if there were any changes.
+ */
+bool Decompiler::compressAST()
+{
+  ASTNode *nd = first_;
+  while (nd) {
+    if (nd->IsStatement()) {
+      int numStmts = 1;
+      ASTNode *it = nd->next;
+      bool isExpr = false;
+      while (it) {
+        if (it->IsExpr()) {
+          isExpr = true;
+          numStmts++;
+          break;
+        }
+        if (!it->IsStatement()) {
+          break;
+        }
+        numStmts++;
+        it = it->next;
+      }
+      if (numStmts > 1) {
+        AST_CodeBlock *codeBlock = new AST_CodeBlock(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
+        // Insert codeBlock before nd
+        nd->InsertBefore(codeBlock);
+        codeBlock->moveToBody(nd, numStmts);
+        nd = codeBlock->next;
+        return true;
+      }
+    }
+    nd = nd->next;
+  }
+  return false;
+}
 
 /**
  \brief Print the full Abstract Syntax Tree.
@@ -380,10 +431,10 @@ void Decompiler::solve()
  NS Bytecode's data flow is stack oriented. Dependencies are printed first
  with an indent to make it easy to follow the data flow.
  */
-void Decompiler::printAST()
+void Decompiler::printAST(const char *label)
 {
   if (!debugAST_) return;
-  p.PrintDivider("AST");
+  p.PrintDivider(label);
   p.DeepList();
   output = Print::deep;
   for (ASTNode *nd = first_; nd; nd = nd->next) {
@@ -464,7 +515,7 @@ void Decompiler::printSource()
   // statements, followed by one expression
   for (ASTNode *nd = first_->next; nd; nd = nd->next) {
     p.Item();
-    nd->Print();
+    nd->Print(kPrintSuppressList);
     p.ItemDone();
   }
 

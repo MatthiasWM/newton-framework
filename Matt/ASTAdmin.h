@@ -30,7 +30,7 @@ public:
   AST_FirstNode(Decompiler &d) : ASTNode(d) { }
   const char *Class() override { return "AST_FirstNode"; }
   int provides() override { return kSpecialNode; }
-  void Print() override { }
+  void Print(uint32_t flags = 0) override { }
   bool Resolved() override { return true; }
 };
 
@@ -40,7 +40,7 @@ public:
   AST_LastNode(Decompiler &d) : ASTNode(d) { }
   const char *Class() override { return "AST_LastNode"; }
   int provides() override { return kSpecialNode; }
-  void Print() override { }
+  void Print(uint32_t flags = 0) override { }
   bool Resolved() override { return true; }
 };
 

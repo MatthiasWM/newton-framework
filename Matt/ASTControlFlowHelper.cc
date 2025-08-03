@@ -19,7 +19,7 @@
 /**
  \brief Print jump targets that have not been resolved and are still in the AST.
  */
-void AST_JumpTarget::Print()
+void AST_JumpTarget::Print(uint32_t flags)
 {
   PrintNode(true);
 }
@@ -61,8 +61,20 @@ void AST_CodeBlock::moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> 
   for (int i = 0; i < numNodes; ++i) {
     ASTNode *nx = nd->next;
     nd->Unlink();
-    body.push_back(nd);
+    add(nd);
     nd = nx;
+  }
+}
+
+void AST_CodeBlock::add(ASTNode *nd)
+{
+  AST_CodeBlock *cb = dynamic_cast<AST_CodeBlock*>(nd);
+  if (cb) {
+    for (auto &n: cb->body_) {
+      add(n);
+    }
+  } else {
+    body_.push_back(nd);
   }
 }
 
@@ -73,6 +85,35 @@ void AST_CodeBlock::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Body");
   for (auto &nd: body_) if (nd) nd->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Body");
+}
+
+/**
+ \brief Print the code block.
+ Add 'begin' and 'end' if needed.
+ */
+void AST_CodeBlock::Print(uint32_t flags)
+{
+  if (flags & kPrintSuppressList)
+    flags |= kPrintSuppressBeginEnd;
+  if (body_.size() > 1) {
+    if ((flags & kPrintSuppressBeginEnd) == 0)
+      dec.p.Print("begin");
+    if ((flags & kPrintSuppressList) == 0)
+      dec.p.DeepList(";");
+    for (auto &nd: body_) {
+      dec.p.Item();
+      nd->Print();
+      dec.p.ItemDone();
+    }
+    if ((flags & kPrintSuppressBeginEnd) == 0) {
+      dec.p.Trailer();
+      dec.p.Print("end");
+    }
+    if ((flags & kPrintSuppressList) == 0)
+      dec.p.EndList();
+  } else if (body_.size() == 1) {
+    body_[0]->Print();
+  }
 }
 
 /**
@@ -98,6 +139,19 @@ void AST_CodeBlock::PrintBody(const std::string &prolog,
 
 }
 
+#pragma mark - AST_ControlBlock
+
+AST_ControlBlock::AST_ControlBlock(Decompiler &d, int pc, int inProvides)
+: ASTNode(d, pc),
+provides_(inProvides)
+{ }
+
+void AST_ControlBlock::PrintChildren(bool deep) {
+  dec.p.Tag(); dec.p.Print("##### ---> Body");
+  body_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--- Body");
+}
+
 #pragma mark - AST_CF_Loop
 
 /**
@@ -112,73 +166,59 @@ void AST_CodeBlock::PrintBody(const std::string &prolog,
  The node returns a single value and is marked Resolved.
  */
 AST_CF_Loop::AST_CF_Loop(Decompiler &d, int pc)
-: AST_CodeBlock(d, pc, kProvidesOne)
+: AST_ControlBlock(d, pc, kProvidesOne)
 { }
 
 /**
  \brief Print the source code for 'loop'.
  */
-void AST_CF_Loop::Print() {
+void AST_CF_Loop::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  if (body_.size() > 1) {
-    PrintBody("loop begin", ";", "end", body_);
-  } else if (body_.size() == 1) {
-    PrintBody("loop", ";", "", body_);
-  } else {
-    dec.p.Print("loop nil"); // special case, loops forever
-  }
+  dec.p.Print("loop ");
+  body_->Print();
 };
 
 #pragma mark - AST_CF_While
 
 AST_CF_While::AST_CF_While(Decompiler &d, int pc, ASTNode *condition)
-: AST_CodeBlock(d, pc, kProvidesNone), cond_(condition)
+: AST_ControlBlock(d, pc, kProvidesNone), cond_(condition)
 { }
 
 void AST_CF_While::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> while");
   if (cond_) cond_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> do");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Body");
 }
 
-void AST_CF_While::Print() {
+void AST_CF_While::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("while "); cond_->Print();
-  if (body_.size() > 1) {
-    PrintBody(" do begin", ";", "end", body_);
-  } else if (body_.size() == 1) {
-    PrintBody(" do", ";", "", body_);
-  } else {
-    dec.p.Printf(" do nil"); // special case, loops forever
-  }
+  dec.p.Printf(" do ");
+  body_->Print();
 };
 
 #pragma mark - AST_CF_Repeat
 
 AST_CF_Repeat::AST_CF_Repeat(Decompiler &d, int pc, ASTNode *condition)
-: AST_CodeBlock(d, pc, kProvidesNone), cond_(condition)
+: AST_ControlBlock(d, pc, kProvidesNone), cond_(condition)
 { }
 
 void AST_CF_Repeat::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Repeat");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> Until");
   if (cond_) cond_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Condition");
 }
 
-void AST_CF_Repeat::Print() {
+void AST_CF_Repeat::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 
   dec.p.Printf("repeat");
   dec.p.DeepList(";");
-  for (auto &nd: body_) {
-    dec.p.Item();
-    nd->Print();
-    dec.p.ItemDone();
-  }
+  body_->Print(kPrintSuppressList);
   dec.p.Trailer(); dec.p.Printf("until "); cond_->Print();
   dec.p.EndList();
 };
@@ -186,21 +226,22 @@ void AST_CF_Repeat::Print() {
 #pragma mark - AST_CF_IfThen
 
 AST_CF_IfThen::AST_CF_IfThen(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue)
-: AST_CodeBlock(d, pc, returnsAValue ? kProvidesOne : kProvidesNone), cond_(condition)
+: AST_ControlBlock(d, pc, returnsAValue ? kProvidesOne : kProvidesNone), cond_(condition)
 { }
 
 void AST_CF_IfThen::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> If Condition");
   if (cond_) cond_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> If Body ");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> Else Body ");
-  for (auto &nd: elseBody_) if (nd) nd->PrintNode(deep);
+  if (elseBody_) elseBody_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- If Done");
 }
 
-void AST_CF_IfThen::Print() {
+void AST_CF_IfThen::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
+#if 0
   bool needBeginEnd = ((body_.size() > 1) || (elseBody_.size() > 1));
   // >> if (condition) the begin
   dec.p.Print("if ");
@@ -231,6 +272,18 @@ void AST_CF_IfThen::Print() {
     if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
     dec.p.EndList();
   }
+#else
+  dec.p.Print("if ");
+  int pp = dec.precedence; dec.precedence = 0;
+  cond_->Print();
+  dec.p.Print(" then ");
+  body_->Print();
+  if (elseBody_) {
+    dec.p.Print(" else ");
+    elseBody_->Print();
+  }
+  dec.precedence = pp;
+#endif
 }
 
 #pragma mark - AST_CF_Break
@@ -246,7 +299,7 @@ AST_CF_Break::AST_CF_Break(Decompiler &d, int origin, int target, ASTNode *input
  \brief Print the 'break' instruction.
  'Break' takes an expression, but if that is 'nil', it's not written out in the source code.
  */
-void AST_CF_Break::Print() {
+void AST_CF_Break::Print(uint32_t flags) {
   dec.p.Printf("break");
   if (!in_->IsNIL()) {
     dec.p.Printf(" ");
@@ -274,7 +327,7 @@ void AST_CF_ForLoop::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--- For Done");
 }
 
-void AST_CF_ForLoop::Print()
+void AST_CF_ForLoop::Print(uint32_t flags)
 {
   bool printBy = true;
   AST_BC_PushConst *incrValNode = dynamic_cast<AST_BC_PushConst*>(incr_);
@@ -318,7 +371,7 @@ void AST_CF_ForEachSlotValueDo::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
 }
 
-void AST_CF_ForEachSlotValueDo::Print()
+void AST_CF_ForEachSlotValueDo::Print(uint32_t flags)
 {
   dec.p.Print("foreach ");
   if (slot_ != -1) {

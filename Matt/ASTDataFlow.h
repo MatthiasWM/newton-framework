@@ -21,7 +21,7 @@ public:
   int provides() override { return 1; }
   bool IsSymbol() override;
   bool Resolved() override { return true; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=4, B=signed): -- value
@@ -32,7 +32,7 @@ public:
   const char *Class() override { return "AST_BC_PushConst"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
   bool IsNIL() override;
 };
 
@@ -44,7 +44,7 @@ public:
   const char *Class() override { return "AST_BC_PushSelf"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=14): -- value
@@ -57,7 +57,7 @@ public:
   const char *Class() override { return "AST_BC_FindVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=15): -- value
@@ -68,7 +68,7 @@ public:
   const char *Class() override { return "AST_BC_GetVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=0): value --
@@ -78,7 +78,7 @@ public:
   const char *Class() override { return "AST_BC_Pop"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   // Use superclass Resolve()
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=1): x -- x x
@@ -90,7 +90,7 @@ public:
   // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
   int provides() override { if (Resolved()) return 2; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 
@@ -100,7 +100,7 @@ public:
   AST_BC_SetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_SetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
   ASTNode *input() { return in_; }
 };
 
@@ -110,7 +110,7 @@ public:
   AST_BC_FindAndSetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_FindAndSetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=5): value -- value
@@ -118,7 +118,7 @@ class AST_BC_Not : public AST_Consume1 {
 public:
   AST_BC_Not(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_Not"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=18): object -- length
@@ -126,7 +126,7 @@ class AST_BC_Length : public AST_Consume1 {
 public:
   AST_BC_Length(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_Length"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=19): object -- clone
@@ -134,7 +134,7 @@ class AST_BC_Clone : public AST_Consume1 {
 public:
   AST_BC_Clone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_Clone"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=22): array -- string
@@ -142,7 +142,7 @@ class AST_BC_Stringer : public AST_Consume1 {
 public:
   AST_BC_Stringer(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_Stringer"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=24): object -- class
@@ -150,7 +150,7 @@ class AST_BC_ClassOf : public AST_Consume1 {
 public:
   AST_BC_ClassOf(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_ClassOf"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=16): num -- result
@@ -158,7 +158,7 @@ class AST_BC_BitNot : public AST_Consume1 {
 public:
   AST_BC_BitNot(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_BitNot"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 class AST_BinaryExpression : public AST_Consume2 {
@@ -178,7 +178,7 @@ public:
   AST_BinaryFunction(Decompiler &d, int pc, int a, int b, const char *func)
   : AST_BinaryExpression(d, pc, a, b), func_(func) { }
   const char *Class() override { return "AST_BinaryFunction"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // num1 num2 -- result
@@ -192,7 +192,7 @@ public:
   : AST_BinaryExpression(d, pc, a, b), op_(op), precedence_(precedence)
   { }
   const char *Class() override { return "AST_BinaryOperator"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=17, B=0xFFFF): size class -- array
@@ -201,7 +201,7 @@ public:
   AST_BC_NewArray(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_NewArray"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=18): object pathExpr -- value
@@ -216,7 +216,7 @@ public:
   AST_BC_GetPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_GetPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=2): object index -- element
@@ -225,7 +225,7 @@ public:
   AST_BC_ARef(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_ARef"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=20): object class -- object
@@ -234,7 +234,7 @@ public:
   AST_BC_SetClass(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_SetClass"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=21): array object -- object
@@ -243,7 +243,7 @@ public:
   AST_BC_AddArraySlot(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_AddArraySlot"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=23): object pathExpr -- result
@@ -252,7 +252,7 @@ public:
   AST_BC_HasPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_HasPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=19)
@@ -276,7 +276,7 @@ public:
   int consumes() override { return 3; }
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (path_ != nullptr) && (value_ != nullptr); }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=3): object index element -- element
@@ -294,7 +294,7 @@ public:
   int consumes() override { return 3; }
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=16, B=numVal) val1 val2 ... valN map -- frame
@@ -310,7 +310,7 @@ public:
   AST_BC_MakeFrame(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   const char *Class() override { return "AST_BC_MakeFrame"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 
@@ -326,7 +326,7 @@ public:
   AST_BC_MakeArray(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   const char *Class() override { return "AST_BC_MakeArray"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 

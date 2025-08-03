@@ -57,7 +57,7 @@ public:
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
   ObjectPrinter *Printer() { return &p; }
   void DebugAST(bool v) { debugAST_ = v;}
-  void printAST();
+  void printAST(const char *label);
   void printASTRoot();
   void printSource();
   void printLiteralAsTag(int ix) {
@@ -73,6 +73,7 @@ public:
   }
   void decompile(Ref ref);
   void printPathExpr(RefArg pathExpr);
+  bool compressAST();
   void solve();
   void generateAST(Ref instructions);
 

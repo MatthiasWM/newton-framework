@@ -24,6 +24,11 @@ constexpr int kBranch = -4;
 constexpr int kBranchIfFalse = -5;
 constexpr int kBranchIfTrue = -6;
 
+// Flags for ASTNode::Print(uint32_t flags = 0)
+constexpr uint32_t kPrintSuppressBeginEnd   = 0x00000001;
+constexpr uint32_t kPrintRequestBeginEnd    = 0x00000002;
+constexpr uint32_t kPrintSuppressList       = 0x00000004;
+
 using Direction =enum {
   kFwd = 1,
   kBwd = -1
@@ -71,7 +76,7 @@ public:
   virtual bool Resolved() = 0;
   // -- Print the result
   /** Print the node, either for debugging or for the final script reconstruction. */
-  virtual void Print() { PrintNode(false); }
+  virtual void Print(uint32_t flags = 0) { PrintNode(false); }
   // -- Helpers
   /** Return true if all this node does is put a NIL on the stack */
   virtual bool IsNIL() { return false; }
@@ -107,6 +112,7 @@ public:
   ASTNode *Unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; return this; }
   void UnlinkRange(ASTNode *last);
   void ReplaceWith(ASTNode *nd);
+  void InsertBefore(ASTNode *nd);
   int FindStatementsFwd(ASTNode **crsr, ASTNode **start);
   int FindStatementsBwd(ASTNode **crsr, ASTNode **start);
   void DeleteJumpTarget(int origin, int target);

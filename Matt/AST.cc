@@ -67,6 +67,13 @@ void ASTNode::ReplaceWith(ASTNode *nd) {
   prev = next = nullptr;
 }
 
+/** Insert nd before this node. */
+void ASTNode::InsertBefore(ASTNode *nd) {
+  nd->prev = prev; nd->next = this;
+  prev->next = nd;
+  prev = nd;
+}
+
 /**
  \brief Called by the decompiler, asking a node to find its purpose in the AST.
  Every node can evaluate neighboring nodes to find patterns. If a pattern is

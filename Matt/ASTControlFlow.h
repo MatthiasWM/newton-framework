@@ -26,28 +26,30 @@ public:
   ASTNode *ResolveLoop();
   ASTNode *ResolveBreak();
   ASTNode *Resolve(Pass pass) override;
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 class AST_BC_BranchIfTrue : public AST_Consume1 {
 public:
   AST_BC_BranchIfTrue(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_BranchIfTrue"; }
-  int provides() override { if (in_) return kBranchIfTrue; else return kProvidesUnknown; }
+  int provides() override { return kProvidesUnknown; }
+  ASTNode *ResolveWhileDo();
   ASTNode *Resolve(Pass pass) override;
-  void Print() override;
+  bool Resolved() override { return false; }
+  void Print(uint32_t flags = 0) override;
 };
 
 class AST_BC_BranchIfFalse : public AST_Consume1 {
 public:
   AST_BC_BranchIfFalse(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_BranchIfFalse"; }
-  int provides() override { if (in_) return kBranchIfFalse; else return kProvidesUnknown; }
+  int provides() override { return kProvidesUnknown; }
   ASTNode *ResolveIfTheElse();
   ASTNode *ResolveRepeatUntil();
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 class AST_BC_Return : public AST_Consume1 {
@@ -58,7 +60,7 @@ public:
   // technically it is an expression and leaves a value on the stack.
   // So `a := 3 + return 4;` is a valid statement. It compiles, but just never runs.
   int provides() override { return Resolved() ? 1 : kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 #pragma mark - For loop -
@@ -69,7 +71,7 @@ public:
   AST_BC_IncrVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IncrVar"; }
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=23) incr index limit --
@@ -96,7 +98,7 @@ public:
   ASTNode *ResolveForeachSlotValueDo();
   ASTNode *ResolveForeachValueCollect();
   ASTNode *ResolveForeachSlotValueCollect();
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=5) iterator --
@@ -105,7 +107,7 @@ public:
   AST_BC_IterNext(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IterNext"; }
   int provides() override { return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=6) iterator -- done
@@ -114,7 +116,7 @@ public:
   AST_BC_IterDone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_IterDone"; }
   int provides() override { return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 #pragma mark - Exceptions -
@@ -125,7 +127,7 @@ public:
   AST_BC_NewHandler(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b*2) { }
   const char *Class() override { return "AST_BC_NewHandler"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=7): --
@@ -136,7 +138,7 @@ public:
   int provides() override { return kProvidesNone; }
   // Don't know yet
   bool Resolved() override { return false; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 #pragma mark - Calls -
@@ -147,7 +149,7 @@ public:
   AST_BC_SetLexScope(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_SetLexScope"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=5): arg1 arg2 ... argN name -- result
@@ -164,7 +166,7 @@ public:
   // HasVar(a) can also be written as "a exists", but both are legal
   // TODO: we should probably do this at creation time!
   ASTNode *Resolve(Pass pass) override;
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=6): arg1 arg2 ... argN func -- result
@@ -177,7 +179,7 @@ public:
   AST_BC_Invoke(Decompiler &d, int pc, int a, int b)
   : AST_ConsumeN(d, pc, a, b, b+1) { }
   const char *Class() override { return "AST_BC_Invoke"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=7): arg1 arg2 ... argN receiver name -- result
@@ -193,7 +195,7 @@ public:
   AST_BC_Send(Decompiler &d, int pc, int a, int b, bool ifDefined)
   : AST_ConsumeN(d, pc, a, b, b+2), ifDefined_(ifDefined) { }
   const char *Class() override { return "AST_BC_Send"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 // (A=9): arg1 arg2 ... argN name -- result
@@ -208,7 +210,7 @@ public:
   AST_BC_Resend(Decompiler &d, int pc, int a, int b, bool ifDefined)
   : AST_ConsumeN(d, pc, a, b, b+1), ifDefined_(ifDefined) { }
   const char *Class() override { return "AST_BC_Resend"; }
-  void Print() override;
+  void Print(uint32_t flags = 0) override;
 };
 
 
