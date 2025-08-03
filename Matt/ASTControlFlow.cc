@@ -560,27 +560,27 @@ ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
 //    ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2    nil, true: deeply
 //    ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17
 //    ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7      iter
-//    ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7      iter
-//    ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20   5
-//    ##### [P:-1] pc= 22: AST_BC_ARef a=24, b=2
-//    ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
-//    ##### [P:-1] pc= 24: AST_BC_NewArray a=17, b=65535
+//          ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7      iter
+//          ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20   5
+//        ##### [P:-1] pc= 22: AST_BC_ARef a=24, b=2
+//        ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
+//      ##### [P:-1] pc= 24: AST_BC_NewArray a=17, b=65535
 //    ##### [P:-1] pc= 27: AST_BC_SetVar a=20, b=9      result
-//    ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0    0
+//      ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0    0
 //    ##### [P:-1] pc= 31: AST_BC_SetVar a=20, b=8      index
 //    ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=72
 //    ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 76
-//    ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7      iter
-//    ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4    1
-//    ##### [P:-1] pc= 41: AST_BC_ARef a=24, b=2
+//        ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7      iter
+//        ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4    1
+//      ##### [P:-1] pc= 41: AST_BC_ARef a=24, b=2
 //    ##### [P:-1] pc= 42: AST_BC_SetVar a=20, b=6      value
-//      ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7    iter
-//      ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0  0
-//      ##### [P:-1] pc= 47: AST_BC_ARef a=24, b=2
-//      ##### [P:-1] pc= 48: AST_BC_SetVar a=20, b=5    slot
-//    ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9      result
-//    ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8      index
-//    body expr
+// *      ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7    iter
+// *      ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0  0
+// *    ##### [P:-1] pc= 47: AST_BC_ARef a=24, b=2
+// *  ##### [P:-1] pc= 48: AST_BC_SetVar a=20, b=5    slot
+//      ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9      result
+//      ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8      index
+//      body expr
 //    ##### [P:-1] pc= 60: AST_BC_SetARef a=24, b=3     result index expr -> expr
 //    ##### [P:-1] pc= 61: AST_BC_Pop a=0, b=0
 //    ##### [P: 1] pc= 62: AST_BC_PushConst a=4, b=4    1

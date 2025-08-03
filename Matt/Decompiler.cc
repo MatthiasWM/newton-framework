@@ -27,6 +27,30 @@
     be deleted eval, but instead when the Decompiler is deleted. WHen new nodes
     are created at eval time, the must be added to that same cleanup vector.
  */
+/* FIXME: we must compress multiple statements into some compound node.
+    So, um, this is legal: `a := 1 + begin a; b; c end + 4;`
+    `begin a; b; c end` generated two statements and one expression, and
+    is compiled into bytecode and the seen as a single expression.
+
+    I assume that after each DataFlow pass, we need some Compress pass.
+    We would search for [stmt, stmt, stmt, ..., expr] and warp that in a single
+    compound expression.
+    If that doesn't match, find [stmt, stmt, stmt, ...] and warp that in a single
+    compound statement.
+
+    When printing, just print `begin stmt; stmt; stmt; ...; expr end` or
+    `begin stmt; stmt; stmt; ... end` respectively.
+
+    This would move the functionality of AST_CodeBlock into a different pass
+    and change the code of all derived classes.
+
+    WARNING: Will this resolve correctly if we have, for example
+    `a := 0; if b = 2 then...`, or will that generate something like
+    `if begin a := 0; b = 2 end then...`? With the compression in a lower
+    priority pass, `if b = 2` should resolve before the compression gets a chance.
+    But I guess we just have to try.
+
+ */
 /* TODO: Remove these kind of sequences:
     Found at the end of a while loop:
       ###[ 1]  11: AST_BC_FindVar literal[0] ###
