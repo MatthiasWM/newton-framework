@@ -73,11 +73,12 @@ public:
 
 // (A=0, B=0): value --
 class AST_BC_Pop : public AST_Consume1 {
+  using super = AST_Consume1;
 public:
   AST_BC_Pop(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_Pop"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  // Use superclass Resolve()
+  ASTNode *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };
 

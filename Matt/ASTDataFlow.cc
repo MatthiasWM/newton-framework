@@ -67,6 +67,23 @@ void AST_BC_Pop::Print(uint32_t flags) {
   in_->Print();
 }
 
+ASTNode *AST_BC_Pop::Resolve(Pass pass) {
+  if (Resolved()) return next;
+  if (pass == Pass::DataFlow) {
+    // Remove the useless sequence "push-const *, pop" before it is picked
+    // up in the compress path.
+    if (dynamic_cast<AST_BC_PushConst*>(prev)) {
+      ASTNode *nextNode = next;
+      prev->Unlink();
+      this->Unlink();
+      return nextNode;
+    }
+    // TODO: Remove the useless sequence "find-and-set-var a, find-var a, pop"
+    return super::Resolve(pass);
+  }
+  return next;
+}
+
 #pragma mark - AST_BC_Dup
 
 void AST_BC_Dup::Print(uint32_t flags) {

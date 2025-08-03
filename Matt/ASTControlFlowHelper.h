@@ -65,7 +65,7 @@ public:
 
 class AST_CF_Loop : public AST_ControlBlock {
 public:
-  AST_CF_Loop(Decompiler &d, int pc);
+  AST_CF_Loop(Decompiler &d, int pc, int prov, ASTNode *body);
   const char *Class() override { return "AST_CF_Loop"; }
   void Print(uint32_t flags = 0) override;
 };
@@ -74,7 +74,7 @@ class AST_CF_While : public AST_ControlBlock {
 protected:
   ASTNode *cond_ { nullptr };
 public:
-  AST_CF_While(Decompiler &d, int pc, ASTNode *condition);
+  AST_CF_While(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body);
   const char *Class() override { return "AST_CF_While"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
@@ -84,7 +84,7 @@ class AST_CF_Repeat : public AST_ControlBlock {
 protected:
   ASTNode *cond_ { nullptr };
 public:
-  AST_CF_Repeat(Decompiler &d, int pc, ASTNode *condition);
+  AST_CF_Repeat(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body);
   const char *Class() override { return "AST_CF_Repeat"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;

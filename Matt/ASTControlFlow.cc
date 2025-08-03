@@ -15,11 +15,10 @@
 #include "Matt/ObjectPrinter.h"
 
 // DONE: if...then...else...
-// DONE: loop...
-// DONE: break
-// DONE: repeat...until...
-// DONE: while...do...
-// TODO: for...to...by...do...
+// DONE: loop...break...
+// DONE: repeat...break...until...
+// DONE: while...do...break...
+// TODO: for...to...by...do...break...
 // TODO: foreach...slot...in...do...
 // TODO: foreach...slot,value...in...do...
 // TODO: foreach...deeply in...do...
@@ -58,10 +57,11 @@ ASTNode *AST_BC_Branch::ResolveLoop()
     if ((jt->Origin() != pc()) || (jt->pc() != b()))    break;
 
     // -- The pattern matches. Replace everything with a AST_CF_Loop node
+    // Check for a trailing "break targets"
+    HandleBreakTargets(jt, iter, false);
     // It's a loop! Build a new node.
-    AST_CF_Loop *loop = new AST_CF_Loop(dec, pc_);
-    delete jt->Unlink();
-    loop->body_ = body->Unlink();
+    AST_CF_Loop *loop = new AST_CF_Loop(dec, pc_, kProvidesOne, body->Unlink());
+    jt->Unlink();
     this->ReplaceWith(loop);
     dec.numASTChanges++;
     return loop;
@@ -88,8 +88,8 @@ ASTNode *AST_BC_Branch::ResolveBreak()
     if (!dynamic_cast<AST_BC_Pop*>(next)) break;
     // -- It applies. Replace the instructions and remove the jump target.
     AST_CF_Break *breakNode = new AST_CF_Break(dec, pc(), b(), prev->Unlink());
-    delete next->Unlink();
-    DeleteJumpTarget(pc(), b());
+    next->Unlink();
+    // Don't delete the jump target! Let the loops take care of that.
     ReplaceWith(breakNode);
     dec.numASTChanges++;
     return breakNode->next;
@@ -146,6 +146,15 @@ ASTNode *AST_BC_BranchIfTrue::Resolve(Pass pass)
 ASTNode *AST_BC_BranchIfTrue::ResolveWhileDo()
 {
   // TODO: also used in "or", but how do we know which was used?
+  // FIXME: WhileDo is actually an expression that returns either nil, or
+  //    whatever was pushed on the stack by a 'break' inside the loop (as is
+  //    probably true for all other loops). So the pattern does not end in
+  //    "BranchIfTrue", but is followed by a "PushConst nil" and the jump a
+  //    jump target for every 'break' inside the loop, followed by a consumer.
+  // NOTE: if there is no 'break' statement, push_nil and the consumer will
+  //    be compressed into a CodeBlock (but the result is always nil anyway).
+  //    If there is no consumer, there will be a "pop", and the last two
+  //    instructions can be ignored.
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     /* branch 2 */  AST_BC_Branch *branch2 = nullptr;
@@ -154,6 +163,9 @@ ASTNode *AST_BC_BranchIfTrue::ResolveWhileDo()
     /* target 2 */  AST_JumpTarget *jt2 = nullptr;
     /* expr     */  // Already in this->in_
     /* c.brch 1 */  // <-- you are here
+    /* push nil */
+    /* break targets */
+    /* consumer */
 
     // -- Try the pattern
     ASTNode *it = prev;
@@ -165,14 +177,17 @@ ASTNode *AST_BC_BranchIfTrue::ResolveWhileDo()
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
     if (!(branch2 = dynamic_cast<AST_BC_Branch*>(it))) break;
     if ((branch2->b() != jt2->pc()) || (branch2->pc() != jt2->Origin())) break;
+    // A useless "push-const nil, pop" was already removed in AST_BC_Pop::Resolve()
+    // If there are break targets, they will be removed below.
 
     // -- The pattern matches. Replace everything with a AST_CF_Loop node
-    // We did it. This is a while...do... construct!
-    AST_CF_While *wd = new AST_CF_While(dec, pc(), in_);
+    // Check for a trailing "push-nil, break targets, consumer"
+    int prov = HandleBreakTargets(branch2, it, true);
+    // Now create our while...do node:
+    AST_CF_While *wd = new AST_CF_While(dec, pc(), prov, in_, body->Unlink());
     delete branch2->Unlink();
     delete jt1->Unlink();
     delete jt2->Unlink();
-    wd->body_ = body->Unlink();
     ReplaceWith(wd);
     dec.numASTChanges++;
     return wd;
@@ -289,10 +304,10 @@ ASTNode *AST_BC_BranchIfFalse::ResolveRepeatUntil() {
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
 
     // -- The pattern matches. Replace everything with a AST_CF_Loop node
+    int prov = HandleBreakTargets(jt1, it, true);
     // We did it. This is a while...do... construct!
-    AST_CF_Repeat *ru = new AST_CF_Repeat(dec, pc(), in_);
-    delete jt1->Unlink();
-    ru->body_ = body->Unlink();
+    AST_CF_Repeat *ru = new AST_CF_Repeat(dec, pc(), prov, in_, body->Unlink());
+    jt1->Unlink();
     ReplaceWith(ru);
     dec.numASTChanges++;
     return ru;

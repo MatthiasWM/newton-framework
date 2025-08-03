@@ -34,6 +34,8 @@ public:
   AST_BC_BranchIfTrue(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_BranchIfTrue"; }
   int provides() override { return kProvidesUnknown; }
+  int extracted(AST_BC_Branch *branch2, ASTNode *&it);
+  
   ASTNode *ResolveWhileDo();
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return false; }

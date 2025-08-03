@@ -165,9 +165,11 @@ void AST_ControlBlock::PrintChildren(bool deep) {
  \brief Create a new node for a 'loop' instruction.
  The node returns a single value and is marked Resolved.
  */
-AST_CF_Loop::AST_CF_Loop(Decompiler &d, int pc)
-: AST_ControlBlock(d, pc, kProvidesOne)
-{ }
+AST_CF_Loop::AST_CF_Loop(Decompiler &d, int pc, int prov, ASTNode *body)
+: AST_ControlBlock(d, pc, prov)
+{
+  body_ = body;
+}
 
 /**
  \brief Print the source code for 'loop'.
@@ -180,9 +182,11 @@ void AST_CF_Loop::Print(uint32_t flags) {
 
 #pragma mark - AST_CF_While
 
-AST_CF_While::AST_CF_While(Decompiler &d, int pc, ASTNode *condition)
-: AST_ControlBlock(d, pc, kProvidesNone), cond_(condition)
-{ }
+AST_CF_While::AST_CF_While(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body)
+: AST_ControlBlock(d, pc, prov), cond_(condition)
+{
+  body_ = body;
+}
 
 void AST_CF_While::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> while");
@@ -201,9 +205,11 @@ void AST_CF_While::Print(uint32_t flags) {
 
 #pragma mark - AST_CF_Repeat
 
-AST_CF_Repeat::AST_CF_Repeat(Decompiler &d, int pc, ASTNode *condition)
-: AST_ControlBlock(d, pc, kProvidesNone), cond_(condition)
-{ }
+AST_CF_Repeat::AST_CF_Repeat(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body)
+: AST_ControlBlock(d, pc, prov), cond_(condition)
+{
+  body_ = body;
+}
 
 void AST_CF_Repeat::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Repeat");

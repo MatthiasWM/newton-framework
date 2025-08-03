@@ -39,8 +39,8 @@ class ASTNode
 protected:
   Decompiler &dec;  // Quick access to the decompiler state and the ObjectPrinter (dec.p.)
   int pc_ = -1;
-  int a_ = 0;
-  int b_ = 0;
+  int a_ = -1;
+  int b_ = -1;
 
 public:
   // ---- Type declarations used within nodes
@@ -116,6 +116,7 @@ public:
   int FindStatementsFwd(ASTNode **crsr, ASTNode **start);
   int FindStatementsBwd(ASTNode **crsr, ASTNode **start);
   void DeleteJumpTarget(int origin, int target);
+  int HandleBreakTargets(ASTNode *start, ASTNode *&it, bool findPushNil);
 };
 
 
