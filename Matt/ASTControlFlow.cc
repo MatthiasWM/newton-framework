@@ -11,6 +11,8 @@
 #include "Matt/ASTControlFlow.h"
 #include "Matt/ASTControlFlowHelper.h"
 #include "Matt/ASTDataFlow.h"
+#include "Matt/ASTMacros.h"
+
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
 
@@ -392,80 +394,60 @@ Node *BCBranchLoop::Resolve(Pass pass)
 {
   if (pass != Pass::ControlFlow) return next;
   do {
-    // -- Here is our pattern. Store the result of our exploration here:
-    int iter = -1, limit = -1, incr = -1;
-    /* setvar iter  */  BCSetVar *setvar3 = nullptr;
-    /* setvar limit */  BCSetVar *setvar2 = nullptr;
-    /* setvar incr  */  BCSetVar *setvar1 = nullptr;
-    /* getvar incr  */  BCGetVar *getvar3 = nullptr;
-    /* getvar iter  */  BCGetVar *getvar2 = nullptr;
-    /* branch 1     */  BCBranch *branch = nullptr;
-    /* jumptarget 2 */  JumpTarget *jt2 = nullptr;
-    /* n statments  */  Node *body = nullptr;
-    /* incrvar iter */  BCIncrVar *incrVar = nullptr;
-    /* jumptarget 1 */  JumpTarget *jt1 = nullptr;
-    /* getvar limit */  BCGetVar *getvar1 = nullptr;
-    /* branchloop 2 */  // <-- you are here
-
-    // -- Try the pattern. We must trace backwards.
+    // ---- Try the for...to...by...do... pattern and take breaks into account.
+    // We are at the ned of the pattern, so walk backwards down the AST root.
     Node *it = prev;
-    if ( !(getvar1  = ToBwd<BCGetVar>(&it, true)) )    break;
-    if ( !(jt1      = ToBwd<JumpTarget>(&it, false)) )  break;
-    if ( !(incrVar  = ToBwd<BCIncrVar>(&it, false)) )  break;
-    body = it; it = it->prev;
-    if ( !(jt2      = ToBwd<JumpTarget>(&it, false)) )  break;
-    if ( !(branch   = ToBwd<BCBranch>(&it, false)) )   break;
-    if ( !(getvar2  = ToBwd<BCGetVar>(&it, true)) )    break;
-    // TODO: the remainder is in a CodeBlock
-//    ##### ---> Body
-//        ##### [P: 1] pc=  0: BCPushConst a=4, b=4
-//      ##### [P: 0] pc=  1: BCSetVar a=20, b=5
-//        ##### [P: 1] pc=  2: BCPushConst a=4, b=400
-//      ##### [P: 0] pc=  5: BCSetVar a=20, b=6
-//        ##### [P: 1] pc=  6: BCPushConst a=4, b=8
-//      ##### [P: 0] pc=  9: BCSetVar a=20, b=7
-//      ##### [P: 1] pc= 12: BCGetVar a=15, b=7
-//      ##### <--- Body
-//    ##### [P: 1] pc=  1: CodeBlock a=0, b=0
-    CodeBlock *lead = dynamic_cast<CodeBlock*>(it);
-    if (!lead) break;
-    int n = (int)lead->body_.size();
-    if (n < 4) break;
-    if ( !(getvar3  = dynamic_cast<BCGetVar*>(lead->body_[n-1])) ) break;
-    if ( !(setvar1  = dynamic_cast<BCSetVar*>(lead->body_[n-2])) ) break;
-    if ( !(setvar2  = dynamic_cast<BCSetVar*>(lead->body_[n-3])) ) break;
-    if ( !(setvar3  = dynamic_cast<BCSetVar*>(lead->body_[n-4])) ) break;
+    int iter = -1, limit = -1, incr = -1;
+    //           ( BCBranchLoop, this )
+    REQUIRED_NODE( BCGetVar,   getLimit, it, true  ) { it = it->prev; }
+    REQUIRED_NODE( JumpTarget, jtTest,   it, false ) { it = it->prev; }
+    REQUIRED_NODE( BCIncrVar,  incIter,  it, false ) { it = it->prev; }
+    REQUIRED_COND( Node, body, body->IsStatement(), it, false) { it = it->prev; }
+    REQUIRED_NODE( JumpTarget, jtAgain,  it, false ) { it = it->prev; }
+    REQUIRED_NODE( BCBranch,   brTest,   it, false ) { it = it->prev; }
+    REQUIRED_NODE( BCGetVar,   getIter,  it, false ) { it = it->prev; }
+    REQUIRED_NODE( CodeBlock,  start,    it, true  ) { it = it->prev; }
+    int nInstr = start->size(); if (nInstr < 4) break;
+    REQUIRED_NODE( BCGetVar,   getIncr,  start->at(nInstr-1), true);
+    REQUIRED_NODE( BCSetVar,   setIncr,  start->at(nInstr-2), true);
+    REQUIRED_NODE( BCSetVar,   setLimit, start->at(nInstr-3), true);
+    REQUIRED_NODE( BCSetVar,   setIter,  start->at(nInstr-4), true);
 
-    // Check use of variables
-    iter = getvar2->b();  dec.useLocalAs(iter, Decompiler::Local::Use::iter);
-    limit = getvar1->b(); dec.useLocalAs(limit, Decompiler::Local::Use::iter);
-    incr = getvar3->b();  dec.useLocalAs(incr, Decompiler::Local::Use::iter);
-    if (setvar1->b() != incr) break;
-    if (setvar2->b() != limit) break;
-    if (setvar3->b() != iter) break;
+    // The pattern is correct. Now check the use of locals
+    iter  = setIter->b();  if (getIter->b() != iter)   break;
+    limit = getLimit->b(); if (getLimit->b() != limit) break;
+    incr  = setIncr->b();  if (getIncr->b() != incr)   break;
 
-    // Check jump origins and destinations
-    if ((jt2->Origin() != pc()) || (jt2->pc() != b())) break;
-    if ((jt1->Origin() != branch->pc()) || (jt1->pc() != branch->b())) break;
+    // Locals are correct. Now check the jump instructions.
+    if ((jtAgain->Origin() != pc()) || (jtAgain->pc() != b())) break;
+    if ((jtTest->Origin() != brTest->pc()) || (jtTest->pc() != brTest->b())) break;
 
-    // -- The pattern matches. Replace everything with a CFForLoop node
-    int prov = HandleBreakTargets(branch, it, true);
-    // Build our for loop node
-    CFForLoop *forLoopNode = new CFForLoop(dec, pc(), prov, setvar3, setvar2->input(), setvar1->input());
-    forLoopNode->body_ = body->Unlink();
-    // remove from the "lead" code block
-    n = n-4;
-    lead->body_.resize(n);
-    if (n == 0) lead->Unlink();
-    // Unlink for the roor list
-    getvar1->Unlink();
-    getvar2->Unlink();
-    incrVar->Unlink();
-    branch->Unlink();
-    jt1->Unlink();
-    jt2->Unlink();
+    // ---- If we reach all this way, the pattern matches.
+    // Eval and unlink all the jump targets of break instructions inside the loop
+    int prov = HandleBreakTargets(brTest, it, true);
+    // Unlink all nodes in the pattern, so they can be relinked down the AST or later deleted
+    getLimit->Unlink();
+    jtTest->Unlink();
+    incIter->Unlink();
+    body->Unlink();
+    jtAgain->Unlink();
+    brTest->Unlink();
+    getIter->Unlink();
+    start->body_.resize(nInstr - 4); // unlink the instructions at the end of the start code block
+    if (start->size() == 0) start->Unlink();
+
+    // Mark the locals with an alternative use, so they are not declared
+    dec.useLocalAs(incr, Decompiler::Local::Use::iter);
+    dec.useLocalAs(limit, Decompiler::Local::Use::iter);
+    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+
+    // Create a CFForLoop node that replaces the entire pattern
+    CFForLoop *forLoopNode = new CFForLoop(dec, pc(), prov, setIter, setLimit->input(), setIncr->input(), body);
     ReplaceWith(forLoopNode);
+
+    // Wrap things up
     dec.numASTChanges++;
+    return forLoopNode->next;
   } while (0);
   return next;
 }

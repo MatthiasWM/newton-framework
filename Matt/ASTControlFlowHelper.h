@@ -46,6 +46,8 @@ public:
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
   void add(Node *nd);
+  int size() { return (int)body_.size(); }
+  Node *at(int ix) { return body_.at(ix); }
   void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
@@ -126,7 +128,7 @@ class CFForLoop : public ControlBlock {
   Node *limit_ = nullptr;
   Node *incr_ = nullptr;
 public:
-  CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr);
+  CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr, Node *body);
   const char *Class() override { return "CFForLoop"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;

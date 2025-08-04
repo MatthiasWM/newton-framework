@@ -317,10 +317,12 @@ void CFBreak::Print(uint32_t flags) {
 
 #pragma mark - CFForLoop
 
-CFForLoop::CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr)
+CFForLoop::CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr, Node *body)
 : ControlBlock(d, pc, prov),
   iter_(iter), limit_(limit), incr_(incr)
-{ }
+{
+  body_ = body;
+}
 
 void CFForLoop::PrintChildren(bool deep)
 {
