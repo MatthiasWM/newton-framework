@@ -291,7 +291,7 @@ public:
   : AST_Bytecode(d, pc, a, b) { }
   const char *Class() override { return "AST_BC_SetARef"; }
   void PrintChildren(bool deep) override;
-  int provides() override { if (object_ && index_ && element_) return kProvidesNone; else return kProvidesUnknown; }
+  int provides() override { if (object_ && index_ && element_) return kProvidesOne; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   ASTNode *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }

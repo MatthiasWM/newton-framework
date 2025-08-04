@@ -607,43 +607,38 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueCollect()
 //  8: |slotvalue|index|: nil,
 //  9: |slotvalue|result|: nil
 
-  // ##### [P:-2] pc= -1: AST_FirstNode a=-1, b=-1
-  //   ##### [P: 1] pc=  0: AST_BC_PushConst a=4, b=4
-  //   ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=8
-  //   ##### [P: 1] pc=  4: AST_BC_PushConst a=4, b=12
-  //   ##### [P: 1] pc=  7: AST_BC_Push a=3, b=0
-  // ##### [P: 1] pc=  8: AST_BC_MakeArray a=17, b=3
-  // ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2
-  // ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17
-  // ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7
+  // ##### [P: 1] pc=  8: push expr                           object
+  // ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2           deeply
+  // ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17           foreach
+  // ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7             iter
   //   ##### ---> Body
-  //         ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7
-  //         ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20
-  //       ##### [P: 1] pc= 22: AST_BC_ARef a=24, b=2
-  //       ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
-  //     ##### [P: 1] pc= 24: AST_BC_NewArray a=17, b=65535
-  //   ##### [P: 0] pc= 27: AST_BC_SetVar a=20, b=9
-  //     ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0
-  //   ##### [P: 0] pc= 31: AST_BC_SetVar a=20, b=8
+  //         ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7     iter
+  //         ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20  5
+  //       ##### [P: 1] pc= 22: AST_BC_ARef a=24, b=2         iter[5]
+  //       ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0          'array
+  //     ##### [P: 1] pc= 24: AST_BC_NewArray a=17, b=65535   new array[5]
+  //   ##### [P: 0] pc= 27: AST_BC_SetVar a=20, b=9           result = new array[5]
+  //     ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0       0
+  //   ##### [P: 0] pc= 31: AST_BC_SetVar a=20, b=8           index
   //   ##### <--- Body
   // ##### [P: 0] pc= 27: AST_CodeBlock a=0, b=0
-  // ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=79
-  // ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 83
+  // ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=79            -> check for end
+  // ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 83     <- next round
   //     ##### ---> Body
-  //         ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7
-  //         ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4
-  //       ##### [P: 1] pc= 41: AST_BC_ARef a=24, b=2
-  //     ##### [P: 0] pc= 42: AST_BC_SetVar a=20, b=6
-  //         ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7
-  //         ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0
-  //       ##### [P: 1] pc= 47: AST_BC_ARef a=24, b=2
-  //     ##### [P: 0] pc= 48: AST_BC_SetVar a=20, b=5
-  //     ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9
+  //         ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7     iter
+  //         ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4   1
+  //       ##### [P: 1] pc= 41: AST_BC_ARef a=24, b=2         iter[1]
+  //     ##### [P: 0] pc= 42: AST_BC_SetVar a=20, b=6         value := iter[1]
+  //         ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7     iter
+  //         ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0   0
+  //       ##### [P: 1] pc= 47: AST_BC_ARef a=24, b=2         iter[0]
+  //     ##### [P: 0] pc= 48: AST_BC_SetVar a=20, b=5         slot
+  //     ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9         result ERR -v
   //     ##### <--- Body
   //   ##### [P: 1] pc= 42: AST_CodeBlock a=0, b=0
-  //   ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8
+  //   ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8           index ERR -v
   //     ##### ---> Body
-  //         ##### [P: 1] pc= 55: AST_BC_GetVar a=15, b=5
+  //         ##### [P: 1] pc= 55: AST_BC_GetVar a=15, b=5     slot
   //         ##### [P: 1] pc= 56: AST_BC_Push a=3, b=1
   //       ##### [P: 1] pc= 57: AST_BC_Call a=5, b=1
   //     ##### [P: 0] pc= 58: AST_BC_Pop a=0, b=0
@@ -651,7 +646,7 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueCollect()
   //     ##### [P: 1] pc= 66: AST_BC_GetVar a=15, b=6
   //     ##### <--- Body
   //   ##### [P: 1] pc= 58: AST_CodeBlock a=0, b=0
-  // ##### [P: 0] pc= 67: AST_BC_SetARef a=24, b=3
+  // ##### [P: 0] pc= 67: AST_BC_SetARef a=24, b=3  --- ERROR -^^: this should have consumed 3!
   // ##### [P:-1] pc= 68: AST_BC_Pop a=0, b=0
   //   ##### [P: 1] pc= 69: AST_BC_PushConst a=4, b=4
   // ##### [P: 2] pc= 70: AST_BC_IncrVar a=22, b=8

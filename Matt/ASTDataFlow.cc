@@ -341,7 +341,7 @@ ASTNode *AST_BC_SetARef::Resolve(Pass pass)
 
   if (   (prev->IsExpr())
       && (prev->prev->IsExpr())
-      && (prev->prev->IsExpr())) {
+      && (prev->prev->prev->IsExpr())) {
     element_ = prev; prev->Unlink();
     index_ = prev; prev->Unlink();
     object_ = prev; prev->Unlink();
