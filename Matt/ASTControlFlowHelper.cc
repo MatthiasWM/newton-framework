@@ -315,8 +315,8 @@ void AST_CF_Break::Print(uint32_t flags) {
 
 #pragma mark - AST_CF_ForLoop
 
-AST_CF_ForLoop::AST_CF_ForLoop(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr)
-: AST_CodeBlock(d, pc, kProvidesOne),
+AST_CF_ForLoop::AST_CF_ForLoop(Decompiler &d, int pc, int prov, ASTNode *iter, ASTNode *limit, ASTNode *incr)
+: AST_ControlBlock(d, pc, prov),
   iter_(iter), limit_(limit), incr_(incr)
 { }
 
@@ -329,7 +329,7 @@ void AST_CF_ForLoop::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--> by ");
   if (incr_) incr_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> For Body ");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- For Done");
 }
 
@@ -347,16 +347,14 @@ void AST_CF_ForLoop::Print(uint32_t flags)
     dec.p.Print(" by ");
     incr_->Print();
   }
-  if (body_.size() <= 1)
-    PrintBody(" do", ";", "", body_);
-  else
-    PrintBody(" do begin", ";", "end", body_);
+  dec.p.Print(" do ");
+  body_->Print();
 }
 
 #pragma mark - AST_CF_ForEachSlotDo
 
 AST_CF_ForEachSlotValueDo::AST_CF_ForEachSlotValueDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply)
-: AST_CodeBlock(d, pc, kProvidesNone),
+: AST_ControlBlock(d, pc, kProvidesOne),
 object_(obj), slot_(slot), value_(value), deeply_(deeply)
 { }
 
@@ -373,7 +371,7 @@ void AST_CF_ForEachSlotValueDo::PrintChildren(bool deep)
   dec.p.Print(" in");
   if (object_) object_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> do ");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
+  if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
 }
 
@@ -388,10 +386,8 @@ void AST_CF_ForEachSlotValueDo::Print(uint32_t flags)
   if (deeply_) dec.p.Print(" deeply");
   dec.p.Print(" in ");
   object_->Print();
-  if (body_.size() <= 1)
-    PrintBody(" do", ";", "", body_);
-  else
-    PrintBody(" do begin", ";", "end", body_);
+  dec.p.Print(" do ");
+  body_->Print();
 }
 
 

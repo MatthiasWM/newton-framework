@@ -98,7 +98,6 @@ public:
   bool Resolved() override { return false; }
   ASTNode *Resolve(Pass pass) override;
   ASTNode *ResolveForeachSlotValueDo();
-  ASTNode *ResolveForeachValueCollect();
   ASTNode *ResolveForeachSlotValueCollect();
   void Print(uint32_t flags = 0) override;
 };

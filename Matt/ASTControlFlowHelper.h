@@ -31,7 +31,7 @@ public:
 
 
 class AST_CodeBlock : public ASTNode {
-protected:
+public:
   int provides_ = kProvidesNone;
   std::vector<ASTNode*> body_;
   void moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body);
@@ -120,18 +120,18 @@ public:
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_ForLoop : public AST_CodeBlock {
+class AST_CF_ForLoop : public AST_ControlBlock {
   ASTNode *iter_ = nullptr;
   ASTNode *limit_ = nullptr;
   ASTNode *incr_ = nullptr;
 public:
-  AST_CF_ForLoop(Decompiler &d, int pc, ASTNode *iter, ASTNode *limit, ASTNode *incr);
+  AST_CF_ForLoop(Decompiler &d, int pc, int prov, ASTNode *iter, ASTNode *limit, ASTNode *incr);
   const char *Class() override { return "AST_CF_ForLoop"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_ForEachSlotValueDo : public AST_CodeBlock {
+class AST_CF_ForEachSlotValueDo : public AST_ControlBlock {
   ASTNode *object_ = nullptr;
   int slot_ = -1;
   int value_ = -1;

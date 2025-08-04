@@ -18,12 +18,11 @@
 // DONE: loop...break...
 // DONE: repeat...break...until...
 // DONE: while...do...break...
-// TODO: for...to...by...do...break...
-// TODO: foreach...slot...in...do...
-// TODO: foreach...slot,value...in...do...
-// TODO: foreach...deeply in...do...
+// DONE: for...to...by...do...break...
+// DONE: foreach...slot...in...do...break...
+// DONE: foreach...slot,value...in...do...break...
+// DONE: foreach...deeply in...do...break...
 // TODO: foreach...in...collect...
-// TODO: foreach...deeply in...collect...
 // TODO: try...onexception...do...
 // TODO: call a function inside a function
 // TODO: and
@@ -389,6 +388,7 @@ AST_BC_BranchLoop::AST_BC_BranchLoop(Decompiler &d, int pc, int a, int b)
 
 ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
 {
+  if (pass != Pass::ControlFlow) return next;
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     int iter = -1, limit = -1, incr = -1;
@@ -399,8 +399,7 @@ ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
     /* getvar iter  */  AST_BC_GetVar *getvar2 = nullptr;
     /* branch 1     */  AST_BC_Branch *branch = nullptr;
     /* jumptarget 2 */  AST_JumpTarget *jt2 = nullptr;
-    /* n statments  */  ASTNode *firstStmt = nullptr;
-    /*              */  int numStmt = 0;
+    /* n statments  */  ASTNode *body = nullptr;
     /* incrvar iter */  AST_BC_IncrVar *incrVar = nullptr;
     /* jumptarget 1 */  AST_JumpTarget *jt1 = nullptr;
     /* getvar limit */  AST_BC_GetVar *getvar1 = nullptr;
@@ -411,16 +410,31 @@ ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
     if ( !(getvar1  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
     if ( !(jt1      = ToBwd<AST_JumpTarget>(&it, false)) )  break;
     if ( !(incrVar  = ToBwd<AST_BC_IncrVar>(&it, false)) )  break;
-    numStmt = FindStatementsBwd(&it, &firstStmt);
+    body = it; it = it->prev;
     if ( !(jt2      = ToBwd<AST_JumpTarget>(&it, false)) )  break;
     if ( !(branch   = ToBwd<AST_BC_Branch>(&it, false)) )   break;
     if ( !(getvar2  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
-    if ( !(getvar3  = ToBwd<AST_BC_GetVar>(&it, true)) )    break;
-    if ( !(setvar1  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
-    if ( !(setvar2  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
-    if ( !(setvar3  = ToBwd<AST_BC_SetVar>(&it, true)) )    break;
+    // TODO: the remainder is in a CodeBlock
+//    ##### ---> Body
+//        ##### [P: 1] pc=  0: AST_BC_PushConst a=4, b=4
+//      ##### [P: 0] pc=  1: AST_BC_SetVar a=20, b=5
+//        ##### [P: 1] pc=  2: AST_BC_PushConst a=4, b=400
+//      ##### [P: 0] pc=  5: AST_BC_SetVar a=20, b=6
+//        ##### [P: 1] pc=  6: AST_BC_PushConst a=4, b=8
+//      ##### [P: 0] pc=  9: AST_BC_SetVar a=20, b=7
+//      ##### [P: 1] pc= 12: AST_BC_GetVar a=15, b=7
+//      ##### <--- Body
+//    ##### [P: 1] pc=  1: AST_CodeBlock a=0, b=0
+    AST_CodeBlock *lead = dynamic_cast<AST_CodeBlock*>(it);
+    if (!lead) break;
+    int n = (int)lead->body_.size();
+    if (n < 4) break;
+    if ( !(getvar3  = dynamic_cast<AST_BC_GetVar*>(lead->body_[n-1])) ) break;
+    if ( !(setvar1  = dynamic_cast<AST_BC_SetVar*>(lead->body_[n-2])) ) break;
+    if ( !(setvar2  = dynamic_cast<AST_BC_SetVar*>(lead->body_[n-3])) ) break;
+    if ( !(setvar3  = dynamic_cast<AST_BC_SetVar*>(lead->body_[n-4])) ) break;
 
-    // Check us of variables
+    // Check use of variables
     iter = getvar2->b();  dec.useLocalAs(iter, Decompiler::Local::Use::iter);
     limit = getvar1->b(); dec.useLocalAs(limit, Decompiler::Local::Use::iter);
     incr = getvar3->b();  dec.useLocalAs(incr, Decompiler::Local::Use::iter);
@@ -433,14 +447,17 @@ ASTNode *AST_BC_BranchLoop::Resolve(Pass pass)
     if ((jt1->Origin() != branch->pc()) || (jt1->pc() != branch->b())) break;
 
     // -- The pattern matches. Replace everything with a AST_CF_ForLoop node
-    AST_CF_ForLoop *forLoopNode = new AST_CF_ForLoop(dec, pc(), setvar3, setvar2->input(), setvar1->input());
-    forLoopNode->moveToBody(firstStmt, numStmt);
-    setvar1->Unlink();
-    setvar2->Unlink();  // Note: link only the input to the sevar
-    setvar3->Unlink();  // Note: we link the sevar node iteself
+    int prov = HandleBreakTargets(branch, it, true);
+    // Build our for loop node
+    AST_CF_ForLoop *forLoopNode = new AST_CF_ForLoop(dec, pc(), prov, setvar3, setvar2->input(), setvar1->input());
+    forLoopNode->body_ = body->Unlink();
+    // remove from the "lead" code block
+    n = n-4;
+    lead->body_.resize(n);
+    if (n == 0) lead->Unlink();
+    // Unlink for the roor list
     getvar1->Unlink();
     getvar2->Unlink();
-    getvar3->Unlink();
     incrVar->Unlink();
     branch->Unlink();
     jt1->Unlink();
@@ -493,7 +510,6 @@ ASTNode *AST_BC_NewIter::Resolve(Pass pass)
 
   ASTNode *ret = nullptr;
   if ((ret = ResolveForeachSlotValueDo())) return ret;
-  if ((ret = ResolveForeachValueCollect())) return ret;
   if ((ret = ResolveForeachSlotValueCollect())) return ret;
   return next;
 }
@@ -509,20 +525,13 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueDo()
     /* setvar iter  */  AST_BC_SetVar *setvar1;
     /* branch 1     */  AST_BC_Branch *branch;
     /* jumptarget 2 */  AST_JumpTarget *jt2;
-    /* setvar slot  */  AST_BC_SetVar *setvar2;
-    /* | getvar       */  AST_BC_GetVar *slot_getvar;
-    /* | pushconst    */  AST_BC_PushConst *slot_pushconst;
-    /* | aref         */  AST_BC_ARef *slot_aref;
-    /* | setvar       */  AST_BC_SetVar *slot_setvar;
-    /* statements   */  ASTNode *firstStmt;
-    /*              */  int numStmts;
+    /* setvar value */  AST_BC_SetVar *setvar2;
+    /* setvar slot  */  AST_BC_SetVar *setvar3 = nullptr; // optional
+    /* statements   */  AST_CodeBlock *body;
     /* iternext     */  AST_BC_IterNext *iternext;
     /* jumptarget 1 */  AST_JumpTarget *jt1;
     /* iterdone     */  AST_BC_IterDone *iterdone;
     /* c.branch 2   */  AST_BC_BranchIfFalse *cbranch;
-    /* pushconst nil*/  AST_BC_PushConst *cleanup1;
-    /* setvar iter  */  AST_BC_SetVar *cleanup2;
-    /* pop          */  AST_BC_Pop *cleanup3;
 
     // -- Try the pattern. We must trace backwards.
     // Walk backwards in the AST root
@@ -539,32 +548,23 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueDo()
     iter = setvar1->b();
     if ( !(branch = ToFwd<AST_BC_Branch>(&it, false)) ) break;
     if ( !(jt2 = ToFwd<AST_JumpTarget>(&it, false)) ) break;
-    if ( !(setvar2 = ToFwd<AST_BC_SetVar>(&it, false)) ) break;
-    value = setvar2->b();
-    // If the original source code uses the 'slot' option, the following AST subtree must match:
-    // The statement here is: `local slot := |slotvalue|iter|[0];`
-    if ( (slot_setvar = dynamic_cast<AST_BC_SetVar*>(it)) ) {
-      if ( (slot_aref = dynamic_cast<AST_BC_ARef*>(slot_setvar->input())) ) {
-        slot_getvar = dynamic_cast<AST_BC_GetVar*>(slot_aref->input1());
-        slot_pushconst = dynamic_cast<AST_BC_PushConst*>(slot_aref->input2());
-        if ((slot_pushconst->b() == 0) && (slot_getvar->b() == iter)) {
-          slot = slot_setvar->b();
-          it = it->next;
-        }
-      }
-    }
-    if (slot == -1) slot_setvar = nullptr;
-    // The remaining statements form the body
-    numStmts = FindStatementsFwd(&it, &firstStmt);
+    // The remaining header and the following body are in a single CodeBlock
+    if ( !(body = ToFwd<AST_CodeBlock>(&it, false)) ) break;
+    // The first node in body must set the 'value'
+    if (body->body_.size() < 1) break;
+    if ( !(setvar2 = dynamic_cast<AST_BC_SetVar*>(body->body_[0])) ) break;
+    value = setvar2->b(); if (value != iter-1) break; // b = value
+    // If we have a second setvar, and b = value-1, it's the 'slot' variable
+    if (   (body->body_.size()  >= 2 )
+        && ((setvar3 = dynamic_cast<AST_BC_SetVar*>(body->body_[1])))
+        && (setvar3->b() == iter-2 )) { slot = setvar3->b(); };
+    // The remaining statements in the code block form the body
+
     // Now find the rest of the 'foreach' pattern
     if ( !(iternext = ToFwd<AST_BC_IterNext>(&it, true)) ) break;
     if ( !(jt1 = ToFwd<AST_JumpTarget>(&it, false)) ) break;
     if ( !(iterdone = ToFwd<AST_BC_IterDone>(&it, false)) ) break;
     if ( !(cbranch = ToFwd<AST_BC_BranchIfFalse>(&it, false)) ) break;
-    // cleanup
-    if ( !(cleanup1 = ToFwd<AST_BC_PushConst>(&it, false)) ) break;
-    if ( !(cleanup2 = ToFwd<AST_BC_SetVar>(&it, true)) ) break;
-    if ( !(cleanup3 = ToFwd<AST_BC_Pop>(&it, false)) ) break;
     // TODO: we should still verify the two jump targets
 
     dec.useLocalAs(iter, Decompiler::Local::Use::iter);
@@ -572,31 +572,33 @@ ASTNode *AST_BC_NewIter::ResolveForeachSlotValueDo()
     if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
 
     // -- The pattern matches. Replace everything with a AST_CF_ForLoop node
+    cbranch->HandleBreakTargets(jt2, it, true);
+    // 'foreach' resets the iterator to nil for garbage collection.
+    // It would probably be wise to check that before removing it here:
+    it->Unlink(); // push-const nil, set-var |value|iter|
     AST_CF_ForEachSlotValueDo *foreachNode =
       new AST_CF_ForEachSlotValueDo(dec, pc_, slottedObj, slot, value, deeply);
-    foreachNode->moveToBody(firstStmt, numStmts);
+    body->Unlink();
+    body->body_.erase(body->body_.begin());
+    if (slot != -1) body->body_.erase(body->body_.begin());
+    foreachNode->body_ = body;
     slottedObj->Unlink();
     deeplyNd->Unlink();
     setvar1->Unlink();
     branch->Unlink();
     jt2->Unlink();
-    setvar2->Unlink();
     iternext->Unlink();
     jt1->Unlink();
     iterdone->Unlink();
     cbranch->Unlink();
-    cleanup1->Unlink();
-    cleanup2->Unlink();
-    cleanup3->Unlink();
-    if (slot_setvar) slot_setvar->Unlink();
     ReplaceWith(foreachNode);
     dec.numASTChanges++;
-
+    return foreachNode->next;
   } while (0);
   return nullptr;
 }
 
-ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
+ASTNode *AST_BC_NewIter::ResolveForeachSlotValueCollect()
 {
 // foreach slot value collect
 //  5: slot: nil,
@@ -604,63 +606,90 @@ ASTNode *AST_BC_NewIter::ResolveForeachValueCollect()
 //  7: |slotvalue|iter|: nil,
 //  8: |slotvalue|index|: nil,
 //  9: |slotvalue|result|: nil
-//    object expr
-//    ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2    nil, true: deeply
-//    ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17
-//    ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7      iter
-//          ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7      iter
-//          ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20   5
-//        ##### [P:-1] pc= 22: AST_BC_ARef a=24, b=2
-//        ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
-//      ##### [P:-1] pc= 24: AST_BC_NewArray a=17, b=65535
-//    ##### [P:-1] pc= 27: AST_BC_SetVar a=20, b=9      result
-//      ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0    0
-//    ##### [P:-1] pc= 31: AST_BC_SetVar a=20, b=8      index
-//    ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=72
-//    ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 76
-//        ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7      iter
-//        ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4    1
-//      ##### [P:-1] pc= 41: AST_BC_ARef a=24, b=2
-//    ##### [P:-1] pc= 42: AST_BC_SetVar a=20, b=6      value
-// *      ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7    iter
-// *      ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0  0
-// *    ##### [P:-1] pc= 47: AST_BC_ARef a=24, b=2
-// *  ##### [P:-1] pc= 48: AST_BC_SetVar a=20, b=5    slot
-//      ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9      result
-//      ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8      index
-//      body expr
-//    ##### [P:-1] pc= 60: AST_BC_SetARef a=24, b=3     result index expr -> expr
-//    ##### [P:-1] pc= 61: AST_BC_Pop a=0, b=0
-//    ##### [P: 1] pc= 62: AST_BC_PushConst a=4, b=4    1
-//    ##### [P:-1] pc= 63: AST_BC_IncrVar a=22, b=8     index
-//    ##### [P:-1] pc= 66: AST_BC_Pop a=0, b=0
-//    ##### [P:-1] pc= 67: AST_BC_Pop a=0, b=0
-//    ##### [P: 1] pc= 68: AST_BC_GetVar a=15, b=7      iter
-//    ##### [P:-1] pc= 71: AST_BC_IterNext a=0, b=5     value
-//    ##### [P:-3] pc= 72: AST_JumpTarget a=0, b=0 from 34
-//    ##### [P: 1] pc= 72: AST_BC_GetVar a=15, b=7      iter
-//    ##### [P:-1] pc= 75: AST_BC_IterDone a=0, b=6     value
-//    ##### [P:-1] pc= 76: AST_BC_BranchIfFalse a=13, b=37
-//    ##### [P:-4] pc= 79: AST_BC_Branch a=11, b=87
-//    ##### [P:-1] pc= 82: AST_BC_SetVar a=20, b=9      result
-//    ##### [P:-1] pc= 85: AST_BC_Pop a=0, b=0
-//    ##### [P:-1] pc= 86: AST_BC_Pop a=0, b=0
-//    ##### [P:-3] pc= 87: AST_JumpTarget a=0, b=0 from 79
-//    ##### [P: 1] pc= 87: AST_BC_GetVar a=15, b=9      result
-//    ##### [P: 1] pc= 90: AST_BC_PushConst a=4, b=2    nil
-//    ##### [P:-1] pc= 91: AST_BC_SetVar a=20, b=9      result
-//    ##### [P: 1] pc= 94: AST_BC_PushConst a=4, b=2    nil
-//    ##### [P:-1] pc= 95: AST_BC_SetVar a=20, b=7      iter
-//    collection is now on the stack
+
+  // ##### [P:-2] pc= -1: AST_FirstNode a=-1, b=-1
+  //   ##### [P: 1] pc=  0: AST_BC_PushConst a=4, b=4
+  //   ##### [P: 1] pc=  1: AST_BC_PushConst a=4, b=8
+  //   ##### [P: 1] pc=  4: AST_BC_PushConst a=4, b=12
+  //   ##### [P: 1] pc=  7: AST_BC_Push a=3, b=0
+  // ##### [P: 1] pc=  8: AST_BC_MakeArray a=17, b=3
+  // ##### [P: 1] pc=  9: AST_BC_PushConst a=4, b=2
+  // ##### [P:-1] pc= 10: AST_BC_NewIter a=24, b=17
+  // ##### [P:-1] pc= 13: AST_BC_SetVar a=20, b=7
+  //   ##### ---> Body
+  //         ##### [P: 1] pc= 16: AST_BC_GetVar a=15, b=7
+  //         ##### [P: 1] pc= 19: AST_BC_PushConst a=4, b=20
+  //       ##### [P: 1] pc= 22: AST_BC_ARef a=24, b=2
+  //       ##### [P: 1] pc= 23: AST_BC_Push a=3, b=0
+  //     ##### [P: 1] pc= 24: AST_BC_NewArray a=17, b=65535
+  //   ##### [P: 0] pc= 27: AST_BC_SetVar a=20, b=9
+  //     ##### [P: 1] pc= 30: AST_BC_PushConst a=4, b=0
+  //   ##### [P: 0] pc= 31: AST_BC_SetVar a=20, b=8
+  //   ##### <--- Body
+  // ##### [P: 0] pc= 27: AST_CodeBlock a=0, b=0
+  // ##### [P:-4] pc= 34: AST_BC_Branch a=11, b=79
+  // ##### [P:-3] pc= 37: AST_JumpTarget a=0, b=0 from 83
+  //     ##### ---> Body
+  //         ##### [P: 1] pc= 37: AST_BC_GetVar a=15, b=7
+  //         ##### [P: 1] pc= 40: AST_BC_PushConst a=4, b=4
+  //       ##### [P: 1] pc= 41: AST_BC_ARef a=24, b=2
+  //     ##### [P: 0] pc= 42: AST_BC_SetVar a=20, b=6
+  //         ##### [P: 1] pc= 43: AST_BC_GetVar a=15, b=7
+  //         ##### [P: 1] pc= 46: AST_BC_PushConst a=4, b=0
+  //       ##### [P: 1] pc= 47: AST_BC_ARef a=24, b=2
+  //     ##### [P: 0] pc= 48: AST_BC_SetVar a=20, b=5
+  //     ##### [P: 1] pc= 49: AST_BC_GetVar a=15, b=9
+  //     ##### <--- Body
+  //   ##### [P: 1] pc= 42: AST_CodeBlock a=0, b=0
+  //   ##### [P: 1] pc= 52: AST_BC_GetVar a=15, b=8
+  //     ##### ---> Body
+  //         ##### [P: 1] pc= 55: AST_BC_GetVar a=15, b=5
+  //         ##### [P: 1] pc= 56: AST_BC_Push a=3, b=1
+  //       ##### [P: 1] pc= 57: AST_BC_Call a=5, b=1
+  //     ##### [P: 0] pc= 58: AST_BC_Pop a=0, b=0
+  //     ##### [P: 0] pc= 62: AST_CF_Break a=0, b=89
+  //     ##### [P: 1] pc= 66: AST_BC_GetVar a=15, b=6
+  //     ##### <--- Body
+  //   ##### [P: 1] pc= 58: AST_CodeBlock a=0, b=0
+  // ##### [P: 0] pc= 67: AST_BC_SetARef a=24, b=3
+  // ##### [P:-1] pc= 68: AST_BC_Pop a=0, b=0
+  //   ##### [P: 1] pc= 69: AST_BC_PushConst a=4, b=4
+  // ##### [P: 2] pc= 70: AST_BC_IncrVar a=22, b=8
+  // ##### [P:-1] pc= 73: AST_BC_Pop a=0, b=0
+  // ##### [P:-1] pc= 74: AST_BC_Pop a=0, b=0
+  //   ##### [P: 1] pc= 75: AST_BC_GetVar a=15, b=7
+  // ##### [P:-1] pc= 78: AST_BC_IterNext a=0, b=5
+  // ##### [P:-3] pc= 79: AST_JumpTarget a=0, b=0 from 34
+  //   ##### [P: 1] pc= 79: AST_BC_GetVar a=15, b=7
+  // ##### [P:-1] pc= 82: AST_BC_IterDone a=0, b=6
+  // ##### [P:-1] pc= 83: AST_BC_BranchIfFalse a=13, b=37
+  // ##### [P:-4] pc= 86: AST_BC_Branch a=11, b=94
+  // ##### [P:-3] pc= 89: AST_JumpTarget a=0, b=0 from 62
+  // ##### [P:-1] pc= 89: AST_BC_SetVar a=20, b=9
+  // ##### [P:-1] pc= 92: AST_BC_Pop a=0, b=0
+  // ##### [P:-1] pc= 93: AST_BC_Pop a=0, b=0
+  // ##### [P:-3] pc= 94: AST_JumpTarget a=0, b=0 from 86
+  // ##### [P: 1] pc= 94: AST_BC_GetVar a=15, b=9
+  //   ##### ---> Body
+  //     ##### [P: 1] pc= 97: AST_BC_PushConst a=4, b=2
+  //   ##### [P: 0] pc= 98: AST_BC_SetVar a=20, b=9
+  //     ##### [P: 1] pc=101: AST_BC_PushConst a=4, b=2
+  //   ##### [P: 0] pc=102: AST_BC_SetVar a=20, b=7
+  //   ##### <--- Body
+  // ##### [P: 0] pc= 98: AST_CodeBlock a=0, b=0
+  // ##### [P:-1] pc=105: AST_BC_FindAndSetVar a=21, b=2
+  //   ##### ---> Body
+  //       ##### [P: 1] pc=106: AST_BC_FindVar a=14, b=2
+  //       ##### [P: 1] pc=107: AST_BC_Push a=3, b=1
+  //     ##### [P: 1] pc=108: AST_BC_Call a=5, b=1
+  //   ##### [P: 0] pc=109: AST_BC_Pop a=0, b=0
+  //     ##### [P: 1] pc=110: AST_BC_PushConst a=4, b=4
+  //   ##### [P: 1] pc=111: AST_BC_Return a=0, b=2
+  //   ##### <--- Body
+  // ##### [P: 1] pc=109: AST_CodeBlock a=0, b=0
+  // ##### [P:-2] pc= -1: AST_LastNode a=-1, b=-1
 
 
-
-  // TODO: write me
-  return nullptr;
-}
-
-ASTNode *AST_BC_NewIter::ResolveForeachSlotValueCollect()
-{
   // TODO: write me
   return nullptr;
 }
