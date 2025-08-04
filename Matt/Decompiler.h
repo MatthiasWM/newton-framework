@@ -13,15 +13,18 @@
 #include "Matt/ObjectPrinter.h"
 
 class ObjectPrinter;
-class ASTNode;
-class AST_JumpTarget;
-class AST_Bytecode;
+
+namespace ast {
+class Node;
+class JumpTarget;
+class Bytecode;
+};
 
 enum class Print { bytecode, deep, script };
 
 class Decompiler
 {
-  friend ASTNode;
+  friend ast::Node;
 
 public:
   ObjectPrinter &p;
@@ -43,14 +46,14 @@ protected:
   ///< _nextArgFrame, _parent, _implementor, parameters, locals
   int numLiterals_ = 0;
   RefVar literals_;       // Array of Refs
-  ASTNode *first_ { nullptr };
-  ASTNode *last_ { nullptr };
-  std::map<int /* destination pc*/, std::map<int /* origin pc */, AST_JumpTarget*>> targetMap_;
+  ast::Node *first_ { nullptr };
+  ast::Node *last_ { nullptr };
+  std::map<int /* destination pc*/, std::map<int /* origin pc */, ast::JumpTarget*>> targetMap_;
   bool debugAST_ { false };
 
   void AddToTargets(int target, int origin);
-  ASTNode *Append(ASTNode *lastNode, ASTNode *newNode);
-  AST_Bytecode *NewBytecodeNode(int pc, int a, int b);
+  ast::Node *Append(ast::Node *lastNode, ast::Node *newNode);
+  ast::Bytecode *NewBytecodeNode(int pc, int a, int b);
 
 public:
   Decompiler(ObjectPrinter &printer) : p( printer ) { }

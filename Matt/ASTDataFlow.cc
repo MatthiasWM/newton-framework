@@ -15,65 +15,67 @@
 
 #include "Frames/Frames.h"
 
-#pragma mark - AST_BC_Push
+using namespace ast;
 
-bool AST_BC_Push::IsSymbol()
+#pragma mark - BCPush
+
+bool BCPush::IsSymbol()
 {
   return ::IsSymbol(dec.GetLiteral(b_));
 }
 
-void AST_BC_Push::Print(uint32_t flags) {
+void BCPush::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteral(b_);
 }
 
-#pragma mark - AST_BC_PushConst
+#pragma mark - BCPushConst
 
-bool AST_BC_PushConst::IsNIL()
+bool BCPushConst::IsNIL()
 {
   return (b_ == NILREF);
 }
 
-void AST_BC_PushConst::Print(uint32_t flags) {
+void BCPushConst::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.PrintConstant(b_);
 }
 
-#pragma mark - AST_BC_PushSelf
+#pragma mark - BCPushSelf
 
-void AST_BC_PushSelf::Print(uint32_t flags) {
+void BCPushSelf::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("self");
 }
 
-#pragma mark - AST_BC_FindVar
+#pragma mark - BCFindVar
 
-void AST_BC_FindVar::Print(uint32_t flags) {
+void BCFindVar::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteralAsTag(b_);
 }
 
-#pragma mark - AST_BC_GetVar
+#pragma mark - BCGetVar
 
-void AST_BC_GetVar::Print(uint32_t flags) {
+void BCGetVar::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.printLocal(b_);
 }
 
-#pragma mark - AST_BC_Pop
+#pragma mark - BCPop
 
-void AST_BC_Pop::Print(uint32_t flags) {
+void BCPop::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   in_->Print();
 }
 
-ASTNode *AST_BC_Pop::Resolve(Pass pass) {
+Node *BCPop::Resolve(Pass pass) {
   if (Resolved()) return next;
   if (pass == Pass::DataFlow) {
     // Remove the useless sequence "push-const *, pop" before it is picked
     // up in the compress path.
-    if (dynamic_cast<AST_BC_PushConst*>(prev)) {
-      ASTNode *nextNode = next;
+    if (dynamic_cast<BCPushConst*>(prev)) {
+      Node *nextNode = next;
       prev->Unlink();
       this->Unlink();
       return nextNode;
@@ -84,33 +86,33 @@ ASTNode *AST_BC_Pop::Resolve(Pass pass) {
   return next;
 }
 
-#pragma mark - AST_BC_Dup
+#pragma mark - BCDup
 
-void AST_BC_Dup::Print(uint32_t flags) {
+void BCDup::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_BC_SetVar
+#pragma mark - BCSetVar
 
-void AST_BC_SetVar::Print(uint32_t flags) {
+void BCSetVar::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.printLocal(b_);
   dec.p.Printf(" := ");
   in_->Print();
 }
 
-#pragma mark - AST_BC_FindAndSetVar
+#pragma mark - BCFindAndSetVar
 
-void AST_BC_FindAndSetVar::Print(uint32_t flags) {
+void BCFindAndSetVar::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.printLiteralAsTag(b_);
   dec.p.Printf(" := ");
   in_->Print();
 }
 
-#pragma mark - AST_BC_Not
+#pragma mark - BCNot
 
-void AST_BC_Not::Print(uint32_t flags) {
+void BCNot::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   int ppp = dec.precedence;
   bool parentheses = (dec.precedence > 2);
@@ -122,62 +124,62 @@ void AST_BC_Not::Print(uint32_t flags) {
   dec.precedence = ppp;
 }
 
-#pragma mark - AST_BC_Length
+#pragma mark - BCLength
 
-void AST_BC_Length::Print(uint32_t flags) {
+void BCLength::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("length(");
   in_->Print();
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_BC_Clone
+#pragma mark - BCClone
 
-void AST_BC_Clone::Print(uint32_t flags) {
+void BCClone::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("clone(");
   in_->Print();
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_BC_Stringer
+#pragma mark - BCStringer
 
-void AST_BC_Stringer::Print(uint32_t flags) {
+void BCStringer::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 }
 //  TODO: The input is an Array with at least two elements
 //  a '1 && 2' is handled as a '1 & " " & 2', generating an array with three values
-//  So the in_ node is AST_BC_MakeArray which consumes the inputs and the 'array symbol
+//  So the in_ node is BCMakeArray which consumes the inputs and the 'array symbol
 //  void printSource() {
 //    if (in_) {
-//      AST_BC_MakeArray *array = dynamic_cast<AST_BC_MakeArray*>(in_);
+//      BCMakeArray *array = dynamic_cast<BCMakeArray*>(in_);
 //      if (array) {
 //        dec.p.Printf(array->in[0] " & " array->in[1] ... )
 //      }
 //    }
 //  }
 
-#pragma mark - AST_BC_ClassOf
+#pragma mark - BCClassOf
 
-void AST_BC_ClassOf::Print(uint32_t flags) {
+void BCClassOf::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("ClassOf(");
   in_->Print();
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_BC_BitNot
+#pragma mark - BCBitNot
 
-void AST_BC_BitNot::Print(uint32_t flags) {
+void BCBitNot::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("bNot(");
   in_->Print();
   dec.p.Printf(")");
 }
 
-#pragma mark - AST_BinaryExpression
+#pragma mark - BinaryExpression
 
-ASTNode *AST_BinaryExpression::Resolve(Pass pass)
+Node *BinaryExpression::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -191,9 +193,9 @@ ASTNode *AST_BinaryExpression::Resolve(Pass pass)
   }
 }
 
-#pragma mark - AST_BinaryFunction
+#pragma mark - BinaryFunction
 
-void AST_BinaryFunction::Print(uint32_t flags) {
+void BinaryFunction::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   int ppp = dec.precedence;
   dec.precedence = 0;
@@ -205,9 +207,9 @@ void AST_BinaryFunction::Print(uint32_t flags) {
   dec.precedence = ppp;
 }
 
-#pragma mark - AST_BinaryOperator
+#pragma mark - BinaryOperator
 
-void AST_BinaryOperator::Print(uint32_t flags) {
+void BinaryOperator::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   int ppp = dec.precedence;
   bool parentheses = (dec.precedence > precedence_);
@@ -218,21 +220,21 @@ void AST_BinaryOperator::Print(uint32_t flags) {
   dec.precedence = ppp;
 }
 
-#pragma mark - AST_BC_NewArray
+#pragma mark - BCNewArray
 
 // size class -- array
 
 // if the class is 'array, generate `Array(size, nil)`
 // with a custom class, generate `SetClass(Array(size, nil), 'class)`
-void AST_BC_NewArray::Print(uint32_t flags)
+void BCNewArray::Print(uint32_t flags)
 {
   if (!Resolved()) return PrintNode(false);
 
   // Check if the array class is defined and not 'array
   bool setClass = false;
   Ref klass = NILREF;
-  ASTNode *klassNd = in2_;
-  if (klassNd->a() == 3) { // AST_BC_Push
+  Node *klassNd = in2_;
+  if (klassNd->a() == 3) { // BCPush
     int literalIx = klassNd->b();
     klass = dec.GetLiteral(literalIx);
     if (::IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {
@@ -252,57 +254,57 @@ void AST_BC_NewArray::Print(uint32_t flags)
   }
 }
 
-#pragma mark - AST_BC_GetPath
+#pragma mark - BCGetPath
 
-void AST_BC_GetPath::Print(uint32_t flags) {
+void BCGetPath::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   in1_->Print();
   dec.p.Printf(".");
   PrintPathExpr(in2_);
 }
 
-#pragma mark - AST_BC_ARef
+#pragma mark - BCARef
 
-void AST_BC_ARef::Print(uint32_t flags) {
+void BCARef::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   in1_->Print();
   dec.p.Printf("["); in2_->Print(); dec.p.Printf("]");
 }
 
-#pragma mark - AST_BC_SetClass
+#pragma mark - BCSetClass
 
-void AST_BC_SetClass::Print(uint32_t flags) {
+void BCSetClass::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("SetClass(");
   in1_->Print(); dec.p.Printf(", ");
   in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark - AST_BC_AddArraySlot
+#pragma mark - BCAddArraySlot
 
-void AST_BC_AddArraySlot::Print(uint32_t flags) {
+void BCAddArraySlot::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("AddArraySlot(");
   in1_->Print(); dec.p.Printf(", ");
   in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark - AST_BC_HasPath
+#pragma mark - BCHasPath
 
-void AST_BC_HasPath::Print(uint32_t flags) {
+void BCHasPath::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 }
 
-#pragma mark - AST_SetPath
+#pragma mark - SetPath
 
-int AST_SetPath::provides() {
+int SetPath::provides() {
   if (Resolved())
     return (b_ == 0) ? kProvidesNone : 1;
   else
     return kProvidesUnknown;
 }
 
-ASTNode *AST_SetPath::Resolve(Pass pass)
+Node *SetPath::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -318,13 +320,13 @@ ASTNode *AST_SetPath::Resolve(Pass pass)
   return next;
 }
 
-void AST_SetPath::PrintChildren(bool deep) {
+void SetPath::PrintChildren(bool deep) {
   if (object_) object_->PrintNode(deep);
   if (path_) path_->PrintNode(deep);
   if (value_) value_->PrintNode(deep);
 }
 
-void AST_SetPath::Print(uint32_t flags) {
+void SetPath::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   object_->Print();
   dec.p.Print(".");
@@ -333,9 +335,9 @@ void AST_SetPath::Print(uint32_t flags) {
   value_->Print();
 }
 
-#pragma mark - AST_BC_SetARef
+#pragma mark - BCSetARef
 
-ASTNode *AST_BC_SetARef::Resolve(Pass pass)
+Node *BCSetARef::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -351,23 +353,23 @@ ASTNode *AST_BC_SetARef::Resolve(Pass pass)
   return next;
 }
 
-void AST_BC_SetARef::PrintChildren(bool deep) {
+void BCSetARef::PrintChildren(bool deep) {
   if (object_) object_->PrintNode(deep);
   if (index_) index_->PrintNode(deep);
   if (element_) element_->PrintNode(deep);
 }
 
-void AST_BC_SetARef::Print(uint32_t flags) {
+void BCSetARef::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 }
 
 
-#pragma mark - AST_BC_MakeFrame
+#pragma mark - BCMakeFrame
 
-void AST_BC_MakeFrame::Print(uint32_t flags) {
+void BCMakeFrame::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  AST_BC_Push *mapNode { nullptr };
-  if ( (mapNode = dynamic_cast<AST_BC_Push*>(ins_[numIns_-1])) ) {
+  BCPush *mapNode { nullptr };
+  if ( (mapNode = dynamic_cast<BCPush*>(ins_[numIns_-1])) ) {
     dec.p.Print("{");
     dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
     Ref map = dec.GetLiteral(mapNode->b());
@@ -390,16 +392,16 @@ void AST_BC_MakeFrame::Print(uint32_t flags) {
   }
 }
 
-#pragma mark - AST_BC_MakeArray
+#pragma mark - BCMakeArray
 
 // val1 val2 ... valN class -- array
-void AST_BC_MakeArray::Print(uint32_t flags) {
+void BCMakeArray::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("[");
   dec.p.StartList(","); // TODO: is there a way to figure out if we need a deep list?
   // Check if the array class is defined and not 'array
-  ASTNode *klassNd = ins_.back();
-  if (klassNd->a() == 3) { // AST_BC_Push
+  Node *klassNd = ins_.back();
+  if (klassNd->a() == 3) { // BCPush
     int literalIx = klassNd->b();
     Ref klass = dec.GetLiteral(literalIx);
     if (::IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {

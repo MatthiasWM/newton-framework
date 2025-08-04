@@ -15,12 +15,13 @@
 
 #include <vector>
 
+namespace ast {
 
-class AST_JumpTarget : public ASTNode {
+class JumpTarget : public Node {
   int origin_ { -1 }; // Initialize to impossible pc.
 public:
-  AST_JumpTarget(Decompiler &d, int pc, int origin) : ASTNode(d, pc), origin_(origin) { }
-  const char *Class() override { return "AST_JumpTarget"; }
+  JumpTarget(Decompiler &d, int pc, int origin) : Node(d, pc), origin_(origin) { }
+  const char *Class() override { return "JumpTarget"; }
   void Print(uint32_t flags = 0) override;
   void PrintNode(bool deep) override;
   int provides() override { return kJumpTarget; }
@@ -30,62 +31,62 @@ public:
 };
 
 
-class AST_CodeBlock : public ASTNode {
+class CodeBlock : public Node {
 public:
   int provides_ = kProvidesNone;
-  std::vector<ASTNode*> body_;
-  void moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body);
+  std::vector<Node*> body_;
+  void moveToBody(Node *nd, int numNodes, std::vector<Node*> &body);
   void PrintBody(const std::string &prolog,
                  const std::string &separator,
                  const std::string &epilog,
-                 std::vector<ASTNode*> &body);
+                 std::vector<Node*> &body);
 public:
-  AST_CodeBlock(Decompiler &d, int pc, int inProvides);
-  const char *Class() override { return "AST_CodeBlock"; }
+  CodeBlock(Decompiler &d, int pc, int inProvides);
+  const char *Class() override { return "CodeBlock"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
-  void add(ASTNode *nd);
-  void moveToBody(ASTNode *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
+  void add(Node *nd);
+  void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
 };
 
-class AST_ControlBlock : public ASTNode {
+class ControlBlock : public Node {
 public:
   int provides_ = kProvidesNone;
-  ASTNode *body_;
+  Node *body_;
 public:
-  AST_ControlBlock(Decompiler &d, int pc, int inProvides);
-  const char *Class() override { return "AST_ControlBlock"; }
+  ControlBlock(Decompiler &d, int pc, int inProvides);
+  const char *Class() override { return "ControlBlock"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override = 0;
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
 };
 
-class AST_CF_Loop : public AST_ControlBlock {
+class CFLoop : public ControlBlock {
 public:
-  AST_CF_Loop(Decompiler &d, int pc, int prov, ASTNode *body);
-  const char *Class() override { return "AST_CF_Loop"; }
+  CFLoop(Decompiler &d, int pc, int prov, Node *body);
+  const char *Class() override { return "CFLoop"; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_While : public AST_ControlBlock {
+class CFWhile : public ControlBlock {
 protected:
-  ASTNode *cond_ { nullptr };
+  Node *cond_ { nullptr };
 public:
-  AST_CF_While(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body);
-  const char *Class() override { return "AST_CF_While"; }
+  CFWhile(Decompiler &d, int pc, int prov, Node *condition, Node *body);
+  const char *Class() override { return "CFWhile"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_Repeat : public AST_ControlBlock {
+class CFRepeat : public ControlBlock {
 protected:
-  ASTNode *cond_ { nullptr };
+  Node *cond_ { nullptr };
 public:
-  AST_CF_Repeat(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body);
-  const char *Class() override { return "AST_CF_Repeat"; }
+  CFRepeat(Decompiler &d, int pc, int prov, Node *condition, Node *body);
+  const char *Class() override { return "CFRepeat"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
 };
@@ -96,52 +97,53 @@ public:
  `nil` constant, the else-branch need not be printed as a script.
  \note if this creates a short `if a then b else nil` expression, this may
  originally have been an `a and b` statement.
- \see AST_BC_BranchIfFalse
+ \see BCBranchIfFalse
  */
-class AST_CF_IfThen: public AST_ControlBlock {
+class CFIfThen: public ControlBlock {
 public:
-  ASTNode *cond_ { nullptr };
-  ASTNode *elseBody_ = nullptr;
+  Node *cond_ { nullptr };
+  Node *elseBody_ = nullptr;
 public:
-  AST_CF_IfThen(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue);
-  const char *Class() override { return "AST_CF_IfThen"; }
+  CFIfThen(Decompiler &d, int pc, Node *condition, bool returnsAValue);
+  const char *Class() override { return "CFIfThen"; }
   void PrintChildren(bool deep) override;
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_Break : public ASTNode {
-  ASTNode *in_ = nullptr;
+class CFBreak : public Node {
+  Node *in_ = nullptr;
 public:
-  AST_CF_Break(Decompiler &d, int origin, int target, ASTNode *input);
-  const char *Class() override { return "AST_CF_Break"; }
+  CFBreak(Decompiler &d, int origin, int target, Node *input);
+  const char *Class() override { return "CFBreak"; }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_ForLoop : public AST_ControlBlock {
-  ASTNode *iter_ = nullptr;
-  ASTNode *limit_ = nullptr;
-  ASTNode *incr_ = nullptr;
+class CFForLoop : public ControlBlock {
+  Node *iter_ = nullptr;
+  Node *limit_ = nullptr;
+  Node *incr_ = nullptr;
 public:
-  AST_CF_ForLoop(Decompiler &d, int pc, int prov, ASTNode *iter, ASTNode *limit, ASTNode *incr);
-  const char *Class() override { return "AST_CF_ForLoop"; }
+  CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr);
+  const char *Class() override { return "CFForLoop"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_CF_ForEachSlotValueDo : public AST_ControlBlock {
-  ASTNode *object_ = nullptr;
+class CFForEachSlotValueDo : public ControlBlock {
+  Node *object_ = nullptr;
   int slot_ = -1;
   int value_ = -1;
   bool deeply_ = false;
 public:
-  AST_CF_ForEachSlotValueDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply);
-  const char *Class() override { return "AST_CF_ForEachSlotDo"; }
+  CFForEachSlotValueDo(Decompiler &d, int pc, Node *obj, int slot, int value, bool deeply);
+  const char *Class() override { return "CFForEachSlotDo"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
 };
 
+}; // namespace ast;
 
 #endif  /* __MATT_AST_CONTROLFLOWHELPER_H */

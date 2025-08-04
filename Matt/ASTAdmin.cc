@@ -15,17 +15,19 @@
 
 extern bool IsPathExpr(RefArg inObj);
 
-#pragma mark - AST_FirstNode
+using namespace ast;
+
+#pragma mark - FirstNode
 
 
-#pragma mark - AST_LastNode
+#pragma mark - LastNode
 
 
-#pragma mark - AST_Bytecode
+#pragma mark - Bytecode
 
-void AST_Bytecode::PrintPathExpr(ASTNode *inNode) {
-  AST_BC_Push *pushLiteral { nullptr };
-  if ( (pushLiteral  = dynamic_cast<AST_BC_Push*>(inNode)) ) {
+void Bytecode::PrintPathExpr(Node *inNode) {
+  BCPush *pushLiteral { nullptr };
+  if ( (pushLiteral  = dynamic_cast<BCPush*>(inNode)) ) {
     Ref lit = dec.GetLiteral(pushLiteral->b());
     if (IsInt(lit)) {
       dec.p.PrintInteger(lit);
@@ -41,14 +43,14 @@ void AST_Bytecode::PrintPathExpr(ASTNode *inNode) {
   }
 }
 
-#pragma mark - AST_Consume1
+#pragma mark - Consume1
 
-void AST_Consume1::PrintChildren(bool deep)
+void Consume1::PrintChildren(bool deep)
 {
   if (in_) in_->PrintNode(deep);
 }
 
-ASTNode *AST_Consume1::Resolve(Pass pass)
+Node *Consume1::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -63,15 +65,15 @@ ASTNode *AST_Consume1::Resolve(Pass pass)
 }
 
 
-#pragma mark - AST_Consume2
+#pragma mark - Consume2
 
-void AST_Consume2::PrintChildren(bool deep)
+void Consume2::PrintChildren(bool deep)
 {
   if (in1_) in1_->PrintNode(deep);
   if (in1_) in2_->PrintNode(deep);
 }
 
-ASTNode *AST_Consume2::Resolve(Pass pass)
+Node *Consume2::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -85,19 +87,19 @@ ASTNode *AST_Consume2::Resolve(Pass pass)
 }
 
 
-#pragma mark - AST_ConsumeN
+#pragma mark - ConsumeN
 
-void AST_ConsumeN::PrintChildren(bool deep)
+void ConsumeN::PrintChildren(bool deep)
 {
   for (auto &in: ins_)
     if (in) in->PrintNode(deep);
 }
 
-ASTNode *AST_ConsumeN::Resolve(Pass pass)
+Node *ConsumeN::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
-  ASTNode *nd = this;
+  Node *nd = this;
   for (int i=0; i<numIns_; i++) {
     nd = nd->prev;
     if (!nd->IsExpr()) { nd = nullptr; break; }
@@ -112,9 +114,9 @@ ASTNode *AST_ConsumeN::Resolve(Pass pass)
   return this;
 }
 
-void AST_ConsumeN::PrintResolvedCall(int nArgs) {
-  // Called by AST_BC_Call, AST_BC_Send, and AST_BC_Resend
-  AST_BC_Push *pushLiteral = dynamic_cast<AST_BC_Push*>(ins_[numIns_-1]);
+void ConsumeN::PrintResolvedCall(int nArgs) {
+  // Called by BCCall, BCSend, and BCResend
+  BCPush *pushLiteral = dynamic_cast<BCPush*>(ins_[numIns_-1]);
   if (pushLiteral) {
     dec.printLiteralAsTag(pushLiteral->b());
   } else {

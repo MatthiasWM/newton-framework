@@ -15,49 +15,51 @@
 
 #include <vector>
 
+namespace ast {
+
 #pragma mark - conditions and loops -
 
-class AST_BC_Branch : public AST_Bytecode {
+class BCBranch : public Bytecode {
 public:
-  AST_BC_Branch(Decompiler &d, int pc, int a, int b) : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Branch"; }
+  BCBranch(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCBranch"; }
   int provides() override { return kBranch; }
   bool Resolved() override { return false; }
-  ASTNode *ResolveLoop();
-  ASTNode *ResolveBreak();
-  ASTNode *Resolve(Pass pass) override;
+  Node *ResolveLoop();
+  Node *ResolveBreak();
+  Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_BC_BranchIfTrue : public AST_Consume1 {
+class BCBranchIfTrue : public Consume1 {
 public:
-  AST_BC_BranchIfTrue(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_BranchIfTrue"; }
+  BCBranchIfTrue(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCBranchIfTrue"; }
   int provides() override { return kProvidesUnknown; }
-  int extracted(AST_BC_Branch *branch2, ASTNode *&it);
+  int extracted(BCBranch *branch2, Node *&it);
   
-  ASTNode *ResolveWhileDo();
-  ASTNode *Resolve(Pass pass) override;
+  Node *ResolveWhileDo();
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_BC_BranchIfFalse : public AST_Consume1 {
+class BCBranchIfFalse : public Consume1 {
 public:
-  AST_BC_BranchIfFalse(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_BranchIfFalse"; }
+  BCBranchIfFalse(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCBranchIfFalse"; }
   int provides() override { return kProvidesUnknown; }
-  ASTNode *ResolveIfTheElse();
-  ASTNode *ResolveRepeatUntil();
-  ASTNode *Resolve(Pass pass) override;
+  Node *ResolveIfTheElse();
+  Node *ResolveRepeatUntil();
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_BC_Return : public AST_Consume1 {
+class BCReturn : public Consume1 {
 public:
-  AST_BC_Return(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Return"; }
+  BCReturn(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCReturn"; }
   // Even though the return command leaves the function immediately,
   // technically it is an expression and leaves a value on the stack.
   // So `a := 3 + return 4;` is a valid statement. It compiles, but just never runs.
@@ -68,54 +70,54 @@ public:
 #pragma mark - For loop -
 
 // (A=22) addend -- addend value
-class AST_BC_IncrVar : public AST_Consume1 {
+class BCIncrVar : public Consume1 {
 public:
-  AST_BC_IncrVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_IncrVar"; }
+  BCIncrVar(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCIncrVar"; }
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=23) incr index limit --
-class AST_BC_BranchLoop : public AST_Bytecode {
+class BCBranchLoop : public Bytecode {
 public:
-  AST_BC_BranchLoop(Decompiler &d, int pc, int a, int b);
-  const char *Class() override { return "AST_BC_BranchLoop"; }
+  BCBranchLoop(Decompiler &d, int pc, int a, int b);
+  const char *Class() override { return "BCBranchLoop"; }
   int provides() override { return kProvidesUnknown; }
   int consumes() override { return 3; }
   bool Resolved() override { return false; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
 };
 
 #pragma mark - Foreach loop -
 
 // (A=24, B=17): object deeply -- iterator
-class AST_BC_NewIter : public AST_Consume2 {
+class BCNewIter : public Consume2 {
 public:
-  AST_BC_NewIter(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_NewIter"; }
+  BCNewIter(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCNewIter"; }
   int provides() override { return kProvidesUnknown; }
   bool Resolved() override { return false; }
-  ASTNode *Resolve(Pass pass) override;
-  ASTNode *ResolveForeachSlotValueDo();
-  ASTNode *ResolveForeachSlotValueCollect();
+  Node *Resolve(Pass pass) override;
+  Node *ResolveForeachSlotValueDo();
+  Node *ResolveForeachSlotValueCollect();
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=5) iterator --
-class AST_BC_IterNext : public AST_Consume1 {
+class BCIterNext : public Consume1 {
 public:
-  AST_BC_IterNext(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_IterNext"; }
+  BCIterNext(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCIterNext"; }
   int provides() override { return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=6) iterator -- done
-class AST_BC_IterDone : public AST_Consume1 {
+class BCIterDone : public Consume1 {
 public:
-  AST_BC_IterDone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_IterDone"; }
+  BCIterDone(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCIterDone"; }
   int provides() override { return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -123,19 +125,19 @@ public:
 #pragma mark - Exceptions -
 
 // (A=25): sym1 pc1 sym2 pc2 ... symN pcN --
-class AST_BC_NewHandler : public AST_ConsumeN {
+class BCNewHandler : public ConsumeN {
 public:
-  AST_BC_NewHandler(Decompiler &d, int pc, int a, int b)
-  : AST_ConsumeN(d, pc, a, b, b*2) { }
-  const char *Class() override { return "AST_BC_NewHandler"; }
+  BCNewHandler(Decompiler &d, int pc, int a, int b)
+  : ConsumeN(d, pc, a, b, b*2) { }
+  const char *Class() override { return "BCNewHandler"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=7): --
-class AST_BC_PopHandlers : public AST_Bytecode {
+class BCPopHandlers : public Bytecode {
 public:
-  AST_BC_PopHandlers(Decompiler &d, int pc, int a, int b) : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_PopHandlers"; }
+  BCPopHandlers(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCPopHandlers"; }
   int provides() override { return kProvidesNone; }
   // Don't know yet
   bool Resolved() override { return false; }
@@ -145,10 +147,10 @@ public:
 #pragma mark - Calls -
 
 // (A=0, B=4): func -- closure
-class AST_BC_SetLexScope : public AST_Consume1 {
+class BCSetLexScope : public Consume1 {
 public:
-  AST_BC_SetLexScope(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_SetLexScope"; }
+  BCSetLexScope(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCSetLexScope"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -157,16 +159,16 @@ public:
 // Calls a global function. The function arguments (if any) are on the stack
 // in left-to-right order, followed by a symbol giving the name of the function
 // to call. The B field contains the number of arguments on the stack.
-class AST_BC_Call : public AST_ConsumeN {
+class BCCall : public ConsumeN {
 public:
-  AST_BC_Call(Decompiler &d, int pc, int a, int b)
-  : AST_ConsumeN(d, pc, a, b, b+1) { }
-  const char *Class() override { return "AST_BC_Call"; }
+  BCCall(Decompiler &d, int pc, int a, int b)
+  : ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "BCCall"; }
   // The following special functions (reserved words) need to be written "a op b"
   // mod, <<, >>, (note the precedence! 7, 8, 8)
   // HasVar(a) can also be written as "a exists", but both are legal
   // TODO: we should probably do this at creation time!
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };
 
@@ -175,11 +177,11 @@ public:
 // Performs a function call. The function arguments (if any) are on the stack
 // in left-to-right order, followed by the function object to call. The B field
 // contains the number of arguments on the stack.
-class AST_BC_Invoke : public AST_ConsumeN {
+class BCInvoke : public ConsumeN {
 public:
-  AST_BC_Invoke(Decompiler &d, int pc, int a, int b)
-  : AST_ConsumeN(d, pc, a, b, b+1) { }
-  const char *Class() override { return "AST_BC_Invoke"; }
+  BCInvoke(Decompiler &d, int pc, int a, int b)
+  : ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "BCInvoke"; }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -189,13 +191,13 @@ public:
 // followed by the message name (a symbol), followed by the receiver. The B
 // field contains the number of arguments on the stack.
 // \note the order of name and receiver is flipped in the original documentation!
-class AST_BC_Send : public AST_ConsumeN {
+class BCSend : public ConsumeN {
 protected:
   bool ifDefined_ { false };
 public:
-  AST_BC_Send(Decompiler &d, int pc, int a, int b, bool ifDefined)
-  : AST_ConsumeN(d, pc, a, b, b+2), ifDefined_(ifDefined) { }
-  const char *Class() override { return "AST_BC_Send"; }
+  BCSend(Decompiler &d, int pc, int a, int b, bool ifDefined)
+  : ConsumeN(d, pc, a, b, b+2), ifDefined_(ifDefined) { }
+  const char *Class() override { return "BCSend"; }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -204,17 +206,17 @@ public:
 // Performs an inherited message send. The function arguments (if any) are on
 // the stack in left-to-right order, followed by the message name (a symbol).
 // The B field contains the number of arguments on the stack.
-class AST_BC_Resend : public AST_ConsumeN {
+class BCResend : public ConsumeN {
 protected:
   bool ifDefined_ { false };
 public:
-  AST_BC_Resend(Decompiler &d, int pc, int a, int b, bool ifDefined)
-  : AST_ConsumeN(d, pc, a, b, b+1), ifDefined_(ifDefined) { }
-  const char *Class() override { return "AST_BC_Resend"; }
+  BCResend(Decompiler &d, int pc, int a, int b, bool ifDefined)
+  : ConsumeN(d, pc, a, b, b+1), ifDefined_(ifDefined) { }
+  const char *Class() override { return "BCResend"; }
   void Print(uint32_t flags = 0) override;
 };
 
 
-
+}; // namespace ast;
 
 #endif  /* __MATT_AST_CONTROLFLOW_H */

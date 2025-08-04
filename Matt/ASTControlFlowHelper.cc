@@ -14,26 +14,28 @@
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
 
-#pragma mark - AST_JumpTarget
+using namespace ast;
+
+#pragma mark - JumpTarget
 
 /**
  \brief Print jump targets that have not been resolved and are still in the AST.
  */
-void AST_JumpTarget::Print(uint32_t flags)
+void JumpTarget::Print(uint32_t flags)
 {
   PrintNode(true);
 }
 
-void AST_JumpTarget::PrintNode(bool deep)
+void JumpTarget::PrintNode(bool deep)
 {
-  ASTNode::PrintNode(deep);
+  Node::PrintNode(deep);
   dec.p.Printf(" from %d", origin_);
 }
 
-#pragma mark - AST_CodeBlock
+#pragma mark - CodeBlock
 
 /**
- \class AST_CodeBlock
+ \class CodeBlock
  \brief A node that holds a block of statements, possibly followed by an expression.
  This is the base for control flow nodes.
  The Newton documentation would call the body of this node "compound expression".
@@ -45,8 +47,8 @@ void AST_JumpTarget::PrintNode(bool deep)
  \param[in] pc original position in bytecode
  \param[in] inProvides sets the value that will be returned by Provides()
  */
-AST_CodeBlock::AST_CodeBlock(Decompiler &d, int pc, int inProvides)
-: ASTNode(d, pc),
+CodeBlock::CodeBlock(Decompiler &d, int pc, int inProvides)
+: Node(d, pc),
   provides_(inProvides)
 { }
 
@@ -56,19 +58,19 @@ AST_CodeBlock::AST_CodeBlock(Decompiler &d, int pc, int inProvides)
  \param[in] numNodes number of nodes to move
  \param[in] append them to this list
  */
-void AST_CodeBlock::moveToBody(ASTNode *nd, int numNodes, std::vector<ASTNode*> &body)
+void CodeBlock::moveToBody(Node *nd, int numNodes, std::vector<Node*> &body)
 {
   for (int i = 0; i < numNodes; ++i) {
-    ASTNode *nx = nd->next;
+    Node *nx = nd->next;
     nd->Unlink();
     add(nd);
     nd = nx;
   }
 }
 
-void AST_CodeBlock::add(ASTNode *nd)
+void CodeBlock::add(Node *nd)
 {
-  AST_CodeBlock *cb = dynamic_cast<AST_CodeBlock*>(nd);
+  CodeBlock *cb = dynamic_cast<CodeBlock*>(nd);
   if (cb) {
     for (auto &n: cb->body_) {
       add(n);
@@ -81,7 +83,7 @@ void AST_CodeBlock::add(ASTNode *nd)
 /**
  \brief Print the body nodes of a code block.
  */
-void AST_CodeBlock::PrintChildren(bool deep) {
+void CodeBlock::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Body");
   for (auto &nd: body_) if (nd) nd->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Body");
@@ -91,7 +93,7 @@ void AST_CodeBlock::PrintChildren(bool deep) {
  \brief Print the code block.
  Add 'begin' and 'end' if needed.
  */
-void AST_CodeBlock::Print(uint32_t flags)
+void CodeBlock::Print(uint32_t flags)
 {
   if (flags & kPrintSuppressList)
     flags |= kPrintSuppressBeginEnd;
@@ -119,10 +121,10 @@ void AST_CodeBlock::Print(uint32_t flags)
 /**
  \brief Print a typical code block body.
  */
-void AST_CodeBlock::PrintBody(const std::string &prolog,
+void CodeBlock::PrintBody(const std::string &prolog,
                              const std::string &separator,
                              const std::string &epilog,
-                             std::vector<ASTNode*> &body)
+                             std::vector<Node*> &body)
 {
   dec.p.Print(prolog);
   dec.p.DeepList(separator);
@@ -139,23 +141,23 @@ void AST_CodeBlock::PrintBody(const std::string &prolog,
 
 }
 
-#pragma mark - AST_ControlBlock
+#pragma mark - ControlBlock
 
-AST_ControlBlock::AST_ControlBlock(Decompiler &d, int pc, int inProvides)
-: ASTNode(d, pc),
+ControlBlock::ControlBlock(Decompiler &d, int pc, int inProvides)
+: Node(d, pc),
 provides_(inProvides)
 { }
 
-void AST_ControlBlock::PrintChildren(bool deep) {
+void ControlBlock::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Body");
   body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--- Body");
 }
 
-#pragma mark - AST_CF_Loop
+#pragma mark - CFLoop
 
 /**
- \class AST_CF_Loop
+ \class CFLoop
  \brief Holds the code block of a 'loop' instruction.
  This node is created by resolving another node pattern.
  It is alway marked as resolved.
@@ -165,8 +167,8 @@ void AST_ControlBlock::PrintChildren(bool deep) {
  \brief Create a new node for a 'loop' instruction.
  The node returns a single value and is marked Resolved.
  */
-AST_CF_Loop::AST_CF_Loop(Decompiler &d, int pc, int prov, ASTNode *body)
-: AST_ControlBlock(d, pc, prov)
+CFLoop::CFLoop(Decompiler &d, int pc, int prov, Node *body)
+: ControlBlock(d, pc, prov)
 {
   body_ = body;
 }
@@ -174,21 +176,21 @@ AST_CF_Loop::AST_CF_Loop(Decompiler &d, int pc, int prov, ASTNode *body)
 /**
  \brief Print the source code for 'loop'.
  */
-void AST_CF_Loop::Print(uint32_t flags) {
+void CFLoop::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("loop ");
   body_->Print();
 };
 
-#pragma mark - AST_CF_While
+#pragma mark - CFWhile
 
-AST_CF_While::AST_CF_While(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body)
-: AST_ControlBlock(d, pc, prov), cond_(condition)
+CFWhile::CFWhile(Decompiler &d, int pc, int prov, Node *condition, Node *body)
+: ControlBlock(d, pc, prov), cond_(condition)
 {
   body_ = body;
 }
 
-void AST_CF_While::PrintChildren(bool deep) {
+void CFWhile::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> while");
   if (cond_) cond_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> do");
@@ -196,22 +198,22 @@ void AST_CF_While::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### <--- Body");
 }
 
-void AST_CF_While::Print(uint32_t flags) {
+void CFWhile::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("while "); cond_->Print();
   dec.p.Printf(" do ");
   body_->Print();
 };
 
-#pragma mark - AST_CF_Repeat
+#pragma mark - CFRepeat
 
-AST_CF_Repeat::AST_CF_Repeat(Decompiler &d, int pc, int prov, ASTNode *condition, ASTNode *body)
-: AST_ControlBlock(d, pc, prov), cond_(condition)
+CFRepeat::CFRepeat(Decompiler &d, int pc, int prov, Node *condition, Node *body)
+: ControlBlock(d, pc, prov), cond_(condition)
 {
   body_ = body;
 }
 
-void AST_CF_Repeat::PrintChildren(bool deep) {
+void CFRepeat::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> Repeat");
   if (body_) body_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> Until");
@@ -219,7 +221,7 @@ void AST_CF_Repeat::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### <--- Condition");
 }
 
-void AST_CF_Repeat::Print(uint32_t flags) {
+void CFRepeat::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 
   dec.p.Printf("repeat");
@@ -229,13 +231,13 @@ void AST_CF_Repeat::Print(uint32_t flags) {
   dec.p.EndList();
 };
 
-#pragma mark - AST_CF_IfThen
+#pragma mark - CFIfThen
 
-AST_CF_IfThen::AST_CF_IfThen(Decompiler &d, int pc, ASTNode *condition, bool returnsAValue)
-: AST_ControlBlock(d, pc, returnsAValue ? kProvidesOne : kProvidesNone), cond_(condition)
+CFIfThen::CFIfThen(Decompiler &d, int pc, Node *condition, bool returnsAValue)
+: ControlBlock(d, pc, returnsAValue ? kProvidesOne : kProvidesNone), cond_(condition)
 { }
 
-void AST_CF_IfThen::PrintChildren(bool deep) {
+void CFIfThen::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### ---> If Condition");
   if (cond_) cond_->PrintNode(deep);
   dec.p.Tag(); dec.p.Print("##### <--> If Body ");
@@ -245,7 +247,7 @@ void AST_CF_IfThen::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### <--- If Done");
 }
 
-void AST_CF_IfThen::Print(uint32_t flags) {
+void CFIfThen::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 #if 0
   bool needBeginEnd = ((body_.size() > 1) || (elseBody_.size() > 1));
@@ -292,20 +294,20 @@ void AST_CF_IfThen::Print(uint32_t flags) {
 #endif
 }
 
-#pragma mark - AST_CF_Break
+#pragma mark - CFBreak
 
 /**
  \brief This node writes out a 'break' instruction.
  */
-AST_CF_Break::AST_CF_Break(Decompiler &d, int origin, int target, ASTNode *input)
-: ASTNode(d, origin, 0, target), in_(input)
+CFBreak::CFBreak(Decompiler &d, int origin, int target, Node *input)
+: Node(d, origin, 0, target), in_(input)
 { }
 
 /**
  \brief Print the 'break' instruction.
  'Break' takes an expression, but if that is 'nil', it's not written out in the source code.
  */
-void AST_CF_Break::Print(uint32_t flags) {
+void CFBreak::Print(uint32_t flags) {
   dec.p.Printf("break");
   if (!in_->IsNIL()) {
     dec.p.Printf(" ");
@@ -313,14 +315,14 @@ void AST_CF_Break::Print(uint32_t flags) {
   }
 }
 
-#pragma mark - AST_CF_ForLoop
+#pragma mark - CFForLoop
 
-AST_CF_ForLoop::AST_CF_ForLoop(Decompiler &d, int pc, int prov, ASTNode *iter, ASTNode *limit, ASTNode *incr)
-: AST_ControlBlock(d, pc, prov),
+CFForLoop::CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr)
+: ControlBlock(d, pc, prov),
   iter_(iter), limit_(limit), incr_(incr)
 { }
 
-void AST_CF_ForLoop::PrintChildren(bool deep)
+void CFForLoop::PrintChildren(bool deep)
 {
   dec.p.Tag(); dec.p.Print("##### ---> For start");
   if (iter_) iter_->PrintNode(deep);
@@ -333,10 +335,10 @@ void AST_CF_ForLoop::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--- For Done");
 }
 
-void AST_CF_ForLoop::Print(uint32_t flags)
+void CFForLoop::Print(uint32_t flags)
 {
   bool printBy = true;
-  AST_BC_PushConst *incrValNode = dynamic_cast<AST_BC_PushConst*>(incr_);
+  BCPushConst *incrValNode = dynamic_cast<BCPushConst*>(incr_);
   if (incrValNode && (incrValNode->b() == MAKEINT(1))) printBy = false;
 
   dec.p.Print("for ");
@@ -351,14 +353,14 @@ void AST_CF_ForLoop::Print(uint32_t flags)
   body_->Print();
 }
 
-#pragma mark - AST_CF_ForEachSlotDo
+#pragma mark - CFForEachSlotDo
 
-AST_CF_ForEachSlotValueDo::AST_CF_ForEachSlotValueDo(Decompiler &d, int pc, ASTNode *obj, int slot, int value, bool deeply)
-: AST_ControlBlock(d, pc, kProvidesOne),
+CFForEachSlotValueDo::CFForEachSlotValueDo(Decompiler &d, int pc, Node *obj, int slot, int value, bool deeply)
+: ControlBlock(d, pc, kProvidesOne),
 object_(obj), slot_(slot), value_(value), deeply_(deeply)
 { }
 
-void AST_CF_ForEachSlotValueDo::PrintChildren(bool deep)
+void CFForEachSlotValueDo::PrintChildren(bool deep)
 {
   dec.p.Tag();
   dec.p.Print("##### ---> Foreach ");
@@ -375,7 +377,7 @@ void AST_CF_ForEachSlotValueDo::PrintChildren(bool deep)
   dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
 }
 
-void AST_CF_ForEachSlotValueDo::Print(uint32_t flags)
+void CFForEachSlotValueDo::Print(uint32_t flags)
 {
   dec.p.Print("foreach ");
   if (slot_ != -1) {

@@ -15,95 +15,97 @@
 
 #include <vector>
 
+namespace ast {
 
-class AST_INVALID_Node : public ASTNode {
+class INVALID_Node : public Node {
 public:
-  AST_INVALID_Node(Decompiler &d, int pc, int a, int b)
-  : ASTNode(d, pc, a, b) { }
-  const char *Class() override { return "AST_INVALID_Node"; }
+  INVALID_Node(Decompiler &d, int pc, int a, int b)
+  : Node(d, pc, a, b) { }
+  const char *Class() override { return "INVALID_Node"; }
   bool Resolved() override { return false; }
 };
 
 
-class AST_FirstNode : public ASTNode {
+class FirstNode : public Node {
 public:
-  AST_FirstNode(Decompiler &d) : ASTNode(d) { }
-  const char *Class() override { return "AST_FirstNode"; }
+  FirstNode(Decompiler &d) : Node(d) { }
+  const char *Class() override { return "FirstNode"; }
   int provides() override { return kSpecialNode; }
   void Print(uint32_t flags = 0) override { }
   bool Resolved() override { return true; }
 };
 
 
-class AST_LastNode : public ASTNode {
+class LastNode : public Node {
 public:
-  AST_LastNode(Decompiler &d) : ASTNode(d) { }
-  const char *Class() override { return "AST_LastNode"; }
+  LastNode(Decompiler &d) : Node(d) { }
+  const char *Class() override { return "LastNode"; }
   int provides() override { return kSpecialNode; }
   void Print(uint32_t flags = 0) override { }
   bool Resolved() override { return true; }
 };
 
 
-class AST_Bytecode : public ASTNode {
+class Bytecode : public Node {
 protected:
-  void PrintPathExpr(ASTNode *inNode);
+  void PrintPathExpr(Node *inNode);
 public:
-  AST_Bytecode(Decompiler &d, int pc, int a, int b)
-  : ASTNode(d, pc, a, b) { }
-  const char *Class() override { return "AST_Bytecode"; }
+  Bytecode(Decompiler &d, int pc, int a, int b)
+  : Node(d, pc, a, b) { }
+  const char *Class() override { return "Bytecode"; }
   bool Resolved() override { return false; }
 };
 
 
-class AST_Consume1 : public AST_Bytecode {
+class Consume1 : public Bytecode {
 protected:
-  ASTNode *in_ { nullptr };
+  Node *in_ { nullptr };
 public:
-  AST_Consume1(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_Consume1"; }
+  Consume1(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "Consume1"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return (in_ != nullptr); }
 };
 
 
-class AST_Consume2 : public AST_Bytecode {
+class Consume2 : public Bytecode {
 protected:
-  ASTNode *in1_ { nullptr };
-  ASTNode *in2_ { nullptr };
+  Node *in1_ { nullptr };
+  Node *in2_ { nullptr };
 public:
-  AST_Consume2(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_Consume2"; }
+  Consume2(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "Consume2"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return (in1_ != nullptr) && (in2_ != nullptr); }
-  ASTNode *input1() { return in1_; }
-  ASTNode *input2() { return in2_; }
+  Node *input1() { return in1_; }
+  Node *input2() { return in2_; }
 };
 
 
-class AST_ConsumeN : public AST_Bytecode {
+class ConsumeN : public Bytecode {
 protected:
   int numIns_;
-  std::vector<ASTNode *> ins_;
+  std::vector<Node *> ins_;
 public:
-  AST_ConsumeN(Decompiler &d, int pc, int a, int b, int n)
-  : AST_Bytecode(d, pc, a, b), numIns_(n) { }
-  const char *Class() override { return "AST_ConsumeN"; }
+  ConsumeN(Decompiler &d, int pc, int a, int b, int n)
+  : Bytecode(d, pc, a, b), numIns_(n) { }
+  const char *Class() override { return "ConsumeN"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return (ins_.size() == (size_t)numIns_); }
   void PrintResolvedCall(int nArgs);
 };
 
+}; // namespace ast
 
 #endif  /* __MATT_AST_ADMIN_H */

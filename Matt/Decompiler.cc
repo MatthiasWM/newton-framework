@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <tuple>
 
+using namespace ast;
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
@@ -41,7 +42,7 @@
     When printing, just print `begin stmt; stmt; stmt; ...; expr end` or
     `begin stmt; stmt; stmt; ... end` respectively.
 
-    This would move the functionality of AST_CodeBlock into a different pass
+    This would move the functionality of CodeBlock into a different pass
     and change the code of all derived classes.
 
     WARNING: Will this resolve correctly if we have, for example
@@ -53,15 +54,15 @@
  */
 /* TODO: Remove these kind of sequences:
     Found at the end of a while loop:
-      ###[ 1]  11: AST_BC_FindVar literal[0] ###
-      ###[-1]  12: AST_BC_Pop ###
+      ###[ 1]  11: BCFindVar literal[0] ###
+      ###[-1]  12: BCPop ###
     Found after a while loop:
-      ###[ 1]  17: AST_BC_PushConst value:2 ###
-      ###[-1]  18: AST_BC_Pop ###
+      ###[ 1]  17: BCPushConst value:2 ###
+      ###[-1]  18: BCPop ###
     In if then statements and elsewhere: (generates `a:=3; a` so that the result
     is back on the stack. This creates aa superfluous line of code.
-      ###[-1]  10: AST_BC_FindAndSetVar literal[0] ###
-      ###[ 1]  11: AST_BC_FindVar literal[0] ###
+      ###[-1]  10: BCFindAndSetVar literal[0] ###
+      ###[ 1]  11: BCFindVar literal[0] ###
 */
 // TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
 // debug information in the code. Especially with nos2, this can restore argument
@@ -98,9 +99,6 @@
                throw(...) , rethrow()
  */
 
-class ASTNode;
-class AST_Bytecode;
-class AST_JumpTarget;
 
 // -----------------------------------------------------------------------------
 
@@ -173,7 +171,7 @@ void Decompiler::decompile(Ref ref)
  update 'first_' or 'last_'. This is used for initialization.
  \return the new node
  */
-ASTNode *Decompiler::Append(ASTNode *node, ASTNode *newNode) {
+Node *Decompiler::Append(Node *node, Node *newNode) {
   assert(node);
   assert(newNode);
   node->next = newNode;
@@ -184,78 +182,78 @@ ASTNode *Decompiler::Append(ASTNode *node, ASTNode *newNode) {
 /**
  Create a node that corresponds to the given bytecode.
  */
-AST_Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
+Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
 {
   switch (a) {
     case 0:
       switch (b) {
-        case 0: return new AST_BC_Pop(*this, pc, a, b);
-        case 1: return new AST_BC_Dup(*this, pc, a, b);
-        case 2: return new AST_BC_Return(*this, pc, a, b);
-        case 3: return new AST_BC_PushSelf(*this, pc, a, b);
-        case 4: return new AST_BC_SetLexScope(*this, pc, a, b);//        case 4: bc.bc = BC::SetLexScope; break;
-        case 5: return new AST_BC_IterNext(*this, pc, a, b);
-        case 6: return new AST_BC_IterDone(*this, pc, a, b);
-        case 7: return new AST_BC_PopHandlers(*this, pc, a, b);
+        case 0: return new BCPop(*this, pc, a, b);
+        case 1: return new BCDup(*this, pc, a, b);
+        case 2: return new BCReturn(*this, pc, a, b);
+        case 3: return new BCPushSelf(*this, pc, a, b);
+        case 4: return new BCSetLexScope(*this, pc, a, b);//        case 4: bc.bc = BC::SetLexScope; break;
+        case 5: return new BCIterNext(*this, pc, a, b);
+        case 6: return new BCIterDone(*this, pc, a, b);
+        case 7: return new BCPopHandlers(*this, pc, a, b);
       };
       break;
-    case 3: return new AST_BC_Push(*this, pc, a, b);
-    case 4: return new AST_BC_PushConst(*this, pc, a, b);
-    case 5: return new AST_BC_Call(*this, pc, a, b);
-    case 6: return new AST_BC_Invoke(*this, pc, a, b);
-    case 7: return new AST_BC_Send(*this, pc, a, b, false); // Send
-    case 8: return new AST_BC_Send(*this, pc, a, b, true); // SendIfDefined
-    case 9: return new AST_BC_Resend(*this, pc, a, b, false); // Resend
-    case 10: return new AST_BC_Resend(*this, pc, a, b, true); // ResendIfDefined
-    case 11: return new AST_BC_Branch(*this, pc, a, b);
-    case 12: return new AST_BC_BranchIfTrue(*this, pc, a, b);
-    case 13: return new AST_BC_BranchIfFalse(*this, pc, a, b);
-    case 14: return new AST_BC_FindVar(*this, pc, a, b);
-    case 15: return new AST_BC_GetVar(*this, pc, a, b);
-    case 16: return new AST_BC_MakeFrame(*this, pc, a, b);
+    case 3: return new BCPush(*this, pc, a, b);
+    case 4: return new BCPushConst(*this, pc, a, b);
+    case 5: return new BCCall(*this, pc, a, b);
+    case 6: return new BCInvoke(*this, pc, a, b);
+    case 7: return new BCSend(*this, pc, a, b, false); // Send
+    case 8: return new BCSend(*this, pc, a, b, true); // SendIfDefined
+    case 9: return new BCResend(*this, pc, a, b, false); // Resend
+    case 10: return new BCResend(*this, pc, a, b, true); // ResendIfDefined
+    case 11: return new BCBranch(*this, pc, a, b);
+    case 12: return new BCBranchIfTrue(*this, pc, a, b);
+    case 13: return new BCBranchIfFalse(*this, pc, a, b);
+    case 14: return new BCFindVar(*this, pc, a, b);
+    case 15: return new BCGetVar(*this, pc, a, b);
+    case 16: return new BCMakeFrame(*this, pc, a, b);
     case 17:
       if (b == 0xFFFF)
-        return new AST_BC_NewArray(*this, pc, a, b);
+        return new BCNewArray(*this, pc, a, b);
       else
-        return new AST_BC_MakeArray(*this, pc, a, b);
-    case 18: return new AST_BC_GetPath(*this, pc, a, b);
-    case 19: return new AST_SetPath(*this, pc, a, b);
-    case 20: return new AST_BC_SetVar(*this, pc, a, b);
-    case 21: return new AST_BC_FindAndSetVar(*this, pc, a, b);
-    case 22: return new AST_BC_IncrVar(*this, pc, a, b);
-    case 23: return new AST_BC_BranchLoop(*this, pc, a, b);
+        return new BCMakeArray(*this, pc, a, b);
+    case 18: return new BCGetPath(*this, pc, a, b);
+    case 19: return new SetPath(*this, pc, a, b);
+    case 20: return new BCSetVar(*this, pc, a, b);
+    case 21: return new BCFindAndSetVar(*this, pc, a, b);
+    case 22: return new BCIncrVar(*this, pc, a, b);
+    case 23: return new BCBranchLoop(*this, pc, a, b);
     case 24:
       switch (b) {
-        case 0: return new AST_BinaryOperator(*this, pc, a, b, "+", 6); // Add
-        case 1: return new AST_BinaryOperator(*this, pc, a, b, "-", 6); // Sub
-        case 2: return new AST_BC_ARef(*this, pc, a, b);
-        case 3: return new AST_BC_SetARef(*this, pc, a, b);
-        case 4: return new AST_BinaryOperator(*this, pc, a, b, "=", 3); // Equals
-        case 5: return new AST_BC_Not(*this, pc, a, b);
-        case 6: return new AST_BinaryOperator(*this, pc, a, b, "<>", 3); // NotEquals
-        case 7: return new AST_BinaryOperator(*this, pc, a, b, "*", 7); // Multiply
-        case 8: return new AST_BinaryOperator(*this, pc, a, b, "/", 7); // Divide
-        case 9: return new AST_BinaryOperator(*this, pc, a, b, "div", 7); // 'div'
-        case 10: return new AST_BinaryOperator(*this, pc, a, b, "<", 3); // LessThan
-        case 11: return new AST_BinaryOperator(*this, pc, a, b, ">", 3); // GreaterThan
-        case 12: return new AST_BinaryOperator(*this, pc, a, b, ">=", 3); // GreaterOrEqual
-        case 13: return new AST_BinaryOperator(*this, pc, a, b, "<=", 3); // LessOrEqual
-        case 14: return new AST_BinaryFunction(*this, pc, a, b, "bAnd"); // BitAnd
-        case 15: return new AST_BinaryFunction(*this, pc, a, b, "bOr"); // BitOr
-        case 16: return new AST_BC_BitNot(*this, pc, a, b);
-        case 17: return new AST_BC_NewIter(*this, pc, a, b);
-        case 18: return new AST_BC_Length(*this, pc, a, b);
-        case 19: return new AST_BC_Clone(*this, pc, a, b);
-        case 20: return new AST_BC_SetClass(*this, pc, a, b);
-        case 21: return new AST_BC_AddArraySlot(*this, pc, a, b);
-        case 22: return new AST_BC_Stringer(*this, pc, a, b);
-        case 23: return new AST_BC_HasPath(*this, pc, a, b);
-        case 24: return new AST_BC_ClassOf(*this, pc, a, b);
+        case 0: return new BinaryOperator(*this, pc, a, b, "+", 6); // Add
+        case 1: return new BinaryOperator(*this, pc, a, b, "-", 6); // Sub
+        case 2: return new BCARef(*this, pc, a, b);
+        case 3: return new BCSetARef(*this, pc, a, b);
+        case 4: return new BinaryOperator(*this, pc, a, b, "=", 3); // Equals
+        case 5: return new BCNot(*this, pc, a, b);
+        case 6: return new BinaryOperator(*this, pc, a, b, "<>", 3); // NotEquals
+        case 7: return new BinaryOperator(*this, pc, a, b, "*", 7); // Multiply
+        case 8: return new BinaryOperator(*this, pc, a, b, "/", 7); // Divide
+        case 9: return new BinaryOperator(*this, pc, a, b, "div", 7); // 'div'
+        case 10: return new BinaryOperator(*this, pc, a, b, "<", 3); // LessThan
+        case 11: return new BinaryOperator(*this, pc, a, b, ">", 3); // GreaterThan
+        case 12: return new BinaryOperator(*this, pc, a, b, ">=", 3); // GreaterOrEqual
+        case 13: return new BinaryOperator(*this, pc, a, b, "<=", 3); // LessOrEqual
+        case 14: return new BinaryFunction(*this, pc, a, b, "bAnd"); // BitAnd
+        case 15: return new BinaryFunction(*this, pc, a, b, "bOr"); // BitOr
+        case 16: return new BCBitNot(*this, pc, a, b);
+        case 17: return new BCNewIter(*this, pc, a, b);
+        case 18: return new BCLength(*this, pc, a, b);
+        case 19: return new BCClone(*this, pc, a, b);
+        case 20: return new BCSetClass(*this, pc, a, b);
+        case 21: return new BCAddArraySlot(*this, pc, a, b);
+        case 22: return new BCStringer(*this, pc, a, b);
+        case 23: return new BCHasPath(*this, pc, a, b);
+        case 24: return new BCClassOf(*this, pc, a, b);
       }
       break;
-    case 25: return new AST_BC_NewHandler(*this, pc, a, b);
+    case 25: return new BCNewHandler(*this, pc, a, b);
   }
-  return new AST_Bytecode(*this, pc, a, b);
+  return new Bytecode(*this, pc, a, b);
 }
 
 
@@ -294,7 +292,7 @@ void Decompiler::generateAST(Ref instructions)
   }
 
   // Now run the byte codes again and create a linked list of instructions
-  ASTNode *nd = first_ = new AST_FirstNode(*this);
+  Node *nd = first_ = new FirstNode(*this);
   for (int i=0; i<nbc; i++) {
     int pc = i;
     uint8_t cmd = bc[i];
@@ -308,11 +306,11 @@ void Decompiler::generateAST(Ref instructions)
     }
     nd = Append(nd, NewBytecodeNode(pc, a, b));
   }
-  last_ = Append(nd, new AST_LastNode(*this));
+  last_ = Append(nd, new LastNode(*this));
 
   // The code generator occasionally appends two consecutive return commends.
   // We fix that by deleting the second return.
-  if (dynamic_cast<AST_BC_Return*>(nd) && dynamic_cast<AST_BC_Return*>(nd->prev))
+  if (dynamic_cast<BCReturn*>(nd) && dynamic_cast<BCReturn*>(nd->prev))
     delete nd->Unlink();
 }
 
@@ -321,7 +319,7 @@ void Decompiler::AddToTargets(int target, int origin)
   // Use negative numbers to sort forward jumps closest to furthest.
   // BAckward jumps are automatically closest to furthest.
   int sort = origin < target ? -origin : target;
-  targetMap_[target][sort] = new AST_JumpTarget(*this, target, origin);
+  targetMap_[target][sort] = new JumpTarget(*this, target, origin);
   if (debugAST_) printf("Jump Target: from %d to %d\n", origin, target);
 }
 
@@ -362,7 +360,7 @@ void Decompiler::solve()
   for (;;) { // ControlFlow Pass: outer loop, run until neither changes anything
     // ---- Data Flow Pass
     numASTChanges = 0;
-    for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::DataFlow)) { }
+    for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::DataFlow)) { }
     if (numASTChanges > 0) { printAST("DataFlow Pass"); continue; }
     p.Item(); p.Print("DataFlow passes done"); p.ItemDone();
     // ---- Compression Pass
@@ -370,7 +368,7 @@ void Decompiler::solve()
     p.Item(); p.Print("Compression passes done"); p.ItemDone();
     // ---- Control Flow Pass
     numASTChanges = 0;
-    for (ASTNode *nd = first_; nd && !numASTChanges; nd = nd->Resolve(ASTNode::Pass::ControlFlow)) { }
+    for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::ControlFlow)) { }
     if (numASTChanges > 0) { printAST("CodeFlow Pass"); continue; }
     p.Item(); p.Print("CodeFlow passes done"); p.ItemDone();
     // ---- No more changes on any level
@@ -392,11 +390,11 @@ void Decompiler::solve()
  */
 bool Decompiler::compressAST()
 {
-  ASTNode *nd = first_;
+  Node *nd = first_;
   while (nd) {
     if (nd->IsStatement()) {
       int numStmts = 1;
-      ASTNode *it = nd->next;
+      Node *it = nd->next;
       bool isExpr = false;
       while (it) {
         if (it->IsExpr()) {
@@ -411,7 +409,7 @@ bool Decompiler::compressAST()
         it = it->next;
       }
       if (numStmts > 1) {
-        AST_CodeBlock *codeBlock = new AST_CodeBlock(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
+        CodeBlock *codeBlock = new CodeBlock(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
         // Insert codeBlock before nd
         nd->InsertBefore(codeBlock);
         codeBlock->moveToBody(nd, numStmts);
@@ -437,7 +435,7 @@ void Decompiler::printAST(const char *label)
   p.PrintDivider(label);
   p.DeepList();
   output = Print::deep;
-  for (ASTNode *nd = first_; nd; nd = nd->next) {
+  for (Node *nd = first_; nd; nd = nd->next) {
     nd->PrintNode(true);
   }
   p.EndList();
@@ -458,7 +456,7 @@ void Decompiler::printASTRoot()
   p.PrintDivider("AST Root Nodes");
   p.DeepList("");
   output = Print::bytecode;
-  for (ASTNode *nd = first_; nd; nd = nd->next) {
+  for (Node *nd = first_; nd; nd = nd->next) {
     nd->PrintNode(false);
   }
   p.EndList();
@@ -513,7 +511,7 @@ void Decompiler::printSource()
   // Now print all the top level nodes from the AST.
   // If everything was decompiled correctly, this should be 0 or more
   // statements, followed by one expression
-  for (ASTNode *nd = first_->next; nd; nd = nd->next) {
+  for (Node *nd = first_->next; nd; nd = nd->next) {
     p.Item();
     nd->Print(kPrintSuppressList);
     p.ItemDone();

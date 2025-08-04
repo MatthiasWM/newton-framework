@@ -13,11 +13,13 @@
 
 #include "Matt/ASTAdmin.h"
 
+namespace ast {
+
 // (A=3): -- literal
-class AST_BC_Push : public AST_Bytecode {
+class BCPush : public Bytecode {
 public:
-  AST_BC_Push(Decompiler &d, int pc, int a, int b) : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Push"; }
+  BCPush(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCPush"; }
   int provides() override { return 1; }
   bool IsSymbol() override;
   bool Resolved() override { return true; }
@@ -25,11 +27,11 @@ public:
 };
 
 // (A=4, B=signed): -- value
-class AST_BC_PushConst : public AST_Bytecode {
+class BCPushConst : public Bytecode {
 public:
-  AST_BC_PushConst(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_PushConst"; }
+  BCPushConst(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCPushConst"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
@@ -37,11 +39,11 @@ public:
 };
 
 // (A=0, B=3):  -- RCVR
-class AST_BC_PushSelf : public AST_Bytecode {
+class BCPushSelf : public Bytecode {
 public:
-  AST_BC_PushSelf(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_PushSelf"; }
+  BCPushSelf(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCPushSelf"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
@@ -50,43 +52,43 @@ public:
 // (A=14): -- value
 // Performs a variable lookup. The B field is the zero-based index in the
 // literals array of a symbol (here called name) naming the variable.
-class AST_BC_FindVar : public AST_Bytecode {
+class BCFindVar : public Bytecode {
 public:
-  AST_BC_FindVar(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_FindVar"; }
+  BCFindVar(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCFindVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=15): -- value
-class AST_BC_GetVar : public AST_Bytecode {
+class BCGetVar : public Bytecode {
 public:
-  AST_BC_GetVar(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_GetVar"; }
+  BCGetVar(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCGetVar"; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=0): value --
-class AST_BC_Pop : public AST_Consume1 {
-  using super = AST_Consume1;
+class BCPop : public Consume1 {
+  using super = Consume1;
 public:
-  AST_BC_Pop(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Pop"; }
+  BCPop(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCPop"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=0, B=1): x -- x x
-class AST_BC_Dup : public AST_Consume1 {
+class BCDup : public Consume1 {
 public:
-  AST_BC_Dup(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Dup"; }
+  BCDup(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCDup"; }
   // TODO: provides(2) does not match any consumers!
   // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
@@ -96,111 +98,111 @@ public:
 
 
 // (A=20): value --
-class AST_BC_SetVar : public AST_Consume1 {
+class BCSetVar : public Consume1 {
 public:
-  AST_BC_SetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_SetVar"; }
+  BCSetVar(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCSetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
-  ASTNode *input() { return in_; }
+  Node *input() { return in_; }
 };
 
 // (A=21): value --
-class AST_BC_FindAndSetVar : public AST_Consume1 {
+class BCFindAndSetVar : public Consume1 {
 public:
-  AST_BC_FindAndSetVar(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_FindAndSetVar"; }
+  BCFindAndSetVar(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCFindAndSetVar"; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=5): value -- value
-class AST_BC_Not : public AST_Consume1 {
+class BCNot : public Consume1 {
 public:
-  AST_BC_Not(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Not"; }
+  BCNot(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCNot"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=18): object -- length
-class AST_BC_Length : public AST_Consume1 {
+class BCLength : public Consume1 {
 public:
-  AST_BC_Length(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Length"; }
+  BCLength(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCLength"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=19): object -- clone
-class AST_BC_Clone : public AST_Consume1 {
+class BCClone : public Consume1 {
 public:
-  AST_BC_Clone(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Clone"; }
+  BCClone(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCClone"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=22): array -- string
-class AST_BC_Stringer : public AST_Consume1 {
+class BCStringer : public Consume1 {
 public:
-  AST_BC_Stringer(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_Stringer"; }
+  BCStringer(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCStringer"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=24): object -- class
-class AST_BC_ClassOf : public AST_Consume1 {
+class BCClassOf : public Consume1 {
 public:
-  AST_BC_ClassOf(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_ClassOf"; }
+  BCClassOf(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCClassOf"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=16): num -- result
-class AST_BC_BitNot : public AST_Consume1 {
+class BCBitNot : public Consume1 {
 public:
-  AST_BC_BitNot(Decompiler &d, int pc, int a, int b) : AST_Consume1(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_BitNot"; }
+  BCBitNot(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
+  const char *Class() override { return "BCBitNot"; }
   void Print(uint32_t flags = 0) override;
 };
 
-class AST_BinaryExpression : public AST_Consume2 {
+class BinaryExpression : public Consume2 {
 public:
-  AST_BinaryExpression(Decompiler &d, int pc, int a, int b)
-  : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BinaryExpression"; }
-  ASTNode *Resolve(Pass pass) override;
+  BinaryExpression(Decompiler &d, int pc, int a, int b)
+  : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BinaryExpression"; }
+  Node *Resolve(Pass pass) override;
 };
 
 // num1 num2 -- result
 // bAnd, bOr
-class AST_BinaryFunction : public AST_BinaryExpression {
+class BinaryFunction : public BinaryExpression {
 protected:
   const char *func_ { nullptr };
 public:
-  AST_BinaryFunction(Decompiler &d, int pc, int a, int b, const char *func)
-  : AST_BinaryExpression(d, pc, a, b), func_(func) { }
-  const char *Class() override { return "AST_BinaryFunction"; }
+  BinaryFunction(Decompiler &d, int pc, int a, int b, const char *func)
+  : BinaryExpression(d, pc, a, b), func_(func) { }
+  const char *Class() override { return "BinaryFunction"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // num1 num2 -- result
 // +, -, *, /, div, =, <>, <, <=, >, >=
-class AST_BinaryOperator : public AST_BinaryExpression {
+class BinaryOperator : public BinaryExpression {
 protected:
   const char *op_ { nullptr };
   int precedence_ { 0 };
 public:
-  AST_BinaryOperator(Decompiler &d, int pc, int a, int b, const char *op, int precedence)
-  : AST_BinaryExpression(d, pc, a, b), op_(op), precedence_(precedence)
+  BinaryOperator(Decompiler &d, int pc, int a, int b, const char *op, int precedence)
+  : BinaryExpression(d, pc, a, b), op_(op), precedence_(precedence)
   { }
-  const char *Class() override { return "AST_BinaryOperator"; }
+  const char *Class() override { return "BinaryOperator"; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=17, B=0xFFFF): size class -- array
-class AST_BC_NewArray : public AST_Consume2 {
+class BCNewArray : public Consume2 {
 public:
-  AST_BC_NewArray(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_NewArray"; }
+  BCNewArray(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCNewArray"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -212,46 +214,46 @@ public:
 // found by doing array and frame accesses corresponding to each element of
 // the path expression. Integers represent array accesses to the given array
 // index; symbols represent frame accesses to the given frame slot.
-class AST_BC_GetPath : public AST_Consume2 {
+class BCGetPath : public Consume2 {
 public:
-  AST_BC_GetPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_GetPath"; }
+  BCGetPath(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCGetPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=2): object index -- element
-class AST_BC_ARef : public AST_Consume2 {
+class BCARef : public Consume2 {
 public:
-  AST_BC_ARef(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_ARef"; }
+  BCARef(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCARef"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=20): object class -- object
-class AST_BC_SetClass : public AST_Consume2 {
+class BCSetClass : public Consume2 {
 public:
-  AST_BC_SetClass(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_SetClass"; }
+  BCSetClass(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCSetClass"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=21): array object -- object
-class AST_BC_AddArraySlot : public AST_Consume2 {
+class BCAddArraySlot : public Consume2 {
 public:
-  AST_BC_AddArraySlot(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_AddArraySlot"; }
+  BCAddArraySlot(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCAddArraySlot"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=23): object pathExpr -- result
-class AST_BC_HasPath : public AST_Consume2 {
+class BCHasPath : public Consume2 {
 public:
-  AST_BC_HasPath(Decompiler &d, int pc, int a, int b) : AST_Consume2(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_HasPath"; }
+  BCHasPath(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
+  const char *Class() override { return "BCHasPath"; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -263,37 +265,37 @@ public:
 // to value.The B field may be zero or one. The object, path, and value are
 // popped from the stack. If the B field is one, the value is
 // pushed back onto the stack.
-class AST_SetPath : public AST_Bytecode {
+class SetPath : public Bytecode {
 protected:
-  ASTNode *object_ { nullptr };
-  ASTNode *path_ { nullptr };
-  ASTNode *value_ { nullptr };
+  Node *object_ { nullptr };
+  Node *path_ { nullptr };
+  Node *value_ { nullptr };
 public:
-  AST_SetPath(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_SetPath"; }
+  SetPath(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "SetPath"; }
   void PrintChildren(bool deep) override;
   int provides() override;
   int consumes() override { return 3; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (path_ != nullptr) && (value_ != nullptr); }
   void Print(uint32_t flags = 0) override;
 };
 
 // (A=24, B=3): object index element -- element
-class AST_BC_SetARef : public AST_Bytecode {
+class BCSetARef : public Bytecode {
 protected:
-  ASTNode *object_ { nullptr };
-  ASTNode *index_ { nullptr };
-  ASTNode *element_ { nullptr };
+  Node *object_ { nullptr };
+  Node *index_ { nullptr };
+  Node *element_ { nullptr };
 public:
-  AST_BC_SetARef(Decompiler &d, int pc, int a, int b)
-  : AST_Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "AST_BC_SetARef"; }
+  BCSetARef(Decompiler &d, int pc, int a, int b)
+  : Bytecode(d, pc, a, b) { }
+  const char *Class() override { return "BCSetARef"; }
   void PrintChildren(bool deep) override;
   int provides() override { if (object_ && index_ && element_) return kProvidesOne; else return kProvidesUnknown; }
   int consumes() override { return 3; }
-  ASTNode *Resolve(Pass pass) override;
+  Node *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
   void Print(uint32_t flags = 0) override;
 };
@@ -306,11 +308,11 @@ public:
 // newly-allocated frame is pushed onto the stack. The B field may contain a
 // number less than the number of slots in the frame, in which
 // case the remaining slots at the end of the frame are set to nil.
-class AST_BC_MakeFrame : public AST_ConsumeN {
+class BCMakeFrame : public ConsumeN {
 public:
-  AST_BC_MakeFrame(Decompiler &d, int pc, int a, int b)
-  : AST_ConsumeN(d, pc, a, b, b+1) { }
-  const char *Class() override { return "AST_BC_MakeFrame"; }
+  BCMakeFrame(Decompiler &d, int pc, int a, int b)
+  : ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "BCMakeFrame"; }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -321,16 +323,16 @@ public:
 // class is allocated. The values for the array slots, on the stack in index
 // order, are copied into the slots of the array. The values are removed from
 // the stack, and a reference to the array is pushed onto the stack.
-// \see AST_BC_NewArray
-class AST_BC_MakeArray : public AST_ConsumeN {
+// \see BCNewArray
+class BCMakeArray : public ConsumeN {
 public:
-  AST_BC_MakeArray(Decompiler &d, int pc, int a, int b)
-  : AST_ConsumeN(d, pc, a, b, b+1) { }
-  const char *Class() override { return "AST_BC_MakeArray"; }
+  BCMakeArray(Decompiler &d, int pc, int a, int b)
+  : ConsumeN(d, pc, a, b, b+1) { }
+  const char *Class() override { return "BCMakeArray"; }
   void Print(uint32_t flags = 0) override;
 };
 
 
-
+}; // namespace ast;
 
 #endif  /* __MATT_AST_DATAFLOW_H */
