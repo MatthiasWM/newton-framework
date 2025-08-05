@@ -179,7 +179,7 @@ CFLoop::CFLoop(Decompiler &d, int pc, int prov, Node *body)
 void CFLoop::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("loop ");
-  body_->Print();
+  body_->PrintOnNewLine();
 };
 
 #pragma mark - CFWhile
@@ -202,7 +202,7 @@ void CFWhile::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("while "); cond_->Print();
   dec.p.Printf(" do ");
-  body_->Print();
+  body_->PrintOnNewLine();
 };
 
 #pragma mark - CFRepeat
@@ -225,10 +225,8 @@ void CFRepeat::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 
   dec.p.Printf("repeat");
-  dec.p.DeepList(";");
-  body_->Print(kPrintSuppressList);
-  dec.p.Trailer(); dec.p.Printf("until "); cond_->Print();
-  dec.p.EndList();
+  body_->PrintOnNewLine(kPrintSuppressBeginEnd);
+  dec.p.FreshLine(); dec.p.Printf("until "); cond_->Print();
 };
 
 #pragma mark - CFIfThen
@@ -247,51 +245,30 @@ void CFIfThen::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### <--- If Done");
 }
 
-void CFIfThen::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
-#if 0
-  bool needBeginEnd = ((body_.size() > 1) || (elseBody_.size() > 1));
-  // >> if (condition) the begin
-  dec.p.Print("if ");
-  int pp = dec.precedence; dec.precedence = 0;
-  cond_->Print();
-  dec.precedence = pp;
-  dec.p.Print(" then");
-  if (needBeginEnd) dec.p.Printf(" begin");
-  // >>   if-Branch
-  dec.p.DeepList(";");
-  for (auto &nd: body_) {
-    dec.p.Item(); nd->Print(); dec.p.ItemDone();
-  }
-  if (elseBody_.empty()) {
-    if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
-    dec.p.EndList();
-  }
-  if (!elseBody_.empty()) {
-    // >> end else if
-    dec.p.Trailer();
-    if (needBeginEnd) dec.p.Printf("end else begin"); else dec.p.Printf("else");
-    dec.p.EndList();
-    // >>   else-Branch
-    dec.p.DeepList(";");
-    for (auto &nd: elseBody_) {
-      dec.p.Item(); nd->Print(); dec.p.ItemDone();
-    }
-    if (needBeginEnd) { dec.p.Trailer(); dec.p.Printf("end"); }
-    dec.p.EndList();
-  }
-#else
+void CFIfThen::Print(uint32_t flags)
+{
   dec.p.Print("if ");
   int pp = dec.precedence; dec.precedence = 0;
   cond_->Print();
   dec.p.Print(" then ");
-  body_->Print();
+
+  if (body_->IsMultiStatement()) {
+    body_->Print();
+    if (elseBody_)
+      dec.p.Print(" ");
+  } else {
+    dec.p.DeepList(";");
+    dec.p.FreshLine();
+    body_->Print();
+    dec.p.EndList();
+    if (elseBody_)
+      dec.p.FreshLine();
+  }
   if (elseBody_) {
-    dec.p.Print(" else ");
-    elseBody_->Print();
+    dec.p.Print("else ");
+    elseBody_->PrintOnNewLine();
   }
   dec.precedence = pp;
-#endif
 }
 
 #pragma mark - CFBreak
@@ -352,7 +329,7 @@ void CFForLoop::Print(uint32_t flags)
     incr_->Print();
   }
   dec.p.Print(" do ");
-  body_->Print();
+  body_->PrintOnNewLine();
 }
 
 #pragma mark - CFForEachSlotDo
@@ -393,7 +370,7 @@ void CFForEachSlotValueDo::Print(uint32_t flags)
   dec.p.Print(" in ");
   object_->Print();
   dec.p.Print(" do ");
-  body_->Print();
+  body_->PrintOnNewLine();
 }
 
 #pragma mark - ExceptionHandler
@@ -408,14 +385,7 @@ void ExceptionHandler::Print(uint32_t flags)
   dec.p.Print("onException ");
   dec.printLiteralAsTag(excp_);
   dec.p.Print(" do ");
-  CodeBlock *cb = dynamic_cast<CodeBlock*>(body_);
-  if (cb && (cb->size() > 1)) {
-    body_->Print();
-  } else {
-    dec.p.DeepList(";");
-    body_->Print();
-    dec.p.EndList();
-  }
+  body_->PrintOnNewLine();
 }
 
 #pragma mark - CFTry

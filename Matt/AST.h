@@ -80,6 +80,8 @@ public:
   // -- Print the result
   /** Print the node, either for debugging or for the final script reconstruction. */
   virtual void Print(uint32_t flags = 0) { PrintNode(false); }
+  void PrintOnNewLine(uint32_t flags = 0);
+
   // -- Helpers
   /** Return true if all this node does is put a NIL on the stack */
   virtual bool IsNIL() { return false; }
@@ -89,7 +91,10 @@ public:
   bool IsExpr() { return (provides() == 1); }
   /** Return if the node pushes no value on the stack and is not a control node. */
   bool IsStatement() { return (provides() == 0); }
-  
+  /** Return true if the node contains multiple statements, possibly ending in an expr */
+  virtual bool IsMultiStatement() { return false; }
+  Node *NewNil();
+
   // ---- Helpers for finding patterns in the AST
   template <class T>
   static T *ToFwd(Node **iter, bool mustBeResolved) {
@@ -107,7 +112,7 @@ public:
     if (ret) *iter = nd->prev;
     return ret;
   }
-  
+
   // ---- Helpers for the doubly linked list
   Node *prev { nullptr };
   Node *next { nullptr };

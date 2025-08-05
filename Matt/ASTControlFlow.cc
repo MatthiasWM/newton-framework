@@ -55,7 +55,7 @@ Node *BCBranch::ResolveLoop()
     // -- Try this pattern
     Node *iter = prev;
     if (b_ > pc_) break; // Jump must be backward
-    if (iter->IsStatement()) { body = iter; iter = iter->prev; } else break;
+    if (iter->IsStatement()) { body = iter; iter = iter->prev; }
     if ( !(jt = ToBwd<JumpTarget>(&iter, false)) )  break;
     if ((jt->Origin() != pc()) || (jt->pc() != b()))    break;
 
@@ -63,7 +63,8 @@ Node *BCBranch::ResolveLoop()
     // Check for a trailing "break targets"
     HandleBreakTargets(jt, iter = next, false);
     // It's a loop! Build a new node.
-    CFLoop *loop = new CFLoop(dec, pc_, kProvidesOne, body->Unlink());
+    if (body) body->Unlink(); else body = NewNil();
+    CFLoop *loop = new CFLoop(dec, pc_, kProvidesOne, body);
     jt->Unlink();
     this->ReplaceWith(loop);
     dec.numASTChanges++;
@@ -175,7 +176,7 @@ Node *BCBranchIfTrue::ResolveWhileDo()
     if (b_ > pc_) break;  // jump backwards
     if (!in_) break;
     if ((jt2 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if (it->IsStatement()) { body = it; it = it->prev; } else break;
+    if (it->IsStatement()) { body = it; it = it->prev; }
     if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
     if (!(branch2 = dynamic_cast<BCBranch*>(it))) break;
@@ -187,7 +188,8 @@ Node *BCBranchIfTrue::ResolveWhileDo()
     // Check for a trailing "push-nil, break targets, consumer"
     int prov = HandleBreakTargets(branch2, it = next, true);
     // Now create our while...do node:
-    CFWhile *wd = new CFWhile(dec, pc(), prov, in_, body->Unlink());
+    if (body) body->Unlink(); else body = NewNil();
+    CFWhile *wd = new CFWhile(dec, pc(), prov, in_, body);
     delete branch2->Unlink();
     delete jt1->Unlink();
     delete jt2->Unlink();
@@ -302,14 +304,15 @@ Node *BCBranchIfFalse::ResolveRepeatUntil() {
     Node *it = prev;
     if (b_ > pc_) break;  // jump backwards
     if (!in_) break;
-    if (it->IsStatement()) { body = it; it = it->prev; } else break;
+    if (it->IsStatement()) { body = it; it = it->prev; };
     if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
 
     // -- The pattern matches. Replace everything with a CFLoop node
     int prov = HandleBreakTargets(jt1, it = next, true);
     // We did it. This is a while...do... construct!
-    CFRepeat *ru = new CFRepeat(dec, pc(), prov, in_, body->Unlink());
+    if (body) body->Unlink(); else body = NewNil();
+    CFRepeat *ru = new CFRepeat(dec, pc(), prov, in_, body);
     jt1->Unlink();
     ReplaceWith(ru);
     dec.numASTChanges++;
@@ -385,7 +388,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
     REQUIRED_NODE( BCGetVar,   getLimit, it, true  ) { it = it->prev; }
     REQUIRED_NODE( JumpTarget, jtTest,   it, false ) { it = it->prev; }
     REQUIRED_NODE( BCIncrVar,  incIter,  it, false ) { it = it->prev; }
-    REQUIRED_COND( Node, body, body->IsStatement(), it, false) { it = it->prev; }
+    OPTIONAL_COND( Node, body, body->IsStatement(), it, false) { it = it->prev; }
     REQUIRED_NODE( JumpTarget, jtAgain,  it, false ) { it = it->prev; }
     REQUIRED_NODE( BCBranch,   brTest,   it, false ) { it = it->prev; }
     REQUIRED_NODE( BCGetVar,   getIter,  it, false ) { it = it->prev; }
@@ -412,7 +415,6 @@ Node *BCBranchLoop::Resolve(Pass pass)
     getLimit->Unlink();
     jtTest->Unlink();
     incIter->Unlink();
-    body->Unlink();
     jtAgain->Unlink();
     brTest->Unlink();
     getIter->Unlink();
@@ -425,6 +427,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
     dec.useLocalAs(iter, Decompiler::Local::Use::iter);
 
     // Create a CFForLoop node that replaces the entire pattern
+    if (body) body->Unlink(); else body = NewNil();
     CFForLoop *forLoopNode = new CFForLoop(dec, pc(), prov, setIter, setLimit->input(), setIncr->input(), body);
     ReplaceWith(forLoopNode);
 
@@ -496,6 +499,8 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     REQUIRED_NODE( CodeBlock, body, it, true ) { it = it->next; }
+    // TODO: body can be missing if original is 'begin end'. Must replace with NIL.
+    // TODO: also the two nodes below are now in the AST Root, and we must an add the matching unlink
     REQUIRED_COND( BCSetVar, setValue, setValue->b() == iter-1, body->at(0), true) {
       value = setValue->b();
     }
@@ -592,6 +597,8 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     // The following block contains the setup, the body, and the collector setting the 'result'
     REQUIRED_NODE( BCPop, bodyAndCollect, it, true ) { it = it->next; }
+    // TODO: body can be missing if original is 'begin end'. Must replace with NIL.
+    // TODO: the line above then returns a CodeBlock and the stuff below changes
     REQUIRED_NODE( BCSetARef, collect, bodyAndCollect->Input(), true );
     REQUIRED_NODE( CodeBlock, setup, collect->Object(), true );
     REQUIRED_NODE( BCSetVar, setValue, setup->at(0), true ) { value = setValue->b(); }

@@ -66,9 +66,11 @@ void Printer::PrintNewLine()
 void Printer::DoStartItem()
 {
   State &state = stack_.back();
-  if (!state.prevSuppressSeparator_) PrintSeparator();
-  if (!state.firstItem_ && !state.deep_ && !state.freshLine_)
-    out << " ";
+  if (!state.freshLine_) {
+    if (!state.prevSuppressSeparator_) PrintSeparator();
+    if (!state.firstItem_ && !state.deep_)
+      out << " ";
+  }
   if (state.deep_ || state.freshLine_)
     PrintNewLine();
   state.prevSuppressSeparator_ = state.suppressSeparator_;
@@ -171,6 +173,7 @@ void Printer::FreshLine()
 {
   State &state = stack_.back();
   state.freshLine_ = true;
+  state.itemEmpty_ = true;
 }
 
 void Printer::PrintDivider(const std::string &text)

@@ -407,6 +407,10 @@ void ObjectPrinter::PrintArray(RefArg ref) {
  */
 void ObjectPrinter::PrintFrame(RefArg ref) {
   assert(IsFrame(ref));
+  if (optionDecompile_ && IsFunction(ref)) {
+    PrintFunction(ref);
+    return;
+  }
   Print("{");
   StartList(",", TextLength(ref));
   CObjectIterator iter(ref, false);
@@ -419,12 +423,6 @@ void ObjectPrinter::PrintFrame(RefArg ref) {
   }
   Trailer(); Print("}");
   EndList();
-
-  // TODO: while we are debugging, print both.
-  if (optionDecompile_ && IsFunction(ref))
-    PrintFunction(ref);
-
-  ItemDone();
 }
 
 /**

@@ -53,6 +53,20 @@ void Node::PrintNode(bool deep)
   dec.p.Printf("##### [P:%2d] pc=%3d: %s a=%d, b=%d", provides(), pc_, Class(), a_, b_);
 }
 
+/**
+ \brief Print the next statement on a new line, handle 'begin' and 'end' nicely
+ */
+void Node::PrintOnNewLine(uint32_t flags)
+{
+  if (IsMultiStatement()) {
+    Print(flags);
+  } else {
+    dec.p.DeepList(";");
+    Print(flags);
+    dec.p.EndList();
+  }
+}
+
 /** Unlink all nodes, starting with this, up to last */
 void Node::UnlinkRange(Node *last) {
   Node *nd = this;
@@ -196,3 +210,11 @@ int Node::HandleBreakTargets(Node *start, Node *&it, bool findPushNil) {
   return prov;
 }
 
+/**
+ \brief Create the resolved bytecode for a 'nil' statement.
+ */
+Node *Node::NewNil() {
+  auto *pop = new BCPop(dec, pc(), 0, 0);
+  pop->Input(new BCPushConst(dec, pc(), 4, 2));
+  return pop;
+}

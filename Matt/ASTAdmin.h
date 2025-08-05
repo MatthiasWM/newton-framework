@@ -68,6 +68,7 @@ public:
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
   Node *Input() { return in_; }
+  void Input(Node *input) { in_ = input; }
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return (in_ != nullptr); }
 };

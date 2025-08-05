@@ -293,7 +293,7 @@ void Decompiler::generateAST(Ref instructions)
     if (a==25) { // new-handler
       int n = (int)pushConstList.size();
       assert(b <= n);
-      int nl = (int)pushConstList.size();
+      int nl = (int)pushLitList.size();
       assert(b <= nl);
       for (int t=0; t<b; ++t) {
         AddToTargets(pushConstList[n-t-1], pc, pushLitList[nl-t-1]);
@@ -376,15 +376,15 @@ void Decompiler::solve()
     numASTChanges = 0;
     for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::DataFlow)) { }
     if (numASTChanges > 0) { printAST("DataFlow Pass"); continue; }
-    p.Item(); p.Print("DataFlow passes done"); p.ItemDone();
+    if (debugAST_) { p.Item(); p.Print("DataFlow passes done"); p.ItemDone(); }
     // ---- Compression Pass
     if (compressAST()) { printAST("Compression Pass"); continue; }
-    p.Item(); p.Print("Compression passes done"); p.ItemDone();
+    if (debugAST_) { p.Item(); p.Print("Compression passes done"); p.ItemDone(); }
     // ---- Control Flow Pass
     numASTChanges = 0;
     for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::ControlFlow)) { }
     if (numASTChanges > 0) { printAST("CodeFlow Pass"); continue; }
-    p.Item(); p.Print("CodeFlow passes done"); p.ItemDone();
+    if (debugAST_) { p.Item(); p.Print("CodeFlow passes done"); p.ItemDone(); }
     // ---- No more changes on any level
     break;
   }
@@ -479,7 +479,7 @@ void Decompiler::printASTRoot()
 
 
 /**
- \brief Convert an Abstarct Syntax Tree (AST) back into reabale NewtonScript source code.
+ \brief Convert an Abstract Syntax Tree (AST) back into readable NewtonScript source code.
  Walks the tree and lets nodes output the appropriate source code.
  If a node can not print itself, it will output an AST node description for
  debugging.
@@ -489,7 +489,6 @@ void Decompiler::printSource()
   output = Print::script;
 
   // Print the function header and argument list
-  p.Tag();
   p.Print("func(");
   p.StartList(",");
   for (int i=0; i<numArgs_; i++) {
@@ -499,7 +498,7 @@ void Decompiler::printSource()
   p.Print(")");
 
   // Print the begin statement
-  p.Tag();
+  p.FreshLine();
   p.Print("begin");
   p.DeepList(";");
 
@@ -532,8 +531,9 @@ void Decompiler::printSource()
   }
 
   // Print the end marker of the function
-  p.Trailer(); p.Print("end");
   p.EndList();
+  p.FreshLine();
+  p.Print("end");
 }
 
 

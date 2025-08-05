@@ -54,6 +54,7 @@ public:
   void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
+  virtual bool IsMultiStatement() override { return (size() > 1); }
 };
 
 class ControlBlock : public Node {
