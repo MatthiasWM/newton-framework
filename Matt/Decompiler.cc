@@ -256,13 +256,6 @@ Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
   return new Bytecode(*this, pc, a, b);
 }
 
-
-
-/* TODO: Rethink jump targets:
- * One jump target has only a single origin.
- * For the same PC, jump targets are sorted by the PC of their origin.
- */
-
 /**
  \brief Create the initial AST which is not a tree at all, just a list of nodes.
 
@@ -278,6 +271,10 @@ void Decompiler::generateAST(Ref instructions)
   uint8_t *bc = (uint8_t*)BinaryData(instructions);
   int nbc = Length(instructions);
 
+  // TODO: horrible hack: we push every BCPushConst(int) in case we encounter BCNewHandler
+  std::vector<int> pushConstList;
+  std::vector<int> pushLitList;
+
   // Find all the jump instructions and create the target nodes.
   for (int i=0; i<nbc; i++) {
     int pc = i;
@@ -289,6 +286,19 @@ void Decompiler::generateAST(Ref instructions)
     // TODO: a = 25, new-handlers
     if ((a==11)||(a==12)||(a==13)||(a==23))
       AddToTargets(b, pc);
+    if (a==3)
+      pushLitList.push_back(b);
+    if (a==4 && IsInt(b)) // BCPushConst
+      pushConstList.push_back(RefToInt(b));
+    if (a==25) { // new-handler
+      int n = (int)pushConstList.size();
+      assert(b <= n);
+      int nl = (int)pushConstList.size();
+      assert(b <= nl);
+      for (int t=0; t<b; ++t) {
+        AddToTargets(pushConstList[n-t-1], pc, pushLitList[nl-t-1]);
+      }
+    }
   }
 
   // Now run the byte codes again and create a linked list of instructions
@@ -314,12 +324,16 @@ void Decompiler::generateAST(Ref instructions)
     delete nd->Unlink();
 }
 
-void Decompiler::AddToTargets(int target, int origin)
+void Decompiler::AddToTargets(int target, int origin, int excp)
 {
   // Use negative numbers to sort forward jumps closest to furthest.
   // BAckward jumps are automatically closest to furthest.
   int sort = origin < target ? -origin : target;
-  targetMap_[target][sort] = new JumpTarget(*this, target, origin);
+  if (excp == -1) {
+    targetMap_[target][sort] = new JumpTarget(*this, target, origin);
+  } else {
+    targetMap_[target][sort] = new ExceptionHandler(*this, target, origin, excp);
+  }
   if (debugAST_) printf("Jump Target: from %d to %d\n", origin, target);
 }
 

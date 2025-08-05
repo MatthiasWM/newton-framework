@@ -24,6 +24,8 @@ constexpr int kJumpTarget = -3;
 constexpr int kBranch = -4;
 constexpr int kBranchIfFalse = -5;
 constexpr int kBranchIfTrue = -6;
+constexpr int kNewHandler = -7;
+constexpr int kPopHandlers = -8;
 
 // Flags for Node::Print(uint32_t flags = 0)
 constexpr uint32_t kPrintSuppressBeginEnd   = 0x00000001;

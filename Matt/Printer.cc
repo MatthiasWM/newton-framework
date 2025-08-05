@@ -37,7 +37,7 @@ void Printer::WrapAfter(int numChars)
   wrapAfter_ = numChars;
 }
 
-void Printer::Offset(int delta) {
+void Printer::OffsetIndent(int delta) {
   State &state = stack_.back();
   state.indentDelta_ += delta;
 }
@@ -67,12 +67,13 @@ void Printer::DoStartItem()
 {
   State &state = stack_.back();
   if (!state.prevSuppressSeparator_) PrintSeparator();
-  if (!state.firstItem_ && !state.deep_)
+  if (!state.firstItem_ && !state.deep_ && !state.freshLine_)
     out << " ";
-  if (state.deep_)
+  if (state.deep_ || state.freshLine_)
     PrintNewLine();
   state.prevSuppressSeparator_ = state.suppressSeparator_;
   state.firstItem_ = false;
+  state.freshLine_ = false;
 }
 
 void Printer::StartList(const std::string &separator, int numCharsExpected)
@@ -164,6 +165,12 @@ void Printer::Printf(const char *format, ...) {
   va_start(args, format);
   vprintf(format, args);
   va_end(args);
+}
+
+void Printer::FreshLine()
+{
+  State &state = stack_.back();
+  state.freshLine_ = true;
 }
 
 void Printer::PrintDivider(const std::string &text)

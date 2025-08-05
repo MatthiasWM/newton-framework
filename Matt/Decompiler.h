@@ -51,7 +51,7 @@ protected:
   std::map<int /* destination pc*/, std::map<int /* origin pc */, ast::JumpTarget*>> targetMap_;
   bool debugAST_ { false };
 
-  void AddToTargets(int target, int origin);
+  void AddToTargets(int target, int origin, int excp=-1);
   ast::Node *Append(ast::Node *lastNode, ast::Node *newNode);
   ast::Bytecode *NewBytecodeNode(int pc, int a, int b);
 

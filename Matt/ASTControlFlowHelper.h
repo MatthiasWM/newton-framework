@@ -30,7 +30,6 @@ public:
   bool Resolved() override { return false; }
 };
 
-
 class CodeBlock : public Node {
 public:
   int provides_ = kProvidesNone;
@@ -148,6 +147,30 @@ public:
   const char *Class() override { return "CFForEachSlotDo"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;
+};
+
+class ExceptionHandler : public JumpTarget {
+protected:
+  int excp_ = -1;
+  Node *body_ = nullptr;
+public:
+  ExceptionHandler(Decompiler &d, int pc, int origin, int excp)
+  : JumpTarget(d, pc, origin), excp_(excp) { }
+  const char *Class() override { return "ExceptionHandler"; }
+  void Body(Node *body) { body_ = body; }
+  void PrintChildren(bool deep) override;
+  void Print(uint32_t flags = 0) override;
+};
+
+class CFTry : public Node {
+protected:
+  Node *body_ = nullptr;
+  std::vector<ExceptionHandler*> exList_;
+public:
+  CFTry(Decompiler &d, int pc, Node *first, Node *last);
+  bool Resolved() override { return true; }
+  void PrintChildren(bool deep) override;
+  void Print(uint32_t flags) override;
 };
 
 }; // namespace ast;

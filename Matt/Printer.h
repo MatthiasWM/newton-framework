@@ -26,6 +26,7 @@ class Printer {
     std::string separator_ { "" };
     int indentDelta_ { 0 };
     bool deep_ { false };
+    bool freshLine_ { false };
     bool suppressSeparator_ { false };
     bool prevSuppressSeparator_ { true };
     bool firstItem_ { true };
@@ -45,7 +46,7 @@ public:
   void WrapAt(int column);
   void WrapAfter(int numChars);
 
-  void Offset(int delta);
+  void OffsetIndent(int delta);
   void SetIndent(int column);
 
   void StartList(const std::string &separator, int numCharsExpected=0);
@@ -60,6 +61,7 @@ public:
   void Print(int value);
   void Print(double value);
   void Printf(const char*, ...);
+  void FreshLine();
 
   void PrintDivider(const std::string &text);
 };

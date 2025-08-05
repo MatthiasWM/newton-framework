@@ -710,28 +710,63 @@ void BCIterDone::Print(uint32_t flags) {
 
 #pragma mark - BCNewHandler
 
-/*
- This is the start of a 'try' block. The pattern is:
- try:
- n * BCPush, BCPushConst Tx
- BCNewHandler(n)
- try_body:
- Instructions
- BCPopHandlers
- BCBranch 1
- onexception x:
- JumpTarget Tx
- BCBranch 2
- end_handlers:
- BCPopHandlers
- end_try
- JumpTarget 1
- */
+/* This is the start of a 'try' block. */
+
+// BCNewHandler a b c
+//   Statements
+// PopHandlers
+// Branch x
+// Exception Handler a
+//   CodeBlock
+// Branch y
+// Exception Handler b
+//   CodeBlock
+// Branch y
+// Exception Handler c (last)
+//   CodeBlock
+// JumpTarget y
+// PopHandlers
+// JumpTarget x
 
 void BCNewHandler::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
+Node *BCNewHandler::Resolve(Pass pass)
+{
+  if ((pass == Pass::DataFlow) && (!ConsumeN::Resolved()))
+    return ConsumeN::Resolve(pass);
+  if ((pass != Pass::ControlFlow) || Resolved()) return next;
+  do {
+    // ---- Find the try...onexception...do... pattern
+    int i;
+    Node *it = next;
+    REQUIRED_COND( Node, body, body->IsStatement(), it, true) { it = it->next; }
+    REQUIRED_NODE( BCPopHandlers, bodyPop, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCBranch, brDone, it, false ) { it = it->next; }
+    // Handle the 'onException...do...' pattern
+    for (i=1; i<b_; i++) {
+      REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
+      REQUIRED_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+      REQUIRED_NODE( BCBranch, exDone, it, false ) { it = it->next; }
+    }
+    if (i != b_) break; // not enough handlers
+    // Handle the last 'onException...do...' pattern
+    REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
+    REQUIRED_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+    // Handle the final cleanup
+    REQUIRED_NODE( JumpTarget, jtExDone, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCPopHandlers, exPop, it, false ) { it = it->next; }
+    REQUIRED_NODE( JumpTarget, jtDone, it, false ) { it = it->next; }
+
+    // ---- The pattern is correct. Now make it printable.
+    CFTry *exNode = new CFTry(dec, pc(), this, jtDone);
+    ReplaceWith(exNode);
+    dec.numASTChanges++;
+    return exNode->next;
+  } while (0);
+  return next;
+}
 
 #pragma mark - BCPopHandlers
 

@@ -37,7 +37,7 @@ public:
   const char *Class() override { return "BCBranchIfTrue"; }
   int provides() override { return kProvidesUnknown; }
   int extracted(BCBranch *branch2, Node *&it);
-  
+
   Node *ResolveWhileDo();
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
@@ -130,7 +130,10 @@ public:
   BCNewHandler(Decompiler &d, int pc, int a, int b)
   : ConsumeN(d, pc, a, b, b*2) { }
   const char *Class() override { return "BCNewHandler"; }
+  int provides() override { return kNewHandler; }
   void Print(uint32_t flags = 0) override;
+  Node *Resolve(Pass pass) override;
+  bool Resolved() override { return false; }
 };
 
 // (A=0, B=7): --
@@ -138,8 +141,7 @@ class BCPopHandlers : public Bytecode {
 public:
   BCPopHandlers(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCPopHandlers"; }
-  int provides() override { return kProvidesNone; }
-  // Don't know yet
+  int provides() override { return kPopHandlers; }
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;
 };
