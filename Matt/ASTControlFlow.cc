@@ -61,7 +61,7 @@ Node *BCBranch::ResolveLoop()
 
     // -- The pattern matches. Replace everything with a CFLoop node
     // Check for a trailing "break targets"
-    HandleBreakTargets(jt, iter, false);
+    HandleBreakTargets(jt, iter = next, false);
     // It's a loop! Build a new node.
     CFLoop *loop = new CFLoop(dec, pc_, kProvidesOne, body->Unlink());
     jt->Unlink();
@@ -185,7 +185,7 @@ Node *BCBranchIfTrue::ResolveWhileDo()
 
     // -- The pattern matches. Replace everything with a CFLoop node
     // Check for a trailing "push-nil, break targets, consumer"
-    int prov = HandleBreakTargets(branch2, it, true);
+    int prov = HandleBreakTargets(branch2, it = next, true);
     // Now create our while...do node:
     CFWhile *wd = new CFWhile(dec, pc(), prov, in_, body->Unlink());
     delete branch2->Unlink();
@@ -307,7 +307,7 @@ Node *BCBranchIfFalse::ResolveRepeatUntil() {
     if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
 
     // -- The pattern matches. Replace everything with a CFLoop node
-    int prov = HandleBreakTargets(jt1, it, true);
+    int prov = HandleBreakTargets(jt1, it = next, true);
     // We did it. This is a while...do... construct!
     CFRepeat *ru = new CFRepeat(dec, pc(), prov, in_, body->Unlink());
     jt1->Unlink();
@@ -369,23 +369,6 @@ void BCIncrVar::Print(uint32_t flags) {
 
 #pragma mark - BCBranchLoop
 
-/*
- This indicates the end of a 'for' loop. The pattern is:
- local 5:i, 6:|i|limit|, 7:|i|incr|
- BCSetVar b=5
- BCSetVar b=6
- BCSetVar b=7
- BCGetVar b=7
- BCGetVar b=5
- BCBranch 1
- JumpTarget 2
- Statements
- BCIncrVar a=22, b=5
- JumpTarget 1
- BCGetVar a=15, b=6
- BCBranchLoop 2
- */
-
 BCBranchLoop::BCBranchLoop(Decompiler &d, int pc, int a, int b)
 : Bytecode(d, pc, a, b)
 { }
@@ -395,7 +378,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
   if (pass != Pass::ControlFlow) return next;
   do {
     // ---- Try the for...to...by...do... pattern and take breaks into account.
-    // We are at the ned of the pattern, so walk backwards down the AST root.
+    // We are at the end of the pattern, so walk backwards down the AST root.
     Node *it = prev;
     int iter = -1, limit = -1, incr = -1;
     //           ( BCBranchLoop, this )
@@ -424,7 +407,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
 
     // ---- If we reach all this way, the pattern matches.
     // Eval and unlink all the jump targets of break instructions inside the loop
-    int prov = HandleBreakTargets(brTest, it, true);
+    int prov = HandleBreakTargets(brTest, it = next, true);
     // Unlink all nodes in the pattern, so they can be relinked down the AST or later deleted
     getLimit->Unlink();
     jtTest->Unlink();
@@ -501,81 +484,81 @@ Node *BCNewIter::Resolve(Pass pass)
 Node *BCNewIter::ResolveForeachSlotValueDo()
 {
   do {
-    // -- Here is our pattern. Store the result of our exploration here:
-    int slot = -1, value = -1, iter = -1;
-    /* expr         */  Node *slottedObj;
-    /* pushconst    */  BCPushConst *deeplyNd;
-    /* newiter      */  // <---- you are here
-    /* setvar iter  */  BCSetVar *setvar1;
-    /* branch 1     */  BCBranch *branch;
-    /* jumptarget 2 */  JumpTarget *jt2;
-    /* setvar value */  BCSetVar *setvar2;
-    /* setvar slot  */  BCSetVar *setvar3 = nullptr; // optional
-    /* statements   */  CodeBlock *body;
-    /* iternext     */  BCIterNext *iternext;
-    /* jumptarget 1 */  JumpTarget *jt1;
-    /* iterdone     */  BCIterDone *iterdone;
-    /* c.branch 2   */  BCBranchIfFalse *cbranch;
-
-    // -- Try the pattern. We must trace backwards.
-    // Walk backwards in the AST root
+    // ---- Try the "foreach slot,value deeply in object do" pattern and take breaks into account.
     Node *it = prev;
-    bool deeply = false;
-    if ( !(deeplyNd = ToBwd<BCPushConst>(&it, false)) ) break;
-    if (deeplyNd->b() == 2) deeply = false;
-    else if (deeplyNd->b() == 26) deeply = true;
-    else break;
-    slottedObj = it; if (!slottedObj->Resolved()) break;
-    // Now walk forwards
+    int slot = -1, value = -1, iter = -1;
+    // Traverse back to evaluate the setup.
+    REQUIRED_NODE( BCPushConst, deeplyConst, prev, true ) { it = it->prev; }
+    REQUIRED_COND( Node, setObject, setObject->IsExpr(), it, true);
+    // Travers forward to evaluate the rest of the pattern.
     it = next;
-    if ( !(setvar1 = ToFwd<BCSetVar>(&it, false)) ) break;
-    iter = setvar1->b();
-    if ( !(branch = ToFwd<BCBranch>(&it, false)) ) break;
-    if ( !(jt2 = ToFwd<JumpTarget>(&it, false)) ) break;
-    // The remaining header and the following body are in a single CodeBlock
-    if ( !(body = ToFwd<CodeBlock>(&it, false)) ) break;
-    // The first node in body must set the 'value'
-    if (body->body_.size() < 1) break;
-    if ( !(setvar2 = dynamic_cast<BCSetVar*>(body->body_[0])) ) break;
-    value = setvar2->b(); if (value != iter-1) break; // b = value
-    // If we have a second setvar, and b = value-1, it's the 'slot' variable
-    if (   (body->body_.size()  >= 2 )
-        && ((setvar3 = dynamic_cast<BCSetVar*>(body->body_[1])))
-        && (setvar3->b() == iter-2 )) { slot = setvar3->b(); };
-    // The remaining statements in the code block form the body
+    REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
+    REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
+    REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
+    REQUIRED_NODE( CodeBlock, body, it, true ) { it = it->next; }
+    REQUIRED_COND( BCSetVar, setValue, setValue->b() == iter-1, body->at(0), true) {
+      value = setValue->b();
+    }
+    OPTIONAL_NODE( BCSetVar, setSlot, body->at(1), true) {
+      if (setSlot->b() == value-1) slot = setSlot->b();
+    }
+    REQUIRED_NODE( BCIterNext, iterNext, it, false ) { it = it->next; }
+    REQUIRED_NODE( JumpTarget, jtStart, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCIterDone, iterDone, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCBranchIfFalse, brRepeat, it, false ) { it = it->next; }
 
-    // Now find the rest of the 'foreach' pattern
-    if ( !(iternext = ToFwd<BCIterNext>(&it, true)) ) break;
-    if ( !(jt1 = ToFwd<JumpTarget>(&it, false)) ) break;
-    if ( !(iterdone = ToFwd<BCIterDone>(&it, false)) ) break;
-    if ( !(cbranch = ToFwd<BCBranchIfFalse>(&it, false)) ) break;
-    // TODO: we should still verify the two jump targets
+    // The pattern is correct. Now check the jump instructions.
+    if ((jtStart->Origin() != brStart->pc()) || (jtStart->pc() != brStart->b())) break;
+    if ((jtRepeat->Origin() != brRepeat->pc()) || (jtRepeat->pc() != brRepeat->b())) break;
 
-    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
-    dec.useLocalAs(value, Decompiler::Local::Use::iter);
-    if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
+    // Find out if the original source code used 'deeply'
+    bool deeply;
+    if (deeplyConst->b() == NILREF) deeply = false;
+    else if (deeplyConst->b() == TRUEREF) deeply = true;
+    else break;
 
-    // -- The pattern matches. Replace everything with a CFForLoop node
-    cbranch->HandleBreakTargets(jt2, it, true);
-    // 'foreach' resets the iterator to nil for garbage collection.
-    // It would probably be wise to check that before removing it here:
-    it->Unlink(); // push-const nil, set-var |value|iter|
-    CFForEachSlotValueDo *foreachNode =
-      new CFForEachSlotValueDo(dec, pc_, slottedObj, slot, value, deeply);
+    // ---- If we reach all this way, the pattern matches.
+    // Eval and unlink all the jump targets of break instructions inside the loop
+    HandleBreakTargets(body, it, true);
+    // Remove the command that clears the iterator for garbage collection
+    it->Unlink();
+
+    // If setObject is a CodeBlock, only use the last expression
+    CodeBlock *objBlock = dynamic_cast<CodeBlock*>(setObject);
+    Node *obj = nullptr;
+    if (objBlock) {
+      obj = objBlock->back();
+      objBlock->pop_back();
+      objBlock->UnlinkIfEmpty();
+    } else {
+      obj = setObject;
+      setObject->Unlink();
+    }
+
+    // Unlink all nodes in the pattern, so they can be relinked down the AST or later deleted
+    deeplyConst->Unlink();
+    setIter->Unlink();
+    brStart->Unlink();
+    jtRepeat->Unlink();
+    body->pop_front(); // unlink 'setValue'
+    if (slot != -1) body->pop_front(); // unlink 'setSlot'
     body->Unlink();
-    body->body_.erase(body->body_.begin());
-    if (slot != -1) body->body_.erase(body->body_.begin());
-    foreachNode->body_ = body;
-    slottedObj->Unlink();
-    deeplyNd->Unlink();
-    setvar1->Unlink();
-    branch->Unlink();
-    jt2->Unlink();
-    iternext->Unlink();
-    jt1->Unlink();
-    iterdone->Unlink();
-    cbranch->Unlink();
+    iterNext->Unlink();
+    jtStart->Unlink();
+    iterDone->Unlink();
+    brRepeat->Unlink();
+
+    // Mark the locals with an alternative use, so they are not declared
+    if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
+    dec.useLocalAs(value, Decompiler::Local::Use::iter);
+    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+
+    // Create a CFForEachSlotValueDo node that replaces the entire pattern
+    CFForEachSlotValueDo *foreachNode =
+      new CFForEachSlotValueDo(dec, pc_, slot, value, deeply, obj, body);
     ReplaceWith(foreachNode);
+
+    // Wrap things up
     dec.numASTChanges++;
     return foreachNode->next;
   } while (0);
@@ -590,86 +573,106 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
 //  7: |slotvalue|iter|: nil,
 //  8: |slotvalue|index|: nil,
 //  9: |slotvalue|result|: nil
+  do {
+    // ---- Try the "foreach slot,value deeply in object do" pattern and take breaks into account.
+    Node *it = prev;
+    int slot = -1, value = -1, iter = -1, index = -1, result = -1;
+    // Traverse back to evaluate the setup.
+    REQUIRED_NODE( BCPushConst, deeplyConst, prev, true ) { it = it->prev; }
+    REQUIRED_COND( Node, setObject, setObject->IsExpr(), it, true);
+    // Travers forward to evaluate the rest of the pattern.
+    it = next;
+    REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
+    // The following block initializes the index and result for collecting data
+    REQUIRED_NODE( CodeBlock, initCollect, it, false ) { it = it->next; iter = setIter->b(); }
+    REQUIRED_NODE( BCSetVar, initResult, initCollect->at(0), true ) { result = initResult->b(); }
+    REQUIRED_NODE( BCSetVar, initIndex, initCollect->at(1), true ) { index = initIndex->b(); }
+    // Jump to the start of the loop
+    REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
+    REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
+    // The following block contains the setup, the body, and the collector setting the 'result'
+    REQUIRED_NODE( BCPop, bodyAndCollect, it, true ) { it = it->next; }
+    REQUIRED_NODE( BCSetARef, collect, bodyAndCollect->Input(), true );
+    REQUIRED_NODE( CodeBlock, setup, collect->Object(), true );
+    REQUIRED_NODE( BCSetVar, setValue, setup->at(0), true ) { value = setValue->b(); }
+    OPTIONAL_NODE( BCSetVar, setSlot, setup->at(1), true ) { if (setSlot->b() == value-1) slot = setSlot->b(); }
+    REQUIRED_COND( Node, body, body->IsExpr(), collect->Element(), true );
+    // Count while collecting
+    REQUIRED_NODE( BCIncrVar, incrIndex, it, true ) { it = it->next; }
+    REQUIRED_NODE( BCPop, popIV0, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCPop, popIV1, it, false ) { it = it->next; }
+    // Iterate through the slotted object
+    REQUIRED_NODE( BCIterNext, iterNext, it, false ) { it = it->next; }
+    REQUIRED_NODE( JumpTarget, jtStart, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCIterDone, iterDone, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCBranchIfFalse, brRepeat, it, false ) { it = it->next; }
+    // Jump forward when done
+    REQUIRED_NODE( BCBranch, skipCleanup, it, false ) { it = it->next; }
+    // Skip all jump targets from 'break' instructions inside the loop
+    for (;;) {
+      REQUIRED_NODE( JumpTarget, jtBreak, it, false ) { it = it->next; }
+    }
+    // Set the result to whatever the 'break' instruction wants.
+    OPTIONAL_NODE( BCSetVar, setResult2, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCPop, popR0, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCPop, popR1, it, false ) { it = it->next; }
+    // Set the result
+    REQUIRED_NODE( JumpTarget, jtCleanup, it, false ) { it = it->next; }
+    REQUIRED_NODE( BCGetVar, getResult, it, false ) { it = it->next; }
+    // Prepare result and iter for garbage collection
+    REQUIRED_NODE( CodeBlock, prepareForGC, it, true ) { it = it->next; }
 
-  // ##### [P: 1] pc=  8: push expr                           object
-  // ##### [P: 1] pc=  9: BCPushConst a=4, b=2           deeply
-  // ##### [P:-1] pc= 10: BCNewIter a=24, b=17           foreach
-  // ##### [P:-1] pc= 13: BCSetVar a=20, b=7             iter
-  //   ##### ---> Body
-  //         ##### [P: 1] pc= 16: BCGetVar a=15, b=7     iter
-  //         ##### [P: 1] pc= 19: BCPushConst a=4, b=20  5
-  //       ##### [P: 1] pc= 22: BCARef a=24, b=2         iter[5]
-  //       ##### [P: 1] pc= 23: BCPush a=3, b=0          'array
-  //     ##### [P: 1] pc= 24: BCNewArray a=17, b=65535   new array[5]
-  //   ##### [P: 0] pc= 27: BCSetVar a=20, b=9           result = new array[5]
-  //     ##### [P: 1] pc= 30: BCPushConst a=4, b=0       0
-  //   ##### [P: 0] pc= 31: BCSetVar a=20, b=8           index
-  //   ##### <--- Body
-  // ##### [P: 0] pc= 27: CodeBlock a=0, b=0
-  // ##### [P:-4] pc= 34: BCBranch a=11, b=79            -> check for end
-  // ##### [P:-3] pc= 37: JumpTarget a=0, b=0 from 83     <- next round
-  //     ##### ---> Body
-  //         ##### [P: 1] pc= 37: BCGetVar a=15, b=7     iter
-  //         ##### [P: 1] pc= 40: BCPushConst a=4, b=4   1
-  //       ##### [P: 1] pc= 41: BCARef a=24, b=2         iter[1]
-  //     ##### [P: 0] pc= 42: BCSetVar a=20, b=6         value := iter[1]
-  //         ##### [P: 1] pc= 43: BCGetVar a=15, b=7     iter
-  //         ##### [P: 1] pc= 46: BCPushConst a=4, b=0   0
-  //       ##### [P: 1] pc= 47: BCARef a=24, b=2         iter[0]
-  //     ##### [P: 0] pc= 48: BCSetVar a=20, b=5         slot
-  //     ##### [P: 1] pc= 49: BCGetVar a=15, b=9         result ERR -v
-  //     ##### <--- Body
-  //   ##### [P: 1] pc= 42: CodeBlock a=0, b=0
-  //   ##### [P: 1] pc= 52: BCGetVar a=15, b=8           index ERR -v
-  //     ##### ---> Body
-  //         ##### [P: 1] pc= 55: BCGetVar a=15, b=5     slot
-  //         ##### [P: 1] pc= 56: BCPush a=3, b=1
-  //       ##### [P: 1] pc= 57: BCCall a=5, b=1
-  //     ##### [P: 0] pc= 58: BCPop a=0, b=0
-  //     ##### [P: 0] pc= 62: CFBreak a=0, b=89
-  //     ##### [P: 1] pc= 66: BCGetVar a=15, b=6
-  //     ##### <--- Body
-  //   ##### [P: 1] pc= 58: CodeBlock a=0, b=0
-  // ##### [P: 0] pc= 67: BCSetARef a=24, b=3  --- ERROR -^^: this should have consumed 3!
-  // ##### [P:-1] pc= 68: BCPop a=0, b=0
-  //   ##### [P: 1] pc= 69: BCPushConst a=4, b=4
-  // ##### [P: 2] pc= 70: BCIncrVar a=22, b=8
-  // ##### [P:-1] pc= 73: BCPop a=0, b=0
-  // ##### [P:-1] pc= 74: BCPop a=0, b=0
-  //   ##### [P: 1] pc= 75: BCGetVar a=15, b=7
-  // ##### [P:-1] pc= 78: BCIterNext a=0, b=5
-  // ##### [P:-3] pc= 79: JumpTarget a=0, b=0 from 34
-  //   ##### [P: 1] pc= 79: BCGetVar a=15, b=7
-  // ##### [P:-1] pc= 82: BCIterDone a=0, b=6
-  // ##### [P:-1] pc= 83: BCBranchIfFalse a=13, b=37
-  // ##### [P:-4] pc= 86: BCBranch a=11, b=94
-  // ##### [P:-3] pc= 89: JumpTarget a=0, b=0 from 62
-  // ##### [P:-1] pc= 89: BCSetVar a=20, b=9
-  // ##### [P:-1] pc= 92: BCPop a=0, b=0
-  // ##### [P:-1] pc= 93: BCPop a=0, b=0
-  // ##### [P:-3] pc= 94: JumpTarget a=0, b=0 from 86
-  // ##### [P: 1] pc= 94: BCGetVar a=15, b=9
-  //   ##### ---> Body
-  //     ##### [P: 1] pc= 97: BCPushConst a=4, b=2
-  //   ##### [P: 0] pc= 98: BCSetVar a=20, b=9
-  //     ##### [P: 1] pc=101: BCPushConst a=4, b=2
-  //   ##### [P: 0] pc=102: BCSetVar a=20, b=7
-  //   ##### <--- Body
-  // ##### [P: 0] pc= 98: CodeBlock a=0, b=0
-  // ##### [P:-1] pc=105: BCFindAndSetVar a=21, b=2
-  //   ##### ---> Body
-  //       ##### [P: 1] pc=106: BCFindVar a=14, b=2
-  //       ##### [P: 1] pc=107: BCPush a=3, b=1
-  //     ##### [P: 1] pc=108: BCCall a=5, b=1
-  //   ##### [P: 0] pc=109: BCPop a=0, b=0
-  //     ##### [P: 1] pc=110: BCPushConst a=4, b=4
-  //   ##### [P: 1] pc=111: BCReturn a=0, b=2
-  //   ##### <--- Body
-  // ##### [P: 1] pc=109: CodeBlock a=0, b=0
-  // ##### [P:-2] pc= -1: LastNode a=-1, b=-1
+    // The pattern is correct. Now check the jump instructions.
+    if ((jtStart->Origin() != brStart->pc()) || (jtStart->pc() != brStart->b())) break;
+    if ((jtRepeat->Origin() != brRepeat->pc()) || (jtRepeat->pc() != brRepeat->b())) break;
+    if ((jtCleanup->Origin() != skipCleanup->pc()) || (jtCleanup->pc() != skipCleanup->b())) break;
+
+    // Find out if the original source code used 'deeply'
+    bool deeply;
+    if (deeplyConst->b() == NILREF) deeply = false;
+    else if (deeplyConst->b() == TRUEREF) deeply = true;
+    else break;
+
+    // ---- If we reach all this way, the pattern matches.
+    // Unlink everything between this and prepareForGC
+    // Eval and unlink all the jump targets of break instructions inside the loop
+//    HandleBreakTargets(body, it, true);
 
 
-  // TODO: write me
+    // If setObject is a CodeBlock, only use the last expression
+    CodeBlock *objBlock = dynamic_cast<CodeBlock*>(setObject);
+    Node *obj = nullptr;
+    if (objBlock) {
+      obj = objBlock->back();
+      objBlock->pop_back();
+      objBlock->UnlinkIfEmpty();
+    } else {
+      obj = setObject;
+      setObject->Unlink();
+    }
+
+    deeplyConst->Unlink();
+
+    // Unlink everything from this to prepareForGC
+    while (next && (next != prepareForGC)) next->Unlink();
+    prepareForGC->Unlink();
+
+    // Mark the locals with an alternative use, so they are not declared
+    if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
+    dec.useLocalAs(value, Decompiler::Local::Use::iter);
+    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+    dec.useLocalAs(index, Decompiler::Local::Use::iter);
+    dec.useLocalAs(result, Decompiler::Local::Use::iter);
+
+    // Create a CFForEachSlotValueDo node that replaces the entire pattern
+    CFForEachSlotValueDo *foreachNode =
+    new CFForEachSlotValueDo(dec, pc_, slot, value, deeply, obj, body);
+    ReplaceWith(foreachNode);
+
+    // Wrap things up
+    dec.numASTChanges++;
+    return foreachNode->next;
+  } while (0);
   return nullptr;
 }
 

@@ -117,7 +117,7 @@ public:
   int FindStatementsFwd(Node **crsr, Node **start);
   int FindStatementsBwd(Node **crsr, Node **start);
   void DeleteJumpTarget(int origin, int target);
-  int HandleBreakTargets(Node *start, Node *&it, bool findPushNil);
+  static int HandleBreakTargets(Node *start, Node *&it, bool findPushNil);
 };
 
 }; // namespace ast

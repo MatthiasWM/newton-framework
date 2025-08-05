@@ -16,7 +16,7 @@ REQUIRED_NODE(type, name, iter, resolved) if (!(cond)) break;
 #define REQUIRED_NODE(type, name, iter, resolved) \
 type *name=nullptr; name = dynamic_cast<type*>(iter); if (!name || (resolved && !name->Resolved())) break;
 
-#define OPRTIONAL_NODE(type, name, iter, resolved) \
+#define OPTIONAL_NODE(type, name, iter, resolved) \
 type *name=nullptr; name = dynamic_cast<type*>(iter); if (name && (!resolved || name->Resolved()))
 
 //#define REQUIRED_NODE_IF(cond, type, name, iter) \

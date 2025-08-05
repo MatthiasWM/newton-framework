@@ -174,14 +174,13 @@ void Node::DeleteJumpTarget(int origin, int target) {
  */
 int Node::HandleBreakTargets(Node *start, Node *&it, bool findPushNil) {
   int prov = kProvidesNone;
-  it = next;
   BCPushConst *pushNil = dynamic_cast<BCPushConst*>(it);
   if ((pushNil && (pushNil->b() == NILREF)) || (findPushNil == false)) {
     if (findPushNil) it = it->next;
     bool breakFound = false;
     for (;;) {
       JumpTarget *jt = dynamic_cast<JumpTarget*>(it);
-      if (jt && (jt->Origin() > start->pc()) && (jt->Origin() < pc())) {
+      if (jt && (jt->Origin() > start->pc()) && (jt->Origin() < it->pc())) {
         breakFound = true;
         it = jt->next;
         jt->Unlink();

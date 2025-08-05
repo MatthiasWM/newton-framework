@@ -48,6 +48,10 @@ public:
   void add(Node *nd);
   int size() { return (int)body_.size(); }
   Node *at(int ix) { return body_.at(ix); }
+  Node *back() { return body_.back(); }
+  void pop_back() { body_.pop_back(); }
+  void pop_front() { body_.erase(body_.begin()); }
+  void UnlinkIfEmpty() { if (body_.empty()) Unlink(); }
   void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
@@ -140,7 +144,7 @@ class CFForEachSlotValueDo : public ControlBlock {
   int value_ = -1;
   bool deeply_ = false;
 public:
-  CFForEachSlotValueDo(Decompiler &d, int pc, Node *obj, int slot, int value, bool deeply);
+  CFForEachSlotValueDo(Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body);
   const char *Class() override { return "CFForEachSlotDo"; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;

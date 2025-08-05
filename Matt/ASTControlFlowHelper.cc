@@ -357,10 +357,12 @@ void CFForLoop::Print(uint32_t flags)
 
 #pragma mark - CFForEachSlotDo
 
-CFForEachSlotValueDo::CFForEachSlotValueDo(Decompiler &d, int pc, Node *obj, int slot, int value, bool deeply)
+CFForEachSlotValueDo::CFForEachSlotValueDo(Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body)
 : ControlBlock(d, pc, kProvidesOne),
 object_(obj), slot_(slot), value_(value), deeply_(deeply)
-{ }
+{
+  body_ = body;
+}
 
 void CFForEachSlotValueDo::PrintChildren(bool deep)
 {

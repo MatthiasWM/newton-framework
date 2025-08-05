@@ -295,6 +295,8 @@ public:
   void PrintChildren(bool deep) override;
   int provides() override { if (object_ && index_ && element_) return kProvidesOne; else return kProvidesUnknown; }
   int consumes() override { return 3; }
+  Node *Object() { return object_; }
+  Node *Element() { return element_; }
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return (object_ != nullptr) && (index_ != nullptr) && (element_ != nullptr); }
   void Print(uint32_t flags = 0) override;
