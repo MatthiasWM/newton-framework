@@ -61,7 +61,7 @@ public:
     bool visited_ { false };
     bool suppressEarlyPrint_ { false };
     bool forceEarlyPrint_ { false };
-    bool EarlyPrint() { return forceEarlyPrint_ && ((numRefs_ > 1) && !suppressEarlyPrint_); }
+    bool EarlyPrint() { return forceEarlyPrint_ || ((numRefs_ > 1) && !suppressEarlyPrint_); }
   };
   std::map<Ref, Node> map;
 
