@@ -28,9 +28,9 @@ using namespace ast;
 // DONE: foreach...deeply in...do...break...
 // DONE: foreach...in...collect...
 // DONE: try...onexception...do...
-// TODO: call a function inside a function (BCSetLexScope)
+// DONE: call a function inside a function (BCSetLexScope)
 // TODO: and
-// TODO: or
+// DONE: or
 
 #pragma mark - conditions and loops -
 
@@ -143,13 +143,13 @@ Node *BCBranchIfTrue::Resolve(Pass pass)
   if ((pass == Pass::ControlFlow) && (in_)) {
     Node *nextNode = nullptr;
     if ((nextNode = ResolveWhileDo())) return nextNode;
+    if ((nextNode = ResolveOr())) return nextNode;
   }
   return next;
 }
 
 Node *BCBranchIfTrue::ResolveWhileDo()
 {
-  // TODO: also used in "or", but how do we know which was used?
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     /* branch 2 */  BCBranch *branch2 = nullptr;
@@ -188,7 +188,33 @@ Node *BCBranchIfTrue::ResolveWhileDo()
     dec.numASTChanges++;
     return wd;
   } while (0);
-  return next;
+  return nullptr;
+}
+
+Node *BCBranchIfTrue::ResolveOr()
+{
+  do {
+    Node *it = next;
+    if (!in_->IsExpr()) break;
+    REQUIRED_COND(Node, alt, alt->IsExpr(), it, true) { it = it->next; }
+    REQUIRED_NODE(BCBranch, branch, it, false) { it = it->next; }
+    REQUIRED_NODE(JumpTarget, jt1, it, false) { it = it->next; }
+    REQUIRED_COND(BCPushConst, retTrue, retTrue->b() == TRUEREF, it, true) { it = it->next; }
+    REQUIRED_NODE(JumpTarget, jt2, it, false) { it = it->next; }
+    if (jt1->Origin() != pc()) break;
+    if (jt2->Origin() != branch->pc()) break;
+
+    alt->Unlink();
+    branch->Unlink();
+    jt1->Unlink();
+    retTrue->Unlink();
+    jt2->Unlink();
+    CFOr *orNode = new CFOr(dec, pc(), in_, alt);
+    ReplaceWith(orNode);
+    dec.numASTChanges++;
+    return orNode->next;
+  } while(0);
+  return nullptr;
 }
 
 void BCBranchIfTrue::Print(uint32_t flags) {

@@ -273,6 +273,30 @@ void CFIfThen::Print(uint32_t flags)
   dec.precedence = pp;
 }
 
+#pragma mark - CFOr
+
+CFOr::CFOr(Decompiler &d, int pc, Node *left, Node *right)
+: ControlBlock(d, pc, kProvidesOne), left_(left), right_(right)
+{ }
+
+void CFOr::PrintChildren(bool deep) {
+  if (left_) left_->PrintNode(deep);
+  if (right_) right_->PrintNode(deep);
+}
+
+void CFOr::Print(uint32_t flags)
+{
+  int ppp = dec.precedence;
+  bool parentheses = (dec.precedence > 1);
+  dec.precedence = 1;
+  if (parentheses) dec.p.Printf("(");
+  left_->Print();
+  dec.p.Print(" or ");
+  right_->Print();
+  if (parentheses) dec.p.Printf(")");
+  dec.precedence = ppp;
+}
+
 #pragma mark - CFBreak
 
 /**

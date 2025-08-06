@@ -117,6 +117,18 @@ public:
   void Print(uint32_t flags = 0) override;
 };
 
+class CFOr: public ControlBlock {
+public:
+  Node *left_ = nullptr;
+  Node *right_ = nullptr;
+public:
+  CFOr(Decompiler &d, int pc, Node *left, Node *right);
+  const char *Class() override { return "CFOr"; }
+  void PrintChildren(bool deep) override;
+  bool Resolved() override { return true; }
+  void Print(uint32_t flags = 0) override;
+};
+
 class CFBreak : public Node {
   Node *in_ = nullptr;
 public:

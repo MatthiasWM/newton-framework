@@ -39,6 +39,7 @@ public:
   int extracted(BCBranch *branch2, Node *&it);
 
   Node *ResolveWhileDo();
+  Node *ResolveOr();
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;
