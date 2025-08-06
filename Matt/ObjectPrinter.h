@@ -104,8 +104,8 @@ public:
 
   void PrintRef(RefArg ref, bool ignoreMap = false);
 
-  void PrintDependents(RefArg ref);   // TODO: find better way
-  void PrintPartialTree(RefArg ref);  // TODO: find better way
+  void PrintDependents(RefArg ref);
+  void PrintPartialTree(RefArg ref);
 
   void Print(const std::string &token) { Printer::Print(token); }
   void Print(RefArg ref);

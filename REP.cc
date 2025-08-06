@@ -235,7 +235,7 @@ REPInit(void)
 	AddGCRoot(&gREPContext);
 	gREPLevel = 0;
 
-	gREPout->print("\nWelcome to NewtonScript!\n\n");
+// Matt:	gREPout->print("\nWelcome to NewtonScript!\n\n");
 	gREPout->prompt(gREPLevel);
 	gREPout->flush();
 }

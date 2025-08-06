@@ -24,49 +24,15 @@ using namespace ast;
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
-/* FIXME: all allocated AST nodes should be kept in a single vector and never
-    be deleted eval, but instead when the Decompiler is deleted. WHen new nodes
-    are created at eval time, the must be added to that same cleanup vector.
+/* TODO: all allocated AST nodes should be kept in a single vector and never
+    be deleted during eval, but instead when the Decompiler is deleted. When
+    new nodes are created at eval time, the must be added to that
+    same cleanup vector.
  */
-/* FIXME: we must compress multiple statements into some compound node.
-    So, um, this is legal: `a := 1 + begin a; b; c end + 4;`
-    `begin a; b; c end` generated two statements and one expression, and
-    is compiled into bytecode and the seen as a single expression.
-
-    I assume that after each DataFlow pass, we need some Compress pass.
-    We would search for [stmt, stmt, stmt, ..., expr] and warp that in a single
-    compound expression.
-    If that doesn't match, find [stmt, stmt, stmt, ...] and warp that in a single
-    compound statement.
-
-    When printing, just print `begin stmt; stmt; stmt; ...; expr end` or
-    `begin stmt; stmt; stmt; ... end` respectively.
-
-    This would move the functionality of CodeBlock into a different pass
-    and change the code of all derived classes.
-
-    WARNING: Will this resolve correctly if we have, for example
-    `a := 0; if b = 2 then...`, or will that generate something like
-    `if begin a := 0; b = 2 end then...`? With the compression in a lower
-    priority pass, `if b = 2` should resolve before the compression gets a chance.
-    But I guess we just have to try.
-
+/* TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
+  debug information in the code. Especially with nos2, this can restore argument
+  names. In any format, it can give names to our views in the stepChildren array.
  */
-/* TODO: Remove these kind of sequences:
-    Found at the end of a while loop:
-      ###[ 1]  11: BCFindVar literal[0] ###
-      ###[-1]  12: BCPop ###
-    Found after a while loop:
-      ###[ 1]  17: BCPushConst value:2 ###
-      ###[-1]  18: BCPop ###
-    In if then statements and elsewhere: (generates `a:=3; a` so that the result
-    is back on the stack. This creates aa superfluous line of code.
-      ###[-1]  10: BCFindAndSetVar literal[0] ###
-      ###[ 1]  11: BCFindVar literal[0] ###
-*/
-// TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
-// debug information in the code. Especially with nos2, this can restore argument
-// names. In any format, it can give names to our views in the stepChildren array.
 
 /*
  Precedence Table:
@@ -217,7 +183,7 @@ Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
       else
         return new BCMakeArray(*this, pc, a, b);
     case 18: return new BCGetPath(*this, pc, a, b);
-    case 19: return new SetPath(*this, pc, a, b);
+    case 19: return new BCSetPath(*this, pc, a, b);
     case 20: return new BCSetVar(*this, pc, a, b);
     case 21: return new BCFindAndSetVar(*this, pc, a, b);
     case 22: return new BCIncrVar(*this, pc, a, b);
@@ -282,15 +248,20 @@ void Decompiler::generateAST(Ref instructions)
     uint8_t a = (cmd & 0xf8) >> 3;
     uint16_t b = (cmd & 0x07);
     if (b==7) { b = bc[i+1]<<8 | bc[i+2]; i += 2; }
-    // branch, brach-if-true, branch-if-false, branch-if-loop-not-done
-    // TODO: a = 25, new-handlers
     if ((a==11)||(a==12)||(a==13)||(a==23))
+      // branch, brach-if-true, branch-if-false, branch-if-loop-not-done
       AddToTargets(b, pc);
-    if (a==3)
+    if (a==3) {
+      // BCPush
       pushLitList.push_back(b);
-    if (a==4 && IsInt(b)) // BCPushConst
+    }
+    if (a==4 && IsInt(b)) {
+      // BCPushConst
       pushConstList.push_back(RefToInt(b));
-    if (a==25) { // new-handler
+    }
+    if (a==25) {
+      // BCNewHandler generates 'b' jump targets that are the
+      // entry points to exception handlers
       int n = (int)pushConstList.size();
       assert(b <= n);
       int nl = (int)pushLitList.size();

@@ -89,7 +89,7 @@ class BCDup : public Consume1 {
 public:
   BCDup(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCDup"; }
-  // TODO: provides(2) does not match any consumers!
+  // NOTE: provides(2) does not match any consumers! The compiler does not seem to emit this ever.
   // NOTE: we must find an actual use case and the corresponding source code
   // NOTE: it may make sense to split this into a dup1 and dup2 node?!
   int provides() override { if (Resolved()) return 2; else return kProvidesUnknown; }
@@ -265,15 +265,15 @@ public:
 // to value.The B field may be zero or one. The object, path, and value are
 // popped from the stack. If the B field is one, the value is
 // pushed back onto the stack.
-class SetPath : public Bytecode {
+class BCSetPath : public Bytecode {
 protected:
   Node *object_ { nullptr };
   Node *path_ { nullptr };
   Node *value_ { nullptr };
 public:
-  SetPath(Decompiler &d, int pc, int a, int b)
+  BCSetPath(Decompiler &d, int pc, int a, int b)
   : Bytecode(d, pc, a, b) { }
-  const char *Class() override { return "SetPath"; }
+  const char *Class() override { return "BCSetPath"; }
   void PrintChildren(bool deep) override;
   int provides() override;
   int consumes() override { return 3; }
@@ -332,6 +332,7 @@ public:
   : ConsumeN(d, pc, a, b, b+1) { }
   const char *Class() override { return "BCMakeArray"; }
   void Print(uint32_t flags = 0) override;
+  void PrintAsStringer(uint32_t flags = 0);
 };
 
 

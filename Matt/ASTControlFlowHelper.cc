@@ -116,6 +116,8 @@ void CodeBlock::Print(uint32_t flags)
   } else if (body_.size() == 1) {
     body_[0]->Print();
   }
+  // TODO: Do not print a trailing "find-and-set-var a, find-var a"
+  // TODO: Also, do not count a trailing "find-and-set-var a, find-var a"
 }
 
 /**

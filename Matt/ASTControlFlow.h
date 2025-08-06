@@ -153,7 +153,7 @@ class BCSetLexScope : public Consume1 {
 public:
   BCSetLexScope(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCSetLexScope"; }
-  int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
+  int provides() override { if (in_) return kProvidesOne; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -166,10 +166,6 @@ public:
   BCCall(Decompiler &d, int pc, int a, int b)
   : ConsumeN(d, pc, a, b, b+1) { }
   const char *Class() override { return "BCCall"; }
-  // The following special functions (reserved words) need to be written "a op b"
-  // mod, <<, >>, (note the precedence! 7, 8, 8)
-  // HasVar(a) can also be written as "a exists", but both are legal
-  // TODO: we should probably do this at creation time!
   Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };

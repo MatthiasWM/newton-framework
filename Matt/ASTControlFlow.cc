@@ -26,9 +26,9 @@ using namespace ast;
 // DONE: foreach...slot...in...do...break...
 // DONE: foreach...slot,value...in...do...break...
 // DONE: foreach...deeply in...do...break...
-// TODO: foreach...in...collect...
-// TODO: try...onexception...do...
-// TODO: call a function inside a function
+// DONE: foreach...in...collect...
+// DONE: try...onexception...do...
+// TODO: call a function inside a function (BCSetLexScope)
 // TODO: and
 // TODO: or
 
@@ -117,7 +117,7 @@ Node *BCBranch::Resolve(Pass pass)
 }
 
 void BCBranch::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - BCBranchIfTrue
@@ -150,15 +150,6 @@ Node *BCBranchIfTrue::Resolve(Pass pass)
 Node *BCBranchIfTrue::ResolveWhileDo()
 {
   // TODO: also used in "or", but how do we know which was used?
-  // FIXME: WhileDo is actually an expression that returns either nil, or
-  //    whatever was pushed on the stack by a 'break' inside the loop (as is
-  //    probably true for all other loops). So the pattern does not end in
-  //    "BranchIfTrue", but is followed by a "PushConst nil" and the jump a
-  //    jump target for every 'break' inside the loop, followed by a consumer.
-  // NOTE: if there is no 'break' statement, push_nil and the consumer will
-  //    be compressed into a CodeBlock (but the result is always nil anyway).
-  //    If there is no consumer, there will be a "pop", and the last two
-  //    instructions can be ignored.
   do {
     // -- Here is our pattern. Store the result of our exploration here:
     /* branch 2 */  BCBranch *branch2 = nullptr;
@@ -342,7 +333,7 @@ Node *BCBranchIfFalse::Resolve(Pass pass)
 }
 
 void BCBranchIfFalse::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - BCReturn
@@ -367,7 +358,7 @@ void BCReturn::Print(uint32_t flags) {
 #pragma mark - BCIncrVar
 
 void BCIncrVar::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - BCBranchLoop
@@ -471,7 +462,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
  */
 
 void BCNewIter::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 Node *BCNewIter::Resolve(Pass pass)
@@ -499,7 +490,7 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     REQUIRED_NODE( CodeBlock, body, it, true ) { it = it->next; }
-    // TODO: body can be missing if original is 'begin end'. Must replace with NIL.
+    // TODO: Unlikely, but body can be missing if original is 'begin end'. Must replace with NIL.
     // TODO: also the two nodes below are now in the AST Root, and we must an add the matching unlink
     REQUIRED_COND( BCSetVar, setValue, setValue->b() == iter-1, body->at(0), true) {
       value = setValue->b();
@@ -597,7 +588,7 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     // The following block contains the setup, the body, and the collector setting the 'result'
     REQUIRED_NODE( BCPop, bodyAndCollect, it, true ) { it = it->next; }
-    // TODO: body can be missing if original is 'begin end'. Must replace with NIL.
+    // TODO: Unlikely, but body can be missing if original is 'begin end'. Must replace with NIL.
     // TODO: the line above then returns a CodeBlock and the stuff below changes
     REQUIRED_NODE( BCSetARef, collect, bodyAndCollect->Input(), true );
     REQUIRED_NODE( CodeBlock, setup, collect->Object(), true );
@@ -695,7 +686,7 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
  */
 
 void BCIterNext::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - BCIterDone
@@ -710,7 +701,7 @@ void BCIterNext::Print(uint32_t flags) {
  pushes true onto the stack; otherwise, pushes nil onto the stack.
  */
 void BCIterDone::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - Exceptions -
@@ -778,7 +769,7 @@ Node *BCNewHandler::Resolve(Pass pass)
 #pragma mark - BCPopHandlers
 
 void BCPopHandlers::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  return PrintNode(false);
 }
 
 #pragma mark - Calls -
@@ -787,6 +778,10 @@ void BCPopHandlers::Print(uint32_t flags) {
 
 void BCSetLexScope::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
+  // This prints an entire function. Put it inside a list, so it's formatted with an indent.
+  dec.p.StartList(";");
+  in_->Print();
+  dec.p.EndList();
 }
 
 #pragma mark - BCCall

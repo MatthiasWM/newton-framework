@@ -89,7 +89,7 @@ Node *BCPop::Resolve(Pass pass) {
 #pragma mark - BCDup
 
 void BCDup::Print(uint32_t flags) {
-  if (!Resolved()) return PrintNode(false);
+  /* if (!Resolved()) */ return PrintNode(false);
 }
 
 #pragma mark - BCSetVar
@@ -146,18 +146,10 @@ void BCClone::Print(uint32_t flags) {
 
 void BCStringer::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
+  BCMakeArray *array = dynamic_cast<BCMakeArray*>(in_);
+  if (!array) return PrintNode(false);
+  array->PrintAsStringer(flags);
 }
-//  TODO: The input is an Array with at least two elements
-//  a '1 && 2' is handled as a '1 & " " & 2', generating an array with three values
-//  So the in_ node is BCMakeArray which consumes the inputs and the 'array symbol
-//  void printSource() {
-//    if (in_) {
-//      BCMakeArray *array = dynamic_cast<BCMakeArray*>(in_);
-//      if (array) {
-//        dec.p.Printf(array->in[0] " & " array->in[1] ... )
-//      }
-//    }
-//  }
 
 #pragma mark - BCClassOf
 
@@ -293,18 +285,21 @@ void BCAddArraySlot::Print(uint32_t flags) {
 
 void BCHasPath::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
+  dec.p.Printf("HasPath(");
+  in1_->Print(); dec.p.Printf(", ");
+  in2_->Print(); dec.p.Printf(")");
 }
 
-#pragma mark - SetPath
+#pragma mark - BCSetPath
 
-int SetPath::provides() {
+int BCSetPath::provides() {
   if (Resolved())
     return (b_ == 0) ? kProvidesNone : 1;
   else
     return kProvidesUnknown;
 }
 
-Node *SetPath::Resolve(Pass pass)
+Node *BCSetPath::Resolve(Pass pass)
 {
   if ((pass != Pass::DataFlow) || Resolved()) return next;
 
@@ -320,13 +315,13 @@ Node *SetPath::Resolve(Pass pass)
   return next;
 }
 
-void SetPath::PrintChildren(bool deep) {
+void BCSetPath::PrintChildren(bool deep) {
   if (object_) object_->PrintNode(deep);
   if (path_) path_->PrintNode(deep);
   if (value_) value_->PrintNode(deep);
 }
 
-void SetPath::Print(uint32_t flags) {
+void BCSetPath::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   object_->Print();
   dec.p.Print(".");
@@ -336,6 +331,11 @@ void SetPath::Print(uint32_t flags) {
 }
 
 #pragma mark - BCSetARef
+
+/**
+ \class BCSetARef
+ \brief Helper for 'foreach'.
+ */
 
 Node *BCSetARef::Resolve(Pass pass)
 {
@@ -361,6 +361,11 @@ void BCSetARef::PrintChildren(bool deep) {
 
 void BCSetARef::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
+  object_->Print();
+  dec.p.Print("[");
+  index_->Print();
+  dec.p.Print("] := ");
+  element_->Print();
 }
 
 
@@ -418,3 +423,17 @@ void BCMakeArray::Print(uint32_t flags) {
   dec.p.EndList();
 }
 
+/**
+ \brief Print members of array separated by '&' characters.
+ */
+void BCMakeArray::PrintAsStringer(uint32_t flags)
+{
+  // TODO: we could optimize for '& " " &' --> '&&'
+  dec.p.StartList(" &");
+  for (int i = 0; i < numIns_-1; i++) {
+    dec.p.Item();
+    ins_[i]->Print();
+    dec.p.ItemDone();
+  }
+  dec.p.EndList();
+}

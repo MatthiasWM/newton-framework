@@ -7,9 +7,6 @@
  Written by:  Matt, 2025.
  */
 
-// TODO: do not map symbols, or at least don't print them early
-// TODO: probably the same for 'argFrame
-
 /*
  This class will take an NS Object tree and print it as a source code file,
  so it can be recompiled into the same object tree. It focuses and understanding
@@ -80,10 +77,10 @@ extern bool IsPathExpr(RefArg inObj);
 // Write the commands to resolve all cyclic dependencies
 
 
-// TODO: recognize special binaries (reals, symbols, etc.) and prints them
-// TODO: nicely and only falls back to this if nothing else fits.
 /**
  \brief Print a binary in the MakeBinaryFromHex format.
+ Recognize special binaries (reals, symbols, etc.) and prints them nicely
+ and only falls back to 'MakeBinaryFromHex' if nothing else fits.
  */
 void ObjectPrinter::PrintBinary(RefArg ref) {
   assert(IsBinary(ref));
@@ -345,8 +342,6 @@ void ObjectPrinter::PrintSExpr(RefArg ref)
     return PrintSExprFrame(ref);
   else if (IsBinary(ref))
     return PrintBinary(ref);
-  // TODO: handle binaries that can be created programmatically, but are not
-  // TODO: part of the Grammar (functions, for example...)
   assert(0);
 }
 
@@ -379,9 +374,10 @@ void ObjectPrinter::PrintConstant(RefArg ref)
   }
 }
 
-// TODO: notice special arrays (pathExpr) and print them elsewhere
 /**
- \brief Print the array and all the slot in it.
+ \brief Print the array and all the slots in it.
+ Special arrays (pathExpr) must be sorted out by the caller and
+ printed elsewhere.
  */
 void ObjectPrinter::PrintArray(RefArg ref) {
   assert(IsArray(ref));
@@ -401,9 +397,10 @@ void ObjectPrinter::PrintArray(RefArg ref) {
   ItemDone();
 }
 
-// TODO: notice special frames (functions) and print them elsewhere
 /**
  \brief Print the frame and all the slot in it.
+ Function frames are recognized and decompiled instead
+ if the class flags are set that way.
  */
 void ObjectPrinter::PrintFrame(RefArg ref) {
   assert(IsFrame(ref));
@@ -539,7 +536,7 @@ void ObjectPrinter::PrintDependents(RefArg ref)
  */
 void ObjectPrinter::PrintPartialTree(RefArg ref)
 {
-  // Immediates of all types can't be the head of a tree.
+  // Immediate objects of any type can't be the head of a tree.
   if (!ISREALPTR(ref))
     return;
 
@@ -549,15 +546,13 @@ void ObjectPrinter::PrintPartialTree(RefArg ref)
     return;
   // Make sure that all dependents are printed first.
   PrintDependents(ref);
-  // If this is true, we have a circular dependency.
+  // If the following condition is true, we have a circular dependency.
   // TODO: enable a check if that ever occurs, and if it does, write some code for it.
   if (nd.printed_) return;
   nd.printed_ = true;
-  // Print the label header, the the branch itself
-  // TODO: surely there is more information that we can print
-  // TODO: do we implement the Printer formatting here?
+  // Print the label header, then the branch itself
+  // TODO: see if there is debugging or other information we can use to generate meaningful label names
   Printf("%s := ", nd.label_.c_str());
-  // TODO: Do we need a flag that tells us if to stop on refs that have a map entry?
   PrintRef(ref, true);
   ItemDone();
 }
@@ -619,15 +614,19 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
     if (IsArray(ref) || IsFrame(ref)) {
       FOREACH(ref, slot) {
         BuildRefMapBranch(slot);
-//        nd.length_ += TextLength(slot);
       } END_FOREACH;
-      // TODO: if this is a function, we may need to change the text length
-//      nd.length_ += ::Length(ref) * 2 + 3;
-//      if (IsArray(ref)) nd.length_ += TextLength(ClassOf(ref), SYMA(array)) + 2;
+      // There is no need to print some function internals, so disable early print!
+      if (optionDecompile_ && IsFunction(ref)) {
+        Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+        if (IsFrame(argFrame)) {
+          map[argFrame].suppressEarlyPrint_ = true;
+          Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
+          if (IsFrame(nextArgFrame)) {
+            map[nextArgFrame].suppressEarlyPrint_ = true;
+          }
+        }
+      }
     } else if (IsBinary(ref)) {
-      // TODO: check the various known binary types to get a better length
-      // Last resort: MakeBinaryFromHex("", 'symbol)
-//      nd.length_ = Length(ref) + TextLength(ClassOf(ref), SYMA(binary)) + 24;
     } else {
       assert(0);
     }

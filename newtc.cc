@@ -23,6 +23,16 @@
 #include <exception>
 #include <stdexcept>
 
+/* How to verify that reading a package, decompiling it, recompiling it,
+   and writing the recompiled code to a package generates the same file:
+
+./build/Xcode/Debug/newtc -pkg /Users/matt/dev/Gauges.pkg -decompile >a
+./build/Xcode/Debug/newtc -pkg /Users/matt/dev/Gauges.pkg -debug bc -decompile >b
+./build/Xcode/Debug/newtc -script a -debug bc -decompile >c
+diff b c
+
+ */
+
 
 extern "C" void InitObjectSystem(void);
 extern "C" void PrintObject(Ref inObj, int indent);
@@ -498,6 +508,8 @@ int handleArgs(int argc, char **argv)
  Compare two packages: newtc -pkg a -pkg b -diff
  Verify the decompile/compile: newtc -pkg a -odecompile tmp.txt -compile tmp.txt -diff
 
+ \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
+
  */
 int main(int argc, char **argv) {
   if (!init()) {
@@ -544,7 +556,6 @@ int main(int argc, char **argv) {
   }
   return ret;
 }
-
 
 
 /**
@@ -610,38 +621,6 @@ void handleArgHello() {
   Ref result = DoBlock(fn, RA(NILREF));
   addGlobalRef(result);
 }
-
-
-// Just some leftovers from previous version to give me a reminder
-
-// NOTE: in Stores/FlashRange.cc:138, the flash memory is mapped to a file on the PC:
-// fpath  const char *  "/Users/matt/Library/Application Support/Newton/Internal"  0x000000010115a980
-// If forNTK is not defined, the flash file is filled with 0xFF at every launch.
-
-//const char *pkg_path = "/Users/matt/dev/Newton/Software/PeggySu.pkg";
-//const char *pkg_path = "/Users/matt/dev/Newton/Software/Fahrenheit.pkg";
-//      NewtonPackage pkg("/Users/matt/dev/Einstein/loop.ntk.pkg");
-
-//extern Ref *RSSYMviewer;
-
-//  Disassemble( GetFrameSlot(part, MakeSymbol("InstallScript")) );
-//  PrintCode(GetFrameSlot(part, MakeSymbol("InstallScript"))); puts("");
-
-//  PrintObject(package, 0); puts("");
-//  printPackage(package);
-
-//  RefVar data(*(RefStruct *)CurrentException()->data);
-//  if (IsFrame(data)
-//      &&  ISNIL(GetFrameSlot(data, SYMA(filename))))
-//  {
-//    SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
-//    SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
-//  }
-//  gREPout->exceptionNotify(CurrentException());
-
-//  const char *fname = "/Users/matt/dev/test.ns";
-//  const char *sname = "/Users/matt/dev/test.nsof";
-
 
 
 // NTK uses these (and possibly more) global methods to assemble views

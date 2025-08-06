@@ -1268,7 +1268,7 @@ CObjectHeap::clearRefHandles(void)
 			DisposeRefHandle(rhp);
 		}
 	}
-REPprintf("\n\n");
+// Matt: REPprintf("\n\n");
 }
 
 
