@@ -509,8 +509,12 @@ int main(int argc, char **argv) {
   RefVar symRef0 = MakeSymbol("ref0");
   DefGlobalVar(symRef0, NILREF);
 
+  if (argc == 1) {
+    //handleArgHelp(argv[0]);
+    return 0;
+  }
+
   std::string cmd = argv[argi++];
-  if (cmd.empty()) { cmd = argv[argi++]; }
 
   if (cmd == "-pkglist") {
     char pkgname[2048];

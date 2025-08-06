@@ -389,7 +389,7 @@ void ObjectPrinter::PrintArray(RefArg ref) {
   Print("[");
   StartList(",", TextLength(ref));
   if (IsSymbol(klass) && (SymbolCompare(klass, SYMA(array)) != 0)) {
-    Tag(); PrintSymbol(klass); Print(":");
+    Tag(); PrintTag(klass); Print(":");
   }
   int n = Length(ref);
   for (int i = 0; i < n; ++i) {
