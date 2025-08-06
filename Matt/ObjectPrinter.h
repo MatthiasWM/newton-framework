@@ -72,6 +72,9 @@ public:
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}
   void DebugAST(bool v) { debugAST_ = v;}
+  bool DebugAST() { return debugAST_; }
+  void DebugBC(bool v) { debugBC_ = v;}
+  bool DebugBC() { return debugBC_; }
 
 #pragma mark - updated stuff
 

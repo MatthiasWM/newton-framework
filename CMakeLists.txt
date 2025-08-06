@@ -549,6 +549,7 @@ set_property (TARGET newtc
 #    "-pkglist /Users/matt/dev/a.list"
 #    "-pkglist /Users/matt/dev/unna.list"
 #    "-debug ast"
+    "-debug bc"
 #    "-hello"
 ##    "-script /Users/matt/dev/a.txt"
 #    "-script /Users/matt/dev/adjusto.txt"
@@ -567,6 +568,7 @@ set_property (TARGET newtc
 #    "-print"
     "-decompile"
 #    "-stats"
+#    "-help"
 )
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)

@@ -104,7 +104,6 @@ using namespace ast;
 
 void Decompiler::decompile(Ref ref)
 {
-  if (debugAST_) puts("\n==== Matt's Decompiler:");
   Ref klass = GetFrameSlot(ref, SYMA(class));
   if (IsSymbol(klass) && SymbolCompare(klass, SYMA(CodeBlock))==0) {
     nos_ = 1;
@@ -161,8 +160,9 @@ void Decompiler::decompile(Ref ref)
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
-  printAST("Initial AST");
+  if (p.DebugBC() || p.DebugAST()) printAST("Initial AST");
   solve();
+  if (p.DebugAST()) printASTRoot();
 }
 
 /**
@@ -334,7 +334,7 @@ void Decompiler::AddToTargets(int target, int origin, int excp)
   } else {
     targetMap_[target][sort] = new ExceptionHandler(*this, target, origin, excp);
   }
-  if (debugAST_) printf("Jump Target: from %d to %d\n", origin, target);
+  if (p.DebugAST()) printf("Jump Target: from %d to %d\n", origin, target);
 }
 
 
@@ -375,16 +375,25 @@ void Decompiler::solve()
     // ---- Data Flow Pass
     numASTChanges = 0;
     for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::DataFlow)) { }
-    if (numASTChanges > 0) { printAST("DataFlow Pass"); continue; }
-    if (debugAST_) { p.Item(); p.Print("DataFlow passes done"); p.ItemDone(); }
+    if (numASTChanges > 0) {
+      if (p.DebugAST()) printAST("DataFlow Pass");
+      continue;
+    }
+    if (p.DebugAST()) { p.Item(); p.Print("DataFlow passes done"); p.ItemDone(); }
     // ---- Compression Pass
-    if (compressAST()) { printAST("Compression Pass"); continue; }
-    if (debugAST_) { p.Item(); p.Print("Compression passes done"); p.ItemDone(); }
+    if (compressAST()) {
+      if (p.DebugAST()) printAST("Compression Pass");
+      continue;
+    }
+    if (p.DebugAST()) { p.Item(); p.Print("Compression passes done"); p.ItemDone(); }
     // ---- Control Flow Pass
     numASTChanges = 0;
     for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::ControlFlow)) { }
-    if (numASTChanges > 0) { printAST("CodeFlow Pass"); continue; }
-    if (debugAST_) { p.Item(); p.Print("CodeFlow passes done"); p.ItemDone(); }
+    if (numASTChanges > 0) {
+      if (p.DebugAST()) printAST("CodeFlow Pass");
+      continue;
+    }
+    if (p.DebugAST()) { p.Item(); p.Print("CodeFlow passes done"); p.ItemDone(); }
     // ---- No more changes on any level
     break;
   }
@@ -445,7 +454,6 @@ bool Decompiler::compressAST()
  */
 void Decompiler::printAST(const char *label)
 {
-  if (!debugAST_) return;
   p.PrintDivider(label);
   p.DeepList();
   output = Print::deep;
@@ -466,7 +474,6 @@ void Decompiler::printAST(const char *label)
  */
 void Decompiler::printASTRoot()
 {
-  if (!debugAST_) return;
   p.PrintDivider("AST Root Nodes");
   p.DeepList("");
   output = Print::bytecode;
@@ -584,12 +591,10 @@ void Decompiler::printSource()
  - `numArgs`: 2
  ```
  */
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST)
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST, bool debugBC)
 {
   Decompiler d(printer);
-  d.DebugAST(debugAST);
   d.decompile(ref);
-  d.printASTRoot();
   d.printSource();
   return noErr;
 }

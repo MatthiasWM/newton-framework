@@ -107,7 +107,7 @@ void ObjectPrinter::PrintBinary(RefArg ref) {
 
 void ObjectPrinter::PrintFunction(RefArg ref) {
   assert(IsFunction(ref));
-  mDecompile(ref, *this, debugAST_);
+  mDecompile(ref, *this, debugAST_, debugBC_);
 }
 
 // plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*

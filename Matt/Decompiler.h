@@ -49,7 +49,6 @@ protected:
   ast::Node *first_ { nullptr };
   ast::Node *last_ { nullptr };
   std::map<int /* destination pc*/, std::map<int /* origin pc */, ast::JumpTarget*>> targetMap_;
-  bool debugAST_ { false };
 
   void AddToTargets(int target, int origin, int excp=-1);
   ast::Node *Append(ast::Node *lastNode, ast::Node *newNode);
@@ -59,7 +58,6 @@ public:
   Decompiler(ObjectPrinter &printer) : p( printer ) { }
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
   ObjectPrinter *Printer() { return &p; }
-  void DebugAST(bool v) { debugAST_ = v;}
   void printAST(const char *label);
   void printASTRoot();
   void printSource();
@@ -85,7 +83,7 @@ public:
   int precedence { 0 }; // During printout, store the precedence of the current operation
 };
 
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST);
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST, bool debugBC);
 
 
 #endif  /* __MATTSDECOMPILER_H */

@@ -39,6 +39,7 @@ int currentRefIndex = 0;
 std::string currentFileName = "<undefined>";
 
 static bool debugAST_ { false };
+static bool debugBC_ { false };
 
 extern void handleArgHello();
 
@@ -217,6 +218,7 @@ void handleArgClear()
 void handleArgDebug(const std::string &flag)
 {
   if (flag == "ast") debugAST_ = true;
+  if ((flag == "bytecode") || (flag == "bc")) debugBC_ = true;
 }
 
 /**
@@ -259,6 +261,7 @@ void handleArgDecompile()
   RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
   ObjectPrinter p(std::cout);
   p.DebugAST(debugAST_);
+  p.DebugBC(debugBC_);
   p.Decompile(ref0);
 }
 
@@ -323,6 +326,50 @@ void handleArgStats()
 }
 
 
+/**
+ \brief Output a help message.
+ Print a short description of all command line options.
+ */
+void handleArgHelp(const std::string &arg0)
+{
+  std::cout << R"==(
+Usage:
+
+  newtc [commands]
+
+Handle NewtonScript files and sources by running 
+the commands in the given order.
+
+  Input Commands
+  -pkg <filename>         Load a package file and hold it as a Newton object
+  -nsof <filename>        Load a Newton streaming object file
+  -script <filename>      Read a source file, compile it, and hold the result
+  -run <filename>         Read a source file, compile it, and run it
+  -s <script>             Compile the script
+  -r <script>             Compile the script and run it
+  -hello                  Compile a "Hello World" app and hold it
+
+  Output Commands
+  -opkg <filename>        Write the current object to a package file
+  -nsof <filename>        Write the current object to a NSOF file
+  -print                  Print the current object, functions are just frames
+  -decompile              Print the object with all functions decompiled
+  -stats                  Print some package statistics about the object
+  -help                   This help text
+
+  Control
+  -clear                  Delete all object in the hold
+  -pkglist <filename>     Apply commands to all packages listed in the file
+
+  Options
+  -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
+  -nos2                   Compile for NewtonOS 2.x
+  -debug ast              Print the progress of the AST while decompiling
+  -debug bc               Print the ByteCode of functions before decompiling
+
+)==";
+}
+
 int handleArgs(int argc, char **argv)
 {
   int argi = 1;
@@ -381,6 +428,8 @@ int handleArgs(int argc, char **argv)
         handleArgDecompile();
       } else if (cmd == "-stats") {
         handleArgStats();
+      } else if ((cmd == "-help") || (cmd == "-h")) {
+        handleArgHelp(argv[0]);
       } else {
         throw(std::runtime_error("Unknown command line argument: \"" + cmd + "\"."));
       }
