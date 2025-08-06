@@ -373,7 +373,7 @@ x	• The compiler allows the use of \u escape sequences in symbols when surroun
 UniChar
 CCompiler::consumeChar(void)
 {
-  // TODO: this is, of course, wrong, but helping us out in a pinch
+  // TODO: Matt: this is, of course, wrong, but helping us out in a pinch
   // Create flag in the CCompiler class for this.
   static UniChar prevChar = 0;
 
@@ -817,6 +817,18 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 				error(kNSErrBadEscape);
 				return NULL;
 			}
+      // Matt: allow for multiline strings
+      if (inDelimiter == '"') {
+        consumeChar();
+        while (IsWhiteSpace(theChar)) consumeChar();
+        if (theChar == '"') {
+          consumeChar();
+          continue;
+        }
+      } else {
+        consumeChar();  // consume trailing delimiter
+      }
+
 			break;
 		}
 
@@ -850,7 +862,6 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 
 		consumeChar();	// consume character
 	}
-	consumeChar();	// consume trailing delimiter
 
 	// nul-terminate the string
 	buf[index++] = kEndOfString;

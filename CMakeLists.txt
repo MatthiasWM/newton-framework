@@ -552,6 +552,7 @@ set_property (TARGET newtc
 #    "-debug bc"
 #    "-hello"
     "-script /Users/matt/dev/a.txt"
+#    "-script /tmp/newtc_a"
 #    "-script /Users/matt/dev/adjusto.txt"
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Gauges.pkg"

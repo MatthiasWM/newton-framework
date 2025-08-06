@@ -161,25 +161,38 @@ void ObjectPrinter::PrintString(RefArg ref) {
   char buf[32];
   UniChar c, *s = (UniChar *)BinaryData(ref);
   int n = Length(ref)/sizeof(UniChar) - 1;
+  bool multiline = (n > 64);
+  // '&' is no alternative as it assembles the string at run time, not compile time.
+  if (multiline) { DeepList(""); Item(); }
   Print("\"");
-  for ( ; n > 0; --n) {
+  for (int i = 0 ; i < n; ++i) {
     c = *s++;
     if (c == '\\') {
       strcpy(buf, "\\\\");
+    } else if (c == '\"') {
+      strcpy(buf, "\\\"");
     } else if (c >= 32 && c < 127) {
       buf[0] = (char)c; buf[1] = 0;
-    } else if (c == '\n') {
+    } else if (c == 0x0D) { // This is Classic MacOS. In the Unix world, '\n' is 0x0A
       strcpy(buf, "\\n");
     } else if (c == '\t') {
       strcpy(buf, "\\t");
-    } else if (c < 32) {
-      snprintf(buf, 31, "\\%02X", c);
+//    } else if (c < 32) {
+      // FIXME: the compiler does not understand the /xx notation
+//      snprintf(buf, 31, "\\%02X", c);
     } else {
       snprintf(buf, 31, "\\u%04X\\u", c);
     }
     Print(buf);
+    if (multiline && ((i % 64)==63) && (i != n-1)) {
+      Print("\"");
+      ItemDone();
+      Item();
+      Print("\"");
+    }
   }
   Print("\"");
+  if (multiline) { ItemDone(); EndList(); }
 }
 
 // A UTF-16 character (X= capitalized hex digit)
@@ -192,7 +205,7 @@ void ObjectPrinter::PrintCharacter(RefArg ref) {
     strcpy(buf, "$\\\\");
   } else if (c >= 32 && c < 127) {
     snprintf(buf, 31, "$%c", c);
-  } else if (c == '\n') {
+  } else if (c == 0x0D) { // This is Classic MacOS. In the Unix world, '\n' is 0x0A
     strcpy(buf, "$\\n");
   } else if (c == '\t') {
     strcpy(buf, "$\\t");

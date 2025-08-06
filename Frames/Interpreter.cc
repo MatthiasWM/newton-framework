@@ -251,7 +251,8 @@ RefStack::RefStack()
 
 	size = kRefStackMax;
 	NewtonErr	error = NewStack(TaskSwitchedGlobals()->fDefaultHeapDomainId,
-											64 * KByte,
+//											64 * KByte,
+                             256 * KByte, // Matt: we have enough space
 											TaskSwitchedGlobals()->fTaskId,
 											&topOfStack, &bottomOfStack);
 	if (error)

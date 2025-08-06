@@ -215,8 +215,8 @@
 #define kNSErr2HexDigitsRequired				(ERRBASE_FRAMES - 617)  // 2 hex digits required
 #define kNSErr4HexDigitsRequired				(ERRBASE_FRAMES - 618)  // 4 hex digits required
 #define kNSErrUnrecognized						(ERRBASE_FRAMES - 619)  // unrecognized token in input stream
-#define kNSErrInvalidHex						(ERRBASE_FRAMES - 620)  // invalid hexadecimal imteger
-#define kNSErrInvalidDecimal					(ERRBASE_FRAMES - 622)  // invalid decimal imteger
+#define kNSErrInvalidHex						(ERRBASE_FRAMES - 620)  // invalid hexadecimal integer
+#define kNSErrInvalidDecimal					(ERRBASE_FRAMES - 622)  // invalid decimal integer
 #define kNSErrBadPath							(ERRBASE_FRAMES - 623)  // expected '.' in path expression
 #define kNSErrNumberTooLong					(ERRBASE_FRAMES - 625)  // buffer length exceeded
 #define kNSErrHashForbidden					(ERRBASE_FRAMES - 626)  // #xxxx not allowed from NTK

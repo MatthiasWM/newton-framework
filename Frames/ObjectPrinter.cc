@@ -504,6 +504,7 @@ SafelyPrintString(UniChar * str)
 		REPprintf("%s", buf);
 	}
 #else
+  // Matt: I changed this, but it is not complete yet.
   int n = (int)Ustrlen(str);
   int bi = 0;
   for (int i = 0; i < n; ++i) {

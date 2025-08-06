@@ -129,7 +129,8 @@ struct GCContext
 	DIYGCRegistration *	extObjs;		// variable size array of DIYGCRegistrations
 	GCRegistration *		extGC;		// variable size array of GCRegistrations
 } gGC
-= { true, NULL, NULL, NULL };
+//= { true, NULL, NULL, NULL };
+= { false, NULL, NULL, NULL }; // Matt:
 
 CObjectHeap *	gHeap = NULL;
 ObjectCache		gCached = { INVALIDPTRREF, NULL, INVALIDPTRREF, 0, offsetCache };
