@@ -557,7 +557,7 @@ set_property (TARGET newtc
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Gauges.pkg"
 #    "-pkg /Users/matt/dev/Einstein/loop.ntk.pkg"
-#    "-pkg '/Users/matt/Azureus/unna2/games/Paddle1.0/Paddle 1.0.pkg'"
+#    "-pkg /Users/matt/Azureus/unna2/games/Copycat1.04/CopyCat.pkg"
 #    "-nsof /Users/matt/dev/test.nsof"
 #    "-script /Users/matt/dev/test.ns"
 #    "-run /Users/matt/dev/test.ns"
@@ -573,7 +573,7 @@ set_property (TARGET newtc
 #    "-help"
 )
 
-target_compile_definitions(newtc PRIVATE forNTK forMac forFramework)
+target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1)
 target_compile_definitions(newtc PRIVATE __LP64__=1)
 target_compile_options(newtc PUBLIC -fsanitize=undefined)
 target_link_options(newtc PUBLIC -fsanitize=undefined)

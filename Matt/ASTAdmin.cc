@@ -125,7 +125,9 @@ void ConsumeN::PrintResolvedCall(int nArgs) {
   dec.p.Printf("(");          // Print a list of all arguments
   dec.p.StartList(",");
   for (int i=0; i<nArgs; i++) {
-    dec.p.Item(); ins_[i]->Print(0); dec.p.ItemDone();
+    dec.p.Item();
+    ins_[i]->Print();
+    dec.p.ItemDone();
   }
   dec.p.Trailer(); dec.p.Printf(")");
   dec.p.EndList();

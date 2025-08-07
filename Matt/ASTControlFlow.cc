@@ -771,15 +771,17 @@ Node *BCNewHandler::Resolve(Pass pass)
     // Handle the 'onException...do...' pattern
     for (i=1; i<b_; i++) {
       REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
-      REQUIRED_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+      OPTIONAL_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
       REQUIRED_NODE( BCBranch, exDone, it, false ) { it = it->next; }
     }
     if (i != b_) break; // not enough handlers
     // Handle the last 'onException...do...' pattern
     REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
-    REQUIRED_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+    OPTIONAL_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
     // Handle the final cleanup
-    REQUIRED_NODE( JumpTarget, jtExDone, it, false ) { it = it->next; }
+    for (i=1; i<b_; i++) {
+      REQUIRED_NODE( JumpTarget, jtExDone, it, false ) { it = it->next; }
+    }
     REQUIRED_NODE( BCPopHandlers, exPop, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtDone, it, false ) { it = it->next; }
 

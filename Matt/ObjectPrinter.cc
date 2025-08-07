@@ -162,8 +162,6 @@ void ObjectPrinter::PrintString(RefArg ref) {
   UniChar c, *s = (UniChar *)BinaryData(ref);
   int n = Length(ref)/sizeof(UniChar) - 1;
   bool multiline = (n > 64);
-  // '&' is no alternative as it assembles the string at run time, not compile time.
-  if (multiline) { DeepList(""); Item(); }
   Print("\"");
   for (int i = 0 ; i < n; ++i) {
     c = *s++;
@@ -186,13 +184,11 @@ void ObjectPrinter::PrintString(RefArg ref) {
     Print(buf);
     if (multiline && ((i % 64)==63) && (i != n-1)) {
       Print("\"");
-      ItemDone();
-      Item();
+      PrintNewLine();
       Print("\"");
     }
   }
   Print("\"");
-  if (multiline) { ItemDone(); EndList(); }
 }
 
 // A UTF-16 character (X= capitalized hex digit)
@@ -418,8 +414,21 @@ void ObjectPrinter::PrintArray(RefArg ref) {
 void ObjectPrinter::PrintFrame(RefArg ref) {
   assert(IsFrame(ref));
   if (optionDecompile_ && IsFunction(ref)) {
-    PrintFunction(ref);
-    return;
+    Ref theClass = GetArraySlot(ref, 0);
+    if (   (theClass == kPlainFuncClass)
+        || (EQ(theClass, SYMA(CodeBlock))) )
+    {
+      PrintFunction(ref);
+      return;
+    }
+    if (theClass == kPlainCFunctionClass)
+      fprintf(stderr, "Can't decompile PlainCFunctionClass\n");
+    else if (theClass == kBinCFunctionClass)
+      fprintf(stderr, "Can't decompile binCFunction\n");
+    else if (EQ(theClass, SYMA(binCFunction)))
+      fprintf(stderr, "Can't decompile NOS 1.x binCFunction\n");
+    else
+      ThrowMsg("ObjectPrinter::PrintFrame(): Unknown Function Signature");
   }
   Print("{");
   StartList(",", TextLength(ref));
@@ -512,6 +521,8 @@ int ObjectPrinter::TextLength(RefArg ref, RefArg sameSym) {
     return std::floor(std::log10(std::abs(v))) + 2;
   } else if (IsChar(ref)) {
     return 2;
+  } else if (ISFUNCCLASS(ref)) {
+    return 0;
   } else {
     assert(0);
     return 3;

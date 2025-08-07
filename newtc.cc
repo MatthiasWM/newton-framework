@@ -41,7 +41,8 @@ extern Ref ParseFile(const char * inFilename);
 extern void Disassemble(RefArg inFunc);
 extern Ref MakeStringFromCString(const char * str);
 extern void PrintCode(RefArg obj);
-
+extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
+// EnsureInternal
 
 
 
@@ -71,6 +72,12 @@ bool init()
   SetFrameSlot(hexFn, MakeSymbol("function"), (Ref)FStuffHex);
   SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
+
+  Ref gConstFn = AllocateFrame();
+  SetFrameSlot(gConstFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(gConstFn, MakeSymbol("function"), (Ref)FDefineGlobalConstant);
+  SetFrameSlot(gConstFn, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DefineGlobalConstant")), gConstFn);
 
   return true;
 }

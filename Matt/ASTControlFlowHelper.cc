@@ -411,7 +411,14 @@ void ExceptionHandler::Print(uint32_t flags)
   dec.p.Print("onException ");
   dec.printLiteralAsTag(excp_);
   dec.p.Print(" do ");
-  body_->PrintOnNewLine();
+  if (body_) {
+    body_->PrintOnNewLine();
+  } else {
+    dec.p.DeepList(";");
+    dec.p.Item();
+    dec.p.Print("begin end");
+    dec.p.EndList();
+  }
 }
 
 #pragma mark - CFTry
@@ -426,7 +433,11 @@ CFTry::CFTry(Decompiler &d, int pc, Node *first, Node *last)
   // Handle the 'onException...do...' pattern
   for (int i=0; i<numEx; i++) {
     ExceptionHandler *h = dynamic_cast<ExceptionHandler*>(it); it = it->next;
-    h->Body(it); it = it->next;
+    if (it->IsStatement()) {
+      h->Body(it); it = it->next;
+    } else {
+      h->Body(nullptr);
+    }
     exList_.push_back(h);
     it = it->next; // Skip the unconditional branch. On the last ex it's the jump target.
   }
@@ -445,20 +456,11 @@ void CFTry::PrintChildren(bool deep)
 
 void CFTry::Print(uint32_t flags)
 {
-  dec.p.DeepList("");
-  dec.p.OffsetIndent(-1);
-  dec.p.Item();
-  dec.p.Print("try ");
-  dec.p.DeepList(";");
-  body_->Print(kPrintSuppressList);
-  dec.p.EndList();
-  dec.p.ItemDone();
+  dec.p.Print("try");
+  body_->PrintOnNewLine(kPrintSuppressBeginEnd);
   for (auto &nd: exList_) {
     dec.p.Item();
     nd->Print();
     dec.p.ItemDone();
   }
-  dec.p.EndList();
 }
-
-

@@ -63,7 +63,7 @@ void Printer::PrintNewLine()
     for ( ; i > 0; --i) out << "  ";
 }
 
-void Printer::DoStartItem()
+void Printer::DoStartItem(bool newLine)
 {
   State &state = stack_.back();
   if (!state.freshLine_) {
@@ -71,16 +71,24 @@ void Printer::DoStartItem()
     if (!state.firstItem_ && !state.deep_)
       out << " ";
   }
-  if (state.deep_ || state.freshLine_)
+  if (state.deep_ || state.freshLine_ || newLine)
     PrintNewLine();
   state.prevSuppressSeparator_ = state.suppressSeparator_;
   state.firstItem_ = false;
   state.freshLine_ = false;
+  state.itemEmpty_ = false;
 }
 
 void Printer::StartList(const std::string &separator, int numCharsExpected)
 {
   State &state = stack_.back();
+
+  if (state.itemEmpty_) {
+    state.prevSuppressSeparator_ = state.suppressSeparator_;
+    state.firstItem_ = false;
+    state.freshLine_ = false;
+    state.itemEmpty_ = false;
+  }
   State newState;
   newState.separator_ = separator;
   newState.indentDelta_ = state.indentDelta_;
@@ -142,7 +150,6 @@ void Printer::Print(int value)
   State &state = stack_.back();
   if (state.itemEmpty_) {
     DoStartItem();
-    state.itemEmpty_ = false;
   }
   out << value;;
 }
@@ -152,7 +159,6 @@ void Printer::Print(double value)
   State &state = stack_.back();
   if (state.itemEmpty_) {
     DoStartItem();
-    state.itemEmpty_ = false;
   }
   out << value;;
 }
@@ -161,7 +167,6 @@ void Printer::Printf(const char *format, ...) {
   State &state = stack_.back();
   if (state.itemEmpty_) {
     DoStartItem();
-    state.itemEmpty_ = false;
   }
   va_list args;
   va_start(args, format);
@@ -182,7 +187,6 @@ void Printer::PrintDivider(const std::string &text)
   State &state = stack_.back();
   if (state.itemEmpty_) {
     DoStartItem();
-    state.itemEmpty_ = false;
   }
   out << std::endl;
   if (text.empty()) {

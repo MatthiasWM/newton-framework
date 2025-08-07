@@ -35,8 +35,6 @@ class Printer {
   std::vector<State> stack_;
 
   void PrintSeparator();
-  void PrintNewLine();
-  void DoStartItem();
 
 public:
   std::ostream &out;
@@ -57,6 +55,8 @@ public:
   void EndList();
   void Trailer();
 
+  void DoStartItem(bool newLine = false);
+  void PrintNewLine();
   void Print(const std::string &token);
   void Print(int value);
   void Print(double value);

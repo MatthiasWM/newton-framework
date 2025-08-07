@@ -147,8 +147,15 @@ void BCClone::Print(uint32_t flags) {
 void BCStringer::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   BCMakeArray *array = dynamic_cast<BCMakeArray*>(in_);
-  if (!array) return PrintNode(false);
-  array->PrintAsStringer(flags);
+  if (array) { array->PrintAsStringer(flags); return; }
+  BCFindVar *findVar = dynamic_cast<BCFindVar*>(in_);
+  if (findVar) {
+    dec.p.Print("Stringer(");
+    in_->Print();
+    dec.p.Print(")");
+    return;
+  }
+  return PrintNode(false);
 }
 
 #pragma mark - BCClassOf
@@ -429,11 +436,12 @@ void BCMakeArray::Print(uint32_t flags) {
 void BCMakeArray::PrintAsStringer(uint32_t flags)
 {
   // TODO: we could optimize for '& " " &' --> '&&'
-  dec.p.StartList(" &");
-  for (int i = 0; i < numIns_-1; i++) {
-    dec.p.Item();
+//  dec.p.StartList(" &");
+  int n = (int)ins_.size() - 1;
+  for (int i = 0; i < n-1; i++) {
     ins_[i]->Print();
-    dec.p.ItemDone();
+    dec.p.Print(" & ");
   }
-  dec.p.EndList();
+  ins_[n-1]->Print();
+//  dec.p.EndList();
 }
