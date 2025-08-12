@@ -61,6 +61,7 @@
 #include "Matt/Decompiler.h"
 
 #include <iostream>
+#include <sstream>
 #include <cctype>
 
 extern bool IsPathExpr(RefArg inObj);
@@ -399,7 +400,9 @@ void ObjectPrinter::PrintArray(RefArg ref) {
   int n = Length(ref);
   for (int i = 0; i < n; ++i) {
     RefVar slot = GetArraySlot(ref, i);
+    refPath_.push_back(MAKEINT(i));
     Item(); PrintRef(slot); ItemDone();
+    refPath_.pop_back();
   }
   Trailer(); Print("]");
   EndList();
@@ -434,11 +437,13 @@ void ObjectPrinter::PrintFrame(RefArg ref) {
   StartList(",", TextLength(ref));
   CObjectIterator iter(ref, false);
   for ( ; !iter.done(); iter.next()) {
+    refPath_.push_back(iter.tag());
     Item();
     PrintTag(iter.tag());
     Print(": ");
     PrintRef(iter.value());
     ItemDone();
+    refPath_.pop_back();
   }
   Trailer(); Print("}");
   EndList();
@@ -459,9 +464,19 @@ void ObjectPrinter::PrintImmed(RefArg ref) {
     PrintCharacter(ref);
   else if (IsMagicPtr(ref))
     PrintRefConst(ref);
+  else if (ref == kPlainFuncClass) //    0x0032
+    Print("<<kPlainFuncClass>>");
+  else if (ref == kPlainCFunctionClass) //    0x0132
+    Print("<<kPlainCFunctionClass>>");
+  else if (ref == kBinCFunctionClass) //    0x0232
+    Print("<<kBinCFunctionClass>>");
   else
     assert(0);
 }
+
+//if (theClass == kPlainFuncClass) return SYMA(_function);
+//else if (theClass == kPlainCFunctionClass || theClass == kBinCFunctionClass) return SYMA(_function_2Enative);
+
 
 /**
  \brief Print a ref and everything that comes under it.
@@ -722,4 +737,22 @@ void ObjectPrinter::Decompile(RefArg ref)
 void printPackage(RefArg package) {
   ObjectPrinter p(std::cout);
   p.Print(package);
+}
+
+/**
+ Convert the path to the current Ref into a String.
+ */
+std::string ObjectPrinter::RefPath()
+{
+  std::ostringstream outStream;
+  ObjectPrinter out(outStream);
+  for (auto &nd: refPath_) {
+    if (IsSymbol(nd))
+      out.PrintTag(nd);
+    else
+      out.PrintRef(nd);
+    if (nd != refPath_.back())
+      out.Print(".");
+  }
+  return outStream.str();
 }

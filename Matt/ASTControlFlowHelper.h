@@ -177,11 +177,14 @@ public:
 
 class CFTry : public Node {
 protected:
+  int provides_ = kProvidesNone;
   Node *body_ = nullptr;
   std::vector<ExceptionHandler*> exList_;
 public:
-  CFTry(Decompiler &d, int pc, Node *first, Node *last);
+  CFTry(Decompiler &d, int pc, int provides, Node *first, Node *last);
+  const char *Class() override { return "CFTry"; }
   bool Resolved() override { return true; }
+  int provides() override { return provides_; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags) override;
 };

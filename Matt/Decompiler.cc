@@ -127,6 +127,9 @@ void Decompiler::decompile(Ref ref)
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
   if (p.DebugBC() || p.DebugAST()) printAST("Initial AST");
+  if (!p.DebugTrap().empty() && (p.RefPath() == p.DebugTrap())) {
+    __builtin_debugtrap();
+  }
   solve();
   if (p.DebugAST()) printASTRoot();
 }
@@ -506,6 +509,23 @@ void Decompiler::printSource()
     p.Item();
     nd->Print(kPrintSuppressList);
     p.ItemDone();
+  }
+
+  // Check if there are unresolved nodes and give an error message if so
+  int numUnresolved = 0;
+  for (Node *nd = first_->next; nd; nd = nd->next) {
+    if (!nd->Resolved() && (nd->provides() != kSpecialNode))
+      numUnresolved++;
+  }
+  if (numUnresolved > 0) {
+    fprintf(stderr, "\nWARNING: %d unresolved nodes in AST.\n", numUnresolved);
+    fprintf(stderr, "Path: '%s'\n", p.RefPath().c_str());
+    fprintf(stderr, "PC:" );
+    for (Node *nd = first_->next; nd; nd = nd->next) {
+      if (!nd->Resolved() && (nd->provides() != kSpecialNode))
+        fprintf(stderr, " %d", nd->pc() );
+    }
+    fprintf(stderr, "\n");
   }
 
   // Print the end marker of the function

@@ -51,6 +51,7 @@ std::string currentFileName = "<undefined>";
 
 static bool debugAST_ { false };
 static bool debugBC_ { false };
+static std::string debugTrap_;
 
 extern void handleArgHello();
 
@@ -239,6 +240,14 @@ void handleArgDebug(const std::string &flag)
 }
 
 /**
+ \brief Set debugging trap.
+ */
+void handleArgTrap(const std::string &arg)
+{
+  debugTrap_ = arg;
+}
+
+/**
  \brief Write the object in global `ref0` as a package file.
  \todo Error handling
  */
@@ -279,6 +288,7 @@ void handleArgDecompile()
   ObjectPrinter p(std::cout);
   p.DebugAST(debugAST_);
   p.DebugBC(debugBC_);
+  p.DebugTrap(debugTrap_);
   p.Decompile(ref0);
 }
 
@@ -383,6 +393,7 @@ the commands in the given order.
   -nos2                   Compile for NewtonOS 2.x
   -debug ast              Print the progress of the AST while decompiling
   -debug bc               Print the ByteCode of functions before decompiling
+  -trap path.to.func      Break into debugger when decompiling this function
 
 )==";
 }
@@ -431,6 +442,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing description after -debug ... ."));
         handleArgDebug(std::string(argv[argi++]));
+      } else if (cmd == "-trap") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing Ref Path after -trap ... ."));
+        handleArgTrap(std::string(argv[argi++]));
       } else if (cmd == "-opkg") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -opkg ... ."));

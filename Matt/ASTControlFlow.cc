@@ -505,6 +505,7 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
 {
   do {
     // ---- Try the "foreach slot,value deeply in object do" pattern and take breaks into account.
+    Node *setValue = nullptr, *setSlot = nullptr;
     Node *it = prev;
     int slot = -1, value = -1, iter = -1;
     // Traverse back to evaluate the setup.
@@ -515,19 +516,37 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
-    REQUIRED_NODE( CodeBlock, body, it, true ) { it = it->next; }
-    // TODO: Unlikely, but body can be missing if original is 'begin end'. Must replace with NIL.
-    // TODO: also the two nodes below are now in the AST Root, and we must an add the matching unlink
-    REQUIRED_COND( BCSetVar, setValue, setValue->b() == iter-1, body->at(0), true) {
-      value = setValue->b();
-    }
-    OPTIONAL_NODE( BCSetVar, setSlot, body->at(1), true) {
-      if (setSlot->b() == value-1) slot = setSlot->b();
+    OPTIONAL_NODE( CodeBlock, body, it, true ) { it = it->next; }
+    if (body) {
+      // If we have a body, the last one or two statements there should be BCSetVar
+      REQUIRED_NODE( BCSetVar, setValue, body->at(0), true) {
+        value = setValue->b();
+        // TODO: verify! See below.
+      }
+      OPTIONAL_NODE( BCSetVar, setSlot, body->at(1), true) {
+        slot = setSlot->b();
+        // TODO: verify! See below.
+      }
+    } else {
+      // If we have an empty body, we iterate through one or two BCSetVar statements
+      REQUIRED_NODE( BCSetVar, lSetValue, it, true) {
+        setValue = lSetValue;
+        it = it->next;
+        value = setValue->b();
+        // TODO: To verify: in = BCARef, BCPushConst(4), BCGetVar(iter)
+      }
+      OPTIONAL_NODE( BCSetVar, lSetSlot, it, true) {
+        setSlot = lSetSlot;
+        it = it->next;
+        slot = setSlot->b(); // how can we verify this?
+        // TODO: To verify: in = BCARef, BCPushConst(?), BCGetVar(iter)
+      }
     }
     REQUIRED_NODE( BCIterNext, iterNext, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtStart, it, false ) { it = it->next; }
     REQUIRED_NODE( BCIterDone, iterDone, it, false ) { it = it->next; }
     REQUIRED_NODE( BCBranchIfFalse, brRepeat, it, false ) { it = it->next; }
+    REQUIRED_COND( BCPushConst, pushNil, pushNil->b() == NILREF, it, false ) { it = it->next; }
 
     // The pattern is correct. Now check the jump instructions.
     if ((jtStart->Origin() != brStart->pc()) || (jtStart->pc() != brStart->b())) break;
@@ -541,7 +560,7 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
 
     // ---- If we reach all this way, the pattern matches.
     // Eval and unlink all the jump targets of break instructions inside the loop
-    HandleBreakTargets(body, it, true);
+    HandleBreakTargets(jtRepeat, it, false);
     // Remove the command that clears the iterator for garbage collection
     it->Unlink();
 
@@ -562,13 +581,19 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     setIter->Unlink();
     brStart->Unlink();
     jtRepeat->Unlink();
-    body->pop_front(); // unlink 'setValue'
-    if (slot != -1) body->pop_front(); // unlink 'setSlot'
-    body->Unlink();
+    if (body) {
+      body->pop_front(); // unlink 'setValue'
+      if (slot != -1) body->pop_front(); // unlink 'setSlot'
+      body->Unlink();
+    } else {
+      if (setValue) setValue->Unlink();
+      if (setSlot) setSlot->Unlink();
+    }
     iterNext->Unlink();
     jtStart->Unlink();
     iterDone->Unlink();
     brRepeat->Unlink();
+    pushNil->Unlink();
 
     // Mark the locals with an alternative use, so they are not declared
     if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
@@ -764,20 +789,26 @@ Node *BCNewHandler::Resolve(Pass pass)
   do {
     // ---- Find the try...onexception...do... pattern
     int i;
+    bool isProvider = false;
     Node *it = next;
-    REQUIRED_COND( Node, body, body->IsStatement(), it, true) { it = it->next; }
+    OPTIONAL_COND( Node, body, body->IsStatement(), it, true) { it = it->next; }
+    if (!body) {
+      REQUIRED_COND( Node, lbody, lbody->IsExpr(), it, true) { it = it->next; }
+      body = lbody;
+      isProvider = true;
+    }
     REQUIRED_NODE( BCPopHandlers, bodyPop, it, false ) { it = it->next; }
     REQUIRED_NODE( BCBranch, brDone, it, false ) { it = it->next; }
     // Handle the 'onException...do...' pattern
     for (i=1; i<b_; i++) {
       REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
-      OPTIONAL_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+      OPTIONAL_COND( Node, exBody, isProvider ? exBody->IsExpr() : exBody->IsStatement(), it, true) { it = it->next; }
       REQUIRED_NODE( BCBranch, exDone, it, false ) { it = it->next; }
     }
     if (i != b_) break; // not enough handlers
     // Handle the last 'onException...do...' pattern
     REQUIRED_NODE( ExceptionHandler, handler, it, false ) { it = it->next; }
-    OPTIONAL_COND( Node, exBody, exBody->IsStatement(), it, true) { it = it->next; }
+    OPTIONAL_COND( Node, exBody, isProvider ? exBody->IsExpr() : exBody->IsStatement(), it, true) { it = it->next; }
     // Handle the final cleanup
     for (i=1; i<b_; i++) {
       REQUIRED_NODE( JumpTarget, jtExDone, it, false ) { it = it->next; }
@@ -786,7 +817,7 @@ Node *BCNewHandler::Resolve(Pass pass)
     REQUIRED_NODE( JumpTarget, jtDone, it, false ) { it = it->next; }
 
     // ---- The pattern is correct. Now make it printable.
-    CFTry *exNode = new CFTry(dec, pc(), this, jtDone);
+    CFTry *exNode = new CFTry(dec, pc(), isProvider ? kProvidesOne : kProvidesNone, this, jtDone);
     ReplaceWith(exNode);
     dec.numASTChanges++;
     return exNode->next;

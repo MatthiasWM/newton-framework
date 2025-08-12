@@ -35,6 +35,7 @@ class ObjectPrinter : public Printer
   bool debugASTProgress_ { false };
   bool debugAST_ { false };
   bool debugBC_ { false };
+  std::string debugTrap_;
 
 public:
 
@@ -64,6 +65,7 @@ public:
     bool EarlyPrint() { return forceEarlyPrint_ || ((numRefs_ > 1) && !suppressEarlyPrint_); }
   };
   std::map<Ref, Node> map;
+  std::vector<Ref> refPath_;
 
   int TextLength(RefArg ref, RefArg sameSym = NILREF);
   void BuildRefMapLength(RefArg ref);
@@ -75,6 +77,8 @@ public:
   bool DebugAST() { return debugAST_; }
   void DebugBC(bool v) { debugBC_ = v;}
   bool DebugBC() { return debugBC_; }
+  void DebugTrap(const std::string &trap) { debugTrap_ = trap; }
+  std::string DebugTrap() { return debugTrap_; }
 
 #pragma mark - updated stuff
 
@@ -110,6 +114,8 @@ public:
   void Print(const std::string &token) { Printer::Print(token); }
   void Print(RefArg ref);
   void Decompile(RefArg ref);
+
+  std::string RefPath();
 };
 
 

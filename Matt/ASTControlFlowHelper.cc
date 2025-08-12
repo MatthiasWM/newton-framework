@@ -364,7 +364,10 @@ CFForEachSlotValueDo::CFForEachSlotValueDo(Decompiler &d, int pc, int slot, int 
 : ControlBlock(d, pc, kProvidesOne),
 object_(obj), slot_(slot), value_(value), deeply_(deeply)
 {
-  body_ = body;
+  if (body)
+    body_ = body;
+  else
+    body_ = NewNil();
 }
 
 void CFForEachSlotValueDo::PrintChildren(bool deep)
@@ -423,8 +426,8 @@ void ExceptionHandler::Print(uint32_t flags)
 
 #pragma mark - CFTry
 
-CFTry::CFTry(Decompiler &d, int pc, Node *first, Node *last)
-: Node(d, pc)
+CFTry::CFTry(Decompiler &d, int pc, int provides, Node *first, Node *last)
+: Node(d, pc), provides_(provides)
 {
   int numEx = first->b(); // First is the BCNewHandler
   Node *it = first->next;
@@ -433,10 +436,12 @@ CFTry::CFTry(Decompiler &d, int pc, Node *first, Node *last)
   // Handle the 'onException...do...' pattern
   for (int i=0; i<numEx; i++) {
     ExceptionHandler *h = dynamic_cast<ExceptionHandler*>(it); it = it->next;
-    if (it->IsStatement()) {
+    if ((provides == kProvidesNone) && it->IsStatement()) {
+      h->Body(it); it = it->next;
+    } else if ((provides == kProvidesOne) && it->IsExpr()) {
       h->Body(it); it = it->next;
     } else {
-      h->Body(nullptr);
+      h->Body(NewNil());
     }
     exList_.push_back(h);
     it = it->next; // Skip the unconditional branch. On the last ex it's the jump target.
