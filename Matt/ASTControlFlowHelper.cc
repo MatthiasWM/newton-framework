@@ -249,28 +249,58 @@ void CFIfThen::PrintChildren(bool deep) {
 
 void CFIfThen::Print(uint32_t flags)
 {
-  dec.p.Print("if ");
-  int pp = dec.precedence; dec.precedence = 0;
-  cond_->Print();
-  dec.p.Print(" then ");
-
-  if (body_->IsMultiStatement()) {
+  if ((provides() == kProvidesOne) && elseBody_ && elseBody_->IsNIL()
+      && !cond_->IsMultiStatement() && !body_->IsMultiStatement()) {
+    int ppp = dec.precedence;
+    bool parentheses = (dec.precedence > 1);
+    dec.precedence = 1;
+    if (parentheses) dec.p.Printf("(");
+    cond_->Print();
+    dec.p.Print(" and ");
     body_->Print();
-    if (elseBody_)
-      dec.p.Print(" ");
+    if (parentheses) dec.p.Printf(")");
+    dec.precedence = ppp;
   } else {
-    dec.p.DeepList(";");
-    dec.p.FreshLine();
-    body_->Print();
-    dec.p.EndList();
-    if (elseBody_)
+    bool forceBeginEnd = true;
+    dec.p.Print("if ");
+    int pp = dec.precedence; dec.precedence = 0;
+    cond_->Print();
+    dec.p.Print(" then ");
+
+    if (body_->IsMultiStatement()) {
+      body_->Print();
+      if (elseBody_)
+        dec.p.Print(" ");
+    } else {
+      if (forceBeginEnd) dec.p.Print("begin");
+      dec.p.DeepList(";");
       dec.p.FreshLine();
+      body_->Print();
+      dec.p.EndList();
+      if (elseBody_) {
+        dec.p.FreshLine();
+        if (forceBeginEnd) dec.p.Print("end ");
+      } else {
+        if (forceBeginEnd) { dec.p.FreshLine(); dec.p.Print("end"); }
+      }
+    }
+    if (elseBody_) {
+      dec.p.Print("else ");
+      if (dynamic_cast<CFIfThen*>(elseBody_)) {
+        // We have an "else if" statement. If we don;t indent it, the source is more readable.
+        elseBody_->Print();
+      } else if (elseBody_->IsMultiStatement()) {
+        // The elseBody_ will print begin end
+        elseBody_->Print();
+      } else {
+        // Only one statement, print "begin end" if requested
+        if (forceBeginEnd) dec.p.Print("begin");
+        elseBody_->PrintOnNewLine();
+        if (forceBeginEnd) { dec.p.FreshLine(); dec.p.Print("end"); }
+      }
+    }
+    dec.precedence = pp;
   }
-  if (elseBody_) {
-    dec.p.Print("else ");
-    elseBody_->PrintOnNewLine();
-  }
-  dec.precedence = pp;
 }
 
 #pragma mark - CFOr

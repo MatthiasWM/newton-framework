@@ -1786,15 +1786,15 @@ CCompiler::closureWalker(RefArg inGraph, int inNodeType, RefArg inP1, RefArg inP
 			func->noteMsgEnvReference(kMsgMessageSend);
 		break;
 	}
-	
+
 	return 1;
 }
 
 
 /*------------------------------------------------------------------------------
 	Walk the graph and generate code!
-	Args:		inGraph			
-				inFinalNode		
+	Args:		inGraph
+				inFinalNode
 	Return:	bool?
 ------------------------------------------------------------------------------*/
 
@@ -2627,8 +2627,8 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, bool inArg3)
 
 /*------------------------------------------------------------------------------
 	Walk the graph for a path expression.
-	Args:		inGraph					
-				ioThrowIfNilObject	
+	Args:		inGraph
+				ioThrowIfNilObject
 	Return:	path expression
 ------------------------------------------------------------------------------*/
 
@@ -2643,7 +2643,7 @@ CCompiler::walkForPath(RefArg inGraph, int * ioThrowIfNilObject)
 		if (RINT(GetArraySlot(right, 0)) == TOKENconst
 		&&  IsSymbol(GetArraySlot(right, 1)))
 		{
-			if (RINT(GetArraySlot(left, 0) == '.'))
+			if (RINT(GetArraySlot(left, 0)) == '.')
 			{
 				RefVar	object(walkForPath(left, ioThrowIfNilObject));
 				if (ISNIL(object))
@@ -2671,7 +2671,7 @@ CCompiler::walkForPath(RefArg inGraph, int * ioThrowIfNilObject)
 				return GetArraySlot(right, 1);
 			}
 		}
-		else if (RINT(GetArraySlot(left, 0) == '.'))
+		else if (RINT(GetArraySlot(left, 0)) == '.')
 		{
 			RefVar	pathExpr(walkForPath(left, ioThrowIfNilObject));
 			if (NOTNIL(pathExpr))
@@ -2696,7 +2696,7 @@ CCompiler::walkForPath(RefArg inGraph, int * ioThrowIfNilObject)
 
 /*------------------------------------------------------------------------------
 	Walk the graph for stringer items.
-	Args:		inGraph		
+	Args:		inGraph
 	Return:	number of items walked over
 ------------------------------------------------------------------------------*/
 

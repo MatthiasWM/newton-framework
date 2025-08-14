@@ -62,14 +62,17 @@ public:
     bool visited_ { false };
     bool suppressEarlyPrint_ { false };
     bool forceEarlyPrint_ { false };
-    bool EarlyPrint() { return forceEarlyPrint_ || ((numRefs_ > 1) && !suppressEarlyPrint_); }
+    bool constant_ { true };
+    bool EarlyPrint() { return forceEarlyPrint_ || !constant_ || ((numRefs_ > 1) && !suppressEarlyPrint_); }
   };
   std::map<Ref, Node> map;
   std::vector<Ref> refPath_;
 
+  bool IsConstant(RefArg ref);
   int TextLength(RefArg ref, RefArg sameSym = NILREF);
   void BuildRefMapLength(RefArg ref);
   void BuildRefMapBranch(RefArg ref);
+  void BuildRefMapForFunc(RefArg ref);
   void BuildRefMap(RefArg ref);
 
   void OptionDecompile(bool v) { optionDecompile_ = v;}

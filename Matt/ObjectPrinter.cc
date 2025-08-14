@@ -591,8 +591,10 @@ void ObjectPrinter::PrintPartialTree(RefArg ref)
   nd.printed_ = true;
   // Print the label header, then the branch itself
   // TODO: see if there is debugging or other information we can use to generate meaningful label names
-  Printf("%s := ", nd.label_.c_str());
+  //Printf("%s := ", nd.label_.c_str());
+  Printf("DefineGlobalConstant('%s, ", nd.label_.c_str());
   PrintRef(ref, true);
+  Print(")");
   ItemDone();
 }
 
@@ -654,16 +656,15 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
       FOREACH(ref, slot) {
         BuildRefMapBranch(slot);
       } END_FOREACH;
+      // If this is the "stepChildren" array, print all members early to defined Views first
+      if (IsArray(ref) && IsSymbol(ClassOf(ref)) && (SymbolCompare(ClassOf(ref), SYMA(stepChildren)) == 0)) {
+        FOREACH(ref, slot) {
+          map[slot].forceEarlyPrint_ = true;
+        } END_FOREACH;
+      }
       // There is no need to print some function internals, so disable early print!
       if (optionDecompile_ && IsFunction(ref)) {
-        Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
-        if (IsFrame(argFrame)) {
-          map[argFrame].suppressEarlyPrint_ = true;
-          Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
-          if (IsFrame(nextArgFrame)) {
-            map[nextArgFrame].suppressEarlyPrint_ = true;
-          }
-        }
+        BuildRefMapForFunc(ref);
       }
     } else if (IsBinary(ref)) {
     } else {
@@ -674,6 +675,74 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
     nd.numRefs_++;
   }
 }
+
+bool ObjectPrinter::IsConstant(RefArg ref)
+{
+  if (map[ref].constant_ == false)
+    return false;
+
+  // All immediates and Magic Pointers can be written as a constant
+  if (!ISREALPTR(ref))
+    return true;
+
+  // Check for binaries that can be written as constants
+  if (IsBinary(ref)) {
+    if (IsSymbol(ref) || IsReal(ref) || IsString(ref)) {
+      return true;
+    }
+  }
+
+  if (IsArray(ref) || IsFrame(ref)) {
+    int i, n = Length(ref);
+    for (i = 0; i < n; ++i) {
+      Ref slot = GetArraySlot(ref, i);
+      if (!IsConstant(slot)) return false;
+    }
+    return true;
+  } else if (IsBinary(ref)) {
+    // All other binaries are written at compile time with MakeBinaryFromHex
+    return false;
+  } else {
+    assert(1);
+  }
+  return false;
+}
+
+void ObjectPrinter::BuildRefMapForFunc(RefArg func)
+{
+  assert(IsFunction(func));
+  // Make sure that the ArgFrame is not printed early
+  Ref argFrame = GetFrameSlot(func, SYMA(argFrame));
+  if (IsFrame(argFrame)) {
+    map[argFrame].suppressEarlyPrint_ = true;
+    Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
+    if (IsFrame(nextArgFrame)) {
+      map[nextArgFrame].suppressEarlyPrint_ = true;
+    }
+  }
+  return; // TODO: all the rest is not working yet
+  // Literals can contain huge parts of the app. We must decompose them to
+  // make the human readable and compilable.
+  // The compiler needs to decide if an a literal is a constant or if it is
+  // created at run-time. If the literal is defined inside the function, and it
+  // is not a simple constant, the compiler will create code to build it at
+  // run-time. To force a compile time build, we must define the literal
+  // early using "DefineGlobalConstant".
+
+  // Iterate through all literals.
+  // If the literal is a constants (immediate, array, frame, real), it's ok. If
+  // it contains a function or a binary object, print it early as a constant.
+  RefVar literals = GetFrameSlot(func, SYMA(literals));
+  if (IsArray(literals)) {
+    int i, n = Length(literals);
+    for (i = 0; i < n; ++i) {
+      Ref slot = GetArraySlot(literals, i);
+      if (!IsConstant(slot))
+        map[slot].constant_ = false;
+    }
+  }
+}
+
 
 /**
  \brief Walk the tree and build a map with annotations on how to handle that branch during printing.
@@ -718,6 +787,7 @@ void ObjectPrinter::Print(RefArg ref)
   }
   Item(); Print("");
   EndList();
+  Print("return Ref_0;\n\n");
 }
 
 /**

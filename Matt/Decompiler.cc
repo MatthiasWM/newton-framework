@@ -126,7 +126,17 @@ void Decompiler::decompile(Ref ref)
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
-  if (p.DebugBC() || p.DebugAST()) printAST("Initial AST");
+  if (p.DebugBC() || p.DebugAST()) {
+    DefGlobalVar(SYMA(printDepth), MAKEINT(2));
+    printf("\n\nLiterals:\n");
+    int i, n = Length(literals_);
+    for (i = 0; i < n ; i++) {
+      printf("%4d: ", i);
+      ::PrintObject(GetArraySlot(literals_, i), 0);
+      printf("\n");
+    }
+    printAST("Initial AST");
+  }
   if (!p.DebugTrap().empty() && (p.RefPath() == p.DebugTrap())) {
     __builtin_debugtrap();
   }
