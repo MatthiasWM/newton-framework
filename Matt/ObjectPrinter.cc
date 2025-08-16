@@ -652,20 +652,41 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
     char buffer[32];
     snprintf(buffer, 32, "Ref_%d", labelSerialNo_++);
     nd.label_ = std::string(buffer);
+
+//    if (IsArray(ref)) {
+//      CObjectIterator iter(ref, false);
+//      for ( ; !iter.done(); iter.next()) {
+//        refPath_.push_back(iter.tag());
+//        BuildRefMapBranch(iter.value());
+//      }
+//    } else
+    if (IsFrame(ref)||IsArray(ref)) {
+      CObjectIterator iter(ref, false);
+      for ( ; !iter.done(); iter.next()) {
+        refPath_.push_back(iter.tag());
+        BuildRefMapBranch(iter.value());
+        if (optionDecompile_ && IsFunction(iter.value())) {
+          BuildRefMapForFunc(iter.value());
+        }
+        refPath_.pop_back();
+      }
+    }
+
+
     if (IsArray(ref) || IsFrame(ref)) {
-      FOREACH(ref, slot) {
-        BuildRefMapBranch(slot);
-      } END_FOREACH;
+//      FOREACH(ref, slot) {
+//        BuildRefMapBranch(slot);
+//      } END_FOREACH;
       // If this is the "stepChildren" array, print all members early to defined Views first
-      if (IsArray(ref) && IsSymbol(ClassOf(ref)) && (SymbolCompare(ClassOf(ref), SYMA(stepChildren)) == 0)) {
-        FOREACH(ref, slot) {
-          map[slot].forceEarlyPrint_ = true;
-        } END_FOREACH;
-      }
-      // There is no need to print some function internals, so disable early print!
-      if (optionDecompile_ && IsFunction(ref)) {
-        BuildRefMapForFunc(ref);
-      }
+//      if (IsArray(ref) && IsSymbol(ClassOf(ref)) && (SymbolCompare(ClassOf(ref), SYMA(stepChildren)) == 0)) {
+//        FOREACH(ref, slot) {
+//          map[slot].forceEarlyPrint_ = true;
+//        } END_FOREACH;
+//      }
+      // Functions have components that should nor be printed, and others that must be printed early
+//      if (optionDecompile_ && IsFunction(ref)) {
+//        BuildRefMapForFunc(ref);
+//      }
     } else if (IsBinary(ref)) {
     } else {
       assert(0);
@@ -676,41 +697,35 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
   }
 }
 
-bool ObjectPrinter::IsConstant(RefArg ref)
+bool ObjectPrinter::FrameDeclaresFunc(RefArg ref)
 {
-  if (map[ref].constant_ == false)
-    return false;
-
-  // All immediates and Magic Pointers can be written as a constant
-  if (!ISREALPTR(ref))
+  // Don't bother if the frame is already marked for early print.
+  if (map[ref].forceEarlyPrint_)
     return true;
 
-  // Check for binaries that can be written as constants
-  if (IsBinary(ref)) {
-    if (IsSymbol(ref) || IsReal(ref) || IsString(ref)) {
-      return true;
-    }
-  }
 
-  if (IsArray(ref) || IsFrame(ref)) {
+  if (IsFrame(ref) || IsArray(ref)) {
     int i, n = Length(ref);
     for (i = 0; i < n; ++i) {
       Ref slot = GetArraySlot(ref, i);
-      if (!IsConstant(slot)) return false;
+      if (IsFunction(slot)) {
+//        fprintf(stderr, "Function in function found: %s\n", this->RefPath().c_str());
+        return true;
+      }
+      if (IsFrame(slot) || IsArray(slot)) {
+        if (FrameDeclaresFunc(slot)) return true;
+      }
     }
-    return true;
-  } else if (IsBinary(ref)) {
-    // All other binaries are written at compile time with MakeBinaryFromHex
-    return false;
-  } else {
-    assert(1);
   }
   return false;
 }
 
+
 void ObjectPrinter::BuildRefMapForFunc(RefArg func)
 {
   assert(IsFunction(func));
+
+  // There is no need to print some function internals, so disable early print!
   // Make sure that the ArgFrame is not printed early
   Ref argFrame = GetFrameSlot(func, SYMA(argFrame));
   if (IsFrame(argFrame)) {
@@ -720,25 +735,27 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       map[nextArgFrame].suppressEarlyPrint_ = true;
     }
   }
-  return; // TODO: all the rest is not working yet
-  // Literals can contain huge parts of the app. We must decompose them to
-  // make the human readable and compilable.
-  // The compiler needs to decide if an a literal is a constant or if it is
-  // created at run-time. If the literal is defined inside the function, and it
-  // is not a simple constant, the compiler will create code to build it at
-  // run-time. To force a compile time build, we must define the literal
-  // early using "DefineGlobalConstant".
 
-  // Iterate through all literals.
-  // If the literal is a constants (immediate, array, frame, real), it's ok. If
-  // it contains a function or a binary object, print it early as a constant.
+  // Some stuff *must* be declared as a global constant first.
+  // This ensures that an object is created at compile time vs. run time.
+  // Mark as print early if all of these apply:
+  // - it is in the 'literals' array of a function
+  // - it's a frame
+  // - it contains a function definition (recursive test!)
+  // - and is a receiver of any of the 'send' calls (requires parsing bytecode, not implemented yet!)
+//  fprintf(stderr, "Checking function: %s\n", this->RefPath().c_str());
   RefVar literals = GetFrameSlot(func, SYMA(literals));
   if (IsArray(literals)) {
     int i, n = Length(literals);
     for (i = 0; i < n; ++i) {
       Ref slot = GetArraySlot(literals, i);
-      if (!IsConstant(slot))
-        map[slot].constant_ = false;
+      bool containsFunction = false;
+      if (IsArray(slot) || IsFrame(slot)) {
+//        fprintf(stderr, "Checking Literal: %s\n", this->RefPath().c_str());
+        containsFunction = FrameDeclaresFunc(slot);
+      }
+      if (containsFunction)
+        map[slot].forceEarlyPrint_ = true;
     }
   }
 }

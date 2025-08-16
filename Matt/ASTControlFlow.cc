@@ -505,8 +505,8 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
 {
   do {
     // ---- Try the "foreach slot,value deeply in object do" pattern and take breaks into account.
-    Node *setValue = nullptr, *setSlot = nullptr;
     Node *it = prev;
+    BCSetVar *setValueNode = nullptr, *setSlotNode = nullptr;
     int slot = -1, value = -1, iter = -1;
     // Traverse back to evaluate the setup.
     REQUIRED_NODE( BCPushConst, deeplyConst, prev, true ) { it = it->prev; }
@@ -517,31 +517,43 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     OPTIONAL_NODE( CodeBlock, body, it, true ) { it = it->next; }
+    // If we have a body, the last one or two statements there should be BCSetVar
     if (body) {
-      // If we have a body, the last one or two statements there should be BCSetVar
-      REQUIRED_NODE( BCSetVar, setValue, body->at(0), true) {
-        value = setValue->b();
-        // TODO: verify! See below.
-      }
-      OPTIONAL_NODE( BCSetVar, setSlot, body->at(1), true) {
-        slot = setSlot->b();
-        // TODO: verify! See below.
-      }
+      setValueNode = dynamic_cast<BCSetVar*>(body->at(0));
+      setSlotNode = dynamic_cast<BCSetVar*>(body->at(1));
     } else {
-      // If we have an empty body, we iterate through one or two BCSetVar statements
-      REQUIRED_NODE( BCSetVar, lSetValue, it, true) {
-        setValue = lSetValue;
-        it = it->next;
-        value = setValue->b();
-        // TODO: To verify: in = BCARef, BCPushConst(4), BCGetVar(iter)
-      }
-      OPTIONAL_NODE( BCSetVar, lSetSlot, it, true) {
-        setSlot = lSetSlot;
-        it = it->next;
-        slot = setSlot->b(); // how can we verify this?
-        // TODO: To verify: in = BCARef, BCPushConst(?), BCGetVar(iter)
-      }
+      setValueNode = dynamic_cast<BCSetVar*>(it);
+      setSlotNode = dynamic_cast<BCSetVar*>(it->next);
     }
+
+    // The first statement is required and sets the "value" base on the iterator.
+    // TODO: copy this block to ResolveForeachSlotValueCollect
+    if (!setValueNode) break;
+    BCARef *valueARefNode = dynamic_cast<BCARef*>(setValueNode->input());
+    if (!valueARefNode) break;
+    BCGetVar *valueGetVar = dynamic_cast<BCGetVar*>(valueARefNode->input1());
+    if (!valueGetVar) break;
+    BCPushConst *valueConstNode = dynamic_cast<BCPushConst*>(valueARefNode->input2());
+    if (!valueConstNode || (valueConstNode->b() != 4)) break;
+    value = setValueNode->b();
+    // The second statement is optional and sets the "slot" base on the iterator.
+    do { // this parameter is optional, so 'break' only breaks *this* loop
+      if (!setSlotNode) break;
+      BCARef *slotARefNode = dynamic_cast<BCARef*>(setSlotNode->input());
+      if (!slotARefNode) break;
+      BCGetVar *slotGetVar = dynamic_cast<BCGetVar*>(slotARefNode->input1());
+      if (!slotGetVar) break;
+      BCPushConst *slotConstNode = dynamic_cast<BCPushConst*>(slotARefNode->input2());
+      if (!slotConstNode || (slotConstNode->b() != 0)) break;
+      slot = setSlotNode->b();
+    } while(0);
+    if (body) {
+      // Nothing to do here
+    } else {
+      if (value != -1) it = it->next;
+      if (slot != -1) it = it->next;
+    }
+
     REQUIRED_NODE( BCIterNext, iterNext, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtStart, it, false ) { it = it->next; }
     REQUIRED_NODE( BCIterDone, iterDone, it, false ) { it = it->next; }
@@ -586,8 +598,8 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
       if (slot != -1) body->pop_front(); // unlink 'setSlot'
       body->Unlink();
     } else {
-      if (setValue) setValue->Unlink();
-      if (setSlot) setSlot->Unlink();
+      if (setValueNode) setValueNode->Unlink();
+      if (setSlotNode) setSlotNode->Unlink();
     }
     iterNext->Unlink();
     jtStart->Unlink();
@@ -860,11 +872,11 @@ Node *BCCall::Resolve(Pass pass)
     if (!name) break;
     BinaryOperator *op = nullptr;
     if (strcmp(name, "<<")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, "<<", 8);
+      op = new BinaryOperator(dec, pc_, a_, b_, "<<", kPrecedenceShift);
     } else if (strcmp(name, ">>")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, ">>", 8);
+      op = new BinaryOperator(dec, pc_, a_, b_, ">>", kPrecedenceShift);
     } else if (strcasecmp(name, "mod")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, "mod", 7);
+      op = new BinaryOperator(dec, pc_, a_, b_, "mod", kPrecedenceMulDiv);
     }
     if (op) {
       delete prev->Unlink();

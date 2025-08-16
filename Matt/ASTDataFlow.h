@@ -11,6 +11,7 @@
 #if !defined(__MATT_AST_DATAFLOW_H)
 #define __MATT_AST_DATAFLOW_H 1
 
+#include "Matt/Decompiler.h"
 #include "Matt/ASTAdmin.h"
 
 namespace ast {
@@ -189,9 +190,9 @@ public:
 class BinaryOperator : public BinaryExpression {
 protected:
   const char *op_ { nullptr };
-  int precedence_ { 0 };
+  Precedence precedence_ { 0 };
 public:
-  BinaryOperator(Decompiler &d, int pc, int a, int b, const char *op, int precedence)
+  BinaryOperator(Decompiler &d, int pc, int a, int b, const char *op, Precedence precedence)
   : BinaryExpression(d, pc, a, b), op_(op), precedence_(precedence)
   { }
   const char *Class() override { return "BinaryOperator"; }

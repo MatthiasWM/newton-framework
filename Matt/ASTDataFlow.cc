@@ -114,14 +114,16 @@ void BCFindAndSetVar::Print(uint32_t flags) {
 
 void BCNot::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  int ppp = dec.precedence;
-  bool parentheses = (dec.precedence > 2);
-  dec.precedence = 2;
-  if (parentheses) dec.p.Printf("(");
-  dec.p.Printf("not ");
-  in_->Print();
-  if (parentheses) dec.p.Printf(")");
-  dec.precedence = ppp;
+  Precedence pp = dec.precedence;
+  bool parentheses = (dec.precedence > kPrecedenceLogicNot);
+  dec.precedence = kPrecedenceLogicNot;
+  {
+    if (parentheses) dec.p.Printf("(");
+    dec.p.Printf("not ");
+    in_->Print();
+    if (parentheses) dec.p.Printf(")");
+  }
+  dec.precedence = pp;
 }
 
 #pragma mark - BCLength
@@ -196,27 +198,35 @@ Node *BinaryExpression::Resolve(Pass pass)
 
 void BinaryFunction::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  int ppp = dec.precedence;
-  dec.precedence = 0;
-  dec.p.Printf("%s(", func_);
-  in1_->Print();
-  dec.p.Printf(", ");
-  in2_->Print();
-  dec.p.Printf(")");
-  dec.precedence = ppp;
+  Precedence pp = dec.precedence;
+  dec.precedence = kPrecedenceAssign;
+  {
+    dec.p.Printf("%s(", func_);
+    in1_->Print();
+    dec.p.Printf(", ");
+    in2_->Print();
+    dec.p.Printf(")");
+  }
+  dec.precedence = pp;
 }
 
 #pragma mark - BinaryOperator
 
 void BinaryOperator::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  int ppp = dec.precedence;
+  Precedence pp = dec.precedence;
   bool parentheses = (dec.precedence > precedence_);
   dec.precedence = precedence_;
-  if (parentheses) dec.p.Print("(");
-  in1_->Print(); dec.p.Printf(" %s ", op_); in2_->Print();
-  if (parentheses) dec.p.Print(")");
-  dec.precedence = ppp;
+  {
+    if (parentheses) dec.p.Print("(");
+    in1_->Print();
+    dec.p.Printf(" %s ", op_);
+    dec.precedence++;
+    in2_->Print();
+    dec.precedence--;
+    if (parentheses) dec.p.Print(")");
+  }
+  dec.precedence = pp;
 }
 
 #pragma mark - BCNewArray
@@ -435,13 +445,18 @@ void BCMakeArray::Print(uint32_t flags) {
  */
 void BCMakeArray::PrintAsStringer(uint32_t flags)
 {
-  // TODO: we could optimize for '& " " &' --> '&&'
-//  dec.p.StartList(" &");
-  int n = (int)ins_.size() - 1;
-  for (int i = 0; i < n-1; i++) {
-    ins_[i]->Print();
-    dec.p.Print(" & ");
+  Precedence pp = dec.precedence;
+  bool parentheses = (dec.precedence > kPrecedenceStringer);
+  dec.precedence = kPrecedenceStringer;
+  {
+    if (parentheses) dec.p.Print("(");
+    int n = (int)ins_.size() - 1;
+    for (int i = 0; i < n-1; i++) {
+      ins_[i]->Print();
+      dec.p.Print(" & ");
+    }
+    ins_[n-1]->Print();
+    if (parentheses) dec.p.Print(")");
   }
-  ins_[n-1]->Print();
-//  dec.p.EndList();
+  dec.precedence = pp;
 }

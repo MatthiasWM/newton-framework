@@ -544,12 +544,16 @@ execute_process(COMMAND ls -asl build/Xcode/Newton.xcodeproj/)
 
 add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
+# Testing is decompiling and recompiling builds the same object tree
+# ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
+# ./build/Xcode/Debug/newtc -script /tmp/newtc_a -debug bc -decompile > /tmp/newtc_c
+
 set_property (TARGET newtc
   PROPERTY XCODE_SCHEME_ARGUMENTS
 #    "-pkglist /Users/matt/dev/a.list"
 #    "-pkglist /Users/matt/dev/unna.list"
-    "-debug ast"
-#    "-debug bc"
+#    "-debug ast"
+    "-debug bc"
 #    "-trap part.0.data.theForm.ResetFSM._proto.ObjectToString"
 #    "-hello"
 ##    "-script '/Users/matt/dev/Newton/NTK/Platforms/Newton 2.0 Defs'"
@@ -572,8 +576,8 @@ set_property (TARGET newtc
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
 # expr   "-opkg /Users/matt/hello.pkg"
-    "-print"
-#    "-decompile"
+#    "-print"
+    "-decompile"
 #    "-stats"
 #    "-help"
 )

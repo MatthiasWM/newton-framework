@@ -22,6 +22,24 @@ class Bytecode;
 
 enum class Print { bytecode, deep, script };
 
+// Precedence Table:
+// TODO: How exactly do we treat the if-then-else statement?
+// (depending on left-to-right or right-to-left eval, we may increment by 1 internally)
+using Precedence = uint8_t;
+constexpr Precedence kPrecedenceAssign       =  10;  //   0: assign ':=', right to left
+constexpr Precedence kPrecedenceAndOr        =  20;  //   1: and, or
+constexpr Precedence kPrecedenceLogicNot     =  30;  //   2: not
+constexpr Precedence kPrecedenceCompare      =  40;  //   3: comparisons (<, >, =, <>, <=, >=)
+constexpr Precedence kkPrecedenceExists      =  50;  //   4: "exists"
+constexpr Precedence kPrecedenceStringer     =  60;  //   5: stringer '&', '&&'
+constexpr Precedence kPrecedenceAddSub       =  70;  //   6: add, subtract
+constexpr Precedence kPrecedenceMulDiv       =  80;  //   7: divide, div, multiply, mod
+constexpr Precedence kPrecedenceShift        =  90;  //   8: left shift, right shift '<<', '>>'
+constexpr Precedence kPrecedenceUnaryMinus   = 100;  //   9: unary minus '-'
+constexpr Precedence kPrecedenceArrayElement = 110;  //   10: array element '[]'
+constexpr Precedence kPrecedenceSend         = 120;  //   11: send, conditional send ':', ':?'
+constexpr Precedence kPrecedenceSlotAccess   = 130;  //   12: slot access '.'
+
 class Decompiler
 {
   friend ast::Node;
@@ -80,7 +98,7 @@ public:
 
   // Print state:
   Print output { Print::bytecode };
-  int precedence { 0 }; // During printout, store the precedence of the current operation
+  Precedence precedence { kPrecedenceAssign }; // During printout, store the precedence of the current operation
 };
 
 NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST, bool debugBC);

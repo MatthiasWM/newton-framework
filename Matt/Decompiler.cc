@@ -49,6 +49,7 @@ using namespace ast;
  2: not
  1: and, or
  0: assign :=
+ TODO: Where is the if-then-else statement in this?
  */
 
 /*
@@ -126,8 +127,8 @@ void Decompiler::decompile(Ref ref)
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
-  if (p.DebugBC() || p.DebugAST()) {
-    DefGlobalVar(SYMA(printDepth), MAKEINT(2));
+  if ((p.DebugBC() || p.DebugAST()) && IsArray(literals_)) {
+    DefGlobalVar(SYMA(printDepth), MAKEINT(0));
     printf("\n\nLiterals:\n");
     int i, n = Length(literals_);
     for (i = 0; i < n ; i++) {
@@ -203,20 +204,20 @@ Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
     case 23: return new BCBranchLoop(*this, pc, a, b);
     case 24:
       switch (b) {
-        case 0: return new BinaryOperator(*this, pc, a, b, "+", 6); // Add
-        case 1: return new BinaryOperator(*this, pc, a, b, "-", 6); // Sub
+        case 0: return new BinaryOperator(*this, pc, a, b, "+", kPrecedenceAddSub); // Add
+        case 1: return new BinaryOperator(*this, pc, a, b, "-", kPrecedenceAddSub); // Sub
         case 2: return new BCARef(*this, pc, a, b);
         case 3: return new BCSetARef(*this, pc, a, b);
-        case 4: return new BinaryOperator(*this, pc, a, b, "=", 3); // Equals
+        case 4: return new BinaryOperator(*this, pc, a, b, "=", kPrecedenceCompare); // Equals
         case 5: return new BCNot(*this, pc, a, b);
-        case 6: return new BinaryOperator(*this, pc, a, b, "<>", 3); // NotEquals
-        case 7: return new BinaryOperator(*this, pc, a, b, "*", 7); // Multiply
-        case 8: return new BinaryOperator(*this, pc, a, b, "/", 7); // Divide
-        case 9: return new BinaryOperator(*this, pc, a, b, "div", 7); // 'div'
-        case 10: return new BinaryOperator(*this, pc, a, b, "<", 3); // LessThan
-        case 11: return new BinaryOperator(*this, pc, a, b, ">", 3); // GreaterThan
-        case 12: return new BinaryOperator(*this, pc, a, b, ">=", 3); // GreaterOrEqual
-        case 13: return new BinaryOperator(*this, pc, a, b, "<=", 3); // LessOrEqual
+        case 6: return new BinaryOperator(*this, pc, a, b, "<>", kPrecedenceCompare); // NotEquals
+        case 7: return new BinaryOperator(*this, pc, a, b, "*", kPrecedenceMulDiv); // Multiply
+        case 8: return new BinaryOperator(*this, pc, a, b, "/", kPrecedenceMulDiv); // Divide
+        case 9: return new BinaryOperator(*this, pc, a, b, "div", kPrecedenceMulDiv); // 'div'
+        case 10: return new BinaryOperator(*this, pc, a, b, "<", kPrecedenceCompare); // LessThan
+        case 11: return new BinaryOperator(*this, pc, a, b, ">", kPrecedenceCompare); // GreaterThan
+        case 12: return new BinaryOperator(*this, pc, a, b, ">=", kPrecedenceCompare); // GreaterOrEqual
+        case 13: return new BinaryOperator(*this, pc, a, b, "<=", kPrecedenceCompare); // LessOrEqual
         case 14: return new BinaryFunction(*this, pc, a, b, "bAnd"); // BitAnd
         case 15: return new BinaryFunction(*this, pc, a, b, "bOr"); // BitOr
         case 16: return new BCBitNot(*this, pc, a, b);
@@ -420,8 +421,9 @@ bool Decompiler::compressAST()
         // Insert codeBlock before nd
         nd->InsertBefore(codeBlock);
         codeBlock->moveToBody(nd, numStmts);
-        nd = codeBlock->next;
-        return true;
+//        nd = codeBlock->next;
+//        return true;
+        nd = codeBlock;
       }
     }
     nd = nd->next;
