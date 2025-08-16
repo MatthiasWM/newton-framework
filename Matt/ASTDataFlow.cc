@@ -150,14 +150,10 @@ void BCStringer::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   BCMakeArray *array = dynamic_cast<BCMakeArray*>(in_);
   if (array) { array->PrintAsStringer(flags); return; }
-  BCFindVar *findVar = dynamic_cast<BCFindVar*>(in_);
-  if (findVar) {
-    dec.p.Print("Stringer(");
-    in_->Print();
-    dec.p.Print(")");
-    return;
-  }
-  return PrintNode(false);
+  dec.p.Print("Stringer(");
+  in_->Print();
+  dec.p.Print(")");
+  return;
 }
 
 #pragma mark - BCClassOf

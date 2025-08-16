@@ -119,6 +119,12 @@ void Decompiler::decompile(Ref ref)
     }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
+    // ArrayIndex GetFunctionArgCount(Ref fn)
+    // DONE: CodeBlock
+    // DONE: kPlainFuncClass
+    // TODO: kPlainCFunctionClass
+    // TODO: kBinCFunctionClass is a Frame: code, numArgs, closure, offset, bcFunc
+    // TODO: binCFunction
   }
 
   literals_ = GetFrameSlot(ref, SYMA(literals));

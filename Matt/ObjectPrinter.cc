@@ -424,6 +424,12 @@ void ObjectPrinter::PrintFrame(RefArg ref) {
       PrintFunction(ref);
       return;
     }
+    if (   (theClass == kBinCFunctionClass)
+        && (NOTNIL(GetFrameSlot(ref, MakeSymbol("bcFunc")))) )
+    {
+      PrintFunction(GetFrameSlot(ref, MakeSymbol("bcFunc")));
+      return;
+    }
     if (theClass == kPlainCFunctionClass)
       fprintf(stderr, "Can't decompile PlainCFunctionClass\n");
     else if (theClass == kBinCFunctionClass)
@@ -735,6 +741,15 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       map[nextArgFrame].suppressEarlyPrint_ = true;
     }
   }
+  RefVar literals = GetFrameSlot(func, SYMA(literals));
+  if (IsArray(literals)) map[literals].suppressEarlyPrint_ = true;
+
+  // The DebuggerInfo may contain symbols that can be printed, but not read
+  // back ('|slotvalue|iter|), so suppress this info here.
+  // TODO: us this info when naming args and locals though!
+  Ref debuggerInfo = GetFrameSlot(func, SYMA(debuggerInfo));
+  if (NOTNIL(debuggerInfo)) 
+    map[debuggerInfo].suppressEarlyPrint_ = true;
 
   // Some stuff *must* be declared as a global constant first.
   // This ensures that an object is created at compile time vs. run time.
@@ -744,7 +759,6 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
   // - it contains a function definition (recursive test!)
   // - and is a receiver of any of the 'send' calls (requires parsing bytecode, not implemented yet!)
 //  fprintf(stderr, "Checking function: %s\n", this->RefPath().c_str());
-  RefVar literals = GetFrameSlot(func, SYMA(literals));
   if (IsArray(literals)) {
     int i, n = Length(literals);
     for (i = 0; i < n; ++i) {
