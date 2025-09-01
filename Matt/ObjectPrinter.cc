@@ -746,34 +746,24 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
 
   // The DebuggerInfo may contain symbols that can be printed, but not read
   // back ('|slotvalue|iter|), so suppress this info here.
-  // TODO: us this info when naming args and locals though!
+  // TODO: use this info when naming args and locals though!
   Ref debuggerInfo = GetFrameSlot(func, SYMA(debuggerInfo));
   if (NOTNIL(debuggerInfo)) 
     map[debuggerInfo].suppressEarlyPrint_ = true;
 
   // Some stuff *must* be declared as a global constant first.
   // This ensures that an object is created at compile time vs. run time.
-  // Mark as print early if all of these apply:
-  // - it is in the 'literals' array of a function
-  // - it's a frame
-  // - it contains a function definition (recursive test!)
-  // - and is a receiver of any of the 'send' calls (requires parsing bytecode, not implemented yet!)
 //  fprintf(stderr, "Checking function: %s\n", this->RefPath().c_str());
   if (IsArray(literals)) {
     int i, n = Length(literals);
     for (i = 0; i < n; ++i) {
       Ref slot = GetArraySlot(literals, i);
-      // Make sure that all literals that contain functions are printed as global constants
-      bool containsFunction = false;
-      if (IsArray(slot) || IsFrame(slot)) {
-//        fprintf(stderr, "Checking Literal: %s\n", this->RefPath().c_str());
-        containsFunction = FrameDeclaresFunc(slot);
-      }
-      if (containsFunction)
-        map[slot].forceEarlyPrint_ = true;
       // All literals that are predefined frames must be declared as global
-      // constants, or the compiler will generate them at runtime.
-      if (IsFrame(slot)) map[slot].forceEarlyPrint_ = true;
+      // constants, or the compiler will generate them at runtime. Functions
+      // however must *not* be declared global constants, or the compiler
+      // will not emit the required SetLexScope.
+      // TODO: should that be the same for arrays? What about arrays defining a map?
+      if (IsFrame(slot) && !IsFunction(slot)) map[slot].forceEarlyPrint_ = true;
     }
   }
 }
