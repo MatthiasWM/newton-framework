@@ -69,7 +69,8 @@ public:
   int pc() { return pc_; }
   int a() { return a_; }
   int b() { return b_; }
-  
+  int b_signed() { return static_cast<int>(static_cast<int16_t>(b_)); }
+
   // ---- virtual methods that can be overridden by derived classes
   // -- Resolve the AST
   virtual int provides() { return kProvidesUnknown; }

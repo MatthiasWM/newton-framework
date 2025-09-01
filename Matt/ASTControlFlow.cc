@@ -435,8 +435,12 @@ Node *BCBranchLoop::Resolve(Pass pass)
     jtAgain->Unlink();
     brTest->Unlink();
     getIter->Unlink();
-    start->body_.resize(nInstr - 4); // unlink the instructions at the end of the start code block
-    if (start->size() == 0) start->Unlink();
+
+    start->pop_back();
+    start->pop_back();
+    start->pop_back();
+    start->pop_back();
+    start->UnlinkIfEmpty();
 
     // Mark the locals with an alternative use, so they are not declared
     dec.useLocalAs(incr, Decompiler::Local::Use::iter);
@@ -508,10 +512,10 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     Node *it = prev;
     BCSetVar *setValueNode = nullptr, *setSlotNode = nullptr;
     int slot = -1, value = -1, iter = -1;
-    // Traverse back to evaluate the setup.
+    // Walk backward to evaluate the setup.
     REQUIRED_NODE( BCPushConst, deeplyConst, prev, true ) { it = it->prev; }
     REQUIRED_COND( Node, setObject, setObject->IsExpr(), it, true);
-    // Travers forward to evaluate the rest of the pattern.
+    // Walk forward to evaluate the rest of the pattern.
     it = next;
     REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
@@ -849,10 +853,8 @@ void BCPopHandlers::Print(uint32_t flags) {
 
 void BCSetLexScope::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  // This prints an entire function. Put it inside a list, so it's formatted with an indent.
-  dec.p.StartList(";");
+  // This prints an entire function.
   in_->Print();
-  dec.p.EndList();
 }
 
 #pragma mark - BCCall

@@ -427,9 +427,9 @@ bool Decompiler::compressAST()
         // Insert codeBlock before nd
         nd->InsertBefore(codeBlock);
         codeBlock->moveToBody(nd, numStmts);
-//        nd = codeBlock->next;
-//        return true;
-        nd = codeBlock;
+        nd = codeBlock->next;
+        return true;
+//        nd = codeBlock;
       }
     }
     nd = nd->next;

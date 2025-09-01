@@ -763,6 +763,7 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
     int i, n = Length(literals);
     for (i = 0; i < n; ++i) {
       Ref slot = GetArraySlot(literals, i);
+      // Make sure that all literals that contain functions are printed as global constants
       bool containsFunction = false;
       if (IsArray(slot) || IsFrame(slot)) {
 //        fprintf(stderr, "Checking Literal: %s\n", this->RefPath().c_str());
@@ -770,6 +771,9 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       }
       if (containsFunction)
         map[slot].forceEarlyPrint_ = true;
+      // All literals that are predefined frames must be declared as global
+      // constants, or the compiler will generate them at runtime.
+      if (IsFrame(slot)) map[slot].forceEarlyPrint_ = true;
     }
   }
 }

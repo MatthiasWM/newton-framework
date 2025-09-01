@@ -38,7 +38,7 @@ bool BCPushConst::IsNIL()
 
 void BCPushConst::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
-  dec.p.PrintConstant(b_);
+  dec.p.PrintConstant(b_signed());
 }
 
 #pragma mark - BCPushSelf

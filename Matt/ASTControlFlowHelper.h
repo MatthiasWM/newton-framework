@@ -48,7 +48,7 @@ public:
   int size() { return (int)body_.size(); }
   Node *at(int ix) { return body_.at(ix); }
   Node *back() { return body_.back(); }
-  void pop_back() { body_.pop_back(); }
+  void pop_back();
   void pop_front() { body_.erase(body_.begin()); }
   void UnlinkIfEmpty() { if (body_.empty()) Unlink(); }
   void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }

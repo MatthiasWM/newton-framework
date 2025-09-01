@@ -207,7 +207,7 @@ ForEachLoopDone(RefArg iter)
 			return false;
 		return ISNIL(GetFrameSlot(GetArraySlot(iter, kIterObjectIndex), SYMA(_proto)));
 	}
-	
+
 	return currentIndex >= lastIndex;
 }
 
@@ -1265,11 +1265,12 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 		/*------------------------------
 			push-constant
 			-- value
-			b is always unsigned (Newton Formats 2-11)
+			b is signed only for this instruction (Newton Formats 2-11)
 		------------------------------*/
 			case 047:
-				b = *(unsigned char *)instrPtr++ << 8;
+				b = *instrPtr++ << 8;
 				b += *instrPtr++;
+				b = static_cast<int>(static_cast<int16_t>(b));
 			case 040:
 			case 041:
 			case 042:
@@ -1368,7 +1369,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			case 0106:
 				var2 = *--(dataStack.top);	// name
 				var1 = *--(dataStack.top);	// receiver
-				
+
 				if (XFindImplementor(var1, var2, &var3, &var4))
 				{
 					instructionOffset = instrPtr - instrBase;
@@ -1397,7 +1398,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			case 0115:
 			case 0116:
 				var1 = *--(dataStack.top);	// name
-				
+
 				if (XFindProtoImplementor(vm->impl, var1, &var2, &var3))
 				{
 					instructionOffset = instrPtr - instrBase;
@@ -1423,7 +1424,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			case 0125:
 			case 0126:
 				var1 = *--(dataStack.top);	// name
-				
+
 				if (XFindProtoImplementor(vm->impl, var1, &var2, &var3))
 				{
 					instructionOffset = instrPtr - instrBase;
@@ -1521,7 +1522,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 						context = vm->rcvr;
 						lookup = kNoLookup;
 					}
-	
+
 					result = XGetVariable(context, var1, &exists, lookup);
 					if (!exists)
 						result = UnsafeGetFrameSlot(gVarFrame, var1, &exists);
@@ -2871,7 +2872,7 @@ CInterpreter::callPlainCFunction(RefArg func, ArrayIndex numArgs)
 	ArrayIndex numArgsExpected = RVALUE(funcObj->slot[kPlainCFunctionNumArgsIndex]);
 	if (numArgs != numArgsExpected)
 		ThrowErr(exInterpreter, kNSErrWrongNumberOfArgs);
-	
+
 	// call the function: pop args off the stack and replace with the result
 	Ref result = callCFuncPtr((CFunction) funcObj->slot[kPlainCFunctionPtrIndex], numArgs);
 	dataStack.top -= ((int)numArgs - 1);
@@ -3346,7 +3347,7 @@ CInterpreter::handleException(Exception * inException, int inDepth, StackState &
 						{
 							VMState * prevVM = vm;
 							vm = ctrlStack.pop();
-							
+
 							Ref * RSfn = &vm->func;
 							Ref * RSprevFn = &prevVM->func;
 							trace(RA(fn), RA(prevFn), STACKINDEX(ctrlStack), stackPos, 3, gFramesFunctionProfilerData);
@@ -3356,7 +3357,7 @@ CInterpreter::handleException(Exception * inException, int inDepth, StackState &
 					stackDelta = STACKINDEX(ctrlStack) - xStackDepth;
 					ctrlStack.top = ctrlStack.top - stackDelta;
 					vm = ctrlStack.at(STACKINDEX(ctrlStack)/kNumOfItemsInStackFrame);
-					
+
 					vm->func = GetArraySlot(xContext, kExcDataFn);
 					instructionOffset = RINT(GetArraySlot(handlers, i+1));
 					vm->rcvr = GetArraySlot(xContext, kExcDataRcvr);

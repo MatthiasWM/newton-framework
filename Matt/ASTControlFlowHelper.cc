@@ -80,6 +80,16 @@ void CodeBlock::add(Node *nd)
   }
 }
 
+void CodeBlock::pop_back() {
+  body_.pop_back();
+  if (body_.empty() || !back()->IsExpr()) {
+    provides_ = kProvidesNone;
+  } else {
+    provides_ = kProvidesOne;
+  }
+}
+
+
 /**
  \brief Print the body nodes of a code block.
  */

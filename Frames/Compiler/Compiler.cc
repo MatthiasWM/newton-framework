@@ -2944,6 +2944,8 @@ CCompiler::emitPop(void)
 	or an immediate that will fit b (short) then push a constant.
 	Args:		inValue		value to push
 	Return:	--
+	Note: push-constant expects inValue to be signed. Make sure the 32bit
+	and 16bit representations are equal.
 ------------------------------------------------------------------------------*/
 
 void
@@ -2954,7 +2956,7 @@ CCompiler::emitPush(RefArg inValue)
 	Ref		ref = inValue;
 
 	if ((ISMAGICPTR(ref) && (RVALUE(ref) < 4096))
-	 || (!ISPTR(ref) && (ref == (ref & 0xFFFF))))
+	 || (!ISPTR(ref) && (ref == static_cast<Ref>(static_cast<int16_t>(ref)))))
 	{
 		b = ref;
 		a = kOpcodePushConstant;
