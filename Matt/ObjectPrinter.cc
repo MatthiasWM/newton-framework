@@ -103,9 +103,9 @@ void ObjectPrinter::PrintBinary(RefArg ref) {
   Print(")");
 }
 
-void ObjectPrinter::PrintFunction(RefArg ref) {
+void ObjectPrinter::PrintFunction(RefArg ref, bool isNative) {
   assert(IsFunction(ref));
-  mDecompile(ref, *this, debugAST_, debugBC_);
+  mDecompile(ref, *this, isNative, debugAST_, debugBC_);
 }
 
 // plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*
@@ -421,13 +421,13 @@ void ObjectPrinter::PrintFrame(RefArg ref) {
     if (   (theClass == kPlainFuncClass)
         || (EQ(theClass, SYMA(CodeBlock))) )
     {
-      PrintFunction(ref);
+      PrintFunction(ref, false);
       return;
     }
     if (   (theClass == kBinCFunctionClass)
         && (NOTNIL(GetFrameSlot(ref, MakeSymbol("bcFunc")))) )
     {
-      PrintFunction(GetFrameSlot(ref, MakeSymbol("bcFunc")));
+      PrintFunction(GetFrameSlot(ref, MakeSymbol("bcFunc")), true);
       return;
     }
     if (theClass == kPlainCFunctionClass)
@@ -802,6 +802,17 @@ void ObjectPrinter::BuildRefMap(RefArg ref)
  */
 void ObjectPrinter::Print(RefArg ref)
 {
+  if (IsFrame(ref)) {
+    RefVar signature = GetFrameSlot(ref, MakeSymbol("signature"));
+    if (IsSymbol(signature)) {
+      if (SymbolCompare(signature, MakeSymbol("package0"))==0) {
+        Print("//! -nos1\n");
+      } else if (SymbolCompare(signature, MakeSymbol("package1"))==0) {
+        Print("//! -nos2\n");
+      }
+    }
+  }
+
   map.clear();
   DeepList(";\n"); SetIndent(0);
   if (IsArray(ref) || IsFrame(ref)) {

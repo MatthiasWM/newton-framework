@@ -49,6 +49,7 @@ extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
 int currentRefIndex = 0;
 std::string currentFileName = "<undefined>";
 
+static bool forceNOS_ { false };
 static bool debugAST_ { false };
 static bool debugBC_ { false };
 static std::string debugTrap_;
@@ -107,6 +108,7 @@ void handleArgPkg(const std::string &filename)
   if (package == NILREF) {
     throw(std::runtime_error("Can't read package."));
   }
+
   addGlobalRef(package);
 }
 
@@ -131,6 +133,16 @@ void handleArgNsof(const std::string &filename)
 void handleArgScript(const std::string &filename)
 {
   currentFileName = filename;
+  FILE *f = fopen(filename.c_str(), "rb");
+  if (f) {
+    char buf[81]; buf[0] = 0;
+    fgets(buf, 80, f);
+    if ((strcmp(buf, "//! -nos1\n") == 0) && !forceNOS_)
+      DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
+    else if ((strcmp(buf, "//! -nos2\n") == 0) && !forceNOS_)
+      DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
+    fclose(f);
+  }
   Ref result = ParseFile(filename.c_str());
   addGlobalRef(result);
 }
@@ -204,6 +216,7 @@ void handleArgR(const std::string &script)
  */
 void handleArgNos1()
 {
+  forceNOS_ = true;
   DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
 }
 
@@ -212,6 +225,7 @@ void handleArgNos1()
  */
 void handleArgNos2()
 {
+  forceNOS_ = true;
   DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
 }
 

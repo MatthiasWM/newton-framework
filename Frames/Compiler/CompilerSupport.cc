@@ -413,12 +413,16 @@ CFunctionState::isLocalVariable(RefArg inTag)
 ArrayIndex
 CFunctionState::variableIndex(RefArg inTag)
 {
-	if (gCompilerCompatibility == 0)
-	//	NOS 1
-		return FrameSlotPosition(fArgFrame, inTag);
-	else
-	//	NOS 2
-		return RINDEX(GetFrameSlot(fVarLocs, inTag));
+  if (gCompilerCompatibility == 0) {
+    //	NOS 1
+    return FrameSlotPosition(fArgFrame, inTag);
+  } else {
+    //	NOS 2
+    Ref r = GetFrameSlot(fVarLocs, inTag);
+    if (!IsInt(r))
+      return kIndexNotFound;
+    return RINDEX(r);
+  }
 }
 
 

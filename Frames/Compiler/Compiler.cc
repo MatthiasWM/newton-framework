@@ -3008,7 +3008,7 @@ CCompiler::emitVarSet(RefArg inName)
 	Opcode	a;
 	int		b;
 
-	if (func->isLocalVariable(inName) && (b = func->variableIndex(inName)) != -1)
+	if (func->isLocalVariable(inName) && (b = func->variableIndex(inName)) != kIndexNotFound)
 		a = kOpcodeSetVar;
 	else
 	{

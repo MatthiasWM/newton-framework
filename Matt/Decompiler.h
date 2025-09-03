@@ -49,7 +49,7 @@ public:
   int numASTChanges = 0; // While resolving, this number will increase whenever a node is resolved
   class Local {
   public:
-    enum class Use { undefined, system, arg, local, loop, iter, limit };
+    enum class Use { undefined, system, arg, local, loop, iter, limit, noted };
     Ref ref;
     Use use = Use::undefined;
   };
@@ -78,7 +78,7 @@ public:
   ObjectPrinter *Printer() { return &p; }
   void printAST(const char *label);
   void printASTRoot();
-  void printSource();
+  void printSource(bool isNative);
   void printLiteralAsTag(int ix) {
     p.PrintTag(GetArraySlot(literals_, ix));
   }
@@ -101,7 +101,7 @@ public:
   Precedence precedence { kPrecedenceAssign }; // During printout, store the precedence of the current operation
 };
 
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST, bool debugBC);
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool isNative, bool debugAST, bool debugBC);
 
 
 #endif  /* __MATTSDECOMPILER_H */

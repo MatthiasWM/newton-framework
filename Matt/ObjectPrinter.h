@@ -86,7 +86,7 @@ public:
 
   ObjectPrinter(std::ostream &oStream) : Printer(oStream) { }
 
-  void PrintFunction(RefArg ref);
+  void PrintFunction(RefArg ref, bool isNative);
   void PrintBinary(RefArg ref);
   void PrintSymbol(RefArg ref);
   void PrintTag(RefArg ref);

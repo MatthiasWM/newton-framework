@@ -16,6 +16,7 @@
 #include "Matt/ASTControlFlowHelper.h"
 
 #include "Frames/Frames.h"
+#include "Frames/Iterators.h"
 
 #include <algorithm>
 #include <tuple>
@@ -83,11 +84,11 @@ void Decompiler::decompile(Ref ref)
     // Make the list of names of the locals
     MapSlots(argFrame,
              [](RefArg tag, RefArg, uintptr_t user_data)->long {
-                  Decompiler *self = (Decompiler*)user_data;
-                  Decompiler::Local l = { tag, Local::Use::undefined };
-                  self->locals_.push_back(l);
-                  return NILREF;
-                },
+      Decompiler *self = (Decompiler*)user_data;
+      Decompiler::Local l = { tag, Local::Use::undefined };
+      self->locals_.push_back(l);
+      return NILREF;
+    },
              (uintptr_t)this);
     locals_[0].use = Local::Use::system; // _nextArgFrame
     locals_[1].use = Local::Use::system; // _parent
@@ -117,6 +118,22 @@ void Decompiler::decompile(Ref ref)
       snprintf(buf, 30, "loc%d", i);
       locals_.push_back( { MakeSymbol(buf), Local::Use::local } );
     }
+    // There can be additional named locals if they also appear in `literals`
+    Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+    if (NOTNIL(argFrame)) {
+      //int argFrameLength = Length(argFrame);
+      int i = -3; // skip the system locals (not the args)
+      CObjectIterator iter(argFrame);
+      for ( ; !iter.done(); iter.next(), ++i)
+      {
+        fprintf(stderr, "%s\n", SymbolName(iter.tag()));
+        if (i >= 0) {
+          RefVar tag = iter.tag();
+          locals_.push_back( { tag, Local::Use::noted } );
+          numLocals_++;
+        }
+      }
+    }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
     // ArrayIndex GetFunctionArgCount(Ref fn)
@@ -142,6 +159,13 @@ void Decompiler::decompile(Ref ref)
       ::PrintObject(GetArraySlot(literals_, i), 0);
       printf("\n");
     }
+    printf("\n\nLocals:\n");
+    n = (int)locals_.size();
+    const char *useLUT[] = { "undefined", "system", "arg", "local", "loop", "iter", "limit", "noted" };
+    for (i = 0; i < n ; i++) {
+      printf("%4d: %s (%s)\n", i, SymbolName(locals_[i].ref), useLUT[(int)locals_[i].use] );
+    }
+
     printAST("Initial AST");
   }
   if (!p.DebugTrap().empty() && (p.RefPath() == p.DebugTrap())) {
@@ -483,12 +507,15 @@ void Decompiler::printASTRoot()
  If a node can not print itself, it will output an AST node description for
  debugging.
  */
-void Decompiler::printSource()
+void Decompiler::printSource(bool isNative)
 {
   output = Print::script;
 
   // Print the function header and argument list
-  p.Print("func(");
+  if (isNative)
+    p.Print("func native(");
+  else
+    p.Print("func(");
   p.StartList(",");
   for (int i=0; i<numArgs_; i++) {
     p.Item(); p.Print(""); printLocal(i + 3);
@@ -506,7 +533,7 @@ void Decompiler::printSource()
     bool localsPrinted = false;
     for (int i = 0; i < numLocals_; ++i) {
       // Don't print locals that are used as iterators in 'for' or 'foreach'
-      if (localUsedAs(i + 3 + numArgs_, Local::Use::local)) {
+      if (localUsedAs(i + 3 + numArgs_, Local::Use::local) || localUsedAs(i + 3 + numArgs_, Local::Use::noted)) {
         p.Item();
         p.Printf("local ");
         printLocal(i + 3 + numArgs_);
@@ -600,11 +627,11 @@ void Decompiler::printSource()
  - `numArgs`: 2
  ```
  */
-NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool debugAST, bool debugBC)
+NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool isNative, bool debugAST, bool debugBC)
 {
   Decompiler d(printer);
   d.decompile(ref);
-  d.printSource();
+  d.printSource(isNative);
   return noErr;
 }
 
