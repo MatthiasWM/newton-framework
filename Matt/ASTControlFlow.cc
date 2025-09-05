@@ -851,6 +851,12 @@ void BCPopHandlers::Print(uint32_t flags) {
 
 #pragma mark - BCSetLexScope
 
+/*
+ BCSetLexScope is generated before calling a function that is defined inside a
+ function. When decompiling, a function following BCSetLexScope must be
+ declared inline or as a variable. Otherwise it must be declared
+ as a global const and linked.
+ */
 void BCSetLexScope::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   // This prints an entire function.

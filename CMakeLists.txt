@@ -550,19 +550,18 @@ add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
 set_property (TARGET newtc
   PROPERTY XCODE_SCHEME_ARGUMENTS
-    "-nos2"
+#    "-nos2"
 #    "-pkglist /Users/matt/dev/a.list"
 #    "-pkglist /Users/matt/dev/unna.list"
-#    "-debug ast"
-    "-debug bc"
+    "-debug ast"
+#    "-debug bc"
 #    "-trap part.0.data.theForm.ResetFSM._proto.ObjectToString"
 #    "-hello"
 ##    "-script '/Users/matt/dev/Newton/NTK/Platforms/Newton 2.0 Defs'"
 ##    "-script /Users/matt/dev/a.txt"
 ##    "-script /tmp/newtc_a"
 ##    "-script '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.text'"
-#    "-pkg '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using Text Files/Altered States.pkg'"
-    "-script /tmp/newtc_a"
+    "-pkg '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.pkg'"
 #    "-script /Users/matt/dev/adjusto.txt"
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Gauges.pkg"
