@@ -763,7 +763,9 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       // however must *not* be declared global constants, or the compiler
       // will not emit the required SetLexScope.
       // TODO: should that be the same for arrays? What about arrays defining a map?
-      if (IsFrame(slot) && !IsFunction(slot)) map[slot].forceEarlyPrint_ = true;
+      if (   (IsFrame(slot) && !IsFunction(slot))
+          || (IsArray(slot) && (ClassOf(slot) != MAKEINT(2)))
+          ) map[slot].forceEarlyPrint_ = true;
     }
   }
 }
@@ -787,6 +789,34 @@ void ObjectPrinter::BuildRefMap(RefArg ref)
   BuildRefMapLength(ref);
 }
 
+/**
+ If this is a package, go into the first part and check if the package uses
+ slow 'CodeBlock functions or the faster NOS2 kPlainFuncClass functions.
+ */
+bool ObjectPrinter::FindFastFunction(RefArg pkg) {
+  Ref part = GetFrameSlot(pkg, MakeSymbol("part"));
+  if (!IsArray(part)) return false;
+  Ref part0 = GetArraySlot(part, 0);
+  if (!IsFrame(part0)) return false;
+  std::function<bool(RefArg)> fn = [&](RefArg ref)->bool {
+    if (IsFunction(ref)) {
+      if (GetFrameSlot(ref, SYMA(class)) == kPlainFuncClass) {
+        //fprintf(stdout, "Fast Function found!\n");
+        return true;
+      } else {
+        return false;
+      }
+    }
+    if ( IsRealPtr(ref) && (IsFrame(ref) || IsArray(ref)) ) {
+      CObjectIterator iter(ref, false);
+      for ( ; !iter.done(); iter.next()) {
+        if (fn(iter.value())) return true;
+      }
+    }
+    return false;
+  };
+  return fn(part0);
+}
 
 /**
  \brief Main entry point for users.
@@ -805,10 +835,12 @@ void ObjectPrinter::Print(RefArg ref)
   if (IsFrame(ref)) {
     RefVar signature = GetFrameSlot(ref, MakeSymbol("signature"));
     if (IsSymbol(signature)) {
-      if (SymbolCompare(signature, MakeSymbol("package0"))==0) {
-        Print("//! -nos1\n");
-      } else if (SymbolCompare(signature, MakeSymbol("package1"))==0) {
+      if (   (SymbolCompare(signature, MakeSymbol("package1")) == 0)
+          && (FindFastFunction(ref)) )
+      {
         Print("//! -nos2\n");
+      } else {
+        Print("//! -nos1\n");
       }
     }
   }

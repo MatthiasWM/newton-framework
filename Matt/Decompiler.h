@@ -55,7 +55,6 @@ public:
   };
 
 protected:
-  int nos_ = 0;
   int numArgs_ = 0;
   int numLocals_ = 0;
 

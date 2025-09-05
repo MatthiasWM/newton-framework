@@ -23,6 +23,23 @@
 
 using namespace ast;
 
+/*
+ NTK Settings:
+ Platform: platform file used is reflected in the "info" entry. All other
+    changes are based on the platform file that was used
+ Compile for debugging: adds 'DebuggerInfo slots after 'numArgs and possibly
+    more
+ Use StepChildren slot: if not checked. the stepChildren slot is an array with
+    a different format vs. the more usual frame format
+ Compile for Profiling: 'DebuggerInfo slot gets some additional information
+ Newton 2.0 Platform only: create package1 instead of package0, no other changes?!
+ Faster Functions: use kPlainFuncClass instead of 'CodeBlock, corresponds to
+    nos2 vs. nos1. There is no flag in the header that indicates this!
+    TODO: we should rename this flags
+ Tighter Object Packing: set the nos2 bit in the package part: "nos2: true"
+    TODO: we should rename this flags
+ */
+
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
 /* TODO: all allocated AST nodes should be kept in a single vector and never
@@ -33,6 +50,31 @@ using namespace ast;
 /* TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
   debug information in the code. Especially with nos2, this can restore argument
   names. In any format, it can give names to our views in the stepChildren array.
+ */
+/*
+ TODO:
+ Can't decompile:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.pkg'
+ One extra SetLexScope:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/French Onion.pkg'
+ Optimisation: extra push nil, pop, push nil
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/True Grid-5/True Grid.pkg'
+ Everything perfect in:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/
+ Can't decompile:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/Mini-MetaData-1/Newton Source/Mini-MetaData.pkg'
+ Extra set-lex-scope, extra literal "stringer", duplicate literal "atlk"
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SoupDrink-Newton-4/SoupDrink.pkg'
+ Large parts seem to be missing:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/MonacoTest.pkg'
+ Can't read the original package!
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUser.pkg'
+ Can't read package:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/BookSample-4/BookSample.π.pkg'
+ Large binaries cause overflow in SafelyPrintString ObjectPrinter.cc:525:
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Photo Album-1/Photo Album.pkg'
+ Name of args lost (func(view) becomes func(arg0)). We have to verify that the flags in NTK do what we think they do!
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Serial-2/Basic Serial.pkg'
  */
 
 /*
@@ -74,7 +116,7 @@ void Decompiler::decompile(Ref ref)
 {
   Ref klass = GetFrameSlot(ref, SYMA(class));
   if (IsSymbol(klass) && SymbolCompare(klass, SYMA(CodeBlock))==0) {
-    nos_ = 1;
+    // slow NOS 1.x style function
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
     numArgs_ = RefToInt(numArgs);
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
@@ -98,7 +140,7 @@ void Decompiler::decompile(Ref ref)
     for (int i=0; i<numLocals_; i++)
       locals_[i+3+numArgs_].use = Local::Use::local;
   } else if (klass == kPlainFuncClass) {
-    nos_ = 2;
+    // faster NOS 2.x style function
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
     numArgs_ = static_cast<int>((numArgs>>2) & 0x00003fff);
     numLocals_ = static_cast<int>(numArgs >> 18);

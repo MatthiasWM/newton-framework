@@ -366,7 +366,7 @@ void NewtonPackageWriter::writePartDir(int index, RefArg package) {
   RefVar part = GetArraySlot(partArray, index);
   if (!IsFrame(part)) ThrowMsg("Not a package: part description is not a frame");
 
-  nos2_ = false;
+  align4_ = false;
   uint32_t flags = 0;
   RefVar flagsRef = GetFrameSlot(part, MakeSymbol("flags"));
   if (IsFrame(flagsRef)) {
@@ -391,8 +391,8 @@ void NewtonPackageWriter::writePartDir(int index, RefArg package) {
       flags |= kNotifyFlag;
     if (GetFrameSlot(flagsRef, MakeSymbol("autoCopy")) == TRUEREF)
       flags |= kAutoCopyFlag;
-    if (GetFrameSlot(flagsRef, MakeSymbol("nos2")) == TRUEREF)
-      nos2_ = true;
+    if (GetFrameSlot(flagsRef, MakeSymbol("align4")) == TRUEREF)
+      align4_ = true;
   }
 
   // Write the directory to dir.
@@ -459,8 +459,8 @@ void NewtonPackageWriter::writePart(int index, RefArg data)
   // four-byte boundaries. Otherwise, the objects are padded to eight-byte boundaries.
   BinaryOutStream *out = part_[index].get();
   *out << (uint32_t)0x00001041;    // single element array
-  if (nos2_)
-    *out << (uint32_t)0x00000001;  // special flag for nos2 4 byte alignment
+  if (align4_)
+    *out << (uint32_t)0x00000001;  // special flag for 4 byte alignment (NewtonOS 2.x only!)
   else
     *out << (uint32_t)0x00000000;  // nos1 8 byte alignment
   *out << (uint32_t)0x00000002;    // array type is NIL
@@ -485,7 +485,7 @@ void NewtonPackageWriter::writePart(int index, RefArg data)
 
 void NewtonPackageWriter::align(BinaryOutStream *out)
 {
-  if (nos2_) {
+  if (align4_) {
     out->alignTo4();
   } else {
     out->alignTo8();

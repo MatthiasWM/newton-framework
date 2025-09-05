@@ -30,7 +30,7 @@ private:
 	int numParts_ = 0;
 	uint32_t partOffset_ = 1;
 	uint32_t varDataSize_ = 0;
-	bool nos2_ = false;
+  bool align4_ = false;
 
 	std::map<Ref, uint32_t> precedent_;
 	std::map<uint32_t, Ref> fixup_;

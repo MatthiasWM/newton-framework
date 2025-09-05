@@ -67,6 +67,8 @@ public:
   std::map<Ref, Node> map;
   std::vector<Ref> refPath_;
 
+  bool FindFastFunction(RefArg pkg);
+
   bool FrameDeclaresFunc(RefArg ref);
   int TextLength(RefArg ref, RefArg sameSym = NILREF);
   void BuildRefMapLength(RefArg ref);

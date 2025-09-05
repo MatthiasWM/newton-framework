@@ -501,7 +501,7 @@ Ref NewtonPackage::packageRef()
       case kNOSPart:
         SetFrameSlot(flags, MakeSymbol("type"), MakeSymbol("nos"));
         if (align4flag[p])
-          SetFrameSlot(flags, MakeSymbol("nos2"), TRUEREF);
+          SetFrameSlot(flags, MakeSymbol("align4"), TRUEREF);
         break;
 			case kRawPart:
 				SetFrameSlot(flags, MakeSymbol("type"), MakeSymbol("raw"));
