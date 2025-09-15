@@ -497,6 +497,7 @@ void ObjectPrinter::PrintRef(RefArg ref, bool ignoreMap)
   }
   if (ignoreMap == false) {
     Node &nd = map[ref];
+    if (nd.DontPrint()) return;
     if (nd.EarlyPrint()) {
       Print(nd.label_);
       return;
@@ -562,7 +563,9 @@ void ObjectPrinter::PrintDependents(RefArg ref)
     if (IsArray(ref) || IsFrame(ref)) {
       FOREACH(ref, slot); {
         if (ISREALPTR(slot)) {
-          if (map[slot].EarlyPrint()) {
+          if (map[slot].DontPrint()) {
+            ;
+          } else if (map[slot].EarlyPrint()) {
             PrintPartialTree(slot);
           } else {
             PrintDependents(slot);
@@ -741,33 +744,8 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       map[nextArgFrame].suppressEarlyPrint_ = true;
     }
   }
-
-#if 0
-  // The arg frame indicates if a function inside a function references the
-  // enclosing function (must be defined inline), or if it stands by itself
-  // (define as global const).
-  bool isFastFunc = (GetFrameSlot(func, SYMA(class)) == kPlainFuncClass);
-  if (isFastFunc) {
-//    if (ISNIL(argFrame)) {
-//      map[func].forceEarlyPrint_ = true;
-//      map[func].suppressEarlyPrint_ = false;
-//    } else {
-//      map[func].forceEarlyPrint_ = false;
-//      map[func].suppressEarlyPrint_ = true;
-//    }
-  } else {
-    if (IsFrame(argFrame)) {
-      Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
-      //      if (ISNIL(nextArgFrame)) {
-      //        map[func].forceEarlyPrint_ = true;
-      //        map[func].suppressEarlyPrint_ = false;
-      //      } else {
-      //        map[func].forceEarlyPrint_ = false;
-      //        map[func].suppressEarlyPrint_ = true;
-      //      }
-    }
-  }
-#endif
+  Ref instructions = GetFrameSlot(func, SYMA(instructions));
+  if (IsBinary(instructions)) map[instructions].dontPrint_ = true;
 
   RefVar literals = GetFrameSlot(func, SYMA(literals));
   if (IsArray(literals)) map[literals].suppressEarlyPrint_ = true;
@@ -799,14 +777,24 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
         argFrame = GetFrameSlot(slot, SYMA(argFrame));
         bool isFastFunc = (GetFrameSlot(func, SYMA(class)) == kPlainFuncClass);
         if (isFastFunc) {
-          if (ISNIL(argFrame)) {
-            map[slot].forceEarlyPrint_ = true;
-            map[slot].suppressEarlyPrint_ = false;
-          } else {
-            map[slot].forceEarlyPrint_ = false;
-            map[slot].suppressEarlyPrint_ = true;
+          map[slot].forceEarlyPrint_ = false;
+          map[slot].suppressEarlyPrint_ = false;
+//          Print("\n// argFrame >>>>\n");
+//          Print(argFrame);
+//          Print("\n// <<<< argFrame\n");
+          if (IsFrame(argFrame)) {
+            Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
+            if (ISNIL(nextArgFrame)) {
+              map[slot].forceEarlyPrint_ = false;
+              map[slot].suppressEarlyPrint_ = true;
+            } else {
+              map[slot].forceEarlyPrint_ = true;
+              map[slot].suppressEarlyPrint_ = false;
+            }
           }
         } else {
+          map[slot].forceEarlyPrint_ = false;
+          map[slot].suppressEarlyPrint_ = false;
           if (IsFrame(argFrame)) {
             Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
             if (ISNIL(nextArgFrame)) {

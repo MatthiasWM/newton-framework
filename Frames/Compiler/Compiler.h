@@ -217,7 +217,14 @@ private:
 	RefStruct		fInstructions;		// +10
 	RefStruct		fLiterals;			// +14
 	RefStruct		fArgFrame;			// +18
-	RefStruct		fNotedLocals;		// +1C	doesn’t do anything useful
+	/** Noted Locals:
+	  Normally, locals are just anonymous slots, and you only reach them by
+	  position (index). Noted locals are the subset of locals that have names
+	  recorded for debugging or reflection, meaning, they are used by name in a
+	  function inside the function. They are accessed with the same bytecode
+	  that finds named variables, but only within the func frame.
+	  */
+	RefStruct		fNotedLocals;		// +1C
 	RefStruct		fVarLocs;			// +20
 	ArrayIndex		fNumOfVarLocs;		// +24
 	ArrayIndex		fPC;					// +28

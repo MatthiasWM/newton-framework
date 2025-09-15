@@ -130,7 +130,9 @@ void BCBranch::Print(uint32_t flags) {
  */
 Node *BCBranchIfTrue::Resolve(Pass pass)
 {
-  if (pass == Pass::DataFlow) {
+//  if (pass == Pass::DataFlow) {
+  // Give the compress pass a chance to build a larger condition
+  if ((pass == Pass::ControlFlow) && (!in_)) {
     if (!in_ && prev->IsExpr()) {
       in_ = prev;
       prev->Unlink();

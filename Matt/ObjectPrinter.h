@@ -62,7 +62,9 @@ public:
     bool visited_ { false };
     bool suppressEarlyPrint_ { false };
     bool forceEarlyPrint_ { false };
-    bool EarlyPrint() { return forceEarlyPrint_ || ((numRefs_ > 1) && !suppressEarlyPrint_); }
+    bool dontPrint_ { false };
+    bool DontPrint() { return dontPrint_; }
+    bool EarlyPrint() { return forceEarlyPrint_ || ((numRefs_ > 1) && !suppressEarlyPrint_ && !dontPrint_); }
   };
   std::map<Ref, Node> map;
   std::vector<Ref> refPath_;

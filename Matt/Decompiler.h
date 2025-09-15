@@ -49,7 +49,7 @@ public:
   int numASTChanges = 0; // While resolving, this number will increase whenever a node is resolved
   class Local {
   public:
-    enum class Use { undefined, system, arg, local, loop, iter, limit, noted };
+    enum class Use { undefined, system, arg, local, loop, iter, limit, noted, notedArg };
     Ref ref;
     Use use = Use::undefined;
   };
@@ -59,6 +59,8 @@ protected:
   int numLocals_ = 0;
 
   std::vector<Local> locals_;
+  typedef struct { int arg; int local; } NotedArg;
+  std::vector<NotedArg> notedArgs_;
   //RefVar locals_;         ///< An array of the symbols in argFrame:
   ///< _nextArgFrame, _parent, _implementor, parameters, locals
   int numLiterals_ = 0;

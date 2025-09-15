@@ -193,52 +193,32 @@ using namespace ast;
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Advice (Mac)-3/soundAdvice.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Card Project.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Card Project.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Extend Notes Project.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Extend Notes Project.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Page Project.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Page Project.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Extra Change-3/ExtraChange.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Extra Change-3/ExtraChange.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Party Time-1/Party Time.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Party Time-1/Party Time.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/PeoplePicker-1/PeoplePicker.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/PeoplePicker-1/PeoplePicker.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Sketch-1/Sketch.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Sketch-1/Sketch.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Stamps&Patterns-1/Stamps&Patterns.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Stamps&Patterns-1/Stamps&Patterns.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Services/PeriodicElements-1/PeriodicElements.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Services/PeriodicElements-1/PeriodicElements.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/InkForm-1/InkForm.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/InkForm-1/InkForm.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/Keys-4/Keys.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/Keys-4/Keys.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/QWERTY-3/QWERTY.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/QWERTY-3/QWERTY.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/ArchiveTransport-4/ArchiveTransport.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/ArchiveTransport-4/ArchiveTransport.text'
 
  Currently Testing
  -----------------
 
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.text'
+
+ ERROR
+ -----
+
+ ---- not recognizing that a local is also a literal (see callbackGenerator, pretty interesting case!)
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.text'
+ ---- The code contains`( if ... ) & text` which does not decompile
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/ArchiveTransport-4/ArchiveTransport.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/ArchiveTransport-4/ArchiveTransport.text'
+ ---- decompilation error
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.text'
+ ---- extra set-lex-scope (harmless?)
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.text'
+ ---- can't decompile foreach...collect
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.text'
+ ---- very large binary objects cause buffer overflow
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Stamps&Patterns-1/Stamps&Patterns.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Stamps&Patterns-1/Stamps&Patterns.text'
 
  Optimizing Issues
  -----------------
@@ -249,10 +229,37 @@ using namespace ast;
  ---- Locals are generated in a different order when using loops
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/DragonDrop-1/DragonDrop.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Views/DragonDrop-1/DragonDrop.text'
+ ---- Package has slow and fast functions, fast functions *can* contain an argFrame and have symbolic names for args and locals
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.text'
+ ---- Inline function has moved
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.text'
+
 
  Tested and Working
  ------------------
 
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Extra Change-3/ExtraChange.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Extra Change-3/ExtraChange.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Party Time-1/Party Time.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Party Time-1/Party Time.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/PeoplePicker-1/PeoplePicker.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/PeoplePicker-1/PeoplePicker.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Sketch-1/Sketch.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Sketch-1/Sketch.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Services/PeriodicElements-1/PeriodicElements.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Services/PeriodicElements-1/PeriodicElements.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/InkForm-1/InkForm.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/InkForm-1/InkForm.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/Keys-4/Keys.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/Keys-4/Keys.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/QWERTY-3/QWERTY.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/QWERTY-3/QWERTY.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/StatusReport-1/StatusReport.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/StatusReport-1/StatusReport.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/Clock-2/Clock.pkg'
@@ -312,6 +319,7 @@ using namespace ast;
 
 void Decompiler::decompile(Ref ref)
 {
+  bool fastFunc = false;
   Ref klass = GetFrameSlot(ref, SYMA(class));
   if (IsSymbol(klass) && SymbolCompare(klass, SYMA(CodeBlock))==0) {
     // slow NOS 1.x style function
@@ -339,6 +347,7 @@ void Decompiler::decompile(Ref ref)
       locals_[i+3+numArgs_].use = Local::Use::local;
   } else if (klass == kPlainFuncClass) {
     // faster NOS 2.x style function
+    fastFunc = true;
     Ref numArgs = GetFrameSlot(ref, SYMA(numArgs));
     numArgs_ = static_cast<int>((numArgs>>2) & 0x00003fff);
     numLocals_ = static_cast<int>(numArgs >> 18);
@@ -358,22 +367,33 @@ void Decompiler::decompile(Ref ref)
       snprintf(buf, 30, "loc%d", i);
       locals_.push_back( { MakeSymbol(buf), Local::Use::local } );
     }
-    // There can be additional named locals if they also appear in `literals`
+    // if there *is* an argFrame, copy those names that are defined
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
-    if (NOTNIL(argFrame)) {
-      //int argFrameLength = Length(argFrame);
-      int i = -3; // skip the system locals (not the args)
+    if (IsFrame(argFrame)) {
       CObjectIterator iter(argFrame);
-      for ( ; !iter.done(); iter.next(), ++i)
-      {
-//        fprintf(stderr, "%s\n", SymbolName(iter.tag()));
-        if (i >= 0) {
-          RefVar tag = iter.tag();
-          locals_.push_back( { tag, Local::Use::noted } );
-          numLocals_++;
-        }
+      for (int i = 0; !iter.done(); iter.next(), ++i) {
+        assert(i < (int)locals_.size());
+        locals_[i].ref = iter.tag();
+        if (i > 3+numArgs_) locals_[i].use = Local::Use::noted;
       }
     }
+
+    // There can be additional named locals if they also appear in `literals`
+//    Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+//    if (NOTNIL(argFrame)) {
+//      //int argFrameLength = Length(argFrame);
+//      int i = -3; // skip the system locals (not the args)
+//      CObjectIterator iter(argFrame);
+//      for ( ; !iter.done(); iter.next(), ++i)
+//      {
+////        fprintf(stderr, "%s\n", SymbolName(iter.tag()));
+//        if (i >= 0) {
+//          RefVar tag = iter.tag();
+//          locals_.push_back( { tag, Local::Use::noted } );
+//          numLocals_++;
+//        }
+//      }
+//    }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
     // ArrayIndex GetFunctionArgCount(Ref fn)
@@ -384,6 +404,20 @@ void Decompiler::decompile(Ref ref)
     // TODO: binCFunction
   }
 
+  // Fill in the arg frame by collecting information from 'argFrame if it exists
+  // and from 'DebuggerInfo, if that exists:
+  // TODO: if (fFuncDepth < 0 && fKeepVarNames)  // no depth info but want var names anyway
+  // TODO: Debug frame: number of inherited names | index to this func arg names
+  // TODO: followed by integers for "noted" etc. locals
+//  Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+//  if (IsFrame(argFrame)) {
+//    CObjectIterator iter(argFrame);
+//    for (int i = 0; !iter.done(); iter.next(), ++i) {
+//      assert(i < (int)locals_.size());
+//      locals_[i].ref = iter.tag();
+//    }
+//  }
+
   literals_ = GetFrameSlot(ref, SYMA(literals));
   if (!ISNIL(literals_))
     numLiterals_ = Length(literals_);
@@ -391,6 +425,10 @@ void Decompiler::decompile(Ref ref)
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
   if ((p.DebugBC() || p.DebugAST()) && IsArray(literals_)) {
+
+    if (fastFunc) printf("\n\nfast: "); else printf("\n\nslow: ");
+    printf("numLocals: %d, numArgs: %d\n", numLocals_, numArgs_);
+
     DefGlobalVar(SYMA(printDepth), MAKEINT(0));
     printf("\n\nLiterals:\n");
     int i, n = Length(literals_);
@@ -399,9 +437,34 @@ void Decompiler::decompile(Ref ref)
       ::PrintObject(GetArraySlot(literals_, i), 0);
       printf("\n");
     }
+
+    Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+    if (IsFrame(argFrame)) {
+      printf("\n\nargFrame:\n");
+      CObjectIterator iter(argFrame);
+      for (i = 0; !iter.done(); iter.next(), ++i)
+      {
+        printf("%4d: %s: ", i, SymbolName(iter.tag()));
+        ::PrintObject(iter.value(), 0);
+        printf("\n");
+      }
+    }
+
+    Ref dbg = GetFrameSlot(ref, SYMA(debuggerInfo));
+    if (IsArray(dbg)) {
+      printf("\n\nDebuggerInfo:\n");
+      printf("Class: "); ::PrintObject(ClassOf(dbg), 0); printf("\n");
+      n = Length(dbg);
+      for (i = 0; i < n ; i++) {
+        printf("%4d: ", i);
+        ::PrintObject(GetArraySlot(dbg, i), 0);
+        printf("\n");
+      }
+    }
+
     printf("\n\nLocals:\n");
     n = (int)locals_.size();
-    const char *useLUT[] = { "undefined", "system", "arg", "local", "loop", "iter", "limit", "noted" };
+    const char *useLUT[] = { "undefined", "system", "arg", "local", "loop", "iter", "limit", "noted", "notedArg" };
     for (i = 0; i < n ; i++) {
       printf("%4d: %s (%s)\n", i, SymbolName(locals_[i].ref), useLUT[(int)locals_[i].use] );
     }
