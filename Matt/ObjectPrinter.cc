@@ -96,6 +96,7 @@ void ObjectPrinter::PrintBinary(RefArg ref) {
   uint8_t *data = (uint8_t*)BinaryData(ref);
   int n = Length(ref);
   for (int i = 0; i < n; ++i) {
+    if (i%32 == 31) Print("\"\n\"");
     Printf("%02X", data[i]);
   }
   Print("\", ");
@@ -775,36 +776,40 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
 #if 1
       if (IsFunction(slot)) {
         argFrame = GetFrameSlot(slot, SYMA(argFrame));
-        bool isFastFunc = (GetFrameSlot(func, SYMA(class)) == kPlainFuncClass);
-        if (isFastFunc) {
-          map[slot].forceEarlyPrint_ = false;
-          map[slot].suppressEarlyPrint_ = false;
-//          Print("\n// argFrame >>>>\n");
-//          Print(argFrame);
-//          Print("\n// <<<< argFrame\n");
-          if (IsFrame(argFrame)) {
-            Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
-            if (ISNIL(nextArgFrame)) {
-              map[slot].forceEarlyPrint_ = false;
-              map[slot].suppressEarlyPrint_ = true;
-            } else {
-              map[slot].forceEarlyPrint_ = true;
-              map[slot].suppressEarlyPrint_ = false;
-            }
+//        bool isFastFunc = (GetFrameSlot(func, SYMA(class)) == kPlainFuncClass);
+//        if (isFastFunc) {
+        map[slot].forceEarlyPrint_ = false;
+        map[slot].suppressEarlyPrint_ = false;
+        if (IsFrame(argFrame)) {
+          // no ref frame: inline
+          // next, parent, implementor
+          //  ref, nil, nil : inline
+          //  nil, nil, nil : inline
+          //  nil, nil,   0 : inline
+
+
+          //? ptr, nil, nil : static
+          //? nil,   0,   0 : inline
+          //? nil, nil,   0 : inline
+#if 1
+          Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
+          if (ISNIL(nextArgFrame)) {
+            map[slot].forceEarlyPrint_ = false;
+            map[slot].suppressEarlyPrint_ = true;
+          } else {
+            map[slot].forceEarlyPrint_ = true;
+            map[slot].suppressEarlyPrint_ = false;
           }
-        } else {
-          map[slot].forceEarlyPrint_ = false;
-          map[slot].suppressEarlyPrint_ = false;
-          if (IsFrame(argFrame)) {
-            Ref nextArgFrame = GetFrameSlot(argFrame, SYMA(_nextArgFrame));
-            if (ISNIL(nextArgFrame)) {
-              map[slot].forceEarlyPrint_ = false;
-              map[slot].suppressEarlyPrint_ = true;
-            } else {
-              map[slot].forceEarlyPrint_ = true;
-              map[slot].suppressEarlyPrint_ = false;
-            }
+#else
+          Ref parent = GetFrameSlot(argFrame, SYMA(_parent));
+          if (ISNIL(parent)) {
+            map[slot].forceEarlyPrint_ = false;
+            map[slot].suppressEarlyPrint_ = true;
+          } else {
+            map[slot].forceEarlyPrint_ = true;
+            map[slot].suppressEarlyPrint_ = false;
           }
+#endif
         }
       }
 #endif

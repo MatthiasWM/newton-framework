@@ -432,7 +432,7 @@ DeepClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones)
 			{
 				slot = r;
 				((ArrayObject *)ObjectPtr(obj))->slot[i] = DeepClone1(slot, originals, clones);
-			
+
 			}
 		}
 	}
@@ -463,7 +463,7 @@ TotalClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones, bool doSh
 	if ((index = originals.find(obj)) != kIndexNotFound)
 		return clones.get(index);
 	originals.add(obj);
-	
+
 	if (gHeap->inHeap(obj) || ISINROM(obj.h->ref))
 	{
 		// it’s internal so no need to clone
@@ -742,7 +742,7 @@ AddGCRoot(Ref * inRoot)
 		newRoots = (Ref **)ReallocPtr((Ptr)gGC.roots, prevSize + sizeof(Ref*));
 		if (newRoots == NULL)
 			OutOfMemory();
-		gGC.roots = newRoots;	
+		gGC.roots = newRoots;
 		gGC.roots[prevSize/sizeof(Ref*)] = inRoot;
 	}
 }
@@ -794,7 +794,7 @@ CommonGCRegister(void ** registrations, size_t gcHandlerSize)
 		newRegs = ReallocPtr((Ptr)*registrations, prevSize + gcHandlerSize);
 		if (newRegs == NULL)
 			ThrowErr(exOutOfMemory, kNSErrOutOfObjectMemory);
-		*registrations = newRegs;	
+		*registrations = newRegs;
 		return (void *)((Ptr)*registrations + prevSize);
 	}
 }
@@ -1099,7 +1099,7 @@ CDeclawingRange::inAnyRange(Ref ref) const
 		if (range->inRange(ref))
 			return true;
 	return false;
-	
+
 }
 
 
@@ -1411,7 +1411,7 @@ if (newSize == 0)
 			nextObj = allocateBlock(newSize, obj->flags);
 			obj = PTR(objRoot);
 			objRoot = NILREF;
-			
+
 			memmove((Ptr)nextObj + sizeof(ObjHeader), (Ptr)obj + sizeof(ObjHeader), alignedObjSize - sizeof(ObjHeader));
 			makeFreeBlock(obj, obj->size);
 			obj = nextObj;
@@ -1853,7 +1853,7 @@ ENTER_FUNC
 		heapStatistics(&free, &largest);
 		REPprintf("\n[ GC! start %ld/%ld...", free, largest);
 	}
-	
+
 	isTWAMarked = false;
 	weakLink = NULL;
 
@@ -2753,7 +2753,7 @@ CObjectHeap::uriahBinaryObjects(bool doSaveOutput)
 			else
 				r = MAKEINT(RINT(totalThisClass) + objSize);
 			SetFrameSlot(totalsFrame, className, r);
-			
+
 			if (IsSubclass(className, SYMA(string)))
 			{
 				SafelyPrintString(((StringObject *)obj)->str);

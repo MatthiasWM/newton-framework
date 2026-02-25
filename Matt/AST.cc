@@ -7,6 +7,38 @@
  Written by:  Matt, 2025.
  */
 
+/*
+ \note Nov 21 2025
+ Bundling multiple expressions or statements into a single block does not
+ work! We have too many exceptions from the rule and start to get very
+ convoluted code! We *must* remove this.
+
+ Instead, we should see the top level of the AST as a list of node that gets
+ scanned by regular expression pattern matching. Every result can register a
+ regex with a priority and a level. Regexes are the applied for every level
+ in the order of their priority.
+
+ A matching regex generates a result array that matches  the regex's structure,
+ and then calls the regexes callback. That callback uses the result pattern
+ to reorder nodes in teh AST.
+
+ Only when no more regexes in any level match the top level list anymore, the
+ decompiler is done.
+
+ For example:
+
+ bool Node::return_value();
+ bool Node::is_add_node();
+ RegisterRegex( { level=1, priority=2, { returns_value, returns_value, is_add_node }, generate_add } );
+
+ void generate_add(result) {
+  result is { node_ptr, node_ptr, node_ptr }
+ }
+
+ We also need functions for repeating patterns, like 'none_or_one_of' ... 'end'
+
+ */
+
 #include "Matt/AST.h"
 #include "Matt/ASTAdmin.h"
 #include "Matt/ASTDataFlow.h"

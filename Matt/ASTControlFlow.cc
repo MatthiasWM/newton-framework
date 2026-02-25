@@ -520,6 +520,7 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     // Walk forward to evaluate the rest of the pattern.
     it = next;
     REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
+    //OPTIONAL_NODE( CodeBlock, something, it, false) { it = it->next; }
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     OPTIONAL_NODE( CodeBlock, body, it, true ) { it = it->next; }
@@ -650,20 +651,36 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     REQUIRED_NODE( BCSetVar, setIter, it, false ) { it = it->next; iter = setIter->b(); }
     // The following block initializes the index and result for collecting data
     REQUIRED_NODE( CodeBlock, initCollect, it, false ) { it = it->next; iter = setIter->b(); }
+#if 0 // before implementing "CodeBlock"
     REQUIRED_NODE( BCSetVar, initResult, initCollect->at(0), true ) { result = initResult->b(); }
     REQUIRED_NODE( BCSetVar, initIndex, initCollect->at(1), true ) { index = initIndex->b(); }
+#else // after implementing "CodeBlock"
+    BCSetVar *initResult = dynamic_cast<BCSetVar*>(initCollect->at(0));
+    if (!initResult) break;
+    BCSetVar *initIndex = dynamic_cast<BCSetVar*>(initCollect->at(1));
+    if (!initIndex) break;
+#endif
     // Jump to the start of the loop
     REQUIRED_NODE( BCBranch, brStart, it, false ) { it = it->next; }
     REQUIRED_NODE( JumpTarget, jtRepeat, it, false ) { it = it->next; }
     // The following block contains the setup, the body, and the collector setting the 'result'
-    REQUIRED_NODE( BCPop, bodyAndCollect, it, true ) { it = it->next; }
+
+//        ...
+//      SetVar
+//          ...
+//        SetARef
+//      Pop
+//    CodeBlock
+
+//    REQUIRED_NODE( BCPop, bodyAndCollect, it, true ) { it = it->next; }
     // TODO: Unlikely, but body can be missing if original is 'begin end'. Must replace with NIL.
     // TODO: the line above then returns a CodeBlock and the stuff below changes
-    REQUIRED_NODE( BCSetARef, collect, bodyAndCollect->Input(), true );
-    REQUIRED_NODE( CodeBlock, setup, collect->Object(), true );
-    REQUIRED_NODE( BCSetVar, setValue, setup->at(0), true ) { value = setValue->b(); }
-    OPTIONAL_NODE( BCSetVar, setSlot, setup->at(1), true ) { if (setSlot->b() == value-1) slot = setSlot->b(); }
-    REQUIRED_COND( Node, body, body->IsExpr(), collect->Element(), true );
+//    REQUIRED_NODE( BCSetARef, collect, bodyAndCollect->Input(), true );
+//    REQUIRED_NODE( CodeBlock, setup, collect->Object(), true );
+//    REQUIRED_NODE( BCSetVar, setValue, setup->at(0), true ) { value = setValue->b(); }
+//    OPTIONAL_NODE( BCSetVar, setSlot, setup->at(1), true ) { if (setSlot->b() == value-1) slot = setSlot->b(); }
+//    REQUIRED_COND( Node, body, body->IsExpr(), collect->Element(), true );
+
     // Count while collecting
     REQUIRED_NODE( BCIncrVar, incrIndex, it, true ) { it = it->next; }
     REQUIRED_NODE( BCPop, popIV0, it, false ) { it = it->next; }
@@ -700,6 +717,10 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     else if (deeplyConst->b() == TRUEREF) deeply = true;
     else break;
 
+
+    // FIXME: the code is not complete!
+    break;
+
     // ---- If we reach all this way, the pattern matches.
     // Unlink everything between this and prepareForGC
     // Eval and unlink all the jump targets of break instructions inside the loop
@@ -732,13 +753,13 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     dec.useLocalAs(result, Decompiler::Local::Use::iter);
 
     // Create a CFForEachSlotValueDo node that replaces the entire pattern
-    CFForEachSlotValueDo *foreachNode =
-    new CFForEachSlotValueDo(dec, pc_, slot, value, deeply, obj, body);
-    ReplaceWith(foreachNode);
+// FIXME: the two lines below don't compile
+//    CFForEachSlotValueDo *foreachNode = new CFForEachSlotValueDo(dec, pc_, slot, value, deeply, obj, body);
+//    ReplaceWith(foreachNode);
 
     // Wrap things up
     dec.numASTChanges++;
-    return foreachNode->next;
+//    return foreachNode->next;
   } while (0);
   return nullptr;
 }

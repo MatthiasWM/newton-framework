@@ -223,6 +223,7 @@ private:
 	  recorded for debugging or reflection, meaning, they are used by name in a
 	  function inside the function. They are accessed with the same bytecode
 	  that finds named variables, but only within the func frame.
+	  The slot itself is set, but doesn;t seem to be ever used.
 	  */
 	RefStruct		fNotedLocals;		// +1C
 	RefStruct		fVarLocs;			// +20

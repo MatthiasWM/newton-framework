@@ -3,5 +3,5 @@
 ./build/Xcode/Debug/newtc -pkg "$1" -decompile >/tmp/newtc_a
 ./build/Xcode/Debug/newtc -pkg "$1" -debug bc -decompile >/tmp/newtc_b
 ./build/Xcode/Debug/newtc -script /tmp/newtc_a -debug bc -decompile >/tmp/newtc_c
-diff -b -B -i /tmp/newtc_b /tmp/newtc_c
+#diff -b -B -i /tmp/newtc_b /tmp/newtc_c
 

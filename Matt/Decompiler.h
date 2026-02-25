@@ -59,7 +59,7 @@ protected:
   int numLocals_ = 0;
 
   std::vector<Local> locals_;
-  typedef struct { int arg; int local; } NotedArg;
+  typedef struct { int arg; int literal; } NotedArg;
   std::vector<NotedArg> notedArgs_;
   //RefVar locals_;         ///< An array of the symbols in argFrame:
   ///< _nextArgFrame, _parent, _implementor, parameters, locals

@@ -58,149 +58,65 @@ using namespace ast;
  Untested
  --------
 
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using Text Files/Altered States.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using Text Files/Altered States.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/French Onion.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/French Onion.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Gnocchi.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Gnocchi.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Salmon.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Salmon.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Soufflé.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Soufflé.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/DeletionScript-2/Deletion Script.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/DeletionScript-2/Deletion Script.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ExtensionTap-1/ExtensionTap.π.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ExtensionTap-1/ExtensionTap.π.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/True Grid-5/True Grid.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/True Grid-5/True Grid.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Gauges-2/Gauges.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Gauges-2/Gauges.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Glancing-2/Glancing.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Glancing-2/Glancing.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/NouveauScroll-2/NouveauScroll.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/NouveauScroll-2/NouveauScroll.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/RadioCluster-3/Cluster.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/RadioCluster-3/Cluster.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/protoVertSlider-1/protoVertSlider test.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/protoVertSlider-1/protoVertSlider test.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/Mini-MetaData-1/Newton Source/Mini-MetaData.pkg'
- '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SoupDrink-Newton-4/SoupDrink.pkg'
- open -a xcode ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SoupDrink-Newton-4/SoupDrink.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SuiteP-Mac-2/SoupDrink-4.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SuiteP-Windows-2/SoupDrink-4.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/Monaco Font/Monaco.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/Monaco Font/Monaco.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/MonacoTest.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/MonacoTest.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUnit.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUnit.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUser.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUser.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Beyond Help-5/Beyond Help.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Digital Books/Beyond Help-5/Beyond Help.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/BigPicture/BigPicture.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Browser/Browser.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Flags/Flags.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Kiosk/Kiosk.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Layout/Layout.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/MoreBrowsing/MoreBrowsing.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Picture/Picture.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Book Maker Examples-1/Simple/Simple.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/BookSample-4/BookSample.π.pkg'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Bitmap-2/Bitmap.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Bitmap-2/Bitmap.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Dot2Dot-3/Dot2Dot.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Dot2Dot-3/Dot2Dot.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Drawing-4/Drawing.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Drawing-4/Drawing.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Photo Album-1/Photo Album.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Photo Album-1/Photo Album.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Up In Smoke-33&2:3/UpInSmoke.π.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Up In Smoke-33&2:3/UpInSmoke.π.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Modem-2/Basic Modem.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Modem-2/Basic Modem.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Serial-2/Basic Serial.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Serial-2/Basic Serial.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Comms FSM-6/Comms FSM.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Comms FSM-6/Comms FSM.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Thumb-8/Thumb.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Thumb-8/Thumb.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Application/Tool Time.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Application/Tool Time.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Modules/Standard Tools.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Modules/Standard Tools.text'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Stream File/Tool Time Stream File.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Test Monitor/Test Monitor.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Test Monitor/Test Monitor.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Tool Time Cleanup/Tool Time Cleanup.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Tool Time Cleanup/Tool Time Cleanup.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Localization/CreatingALocale-2/CreatingALocale.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Localization/CreatingALocale-2/CreatingALocale.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Modem Setup/Modem Setup-2/Brand X Modem.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Modem Setup/Modem Setup-2/Brand X Modem.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtApp/Checkbook-8/Checkbook.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtApp/Checkbook-8/Checkbook.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtApp/newtLabelPicker-1/testNewtLabelPicker.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtApp/newtLabelPicker-1/testNewtLabelPicker.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtonScript/Inspector Gadget-4/Inspect.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtonScript/Inspector Gadget-4/Inspect.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/1. ListPickerArray/ListPickerArray.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/1. ListPickerArray/ListPickerArray.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/2. ListPickerPopUp/ListPickerPopUp.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/2. ListPickerPopUp/ListPickerPopUp.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/3. listPickerSoup/ListPickerSoup.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/3. listPickerSoup/ListPickerSoup.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/4. listPickerSoupNewEntry/ListPickerNewEntry.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/4. listPickerSoupNewEntry/ListPickerNewEntry.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/5. ListPickerChange/ListPickerChange.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/5. ListPickerChange/ListPickerChange.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/6. listPickerIcon/ListPickerIcon.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/6. listPickerIcon/ListPickerIcon.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/PictIndex-1/pictIndex.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/PictIndex-1/pictIndex.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/WhereInTheWorld-1/WhereInTheWorld.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/WhereInTheWorld-1/WhereInTheWorld.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoNumberPicker_TDS-1/NumberPicker.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoNumberPicker_TDS-1/NumberPicker.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoOverview-2/protoOverview.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoOverview-2/protoOverview.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimFaxPicker/slimFaxPicker.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimFaxPicker/slimFaxPicker.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimPeoplePicker/slimPeoplePicker.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimPeoplePicker/slimPeoplePicker.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Recognition/CharEdit-2/CharEdit.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Recognition/CharEdit-2/CharEdit.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Recognition/WordArray-2/WordArray.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Recognition/WordArray-2/WordArray.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/AutoRoute-4/AutoRoute.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/AutoRoute-4/AutoRoute.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/CustomRoute-2/CustomRoute.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/CustomRoute-2/CustomRoute.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/MultiRoute-1/MultiRoute.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/MultiRoute-1/MultiRoute.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/VariRoute-1/VariRoute.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/VariRoute-1/VariRoute.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Bitching Piano-3/Piano.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Bitching Piano-3/Piano.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Serenade-1/Serenade.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Serenade-1/Serenade.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Advice (Mac)-3/soundAdvice.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Advice (Mac)-3/soundAdvice.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.text'
 
  Currently Testing
  -----------------
 
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.text'
 
  ERROR
  -----
 
+ ---- unresolved nodes
+ ./testdec '/Users/matt/Azureus/unna2/games/Mines/Mines.pkg'
+ ./testdec '/Users/matt/Azureus/unna2/games/SeaHunt2/SeaHunt2.pkg'
+ ---- crashes
+ ./testdec '/Users/matt/Azureus/unna2/games/Boxer/Boxer.pkg'
+ ./testdec '/Users/matt/Azureus/unna2/games/nBattleship2.5/Battleship2.5.pkg'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using Text Files/Altered States.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using Text Files/Altered States.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/True Grid-5/True Grid.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/True Grid-5/True Grid.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/Mini-MetaData-1/Newton Source/Mini-MetaData.pkg'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SoupDrink-Newton-4/SoupDrink.pkg'
+ open -a xcode ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SoupDrink-Newton-4/SoupDrink.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SuiteP-Mac-2/SoupDrink-4.pkg'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Desktop Connectivity/SuiteP-Windows-2/SoupDrink-4.pkg'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUser.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MooUnit-1/MooUser.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Up In Smoke-33&2:3/UpInSmoke.π.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Up In Smoke-33&2:3/UpInSmoke.π.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Comms FSM-6/Comms FSM.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Comms FSM-6/Comms FSM.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Thumb-8/Thumb.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Thumb-8/Thumb.text'
+ ---- Byte code differs
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Tool Time Cleanup/Tool Time Cleanup.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Tool Time Cleanup/Tool Time Cleanup.text'
+ ---- No part source code generated
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/MonacoTest.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/MonacoTest.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/5. ListPickerChange/ListPickerChange.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/5. ListPickerChange/ListPickerChange.text'
+ ---- order of slots changed completely, must verify
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Localization/CreatingALocale-2/CreatingALocale.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Localization/CreatingALocale-2/CreatingALocale.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimFaxPicker/slimFaxPicker.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimFaxPicker/slimFaxPicker.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimPeoplePicker/slimPeoplePicker.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoSlimPicker-1/slimPeoplePicker/slimPeoplePicker.text'
+ ---- unresolved nodes
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/AutoRoute-4/AutoRoute.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/AutoRoute-4/AutoRoute.text'
+ ---- crashes. Huge string?
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/VariRoute-1/VariRoute.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/VariRoute-1/VariRoute.text'
+ ---- Trap: assertion of size of locals differs
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Serenade-1/Serenade.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Serenade-1/Serenade.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Modules/Standard Tools.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Modules/Standard Tools.text'
  ---- not recognizing that a local is also a literal (see callbackGenerator, pretty interesting case!)
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.text'
@@ -210,9 +126,25 @@ using namespace ast;
  ---- decompilation error
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/TXWord-2/TXWord.text'
- ---- extra set-lex-scope (harmless?)
+ ---- extra set-lex-scope
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Soufflé.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Soufflé.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtApp/Checkbook-8/Checkbook.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtApp/Checkbook-8/Checkbook.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/1. ListPickerArray/ListPickerArray.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/1. ListPickerArray/ListPickerArray.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/2. ListPickerPopUp/ListPickerPopUp.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/2. ListPickerPopUp/ListPickerPopUp.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/6. listPickerIcon/ListPickerIcon.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/6. listPickerIcon/ListPickerIcon.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/Keyboardin-1/Keyboardin.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/French Onion.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/French Onion.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Gnocchi.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Gnocchi.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Salmon.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/Salmon.text'
  ---- can't decompile foreach...collect
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/InkTranslate-1/InkTranslate.text'
@@ -223,6 +155,15 @@ using namespace ast;
  Optimizing Issues
  -----------------
 
+ ---- mostly identical, but complex, more testing needed
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Application/Tool Time.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Application/Tool Time.text'
+ ---- "-2" is written as "negate(2)" instead of a const!
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoNumberPicker_TDS-1/NumberPicker.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoNumberPicker_TDS-1/NumberPicker.text'
+ ---- Magic pointer to "names" is not optimized out
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/MultiRoute-1/MultiRoute.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/MultiRoute-1/MultiRoute.text'
  ---- Generating unnecessary bytecode: push nil, pop, push nil
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/Paragraph Scroll-4/ParagraphScroll.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Views/Paragraph Scroll-4/ParagraphScroll.text'
@@ -232,16 +173,81 @@ using namespace ast;
  ---- Package has slow and fast functions, fast functions *can* contain an argFrame and have symbolic names for args and locals
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/MinMail-3/MinMail.text'
- ---- Inline function has moved
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.text'
+ ---- Missing "stringer" and " " in literals, but same bytecode (literals not used)
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Tricks-4/SoundTricks.text'
 
 
  Tested and Working
  ------------------
 
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/DeletionScript-2/Deletion Script.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/DeletionScript-2/Deletion Script.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/ExtensionTap-1/ExtensionTap.π.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Application Design/ExtensionTap-1/ExtensionTap.π.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Gauges-2/Gauges.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Gauges-2/Gauges.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Glancing-2/Glancing.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/Glancing-2/Glancing.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/NouveauScroll-2/NouveauScroll.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/NouveauScroll-2/NouveauScroll.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/RadioCluster-3/Cluster.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/RadioCluster-3/Cluster.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/protoVertSlider-1/protoVertSlider test.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Controls and Other Protos/protoVertSlider-1/protoVertSlider test.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/Monaco Font/Monaco.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Developer Tools/MonacoTest-5/Monaco Font/Monaco.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Digital Books/Beyond Help-5/Beyond Help.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Digital Books/Beyond Help-5/Beyond Help.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Bitmap-2/Bitmap.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Bitmap-2/Bitmap.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Dot2Dot-3/Dot2Dot.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Dot2Dot-3/Dot2Dot.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Drawing-4/Drawing.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Drawing-4/Drawing.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Photo Album-1/Photo Album.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Drawing and Graphics/Photo Album-1/Photo Album.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Modem-2/Basic Modem.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Modem-2/Basic Modem.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Serial-2/Basic Serial.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Basic Serial-2/Basic Serial.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Test Monitor/Test Monitor.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Endpoints/Tool Time-2/Test Monitor/Test Monitor.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Modem Setup/Modem Setup-2/Brand X Modem.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Modem Setup/Modem Setup-2/Brand X Modem.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtApp/newtLabelPicker-1/testNewtLabelPicker.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtApp/newtLabelPicker-1/testNewtLabelPicker.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/NewtonScript/Inspector Gadget-4/Inspect.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/NewtonScript/Inspector Gadget-4/Inspect.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/3. listPickerSoup/ListPickerSoup.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/3. listPickerSoup/ListPickerSoup.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/4. listPickerSoupNewEntry/ListPickerNewEntry.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/ListPickerSamples-2/4. listPickerSoupNewEntry/ListPickerNewEntry.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/PictIndex-1/pictIndex.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/PictIndex-1/pictIndex.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/WhereInTheWorld-1/WhereInTheWorld.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/WhereInTheWorld-1/WhereInTheWorld.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoOverview-2/protoOverview.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Pickers, Popups, and Overviews/protoOverview-2/protoOverview.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Recognition/CharEdit-2/CharEdit.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Recognition/CharEdit-2/CharEdit.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Recognition/WordArray-2/WordArray.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Recognition/WordArray-2/WordArray.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Routing/CustomRoute-2/CustomRoute.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Routing/CustomRoute-2/CustomRoute.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Bitching Piano-3/Piano.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Bitching Piano-3/Piano.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Advice (Mac)-3/soundAdvice.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Sound/Sound Advice (Mac)-3/soundAdvice.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/Clock-2/Clock.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/Views/Clock-2/Clock.text'
+
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/HandWrite-1/HandWrite.text'
+ ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.pkg'
+ open -a xcode '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Cardfile Extensions-1/Cardfile Extensions.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Stationery/WhoOwesWhom-5/Roll Project.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/System Data and Built-in Apps/Extra Change-3/ExtraChange.pkg'
@@ -262,8 +268,6 @@ using namespace ast;
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Text Input/QWERTY-3/QWERTY.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Transports/StatusReport-1/StatusReport.pkg'
  open -a xcode '/Users/matt/dev/Einstein/Sample Code/Transports/StatusReport-1/StatusReport.text'
- ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/Clock-2/Clock.pkg'
- open -a xcode '/Users/matt/dev/Einstein/Sample Code/Views/Clock-2/Clock.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/ViewScripts-3/ViewScripts.pkg'
  open -a xcode open -a xcode '/Users/matt/dev/Einstein/Sample Code/Views/ViewScripts-3/ViewScripts.text'
  ./testdec '/Users/matt/dev/Einstein/Sample Code/Views/Thumbnail-1/Thumbnail.pkg'
@@ -377,23 +381,6 @@ void Decompiler::decompile(Ref ref)
         if (i > 3+numArgs_) locals_[i].use = Local::Use::noted;
       }
     }
-
-    // There can be additional named locals if they also appear in `literals`
-//    Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
-//    if (NOTNIL(argFrame)) {
-//      //int argFrameLength = Length(argFrame);
-//      int i = -3; // skip the system locals (not the args)
-//      CObjectIterator iter(argFrame);
-//      for ( ; !iter.done(); iter.next(), ++i)
-//      {
-////        fprintf(stderr, "%s\n", SymbolName(iter.tag()));
-//        if (i >= 0) {
-//          RefVar tag = iter.tag();
-//          locals_.push_back( { tag, Local::Use::noted } );
-//          numLocals_++;
-//        }
-//      }
-//    }
   } else {
     ThrowMsg("Decompiler::decompile(): Unknown Function Signature");
     // ArrayIndex GetFunctionArgCount(Ref fn)
@@ -404,23 +391,26 @@ void Decompiler::decompile(Ref ref)
     // TODO: binCFunction
   }
 
-  // Fill in the arg frame by collecting information from 'argFrame if it exists
-  // and from 'DebuggerInfo, if that exists:
-  // TODO: if (fFuncDepth < 0 && fKeepVarNames)  // no depth info but want var names anyway
-  // TODO: Debug frame: number of inherited names | index to this func arg names
-  // TODO: followed by integers for "noted" etc. locals
-//  Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
-//  if (IsFrame(argFrame)) {
-//    CObjectIterator iter(argFrame);
-//    for (int i = 0; !iter.done(); iter.next(), ++i) {
-//      assert(i < (int)locals_.size());
-//      locals_[i].ref = iter.tag();
-//    }
-//  }
-
   literals_ = GetFrameSlot(ref, SYMA(literals));
   if (!ISNIL(literals_))
     numLiterals_ = Length(literals_);
+
+  // Find args by name that also exist as literals
+  Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
+  if (IsFrame(argFrame) && numLiterals_) {
+    int n = Length(argFrame);
+    RefVar  map(((FrameObject*)ObjectPtr(argFrame))->map);
+    for (int i=0; i<numArgs_; ++i) {
+      if (i+3 < n) {
+        RefVar tag = GetTag(map, i+3);
+        int p = ArrayPosition(literals_, tag, 0, RA(NILREF));
+        if (p != kIndexNotFound) {
+          // fprintf(stderr, "Found noted arg: argFrame Index: %d, literal index: %d\n", i, p);
+          notedArgs_.push_back( {i+3, p} );
+        }
+      }
+    }
+  }
 
   Ref instructions = GetFrameSlot(ref, SYMA(instructions));
   generateAST(instructions);
@@ -635,6 +625,27 @@ void Decompiler::generateAST(Ref instructions)
     nd = Append(nd, NewBytecodeNode(pc, a, b));
   }
   last_ = Append(nd, new LastNode(*this));
+
+  // Remove ByteCode sequences created by "CFunctionState::copyClosedArgs".
+  // They generate unwanted code if they are left in.
+  for (auto &na: notedArgs_) {
+    int aix = na.arg;
+    int lix = na.literal;
+    Node *nd = first_;
+    while (nd) {
+      if ((nd->a() == 15) && (nd->b() == aix)) {
+        Node *nn = nd->next;
+        if ((nn->a() == 21) && (nn->b() == lix)) {
+          Node *nx = nn->next;
+          nd->Unlink();
+          nn->Unlink();
+          nd = nx;
+          continue;
+        }
+      }
+      nd = nd->next;
+    }
+  }
 
   // The code generator occasionally appends two consecutive return commends.
   // We fix that by deleting the second return.

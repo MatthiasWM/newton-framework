@@ -27,6 +27,7 @@ set ( SRCFILES
   REP.cc
   SerialNumber.cc
   Stubs.cc
+  Matt/BookWriter.cc
   Matt/PackageWriter.cc
   Matt/Printer.cc
   Matt/ObjectPrinter.cc
@@ -184,6 +185,7 @@ set ( HEADERFILES
   NewtonTime.h
   NewtonTypes.h
   NewtonWidgets.h
+  Matt/BookWriter.h
   Matt/PackageWriter.h
   Matt/Printer.h
   Matt/ObjectPrinter.h
@@ -561,7 +563,9 @@ set_property (TARGET newtc
 ##    "-script /Users/matt/dev/a.txt"
 ##    "-script /tmp/newtc_a"
 ##    "-script '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.text'"
-    "-pkg '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.pkg'"
+##    "-pkg '/Users/matt/dev/Einstein/Sample Code/Sound/SoundStudio-2/SoundStudio.pkg'"
+#    "-pkg '/Users/matt/dev/Einstein/Sample Code/Application Design/ChezDTS-2/ChezDTS.pkg'"
+    "-pkg '/Users/matt/Azureus/unna2/books/Fiction_Poetry/Shakespeare/A Midsummer Nights Dream.pkg'"
 #    "-script /Users/matt/dev/adjusto.txt"
 #    "-pkg /Users/matt/hello.pkg"
 #    "-pkg /Users/matt/dev/Gauges.pkg"
@@ -575,11 +579,12 @@ set_property (TARGET newtc
 #    "-r \"func() print([1, 2, 3, 4]);\""
 #    "-opkg /Users/matt/dev/Einstein/loop.new.pkg"
 #    "-onsof /Users/matt/dev/test.out.nsof"
-# expr   "-opkg /Users/matt/hello.pkg"
+#    "-opkg /Users/matt/hello.pkg"
     "-print"
 #    "-decompile"
 #    "-stats"
 #    "-help"
+    "-ohtml ~/dev/test.html"
 )
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1)

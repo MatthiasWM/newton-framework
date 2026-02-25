@@ -5,7 +5,9 @@
 #include "Funcs.h"
 #include "NewtGlobals.h"
 #include "NewtonPackage.h"
+#include "Matt/BookWriter.h"
 #include "Matt/PackageWriter.h"
+#include "Matt/ObjectPrinter.h"
 #include "Matt/ObjectPrinter.h"
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
@@ -272,7 +274,7 @@ void handleArgOPkg(const std::string &filename)
 }
 
 /**
- \brief Create an NSOF file form ref0.
+ \brief Create an NSOF file from ref0.
  */
 void handleArgONsof(const std::string &filename)
 {
@@ -280,6 +282,15 @@ void handleArgONsof(const std::string &filename)
   RefVar ref = GetGlobalVar(MakeSymbol("ref0"));
   CObjectWriter out(ref, outPipe, false);
   out.write();
+}
+
+/**
+ \brief Create an HTML file from a boo in ref0.
+ */
+void handleArgOHtml(const std::string &filename)
+{
+  RefVar package = GetGlobalVar(MakeSymbol("ref0"));
+  writePackageBookToHTML(package, filename);
 }
 
 /**
@@ -393,6 +404,7 @@ the commands in the given order.
   Output Commands
   -opkg <filename>        Write the current object to a package file
   -nsof <filename>        Write the current object to a NSOF file
+  -ohtml <filename>       Write the first part as an HTML file if it is a book
   -print                  Print the current object, functions are just frames
   -decompile              Print the object with all functions decompiled
   -stats                  Print some package statistics about the object
@@ -468,6 +480,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -onsof ... ."));
         handleArgONsof(std::string(argv[argi++]));
+      } else if (cmd == "-ohtml") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -ohtml ... ."));
+        handleArgOHtml(std::string(argv[argi++]));
       } else if ((cmd == "--") || (cmd == "-print")) {
         handleArgPrint();
       } else if (cmd == "-decompile") {
