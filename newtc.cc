@@ -105,6 +105,7 @@ void addGlobalRef(RefArg inRef)
 void handleArgPkg(const std::string &filename)
 {
   currentFileName = filename;
+  //fprintf(stderr, "    Reading '%s'\n", currentFileName.c_str());
   NewtonPackage pkg(filename.c_str());
   Ref package = pkg.packageRef();
   if (package == NILREF) {
@@ -290,7 +291,8 @@ void handleArgONsof(const std::string &filename)
 void handleArgOHtml(const std::string &filename)
 {
   RefVar package = GetGlobalVar(MakeSymbol("ref0"));
-  writePackageBookToHTML(package, filename);
+  if (writePackageBookToHTML(package, filename) == 1)
+    fprintf(stderr, "^^^^ '%s'\n", currentFileName.c_str());
 }
 
 /**
