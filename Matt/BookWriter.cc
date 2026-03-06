@@ -464,8 +464,8 @@ If bits match, the word might be in that text block (requiring full search)
   }
   for (int i=0; i<Length(pages); ++i) {
     Ref page = GetArraySlot(pages, i);
+    pdf_append_page(pdf);
     if (IsFrame(page)) {
-      pdf_append_page(pdf);
       Ref blocks = GetFrameSlot(page, MakeSymbol("blocks"));
       if (IsArray(blocks)) {
         for (int j=0; j<Length(blocks); ++j) {
@@ -489,11 +489,18 @@ If bits match, the word might be in that text block (requiring full search)
             // item.data (and much more)
             Ref data = GetFrameSlot(it, MakeSymbol("data"));
             if (IsString(data)) {
-              char *text = BinaryData(ASCIIString(data));
-              // dataOffset
-              // dataLen
-              //pdf_add_text(pdf, NULL, text, 12, l, t, PDF_BLACK);
-              float font_height = 8;
+              int text_len = Length(data) / 2;
+              int data_offset = 0;
+              int data_len = text_len;
+              Ref ref = GetFrameSlot(block, MakeSymbol("dataOffset"));
+              if (ISINT(ref)) data_offset = (int)RVALUE(ref);
+              ref = GetFrameSlot(block, MakeSymbol("dataLen"));
+              if (ISINT(ref)) data_len = (int)RVALUE(ref);
+              if (data_offset > text_len) data_offset = text_len;
+              if (data_offset + data_len > text_len) data_len = text_len - data_offset;
+
+              char *text = BinaryData(ASCIIString(Substring(data, data_offset, data_len)));
+              float font_height = 12;
               pdf_add_text_wrap(pdf, nullptr, text, font_height,
                                 l, page_height-t-font_height*0.8, 0.0, PDF_BLACK, r-l,
                                 PDF_ALIGN_LEFT, nullptr);
