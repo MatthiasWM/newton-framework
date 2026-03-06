@@ -20,17 +20,10 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-//#include "Newton.h"
-//#include "Objects.h"
-//#include "NewtonPackage.h"
-//#include "Matt/PackageWriter.h"
-//#include "PackageTypes.h"
-//#include "ObjHeader.h"
-//#include "Ref32.h"
-//#include "ROMResources.h"
 #include "Symbols.h"
 #include "Frames/Iterators.h"
 #include "Matt/ObjectPrinter.h"
+#include "Matt/PDFGen/pdfgen.h"
 
 extern std::string currentFileName;
 extern int writeBookToHTML(RefArg book, const std::string &filename);
@@ -48,9 +41,9 @@ const char* known_book_keys[] = {
   "contents",     // array of frames, see below
   "styles",       // array of frames, see below, duplicates possible
   "hints",        // array of nil, true, and binary blocks for faster word search
-  "browsers",     // TODO: array of frames, not explored yet
-  "templates",    // TODO: array of frames, not explored yet, templates for page and column layouts
-  "rendering",    // TODO: array of frames, not explored much, pixel exact rendering of each page for one or more screens
+  "browsers",     // array of frames, not explored yet
+  "templates",    // array of frames, not explored yet, templates for page and column layouts
+  "rendering",    // array of frames, not explored much, pixel exact rendering of each page for one or more screens
   "icon",         // frame holding an image: mask, bits, bounds, usually a small (<32x32) bitmap with transparency
   "publicationDate", // integer
   "flags",        // integer, only value found is 64
@@ -94,7 +87,7 @@ const char* known_book_style_keys[] = {
 const char* known_book_browsers_keys[] = {
   "name",         // String: "Contents" in all tested files
   "list",         // Array of entries: not explored entirely
-// TODO: browser item
+// browser item
 //  {item: {data: "Cunnigham park",
 //    viewFont: tsSystem+tsSize(12)+tsPlain,
 //    layout: 38,
@@ -116,12 +109,12 @@ const char* known_book_templates_keys[] = {
   nullptr
 };
 
-// TODO: rendering
+// rendering
 const char* known_book_rendering_keys[] = {
   "pageSize",     // Box: {left: 0, top: 0, right: 240, bottom: 302}
   "contents",     // Array of array of incrementing integers, inner can be empty
   "pages",        // array of frames
-  /*
+  /* TODO: page description
    { template:
      blocks:
      [
@@ -284,6 +277,7 @@ int writeBookToHTML(RefArg book, const std::string &filename)
   }
 #endif
 
+#if 0
   Ref rendering_array = GetFrameSlot(book, MakeSymbol("rendering"));
   if (ISNIL(rendering_array)) { return 0; }
   if (!IsArray(rendering_array)) {
@@ -320,6 +314,7 @@ int writeBookToHTML(RefArg book, const std::string &filename)
   }
 
   return ret;
+#endif
 
   // Primitive approach, let's just write the contents.
 
@@ -393,4 +388,125 @@ If bits match, the word might be in that text block (requiring full search)
   //                 { bounds: { }, item: ->Item, dataOffset, dataLen }
   //               ]
   //       ]
+
+
+  // Our central concern is the "rendering" slot which lists all pages.
+  Ref rendering_array = GetFrameSlot(book, MakeSymbol("rendering"));
+  if (ISNIL(rendering_array)) { return 0; }
+  if (!IsArray(rendering_array)) {
+    return 1;
+  }
+  int ret = 0;
+
+  // "rendering" can contain more than one book format. For now, we choose
+  // the first one we find.
+  Ref rendering = GetArraySlot(rendering_array, 0);
+  if (ISNIL(rendering)) { return 0; }
+  float page_width = PDF_A4_WIDTH / 2.0f; // default to DIN A5 portrait
+  float page_height = PDF_A4_WIDTH;
+  int page_top = 0;
+  int page_left = 0;
+  int page_bottom = page_height;
+  int page_right = page_width;
+  Ref page_size = GetFrameSlot(rendering, MakeSymbol("pageSize"));
+  if (IsFrame(page_size)) {
+    Ref t = GetFrameSlot(page_size, MakeSymbol("top"));
+    if (ISINT(t)) page_top = (int)RVALUE(t);
+    t = GetFrameSlot(page_size, MakeSymbol("left"));
+    if (ISINT(t)) page_left = (int)RVALUE(t);
+    t = GetFrameSlot(page_size, MakeSymbol("bottom"));
+    if (ISINT(t)) page_bottom = (int)RVALUE(t);
+    t = GetFrameSlot(page_size, MakeSymbol("right"));
+    if (ISINT(t)) page_right = (int)RVALUE(t);
+    page_width = page_right - page_left;
+    page_height = page_bottom - page_top;
+  }
+
+  struct pdf_info info = {
+    .creator = "My software",
+    .producer = "My software",
+    .title = "My document",
+    .author = "My name",
+    .subject = "My subject",
+    .date = "Today"
+  };
+  // See PDF_MM_TO_POINT()
+  struct pdf_doc *pdf = pdf_create(page_width, page_height, &info);
+  pdf_set_font(pdf, "Times-Roman");
+  /*
+  "Times-Roman",
+  "Times-Bold",
+  "Times-Italic",
+  "Times-BoldItalic",
+  "Helvetica",
+  "Helvetica-Bold",
+  "Helvetica-Oblique",
+  "Helvetica-BoldOblique",
+  "Courier",
+  "Courier-Bold",
+  "Courier-Oblique",
+  "Courier-BoldOblique",
+  "Symbol",
+  "ZapfDingbats",
+  */
+//  pdf_append_page(pdf);
+  // pdf_add_text(pdf, page, text, size, xoff, yoff, colour)
+  // pdf_add_text_spacing(... , spacing, angle)
+  // pdf_add_text_wrap(...)
+//  pdf_add_text(pdf, NULL, "This is text", 12, 50, 20, PDF_BLACK);
+//  pdf_add_text(pdf, NULL, "This is a second text", 12, 50, 40, PDF_BLACK);
+//  pdf_add_line(pdf, NULL, 50, 24, 150, 24, 3, PDF_BLACK);
+
+  Ref pages = GetFrameSlot(rendering, MakeSymbol("pages"));
+  if (!IsArray(pages)) {
+    fprintf(stderr, "No pages found!\n");
+    return 1;
+  }
+  for (int i=0; i<Length(pages); ++i) {
+    Ref page = GetArraySlot(pages, i);
+    if (IsFrame(page)) {
+      pdf_append_page(pdf);
+      Ref blocks = GetFrameSlot(page, MakeSymbol("blocks"));
+      if (IsArray(blocks)) {
+        for (int j=0; j<Length(blocks); ++j) {
+          Ref block = GetArraySlot(blocks, j);
+          Ref bounds = GetFrameSlot(block, MakeSymbol("bounds"));
+          int t = 0, l = 0, b = 0, r = 0;
+          if (IsArray(bounds)) {
+            Ref ref = GetArraySlot(bounds, 0);
+            if (ISINT(ref)) l = (int)RVALUE(ref);
+            ref = GetArraySlot(bounds, 1);
+            if (ISINT(ref)) t = (int)RVALUE(ref);
+            ref = GetArraySlot(bounds, 2);
+            if (ISINT(ref)) r = (int)RVALUE(ref); else r = l;
+            ref = GetArraySlot(bounds, 3);
+            if (ISINT(ref)) b = (int)RVALUE(ref); else b = t;
+          }
+          pdf_add_rectangle(pdf, nullptr, l, page_height-b, r-l, b-t, 0.5, PDF_BLACK);
+          // item
+          Ref it = GetFrameSlot(block, MakeSymbol("item"));
+          if (IsFrame(it)) {
+            // item.data (and much more)
+            Ref data = GetFrameSlot(it, MakeSymbol("data"));
+            if (IsString(data)) {
+              char *text = BinaryData(ASCIIString(data));
+              // dataOffset
+              // dataLen
+              //pdf_add_text(pdf, NULL, text, 12, l, t, PDF_BLACK);
+              float font_height = 8;
+              pdf_add_text_wrap(pdf, nullptr, text, font_height,
+                                l, page_height-t-font_height*0.8, 0.0, PDF_BLACK, r-l,
+                                PDF_ALIGN_LEFT, nullptr);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  pdf_save(pdf, "/Users/matt/dev/newton-framework/test.pdf");
+  pdf_destroy(pdf);
+  return 0;
+
 }
+

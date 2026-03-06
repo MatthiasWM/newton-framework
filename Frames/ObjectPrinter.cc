@@ -495,7 +495,7 @@ void
 SafelyPrintString(UniChar * str)
 {
   static char hexLUT[] = "0123456789ABCDEF";
-	char	buf[256];
+	char	buf[1024];
 #if 0
   // The code below converts to ASCII with Apple MacRoman code page
 	int	bufLen;
