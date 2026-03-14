@@ -22,7 +22,7 @@
 #include <vector>
 #include <map>
 
-int writePackageBookToHTML(RefArg pkg, const std::string &filename);
+int writePackageBookToPDF(RefArg pkg, const std::string &filename);
 
 #endif // !defined(__NEWTONBOOKWRITER_H)
 

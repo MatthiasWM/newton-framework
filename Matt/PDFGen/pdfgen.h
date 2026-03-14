@@ -286,6 +286,19 @@ enum {
 };
 
 /**
+ * PDF Font Data for remote access
+ */
+struct pdf_font_data {
+  const char* font_name;
+  uint16_t ascent;
+  uint16_t descent;
+  uint16_t leading;
+  uint16_t char_width[256];
+};
+
+extern const struct pdf_font_data pdf_font[];
+
+/**
  * Create a new PDF object, with the given page
  * width/height
  * @param width Width of the page

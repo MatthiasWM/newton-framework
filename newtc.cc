@@ -286,12 +286,12 @@ void handleArgONsof(const std::string &filename)
 }
 
 /**
- \brief Create an HTML file from a boo in ref0.
+ \brief Create a PDF file from a book in ref0.
  */
-void handleArgOHtml(const std::string &filename)
+void handleArgOPdf(const std::string &filename)
 {
   RefVar package = GetGlobalVar(MakeSymbol("ref0"));
-  if (writePackageBookToHTML(package, filename) == 1)
+  if (writePackageBookToPDF(package, filename) == 1)
     fprintf(stderr, "^^^^ '%s'\n", currentFileName.c_str());
 }
 
@@ -406,7 +406,7 @@ the commands in the given order.
   Output Commands
   -opkg <filename>        Write the current object to a package file
   -nsof <filename>        Write the current object to a NSOF file
-  -ohtml <filename>       Write the first part as an HTML file if it is a book
+  -opdf <filename>        Write the first part as a PDF file if it is a book
   -print                  Print the current object, functions are just frames
   -decompile              Print the object with all functions decompiled
   -stats                  Print some package statistics about the object
@@ -482,10 +482,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -onsof ... ."));
         handleArgONsof(std::string(argv[argi++]));
-      } else if (cmd == "-ohtml") {
+      } else if (cmd == "-opdf") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
-          throw(std::runtime_error("Missing filename after -ohtml ... ."));
-        handleArgOHtml(std::string(argv[argi++]));
+          throw(std::runtime_error("Missing filename after -opdf ... ."));
+        handleArgOPdf(std::string(argv[argi++]));
       } else if ((cmd == "--") || (cmd == "-print")) {
         handleArgPrint();
       } else if (cmd == "-decompile") {
