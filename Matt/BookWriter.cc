@@ -23,6 +23,8 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreText/CoreText.h>
 
+extern void PrintObjectAux(Ref obj, int indent, int depth);
+
 // Return the human-readable full name of a CTFontRef as std::string
 static std::string CTFontGetHumanReadableName(CTFontRef font) {
   if (!font) return std::string();
@@ -92,7 +94,7 @@ const char* known_book_keys[] = {
 
 // Contents // TODO: compare to clParagraphView
 const char* known_book_contents_keys[] = {
-  "data",         // string (text) or binary 'image (PICT resource?) or frame with NS bitmap image (b/w, gray, color) or NS forms
+  "data",         // string (text) or binary 'image (PICT resource?) or 'picture or frame with NS bitmap image (b/w, gray, color) or NS forms
   "layout",       // integer, usually only one bit set
   "styles",       // array of pairs: first, number of chars, then style, ether an integer (bits), or a ref to a style (see version?)
   "viewJustify",  // integer, observing vjRightH = 1 or vjCenterH = 2
@@ -398,6 +400,81 @@ void set_font(RefArg r, int* font, int* height) {
   }
 }
 
+struct PictRect {
+  uint16_t top, left, bottom, right;
+  void read(uint16_t* d) {
+    top = htons(d[0]);
+    left = htons(d[1]);
+    bottom = htons(d[2]);
+    right = htons(d[3]);
+  }
+};
+
+int pictToImage(RefArg text_block, RefArg data) {
+
+  static int picnum = 0;
+  char buf[255];
+  sprintf(buf, "/Users/matt/dev/newton-framework/p%03d.pict", picnum++);
+
+  // Data is a binary block that contains an image in PICT1 or PICT2 format
+  uint8_t* pict = (uint8_t*)BinaryData(data);
+  uint16_t* pictw = (uint16_t*)BinaryData(data);
+  int pict_size = Length(data);
+
+  FILE *f = fopen(buf, "wb");
+  fwrite(pict, pict_size, 1, f);
+  fclose(f);
+
+  PictRect bounds;
+  bounds.read(pictw+1);
+  PictRect clip = bounds;
+  if ((pict[11]==0x11) && (pict[12]==0x01)) { // 0x00 0x11 0x01
+    fprintf(stderr, "Data is in PICT format version 1\n");
+  } else if ((htons(pictw[5])==0x0011) && (htons(pictw[6])==0x02ff)) { // 0x0011 0x02ff
+    fprintf(stderr, "Data is in PICT format version 2\n");
+    // $0C00
+    // 24 byte header subversion, reserved, hres(2), vres(2), src_rect(4), reserved
+    int ix = 7+12;
+    while (ix < pict_size/2) {
+      uint16_t op = htons(pictw[ix]);
+      uint16_t sz = 0;
+      fprintf(stderr, "Op: 0x%04x\n", op);
+      switch (op) {
+        case 0x0000: ix++; break; // nop
+        case 0x0001: // clipping region
+          sz = htons(pictw[ix+1]);
+          if (sz != 0x000A) fprintf(stderr, "Unsupported region size\n");
+          clip.read(pictw+ix+2);
+          ix += 1+sz/2;
+          break;
+        case 0x0003: ix += 2; break; // TxFont, 2 bytes
+        case 0x0004: ix += 2; break; // TxFace, 1 bytes (?!)
+        case 0x0007: ix += 3; break; // Pen Size, 4 bytes
+        case 0x0009: ix += 5; break; // Pen Pattern, 8 bytes
+        case 0x000d: ix += 2; break; // Text Size, 2 bytes
+        case 0x0015: ix += 2; break; // Fractional Pen Position, 2 bytes
+        case 0x0022: ix += 4; break; // Short Line From, 6 bytes
+        case 0x0023: ix += 2; break; // Short Line From, 2 bytes
+          // 0x002b: DHDVText dh, dv, count, text
+        case 0x002c: sz = htons(pictw[ix+1]); ix += 3+sz/2; break; // Set Font, 5 + name length
+        case 0x002e: sz = htons(pictw[ix+1]); ix += 2+sz/2; break; // Glyph Stats, 8 bytes
+        case 0x0030: ix += 5; break; // Frame Rect, 8 bytes
+        case 0x0031: ix += 5; break; // Paint Rect, 8 bytes
+        case 0x00a1: sz = htons(pictw[ix+2]); ix += 3+sz/2; break; // long comment (kind, size, data...)
+        case 0x00a0: ix+=2; break; // short comment
+        default:
+          fprintf(stderr, "Unknown op code\n");
+        case 0x00ff: // end of format
+          ix = 0x7fffffff; break;
+      }
+    }
+  } else {
+    fprintf(stderr, "Not a supported PICT format (0x%02x%02x)\n", pict[11], pict[12]);
+    return 1;
+  }
+  return 0;
+}
+
 int textBlockToLetters(RefArg text_block) {
   int i;
 
@@ -492,6 +569,44 @@ int prepareContents(RefArg book) {
     Ref data = GetFrameSlot(text_block, MakeSymbol("data"));
     if (IsString(data)) {
       textBlockToLetters(text_block);
+    } else if (ISNIL(data)) {
+      fprintf(stderr, "Contents block without data entry\n");
+      ret = 1;
+    } else if ((IsBinary(data)) && (IsInstance(data, MakeSymbol("picture")))) {
+      fprintf(stderr, "PICT image format\n");
+      pictToImage(text_block, data);
+      ret = 1;
+    } else if (IsFrame(data)) {
+      if (FrameHasSlot(data, MakeSymbol("colordata"))) {
+        // bounds{}, colordata{ colortable, bitdepth, cbits, bits }
+        // '/Users/matt/Azureus/unna2/books/Maps/venice2.pkg'
+        // Huge scrollable grayscale(?) maps
+//        fprintf(stderr, "uncompressed Newton image format\n");
+//        printf("---> "); PrintObjectAux(data, 0, 0); printf(" <----\n");
+//        ret = 1;
+      } else if (FrameHasSlot(data, MakeSymbol("bits"))) {
+        // Faulty: bounds, bits
+        // only in '/Users/matt/Azureus/unna2/books/Travel_Geography/Citibank Locations/NYCATMS.pkg'
+//        fprintf(stderr, "Simple Newton Image\n");
+//        printf("---> "); PrintObject(data, 0); printf(" <----\n");
+//        ret = 1;
+      } else if (FrameHasSlot(data, MakeSymbol("_proto"))) {
+//        fprintf(stderr, "NewtonScript form or rect or other proto\n");
+//        ret = 1;
+      } else if (FrameHasSlot(data, MakeSymbol("stepChildren"))) {
+//        fprintf(stderr, "NewtonScript form\n");
+//        ret = 1;
+      } else {
+        // '/Users/matt/Azureus/unna2/books/Computers/JargonFile/jargon3.pkg':
+        // {_proto: @160, viewFormat: vfFillDkGray} (a black rectangle)
+        fprintf(stderr, "Contents block with unknown data FRAME\n");
+        printf("---> "); PrintObject(data, 0); printf(" <----\n");
+        ret = 1;
+      }
+    } else {
+      fprintf(stderr, "Contents block with unknown data entry\n");
+      printf("---> "); PrintObject(data, 0); printf(" <----\n");
+      ret = 1;
     }
   }
   return ret;
@@ -605,7 +720,11 @@ int writeBookToPDF(RefArg book, const std::string &filename)
 //  write_font_data("/Users/matt/dev/fontdata.txt");
 //  return -1;
 
-  if (prepareContents(book)) return 1;
+  int ret = 0;
+
+
+//  if (prepareContents(book)) return 1;
+  if (prepareContents(book)) ret = 1;
 
 #if 0
   Ref browsers_array = GetFrameSlot(book, MakeSymbol("browsers"));
@@ -755,7 +874,6 @@ If bits match, the word might be in that text block (requiring full search)
   if (!IsArray(rendering_array)) {
     return 1;
   }
-  int ret = 0;
 
   // "rendering" can contain more than one book format. For now, we choose
   // the first one we find.
@@ -907,7 +1025,6 @@ If bits match, the word might be in that text block (requiring full search)
                       seg_break = seg_end;
                       seg_break_right = seg->right;
                     }
-                    // TODO: tabs
                     if (ll->code == '\t') {
                       if (tabs) {
                         int ix = 0, n = (int)tabs->size();
@@ -999,10 +1116,7 @@ If bits match, the word might be in that text block (requiring full search)
 #endif
               // Block layout:
               // Box, alignment, template (dual column, triple column)
-              // Text, dataOffset, dataLen
               // text style, text segment styles (array)
-              // tabs
-              // special characters: tab, CR/NL, space, soft hyphen?
             }
           }
         }
