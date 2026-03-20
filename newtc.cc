@@ -197,7 +197,7 @@ void handleArgS(const std::string &script)
     gREPout->exceptionNotify(CurrentException());
   }
   end_try;
-  
+
   addGlobalRef(result);
 }
 
@@ -391,7 +391,7 @@ Usage:
 
   newtc [commands]
 
-Handle NewtonScript files and sources by running 
+Handle NewtonScript files and sources by running
 the commands in the given order.
 
   Input Commands
@@ -405,7 +405,7 @@ the commands in the given order.
 
   Output Commands
   -opkg <filename>        Write the current object to a package file
-  -nsof <filename>        Write the current object to a NSOF file
+  -onsof <filename>       Write the current object to a NSOF file
   -opdf <filename>        Write the first part as a PDF file if it is a book
   -print                  Print the current object, functions are just frames
   -decompile              Print the object with all functions decompiled
@@ -619,7 +619,7 @@ int main(int argc, char **argv) {
 void handleArgHello() {
   currentFileName = "<hello>";
   const char *script = R"*(
-    
+
 {
   signature: 'package0,
   id: "xxxx",
