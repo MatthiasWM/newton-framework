@@ -5,25 +5,98 @@
 //  Created by Matthias Melcher on 25.02.26.
 //
 
-// find /Users/matt/Azureus/unna2/books/ -name "*.pkg" -exec ./build/Xcode/Debug/newtc -pkg \{\} -opdf "x" \;
 
-// Not a book:
-// '/Users/matt/Azureus/unna2/books/Maps/BostonSubway-TMap-12.pkg'
+  // The Book Package format is not too difficult to understand. "Contents"
+  // holds all text and image data. "Rendering" lays out that content on pages.
+  // "Styles" describes fonts and text styles. "Hints" is used for text search
+  // optimization. "Browsers" are used for a clcikable table of contents, and
+  // "Templates" can generate multi-colun page layouts.
 
-// Package reader crashes:
-// '/Users/matt/Azureus/unna2/books/Maps/SMRTmap.pkg'
-// '/Users/matt/Azureus/unna2/books/Newton/newtonmail.htm.pkg'
+  // Note: packages can hold book-like contents without actually being of type
+  // "book". In contrast, "Books" can contain NewtonScript objects and views and
+  // receive messages. They can be as complex as a full Newton application.
+
+  // Note: the "Book" format uses Classic Mac PICT format V1 and V2 for images
+  // and graphics. The PICT format itself is highly complex and can contain
+  // vector graphics and text layouts besides pixel maps. It is not within
+  // scope to implement a full PICT parser, but we may at some point support
+  // a subset of the PICT format.
+
+  // part [
+  //   type: "book"
+  //   data {
+  //     book {
+  //       version, isbn, title, shortTitle, copyright, author, publisher,
+  //       data { } // arbitrary user data?
+  //       contents [
+  //         {
+  //           data: "text",
+  //           styles: [ // optional
+  //             char count, styleRef, repeat
+  //           ],
+  //           viewFont: ref_to_style
+  //           tabs: [0, 36, 72, ...],
+  //           layout: 2048,
+  //           flags: 16,
+  //           viewJustify: 2
+  //         }
+  //       ]
+  //       styles [
+  //         {family: 'geneva, face: 0, size: 9}, ...
+  //       ]
+  //       hints [
+  //         nil, true, binary
+  //           The "hints" array is used for text search optimization. It
+  //           contains bitmap-based fingerprints of the text content that
+  //           allow for fast text searching without having to scan through
+  //           the entire text (see Hints.h and Hints.cc).
+  //       ]
+  //       browsers [
+  //         {
+  //           name: "Contents"
+  //           list: [
+  //             {item: ->contents}
+  //             {level: 2, item: ->contents}
+  //           ]
+  //       ]
+  //       Templates: [
+  //         // List for single column or multi column layout
+  //         {nColumns: 1, column: [{width: 12, type: 0}]}, etc.
+  //       ]
+  //       rendering: [
+  //         // We can offer multiple page formats which the user can choose and
+  //         // which will change paging
+  //         { pageSize: { }
+  //           contents: [ [ 1, 2, 3, 5, ...] ]
+  //           pages [
+  //             { template: ->template
+  //               blocks: [
+  //                 { bounds: { }, item: ->Item, dataOffset, dataLen }
+  //               ]
+  //       ]
+
+  // find unna/books/ -name "*.pkg"
+  // Not all of the packages are actually books. Not all packages can be read by
+  // the current package parser.
 
 
 #include "BookWriter.h"
+#include "Symbols.h"
+#include "Frames/Iterators.h"
+#include "Matt/ObjectPrinter.h"
+#include "Matt/PDFGen/pdfgen.h"
 
 #include <string.h>
 #include <arpa/inet.h>
 
+#include <vector>
+
+
+// The following code ist only used once to generate the font data tables in pdfgen.c
+// Call with: write_font_data("/Users/matt/dev/fontdata.txt");
+#if 0
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreText/CoreText.h>
-
-extern void PrintObjectAux(Ref obj, int indent, int depth);
 
 // Return the human-readable full name of a CTFontRef as std::string
 static std::string CTFontGetHumanReadableName(CTFontRef font) {
@@ -45,12 +118,62 @@ static std::string CTFontGetHumanReadableName(CTFontRef font) {
   return result;
 }
 
-#include <vector>
+void write_letter_widths(FILE* out, const char* fontName) {
+  // Pseudocode for macOS (Core Text/Core Graphics)
+  CFStringRef cfFontName = CFStringCreateWithCString(kCFAllocatorDefault, fontName, kCFStringEncodingUTF8);
+  CTFontRef font = CTFontCreateWithName(cfFontName, 14, NULL);
+  std::string name = CTFontGetHumanReadableName(font);
+  float ascent = CTFontGetAscent(font);
+  float descent = CTFontGetDescent(font);
+  float leading = CTFontGetLeading(font);
+  fprintf(out, "{\n\"%s\", // %s\n", fontName, name.c_str());
+  fprintf(out, "%4d, %4d, %4d, // ascent, descent, line spacing\n",
+          static_cast<int>(ascent*72.0f),
+          static_cast<int>(descent*72.0f),
+          static_cast<int>(leading*72.0f));
+  fprintf(out, "{  // [0..255]\n");
+  for (int c = 0; c < 256; ++c) {
+    // Get the Unicode or glyph for MacRoman code 'c'
+    // You must implement MacRomanToUnicode or use an existing lookup table!
+    UniChar unicode = macroman_to_unicode(c);
+    CGGlyph glyph;
+    CTFontGetGlyphsForCharacters(font, &unicode, &glyph, 1);
+    CGSize size;
+    CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal, &glyph, &size, 1);
+    // Store width in your array as needed.
+    fprintf(out, "%4d, ", static_cast<int>(size.width*72.0f));
+    if ((c % 16) == 15) fprintf(out, "\n");
+    // printf("Char '%s' is %g units wide\n", unicode_to_utf8(unicode).c_str(), size.width);
+  }
+  CFRelease(font);
+  fprintf(out, "}\n},\n");
+}
 
-#include "Symbols.h"
-#include "Frames/Iterators.h"
-#include "Matt/ObjectPrinter.h"
-#include "Matt/PDFGen/pdfgen.h"
+void write_font_data(const char* filename) {
+  FILE* out = fopen(filename, "wb");
+  if (!out) {
+    fprintf(stderr, "Can't open file %s\n", filename);
+    return;
+  }
+  write_letter_widths(out, "Times-Roman");
+  write_letter_widths(out, "Times-Bold");
+  write_letter_widths(out, "Times-Italic");
+  write_letter_widths(out, "Times-BoldItalic");
+  write_letter_widths(out, "Helvetica");
+  write_letter_widths(out, "Helvetica-Bold");
+  write_letter_widths(out, "Helvetica-Oblique");
+  write_letter_widths(out, "Helvetica-BoldOblique");
+  write_letter_widths(out, "Courier");
+  write_letter_widths(out, "Courier-Bold");
+  write_letter_widths(out, "Courier-Oblique");
+  write_letter_widths(out, "Courier-BoldOblique");
+  write_letter_widths(out, "Symbol");
+  write_letter_widths(out, "ZapfDingbats");
+  fclose(out);
+}
+#endif
+
+extern void PrintObjectAux(Ref obj, int indent, int depth);
 
 extern std::string currentFileName;
 extern int writeBookToPDF(RefArg book, const std::string &filename);
@@ -59,6 +182,8 @@ constexpr uint8_t kNoBreak = 0;
 constexpr uint8_t kLineBreak = 1;
 constexpr uint8_t kWordBreak = 2;
 constexpr uint8_t kTabBreak = 3;
+
+uint8_t current_page_font = 0;
 
 typedef struct {
   uint16_t code;
@@ -130,34 +255,6 @@ const char* known_book_style_keys[] = {
 const char* known_book_browsers_keys[] = {
   "name",         // String: "Contents" in all tested files
   "list",         // Array of entries: not explored entirely
-// browser item
-//  {item: {data: "Cunnigham park",
-//    viewFont: tsSystem+tsSize(12)+tsPlain,
-                  //  /* constant */ tsFamilyMask := 0x000003FF;
-                  //  /* constant */ tsFamilyShift := 0;
-                  //  /* constant */ tsSizeMask := 0x000FFC00;
-                  //  /* constant */ tsSizeShift := 10;
-                  //  /* constant */ tsFaceMask := 0x3FF00000;
-                  //  /* constant */ tsFaceShift := 20;
-                  //  /* constant */ tsSimple := 2 << tsFamilyShift;
-                  //  /* constant */ tsFancy := 1 << tsFamilyShift;
-                  //  func tsSize(num)((num) << tsSizeShift);
-                  //  /* constant */ tsPlain := 0x00000000;
-                  //  /* constant */ tsBold := 0x00100000;
-                  //  /* constant */ tsItalic := 0x00200000;
-                  //  /* constant */ tsUnderline := 0x00400000;
-                  //  /* constant */ tsOutline := 0x00800000;
-                  //  /* constant */ tsSuperScript := 0x08000000;
-                  //  /* constant */ tsSubScript := 0x10000000;
-                  //  /* constant */ tsUndefinedFace := 0x20000000;
-                  //  /* constant */ userFont9 := 0x00002401;
-                  //  /* constant */ userFont10 := 0x00002801;
-                  //  /* constant */ userFont12 := 0x00003001;
-                  //  /* constant */ userFont18 := 0x00004801;
-//    layout: 38,
-//    name: "MAP"
-//    tabs: []},
-//  level: 2},
   nullptr
 };
 
@@ -178,32 +275,8 @@ const char* known_book_rendering_keys[] = {
   "pageSize",     // Box: {left: 0, top: 0, right: 240, bottom: 302}
   "contents",     // Array of array of incrementing integers, inner can be empty
   "pages",        // array of frames
-  /* TODO: page description
-   { template:
-     blocks:
-     [
-       {
-         bounds: [ int l, t, r, b]
-         item: -> Contents
-         dataOffset: integer for rendering partial data blocks
-         dataLen: integer for rendering partial data blocks
-       }, { ... }
-     ]
-   }
-   */
   nullptr
 };
-
-/* Reserved slot names:
-
- bookmarking: rendered for creating a bookmark
- curRendering kioskDest scripts
- bookRef data layout type
- browser destPage look
- contentArea edgeWidth
- printing: bool, rendered for printing
- cuPage flags related
- */
 
 int checkForUnknownKeys(const char* label, RefArg frame, const char* known_keys[]) {
   if (!IsFrame(frame)) {
@@ -247,8 +320,8 @@ static uint16_t unicodeLUT[128] = {
   0x00AF, 0x02D8, 0x02D9, 0x02DA, 0x00B8, 0x02DD, 0x02DB, 0x02C7 };
 
 /**
- Convert a Newton Unicode character into MacRoman encoding. Unsupported
- characters return 255.
+ Convert a Newton Unicode character into MacRoman encoding.
+ Unsupported characters return 255.
  Slow implementation. Could use a std::map.
  */
 uint8_t unicode_to_macroman(uint16_t u) {
@@ -271,6 +344,11 @@ uint16_t macroman_to_unicode(uint8_t u) {
     return unicodeLUT[u-128];
 }
 
+/**
+ Convert a Unicode code point to UTF-8 encoding.
+ This is a simple implementation that handles code points in the Basic
+ Multilingual Plane (BMP) up to U+FFFF.
+ */
 std::string unicode_to_utf8(uint16_t u) {
     std::string out;
     if (u <= 0x7F) {
@@ -289,6 +367,12 @@ std::string unicode_to_utf8(uint16_t u) {
     return out;
 }
 
+/**
+ Write a book package to a PDF file.
+ Returns 0 on success, 1 on failure.
+ The package must be of type "book" and follow the expected structure,
+ otherwise an error is printed and 1 is returned.
+ */
 int writePackageBookToPDF(RefArg pkg, const std::string &filename) {
 //  printf("Reading '%s'\n", currentFileName.c_str());
   if (!IsFrame(pkg)) {
@@ -343,20 +427,10 @@ int writePackageBookToPDF(RefArg pkg, const std::string &filename) {
   return ret;
 }
 
-void getStyle(Ref style, int* font, int* height) {
-  if (ISINT(style)) {
-    // family: 0x000003FF, size: 0x000FFC00 (>>10), face: 0x3FF00000; (>>20)
-    // pain=00, bold=01, italic=02, underline=04, outline=08, super=80, sub=100
-    auto f = RVALUE(style);
-    // TODO: map to pdf fonts
-  } else if (IsFrame(style)) {
-    // { family, mask, size }
-    Ref f = GetFrameSlot(style, MakeSymbol("family"));
-    Ref m = GetFrameSlot(style, MakeSymbol("face"));
-    Ref s = GetFrameSlot(style, MakeSymbol("size"));
-  }
-}
 
+/**
+ Convert an integrer of frame based style information into a font index and a font height.
+ */
 void set_font(RefArg r, int* font, int* height) {
   *font = 1;
   *height = 14;
@@ -410,8 +484,21 @@ struct PictRect {
   }
 };
 
-int pictToImage(RefArg text_block, RefArg data) {
+struct PictLoc {
+  uint16_t v, h;
+  void read(uint16_t* d) {
+    v = htons(d[0]);
+    h = htons(d[1]);
+  }
+};
 
+
+//int pictToImage(RefArg text_block, RefArg data) {
+int pictToPdf(struct pdf_doc *pdf, const PictRect& br, RefArg block, RefArg data)
+{
+  pdf_add_rectangle(pdf, nullptr, br.left, br.top, br.right-br.left, br.bottom-br.top, 1.0f, PDF_BLACK);
+  return 0;
+#if 0
   static int picnum = 0;
   char buf[255];
   sprintf(buf, "/Users/matt/dev/newton-framework/p%03d.pict", picnum++);
@@ -428,6 +515,15 @@ int pictToImage(RefArg text_block, RefArg data) {
   PictRect bounds;
   bounds.read(pictw+1);
   PictRect clip = bounds;
+  PictRect r = bounds;
+  // FIXME: use pnLoc and txLoc to store line drawing position and text position
+  PictLoc pnLoc { 0, 0 };   // Pen Location
+  PictLoc pnLoc2 { 0, 0 };  // Secondary Pen Location
+  PictLoc txLoc { 0, 0 };   // Text Location
+  int8_t dh, dv;
+  uint8_t udh, udv;
+  uint16_t txSize = 14;
+
   if ((pict[11]==0x11) && (pict[12]==0x01)) { // 0x00 0x11 0x01
     fprintf(stderr, "Data is in PICT format version 1\n");
   } else if ((htons(pictw[5])==0x0011) && (htons(pictw[6])==0x02ff)) { // 0x0011 0x02ff
@@ -438,33 +534,109 @@ int pictToImage(RefArg text_block, RefArg data) {
     while (ix < pict_size/2) {
       uint16_t op = htons(pictw[ix]);
       uint16_t sz = 0;
-      fprintf(stderr, "Op: 0x%04x\n", op);
+      fprintf(stderr, "Op: 0x%04x: ", op);
       switch (op) {
-        case 0x0000: ix++; break; // nop
+        case 0x0000: fprintf(stderr, "nop\n"); ix++; break; // nop
         case 0x0001: // clipping region
+          fprintf(stderr, "clip region ");
           sz = htons(pictw[ix+1]);
-          if (sz != 0x000A) fprintf(stderr, "Unsupported region size\n");
-          clip.read(pictw+ix+2);
+          r.read(pictw+ix+2);
+          fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
           ix += 1+sz/2;
           break;
-        case 0x0003: ix += 2; break; // TxFont, 2 bytes
-        case 0x0004: ix += 2; break; // TxFace, 1 bytes (?!)
-        case 0x0007: ix += 3; break; // Pen Size, 4 bytes
-        case 0x0009: ix += 5; break; // Pen Pattern, 8 bytes
-        case 0x000d: ix += 2; break; // Text Size, 2 bytes
-        case 0x0015: ix += 2; break; // Fractional Pen Position, 2 bytes
-        case 0x0022: ix += 4; break; // Short Line From, 6 bytes
-        case 0x0023: ix += 2; break; // Short Line From, 2 bytes
-          // 0x002b: DHDVText dh, dv, count, text
-        case 0x002c: sz = htons(pictw[ix+1]); ix += 3+sz/2; break; // Set Font, 5 + name length
-        case 0x002e: sz = htons(pictw[ix+1]); ix += 2+sz/2; break; // Glyph Stats, 8 bytes
-        case 0x0030: ix += 5; break; // Frame Rect, 8 bytes
-        case 0x0031: ix += 5; break; // Paint Rect, 8 bytes
-        case 0x00a1: sz = htons(pictw[ix+2]); ix += 3+sz/2; break; // long comment (kind, size, data...)
-        case 0x00a0: ix+=2; break; // short comment
-        default:
-          fprintf(stderr, "Unknown op code\n");
-        case 0x00ff: // end of format
+        case 0x0003: fprintf(stderr, "TxFont\n"); ix += 2; break; // TxFont, 2 bytes
+        case 0x0004: fprintf(stderr, "TxFace\n"); ix += 2; break; // TxFace, 1 bytes (?!)
+        case 0x0007: fprintf(stderr, "PenSize\n"); ix += 3; break; // Pen Size, 4 bytes
+        case 0x0009: fprintf(stderr, "PenPattern\n"); ix += 5; break; // Pen Pattern, 8 bytes
+        case 0x000a: fprintf(stderr, "FillPattern\n"); ix += 5; break; // Fill Pattern, 8 bytes
+        case 0x000d: fprintf(stderr, "TextSize\n");
+          txSize = htons(pictw[ix+1]);
+          ix += 2; break; // Text Size, 2 bytes
+        case 0x0015: fprintf(stderr, "PnLocHFrac\n");
+          // actual_h = pnLoc.h + (PnLocHFrac / 65536.0)
+          ix += 2; break; // PnLocHFrac, Fractional Pen Position, 2 bytes
+          // case 0x001e: // DefHilite  Use default highlight color; no data; set highlight to default (from low memory)
+        case 0x0022: fprintf(stderr, "ShortLine: "); // Short Line: 00.22.vv.vv.hh.hh.dh.dv
+          pnLoc2.read(pictw+ix+1);
+          dh = (int8_t)pict[ix*2+6];
+          dv = (int8_t)pict[ix*2+7];
+          fprintf(stderr, "%d %d rel %d %d (%d %d)\n", pnLoc2.h, pnLoc2.v, dh, dv, pnLoc.h, pnLoc.v);
+          pnLoc.h = pnLoc2.h + dh;
+          pnLoc.v = pnLoc2.v + dv;
+          pdf_add_line(pdf, nullptr, br.left+pnLoc2.h, br.top-pnLoc2.v, br.left+pnLoc.h, br.top-pnLoc.v, 1.0f, PDF_RED);
+          ix += 4;
+          break;
+        case 0x0023: fprintf(stderr, "ShortLineFrom "); // Short Line From 00.23.dh.dv
+          dh = (int8_t)pict[ix*2+2];
+          dv = (int8_t)pict[ix*2+3];
+          pnLoc2 = pnLoc;
+          pnLoc.h += dh;
+          pnLoc.v += dv;
+          fprintf(stderr, "%d %d rel %d %d (%d %d)\n", pnLoc2.h, pnLoc2.v, dh, dv, pnLoc.h, pnLoc.v);
+          pdf_add_line(pdf, nullptr, br.left+pnLoc2.h, br.top-pnLoc2.v, br.left+pnLoc.h, br.top-pnLoc.v, 1.0f, PDF_BLUE);
+          ix += 2;
+          break;
+        case 0x0028: fprintf(stderr, "LongText "); // long text (point, count, text)
+          txLoc.read(pictw+ix+1);
+          sz = pict[ix*2+6];
+          // TODO: rewrite this to use MacRoman encoding
+          memcpy(buf, pict+ix*2+7, sz); buf[sz] = 0;
+          fprintf(stderr, " @%d, %d: \"%s\"(%d)\n", txLoc.h, txLoc.v, buf, sz);
+          pdf_add_text(pdf, nullptr, buf, txSize, br.left+txLoc.h, br.top-txLoc.v, PDF_BLACK);
+          ix += 4 + sz/2;
+          break;
+        case 0x002a: { fprintf(stderr, "DVText "); //  DVText  dv (0..255), count (0..255), text
+          uint8_t dv = pict[ix*2+2];
+          sz = pict[ix*2+3];
+          txLoc.v += dv;
+          memcpy(buf, pict+ix*2+4, sz); buf[sz] = 0;
+          fprintf(stderr, " @%d, %d: \"%s\"(%d)\n", txLoc.h, txLoc.v, buf, sz);
+          pdf_add_text(pdf, nullptr, buf, txSize, br.left+txLoc.h, br.top-txLoc.v, PDF_BLACK);
+          ix += 2 + (sz+1)/2;
+          } break;
+        case 0x002b: { fprintf(stderr, "DHDVText "); // DHDVText 00.2b.dh.dv.sz.tt.tt.tt...
+          uint8_t dh = pict[ix*2+2];
+          uint8_t dv = pict[ix*2+3];
+          sz = pict[ix*2+4];
+          txLoc.h += dh;
+          txLoc.v += dv;
+          // TODO: rewrite this to use MacRoman encoding
+          memcpy(buf, pict+ix*2+5, sz); buf[sz] = 0;
+          fprintf(stderr, " @%d, %d: \"%s\"(%d)\n", txLoc.h, txLoc.v, buf, sz);
+          pdf_add_text(pdf, nullptr, buf, txSize, br.left+txLoc.h, br.top-txLoc.v, PDF_BLACK);
+          ix += 3 + sz/2;
+          } break;
+        case 0x002c: fprintf(stderr, "SetFont\n"); sz = htons(pictw[ix+1]); ix += 3+sz/2; break; // Set Font, 5 + name length
+        case 0x002e: fprintf(stderr, "GlyphStats\n"); sz = htons(pictw[ix+1]); ix += 2+sz/2; break; // Glyph Stats, 8 bytes
+        case 0x0030: fprintf(stderr, "FrameRect ");
+          r.read(pictw+1);
+          fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
+          pdf_add_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, PDF_BLACK);
+          ix += 5; break; // Frame Rect, 8 bytes
+        case 0x0031: fprintf(stderr, "FillRect ");
+          r.read(pictw+1);
+          fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
+          pdf_add_filled_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, 0xcccccc, PDF_BLACK);
+          ix += 5; break; // Fill Rect, 8 bytes
+        case 0x0081: fprintf(stderr, "paintRegion "); // paintRegion
+          sz = htons(pictw[ix+1]);
+          r.read(pictw+ix+2);
+          fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
+          pdf_add_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, PDF_GREEN);
+          ix += 1+sz/2;
+          break;
+        case 0x0084: fprintf(stderr, "fillRegion "); // fillRegion
+          sz = htons(pictw[ix+1]);
+          r.read(pictw+ix+2);
+          fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
+          pdf_add_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, 0x888800);
+          ix += 1+sz/2;
+          break;
+        case 0x00a1: fprintf(stderr, "LongComment %d\n", htons(pictw[ix+1])); sz = htons(pictw[ix+2]); ix += 3+sz/2; break; // long comment (kind, size, data...)
+        case 0x00a0: fprintf(stderr, "ShortComment %d\n", htons(pictw[ix+1])); ix+=2; break; // short comment
+        case 0x00ff: fprintf(stderr, "END\n"); // end of format
+          ix = 0x7fffffff; break;
+        default: fprintf(stderr, "Unknown op code\n");
           ix = 0x7fffffff; break;
       }
     }
@@ -473,8 +645,213 @@ int pictToImage(RefArg text_block, RefArg data) {
     return 1;
   }
   return 0;
+#endif
 }
 
+
+/**
+ A segements is a sequence of characters with the same font and size, that can be drawn together.
+ Text is split into segments when font size or style changes, orwhen a
+ line break or tab is encountered.
+ */
+struct Segment {
+  std::string text;
+  uint8_t font, size;
+  float ascent, descent;
+  // TODO: "leading" is the distance between lines. We just make an assumtion
+  // somewhere in the code below (currently 1.2 * (ascent + descent) ).
+  float left, right;
+
+  void draw(struct pdf_doc *pdf, float xorigin, float ybaseline) {
+    if (!text.empty()) {
+      if (font != current_page_font) {
+        pdf_set_font(pdf, pdf_font[font].font_name);
+        current_page_font = font;
+      }
+      pdf_add_text(pdf, nullptr, text.c_str(), size, xorigin+left, ybaseline, PDF_BLACK);
+    }
+  }
+};
+
+/**
+ A line is a sequence of segments that have the same vertical baseline position.
+ Lines are split when a newline is encountered, or when the line overflows the
+ available width.
+ */
+struct Line {
+  std::vector<struct Segment*> segments;
+  float left, top, right;
+  float max_ascent, max_descent;
+
+  void clear() {
+    for (auto &v: segments) delete v;
+    segments.clear();
+    left = top = right = 0.0f;
+    max_ascent = max_descent = 0.0;
+  }
+  void preset(float line_left, float line_top) {
+    clear();
+    left = right = line_left;
+    top = line_top;
+  }
+  float draw(struct pdf_doc *pdf, float xorigin, float yorigin) {
+    for (auto &v: segments) v->draw(pdf, xorigin+left, yorigin-top-max_ascent);
+    return max_ascent + max_descent;
+  }
+};
+
+/**
+ A text block is rendered by layoing out a sequnce of characters into lines and
+ segments, and then drawing those segments at the right position on the page.
+ */
+void renderTextBlockToPDF(struct pdf_doc* pdf, RefArg block, RefArg item, RefArg data, int l, int t, int b, int r, float page_height) {
+  int text_len = Length(data) / 2;
+  int data_offset = 0;
+  int data_len = text_len;
+  Ref ref = GetFrameSlot(block, MakeSymbol("dataOffset"));
+  if (ISINT(ref)) data_offset = (int)RVALUE(ref);
+  ref = GetFrameSlot(block, MakeSymbol("dataLen"));
+  if (ISINT(ref)) data_len = (int)RVALUE(ref);
+  if (data_offset > text_len) data_offset = text_len;
+  if (data_offset + data_len > text_len) data_len = text_len - data_offset;
+
+  auto lettersRef = GetFrameSlot(item, MakeSymbol("_letters"));
+  auto letters = static_cast<std::vector<Letter>*>(RefToAddress(lettersRef));
+
+  auto tabsRef = GetFrameSlot(item, MakeSymbol("_tabs"));
+  std::vector<int>* tabs = nullptr;
+  if (NOTNIL(tabsRef)) {
+    tabs = static_cast<std::vector<int>*>(RefToAddress(tabsRef));
+  }
+
+  int len = (int)letters->size();
+  if (data_offset > len) data_offset = len;
+  if (data_offset + data_len > len) data_len = len - data_offset;
+
+  struct Line line;
+  int data_start = data_offset;
+  int data_end = data_offset + data_len;
+  float yy = 0.0f;
+  // loop through as many lines as it takes
+//              printf("Create page\n");
+  while (data_start < data_end) {
+    bool line_done = false;
+    float xx = 0.0f;
+    line.preset(xx, yy);
+//                printf("Starting line at %g, %g\n", xx, yy);
+    // create all segments needed to draw a line
+    while ((data_start < data_end) && !line_done) {
+      struct Segment* seg = new Segment;
+      int seg_start = data_start;
+      int seg_end = seg_start;
+      int seg_break = seg_start;
+      int seg_break_right = xx;
+      int seg_next = seg_end;
+      Letter* ll = &letters->at(seg_start);
+      seg->size = ll->size;
+      seg->font = ll->font;
+      const pdf_font_data* ft = pdf_font + ll->font;
+      seg->ascent = ft->ascent / 72.0f / 14.0f * ll->size;
+      seg->descent = ft->descent / 72.0f / 14.0f * ll->size;;
+      seg->left = seg->right = xx;
+      // find the longest sequence that is not interrupter by tabs, line endings, or line overflow
+      while (seg_end < data_end) {
+        ll = &letters->at(seg_end);
+        if ((ll->code == '\r') || (ll->code == '\n')) {
+          line_done = true;
+          seg_next = seg_end + 1;
+          break;
+        }
+        if ((ll->font != seg->font) || (ll->size != seg->size)) {
+          xx = seg->right;
+          break;
+        }
+        if (ll->code == ' ') {
+          seg_break = seg_end;
+          seg_break_right = seg->right;
+        }
+        if (ll->code == '\t') {
+          if (tabs) {
+            int ix = 0, n = (int)tabs->size();
+            for (ix = 0; ix < n; ++ix) {
+              if ((*tabs)[ix] > seg->right) break;
+            }
+            int se = seg_end+1;
+            while ((se < data_end) && (letters->at(se).code == '\t')) {
+              ix++;
+              se++;
+            }
+            if (ix >= n) {
+              xx = r-l;
+            } else {
+              xx = (*tabs)[ix];
+            }
+            seg_next = se;
+          } else {
+            // default tab stop of 0.5"
+            int t = seg->right + 37;
+            int d = t/36;
+            xx = d * 36;
+            int se = seg_end+1;
+            while ((se < data_end) && (letters->at(se).code == '\t')) {
+              xx += 36;
+              se++;
+            }
+            seg_next = se;
+          }
+          if (xx >= r-l) {
+            line_done = true;
+            xx = 0;
+          }
+          break;
+        }
+        if (ll->code >= ' ') {
+          seg->right += ft->char_width[unicode_to_macroman(ll->code)] / 72.0f / 14.0f * ll->size;
+          if (seg->right > r-l) {
+            if ((seg_break == data_start) && (xx == 0)) {
+              // if there was no word break yet, break at the character to avoid an endless loop
+              seg_next = seg_end;
+            } else {
+              // use a previous word break to break the line there
+              seg_end = seg_break;
+              seg->right = seg_break_right;
+              seg_next = seg_end + 1; // assumes this was a word break and we skip the space between words
+            }
+            line_done = true;
+            break;
+          }
+        }
+        seg_end++;
+        seg_next = seg_end;
+      }
+      // copy the characters into the segment as utf8
+      for (int ci=seg_start; ci < seg_end; ci++) {
+        ll = &letters->at(ci);
+        seg->text += unicode_to_utf8(ll->code);
+      }
+      // add the segment to the line
+      line.segments.push_back(seg);
+      line.max_ascent = std::max(line.max_ascent, seg->ascent);
+      line.max_descent = std::max(line.max_descent, seg->descent);
+      line.right = std::max(line.right, seg->right);
+//                  printf("Adding segment: \"%s\"\n", seg->text.c_str());
+      data_start = seg_start = seg_next;
+    }
+    line.draw(pdf, l, page_height-t);
+    yy += 1.2f * (line.max_ascent + line.max_descent);
+  }
+  // Block layout:
+  // Box, alignment, template (dual column, triple column)
+  // text style, text segment styles (array)
+}
+
+/**
+  Convert the UTF16 text and styles in a text block into an array of Letter
+  structs that can be easily rendered.
+  One text block can be rendered multiple times with different dataOffset and
+  dataLen. This function prepares the text once for easy C++ style access by
+  the page and block rendering code.
+ */
 int textBlockToLetters(RefArg text_block) {
   int i;
 
@@ -532,6 +909,7 @@ int textBlockToLetters(RefArg text_block) {
     //printf("%c %d %d %6.2f\n", mrc, ll.font, ll.size, ll.width);
   }
 
+  // If there is a tabs array, copy all tabs into a C++ vector.
   std::vector<int>* tabArray = nullptr;
   Ref tabs = GetFrameSlot(text_block, MakeSymbol("tabs"));
   if (IsArray(tabs)) {
@@ -570,12 +948,12 @@ int prepareContents(RefArg book) {
     if (IsString(data)) {
       textBlockToLetters(text_block);
     } else if (ISNIL(data)) {
-      fprintf(stderr, "Contents block without data entry\n");
-      ret = 1;
+//      fprintf(stderr, "Contents block without data entry\n");
+//      ret = 1;
     } else if ((IsBinary(data)) && (IsInstance(data, MakeSymbol("picture")))) {
-      fprintf(stderr, "PICT image format\n");
-      pictToImage(text_block, data);
-      ret = 1;
+//      fprintf(stderr, "PICT image format\n");
+//      pictToImage(text_block, data);
+//      ret = 1;
     } else if (IsFrame(data)) {
       if (FrameHasSlot(data, MakeSymbol("colordata"))) {
         // bounds{}, colordata{ colortable, bitdepth, cbits, bits }
@@ -599,274 +977,28 @@ int prepareContents(RefArg book) {
       } else {
         // '/Users/matt/Azureus/unna2/books/Computers/JargonFile/jargon3.pkg':
         // {_proto: @160, viewFormat: vfFillDkGray} (a black rectangle)
-        fprintf(stderr, "Contents block with unknown data FRAME\n");
-        printf("---> "); PrintObject(data, 0); printf(" <----\n");
-        ret = 1;
+//        fprintf(stderr, "Contents block with unknown data FRAME\n");
+//        printf("---> "); PrintObject(data, 0); printf(" <----\n");
+//        ret = 1;
       }
     } else {
-      fprintf(stderr, "Contents block with unknown data entry\n");
-      printf("---> "); PrintObject(data, 0); printf(" <----\n");
-      ret = 1;
+//      fprintf(stderr, "Contents block with unknown data entry\n");
+//      printf("---> "); PrintObject(data, 0); printf(" <----\n");
+//      ret = 1;
     }
   }
   return ret;
 }
 
-
-void write_letter_widths(FILE* out, const char* fontName) {
-  // Pseudocode for macOS (Core Text/Core Graphics)
-  CFStringRef cfFontName = CFStringCreateWithCString(kCFAllocatorDefault, fontName, kCFStringEncodingUTF8);
-  CTFontRef font = CTFontCreateWithName(cfFontName, 14, NULL);
-  std::string name = CTFontGetHumanReadableName(font);
-  float ascent = CTFontGetAscent(font);
-  float descent = CTFontGetDescent(font);
-  float leading = CTFontGetLeading(font);
-  fprintf(out, "{\n\"%s\", // %s\n", fontName, name.c_str());
-  fprintf(out, "%4d, %4d, %4d, // ascent, descent, line spacing\n",
-          static_cast<int>(ascent*72.0f),
-          static_cast<int>(descent*72.0f),
-          static_cast<int>(leading*72.0f));
-  fprintf(out, "{  // [0..255]\n");
-  for (int c = 0; c < 256; ++c) {
-    // Get the Unicode or glyph for MacRoman code 'c'
-    // You must implement MacRomanToUnicode or use an existing lookup table!
-    UniChar unicode = macroman_to_unicode(c);
-    CGGlyph glyph;
-    CTFontGetGlyphsForCharacters(font, &unicode, &glyph, 1);
-    CGSize size;
-    CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal, &glyph, &size, 1);
-    // Store width in your array as needed.
-    fprintf(out, "%4d, ", static_cast<int>(size.width*72.0f));
-    if ((c % 16) == 15) fprintf(out, "\n");
-    // printf("Char '%s' is %g units wide\n", unicode_to_utf8(unicode).c_str(), size.width);
-  }
-  CFRelease(font);
-  fprintf(out, "}\n},\n");
-}
-
-void write_font_data(const char* filename) {
-  FILE* out = fopen(filename, "wb");
-  if (!out) {
-    fprintf(stderr, "Can't open file %s\n", filename);
-    return;
-  }
-  write_letter_widths(out, "Times-Roman");
-  write_letter_widths(out, "Times-Bold");
-  write_letter_widths(out, "Times-Italic");
-  write_letter_widths(out, "Times-BoldItalic");
-  write_letter_widths(out, "Helvetica");
-  write_letter_widths(out, "Helvetica-Bold");
-  write_letter_widths(out, "Helvetica-Oblique");
-  write_letter_widths(out, "Helvetica-BoldOblique");
-  write_letter_widths(out, "Courier");
-  write_letter_widths(out, "Courier-Bold");
-  write_letter_widths(out, "Courier-Oblique");
-  write_letter_widths(out, "Courier-BoldOblique");
-  write_letter_widths(out, "Symbol");
-  write_letter_widths(out, "ZapfDingbats");
-  fclose(out);
-}
-
-uint8_t current_page_font = 0;
-
-struct Segment {
-  std::string text;
-  uint8_t font, size;
-  float ascent, descent;
-  // TODO: leading?
-  float left, right;
-
-  void draw(struct pdf_doc *pdf, float xorigin, float ybaseline) {
-    // y is negative!
-//    pdf_add_rectangle(pdf, nullptr, xorigin+left, ybaseline-descent, right-left, ascent+descent, 1, PDF_RED);
-//    pdf_add_line(pdf, nullptr, xorigin+left-4, ybaseline, xorigin+right+4, ybaseline, 1, PDF_BLUE);
-    if (!text.empty()) {
-      if (font != current_page_font) {
-        pdf_set_font(pdf, pdf_font[font].font_name);
-        current_page_font = font;
-      }
-      pdf_add_text(pdf, nullptr, text.c_str(), size, xorigin+left, ybaseline, PDF_BLACK);
-//    } else {
-//      pdf_add_text(pdf, nullptr, "\\n", size, xorigin+left, ybaseline, PDF_BLACK);
-    }
-  }
-};
-
-struct Line {
-  std::vector<struct Segment*> segments;
-  float left, top;
-  float max_ascent, max_descent;
-
-  void clear() {
-    for (auto &v: segments) delete v;
-    segments.clear();
-    left = top = 0.0f;
-    max_ascent = max_descent = 0.0;
-  }
-  void preset(float line_left, float line_top) {
-    clear();
-    left = line_left;
-    top = line_top;
-  }
-  float draw(struct pdf_doc *pdf, float xorigin, float yorigin) {
-    for (auto &v: segments) v->draw(pdf, xorigin+left, yorigin-top-max_ascent);
-    return max_ascent + max_descent;
-  }
-};
-
-
+/**
+ Create a PDF file by rendering all pages in the "rendering" slot.
+ */
 int writeBookToPDF(RefArg book, const std::string &filename)
 {
-//  write_font_data("/Users/matt/dev/fontdata.txt");
-//  return -1;
-
   int ret = 0;
-
 
 //  if (prepareContents(book)) return 1;
   if (prepareContents(book)) ret = 1;
-
-#if 0
-  Ref browsers_array = GetFrameSlot(book, MakeSymbol("browsers"));
-  if (!IsArray(browsers_array)) {
-    return 1;
-  }
-  int ret = 0;
-  for (int i=0; i<Length(browsers_array); ++i) {
-    Ref browser = GetArraySlot(browsers_array, i);
-
-    if (IsFrame(browser)) {
-
-      // {data: "Title Page", layout: 2048}
-      if (checkForUnknownKeys("part:data:book:style[#]:", browser, known_book_browsers_keys))
-        ret = 1;
-
-      Ref r = GetFrameSlot(browser, MakeSymbol("list"));
-      if (!ISNIL(r)) {
-        //      if (!IsBinary(r)) {
-        printf("---> "); PrintObject(r, 0); printf(" <----\n");
-        //      }
-      }
-    } else if (IsInt(browser)) {
-      printf("Style: 0x%08x\n", RefToInt(browser));
-    } else {
-      fprintf(stderr, "Can't read style %d, expected Frame!\n", i);
-    }
-  }
-#endif
-
-#if 0
-  Ref rendering_array = GetFrameSlot(book, MakeSymbol("rendering"));
-  if (ISNIL(rendering_array)) { return 0; }
-  if (!IsArray(rendering_array)) {
-    return 1;
-  }
-  int ret = 0;
-  for (int i=0; i<Length(rendering_array); ++i) {
-    Ref rendering = GetArraySlot(rendering_array, i);
-
-    if (IsFrame(rendering)) {
-
-      // {data: "Title Page", layout: 2048}
-      if (checkForUnknownKeys("part:data:book:style[#]:", rendering, known_book_rendering_keys))
-        ret = 1;
-//      "nColumns",
-//      "column",
-//      "flags",
-//      "header",
-//      "scripts",
-//      "runTop",
-//      "runBottom",
-
-      Ref r = GetFrameSlot(rendering, MakeSymbol("pages"));
-      if (!ISNIL(r)) {
-        //      if (!IsBinary(r)) {
-        printf("---> "); PrintObject(r, 2); printf(" <----\n");
-        //      }
-      }
-    } else if (IsInt(rendering)) {
-      printf("Style: 0x%08x\n", RefToInt(rendering));
-    } else {
-      fprintf(stderr, "Can't read style %d, expected Frame!\n", i);
-    }
-  }
-
-  return ret;
-#endif
-
-  // Primitive approach, let's just write the contents.
-
-  // part [
-  //   type: "book"
-  //   data {
-  //     book {
-  //       version, isbn, title, shortTitle, copyright, author, publisher,
-  //       data { } // arbitrary user data?
-  //       contents [
-  //         {
-  //           data: "text",
-  //           styles: [ // optional
-  //             char count, styleRef, repeat
-  //           ],
-  //           viewFont: ref_to_style
-  //           tabs: [0, 36, 72, ...],
-  //           layout: 2048,
-  //           flags: 16,
-  //           viewJustify: 2
-  //         }
-  //       ]
-  //       styles [
-  //         {family: 'geneva, face: 0, size: 9}, ...
-  //       ]
-  //       hints [
-  //         nil, true, binary // ?????
-  // According to AI: The "hints" array is used for text search optimization. It contains bitmap-based fingerprints of the text content that allow for fast text searching without having to scan through the entire text.
-  /*
-Technical Implementation (see Hints.h and Hints.cc):
-From the code in Hints.h and Hints.cc, I can see that:
-
-TextHint Structure: Each hint is a 64-bit bitmap (two 32-bit integers)
-Hash-based: Words in the text are processed through character quadgrams (4-character sequences) that are hashed into bit positions
-Bloom Filter Pattern: This implements a type of Bloom filter - a probabilistic data structure that can tell you "definitely not present" or "possibly present"
-How It Works
-When text is stored, the system generates hints by:
-
-Taking 4-character sliding windows from each word
-Hashing these quadgrams to bit positions (0-63)
-Setting the corresponding bits in the 64-bit hint bitmap
-When searching, the system:
-
-Generates the same hint pattern for the search term
-Compares it against stored hints using bitwise AND operations
-If no bits match, the word is definitely not in that text block
-If bits match, the word might be in that text block (requiring full search)
-  */
-
-  //       ]
-  //       browsers [
-  //         {
-  //           name: "Contents"
-  //           list: [
-  //             {item: ->contents}
-  //             {level: 2, item: ->contents}
-  //           ]
-  //       ]
-  //       Templates: [
-  //         // List for single column or multi column layout
-  //         {nColumns: 1, column: [{width: 12, type: 0}]}, etc.
-  //       ]
-  //       rendering: [
-  //         // We can offer multiple page formats which the user can choose and
-  //         // which will change paging
-  //         { pageSize: { }
-  //           contents: [ [ 1, 2, 3, 5, ...] ]
-  //           pages [
-  //             { template: ->template
-  //               blocks: [
-  //                 { bounds: { }, item: ->Item, dataOffset, dataLen }
-  //               ]
-  //       ]
-
 
   // Our central concern is the "rendering" slot which lists all pages.
   Ref rendering_array = GetFrameSlot(book, MakeSymbol("rendering"));
@@ -900,7 +1032,7 @@ If bits match, the word might be in that text block (requiring full search)
   }
 
   struct pdf_info info = {
-    .creator = "My software",
+    .creator = "My software",   // TODO: use real metadata from the book
     .producer = "My software",
     .title = "My document",
     .author = "My name",
@@ -912,28 +1044,28 @@ If bits match, the word might be in that text block (requiring full search)
   pdf_set_font(pdf, "Times-Roman");
   current_page_font = 0;
 
-//  pdf_append_page(pdf);
-  // pdf_add_text(pdf, page, text, size, xoff, yoff, colour)
-  // pdf_add_text_spacing(... , spacing, angle)
-  // pdf_add_text_wrap(...)
-//  pdf_add_text(pdf, NULL, "This is text", 12, 50, 20, PDF_BLACK);
-//  pdf_add_text(pdf, NULL, "This is a second text", 12, 50, 40, PDF_BLACK);
-//  pdf_add_line(pdf, NULL, 50, 24, 150, 24, 3, PDF_BLACK);
-
-
+  // The "rendering" slot contains an array of page formats. There can be
+  // different rendering formats for different page sizes. For now, we just
+  // take the first one we find and ignore the rest.
   Ref pages = GetFrameSlot(rendering, MakeSymbol("pages"));
   if (!IsArray(pages)) {
     fprintf(stderr, "No pages found!\n");
     return 1;
   }
+  // One rendering format has basic page size information and holds an array
+  // of pages. Let's loop through all pages.
   for (int i=0; i<Length(pages); ++i) {
     Ref page = GetArraySlot(pages, i);
     pdf_append_page(pdf);
+    // A page is described using a Frame, usually containing a template for
+    // the page layout and an array of text and graphics blocks.
     if (IsFrame(page)) {
       Ref blocks = GetFrameSlot(page, MakeSymbol("blocks"));
       if (IsArray(blocks)) {
+        // Loop through all blocks on this page.
         for (int j=0; j<Length(blocks); ++j) {
           Ref block = GetArraySlot(blocks, j);
+          // The bounds entry describes the block location and size on the page.
           Ref bounds = GetFrameSlot(block, MakeSymbol("bounds"));
           int t = 0, l = 0, b = 0, r = 0;
           if (IsArray(bounds)) {
@@ -947,176 +1079,18 @@ If bits match, the word might be in that text block (requiring full search)
             if (ISINT(ref)) b = (int)RVALUE(ref); else b = t;
           }
 //          pdf_add_rectangle(pdf, nullptr, l, page_height-b, r-l, b-t, 0.5, 0xaaaaaa);
-          // item
-          Ref it = GetFrameSlot(block, MakeSymbol("item"));
-          if (IsFrame(it)) {
+          // The "Item" entry is a reference to the data within the block. Note
+          // that multiple blocks can reference the same data. "dataOffset" and
+          // "dataLen" are used for text to specify only a subset of the data
+          // to be rendered in this block.
+          Ref item = GetFrameSlot(block, MakeSymbol("item"));
+          if (IsFrame(item)) {
             // item.data (and much more)
-            Ref data = GetFrameSlot(it, MakeSymbol("data"));
+            Ref data = GetFrameSlot(item, MakeSymbol("data"));
             if (IsString(data)) {
-              int text_len = Length(data) / 2;
-              int data_offset = 0;
-              int data_len = text_len;
-              Ref ref = GetFrameSlot(block, MakeSymbol("dataOffset"));
-              if (ISINT(ref)) data_offset = (int)RVALUE(ref);
-              ref = GetFrameSlot(block, MakeSymbol("dataLen"));
-              if (ISINT(ref)) data_len = (int)RVALUE(ref);
-              if (data_offset > text_len) data_offset = text_len;
-              if (data_offset + data_len > text_len) data_len = text_len - data_offset;
-
-#if 0
-              char *text = BinaryData(ASCIIString(Substring(data, data_offset, data_len)));
-              float font_height = 12;
-              pdf_add_text_wrap(pdf, nullptr, text, font_height,
-                                l, page_height-t-font_height*0.8, 0.0, PDF_BLACK, r-l,
-                                PDF_ALIGN_LEFT, nullptr);
-#else
-              auto lettersRef = GetFrameSlot(it, MakeSymbol("_letters"));
-              auto letters = static_cast<std::vector<Letter>*>(RefToAddress(lettersRef));
-
-              auto tabsRef = GetFrameSlot(it, MakeSymbol("_tabs"));
-              std::vector<int>* tabs = nullptr;
-              if (NOTNIL(tabsRef)) {
-                tabs = static_cast<std::vector<int>*>(RefToAddress(tabsRef));
-              }
-
-              int len = (int)letters->size();
-              if (data_offset > len) data_offset = len;
-              if (data_offset + data_len > len) data_len = len - data_offset;
-#if 1
-              struct Line line;
-              int data_start = data_offset;
-              int data_end = data_offset + data_len;
-              float yy = 0.0f;
-              // loop through as many lines as it takes
-//              printf("Create page\n");
-              while (data_start < data_end) {
-                bool line_done = false;
-                float xx = 0.0f;
-                line.preset(xx, yy);
-//                printf("Starting line at %g, %g\n", xx, yy);
-                // create all segments needed to draw a line
-                while ((data_start < data_end) && !line_done) {
-                  struct Segment* seg = new Segment;
-                  int seg_start = data_start;
-                  int seg_end = seg_start;
-                  int seg_break = seg_start;
-                  int seg_break_right = xx;
-                  int seg_next = seg_end;
-                  Letter* ll = &letters->at(seg_start);
-                  seg->size = ll->size;
-                  seg->font = ll->font;
-                  const pdf_font_data* ft = pdf_font + ll->font;
-                  seg->ascent = ft->ascent / 72.0f / 14.0f * ll->size;
-                  seg->descent = ft->descent / 72.0f / 14.0f * ll->size;;
-                  seg->left = seg->right = xx;
-                  // find the longest sequence that is not interrupter by tabs, line endings, or line overflow
-                  while (seg_end < data_end) {
-                    ll = &letters->at(seg_end);
-                    if ((ll->code == '\r') || (ll->code == '\n')) {
-                      line_done = true;
-                      seg_next = seg_end + 1;
-                      break;
-                    }
-                    if ((ll->font != seg->font) || (ll->size != seg->size)) {
-                      xx = seg->right;
-                      break;
-                    }
-                    if (ll->code == ' ') {
-                      seg_break = seg_end;
-                      seg_break_right = seg->right;
-                    }
-                    if (ll->code == '\t') {
-                      if (tabs) {
-                        int ix = 0, n = (int)tabs->size();
-                        for (ix = 0; ix < n; ++ix) {
-                          if ((*tabs)[ix] > seg->right) break;
-                        }
-                        int se = seg_end+1;
-                        while ((se < data_end) && (letters->at(se).code == '\t')) {
-                          ix++;
-                          se++;
-                        }
-                        if (ix >= n) {
-                          xx = r-l;
-                        } else {
-                          xx = (*tabs)[ix];
-                        }
-                        seg_next = se;
-                      } else {
-                        // default tab stop of 0.5"
-                        int t = seg->right + 37;
-                        int d = t/36;
-                        xx = d * 36;
-                        int se = seg_end+1;
-                        while ((se < data_end) && (letters->at(se).code == '\t')) {
-                          xx += 36;
-                          se++;
-                        }
-                        seg_next = se;
-                      }
-                      if (xx >= r-l) {
-                        line_done = true;
-                        xx = 0;
-                      }
-                      break;
-                    }
-                    if (ll->code >= ' ') {
-                      seg->right += ft->char_width[unicode_to_macroman(ll->code)] / 72.0f / 14.0f * ll->size;
-                      if (seg->right > r-l) {
-                        if ((seg_break == data_start) && (xx == 0)) {
-                          // if there was no word break yet, break at the character to avoid an endless loop
-                          seg_next = seg_end;
-                        } else {
-                          // use a previous word break to break the line there
-                          seg_end = seg_break;
-                          seg->right = seg_break_right;
-                          seg_next = seg_end + 1; // assumes this was a word break and we skip the space between words
-                        }
-                        line_done = true;
-                        break;
-                      }
-                    }
-                    seg_end++;
-                    seg_next = seg_end;
-                  }
-                  // copy the characters into the segment as utf8
-                  for (int ci=seg_start; ci < seg_end; ci++) {
-                    ll = &letters->at(ci);
-                    seg->text += unicode_to_utf8(ll->code);
-                  }
-                  // add the segment to the line
-                  line.segments.push_back(seg);
-                  line.max_ascent = std::max(line.max_ascent, seg->ascent);
-                  line.max_descent = std::max(line.max_descent, seg->descent);
-//                  printf("Adding segment: \"%s\"\n", seg->text.c_str());
-                  data_start = seg_start = seg_next;
-                }
-                line.draw(pdf, l, page_height-t);
-                yy += 1.3f * (line.max_ascent + line.max_descent);
-              }
-#endif
-#if 0
-              int i = 0;
-              int xoff = l;
-              int yoff = t + 10;
-              std::string segText;
-              float segSize = 12.0f;
-              for (i=data_offset; i<data_offset+data_len; i++) {
-                Letter* ll = &letters->at(i);
-                if ((ll.code == '\r') || (ll.code == '\n')) {
-                  pdf_add_text(pdf, nullptr, segText.c_str(), segSize,
-                               xoff, page_height-yoff, PDF_BLACK);
-                  yoff += 12;
-                  segText.clear();
-                } else {
-                  segText += unicode_to_utf8(ll.code);
-                }
-              }
-#endif
-#endif
-              // Block layout:
-              // Box, alignment, template (dual column, triple column)
-              // text style, text segment styles (array)
+              renderTextBlockToPDF(pdf, block, item, data, l, t, b, r, page_height);
+            } else if ((IsBinary(data)) && (IsInstance(data, MakeSymbol("picture")))) {
+              pictToPdf(pdf, PictRect(page_height-t, l, page_height-b, r), item, data);
             }
           }
         }
@@ -1127,6 +1101,5 @@ If bits match, the word might be in that text block (requiring full search)
   pdf_save(pdf, filename.c_str());
   pdf_destroy(pdf);
   return 0;
-
 }
 
