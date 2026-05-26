@@ -19,8 +19,10 @@
 #include <cstdint>
 #include <cstring>
 #include <clocale>
+#include <csignal>
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <exception>
 #include <stdexcept>
@@ -46,9 +48,10 @@ extern void PrintCode(RefArg obj);
 extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
 // EnsureInternal
 
+int handleArgs(int argc, char **argv);
 
 
-int currentRefIndex = 0;
+int numGlobalRefs = 0;
 std::string currentFileName = "<undefined>";
 
 static bool forceNOS_ { false };
@@ -90,13 +93,42 @@ bool init()
  \brief Create a new global variable `ref#` that will hold the incoming ref.
  The # increments with every call to this function.
  */
-void addGlobalRef(RefArg inRef)
+Ref addGlobalRef(RefArg inRef)
 {
   char buf[32];
-  snprintf(buf, 31, "ref%d", currentRefIndex);
+  snprintf(buf, 31, "ref%d", numGlobalRefs);
   RefVar symRefN = MakeSymbol(buf);
-  DefGlobalVar(symRefN, inRef);
-  currentRefIndex++;
+  Ref outRef = DefGlobalVar(symRefN, inRef);
+  numGlobalRefs++;
+  return outRef;
+}
+
+/**
+ \brief Remove the latest global ref and update the ref counter.
+ */
+void dropGlobalRef()
+{
+  char buf[32];
+  if (numGlobalRefs <= 0)
+    throw(std::runtime_error("Can't drop global ref, no refs left."));
+  numGlobalRefs--;
+  snprintf(buf, 31, "ref%d", numGlobalRefs);
+  RefVar symRefN = MakeSymbol(buf);
+  DefGlobalVar(symRefN, NILREF);
+}
+
+/**
+ * Get a ref from the ref stack, 0 being the latest ref, 1 the previous one, and so on.
+ * @param index The index of the ref to get, 0 being the latest ref, 1 the previous one, and so on.
+ */
+Ref getGlobalRef(int index)
+{
+  if (index < 0 || index >= numGlobalRefs)
+    throw(std::runtime_error("Can't get global ref, index out of range."));
+  char buf[32];
+  snprintf(buf, 31, "ref%d", numGlobalRefs-1-index);
+  RefVar symRefN = MakeSymbol(buf);
+  return GetGlobalVar(symRefN);
 }
 
 /**
@@ -238,13 +270,13 @@ void handleArgNos2()
  */
 void handleArgClear()
 {
-  for (int i=0; i<currentRefIndex; ++i) {
+  for (int i=0; i<numGlobalRefs; ++i) {
     char buf[32];
     snprintf(buf, 31, "ref%d", i);
     RefVar symRefN = MakeSymbol(buf);
     DefGlobalVar(symRefN, NILREF);
   }
-  currentRefIndex = 0;
+  numGlobalRefs = 0;
 }
 
 /**
@@ -265,53 +297,53 @@ void handleArgTrap(const std::string &arg)
 }
 
 /**
- \brief Write the object in global `ref0` as a package file.
+ \brief Write the object top of ref stack as a package file.
  \todo Error handling
  */
 void handleArgOPkg(const std::string &filename)
 {
-  RefVar package = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar package = getGlobalRef(0);
   writePackageToFile(package, filename);
 }
 
 /**
- \brief Create an NSOF file from ref0.
+ \brief Create an NSOF file from current ref.
  */
 void handleArgONsof(const std::string &filename)
 {
   CStdIOPipe outPipe(filename.c_str(), "wb");
-  RefVar ref = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar ref = getGlobalRef(0);
   CObjectWriter out(ref, outPipe, false);
   out.write();
 }
 
 /**
- \brief Create a PDF file from a book in ref0.
+ \brief Create a PDF file from a book in current ref.
  */
 void handleArgOPdf(const std::string &filename)
 {
-  RefVar package = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar package = getGlobalRef(0);
   if (writePackageBookToPDF(package, filename) == 1)
     fprintf(stderr, "^^^^ '%s'\n", currentFileName.c_str());
 }
 
 /**
- \brief Write the object `ref0` as text to stdout.
+ \brief Write the object in current ref as text to stdout.
  */
 void handleArgPrint()
 {
-  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar ref0 = getGlobalRef(0);
   ObjectPrinter p(std::cout);
   p.Print(ref0);
 }
 
 /**
- \brief Write the object `ref0` as text to stdout.
+ \brief Write the object in current ref as text to stdout.
  Decompile functions as we encounter them.
  */
 void handleArgDecompile()
 {
-  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar ref0 = getGlobalRef(0);
   ObjectPrinter p(std::cout);
   p.DebugAST(debugAST_);
   p.DebugBC(debugBC_);
@@ -320,12 +352,12 @@ void handleArgDecompile()
 }
 
 /**
- \brief Write the object `ref0` as text to stdout.
+ \brief Write the object in current ref as text to stdout.
  Decompile functions as we encounter them.
  */
 void handleArgStats()
 {
-  RefVar ref0 = GetGlobalVar(MakeSymbol("ref0"));
+  RefVar ref0 = getGlobalRef(0);
   bool like = false;
   do {
     std::cout << "# ";
@@ -336,7 +368,7 @@ void handleArgStats()
     if (SymbolCompare(signature, MakeSymbol("package0"))==0) {
       std::cout << "Package0, ";
     } else if (SymbolCompare(signature, MakeSymbol("package1"))==0) {
-      std::cout << "Package0, ";
+      std::cout << "Package1, ";
     } else {
       std::cout << ("ERROR: unknown signature"); break;
     }
@@ -379,6 +411,84 @@ void handleArgStats()
   std::cout << currentFileName << std::endl << std::endl;
 }
 
+/**
+ * Return true if the given object is a package containing one part of type "form".
+ * This is used to determine if we should apply the following commands to the
+ * package when using -pkglist.
+ */
+bool packageIsForm(Ref r)
+{
+  if (!IsFrame(r)) return false;
+  Ref signature = GetFrameSlot(r, MakeSymbol("signature"));
+  if (!IsSymbol(signature)) return false;
+  if ((SymbolCompare(signature, MakeSymbol("package0"))!=0) &&
+      (SymbolCompare(signature, MakeSymbol("package1"))!=0)) return false;
+
+  Ref parts = GetFrameSlot(r, MakeSymbol("part"));
+  if (!IsArray(parts)) return false;
+  if (Length(parts) != 1) return false;
+
+  Ref part = GetArraySlot(parts, 0);
+  if (!IsFrame(part)) return false;
+
+  Ref partFlags = GetFrameSlot(part, MakeSymbol("flags"));
+  if (!IsFrame(partFlags)) return false;
+
+  Ref partFlagsType = GetFrameSlot(partFlags, MakeSymbol("type"));
+  if (!IsSymbol(partFlagsType) || (SymbolCompare(partFlagsType, MakeSymbol("nos"))!=0)) return false;
+
+  Ref partType = GetFrameSlot(part, MakeSymbol("type"));
+  if (!IsString(partType)) return false;
+  RefVar partTypeStr = ASCIIString(partType);
+  if (strncmp(BinaryData(partTypeStr), "form", 4)!=0) return false;
+
+  return true;
+}
+
+/**
+ \brief Apply all following commands to each package in the file.
+ */
+int handleArgPkgList(const std::string &filename, int argc, char **argv)
+{
+  std::ifstream f(filename);
+  if (!f.is_open()) {
+    printf("newtc: ERROR: can't open package list. %s.\n", strerror(errno));
+    return 0;
+  }
+  std::string pkgname;
+  int ret = 0;
+  bool first_package = true;
+  int ref_index_bak = numGlobalRefs;
+  while (std::getline(f, pkgname)) {
+    size_t pos = pkgname.find_last_not_of("\r\n");
+    if (pos != std::string::npos) {
+      pkgname = pkgname.substr(0, pos + 1);
+    }
+    // Allow user to comment out packages from the file by starting the line with # or ;
+    if (pkgname.empty() || pkgname[0] == '#' || pkgname[0] == ';') continue;
+    if (pkgname[0] == '|') {
+      // set breakpoint here to break into debugger
+      continue;
+    }
+    // Restore stack package count for every package
+    if (!first_package) {
+      while (numGlobalRefs > ref_index_bak) {
+        dropGlobalRef();
+      }
+    }
+    first_package = false;
+    try {
+      handleArgPkg(pkgname);
+    }
+    catch(...) { }
+    // Handle all remaining args in the command line for every "form" package
+    if (packageIsForm(getGlobalRef(0))) {
+      ret = handleArgs(argc, argv);
+    }
+    // If this was the last package, the ref stack is left with the results
+  }
+  return ret;
+}
 
 /**
  \brief Output a help message.
@@ -414,7 +524,7 @@ the commands in the given order.
 
   Control
   -clear                  Delete all object in the hold
-  -pkglist <filename>     Apply commands to all packages listed in the file
+  -pkglist <filename>     Apply following commands to all 'form packages in the file
 
   Options
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
@@ -466,6 +576,8 @@ int handleArgs(int argc, char **argv)
         handleArgNos2();
       } else if (cmd == "-clear") {
         handleArgClear();
+      } else if (cmd == "-drop") {
+        dropGlobalRef();
       } else if (cmd == "-debug") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing description after -debug ... ."));
@@ -486,6 +598,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -opdf ... ."));
         handleArgOPdf(std::string(argv[argi++]));
+      } else if (cmd == "-pkglist") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -pkglist ... ."));
+        return handleArgPkgList(std::string(argv[argi]), argc-argi, argv+argi);
       } else if ((cmd == "--") || (cmd == "-print")) {
         handleArgPrint();
       } else if (cmd == "-decompile") {
@@ -502,7 +618,7 @@ int handleArgs(int argc, char **argv)
     std::cout << "newtc: ERROR: " << ex.what() << std::endl;
     return -1;
   } catch (... ) {
-    printf("newtc: ERROR: Unknown error.\n");
+    std::cout << "newtc: ERROR: Unknown error." << std::endl;
     return -1;
   }
   return 0;
@@ -523,8 +639,11 @@ int handleArgs(int argc, char **argv)
  for graphics and sounds.
 
  Command line options that read data will store the result in the global
- variable `ref#`, starting with #=0, incrementing the # with every newly created
- object. Writing options will always write `ref0`.
+ variable, organized as ref0, ref1, and so on. To add a ref to the stack,
+ use `addGlobalRef(ref)`, and to remove the latest ref, use `dropGlobalRef()`.
+
+ To get the topmost entry on the ref stack, use `getGlobalRef(0)`, the previous
+ one with `getGlobalRef(1)`, and so on.
 
  Command line options:
  - Reader:
@@ -544,6 +663,7 @@ int handleArgs(int argc, char **argv)
  - [ ] -pkg1 name symbol : generate a minimal `package1` package object
  - [ ] -addpart ??? : add the most recent object as the next part to ref0
  - [x] -clear : clear all ref# and start over at ref0
+ - [x] -drop : drop the latest ref#, delete the object, and decrement the ref counter
  - [x] -debug level : (may be a bit pattern at some point)
  - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
  - Writer:
@@ -564,13 +684,18 @@ int handleArgs(int argc, char **argv)
 
  \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
 
+ \todo The global ref stack is up-side down, we push new refs at the end of the
+ list, but they are read from ref0 up. It would be better to push new refs at
+ the front of the list and read from ref0 up, so that ref0 is always
+ the latest ref.
+
  */
 int main(int argc, char **argv) {
   if (!init()) {
     printf("newtc: ERROR: Can't initialize.\n");
     return -1;
   }
-  int argi = 1;
+
   int ret = 0;
   RefVar symRef0 = MakeSymbol("ref0");
   DefGlobalVar(symRef0, NILREF);
@@ -580,34 +705,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  std::string cmd = argv[argi++];
-
-  if (cmd == "-pkglist") {
-    char pkgname[2048];
-    if ((argi >= argc) || (argv[argi][0] == '-'))
-      throw(std::runtime_error("Missing filename after -pkglist ... ."));
-    FILE *f = fopen(argv[argi++], "r");
-    if (f == nullptr) {
-      printf("newtc: ERROR: can't open package list. %s.\n", strerror(errno));
-      return 0;
-    }
-    while (!feof(f)) {
-      if (fgets(pkgname, 2027, f) == nullptr) break;
-      char *c = strrchr(pkgname, '\n'); if (c) *c = 0;
-      c = strrchr(pkgname, '\r'); if (c) *c = 0;
-      if ((pkgname[0] == '\0') || (pkgname[0] == '#') || (pkgname[0] == ';')) continue;
-      if ((pkgname[0] == '/') && (pkgname[1] == '/')) continue;
-      handleArgClear();
-      try {
-        handleArgPkg(std::string(pkgname));
-      }
-      catch(...) { }
-      handleArgs(argc-2, argv+2);
-    }
-    fclose(f);
-  } else {
-    ret = handleArgs(argc, argv);
-  }
+  ret = handleArgs(argc, argv);
   return ret;
 }
 

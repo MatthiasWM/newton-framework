@@ -183,8 +183,6 @@ constexpr uint8_t kLineBreak = 1;
 constexpr uint8_t kWordBreak = 2;
 constexpr uint8_t kTabBreak = 3;
 
-constexpr Ref test = MakeSymbol("Test");
-
 uint8_t current_page_font = 0;
 
 typedef struct {

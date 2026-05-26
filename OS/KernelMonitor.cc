@@ -11,6 +11,7 @@
 #include "UserTasks.h"
 #include "SharedMem.h"
 #include "OSErrors.h"
+#include "OS/SharedTypes.h"
 
 extern     void		Restart(void);
 extern "C" NewtonErr	SMemSetBufferKernelGlue(ObjectId inId, void * inBuffer, size_t inSize, ULong inPermissions);
@@ -126,7 +127,7 @@ CMonitor::init(MonitorProcPtr inProc, size_t inStackSize, void * inContext, CEnv
 
 /*------------------------------------------------------------------------------
 	Acquire the processor to run the monitor.
-	ie unschedule whatever task weÕre currently running and schedule this task.
+	ie unschedule whatever task weï¿½re currently running and schedule this task.
 	Args:		--
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -140,14 +141,14 @@ CMonitor::acquire(void)
 	{
 		XFAILIF((fSuspended & 3) != 0, err = kOSErrNoSuchMonitor;)
 
-		CTask *	currentTask = gCurrentTask;		// must hold a local copyÉ
+		CTask *	currentTask = gCurrentTask;		// must hold a local copyï¿½
 		if ((currentTask->fState & 0x00800000) == 0
 		&&  currentTask->fRegister[kMonSelector] == (ULong)kSuspendMonitor)
 		{
 			XFAILIF(owner() != currentTask->owner(), err = kOSErrObjectNotOwnedByTask;)
 			suspend(2);
 		}
-		UnScheduleTask(currentTask);					// Ébecause this nils out the global
+		UnScheduleTask(currentTask);					// ï¿½because this nils out the global
 		if (++fQueueCount == 1)
 		{
 			if (!setUpEntry(currentTask))				// set up monitor task
@@ -202,7 +203,7 @@ CMonitor::release(NewtonErr inResult)
 		Restart();
 	ExitAtomic();
 
-	// decide what to do with the task now itÕs done
+	// decide what to do with the task now itï¿½s done
 	unsigned long pc = fCaller->fRegister[kcThePC];
 	if ((fCaller->fState & 0x00400000) != 0
 	 || (fCaller->fState & 0x00000002) != 0)
@@ -267,7 +268,7 @@ CMonitor::setUpEntry(CTask * inTask)
 
 	EnterAtomic();
 	if (gWantReboot)
-		// donÕt schedule anything new
+		// donï¿½t schedule anything new
 		ExitAtomic();
 
 	else
@@ -394,7 +395,7 @@ MonitorDispatchKernelGlue(void)
 	CMonitor *	monitor;
 	if ((err = ConvertIdToObj(kMonitorType, gCurrentTask->fRegister[kMonMonId], &monitor)) == noErr)
 	{
-		gCurrentTask->fState &= ~0x00800000; 
+		gCurrentTask->fState &= ~0x00800000;
 		monitor->acquire();
 	}
 	return err;
