@@ -678,16 +678,7 @@ int handleArgs(int argc, char **argv)
 
  \todo not much of a difference between -s and -r, or -script and -run, right?
 
- \todo make ref# a stack system, so that we can have stack operations. For example:
- Compare two packages: newtc -pkg a -pkg b -diff
- Verify the decompile/compile: newtc -pkg a -odecompile tmp.txt -compile tmp.txt -diff
-
  \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
-
- \todo The global ref stack is up-side down, we push new refs at the end of the
- list, but they are read from ref0 up. It would be better to push new refs at
- the front of the list and read from ref0 up, so that ref0 is always
- the latest ref.
 
  */
 int main(int argc, char **argv) {
