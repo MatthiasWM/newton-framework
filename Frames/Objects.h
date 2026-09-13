@@ -71,7 +71,7 @@ enum
 #define	MAKEIMMED(t, v)		((((((long) (v)) << kRefImmedBits) | ((long) (t))) << kRefTagBits) | kTagImmed)
 #define	MAKECHAR(c)				MAKEIMMED(kImmedChar, (unsigned) c)
 #define	MAKEBOOLEAN(b)			(b ? TRUEREF : FALSEREF)
-#define	MAKEPTR(p)				((Ref)((char*)p + 1))
+#define	MAKEPTR(p)				((Ref)( ((long)p) + 1 ))
 #define	MAKEMAGICPTR(index)	((Ref) (((long) (index)) << kRefTagBits) | kTagMagicPtr)
 
 // constant values for comparison with a Ref

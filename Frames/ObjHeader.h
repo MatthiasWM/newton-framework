@@ -18,13 +18,13 @@
 ----------------------------------------------------------------------*/
 
 #define OBJHEADER \
-  union { \
-    struct { \
-      uint32_t size  : 24; \
-      uint32_t flags :  8; \
-    }; \
-    Ref alignment_helper; \
-  }; \
+	union { \
+		struct { \
+			uint32_t size  : 24; \
+			uint32_t flags :  8; \
+		}; \
+		Ref alignment_helper; \
+	}; \
 	union { \
 		struct { \
 			uint32_t	locks :  8; \
@@ -43,6 +43,11 @@ struct ObjHeader
 
 #pragma pack(pop)
 
+#if __LP64__
+static_assert(sizeof(ObjHeader) == 2*8);
+#else
+static_assert(sizeof(ObjHeader) == 2*4);
+#endif
 
 /*----------------------------------------------------------------------
 	S l o t t e d   O b j e c t
