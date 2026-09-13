@@ -12,6 +12,9 @@
 
 #include "Matt/ObjectPrinter.h"
 
+#include <memory>
+#include <utility>
+
 class ObjectPrinter;
 
 namespace ast {
@@ -73,8 +76,29 @@ protected:
   ast::Node *Append(ast::Node *lastNode, ast::Node *newNode);
   ast::Bytecode *NewBytecodeNode(int pc, int a, int b);
 
+  // Every ast::Node ever created (including synthetic nodes generated while
+  // resolving patterns) is owned here and lives until the Decompiler itself
+  // is destroyed. Nodes that are unlinked from the AST are simply garbage
+  // that outlives the AST, never individually deleted.
+  std::vector<std::unique_ptr<ast::Node>> nodePool_;
+
 public:
-  Decompiler(ObjectPrinter &printer) : p( printer ) { }
+  template <class T, class... Args>
+  T *MakeNode(Args&&... args) {
+    auto owned = std::make_unique<T>(std::forward<Args>(args)...);
+    T *raw = owned.get();
+    nodePool_.push_back(std::move(owned));
+    return raw;
+  }
+
+  // Both declared here, defined in Decompiler.cc where ast::Node is a
+  // complete type. This isn't just about the destructor: a constructor
+  // *body* defined inline (even an empty one) makes the compiler generate
+  // exception-unwind logic for already-constructed members right there,
+  // which needs nodePool_'s (vector<unique_ptr<ast::Node>>'s) destructor --
+  // so the constructor must be out-of-line here too, not only ~Decompiler().
+  Decompiler(ObjectPrinter &printer);
+  ~Decompiler();
   Ref GetLiteral(int i) { return GetArraySlot(literals_, i); }
   ObjectPrinter *Printer() { return &p; }
   void printAST(const char *label);

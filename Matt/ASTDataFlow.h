@@ -33,6 +33,7 @@ public:
   BCPushConst(Decompiler &d, int pc, int a, int b)
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCPushConst"; }
+  pattern::Tag tag() const override { return pattern::Tag::PushConst; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
@@ -69,6 +70,7 @@ public:
   BCGetVar(Decompiler &d, int pc, int a, int b)
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCGetVar"; }
+  pattern::Tag tag() const override { return pattern::Tag::GetVar; }
   int provides() override { return 1; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
@@ -103,6 +105,7 @@ class BCSetVar : public Consume1 {
 public:
   BCSetVar(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCSetVar"; }
+  pattern::Tag tag() const override { return pattern::Tag::SetVar; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
   Node *input() { return in_; }
@@ -228,6 +231,7 @@ class BCARef : public Consume2 {
 public:
   BCARef(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
   const char *Class() override { return "BCARef"; }
+  pattern::Tag tag() const override { return pattern::Tag::ARef; }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };

@@ -11,10 +11,46 @@
 #define __MATT_AST_H 1
 
 #include <tuple>
+#include <cstdint>
 
 class Decompiler;
 
 namespace ast {
+
+class JumpTarget;
+
+namespace pattern {
+/**
+ \brief A dispatch-only discriminant used by the pattern-combinator engine
+ (Matt/ASTPattern.h) to find candidate patterns anchored on a node, and by
+ pattern specs to require a specific neighbor type without a dynamic_cast
+ chain. Deliberately separate from Node::provides(), which already does
+ double duty as stack arity *and* an ad hoc type tag (kBranch, kNewHandler,
+ etc.) for the handful of control nodes that don't push/pop a plain value --
+ tag() doesn't touch that meaning, so IsExpr()/IsStatement() are unaffected.
+ Add a new entry here (and an override returning it) only for node classes
+ that actually get anchored on or captured by a pattern spec.
+ */
+enum class Tag : uint16_t {
+  Any,              // default; matched only via a predicate, never by tag
+  Branch,
+  BranchIfTrue,
+  BranchIfFalse,
+  BranchLoop,
+  JumpTarget,
+  ExceptionHandler,
+  PushConst,
+  SetVar,
+  GetVar,
+  ARef,
+  IncrVar,
+  NewIter,
+  IterNext,
+  IterDone,
+  NewHandler,
+  PopHandlers,
+};
+} // namespace pattern
 
 constexpr int kProvidesNone = 0;      // The node is defined enough to know that there is nothing on the stack
 constexpr int kProvidesOne = 1;
@@ -70,12 +106,19 @@ public:
   int a() { return a_; }
   int b() { return b_; }
   int b_signed() { return static_cast<int>(static_cast<int16_t>(b_)); }
+  /** Access to the owning Decompiler, e.g. for pattern-spec callbacks
+      (Matt/ASTPattern.h) that live outside the Node hierarchy and so can't
+      reach the protected `dec` member directly. */
+  Decompiler &Dec() { return dec; }
 
   // ---- virtual methods that can be overridden by derived classes
   // -- Resolve the AST
   virtual int provides() { return kProvidesUnknown; }
   virtual int consumes() { return 0; } // Never called
   virtual Node *Resolve(Pass pass);
+  /** Dispatch-only type discriminant for the pattern-combinator engine; see
+      \ref pattern::Tag. Most node classes never need to override this. */
+  virtual pattern::Tag tag() const { return pattern::Tag::Any; }
   /** Return true if we know everything there is to know about this node. */
   virtual bool Resolved() = 0;
   // -- Print the result
@@ -120,6 +163,7 @@ public:
   /** Remove this node from the linked list. Don;t use this for First and Last. */
   Node *Unlink() { prev->next = next; next->prev = prev; prev = next = nullptr; return this; }
   void UnlinkRange(Node *last);
+  Node *UnlinkChain(Node *last);
   void ReplaceWith(Node *nd);
   void InsertBefore(Node *nd);
   int FindStatementsFwd(Node **crsr, Node **start);
@@ -127,6 +171,17 @@ public:
   void DeleteJumpTarget(int origin, int target);
   static int HandleBreakTargets(Node *start, Node *&it, bool findPushNil);
 };
+
+/**
+ \brief Check that a jump target's origin/destination pair matches the jump
+ that supposedly produced it: `jt` must have been created for a jump
+ instruction at `origin`'s pc(), whose declared destination is `origin`'s
+ b(), and `jt` must sit at exactly that destination.
+ This consistency check was hand-copied at nearly every control-flow pattern
+ matcher in ASTControlFlow.cc; it's factored out here so new matchers (and
+ the pattern-combinator engine) can rely on one implementation.
+ */
+bool JumpPairMatches(Node *origin, JumpTarget *jt);
 
 }; // namespace ast
 

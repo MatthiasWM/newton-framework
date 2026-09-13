@@ -22,6 +22,7 @@ class JumpTarget : public Node {
 public:
   JumpTarget(Decompiler &d, int pc, int origin) : Node(d, pc), origin_(origin) { }
   const char *Class() override { return "JumpTarget"; }
+  pattern::Tag tag() const override { return pattern::Tag::JumpTarget; }
   void Print(uint32_t flags = 0) override;
   void PrintNode(bool deep) override;
   int provides() override { return kJumpTarget; }
@@ -170,6 +171,7 @@ public:
   ExceptionHandler(Decompiler &d, int pc, int origin, int excp)
   : JumpTarget(d, pc, origin), excp_(excp) { }
   const char *Class() override { return "ExceptionHandler"; }
+  pattern::Tag tag() const override { return pattern::Tag::ExceptionHandler; }
   void Body(Node *body) { body_ = body; }
   void PrintChildren(bool deep) override;
   void Print(uint32_t flags = 0) override;

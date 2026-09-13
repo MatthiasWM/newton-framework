@@ -40,10 +40,9 @@ using namespace ast;
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
-/* TODO: all allocated AST nodes should be kept in a single vector and never
-    be deleted during eval, but instead when the Decompiler is deleted. When
-    new nodes are created at eval time, the must be added to that
-    same cleanup vector.
+/* DONE: all allocated AST nodes are kept in Decompiler::nodePool_ and never
+    deleted during eval, only when the Decompiler is deleted. Nodes are
+    created via Decompiler::MakeNode<T>(...), which adds them to that pool.
  */
 /* TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
   debug information in the code. Especially with nos2, this can restore argument
@@ -321,6 +320,17 @@ using namespace ast;
 
 // -----------------------------------------------------------------------------
 
+// Constructor and destructor bodies live here, not in the header, because
+// ast::Node must be a complete type: nodePool_ is a
+// vector<unique_ptr<ast::Node>>, and any inline constructor *body* (even an
+// empty one) makes the compiler generate exception-unwind logic for
+// already-constructed members, which needs the vector's destructor right
+// there. Keeping both out-of-line avoids requiring every TU that includes
+// Decompiler.h (e.g. ObjectPrinter.cc, which never sees the full ast::Node
+// hierarchy) to also see the complete Node type.
+Decompiler::Decompiler(ObjectPrinter &printer) : p(printer) { }
+Decompiler::~Decompiler() { }
+
 void Decompiler::decompile(Ref ref)
 {
   bool fastFunc = false;
@@ -490,73 +500,73 @@ Bytecode *Decompiler::NewBytecodeNode(int pc, int a, int b)
   switch (a) {
     case 0:
       switch (b) {
-        case 0: return new BCPop(*this, pc, a, b);
-        case 1: return new BCDup(*this, pc, a, b);
-        case 2: return new BCReturn(*this, pc, a, b);
-        case 3: return new BCPushSelf(*this, pc, a, b);
-        case 4: return new BCSetLexScope(*this, pc, a, b);//        case 4: bc.bc = BC::SetLexScope; break;
-        case 5: return new BCIterNext(*this, pc, a, b);
-        case 6: return new BCIterDone(*this, pc, a, b);
-        case 7: return new BCPopHandlers(*this, pc, a, b);
+        case 0: return MakeNode<BCPop>(*this, pc, a, b);
+        case 1: return MakeNode<BCDup>(*this, pc, a, b);
+        case 2: return MakeNode<BCReturn>(*this, pc, a, b);
+        case 3: return MakeNode<BCPushSelf>(*this, pc, a, b);
+        case 4: return MakeNode<BCSetLexScope>(*this, pc, a, b);//        case 4: bc.bc = BC::SetLexScope; break;
+        case 5: return MakeNode<BCIterNext>(*this, pc, a, b);
+        case 6: return MakeNode<BCIterDone>(*this, pc, a, b);
+        case 7: return MakeNode<BCPopHandlers>(*this, pc, a, b);
       };
       break;
-    case 3: return new BCPush(*this, pc, a, b);
-    case 4: return new BCPushConst(*this, pc, a, b);
-    case 5: return new BCCall(*this, pc, a, b);
-    case 6: return new BCInvoke(*this, pc, a, b);
-    case 7: return new BCSend(*this, pc, a, b, false); // Send
-    case 8: return new BCSend(*this, pc, a, b, true); // SendIfDefined
-    case 9: return new BCResend(*this, pc, a, b, false); // Resend
-    case 10: return new BCResend(*this, pc, a, b, true); // ResendIfDefined
-    case 11: return new BCBranch(*this, pc, a, b);
-    case 12: return new BCBranchIfTrue(*this, pc, a, b);
-    case 13: return new BCBranchIfFalse(*this, pc, a, b);
-    case 14: return new BCFindVar(*this, pc, a, b);
-    case 15: return new BCGetVar(*this, pc, a, b);
-    case 16: return new BCMakeFrame(*this, pc, a, b);
+    case 3: return MakeNode<BCPush>(*this, pc, a, b);
+    case 4: return MakeNode<BCPushConst>(*this, pc, a, b);
+    case 5: return MakeNode<BCCall>(*this, pc, a, b);
+    case 6: return MakeNode<BCInvoke>(*this, pc, a, b);
+    case 7: return MakeNode<BCSend>(*this, pc, a, b, false); // Send
+    case 8: return MakeNode<BCSend>(*this, pc, a, b, true); // SendIfDefined
+    case 9: return MakeNode<BCResend>(*this, pc, a, b, false); // Resend
+    case 10: return MakeNode<BCResend>(*this, pc, a, b, true); // ResendIfDefined
+    case 11: return MakeNode<BCBranch>(*this, pc, a, b);
+    case 12: return MakeNode<BCBranchIfTrue>(*this, pc, a, b);
+    case 13: return MakeNode<BCBranchIfFalse>(*this, pc, a, b);
+    case 14: return MakeNode<BCFindVar>(*this, pc, a, b);
+    case 15: return MakeNode<BCGetVar>(*this, pc, a, b);
+    case 16: return MakeNode<BCMakeFrame>(*this, pc, a, b);
     case 17:
       if (b == 0xFFFF)
-        return new BCNewArray(*this, pc, a, b);
+        return MakeNode<BCNewArray>(*this, pc, a, b);
       else
-        return new BCMakeArray(*this, pc, a, b);
-    case 18: return new BCGetPath(*this, pc, a, b);
-    case 19: return new BCSetPath(*this, pc, a, b);
-    case 20: return new BCSetVar(*this, pc, a, b);
-    case 21: return new BCFindAndSetVar(*this, pc, a, b);
-    case 22: return new BCIncrVar(*this, pc, a, b);
-    case 23: return new BCBranchLoop(*this, pc, a, b);
+        return MakeNode<BCMakeArray>(*this, pc, a, b);
+    case 18: return MakeNode<BCGetPath>(*this, pc, a, b);
+    case 19: return MakeNode<BCSetPath>(*this, pc, a, b);
+    case 20: return MakeNode<BCSetVar>(*this, pc, a, b);
+    case 21: return MakeNode<BCFindAndSetVar>(*this, pc, a, b);
+    case 22: return MakeNode<BCIncrVar>(*this, pc, a, b);
+    case 23: return MakeNode<BCBranchLoop>(*this, pc, a, b);
     case 24:
       switch (b) {
-        case 0: return new BinaryOperator(*this, pc, a, b, "+", kPrecedenceAddSub); // Add
-        case 1: return new BinaryOperator(*this, pc, a, b, "-", kPrecedenceAddSub); // Sub
-        case 2: return new BCARef(*this, pc, a, b);
-        case 3: return new BCSetARef(*this, pc, a, b);
-        case 4: return new BinaryOperator(*this, pc, a, b, "=", kPrecedenceCompare); // Equals
-        case 5: return new BCNot(*this, pc, a, b);
-        case 6: return new BinaryOperator(*this, pc, a, b, "<>", kPrecedenceCompare); // NotEquals
-        case 7: return new BinaryOperator(*this, pc, a, b, "*", kPrecedenceMulDiv); // Multiply
-        case 8: return new BinaryOperator(*this, pc, a, b, "/", kPrecedenceMulDiv); // Divide
-        case 9: return new BinaryOperator(*this, pc, a, b, "div", kPrecedenceMulDiv); // 'div'
-        case 10: return new BinaryOperator(*this, pc, a, b, "<", kPrecedenceCompare); // LessThan
-        case 11: return new BinaryOperator(*this, pc, a, b, ">", kPrecedenceCompare); // GreaterThan
-        case 12: return new BinaryOperator(*this, pc, a, b, ">=", kPrecedenceCompare); // GreaterOrEqual
-        case 13: return new BinaryOperator(*this, pc, a, b, "<=", kPrecedenceCompare); // LessOrEqual
-        case 14: return new BinaryFunction(*this, pc, a, b, "bAnd"); // BitAnd
-        case 15: return new BinaryFunction(*this, pc, a, b, "bOr"); // BitOr
-        case 16: return new BCBitNot(*this, pc, a, b);
-        case 17: return new BCNewIter(*this, pc, a, b);
-        case 18: return new BCLength(*this, pc, a, b);
-        case 19: return new BCClone(*this, pc, a, b);
-        case 20: return new BCSetClass(*this, pc, a, b);
-        case 21: return new BCAddArraySlot(*this, pc, a, b);
-        case 22: return new BCStringer(*this, pc, a, b);
-        case 23: return new BCHasPath(*this, pc, a, b);
-        case 24: return new BCClassOf(*this, pc, a, b);
+        case 0: return MakeNode<BinaryOperator>(*this, pc, a, b, "+", kPrecedenceAddSub); // Add
+        case 1: return MakeNode<BinaryOperator>(*this, pc, a, b, "-", kPrecedenceAddSub); // Sub
+        case 2: return MakeNode<BCARef>(*this, pc, a, b);
+        case 3: return MakeNode<BCSetARef>(*this, pc, a, b);
+        case 4: return MakeNode<BinaryOperator>(*this, pc, a, b, "=", kPrecedenceCompare); // Equals
+        case 5: return MakeNode<BCNot>(*this, pc, a, b);
+        case 6: return MakeNode<BinaryOperator>(*this, pc, a, b, "<>", kPrecedenceCompare); // NotEquals
+        case 7: return MakeNode<BinaryOperator>(*this, pc, a, b, "*", kPrecedenceMulDiv); // Multiply
+        case 8: return MakeNode<BinaryOperator>(*this, pc, a, b, "/", kPrecedenceMulDiv); // Divide
+        case 9: return MakeNode<BinaryOperator>(*this, pc, a, b, "div", kPrecedenceMulDiv); // 'div'
+        case 10: return MakeNode<BinaryOperator>(*this, pc, a, b, "<", kPrecedenceCompare); // LessThan
+        case 11: return MakeNode<BinaryOperator>(*this, pc, a, b, ">", kPrecedenceCompare); // GreaterThan
+        case 12: return MakeNode<BinaryOperator>(*this, pc, a, b, ">=", kPrecedenceCompare); // GreaterOrEqual
+        case 13: return MakeNode<BinaryOperator>(*this, pc, a, b, "<=", kPrecedenceCompare); // LessOrEqual
+        case 14: return MakeNode<BinaryFunction>(*this, pc, a, b, "bAnd"); // BitAnd
+        case 15: return MakeNode<BinaryFunction>(*this, pc, a, b, "bOr"); // BitOr
+        case 16: return MakeNode<BCBitNot>(*this, pc, a, b);
+        case 17: return MakeNode<BCNewIter>(*this, pc, a, b);
+        case 18: return MakeNode<BCLength>(*this, pc, a, b);
+        case 19: return MakeNode<BCClone>(*this, pc, a, b);
+        case 20: return MakeNode<BCSetClass>(*this, pc, a, b);
+        case 21: return MakeNode<BCAddArraySlot>(*this, pc, a, b);
+        case 22: return MakeNode<BCStringer>(*this, pc, a, b);
+        case 23: return MakeNode<BCHasPath>(*this, pc, a, b);
+        case 24: return MakeNode<BCClassOf>(*this, pc, a, b);
       }
       break;
-    case 25: return new BCNewHandler(*this, pc, a, b);
+    case 25: return MakeNode<BCNewHandler>(*this, pc, a, b);
   }
-  return new Bytecode(*this, pc, a, b);
+  return MakeNode<Bytecode>(*this, pc, a, b);
 }
 
 /**
@@ -610,7 +620,7 @@ void Decompiler::generateAST(Ref instructions)
   }
 
   // Now run the byte codes again and create a linked list of instructions
-  Node *nd = first_ = new FirstNode(*this);
+  Node *nd = first_ = MakeNode<FirstNode>(*this);
   for (int i=0; i<nbc; i++) {
     int pc = i;
     uint8_t cmd = bc[i];
@@ -624,7 +634,7 @@ void Decompiler::generateAST(Ref instructions)
     }
     nd = Append(nd, NewBytecodeNode(pc, a, b));
   }
-  last_ = Append(nd, new LastNode(*this));
+  last_ = Append(nd, MakeNode<LastNode>(*this));
 
   // Remove ByteCode sequences created by "CFunctionState::copyClosedArgs".
   // They generate unwanted code if they are left in.
@@ -650,7 +660,7 @@ void Decompiler::generateAST(Ref instructions)
   // The code generator occasionally appends two consecutive return commends.
   // We fix that by deleting the second return.
   if (dynamic_cast<BCReturn*>(nd) && dynamic_cast<BCReturn*>(nd->prev))
-    delete nd->Unlink();
+    nd->Unlink();
 }
 
 void Decompiler::AddToTargets(int target, int origin, int excp)
@@ -659,9 +669,9 @@ void Decompiler::AddToTargets(int target, int origin, int excp)
   // BAckward jumps are automatically closest to furthest.
   int sort = origin < target ? -origin : target;
   if (excp == -1) {
-    targetMap_[target][sort] = new JumpTarget(*this, target, origin);
+    targetMap_[target][sort] = MakeNode<JumpTarget>(*this, target, origin);
   } else {
-    targetMap_[target][sort] = new ExceptionHandler(*this, target, origin, excp);
+    targetMap_[target][sort] = MakeNode<ExceptionHandler>(*this, target, origin, excp);
   }
   if (p.DebugAST()) printf("Jump Target: from %d to %d\n", origin, target);
 }
@@ -761,7 +771,7 @@ bool Decompiler::compressAST()
         it = it->next;
       }
       if (numStmts > 1) {
-        CodeBlock *codeBlock = new CodeBlock(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
+        CodeBlock *codeBlock = MakeNode<CodeBlock>(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
         // Insert codeBlock before nd
         nd->InsertBefore(codeBlock);
         codeBlock->moveToBody(nd, numStmts);

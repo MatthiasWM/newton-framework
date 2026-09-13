@@ -153,6 +153,38 @@ void CodeBlock::PrintBody(const std::string &prolog,
 
 }
 
+namespace {
+/**
+ \brief Print a ControlBlock body that may be a chain of N>=1 nodes (as
+ produced by pattern::Builder::Statements() + Node::UnlinkChain()), not just
+ a single node or a CodeBlock*.
+ For a single-node chain this reproduces Node::PrintOnNewLine() exactly (the
+ node prints itself, wrapped in a bare ';'-list unless it happens to be a
+ multi-statement CodeBlock, matching every body_ this could hold before the
+ pattern engine existed). A real chain of 2+ nodes -- not yet reachable while
+ Decompiler::compressAST() still pre-merges consecutive statements, but
+ produced once a matcher is ported without it -- prints as "begin ...; end",
+ matching CodeBlock::Print()'s formatting for a multi-statement body.
+ */
+void PrintBodyChain(Decompiler &dec, Node *head) {
+  if (!head) return;
+  if (head->next == nullptr) {
+    head->PrintOnNewLine();
+    return;
+  }
+  dec.p.Print("begin");
+  dec.p.DeepList(";");
+  for (Node *it = head; it; it = it->next) {
+    dec.p.Item();
+    it->Print();
+    dec.p.ItemDone();
+  }
+  dec.p.Trailer();
+  dec.p.Print("end");
+  dec.p.EndList();
+}
+} // namespace
+
 #pragma mark - ControlBlock
 
 ControlBlock::ControlBlock(Decompiler &d, int pc, int inProvides)
@@ -191,7 +223,7 @@ CFLoop::CFLoop(Decompiler &d, int pc, int prov, Node *body)
 void CFLoop::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Print("loop ");
-  body_->PrintOnNewLine();
+  PrintBodyChain(dec, body_);
 };
 
 #pragma mark - CFWhile

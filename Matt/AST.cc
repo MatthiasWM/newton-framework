@@ -108,6 +108,22 @@ void Node::UnlinkRange(Node *last) {
   }
 }
 
+/**
+ \brief Detach the chain [this .. last] from the root list as one contiguous
+ unit, preserving the members' mutual prev/next links (unlike UnlinkRange(),
+ which severs every member from every other). Used to lift a captured
+ pattern::Builder::Statements() run out of the root list while keeping it
+ walkable/printable as a multi-statement body.
+ \return `this`, now the head of a standalone chain ending at `last`.
+ */
+Node *Node::UnlinkChain(Node *last) {
+  prev->next = last->next;
+  last->next->prev = prev;
+  prev = nullptr;
+  last->next = nullptr;
+  return this;
+}
+
 /** Replace this node with another node in the linked list. */
 void Node::ReplaceWith(Node *nd) {
   prev->next = nd; next->prev = nd;
@@ -209,7 +225,7 @@ void Node::DeleteJumpTarget(int origin, int target) {
     }
   }
   if (jt) {
-    delete jt->Unlink();
+    jt->Unlink();
   } else {
     assert(0); // Tried to delete a jump target that does not exist!
   }
@@ -253,7 +269,11 @@ int Node::HandleBreakTargets(Node *start, Node *&it, bool findPushNil) {
  \brief Create the resolved bytecode for a 'nil' statement.
  */
 Node *Node::NewNil() {
-  auto *pop = new BCPop(dec, pc(), 0, 0);
-  pop->Input(new BCPushConst(dec, pc(), 4, 2));
+  auto *pop = dec.MakeNode<BCPop>(dec, pc(), 0, 0);
+  pop->Input(dec.MakeNode<BCPushConst>(dec, pc(), 4, 2));
   return pop;
+}
+
+bool ast::JumpPairMatches(Node *origin, JumpTarget *jt) {
+  return (jt->Origin() == origin->pc()) && (jt->pc() == origin->b());
 }

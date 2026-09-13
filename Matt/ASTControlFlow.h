@@ -23,9 +23,9 @@ class BCBranch : public Bytecode {
 public:
   BCBranch(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCBranch"; }
+  pattern::Tag tag() const override { return pattern::Tag::Branch; }
   int provides() override { return kBranch; }
   bool Resolved() override { return false; }
-  Node *ResolveLoop();
   Node *ResolveBreak();
   Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
@@ -35,6 +35,7 @@ class BCBranchIfTrue : public Consume1 {
 public:
   BCBranchIfTrue(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCBranchIfTrue"; }
+  pattern::Tag tag() const override { return pattern::Tag::BranchIfTrue; }
   int provides() override { return kProvidesUnknown; }
   int extracted(BCBranch *branch2, Node *&it);
 
@@ -49,6 +50,7 @@ class BCBranchIfFalse : public Consume1 {
 public:
   BCBranchIfFalse(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCBranchIfFalse"; }
+  pattern::Tag tag() const override { return pattern::Tag::BranchIfFalse; }
   int provides() override { return kProvidesUnknown; }
   Node *ResolveIfTheElse();
   Node *ResolveRepeatUntil();
@@ -75,6 +77,7 @@ class BCIncrVar : public Consume1 {
 public:
   BCIncrVar(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCIncrVar"; }
+  pattern::Tag tag() const override { return pattern::Tag::IncrVar; }
   int provides() override { if (in_) return 2; else return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -84,6 +87,7 @@ class BCBranchLoop : public Bytecode {
 public:
   BCBranchLoop(Decompiler &d, int pc, int a, int b);
   const char *Class() override { return "BCBranchLoop"; }
+  pattern::Tag tag() const override { return pattern::Tag::BranchLoop; }
   int provides() override { return kProvidesUnknown; }
   int consumes() override { return 3; }
   bool Resolved() override { return false; }
@@ -97,6 +101,7 @@ class BCNewIter : public Consume2 {
 public:
   BCNewIter(Decompiler &d, int pc, int a, int b) : Consume2(d, pc, a, b) { }
   const char *Class() override { return "BCNewIter"; }
+  pattern::Tag tag() const override { return pattern::Tag::NewIter; }
   int provides() override { return kProvidesUnknown; }
   bool Resolved() override { return false; }
   Node *Resolve(Pass pass) override;
@@ -110,6 +115,7 @@ class BCIterNext : public Consume1 {
 public:
   BCIterNext(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCIterNext"; }
+  pattern::Tag tag() const override { return pattern::Tag::IterNext; }
   int provides() override { return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -119,6 +125,7 @@ class BCIterDone : public Consume1 {
 public:
   BCIterDone(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCIterDone"; }
+  pattern::Tag tag() const override { return pattern::Tag::IterDone; }
   int provides() override { return kProvidesUnknown; }
   void Print(uint32_t flags = 0) override;
 };
@@ -131,6 +138,7 @@ public:
   BCNewHandler(Decompiler &d, int pc, int a, int b)
   : ConsumeN(d, pc, a, b, b*2) { }
   const char *Class() override { return "BCNewHandler"; }
+  pattern::Tag tag() const override { return pattern::Tag::NewHandler; }
   int provides() override { return kNewHandler; }
   void Print(uint32_t flags = 0) override;
   Node *Resolve(Pass pass) override;
@@ -142,6 +150,7 @@ class BCPopHandlers : public Bytecode {
 public:
   BCPopHandlers(Decompiler &d, int pc, int a, int b) : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCPopHandlers"; }
+  pattern::Tag tag() const override { return pattern::Tag::PopHandlers; }
   int provides() override { return kPopHandlers; }
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;

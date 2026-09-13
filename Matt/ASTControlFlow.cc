@@ -12,6 +12,7 @@
 #include "Matt/ASTControlFlowHelper.h"
 #include "Matt/ASTDataFlow.h"
 #include "Matt/ASTMacros.h"
+#include "Matt/ASTPattern.h"
 
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
@@ -37,43 +38,6 @@ using namespace ast;
 #pragma mark - BCBranch
 
 /**
- \brief Try to resolve this bytecode as part of a 'loop' construct.
- A loop is simply an unconditional jump backwards. It can be interrupted
- with a 'break' or 'return' statement. The decompiler assumes that the
- bytecode is correct and does not check for break or return.
- \return the next node if this is a 'loop', or nullptr if no match was found.
- */
-Node *BCBranch::ResolveLoop()
-{
-  // ---- Check for the loop... pattern
-  do {
-    // -- Store the result of our exploration here
-    /* target 1     */  JumpTarget *jt = nullptr;
-    /* expr         */  Node *body = nullptr;
-    /* branch 1     */  // <-- you are here
-
-    // -- Try this pattern
-    Node *iter = prev;
-    if (b_ > pc_) break; // Jump must be backward
-    if (iter->IsStatement()) { body = iter; iter = iter->prev; }
-    if ( !(jt = ToBwd<JumpTarget>(&iter, false)) )  break;
-    if ((jt->Origin() != pc()) || (jt->pc() != b()))    break;
-
-    // -- The pattern matches. Replace everything with a CFLoop node
-    // Check for a trailing "break targets"
-    HandleBreakTargets(jt, iter = next, false);
-    // It's a loop! Build a new node.
-    if (body) body->Unlink(); else body = NewNil();
-    CFLoop *loop = new CFLoop(dec, pc_, kProvidesOne, body);
-    jt->Unlink();
-    this->ReplaceWith(loop);
-    dec.numASTChanges++;
-    return loop;
-  } while (0);
-  return nullptr;
-}
-
-/**
  \brief Try to resolve this bytecode as part of a 'break' instruction.
  If the sequence is 'branch; pop;', the pop can never be reached
  because there is no jump target between them.
@@ -91,7 +55,7 @@ Node *BCBranch::ResolveBreak()
     if (!prev->IsExpr()) break;
     if (!dynamic_cast<BCPop*>(next)) break;
     // -- It applies. Replace the instructions and remove the jump target.
-    CFBreak *breakNode = new CFBreak(dec, pc(), b(), prev->Unlink());
+    CFBreak *breakNode = dec.MakeNode<CFBreak>(dec, pc(), b(), prev->Unlink());
     next->Unlink();
     // Don't delete the jump target! Let the loops take care of that.
     ReplaceWith(breakNode);
@@ -109,9 +73,10 @@ Node *BCBranch::Resolve(Pass pass)
     if (nextNode) return nextNode;
   }
   if (pass == Pass::ControlFlow) {
-    // If this resolves to 'loop', it's part of the control flow
-    Node *nextNode = ResolveLoop();
-    if (nextNode) return nextNode;
+    // If this resolves to 'loop', it's part of the control flow; matched by
+    // the pattern engine (Matt/ASTControlFlowPatterns.cc) rather than a
+    // hand-written ResolveXxx() here.
+    if (Node *nextNode = pattern::TryResolve(this)) return nextNode;
   }
   return next;
 }
@@ -171,9 +136,9 @@ Node *BCBranchIfTrue::ResolveWhileDo()
     if ((jt2 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
     if (it->IsStatement()) { body = it; it = it->prev; }
     if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
+    if (!JumpPairMatches(this, jt1)) break;
     if (!(branch2 = dynamic_cast<BCBranch*>(it))) break;
-    if ((branch2->b() != jt2->pc()) || (branch2->pc() != jt2->Origin())) break;
+    if (!JumpPairMatches(branch2, jt2)) break;
     // A useless "push-const nil, pop" was already removed in BCPop::Resolve()
     // If there are break targets, they will be removed below.
 
@@ -182,10 +147,10 @@ Node *BCBranchIfTrue::ResolveWhileDo()
     int prov = HandleBreakTargets(branch2, it = next, true);
     // Now create our while...do node:
     if (body) body->Unlink(); else body = NewNil();
-    CFWhile *wd = new CFWhile(dec, pc(), prov, in_, body);
-    delete branch2->Unlink();
-    delete jt1->Unlink();
-    delete jt2->Unlink();
+    CFWhile *wd = dec.MakeNode<CFWhile>(dec, pc(), prov, in_, body);
+    branch2->Unlink();
+    jt1->Unlink();
+    jt2->Unlink();
     ReplaceWith(wd);
     dec.numASTChanges++;
     return wd;
@@ -211,7 +176,7 @@ Node *BCBranchIfTrue::ResolveOr()
     jt1->Unlink();
     retTrue->Unlink();
     jt2->Unlink();
-    CFOr *orNode = new CFOr(dec, pc(), in_, alt);
+    CFOr *orNode = dec.MakeNode<CFOr>(dec, pc(), in_, alt);
     ReplaceWith(orNode);
     dec.numASTChanges++;
     return orNode->next;
@@ -286,17 +251,17 @@ Node *BCBranchIfFalse::ResolveIfTheElse() {
     /*          */  else break;
     /* [branch] */  if ((bi2 = dynamic_cast<BCBranch*>(it))) { hasElse = true; it = it->next; }
     /* target   */  if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->next; else break;
-    /*          */  if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
+    /*          */  if (!JumpPairMatches(this, jt1)) break;
     /*          */  if (hasElse) {
     /* n-stmts  */    if (!returnsAValue && it->IsStatement()) { elseStmt = it; it = it->next; }
     /* [expr]   */    else if (returnsAValue && it->IsExpr()) { elseStmt = it; it = it->next; }
     /*          */    else break;
     /* target   */    if (!(jt2 = dynamic_cast<JumpTarget*>(it))) break;
-    /*          */    if ((jt2->Origin() != bi2->pc()) || (jt2->pc() != bi2->b())) break;
+    /*          */    if (!JumpPairMatches(bi2, jt2)) break;
     /*          */  }
 
     // -- The pattern matches. Replace everything with a CFIfThen
-    CFIfThen *newNode = new CFIfThen(dec, pc_, in_, returnsAValue);
+    CFIfThen *newNode = dec.MakeNode<CFIfThen>(dec, pc_, in_, returnsAValue);
     newNode->body_ = ifStmt->Unlink();
     jt1->Unlink();
     if (hasElse) {
@@ -325,13 +290,13 @@ Node *BCBranchIfFalse::ResolveRepeatUntil() {
     if (!in_) break;
     if (it->IsStatement()) { body = it; it = it->prev; };
     if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if ((jt1->Origin() != pc()) || (jt1->pc() != b())) break;
+    if (!JumpPairMatches(this, jt1)) break;
 
     // -- The pattern matches. Replace everything with a CFLoop node
     int prov = HandleBreakTargets(jt1, it = next, true);
     // We did it. This is a while...do... construct!
     if (body) body->Unlink(); else body = NewNil();
-    CFRepeat *ru = new CFRepeat(dec, pc(), prov, in_, body);
+    CFRepeat *ru = dec.MakeNode<CFRepeat>(dec, pc(), prov, in_, body);
     jt1->Unlink();
     ReplaceWith(ru);
     dec.numASTChanges++;
@@ -424,8 +389,8 @@ Node *BCBranchLoop::Resolve(Pass pass)
     incr  = setIncr->b();  if (getIncr->b() != incr)   break;
 
     // Locals are correct. Now check the jump instructions.
-    if ((jtAgain->Origin() != pc()) || (jtAgain->pc() != b())) break;
-    if ((jtTest->Origin() != brTest->pc()) || (jtTest->pc() != brTest->b())) break;
+    if (!JumpPairMatches(this, jtAgain)) break;
+    if (!JumpPairMatches(brTest, jtTest)) break;
 
     // ---- If we reach all this way, the pattern matches.
     // Eval and unlink all the jump targets of break instructions inside the loop
@@ -451,7 +416,7 @@ Node *BCBranchLoop::Resolve(Pass pass)
 
     // Create a CFForLoop node that replaces the entire pattern
     if (body) body->Unlink(); else body = NewNil();
-    CFForLoop *forLoopNode = new CFForLoop(dec, pc(), prov, setIter, setLimit->input(), setIncr->input(), body);
+    CFForLoop *forLoopNode = dec.MakeNode<CFForLoop>(dec, pc(), prov, setIter, setLimit->input(), setIncr->input(), body);
     ReplaceWith(forLoopNode);
 
     // Wrap things up
@@ -568,8 +533,8 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
     REQUIRED_COND( BCPushConst, pushNil, pushNil->b() == NILREF, it, false ) { it = it->next; }
 
     // The pattern is correct. Now check the jump instructions.
-    if ((jtStart->Origin() != brStart->pc()) || (jtStart->pc() != brStart->b())) break;
-    if ((jtRepeat->Origin() != brRepeat->pc()) || (jtRepeat->pc() != brRepeat->b())) break;
+    if (!JumpPairMatches(brStart, jtStart)) break;
+    if (!JumpPairMatches(brRepeat, jtRepeat)) break;
 
     // Find out if the original source code used 'deeply'
     bool deeply;
@@ -621,7 +586,7 @@ Node *BCNewIter::ResolveForeachSlotValueDo()
 
     // Create a CFForEachSlotValueDo node that replaces the entire pattern
     CFForEachSlotValueDo *foreachNode =
-      new CFForEachSlotValueDo(dec, pc_, slot, value, deeply, obj, body);
+      dec.MakeNode<CFForEachSlotValueDo>(dec, pc_, slot, value, deeply, obj, body);
     ReplaceWith(foreachNode);
 
     // Wrap things up
@@ -707,9 +672,9 @@ Node *BCNewIter::ResolveForeachSlotValueCollect()
     REQUIRED_NODE( CodeBlock, prepareForGC, it, true ) { it = it->next; }
 
     // The pattern is correct. Now check the jump instructions.
-    if ((jtStart->Origin() != brStart->pc()) || (jtStart->pc() != brStart->b())) break;
-    if ((jtRepeat->Origin() != brRepeat->pc()) || (jtRepeat->pc() != brRepeat->b())) break;
-    if ((jtCleanup->Origin() != skipCleanup->pc()) || (jtCleanup->pc() != skipCleanup->b())) break;
+    if (!JumpPairMatches(brStart, jtStart)) break;
+    if (!JumpPairMatches(brRepeat, jtRepeat)) break;
+    if (!JumpPairMatches(skipCleanup, jtCleanup)) break;
 
     // Find out if the original source code used 'deeply'
     bool deeply;
@@ -856,7 +821,7 @@ Node *BCNewHandler::Resolve(Pass pass)
     REQUIRED_NODE( JumpTarget, jtDone, it, false ) { it = it->next; }
 
     // ---- The pattern is correct. Now make it printable.
-    CFTry *exNode = new CFTry(dec, pc(), isProvider ? kProvidesOne : kProvidesNone, this, jtDone);
+    CFTry *exNode = dec.MakeNode<CFTry>(dec, pc(), isProvider ? kProvidesOne : kProvidesNone, this, jtDone);
     ReplaceWith(exNode);
     dec.numASTChanges++;
     return exNode->next;
@@ -903,14 +868,14 @@ Node *BCCall::Resolve(Pass pass)
     if (!name) break;
     BinaryOperator *op = nullptr;
     if (strcmp(name, "<<")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, "<<", kPrecedenceShift);
+      op = dec.MakeNode<BinaryOperator>(dec, pc_, a_, b_, "<<", kPrecedenceShift);
     } else if (strcmp(name, ">>")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, ">>", kPrecedenceShift);
+      op = dec.MakeNode<BinaryOperator>(dec, pc_, a_, b_, ">>", kPrecedenceShift);
     } else if (strcasecmp(name, "mod")==0) {
-      op = new BinaryOperator(dec, pc_, a_, b_, "mod", kPrecedenceMulDiv);
+      op = dec.MakeNode<BinaryOperator>(dec, pc_, a_, b_, "mod", kPrecedenceMulDiv);
     }
     if (op) {
-      delete prev->Unlink();
+      prev->Unlink();
       this->ReplaceWith(op);
       dec.numASTChanges++;
       return op->Resolve(pass);
