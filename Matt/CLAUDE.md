@@ -156,15 +156,18 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
 `Matt/ASTControlFlowPatterns.cc` is where idioms get registered. Ported so
 far: `loop...end`, `while...do...end`, `repeat...until...end`, `a or b`,
 all three `if...then...[else...]` shapes (bare, statement/statement,
-expr/expr), `for...to...by...do`, and `foreach...do`. `BCBranch::ResolveLoop()`,
+expr/expr), `for...to...by...do`, `foreach...do`, and
+`try...onException...do`. `BCBranch::ResolveLoop()`,
 `BCBranchIfTrue::ResolveWhileDo()`, `BCBranchIfTrue::ResolveOr()`,
 `BCBranchIfFalse::ResolveRepeatUntil()`, `BCBranchIfFalse::ResolveIfTheElse()`,
-the entire body of `BCBranchLoop::Resolve()` (it had no separate
-`ResolveXxx()`, the matcher lived inline), and
-`BCNewIter::ResolveForeachSlotValueDo()` are all **deleted/replaced** in
-`ASTControlFlow.cc`/`.h`. Only `BCNewIter::ResolveForeachSlotValueCollect()`
-(`foreach...collect`, still broken/unfinished, deferred to step 7) and
-`try` are untouched.
+the entire ControlFlow-pass bodies of `BCBranchLoop::Resolve()` and
+`BCNewHandler::Resolve()` (neither had a separate `ResolveXxx()`, the
+matcher lived inline), and `BCNewIter::ResolveForeachSlotValueDo()` are all
+**deleted/replaced** in `ASTControlFlow.cc`/`.h`. The only things left
+un-ported are `BCNewIter::ResolveForeachSlotValueCollect()`
+(`foreach...collect`, still broken/unfinished, deferred to step 7) and `and`
+(step 7 also) — **every actual control-flow matcher that currently works is
+now on the pattern engine.**
 
 The three if/then/else specs (`BuildIfThenPattern`, `BuildIfThenElsePattern`,
 `BuildIfThenElseExprPattern` in `ASTControlFlowPatterns.cc`) share one
@@ -249,6 +252,34 @@ directly to find "object"/"deeply", and the port does too, via a
 spec's own forward `Cursor` and inspects the anchor's backward neighbors
 instead.
 
+`try...onException...do` (`BuildTryPattern`, registered twice — once per
+statement/expr shape, same reasoning as the if/then/else split, since
+`body`'s statement-vs-expr shape must hold uniformly across every handler,
+not per-node) turned out to be the **shortest and least eventful** port
+despite looking like the most intimidating idiom on paper. Two reasons:
+- First real use of `Repeat()`, for exactly what it was designed for: the
+  `numEx - 1` middle `onException` clauses, and separately the trailing
+  cluster of `exDone` JumpTargets.
+- The actual node extraction/unlinking was **never done in
+  `BCNewHandler::Resolve()` at all** — `CFTry`'s own constructor (unchanged)
+  walks from the anchor to the matched `jtDone` and does that itself,
+  re-discovering the same handler/body shape independently. So this port's
+  callback is only a few lines (build `CFTry`, `ReplaceWith`, done); almost
+  none of the captured slots are ever read back — capturing them still
+  exercises the same match-or-reject logic the original relied on, they're
+  just structural checkpoints, not construction inputs.
+
+Also notable (not a bug, just a real asymmetry worth knowing): unlike every
+other idiom ported so far, this one does **no jump-pair validation at
+all** — no check that `brDone` actually targets `jtDone`, or that any
+`exDone` branch targets the right trailing `JumpTarget`. The original never
+checked those relationships either, trusting structural shape (right
+node-type sequence, right count from `b()`) alone. Preserved exactly, since
+adding verification the original never had would be a behavior change, not
+a port — but it's a legitimate future robustness improvement if `try`
+blocks ever misdecompile in a way the other, more rigorously-checked
+idioms wouldn't.
+
 ### Order of remaining work
 1. ~~Port `or`~~ — done.
 2. ~~Port `while/do`, `repeat/until`~~ — done.
@@ -260,11 +291,20 @@ instead.
 4. ~~Port `for...to...by...do`~~ — done (still `CodeBlock`-dependent, see above).
 5. ~~Port `foreach...do`~~ — done (also `CodeBlock`-dependent in places, see
    above; introduced `Builder::Custom()`).
-6. Port `try...onException...do` — exercises `Repeat()` for real.
-7. Only once all of the above are green: implement `foreach...collect` and
-   `and` as fresh registrations — this is the acceptance test for the whole
-   redesign (should now be tractable ~40-line registrations, not 130-line
-   near-duplicates).
+6. ~~Port `try...onException...do`~~ — done. Turned out to be the shortest
+   port yet (see above) — every real matcher is now on the pattern engine.
+7. **Next up.** Implement `foreach...collect` and `and` as fresh
+   registrations — this is the acceptance test for the whole redesign
+   (should now be tractable ~40-line registrations, not 130-line
+   near-duplicates). `foreach...collect` will likely reuse most of
+   `BuildForeachDoPattern`'s structure (same backward object/deeply
+   `Custom()` step, same CodeBlock-front extraction idea, different tail
+   shape) — worth checking whether it's cleaner to factor out a shared
+   helper between the two once collect's actual shape is back in view (it
+   was mid-rewrite and non-compiling in the original, so don't assume its
+   old structure is trustworthy — re-derive the bytecode shape from
+   scratch, same as every other port here has). `and` reuses `MakeIfThen`
+   with `elseBody` forced to a literal `nil` check, per step 3's note.
 8. Delete `ASTMacros.h`, `Decompiler::compressAST()` and the Compression
    phase of `Decompiler::solve()`, `CodeBlock`'s list-splicing methods
    (`add`/`moveToBody`/`pop_back`/`pop_front`/`UnlinkIfEmpty`), and every

@@ -721,4 +721,101 @@ Spec BuildForeachDoPattern() {
 
 bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }();
 
+#pragma mark - try ... onException ... do ... end
+
+/**
+ \brief `try body [onException sym do exBody]+ end`.
+ ```
+ NewHandler                    -- anchor, b() == number of handlers (numEx)
+ <body>
+ PopHandlers
+ Branch brDone
+ [ExceptionHandler:  <exBody>  Branch exDone]  * (numEx - 1)  -- "middle" handlers
+ ExceptionHandler:   <exBody>                                  -- last handler, falls through
+ JumpTarget * (numEx - 1)                                      -- exDone targets, clustered
+ PopHandlers
+ JumpTarget jtDone:
+ ```
+ Ported from the hand-written BCNewHandler::Resolve() (its whole ControlFlow
+ branch used to live here, not a separate ResolveXxx()). Registered as two
+ separate specs (built by one parameterized BuildTryPattern(isProvider)
+ function, mirroring the if/then/else specs' approach) rather than one spec
+ with an internal statement-vs-expr flag threaded through every handler:
+ `body`'s own shape (IsStatement() vs IsExpr()) is mutually exclusive and
+ must hold *uniformly* for every exBody in the whole construct, so it's a
+ structural fork, not a per-node runtime check -- same reasoning as the
+ if/then/else split.
+
+ Unlike every other idiom ported so far, this one performs **no jump-pair
+ validation at all** -- not for brDone/jtDone, not for any exDone/JumpTarget
+ pair. The original never checked those relationships either; it trusts
+ structural shape (the right sequence of right node types, the right count
+ from `b()`) alone. Preserved exactly -- adding verification the original
+ never had would be a behavior change, not a port, even though it would
+ arguably make this matcher as rigorous as the others. Worth reconsidering
+ as a genuine improvement later, but out of scope here.
+
+ The other half of the reason this port is short: unlike every idiom above,
+ the actual node extraction/unlinking isn't done here at all --
+ `CFTry`'s own constructor (unchanged, ASTControlFlowHelper.cc) walks from
+ `anchor` to the captured `jtDone` and does that itself. This spec's whole
+ job is validating the shape and locating `jtDone`; that's also why almost
+ none of the captured slots below are ever read back in the callback --
+ capturing them still exercises the same match-or-reject logic the original
+ relied on, even though only `jtDone` (and the anchor itself) end up used.
+
+ First real use of Repeat(): once for the `numEx - 1` middle handlers, once
+ for the trailing cluster of exDone JumpTargets. The explicit
+ `Guard(b() >= 1)` replicates a real (if probably unreachable from any
+ actual compiler) edge case in the original: its `if (i != b_) break;`
+ after a `for (i=1; i<b_; i++)` loop rejects `b()==0` specifically because
+ the loop counter never advances past its initial value of 1 -- Repeat()'s
+ count is `b()-1`, which is negative for `b()==0` and simply iterates zero
+ times either way, so without this guard a zero-handler NewHandler
+ wouldn't be rejected at this step (it should still fail the mandatory
+ "last handler" Required() right after, since no ExceptionHandler node
+ would legitimately be sitting there -- but this guard makes the intent
+ explicit rather than relying on that indirectly).
+ */
+Spec BuildTryPattern(bool isProvider) {
+  enum {
+    kBody, kBodyPop, kBrDone,
+    kHandlers, kLastHandler, kLastExBody,
+    kTrailingTargets, kExPop, kJtDone,
+  };
+  Cond bodyCond = isProvider
+    ? Cond([](Node *n) { return n->IsExpr(); })
+    : Cond([](Node *n) { return n->IsStatement(); });
+
+  return Builder(Tag::NewHandler, kFwd)
+    .Guard([](Node *a) { return a->b() >= 1; })
+    .Required(Tag::Any, kBody, bodyCond, /*mustBeResolved=*/true)
+    .Required(Tag::PopHandlers, kBodyPop, /*mustBeResolved=*/false)
+    .Required(Tag::Branch, kBrDone, /*mustBeResolved=*/false)
+    .Repeat(kHandlers, [](Node *a) { return a->b() - 1; },
+            Builder()
+              .Required(Tag::ExceptionHandler, 0, /*mustBeResolved=*/false)
+              .Optional(Tag::Any, 1, bodyCond, /*mustBeResolved=*/true)
+              .Required(Tag::Branch, 2, /*mustBeResolved=*/false))
+    .Required(Tag::ExceptionHandler, kLastHandler, /*mustBeResolved=*/false)
+    .Optional(Tag::Any, kLastExBody, bodyCond, /*mustBeResolved=*/true)
+    .Repeat(kTrailingTargets, [](Node *a) { return a->b() - 1; },
+            Builder().Required(Tag::JumpTarget, 0, /*mustBeResolved=*/false))
+    .Required(Tag::PopHandlers, kExPop, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJtDone, /*mustBeResolved=*/false)
+    .Name(isProvider ? "try-expr" : "try-statement")
+    .Priority(10)
+    .Build([isProvider](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      auto *jtDone = m.as<JumpTarget>(kJtDone);
+      auto *exNode = dec.MakeNode<CFTry>(
+        dec, anchor->pc(), isProvider ? kProvidesOne : kProvidesNone, anchor, jtDone);
+      anchor->ReplaceWith(exNode);
+      dec.numASTChanges++;
+      return exNode->next;
+    });
+}
+
+bool registerTryStatement = [] { Register(BuildTryPattern(/*isProvider=*/false)); return true; }();
+bool registerTryExpr = [] { Register(BuildTryPattern(/*isProvider=*/true)); return true; }();
+
 } // namespace
