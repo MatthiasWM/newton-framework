@@ -56,6 +56,14 @@ Unrelated tools that happen to live in `Matt/` (not touched by this work):
 `BookWriter.*` (package→HTML/PDF), `PackageWriter.*` (Ref→package binary),
 `PDFGen/` (vendored C PDF lib).
 
+## Branch
+
+This work lives on `AST_pattern_matching` (branched off `restructure`).
+Matt committed the arena/`JumpPairMatches`/pattern-engine/`loop` work as
+`455fd20 "Initial commit for new pattern matching AST"`; everything ported
+since (currently: `while`, `repeat`, `or`) is uncommitted on top of that
+until he reviews and commits it himself.
+
 ## How to build and test
 
 ```
@@ -130,13 +138,17 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
   idiom is a **new file-scope static registration**, zero edits to the
   anchor bytecode's own class.
 
-`Matt/ASTControlFlowPatterns.cc` is where idioms get registered. `loop...end`
-is ported there (`BCBranch::ResolveLoop()` is deleted); everything else
-still runs through the old `ResolveXxx()` methods in `ASTControlFlow.cc`.
+`Matt/ASTControlFlowPatterns.cc` is where idioms get registered. Ported so
+far: `loop...end`, `while...do...end`, `repeat...until...end`, `a or b` —
+`BCBranch::ResolveLoop()`, `BCBranchIfTrue::ResolveWhileDo()`,
+`BCBranchIfTrue::ResolveOr()`, and `BCBranchIfFalse::ResolveRepeatUntil()`
+are all **deleted** from `ASTControlFlow.cc`/`.h`. `ResolveIfTheElse()`
+(BranchIfFalse) is the only hand-written matcher left on those two branch
+classes; `for`/`foreach`/`try` are untouched.
 
-### Order of remaining work (not done yet)
-1. Port `or` (second data point).
-2. Port `while/do`, `repeat/until`.
+### Order of remaining work
+1. ~~Port `or`~~ — done.
+2. ~~Port `while/do`, `repeat/until`~~ — done.
 3. Port the three `if/then/else` shapes (bare-if, if/else-statement,
    if/else-expression) as three registrations sharing one construction
    helper — this is also where `and` (currently only recovered as print-time
@@ -156,18 +168,35 @@ still runs through the old `ResolveXxx()` methods in `ASTControlFlow.cc`.
    now-unreferenced `ResolveXxx()` declaration.
 
 **After every single port, re-run the regression recipe above before moving
-to the next idiom** — don't batch multiple idiom ports between checks.
+to the next idiom** — don't batch multiple idiom ports between checks. Also
+write at least one direct hand-compiled test per idiom (`-script`, see
+below) covering: the plain case, a multi-statement body, and — for anything
+with a body that reaches `HandleBreakTargets(..., findPushNil=true)` (i.e.
+everything except `loop`, which passes `false`) — a `break <value>` inside
+the body. All three mattered in practice: the multi-statement case is what
+originally exposed the `PrintBodyChain` gap below.
 
 `CodeBlock` currently still exists as a *mid-resolution* list node built by
 `compressAST()` (a still-active separate pass) — it has **not** yet been
-demoted to print-time-only. `Node::UnlinkChain(Node *last)` (added this
-session, next to `UnlinkRange`) is the primitive that will let matchers pull
-a `Statements()`-captured run out of the list as a walkable chain without
-needing a `CodeBlock` wrapper; `CFLoop::Print()` already uses a
-`PrintBodyChain()` helper (in `ASTControlFlowHelper.cc`) that handles either
-a single node or a real N-node chain, as a template for how the other
-`ControlBlock`-derived `Print()` methods should be updated once their
-matchers stop depending on `compressAST()`.
+demoted to print-time-only. `Node::UnlinkChain(Node *last)` (added next to
+`UnlinkRange`) is the primitive that lets matchers pull a
+`Statements()`-captured run out of the list as a walkable chain without
+needing a `CodeBlock` wrapper. **Every `ControlBlock`-derived `Print()`
+that prints a `body_` must go through the shared `PrintBodyChain(dec,
+body_, flags=0)` helper in `ASTControlFlowHelper.cc`, not
+`body_->PrintOnNewLine(flags)` directly** — `PrintOnNewLine()` only knows
+how to print a *single* node (or a real `CodeBlock*`, via its overridden
+`IsMultiStatement()`); a raw multi-node chain from `UnlinkChain()` would
+silently print only its first statement and drop the rest, since plain
+`Node::IsMultiStatement()` is `false` by default. `PrintBodyChain()`
+detects the single-vs-chain case itself and, for a real chain, honors
+`kPrintSuppressBeginEnd`/`kPrintSuppressList` exactly like `CodeBlock::Print()`
+does (`CFRepeat` needs `kPrintSuppressBeginEnd` since `repeat`/`until` are
+already the delimiters; `CFLoop`/`CFWhile` don't). This was originally added
+for `CFLoop`, then found to be *also* missing on `CFWhile`/`CFRepeat` when
+those were ported — check every `ControlBlock` subclass's `Print()` when
+porting a matcher that feeds it a `Statements()`-derived body, not just the
+one you're actively working on.
 
 ## Hard-won C++ gotcha (don't re-discover this)
 
@@ -197,6 +226,18 @@ its node arena, but `ast::Node` is only forward-declared in `Decompiler.h`
 This cost significant back-and-forth to isolate via minimal repros; if a
 similar "incomplete type" error resurfaces after touching `Decompiler`'s
 special member functions, this is almost certainly the same root cause.
+
+## Enum-scoping footgun in ASTControlFlowPatterns.cc
+
+Each `BuildXxxPattern()` needs its own slot-id `enum { kBody, kJt1, ... }`.
+Declare it **inside the function**, not at file/anonymous-namespace scope —
+a plain (unscoped) `enum` declared at file scope dumps its enumerators
+straight into that scope, so a second pattern's `enum { kBody, ... }` a few
+lines later is a redefinition error. A local `enum` inside
+`BuildXxxPattern()` is still perfectly usable from the nested `.Build([](...)
+{ ... })` lambda without capturing it — enumerators are compile-time
+constants, not variables, so this isn't a capture-list issue, just a
+scoping one.
 
 ## Namespace footgun
 

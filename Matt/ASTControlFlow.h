@@ -39,8 +39,6 @@ public:
   int provides() override { return kProvidesUnknown; }
   int extracted(BCBranch *branch2, Node *&it);
 
-  Node *ResolveWhileDo();
-  Node *ResolveOr();
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;
@@ -53,7 +51,6 @@ public:
   pattern::Tag tag() const override { return pattern::Tag::BranchIfFalse; }
   int provides() override { return kProvidesUnknown; }
   Node *ResolveIfTheElse();
-  Node *ResolveRepeatUntil();
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;

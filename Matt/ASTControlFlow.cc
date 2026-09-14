@@ -108,80 +108,12 @@ Node *BCBranchIfTrue::Resolve(Pass pass)
     }
   }
   if ((pass == Pass::ControlFlow) && (in_)) {
-    Node *nextNode = nullptr;
-    if ((nextNode = ResolveWhileDo())) return nextNode;
-    if ((nextNode = ResolveOr())) return nextNode;
+    // `while...do` and `a or b` are both matched by the pattern engine
+    // (Matt/ASTControlFlowPatterns.cc) rather than hand-written ResolveXxx()
+    // methods here.
+    if (Node *nextNode = pattern::TryResolve(this)) return nextNode;
   }
   return next;
-}
-
-Node *BCBranchIfTrue::ResolveWhileDo()
-{
-  do {
-    // -- Here is our pattern. Store the result of our exploration here:
-    /* branch 2 */  BCBranch *branch2 = nullptr;
-    /* target 1 */  JumpTarget *jt1 = nullptr;
-    /* n-stmts  */  Node *body = nullptr;
-    /* target 2 */  JumpTarget *jt2 = nullptr;
-    /* expr     */  // Already in this->in_
-    /* c.brch 1 */  // <-- you are here
-    /* push nil */
-    /* break targets */
-    /* consumer */
-
-    // -- Try the pattern
-    Node *it = prev;
-    if (b_ > pc_) break;  // jump backwards
-    if (!in_) break;
-    if ((jt2 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if (it->IsStatement()) { body = it; it = it->prev; }
-    if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if (!JumpPairMatches(this, jt1)) break;
-    if (!(branch2 = dynamic_cast<BCBranch*>(it))) break;
-    if (!JumpPairMatches(branch2, jt2)) break;
-    // A useless "push-const nil, pop" was already removed in BCPop::Resolve()
-    // If there are break targets, they will be removed below.
-
-    // -- The pattern matches. Replace everything with a CFLoop node
-    // Check for a trailing "push-nil, break targets, consumer"
-    int prov = HandleBreakTargets(branch2, it = next, true);
-    // Now create our while...do node:
-    if (body) body->Unlink(); else body = NewNil();
-    CFWhile *wd = dec.MakeNode<CFWhile>(dec, pc(), prov, in_, body);
-    branch2->Unlink();
-    jt1->Unlink();
-    jt2->Unlink();
-    ReplaceWith(wd);
-    dec.numASTChanges++;
-    return wd;
-  } while (0);
-  return nullptr;
-}
-
-Node *BCBranchIfTrue::ResolveOr()
-{
-  do {
-    Node *it = next;
-    if (!in_->IsExpr()) break;
-    REQUIRED_COND(Node, alt, alt->IsExpr(), it, true) { it = it->next; }
-    REQUIRED_NODE(BCBranch, branch, it, false) { it = it->next; }
-    REQUIRED_NODE(JumpTarget, jt1, it, false) { it = it->next; }
-    REQUIRED_COND(BCPushConst, retTrue, retTrue->b() == TRUEREF, it, true) { it = it->next; }
-    REQUIRED_NODE(JumpTarget, jt2, it, false) { it = it->next; }
-    if (jt1->Origin() != pc()) break;
-    if (jt2->Origin() != branch->pc()) break;
-
-    alt->Unlink();
-    branch->Unlink();
-    jt1->Unlink();
-    retTrue->Unlink();
-    jt2->Unlink();
-    CFOr *orNode = dec.MakeNode<CFOr>(dec, pc(), in_, alt);
-    ReplaceWith(orNode);
-    dec.numASTChanges++;
-    return orNode->next;
-  } while(0);
-  return nullptr;
 }
 
 void BCBranchIfTrue::Print(uint32_t flags) {
@@ -276,35 +208,6 @@ Node *BCBranchIfFalse::ResolveIfTheElse() {
   return nullptr;
 }
 
-Node *BCBranchIfFalse::ResolveRepeatUntil() {
-  do {
-    // -- Here is our pattern. Store the result of our exploration here:
-    /* target 1 */  JumpTarget *jt1 = nullptr;
-    /* n-stmts  */  Node *body = nullptr;
-    /* expr     */  // condition is in this->in_
-    /* c.brch 1 */  // <-- you are here
-
-    // -- Try the pattern
-    Node *it = prev;
-    if (b_ > pc_) break;  // jump backwards
-    if (!in_) break;
-    if (it->IsStatement()) { body = it; it = it->prev; };
-    if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->prev; else break;
-    if (!JumpPairMatches(this, jt1)) break;
-
-    // -- The pattern matches. Replace everything with a CFLoop node
-    int prov = HandleBreakTargets(jt1, it = next, true);
-    // We did it. This is a while...do... construct!
-    if (body) body->Unlink(); else body = NewNil();
-    CFRepeat *ru = dec.MakeNode<CFRepeat>(dec, pc(), prov, in_, body);
-    jt1->Unlink();
-    ReplaceWith(ru);
-    dec.numASTChanges++;
-    return ru;
-  } while (0);
-  return nullptr;
-}
-
 Node *BCBranchIfFalse::Resolve(Pass pass)
 {
   if (pass == Pass::DataFlow) {
@@ -318,9 +221,11 @@ Node *BCBranchIfFalse::Resolve(Pass pass)
     }
   }
   if ((pass == Pass::ControlFlow) && (in_)) {
-    Node *nextNode = nullptr;
-    if ((nextNode = ResolveIfTheElse())) return nextNode;
-    if ((nextNode = ResolveRepeatUntil())) return nextNode;
+    if (Node *nextNode = ResolveIfTheElse()) return nextNode;
+    // `repeat...until` is matched by the pattern engine
+    // (Matt/ASTControlFlowPatterns.cc) rather than a hand-written
+    // ResolveXxx() here.
+    if (Node *nextNode = pattern::TryResolve(this)) return nextNode;
   }
   return next;
 }

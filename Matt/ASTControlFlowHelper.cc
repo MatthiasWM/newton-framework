@@ -158,30 +158,35 @@ namespace {
  \brief Print a ControlBlock body that may be a chain of N>=1 nodes (as
  produced by pattern::Builder::Statements() + Node::UnlinkChain()), not just
  a single node or a CodeBlock*.
- For a single-node chain this reproduces Node::PrintOnNewLine() exactly (the
- node prints itself, wrapped in a bare ';'-list unless it happens to be a
- multi-statement CodeBlock, matching every body_ this could hold before the
+ For a single-node chain this reproduces Node::PrintOnNewLine(flags) exactly
+ (the node prints itself, wrapped in a bare ';'-list unless it happens to be
+ a multi-statement CodeBlock, matching every body_ this could hold before the
  pattern engine existed). A real chain of 2+ nodes -- not yet reachable while
  Decompiler::compressAST() still pre-merges consecutive statements, but
- produced once a matcher is ported without it -- prints as "begin ...; end",
- matching CodeBlock::Print()'s formatting for a multi-statement body.
+ produced once a matcher is ported without it -- prints each statement
+ itself, honoring kPrintSuppressBeginEnd/kPrintSuppressList exactly as
+ CodeBlock::Print() does (e.g. CFRepeat passes kPrintSuppressBeginEnd since
+ `repeat`/`until` are their own delimiters, not `begin`/`end`).
  */
-void PrintBodyChain(Decompiler &dec, Node *head) {
+void PrintBodyChain(Decompiler &dec, Node *head, uint32_t flags = 0) {
   if (!head) return;
   if (head->next == nullptr) {
-    head->PrintOnNewLine();
+    head->PrintOnNewLine(flags);
     return;
   }
-  dec.p.Print("begin");
-  dec.p.DeepList(";");
+  if (flags & kPrintSuppressList) flags |= kPrintSuppressBeginEnd;
+  if ((flags & kPrintSuppressBeginEnd) == 0) dec.p.Print("begin");
+  if ((flags & kPrintSuppressList) == 0) dec.p.DeepList(";");
   for (Node *it = head; it; it = it->next) {
     dec.p.Item();
     it->Print();
     dec.p.ItemDone();
   }
-  dec.p.Trailer();
-  dec.p.Print("end");
-  dec.p.EndList();
+  if ((flags & kPrintSuppressBeginEnd) == 0) {
+    dec.p.Trailer();
+    dec.p.Print("end");
+  }
+  if ((flags & kPrintSuppressList) == 0) dec.p.EndList();
 }
 } // namespace
 
@@ -246,7 +251,7 @@ void CFWhile::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("while "); cond_->Print();
   dec.p.Printf(" do ");
-  body_->PrintOnNewLine();
+  PrintBodyChain(dec, body_);
 };
 
 #pragma mark - CFRepeat
@@ -269,7 +274,7 @@ void CFRepeat::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
 
   dec.p.Printf("repeat");
-  body_->PrintOnNewLine(kPrintSuppressBeginEnd);
+  PrintBodyChain(dec, body_, kPrintSuppressBeginEnd);
   dec.p.FreshLine(); dec.p.Printf("until "); cond_->Print();
 };
 
