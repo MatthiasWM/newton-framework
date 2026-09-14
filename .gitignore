@@ -1,4 +1,10 @@
 
+# Regenerable Test/run_corpus.py + Test/round_trip.py + Test/einstein_review.py
+# output (decompile logs, manifests) -- rerun the scripts to reproduce.
+# Test/einstein_checklist.json is NOT ignored: it holds manual review
+# verdicts, not regenerable output.
+/Test/corpus_results/
+
 .DS_Store
 ._*
 .Spotlight-V100

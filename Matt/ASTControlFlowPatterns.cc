@@ -237,12 +237,21 @@ Node *MakeIfThen(Decompiler &dec, Node *anchor, bool returnsAValue,
  from ASTControlFlow.cc), which handled all three if/then/else shapes in
  one function; see the class comment above BCBranchIfFalse::Resolve() there
  for the original's own description of the three patterns.
+ `kBody` is captured via StatementsOrExpr() (ASTPattern.h), not plain
+ Statements(), for symmetry with BuildIfThenElsePattern() below, whose
+ `kElseBody` genuinely needs it: a real corpus case (`if i >= Length(x)
+ then break; end` as the *last* real statement before an implicit `else`)
+ compiles its else-branch as a single bare `PushConst nil` -- an
+ expression, never IsStatement() -- standing in for the omitted `else`.
+ See BCBranch::ResolveBreak()'s class comment (ASTControlFlow.cc) for the
+ companion fix a `break`-only "then" body needed there, and
+ BuildIfThenElsePattern() below for the actual bug this combinator fixes.
  */
 Spec BuildIfThenPattern() {
   enum { kBody, kJt1 };
   return Builder(Tag::BranchIfFalse, kFwd)
     .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
-    .Statements(kBody)
+    .StatementsOrExpr(kBody)
     .NonEmpty(kBody)
     .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
     .JumpPair(Builder::kAnchor, kJt1)
@@ -263,28 +272,66 @@ bool registerIfThen = [] { Register(BuildIfThenPattern()); return true; }();
  \brief `if cond then body else elseBody end`, both branches statements:
  ```
  BranchIfFalse jt1      -- anchor
- <body>                 -- non-empty statement run
+ <body>                 -- non-empty statement run, possibly ending in one
+                            bare expression (see below)
  Branch jt2
  JumpTarget jt1:
- <elseBody>             -- non-empty statement run
+ <elseBody>             -- same shape as <body>
  JumpTarget jt2:
  ```
  See BuildIfThenPattern() above for why this and the bare if-then never
  both match the same bytecode.
+
+ `kBody`/`kElseBody` are captured via StatementsOrExpr() (ASTPattern.h),
+ not plain Statements() -- found necessary via corpus-scale testing
+ (Test/run_corpus.py) on the real idiom `if i >= Length(x) then break; end`
+ used as one statement among several in an enclosing block, with no
+ explicit `else`: NTK's compiler still emits full if/then/else scaffolding
+ for it (there's no bytecode-level "bare if" special case once other code
+ follows), synthesizing an implicit `else` whose entire content is one bare
+ `PushConst nil` -- an expression standing in for "nothing," never
+ IsStatement() -- which plain `Statements()` could never capture (its
+ `NonEmpty()` check would always reject an all-expression run). The `kBody`
+ side of the same idiom needed a companion fix, not this one: see
+ BCBranch::ResolveBreak()'s class comment (ASTControlFlow.cc) for why a
+ `break`-only "then" body couldn't even resolve to a capturable `CFBreak`
+ statement in the first place before that fix.
  */
 Spec BuildIfThenElsePattern() {
-  enum { kBody, kBi2, kJt1, kElseBody, kJt2 };
+  enum { kBody, kBi2, kJt1, kElseBody, kJt2, kTrailingPop };
   return Builder(Tag::BranchIfFalse, kFwd)
     .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
-    .Statements(kBody)
+    .StatementsOrExpr(kBody)
     .NonEmpty(kBody)
     .Required(Tag::Branch, kBi2, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
     .JumpPair(Builder::kAnchor, kJt1)
-    .Statements(kElseBody)
+    .StatementsOrExpr(kElseBody)
     .NonEmpty(kElseBody)
     .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
     .JumpPair(kBi2, kJt2)
+    // -- A branch whose captured run ends in a bare expression (see
+    // StatementsOrExpr()'s class comment) pushes a value nothing else
+    // consumes -- only reachable via kElseBody falling straight through
+    // (kBody's own equivalent case, if it's ever real, always diverges
+    // instead, e.g. via `break`, so it never falls through to needing this).
+    // The compiler balances that stray value with an explicit Pop right
+    // after the whole construct, which must be claimed here or it prints
+    // as its own bogus leftover statement. Required, not Optional, when
+    // needed: if the shape says a Pop must be here and it isn't, that's a
+    // real mismatch, not a "fine either way" case.
+    .Custom([](Cursor &c, Match &m) -> bool {
+      const std::vector<Node*> &elseRun = m.run(kElseBody);
+      if (elseRun.empty() || !elseRun.back()->IsExpr()) {
+        m.SetAbsent(kTrailingPop);
+        return true;
+      }
+      Node *n = c.peek();
+      if (!n || n->tag() != Tag::Pop) return false;
+      m.SetNode(kTrailingPop, n);
+      c.advance();
+      return true;
+    })
     .Name("if-then-else")
     .Priority(5)
     .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
@@ -295,6 +342,7 @@ Spec BuildIfThenElsePattern() {
       const std::vector<Node*> &elseRun = m.run(kElseBody);
       Node *body = bodyRun.front()->UnlinkChain(bodyRun.back());
       Node *elseBody = elseRun.front()->UnlinkChain(elseRun.back());
+      if (m.has(kTrailingPop)) m.node(kTrailingPop)->Unlink();
       return MakeIfThen(dec, anchor, /*returnsAValue=*/false, body, jt1, elseBody, bi2, jt2);
     });
 }
@@ -343,7 +391,20 @@ Spec BuildIfThenElseExprPattern() {
     .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
     .JumpPair(kBi2, kJt2)
     .Name("if-then-else-expr")
-    .Priority(5)
+    // Tried *before* BuildIfThenElsePattern() (priority 5): since
+    // StatementsOrExpr() (used there) now also accepts a bare trailing
+    // expr per branch, the two specs' matchable shapes genuinely overlap
+    // whenever neither branch needs a trailing Pop -- e.g. `cond and expr`
+    // (both branches single bare exprs) matches both. Preferring this
+    // (expr-shaped) spec whenever it applies is a pure win: same bytecode
+    // consumed either way, but only this one preserves CFIfThen::Print()'s
+    // "and"/"or" sugar. Safe, not just nicer: whenever a trailing Pop is
+    // actually structurally required (a real, different bytecode shape --
+    // see BuildIfThenElsePattern()'s kTrailingPop), this spec's own
+    // `.Required(Tag::JumpTarget, kJt2)` naturally fails to match a `Pop`
+    // sitting there instead, so it correctly falls through to the
+    // statement-shaped spec rather than silently mismatching.
+    .Priority(4)
     .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
       const std::vector<Node*> &bodyRun = m.run(kBody);
       const std::vector<Node*> &elseRun = m.run(kElseBody);
@@ -603,7 +664,8 @@ Node *ExtractForeachObject(Node *setObject) {
  JumpTarget jtStart:
  IterDone iterator
  BranchIfFalse brRepeat
- PushConst nil                  -- pushNil ("clear iterator" is the node right after it)
+ [PushConst nil]                 -- pushNil, optional ("clear iterator" is
+                                     the node right after it) -- see below
  ```
  Ported from the hand-written BCNewIter::ResolveForeachSlotValueDo() (removed
  from ASTControlFlow.cc). One irregularity this idiom has that no earlier
@@ -624,6 +686,28 @@ Node *ExtractForeachObject(Node *setObject) {
  anymore, so value/[slot] are always read directly off the flat list, and
  whatever remains after them is just Statements(kBody), same as every
  other idiom's free-form body capture.
+
+ `pushNil` is `Optional()`, not `Required()` -- discovered via corpus-scale
+ testing (Test/run_corpus.py), not the 12-package sample: when the loop's
+ iterator variable is provably dead afterward, NTK's optimizer omits the
+ "clear iterator variable" `SetVar` that normally follows `pushNil`,
+ leaving just a bare `PushConst nil; Pop;` pair immediately after
+ `brRepeat`. `BCPop::Resolve()` (ASTAdmin.cc) has a DataFlow-time
+ optimization that strips exactly that adjacent-`PushConst`-then-`Pop`
+ shape *during DataFlow*, before this ControlFlow pattern ever gets a
+ chance to claim `pushNil` as a structural marker -- so on this shape,
+ `Required()` would never see a raw `PushConst` there at all and the whole
+ match would fail, exactly as it did for ~526 of the ~2,200-package first
+ corpus sweep (the single largest failure cluster by far -- see
+ Matt/CLAUDE.md, "Corpus-scale testing"). When `pushNil` is absent, there's
+ also no separate "clear iterator" node to discard: `BCPop`'s optimization
+ already erased both, so `brRepeat->next` is already real, unrelated,
+ subsequent code -- the callback below only does the `afterPushNil`
+ discard/`HandleBreakTargets` dance when `pushNil` was actually captured.
+ A hand-compiled `-script` repro of this exact idiom does *not* reproduce
+ this shape, since our own compiler always emits the iterator-clearing
+ `SetVar` regardless of liveness -- this is a real NTK-optimizer-only
+ divergence, only found by testing against the real corpus.
  */
 Spec BuildForeachDoPattern() {
   enum {
@@ -662,7 +746,7 @@ Spec BuildForeachDoPattern() {
     .Required(Tag::JumpTarget, kJtStart, /*mustBeResolved=*/false)
     .Required(Tag::IterDone, kIterDone, /*mustBeResolved=*/false)
     .Required(Tag::BranchIfFalse, kBrRepeat, /*mustBeResolved=*/false)
-    .Required(Tag::PushConst, kPushNil, [](Node *n) { return n->b() == NILREF; }, /*mustBeResolved=*/false)
+    .Optional(Tag::PushConst, kPushNil, [](Node *n) { return n->b() == NILREF; }, /*mustBeResolved=*/false)
     .JumpPair(kBrStart, kJtStart)
     .JumpPair(kBrRepeat, kJtRepeat)
     .Name("foreach-do")
@@ -680,7 +764,7 @@ Spec BuildForeachDoPattern() {
       auto *jtStart = m.as<JumpTarget>(kJtStart);
       Node *iterDone = m.node(kIterDone);
       Node *brRepeat = m.node(kBrRepeat);
-      Node *pushNil = m.node(kPushNil);
+      Node *pushNil = m.has(kPushNil) ? m.node(kPushNil) : nullptr;
 
       int value = setValueNode->b();
       int slot = setSlotNode ? setSlotNode->b() : -1;
@@ -688,10 +772,16 @@ Spec BuildForeachDoPattern() {
       bool deeply = (deeplyConst->b() == TRUEREF);
 
       // Eval and unlink the jump targets of any break instructions inside
-      // the loop, then remove the trailing "clear iterator" cleanup node.
-      Node *afterPushNil = pushNil->next;
-      Node::HandleBreakTargets(jtRepeat, afterPushNil, false);
-      afterPushNil->Unlink();
+      // the loop, then remove the trailing "clear iterator" cleanup node --
+      // both only exist when pushNil itself does (see class comment).
+      if (pushNil) {
+        Node *afterPushNil = pushNil->next;
+        Node::HandleBreakTargets(jtRepeat, afterPushNil, false);
+        afterPushNil->Unlink();
+        pushNil->Unlink();
+      } else {
+        Node::HandleBreakTargets(jtRepeat, brRepeat->next, false);
+      }
 
       Node *obj = ExtractForeachObject(setObject);
 
@@ -706,7 +796,6 @@ Spec BuildForeachDoPattern() {
       jtStart->Unlink();
       iterDone->Unlink();
       brRepeat->Unlink();
-      pushNil->Unlink();
 
       if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
       dec.useLocalAs(value, Decompiler::Local::Use::iter);
@@ -714,6 +803,24 @@ Spec BuildForeachDoPattern() {
 
       auto *foreachNode = dec.MakeNode<CFForEachSlotValueDo>(
         dec, anchor->pc(), slot, value, deeply, obj, body);
+      // pushNil absent proves NTK's compiler pushed no trailing value for
+      // this loop at all (there's nothing else that could have consumed a
+      // pushed nil away without trace) -- so unlike the normal case (which
+      // may still be a value-producing expression, e.g. the last statement
+      // of a `begin...end` block), this specific loop is unambiguously
+      // used as a bare statement. Without this, CFForEachSlotValueDo's
+      // constructor always reports kProvidesOne (IsExpr), which is usually
+      // harmless (the top-level "print every node" loop in Decompiler.cc
+      // doesn't care about IsStatement() vs IsExpr()) but breaks badly the
+      // moment this construct is *nested* inside another pattern's own
+      // Statements(kBody) capture (e.g. a foreach nested inside another
+      // foreach/if/while/try's body) -- an IsExpr()==true node can never
+      // satisfy IsStatement(), so the enclosing capture stops dead right
+      // before it, and the *outer* construct fails to match entirely, even
+      // though this inner one resolved perfectly well on its own. Found by
+      // corpus-scale testing (Test/run_corpus.py) on a package with a
+      // `foreach` nested inside another `foreach`'s body.
+      if (!pushNil) foreachNode->provides_ = kProvidesNone;
       anchor->ReplaceWith(foreachNode);
       dec.numASTChanges++;
       return foreachNode->next;

@@ -195,6 +195,37 @@ public:
     return *this;
   }
 
+  /** Like Statements(), but if the statement run is immediately followed by
+      exactly one resolved expr node, that trailing expr is captured too --
+      representing a bare expression used as an implicit no-op statement
+      (legal NewtonScript: any expression's value can simply be discarded,
+      e.g. a compiler-synthesized `nil` standing in for an omitted `else`
+      branch, or a `break` -- see BCBranch::ResolveBreak(), ASTControlFlow.cc
+      -- as the sole content of a "then"/"else" branch, both real shapes
+      found via corpus-scale testing). Unlike StatementsThenExpr(), the
+      trailing expr is never *required* -- a pure "statements, no trailing
+      expr" run is captured exactly as Statements() would, and a run with
+      nothing capturable at all still succeeds (empty run); pair with
+      NonEmpty(slot) to reject that last case where the caller (like
+      Statements()'s own callers) needs at least one element. */
+  Builder &StatementsOrExpr(int slot) {
+    steps_.push_back([slot](Cursor &c, Match &m) -> bool {
+      std::vector<Node*> run;
+      while (Node *nd = c.peek()) {
+        if (!nd->IsStatement()) break;
+        run.push_back(nd);
+        c.advance();
+      }
+      if (Node *nd = c.peek()) {
+        if (nd->IsExpr()) { run.push_back(nd); c.advance(); }
+      }
+      if (c.direction() == kBwd) std::reverse(run.begin(), run.end());
+      m.SetRun(slot, std::move(run));
+      return true;
+    });
+    return *this;
+  }
+
   /** Capture a variable-length (possibly empty) run of consecutive nodes all
       matching `t`, directly off the flat list -- like Statements(), but
       keyed on an exact tag() rather than IsStatement(). For idioms whose

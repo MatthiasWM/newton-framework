@@ -49,6 +49,20 @@ using namespace ast;
  the pop is needed, which makes this a reliable way to find a
  break instruction.
  The CFBreak will take care of the jump target when resolved.
+
+ The instruction right after an unconditional forward branch is always
+ dead code (execution can never fall through to it) -- usually a leftover
+ `Pop` (the break value would otherwise need discarding by whatever
+ follows), which is what the check below originally required exclusively.
+ But when `break` is the *entire* "then" branch of an `if...then[...else]`
+ (e.g. `if cond then break; end`), the compiler's own if/then(/else)
+ scaffolding emits its normal closing `Branch` right there instead -- also
+ dead code, just a different opcode, found via corpus-scale testing
+ (Test/run_corpus.py) on real packages using exactly this idiom. Unlike a
+ dead `Pop` (genuinely disposable, nothing else ever needs it), a dead
+ `Branch` there is the *enclosing* if/then(/else) pattern's own required
+ `kBi2`/else-branch marker (`ASTControlFlowPatterns.cc`), so it must be
+ left alone -- not unlinked here -- for that pattern to still find it.
  \return the next node if this is a 'break', or nullptr if no match was found.
  */
 Node *BCBranch::ResolveBreak()
@@ -57,10 +71,13 @@ Node *BCBranch::ResolveBreak()
     // -- Check the pattern
     if (b_ < pc_) break;
     if (!prev->IsExpr()) break;
-    if (!dynamic_cast<BCPop*>(next)) break;
-    // -- It applies. Replace the instructions and remove the jump target.
+    bool nextIsDeadPop = dynamic_cast<BCPop*>(next) != nullptr;
+    bool nextIsDeadBranch = dynamic_cast<BCBranch*>(next) != nullptr;
+    if (!nextIsDeadPop && !nextIsDeadBranch) break;
+    // -- It applies. Replace the instructions and remove the dead Pop, if
+    // any -- a dead Branch is left in place (see class comment).
     CFBreak *breakNode = dec.MakeNode<CFBreak>(dec, pc(), b(), prev->Unlink());
-    next->Unlink();
+    if (nextIsDeadPop) next->Unlink();
     // Don't delete the jump target! Let the loops take care of that.
     ReplaceWith(breakNode);
     dec.numASTChanges++;

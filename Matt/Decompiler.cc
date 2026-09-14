@@ -45,10 +45,6 @@ extern std::string currentFileName;
 
 // Reverse int CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 
-/* DONE: all allocated AST nodes are kept in Decompiler::nodePool_ and never
-    deleted during eval, only when the Decompiler is deleted. Nodes are
-    created via Decompiler::MakeNode<T>(...), which adds them to that pool.
- */
 /* TODO: in NTK, we can check a box to create debug information. The decompiler should be aware of
   debug information in the code. Especially with nos2, this can restore argument
   names. In any format, it can give names to our views in the stepChildren array.

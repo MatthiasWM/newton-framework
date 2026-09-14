@@ -616,6 +616,289 @@ silently wrong.
   catalogued in `Decompiler.cc`'s scratch-log comment block — unrelated to
   this redesign, never claimed to be fixed by it.
 
+## Corpus-scale testing
+
+With the pattern-engine redesign complete, verification shifted from "does
+the 12-package sample still diff clean" to "how close are we to decompiling
+the real ~3,900-package corpus in `/Users/matt/Azureus/unna2`." Three
+scripts under `Test/` do this, each catching a different class of bug; run
+all three from the repo root. **`Test/pkglist.txt`** (3,332 active, non-
+`#`-commented entries) is the curated candidate list all of this is built
+on — it already spans the whole corpus and excludes known multi-part
+(`# N parts:`), corrupt (`# can't read file:`), and non-NewtonOS
+(`# not nos:`) packages.
+
+**Tier 1 — `Test/run_corpus.py`**: runs `newtc -pkg X -decompile` over every
+candidate, each as an *isolated subprocess* (never via `newtc -pkglist`,
+whose own internal loop does not survive one package crashing — only
+package *loading* is wrapped in `try/catch` there, not `-decompile`
+itself), with a timeout and stdin from `/dev/null`. Classifies each as
+`CLEAN`/`UNRESOLVED`/`CRASHED`/`TIMEOUT`, and — the actually useful part —
+groups `UNRESOLVED`/`CRASHED` results by a **fingerprint** (the ordered
+list of raw unresolved node classes, or the crash signature), since the
+`argFrame`/`viewSetupFormScript` finding earlier in this file already
+proved the same root cause recurs verbatim across unrelated packages built
+from shared library/template code. Writes a JSON manifest + a
+human-readable summary to `Test/corpus_results/<timestamp>/` (and stable
+copies at `Test/corpus_results/latest_manifest.json` /
+`latest_summary.txt`). Books/sounds/fonts/movies are excluded by default
+(`--all-categories` to include them) — a first-pass scope decision to keep
+iteration fast, not a permanent exclusion. `--compare OLD NEW` diffs two
+manifests (fixed/regressed package lists, cluster-count deltas) — the way
+to confirm a fix actually moved the needle at corpus scale, not just on
+the one repro package.
+
+```
+python3 Test/run_corpus.py                         # full first-pass sweep
+python3 Test/run_corpus.py --limit 100              # quick smoke test
+python3 Test/run_corpus.py --all-categories          # include books/sounds/fonts/movies
+python3 Test/run_corpus.py --compare OLD_MANIFEST NEW_MANIFEST
+```
+
+**First real sweep result** (2,349 candidates, books/sounds/fonts/movies
+excluded): 1,540 `CLEAN`, 724 `UNRESOLVED`, 85 `CRASHED`. The fingerprint
+clustering immediately paid for itself: the single largest cluster
+(`BCNewIter,BCSetVar,BCBranch,JumpTarget,JumpTarget,BCBranchIfFalse`)
+alone accounted for **526 of the 724 unresolved packages** — one root
+cause, not 526 unrelated failures.
+
+**Root cause and fix (`BuildForeachDoPattern`, `ASTControlFlowPatterns.cc`)**:
+NTK's optimizer, when a `foreach`'s iterator variable is provably dead
+after the loop, omits the "clear iterator variable" `SetVar` and emits
+just `PushConst nil; Pop;` for the loop's trailing "value" cleanup — our
+own compiler always emits the `SetVar` too, which is why a hand-compiled
+repro of plain `foreach x in globalVar do ... end` decompiled fine and
+never caught this; only the real corpus did. `BCPop::Resolve()`
+(`ASTAdmin.cc`) has a DataFlow-time optimization — "remove the useless
+sequence 'push-const, pop' before it is picked up in the compress path" (a
+direct reference to the now-removed `compressAST()`) — that unconditionally
+strips *any* adjacent `PushConst`+`Pop` pair during DataFlow, before
+`BuildForeachDoPattern`'s ControlFlow-pass step ever gets a chance to claim
+the `PushConst` as its own required structural marker. When NTK's
+optimized bytecode omits the intervening `SetVar`, this generic
+optimization deletes `foreach...do`'s own load-bearing marker before the
+pattern can see it, and the whole match failed. Same category of bug as
+the Stage 8 findings above — a piece of the old `compressAST()`-era
+architecture whose implicit assumption ("there's always a `SetVar` between
+the loop's `PushConst nil` and the `Pop`, so stripping bare `PushConst,Pop`
+pairs elsewhere is safe") quietly broke once the surrounding architecture
+changed, just found via corpus-scale testing this time instead of the
+12-package sample.
+
+**Fix, deliberately narrow** (touches only `BuildForeachDoPattern`, not
+`BCPop` — a generic `BCPop` change was considered and rejected: it would
+either widen the blast radius to every other `PushConst`+`Pop` site in the
+whole corpus, or, if made narrow enough to avoid that, end up exactly as
+targeted as fixing the pattern directly):
+1. `kPushNil`'s capture changed from `Required()` to `Optional()`. When
+   present, behavior is unchanged. When *absent* — proving `BCPop` already
+   erased it during DataFlow — the callback skips the now-nonexistent
+   "clear iterator" node entirely (nothing to discard) and runs
+   `HandleBreakTargets` from `brRepeat->next` directly instead of
+   `pushNil->next`.
+2. A second, subtler bug surfaced immediately once the first fix landed:
+   `CFForEachSlotValueDo`'s constructor always hardcodes `provides_ =
+   kProvidesOne` (`ControlBlock(d, pc, kProvidesOne)`), regardless of
+   whether the loop is actually used as a value-producing expression or a
+   bare statement. Normally harmless — the top-level "print every root
+   node" loop in `Decompiler.cc` doesn't care about `IsStatement()` vs.
+   `IsExpr()` — but fatal the moment such a loop is *nested* inside
+   another pattern's own `Statements(kBody)` capture (e.g. a `foreach`
+   nested inside another `foreach`'s body, found in a real package):
+   `Statements()` only accepts `IsStatement()`-true nodes, so it stops dead
+   right before an `IsExpr()`-true nested loop, and the *outer* construct's
+   whole match fails even though the inner one resolved perfectly fine on
+   its own. Fixed with information the pattern already has: when `pushNil`
+   is absent, that structurally *proves* NTK pushed no trailing value for
+   this loop at all (nothing else could have consumed a pushed nil without
+   leaving a trace), so the construct is unambiguously a bare statement in
+   that case — the callback now does `if (!pushNil) foreachNode->provides_
+   = kProvidesNone;`, downgrading only this specific, provably-safe case.
+
+**Verified**: 12-package sample clean (zero diffs), hand-written `-script`
+tests for plain/slot/break/nested-foreach shapes all still resolve with
+zero warnings (our own compiler never omits the `SetVar`, so these
+exercise the *unchanged*, `pushNil`-present code path — the real corpus is
+the only available test for the `pushNil`-absent path). Corpus-scale
+impact, measured via `Test/run_corpus.py --compare`: the dominant cluster
+dropped from 526 occurrences to 1 (the one straggler turned out to be an
+unrelated, not-yet-investigated shape); 19 packages flipped from
+`UNRESOLVED` to fully `CLEAN`; unresolved-fingerprint cluster count dropped
+685 → 571; **zero regressions** across two full-corpus sweeps. `Test/round_trip.py`
+re-run against 150 `CLEAN` packages afterward shows the same single
+pre-existing mismatch as before (unrelated) — no new Tier 2 regressions
+from this fix either.
+
+**Second fix, same session: `if COND then break; end` (and the same shape
+with an `else`)**. The "one straggler" left after the fix above, plus the
+*new* #1 cluster it promoted (`JumpTarget,BCBranchIfFalse,BCBranch,BCBranch,
+JumpTarget,BCPop,BCPop,BCBranch,BCPop,BCPop,BCPop`, 245 occurrences, always
+at path `installScript` — another exact byte-for-byte shared-template
+match across unrelated packages, same phenomenon as `viewSetupFormScript`),
+turned out to be the *same* idiom in two different guises. Root cause,
+found by hand-compiling increasingly-narrow reproductions of the real
+bytecode until the exact break landed: `break` used as the **entire**
+"then" branch of an `if...then[...else]` — no other statement alongside
+it — compiles differently from `break` at the end of a multi-statement
+"then" block, and two separate, independent gaps both had to be closed:
+
+1. `BCBranch::ResolveBreak()` (`ASTControlFlow.cc`) recognizes a `break` by
+   the shape `<push value>; Branch <target>; Pop;` — the trailing `Pop` is
+   dead code (unreachable past an unconditional jump) that the original
+   design relied on as a reliable "this is definitely a break" signal. But
+   when `break` is the *only* content of an `if`'s "then" branch, the
+   compiler's own if/then(/else) scaffolding emits its normal closing
+   `Branch` (to the if's own "done" target) right there *instead* of a
+   `Pop` — also genuinely dead code (same reason), just a different opcode
+   `ResolveBreak()` never checked for. Fixed by accepting `next` being
+   *either* `BCPop` (still discarded, exactly as before) *or* `BCBranch`
+   (left alone, not discarded — it's the enclosing if/then(/else) pattern's
+   own required `kBi2` marker, still needed there).
+2. Even with (1), `BuildIfThenElsePattern`'s `kBody`/`kElseBody` were still
+   captured via plain `Statements()` (`IsStatement()`-only runs) — but a
+   `break`-only "then" branch resolves to a single `CFBreak`, a real
+   statement, so that part was already fine; the actual second gap was the
+   **`else`** branch: when an `if...then break; end` has no textual
+   `else`, NTK's compiler still emits full if/then/else bytecode scaffolding
+   (there's no separate "bare if" bytecode shape once other code follows
+   in the same block) with a *synthesized* `else` whose entire content is
+   one bare `PushConst nil` — an expression, never `IsStatement()`, which
+   plain `Statements()`'s `NonEmpty()` check could never capture (an
+   all-expression run always looks empty to it). Fixed with a new
+   combinator, `StatementsOrExpr(slot)` (`ASTPattern.h`): identical to
+   `Statements()`, except if the statement run is immediately followed by
+   exactly one resolved expr node, that trailing expr is captured too —
+   representing a bare expression legally used as an implicit no-op
+   statement (any NewtonScript expression can be a statement; its value is
+   simply discarded). Applied to both `kBody`/`kElseBody` in
+   `BuildIfThenElsePattern` and `kBody` in `BuildIfThenPattern` (the latter
+   for symmetry/robustness — not yet proven necessary by a real corpus
+   case, since NTK appears to always emit the with-else scaffolding once
+   other code follows, but cheap and consistent to cover).
+3. A third, narrower gap surfaced immediately: when a branch's captured run
+   ends in that bare trailing expr (case 2), the *value it pushes* is
+   otherwise unconsumed and the compiler balances the stack with an
+   explicit `Pop` right after the whole if/then/else — which
+   `BuildIfThenElsePattern` also needs to claim (`kTrailingPop`,
+   `Required` exactly when `kElseBody`'s captured run ends in a bare expr,
+   `Custom()`-checked since it's conditionally required rather than always
+   either present or absent) or it prints as its own bogus leftover
+   `nil;` statement. `kBody`'s equivalent case is structurally impossible
+   for `break` specifically (`break` diverges control flow entirely rather
+   than falling through, so it never needs a same-arm balancing `Pop`) and
+   was left unhandled pending real evidence it's ever needed elsewhere.
+4. **A fourth issue was a pure regression introduced by fix 2**, caught by
+   the 12-package sample, not the corpus sweep: `StatementsOrExpr()`
+   broadened `BuildIfThenElsePattern` (statement-shaped, `returnsAValue=
+   false`) enough to *also* match shapes that `BuildIfThenElseExprPattern`
+   (expr-shaped, `returnsAValue=true`, the pattern with `CFIfThen::Print()`'s
+   `and`/`or` sugar) was designed for — e.g. `cond and expr` (both branches
+   single bare exprs) — and since both specs shared priority 5 with the
+   statement-shaped one registered first, it started winning the race,
+   losing the `and`/`or` sugar (correct output, just uglier: `if cond then
+   begin expr end else begin nil end` instead of `cond and expr`). Fixed by
+   giving `BuildIfThenElseExprPattern` priority 4 (tried first): safe, not
+   just nicer, because whenever a trailing `Pop` is *actually* structurally
+   required (fix 3's real, different shape), the expr-shaped spec's own
+   `.Required(Tag::JumpTarget, kJt2)` naturally fails to match a `Pop`
+   sitting there instead, so it correctly falls through to the
+   statement-shaped spec rather than silently mismatching.
+
+**Verified**: 12-package sample clean after all four sub-fixes (the
+priority regression was caught and fixed *before* moving on, not left for
+later); every hand-written `-script` test from both this fix and the
+`foreach` fix above still resolves with zero warnings, plus new ones for
+bare `if...then break;`, `if...then break; else ...`, and both `and`/`or`
+sugar contexts (return-expression and bare-statement, confirming the
+already-documented "and as a bare statement loses its sugar" limitation is
+unchanged, not newly broken). Corpus-scale impact: **202 additional
+packages** flipped `UNRESOLVED → CLEAN` in one sweep (1,540 → 1,742 `CLEAN`
+of 2,349 total, cumulative across both fixes this session), unresolved
+cluster count 571 → 531, **zero regressions**. `Test/round_trip.py` re-run
+(200 `CLEAN` packages) shows the same single pre-existing mismatch as
+before, no new ones.
+
+**Side finding, not fixed (out of scope — different subsystem)**: while
+hand-compiling repros for this investigation, `break` used inside an `if`
+that's nested inside a `loop...end` (bare `break`, no value) crashes our
+*own* compiler outright (`CLoopState::addExit()`/
+`CFunctionState::addLoopExit()` in `Frames/Compiler/CompilerSupport.cc`,
+null-pointer dereference). `break` inside `if` inside `while`/`foreach`
+compiles fine; only `loop` triggers it. Real, reproducible, unrelated to
+the decompiler — worth fixing separately since it blocks hand-writing any
+future `-script` repro that needs a conditional `break` inside a bare
+`loop`.
+
+**Tier 2 — `Test/round_trip.py`**: formalizes the self-consistency idea
+already sketched (but left unfinished, its diff step commented out) in the
+repo-root `testdec` script. Decompile → recompile with our own
+from-scratch compiler → decompile → recompile → decompile again
+(generations 1/2/3), and check that generation 2 equals generation 3 —
+both ends of that second round-trip are entirely our own code, no NTK
+involved, so this must hold regardless of whether the *original* package
+was NTK-optimized (generation 1 vs. 2 is reported too, but only as
+informational — expected to differ for real packages, per the standing
+optimization-differences caveat). A gen2/gen3 mismatch is a strong,
+NTK-independent signal of a genuine bug, including a *silently wrong but
+fully-resolved* result that Tier 1 cannot see at all (it only detects
+"didn't resolve"/"crashed," never "resolved to the wrong thing").
+`Ref_NNN` literal-label numbers are normalized (renumbered by
+first-appearance order) before comparing — recompiling structurally
+identical source can still shift every label by a constant offset, which
+is pure numbering noise, not a real difference; comparing without this
+normalization produces false mismatches that are 100% renumbering.
+
+```
+python3 Test/round_trip.py <pkg>                          # single package
+python3 Test/round_trip.py --batch MANIFEST                # every CLEAN package in a Tier 1 manifest
+python3 Test/round_trip.py --batch MANIFEST --limit 100
+```
+
+**First real result** (150 `CLEAN` packages from the Tier 1 sweep): 126
+`OK`, 23 `GEN2_FAILED` (our own decompiled output doesn't parse back
+through our own compiler — a separate, real gap worth investigating
+later), 1 genuine `MISMATCH` — caught immediately on the first batch run:
+`macos/NewtonDILTester/NewtonDILTesterPPC/DockTrnspTCPIP.pkg` decompiles a
+function with two distinct locals (`theErr`, `loc1`) correctly in
+generation 2, but generation 3 collapses them into one (`loc1`'s
+assignment/uses get renamed to `theErr`, corrupting the logic:
+`theErr[theErr]` instead of `theErr[loc1]`) — a real local-variable-
+naming/slot bug, not yet root-caused. Exactly the kind of bug Tier 2
+exists to catch and Tier 1 structurally cannot.
+
+**Tier 3 — `Test/einstein_review.py`**: the only tier with *actual* known-
+correct source to compare against, not just self-consistency. Scripts
+Matt's existing manual workflow (`./testdec '<pkg>'` + `open -a xcode
+'<matching .text>'`, previously recorded ad hoc at the top of this file)
+instead of retyping two paths per sample: finds every `.pkg`/`.text` pair
+under `/Users/matt/dev/Einstein/Sample Code/` (93 found, sharing a
+directory and basename, e.g. `ChezDTS.pkg` + `ChezDTS.text` — official
+Apple DTS sample code, genuine human-written ground truth, not just
+plausible output), decompiles each, and tracks review status per pair in
+`Test/einstein_checklist.json` so review work accumulates across sessions
+instead of restarting from scratch. Does **not** attempt automatic
+pass/fail — NTK's own `.text` export uses auto-generated view names
+(`_view000`, ...) and differs stylistically from our decompiler's output,
+so exact text diffing isn't a reliable oracle here; this tool makes the
+side-by-side comparison fast and remembers what's already checked, a
+human still judges it.
+
+```
+python3 Test/einstein_review.py              # decompile all pairs, show checklist status
+python3 Test/einstein_review.py --open-next    # open the next unreviewed pair in Xcode
+python3 Test/einstein_review.py --mark 'Application Design/ChezDTS-2/ChezDTS' match --notes '...'
+```
+
+**First run**: 93 pairs found; decompile status 87 `CLEAN`, 5 `UNRESOLVED`,
+1 `CRASHED` — manual review (the `match`/`mismatch` verdicts) not yet
+started.
+
+The real acceptance test — round-tripping a decompiled package through
+actual NTK via BasiliskII and diffing the regenerated `.pkg` against the
+original (see "The actual goal" at the top of this file) — stays a
+selective, manual final check applied to samples that pass all three
+tiers above, not something automated at corpus scale.
+
 ## Hard-won C++ gotcha (don't re-discover this)
 
 `Decompiler` holds `std::vector<std::unique_ptr<ast::Node>> nodePool_` as
