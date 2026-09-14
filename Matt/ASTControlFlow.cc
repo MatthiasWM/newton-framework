@@ -227,6 +227,31 @@ void BCBranchIfFalse::Print(uint32_t flags) {
  \todo handle implied return values nicely, so we don't generate "return a := b;"
  */
 
+Node *BCReturn::Resolve(Pass pass)
+{
+  if ((pass != Pass::DataFlow) || Resolved()) return next;
+  if (prev->IsExpr()) {
+    in_ = prev;
+    prev->Unlink();
+  } else if (prev->IsStatement()) {
+    // The function's actual final construct is a genuine statement,
+    // producing no explicit value (e.g. a statement-shaped if/then/else
+    // whose branches both leave nothing behind, kProvidesNone by design).
+    // NewtonScript still implicitly returns nil in that case, and this
+    // instruction still needs *some* operand (see class comment above:
+    // "technically it is an expression"), so synthesize one rather than
+    // leaving this stuck unresolved forever -- matches the pre-existing
+    // TODO on this class ("return NIL is implied if there is no return
+    // statement in the source code"), found to actually matter via
+    // corpus-scale testing (Test/run_corpus.py).
+    in_ = NewNil();
+  } else {
+    return next;
+  }
+  dec.numASTChanges++;
+  return next;
+}
+
 void BCReturn::Print(uint32_t flags) {
   if (!Resolved()) return PrintNode(false);
   dec.p.Printf("return ");

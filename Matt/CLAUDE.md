@@ -954,6 +954,91 @@ cleanly. Corpus-scale impact: **another 54 packages** flipped `UNRESOLVED
 `Test/round_trip.py` re-run (200 `CLEAN` packages): same single
 pre-existing mismatch, no new ones.
 
+**Fifth fix, same session: `foreach...do`'s `provides()` is genuinely
+context-dependent, and got this wrong twice before landing.** New #1
+cluster after the fix above (`BCBranchIfFalse,JumpTarget`, 51 occurrences)
+was `ArrayEditor`'s `buttonClickScript`: a bare `if COND then <4
+statements, the 2nd being a mid-body foreach...do> end;`. Root cause: this
+`foreach` never became `IsStatement()`, so `Statements(kBody)` for the
+*enclosing* `if` stopped dead at it. Same underlying shape as the
+`viewSetupFormScript`-style nested-foreach fix earlier in this file, but a
+different specific cause: `BuildForeachDoPattern`'s trailing cleanup
+(`ASTControlFlowPatterns.cc`) unconditionally discarded whatever sat right
+after `pushNil` (`afterPushNil`), assuming it was always the disposable
+"clear iterator variable" `SetVar`. Here, the loop's own internal `break`
+happened to land exactly there (its `JumpTarget` just consumed by
+`HandleBreakTargets`), leaving the construct's *real* external consumer --
+a `Pop`, which would have naturally wrapped `foreachNode` into a proper
+statement via ordinary `Consume1` resolution, the same mechanism scenario
+(2) below already relies on -- and the blind unlink discarded it outright,
+permanently stranding `foreachNode` as `kProvidesOne`.
+
+**Two wrong turns before the right fix, both caught before committing to
+them:**
+1. First attempt: make `CFForEachSlotValueDo` unconditionally
+   `kProvidesNone` (`foreach...do` never really "returns" anything
+   meaningful, so why let it be `kProvidesOne` at all?). Broke `BCReturn`
+   consuming a `foreach...do` that's literally a function's last statement
+   (implicit return) -- caught immediately by a hand-written stress test,
+   not corpus-scale testing, precisely *because* the established discipline
+   this session is to always add a test for the new shape being fixed
+   before trusting a fix.
+2. Added a fallback to `BCReturn::Resolve()` instead (if `prev` is a
+   genuine statement, synthesize an implicit `NewNil()` operand -- matches
+   a pre-existing TODO on the class: "return NIL is implied if there is no
+   return statement in the source code"). Fixed the hand-written test, but
+   the corpus sweep caught a **net-negative** result this attempt: 26
+   regressions against only 4 fixes -- `RemoveIt!.pkg`'s `profiler`
+   (exactly the nested-foreach case fixed earlier this session) came back
+   broken. Root cause: reverting `CFForEachSlotValueDo` back to
+   unconditional `kProvidesOne` silently un-did the **first fix from this
+   whole session** (the 526-package cluster) too, whose `if (!pushNil)
+   downgrade` logic had been living in the same callback and got deleted
+   along with the broader, wrong change.
+3. **The actual fix**: both narrower mechanisms turned out correct and
+   necessary *simultaneously*, addressing genuinely independent shapes:
+   - `if (!pushNil) foreachNode->provides_ = kProvidesNone;` (restored,
+     from the very first fix this session) -- when `pushNil` is absent,
+     `BCPop`'s dead-code elimination already deleted the raw `PushConst
+     nil; Pop;` pair outright during DataFlow, so nothing is ever left to
+     naturally wrap `foreachNode`; this is the only case that needs (and
+     is *safe* to have) an explicit downgrade.
+   - Only discard `afterPushNil` when it's provably the clear-iterator
+     statement (`dynamic_cast<BCSetVar*>(afterPushNil)` targeting `iter`'s
+     own slot) -- otherwise leave it alone, so whatever it actually is (a
+     genuine trailing `Pop`, or -- rarely -- the very next Consume-based
+     node like a function-ending `BCReturn`) can consume `foreachNode`
+     normally via its default, unmodified `kProvidesOne`.
+   `BCReturn`'s `NewNil()` fallback was kept (not reverted) -- it's
+   independently correct per the pre-existing TODO, still needed for a
+   genuinely statement-shaped last construct (e.g. a statement-shaped
+   if/then/else), and caused zero regressions on its own once the
+   `afterPushNil` fix stopped it from firing prematurely on foreach's own
+   soon-to-be-discarded cleanup `SetVar`.
+
+**One accepted, benign side effect, not a regression**: 2 packages in the
+12-package sample changed from `return foreach...do...end` to
+`foreach...do...end; return nil` -- semantically identical (a bare
+`foreach...do` never carries a real value either way, confirmed by every
+angle of this investigation), just reordered because `BCReturn`'s fallback
+resolves during the DataFlow pass, slightly before the foreach's own
+ControlFlow-pass pattern gets a chance to naturally wire the direct
+consumption the old output showed. Both still print correct, valid
+NewtonScript; not worth chasing further.
+
+**Verified**: 12-package sample — the only two diffs are the accepted
+stylistic reordering above, confirmed via manual inspection, not a
+regression. All prior hand-written `-script` tests still resolve cleanly,
+plus new ones added specifically for the two wrong-turn stress cases
+(`foreach...do` as a function's literal last statement, and `foreach...do`
+immediately followed by a genuine external `Pop`). Corpus-scale impact,
+measured against the last-known-good checkpoint (before this fix's first,
+regressive attempt): **another 18 packages** flipped `UNRESOLVED → CLEAN`
+with **zero regressions** (1,877 → 1,895; cumulative this session: 1,540 →
+1,895 of 2,349, 65.6% → 80.7%), unresolved cluster count 404 → 387.
+`Test/round_trip.py` re-run (200 `CLEAN` packages): same single
+pre-existing mismatch, no new ones.
+
 **Tier 2 — `Test/round_trip.py`**: formalizes the self-consistency idea
 already sketched (but left unfinished, its diff step commented out) in the
 repo-root `testdec` script. Decompile → recompile with our own

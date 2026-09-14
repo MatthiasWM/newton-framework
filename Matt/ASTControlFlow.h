@@ -63,6 +63,7 @@ public:
   // technically it is an expression and leaves a value on the stack.
   // So `a := 3 + return 4;` is a valid statement. It compiles, but just never runs.
   int provides() override { return Resolved() ? 1 : kProvidesUnknown; }
+  Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;
 };
 

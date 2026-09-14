@@ -829,7 +829,26 @@ Spec BuildForeachDoPattern() {
       if (pushNil) {
         Node *afterPushNil = pushNil->next;
         Node::HandleBreakTargets(jtRepeat, afterPushNil, false);
-        afterPushNil->Unlink();
+        // afterPushNil is *usually* the loop's own "clear iterator
+        // variable" cleanup statement (a SetVar targeting `iter`'s own
+        // slot) -- always disposable, never meant to be visible in
+        // decompiled output. But when the loop's own internal `break`
+        // lands exactly here (its target JumpTarget having just been
+        // consumed by HandleBreakTargets above), what's left over instead
+        // is the *real* external consumer of this whole construct's own
+        // trailing (stack-balance) value -- almost always a `Pop`
+        // discarding it as a mid-body statement. Only discard afterPushNil
+        // when it's provably the clear-iterator statement; otherwise leave
+        // it alone so it can consume `foreachNode` normally via ordinary
+        // DataFlow, same as it would for any other kProvidesOne
+        // ControlBlock -- found via corpus-scale testing
+        // (Test/run_corpus.py): unconditionally discarding it here (the
+        // original design) destroys the only thing that would have turned
+        // `foreachNode` into a proper statement, permanently blocking any
+        // *enclosing* pattern's own Statements()/StatementsOrExpr()
+        // capture from ever walking past it.
+        auto *clearIter = dynamic_cast<BCSetVar*>(afterPushNil);
+        if (clearIter && clearIter->b() == iter) afterPushNil->Unlink();
         pushNil->Unlink();
       } else {
         Node::HandleBreakTargets(jtRepeat, brRepeat->next, false);
@@ -856,22 +875,23 @@ Spec BuildForeachDoPattern() {
       auto *foreachNode = dec.MakeNode<CFForEachSlotValueDo>(
         dec, anchor->pc(), slot, value, deeply, obj, body);
       // pushNil absent proves NTK's compiler pushed no trailing value for
-      // this loop at all (there's nothing else that could have consumed a
-      // pushed nil away without trace) -- so unlike the normal case (which
-      // may still be a value-producing expression, e.g. the last statement
-      // of a `begin...end` block), this specific loop is unambiguously
-      // used as a bare statement. Without this, CFForEachSlotValueDo's
-      // constructor always reports kProvidesOne (IsExpr), which is usually
-      // harmless (the top-level "print every node" loop in Decompiler.cc
-      // doesn't care about IsStatement() vs IsExpr()) but breaks badly the
-      // moment this construct is *nested* inside another pattern's own
-      // Statements(kBody) capture (e.g. a foreach nested inside another
-      // foreach/if/while/try's body) -- an IsExpr()==true node can never
-      // satisfy IsStatement(), so the enclosing capture stops dead right
-      // before it, and the *outer* construct fails to match entirely, even
-      // though this inner one resolved perfectly well on its own. Found by
-      // corpus-scale testing (Test/run_corpus.py) on a package with a
-      // `foreach` nested inside another `foreach`'s body.
+      // this loop at all -- BCPop::Resolve()'s dead-code elimination
+      // (ASTAdmin.cc) already deleted the raw `PushConst nil; Pop;` pair
+      // outright during DataFlow, before this pattern ever got a chance to
+      // claim `PushConst` as kPushNil, so there's nothing left over to
+      // naturally wrap `foreachNode` into a statement via ordinary
+      // Consume1 resolution the way scenario (2)/(3) below rely on.
+      // Explicitly downgrading here is the only way this specific shape
+      // ever becomes IsStatement()-capturable. Contrast with the pushNil-
+      // *present* cases just above, where `foreachNode` is deliberately
+      // left at its constructor default (kProvidesOne): whatever remains
+      // adjacent after cleanup (a genuine trailing Pop, or -- once in a
+      // while -- the very next Consume-based node, e.g. a function-ending
+      // BCReturn) is left alone specifically so it can consume
+      // `foreachNode` normally; downgrading unconditionally would starve
+      // that node of an operand instead. Both scenarios found via
+      // corpus-scale testing (Test/run_corpus.py), on two different real
+      // packages sharing this exact `foreach...do` idiom.
       if (!pushNil) foreachNode->provides_ = kProvidesNone;
       anchor->ReplaceWith(foreachNode);
       dec.numASTChanges++;
