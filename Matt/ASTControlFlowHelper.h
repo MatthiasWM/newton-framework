@@ -31,33 +31,6 @@ public:
   bool Resolved() override { return false; }
 };
 
-class CodeBlock : public Node {
-public:
-  int provides_ = kProvidesNone;
-  std::vector<Node*> body_;
-  void moveToBody(Node *nd, int numNodes, std::vector<Node*> &body);
-  void PrintBody(const std::string &prolog,
-                 const std::string &separator,
-                 const std::string &epilog,
-                 std::vector<Node*> &body);
-public:
-  CodeBlock(Decompiler &d, int pc, int inProvides);
-  const char *Class() override { return "CodeBlock"; }
-  void PrintChildren(bool deep) override;
-  void Print(uint32_t flags = 0) override;
-  void add(Node *nd);
-  int size() { return (int)body_.size(); }
-  Node *at(int ix) { return body_.at(ix); }
-  Node *back() { return body_.back(); }
-  void pop_back();
-  void pop_front() { body_.erase(body_.begin()); }
-  void UnlinkIfEmpty() { if (body_.empty()) Unlink(); }
-  void moveToBody(Node *nd, int numNodes) { moveToBody(nd, numNodes, body_); }
-  int provides() override { return provides_; }
-  bool Resolved() override { return true; }
-  virtual bool IsMultiStatement() override { return (size() > 1); }
-};
-
 class ControlBlock : public Node {
 public:
   int provides_ = kProvidesNone;

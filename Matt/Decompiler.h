@@ -117,7 +117,6 @@ public:
   }
   void decompile(Ref ref);
   void printPathExpr(RefArg pathExpr);
-  bool compressAST();
   void solve();
   void generateAST(Ref instructions);
 

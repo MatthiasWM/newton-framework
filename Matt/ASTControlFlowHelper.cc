@@ -32,126 +32,6 @@ void JumpTarget::PrintNode(bool deep)
   dec.p.Printf(" from %d", origin_);
 }
 
-#pragma mark - CodeBlock
-
-/**
- \class CodeBlock
- \brief A node that holds a block of statements, possibly followed by an expression.
- This is the base for control flow nodes.
- The Newton documentation would call the body of this node "compound expression".
-*/
-
-/**
- \brief Constructor called by derived classes.
- \param[in] d back link to the decompiler
- \param[in] pc original position in bytecode
- \param[in] inProvides sets the value that will be returned by Provides()
- */
-CodeBlock::CodeBlock(Decompiler &d, int pc, int inProvides)
-: Node(d, pc),
-  provides_(inProvides)
-{ }
-
-/**
- \brief Remove nodes from the AST root an add them as dependencies to this node.
- \param[in] nd start with this node
- \param[in] numNodes number of nodes to move
- \param[in] append them to this list
- */
-void CodeBlock::moveToBody(Node *nd, int numNodes, std::vector<Node*> &body)
-{
-  for (int i = 0; i < numNodes; ++i) {
-    Node *nx = nd->next;
-    nd->Unlink();
-    add(nd);
-    nd = nx;
-  }
-}
-
-void CodeBlock::add(Node *nd)
-{
-  CodeBlock *cb = dynamic_cast<CodeBlock*>(nd);
-  if (cb) {
-    for (auto &n: cb->body_) {
-      add(n);
-    }
-  } else {
-    body_.push_back(nd);
-  }
-}
-
-void CodeBlock::pop_back() {
-  body_.pop_back();
-  if (body_.empty() || !back()->IsExpr()) {
-    provides_ = kProvidesNone;
-  } else {
-    provides_ = kProvidesOne;
-  }
-}
-
-
-/**
- \brief Print the body nodes of a code block.
- */
-void CodeBlock::PrintChildren(bool deep) {
-  dec.p.Tag(); dec.p.Print("##### ---> Body");
-  for (auto &nd: body_) if (nd) nd->PrintNode(deep);
-  dec.p.Tag(); dec.p.Print("##### <--- Body");
-}
-
-/**
- \brief Print the code block.
- Add 'begin' and 'end' if needed.
- */
-void CodeBlock::Print(uint32_t flags)
-{
-  if (flags & kPrintSuppressList)
-    flags |= kPrintSuppressBeginEnd;
-  if (body_.size() > 1) {
-    if ((flags & kPrintSuppressBeginEnd) == 0)
-      dec.p.Print("begin");
-    if ((flags & kPrintSuppressList) == 0)
-      dec.p.DeepList(";");
-    for (auto &nd: body_) {
-      dec.p.Item();
-      nd->Print();
-      dec.p.ItemDone();
-    }
-    if ((flags & kPrintSuppressBeginEnd) == 0) {
-      dec.p.Trailer();
-      dec.p.Print("end");
-    }
-    if ((flags & kPrintSuppressList) == 0)
-      dec.p.EndList();
-  } else if (body_.size() == 1) {
-    body_[0]->Print();
-  }
-  // TODO: Do not print a trailing "find-and-set-var a, find-var a"
-  // TODO: Also, do not count a trailing "find-and-set-var a, find-var a"
-}
-
-/**
- \brief Print a typical code block body.
- */
-void CodeBlock::PrintBody(const std::string &prolog,
-                             const std::string &separator,
-                             const std::string &epilog,
-                             std::vector<Node*> &body)
-{
-  dec.p.Print(prolog);
-  dec.p.DeepList(separator);
-  for (auto &nd: body) {
-    dec.p.Item();
-    nd->Print();
-    dec.p.ItemDone();
-  }
-  if (!epilog.empty()) {
-    dec.p.Trailer();
-    dec.p.Print(epilog);
-  }
-  dec.p.EndList();
-
-}
 
 namespace {
 /**
@@ -333,37 +213,34 @@ void CFIfThen::Print(uint32_t flags)
       cond_->Print();
       dec.p.Print(" then ");
 
-      if (body_->IsMultiStatement()) {
-        body_->Print();
-        if (elseBody_)
-          dec.p.Print(" ");
-      } else {
-        if (forceBeginEnd) dec.p.Print("begin");
-        dec.p.DeepList(";");
+      // body_ is never a self-printing "IsMultiStatement()" object anymore
+      // (that was CodeBlock's job before Stage 8 removed it) -- it's either
+      // a single node or a raw chain from Statements()/UnlinkChain(), and
+      // this loop already walks either correctly, so there's no longer a
+      // separate single-vs-multi branch to take here.
+      if (forceBeginEnd) dec.p.Print("begin");
+      dec.p.DeepList(";");
+      dec.p.FreshLine();
+      for (Node *it = body_; it; it = it->next) {
+        dec.p.Item();
+        it->Print();
+        dec.p.ItemDone();
+      }
+      dec.p.EndList();
+      if (elseBody_) {
         dec.p.FreshLine();
-        for (Node *it = body_; it; it = it->next) {
-          dec.p.Item();
-          it->Print();
-          dec.p.ItemDone();
-        }
-        dec.p.EndList();
-        if (elseBody_) {
-          dec.p.FreshLine();
-          if (forceBeginEnd) dec.p.Print("end ");
-        } else {
-          if (forceBeginEnd) { dec.p.FreshLine(); dec.p.Print("end"); }
-        }
+        if (forceBeginEnd) dec.p.Print("end ");
+      } else {
+        if (forceBeginEnd) { dec.p.FreshLine(); dec.p.Print("end"); }
       }
       if (elseBody_) {
         dec.p.Print("else ");
         if (dynamic_cast<CFIfThen*>(elseBody_)) {
           // We have an "else if" statement. If we don;t indent it, the source is more readable.
           elseBody_->Print();
-        } else if (elseBody_->IsMultiStatement()) {
-          // The elseBody_ will print begin end
-          elseBody_->Print();
         } else {
-          // Only one statement, print "begin end" if requested
+          // Same reasoning as body_ above: elseBody_ is never a self-
+          // printing IsMultiStatement() object anymore, just this loop.
           if (forceBeginEnd) dec.p.Print("begin");
           dec.p.DeepList(";");
           for (Node *it = elseBody_; it; it = it->next) {
@@ -467,7 +344,7 @@ void CFForLoop::Print(uint32_t flags)
     incr_->Print();
   }
   dec.p.Print(" do ");
-  body_->PrintOnNewLine();
+  PrintBodyChain(dec, body_);
 }
 
 #pragma mark - CFForEachSlotDo
@@ -511,7 +388,7 @@ void CFForEachSlotValueDo::Print(uint32_t flags)
   dec.p.Print(" in ");
   object_->Print();
   dec.p.Print(" do ");
-  body_->PrintOnNewLine();
+  PrintBodyChain(dec, body_);
 }
 
 #pragma mark - CFForEachSlotValueCollect
@@ -569,7 +446,7 @@ void ExceptionHandler::Print(uint32_t flags)
   dec.printLiteralAsTag(excp_);
   dec.p.Print(" do ");
   if (body_) {
-    body_->PrintOnNewLine();
+    PrintBodyChain(dec, body_);
   } else {
     dec.p.DeepList(";");
     dec.p.Item();
@@ -578,29 +455,71 @@ void ExceptionHandler::Print(uint32_t flags)
   }
 }
 
+namespace {
+/**
+ \brief Consume the (possibly multi-node, possibly entirely absent) run of
+ body nodes starting at `it`: 0+ IsStatement() nodes, then -- only if
+ `isProvider` -- exactly one required IsExpr() node. Mirrors ASTPattern.h's
+ Statements()/StatementsThenExpr() combinators, which the
+ ASTControlFlowPatterns.cc spec already used to validate this exact shape
+ before CFTry was even constructed -- CFTry's own constructor re-walks the
+ raw (still fully linked) node list independently of that spec, so it needs
+ the same boundary logic here rather than the single-node IsStatement()/
+ IsExpr() peek this used to be (safe only while compressAST() pre-merged
+ multi-statement bodies into one CodeBlock node).
+ Leaves `it` pointing at the first node past the run (unchanged if the run
+ is empty). Returns the run's head (nullptr if empty) and, via `outTail`,
+ its last node -- callers detach the run from the root list with
+ `head->UnlinkChain(*outTail)`, which (unlike plain Unlink()) preserves the
+ run's own internal next-chain so it can still be walked/printed as a
+ multi-statement body afterward.
+ */
+Node *ConsumeOptionalBody(Node *&it, bool isProvider, Node **outTail) {
+  Node *head = it;
+  Node *tail = nullptr;
+  while (it && it->IsStatement()) { tail = it; it = it->next; }
+  if (isProvider && it && it->IsExpr()) { tail = it; it = it->next; }
+  if (!tail) { it = head; return nullptr; }
+  *outTail = tail;
+  return head;
+}
+} // namespace
+
 #pragma mark - CFTry
 
 CFTry::CFTry(Decompiler &d, int pc, int provides, Node *first, Node *last)
 : Node(d, pc), provides_(provides)
 {
   int numEx = first->b(); // First is the BCNewHandler
+  bool isProvider = (provides == kProvidesOne);
   Node *it = first->next;
-  body_ = it; it = it->next; 
+
+  Node *bodyTail = nullptr;
+  body_ = ConsumeOptionalBody(it, isProvider, &bodyTail);
+  if (body_) body_->UnlinkChain(bodyTail);
   it = it->next; it = it->next; // Skip BCPopHandlers and BCBranch
   // Handle the 'onException...do...' pattern
   for (int i=0; i<numEx; i++) {
     ExceptionHandler *h = dynamic_cast<ExceptionHandler*>(it); it = it->next;
-    if ((provides == kProvidesNone) && it->IsStatement()) {
-      h->Body(it); it = it->next;
-    } else if ((provides == kProvidesOne) && it->IsExpr()) {
-      h->Body(it); it = it->next;
+    Node *hBodyTail = nullptr;
+    Node *hBody = ConsumeOptionalBody(it, isProvider, &hBodyTail);
+    if (hBody) {
+      hBody->UnlinkChain(hBodyTail);
+      h->Body(hBody);
     } else {
       h->Body(NewNil());
     }
     exList_.push_back(h);
     it = it->next; // Skip the unconditional branch. On the last ex it's the jump target.
   }
-  // That's it. Unlink all nodes.
+  // That's it. Unlink all remaining (single, scaffolding) nodes -- body_
+  // and every handler's body were already detached above via UnlinkChain(),
+  // which is required for a multi-node body/handler-body: plain Unlink()
+  // (used here for the single scaffolding nodes -- PopHandlers, Branch,
+  // ExceptionHandler, trailing JumpTargets -- that have no chain of their
+  // own to preserve) nulls out the unlinked node's own prev/next, which
+  // would otherwise silently truncate a multi-statement body/handler-body
+  // chain to just its head node.
   while (first->next && (first->next != last)) first->next->Unlink();
   last->Unlink();
 }
@@ -616,7 +535,7 @@ void CFTry::PrintChildren(bool deep)
 void CFTry::Print(uint32_t flags)
 {
   dec.p.Print("try");
-  body_->PrintOnNewLine(kPrintSuppressBeginEnd);
+  PrintBodyChain(dec, body_, kPrintSuppressBeginEnd);
   for (auto &nd: exList_) {
     dec.p.Item();
     nd->Print();

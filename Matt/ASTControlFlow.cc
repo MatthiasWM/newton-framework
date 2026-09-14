@@ -11,7 +11,6 @@
 #include "Matt/ASTControlFlow.h"
 #include "Matt/ASTControlFlowHelper.h"
 #include "Matt/ASTDataFlow.h"
-#include "Matt/ASTMacros.h"
 #include "Matt/ASTPattern.h"
 
 #include "Matt/Decompiler.h"

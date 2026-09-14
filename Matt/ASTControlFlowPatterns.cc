@@ -307,12 +307,17 @@ bool registerIfThenElse = [] { Register(BuildIfThenElsePattern()); return true; 
  `nil` (recovered at print time in CFIfThen::Print(), not matched here).
  ```
  BranchIfFalse jt1      -- anchor
- <body: expr>
- Branch jt2
- JumpTarget jt1:
- <elseBody: expr>
+ <body: [stmt]* expr>   -- StatementsThenExpr(): a NewtonScript compound
+ Branch jt2                expression, `begin stmt1; stmt2; value end`,
+ JumpTarget jt1:            can legally appear anywhere an expr is expected
+ <elseBody: [stmt]* expr>
  JumpTarget jt2:
  ```
+ `body`/`elseBody` are captured via StatementsThenExpr() (ASTPattern.h), not
+ a single-node `Required(IsExpr)` -- the latter only sees a branch's first
+ node and fails to match whenever the branch is a multi-statement compound
+ expression, a real shape now that `compressAST()` (which used to physically
+ pre-merge such runs into one CodeBlock) is gone.
  Unlike the two statement-shaped specs above, this one requires the else
  clause (bi2/jt1/jt2 are all Required, not Optional) rather than mirroring
  the original's structurally-optional-but-never-actually-absent branch
@@ -330,23 +335,23 @@ Spec BuildIfThenElseExprPattern() {
   enum { kBody, kBi2, kJt1, kElseBody, kJt2 };
   return Builder(Tag::BranchIfFalse, kFwd)
     .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
-    .Required(Tag::Any, kBody, [](Node *n) { return n->IsExpr(); }, /*mustBeResolved=*/true)
+    .StatementsThenExpr(kBody)
     .Required(Tag::Branch, kBi2, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
     .JumpPair(Builder::kAnchor, kJt1)
-    .Required(Tag::Any, kElseBody, [](Node *n) { return n->IsExpr(); }, /*mustBeResolved=*/true)
+    .StatementsThenExpr(kElseBody)
     .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
     .JumpPair(kBi2, kJt2)
     .Name("if-then-else-expr")
     .Priority(5)
     .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
-      Node *body = m.node(kBody);
-      Node *elseBody = m.node(kElseBody);
+      const std::vector<Node*> &bodyRun = m.run(kBody);
+      const std::vector<Node*> &elseRun = m.run(kElseBody);
+      Node *body = bodyRun.front()->UnlinkChain(bodyRun.back());
+      Node *elseBody = elseRun.front()->UnlinkChain(elseRun.back());
       Node *bi2 = m.node(kBi2);
       auto *jt1 = m.as<JumpTarget>(kJt1);
       auto *jt2 = m.as<JumpTarget>(kJt2);
-      body->Unlink();
-      elseBody->Unlink();
       return MakeIfThen(dec, anchor, /*returnsAValue=*/true, body, jt1, elseBody, bi2, jt2);
     });
 }
@@ -406,48 +411,55 @@ bool registerRepeat = [] { Register(BuildRepeatPattern()); return true; }();
 /**
  \brief `for iter := start to limit by incr do body end`.
  ```
- [[preamble]], SetVar iter, SetVar limit, SetVar incr    -- "start" (see note)
- GetVar iter                                              -- getIter
- Branch brTest                                            -- jump to the test first
+ [[unrelated preceding code]]
+ SetVar iter                    -- setIter
+ SetVar limit                   -- setLimit
+ SetVar incr                    -- setIncr
+ GetVar incr                    -- getIncr: pushes incr for BranchLoop's first test,
+                                    since brTest below skips straight past incIter
+                                    (which would otherwise re-supply it) on iteration 1
+ GetVar iter                    -- getIter
+ Branch brTest                  -- jump to the test first
  JumpTarget jtAgain:
- <body>                                                    -- optional, one node
- IncrVar incr                                              -- incIter
+ <body>                         -- optional, one node
+ GetVar incr                    -- re-supplies incr for incIter (and, via incIter
+                                    echoing it back, for every later BranchLoop test)
+ IncrVar iter                   -- incIter: consumes [iter, incr], produces [iter+incr, incr]
  JumpTarget jtTest:
- GetVar limit                                              -- getLimit
- BranchLoop jtAgain                                         -- anchor: tests and loops back
+ GetVar limit                   -- getLimit
+ BranchLoop jtAgain              -- anchor: consumes [incr, iter, limit], tests, loops back
  ```
  Ported from the hand-written BCBranchLoop::Resolve() (its whole body used
  to live here, not a separate ResolveXxx() -- BCBranchLoop had no other use
- for Resolve()). This is the first idiom where the "no CodeBlock needed"
- promise of Statements() does NOT hold yet: `iter`/`limit`/`incr` are set by
- three consecutive BCSetVar *statements*, so as long as
- Decompiler::compressAST() keeps pre-merging any run of 2+ statements before
- the ControlFlow pass runs (it still does -- see Matt/CLAUDE.md), those
- three SetVars are already fused into one opaque CodeBlock ("start") by the
- time this pattern is tried, indistinguishable on the flat list from
- whatever unrelated statements preceded them. There is no way to require
- them individually via Statements()/Required() today; the CodeBlock and its
- tail-indexing has to stay, exactly as fragile as in the original, until
- Stage 8 (compressAST() removal) makes iter/limit/incr individually
- addressable list nodes again -- at which point this spec should become
- `Statements(preamble) + Required(SetVar,iter) + Required(SetVar,limit) +
- Required(SetVar,incr)` and the whole CodeBlock-reaching callback below goes
- away.
+ for Resolve()). `setIter`/`setLimit`/`setIncr` are matched directly here as
+ three consecutive Required(SetVar) steps, `getIncr` right after them as a
+ fourth -- this became possible only once Decompiler::compressAST() (Stage 8)
+ stopped pre-merging them into an opaque CodeBlock; before that, this spec
+ had to require a CodeBlock and reach into its tail by fixed offset (see
+ git history / Matt/CLAUDE.md for that version and why it was necessary at
+ the time). Note the earlier version's own diagram comment had `getIter`
+ and `getIncr` swapped -- re-derived here against `-debug ast` output on a
+ real `for...by...do` script to get it right before relying on it for this
+ redesign; the *code* (which slot each GetVar's value was checked against)
+ was always correct, only the prose was wrong.
  */
 Spec BuildForLoopPattern() {
-  enum { kGetLimit, kJtTest, kIncIter, kBody, kJtAgain, kBrTest, kGetIter, kStart };
+  enum {
+    kGetLimit, kJtTest, kIncIter, kBody, kJtAgain, kBrTest,
+    kGetIter, kGetIncr, kSetIncr, kSetLimit, kSetIter,
+  };
   return Builder(Tag::BranchLoop, kBwd)
     .Required(Tag::GetVar, kGetLimit, /*mustBeResolved=*/true)
     .Required(Tag::JumpTarget, kJtTest, /*mustBeResolved=*/false)
     .Required(Tag::IncrVar, kIncIter, /*mustBeResolved=*/false)
-    .Optional(Tag::Any, kBody, [](Node *n) { return n->IsStatement(); }, /*mustBeResolved=*/false)
+    .Statements(kBody)
     .Required(Tag::JumpTarget, kJtAgain, /*mustBeResolved=*/false)
     .Required(Tag::Branch, kBrTest, /*mustBeResolved=*/false)
     .Required(Tag::GetVar, kGetIter, /*mustBeResolved=*/false)
-    .Required(Tag::Any, kStart, [](Node *n) {
-        auto *cb = dynamic_cast<CodeBlock*>(n);
-        return cb && cb->size() >= 4;
-      }, /*mustBeResolved=*/true)
+    .Required(Tag::GetVar, kGetIncr, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kSetIncr, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kSetLimit, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kSetIter, /*mustBeResolved=*/true)
     .JumpPair(Builder::kAnchor, kJtAgain)
     .JumpPair(kBrTest, kJtTest)
     .Name("for-to-by-do")
@@ -456,26 +468,17 @@ Spec BuildForLoopPattern() {
       auto *getLimit = m.as<BCGetVar>(kGetLimit);
       Node *jtTest = m.node(kJtTest);
       Node *incIter = m.node(kIncIter);
-      Node *body = m.has(kBody) ? m.node(kBody) : nullptr;
+      const std::vector<Node*> &bodyRun = m.run(kBody);
       Node *jtAgain = m.node(kJtAgain);
       Node *brTest = m.node(kBrTest);
       auto *getIter = m.as<BCGetVar>(kGetIter);
-      auto *start = m.as<CodeBlock>(kStart);
+      auto *getIncr = m.as<BCGetVar>(kGetIncr);
+      auto *setIncr = m.as<BCSetVar>(kSetIncr);
+      auto *setLimit = m.as<BCSetVar>(kSetLimit);
+      auto *setIter = m.as<BCSetVar>(kSetIter);
 
-      // Reach into the CodeBlock's tail for iter/limit/incr -- see the class
-      // comment above for why this is still necessary today.
-      int nInstr = start->size();
-      auto *getIncr  = dynamic_cast<BCGetVar*>(start->at(nInstr - 1));
-      auto *setIncr  = dynamic_cast<BCSetVar*>(start->at(nInstr - 2));
-      auto *setLimit = dynamic_cast<BCSetVar*>(start->at(nInstr - 3));
-      auto *setIter  = dynamic_cast<BCSetVar*>(start->at(nInstr - 4));
-      if (!getIncr || !getIncr->Resolved()) return nullptr;
-      if (!setIncr || !setIncr->Resolved()) return nullptr;
-      if (!setLimit || !setLimit->Resolved()) return nullptr;
-      if (!setIter || !setIter->Resolved()) return nullptr;
-
-      // Check that all three loop locals agree between their SetVar (inside
-      // the CodeBlock tail) and GetVar (found separately, on the flat list).
+      // Check that all three loop locals agree between their SetVar and
+      // GetVar occurrences.
       int iter = setIter->b();
       if (getIter->b() != iter) return nullptr;
       // NOTE: faithfully reproduces the original BCBranchLoop::Resolve():
@@ -500,19 +503,18 @@ Spec BuildForLoopPattern() {
       jtAgain->Unlink();
       brTest->Unlink();
       getIter->Unlink();
-
-      start->pop_back();
-      start->pop_back();
-      start->pop_back();
-      start->pop_back();
-      start->UnlinkIfEmpty();
+      getIncr->Unlink();
+      setIncr->Unlink();
+      setLimit->Unlink();
+      setIter->Unlink();
 
       // Mark the locals with an alternative use, so they are not declared.
       dec.useLocalAs(incr, Decompiler::Local::Use::iter);
       dec.useLocalAs(limit, Decompiler::Local::Use::iter);
       dec.useLocalAs(iter, Decompiler::Local::Use::iter);
 
-      if (body) body->Unlink(); else body = anchor->NewNil();
+      Node *body = bodyRun.empty() ? anchor->NewNil()
+                                    : bodyRun.front()->UnlinkChain(bodyRun.back());
       auto *forLoopNode = dec.MakeNode<CFForLoop>(
         dec, anchor->pc(), prov, setIter, setLimit->Input(), setIncr->Input(), body);
       anchor->ReplaceWith(forLoopNode);
@@ -567,18 +569,18 @@ Step ForeachObjectDeeplyStep(int deeplyConstSlot, int setObjectSlot) {
 
 /**
  \brief Extract the actual "object" expression from a captured setObject
- node, unlinking it from the list (or, if it's a CodeBlock, only its
- trailing expression) -- shared by both foreach idioms' construction
- callbacks.
+ node, unlinking it from the list -- shared by both foreach idioms'
+ construction callbacks. `setObject` is captured backward from the anchor
+ (see ForeachObjectDeeplyStep) as a single resolved expr; before Stage 8
+ (compressAST() removal) it could also be a CodeBlock ending in a trailing
+ expr (if statements preceded it that got merged in), requiring that
+ trailing expr to be split out. That can no longer happen -- nothing merges
+ statements into anything anymore, so a captured expr is always already
+ exactly one node -- but the split-out step is kept here, not inlined at
+ the two call sites, so if that invariant ever turns out to be wrong for
+ some real package, there's one place to fix it.
  */
 Node *ExtractForeachObject(Node *setObject) {
-  auto *objBlock = dynamic_cast<CodeBlock*>(setObject);
-  if (objBlock) {
-    Node *obj = objBlock->back();
-    objBlock->pop_back();
-    objBlock->UnlinkIfEmpty();
-    return obj;
-  }
   setObject->Unlink();
   return setObject;
 }
@@ -588,15 +590,15 @@ Node *ExtractForeachObject(Node *setObject) {
 /**
  \brief `foreach [slot,] value [deeply] in object do body end`.
  ```
- [[preamble]], <object>       -- setObject (see note on Custom() step below)
+ [[unrelated preceding code]], <object>       -- setObject (see Custom() step below)
  PushConst deeply
  NewIter                       -- anchor
  SetVar iter
  Branch brStart                -- jump to the "done?" test first
  JumpTarget jtRepeat:
- [SetVar value := iterator[4]]  -- setValueNode, required
+ SetVar value := iterator[4]    -- setValueNode, required
  [SetVar slot  := iterator[0]]  -- setSlotNode, optional
- <body>                         -- whatever of the above CodeBlock is left over
+ <body>                         -- whatever statements remain, captured directly
  IterNext iterator
  JumpTarget jtStart:
  IterDone iterator
@@ -604,78 +606,58 @@ Node *ExtractForeachObject(Node *setObject) {
  PushConst nil                  -- pushNil ("clear iterator" is the node right after it)
  ```
  Ported from the hand-written BCNewIter::ResolveForeachSlotValueDo() (removed
- from ASTControlFlow.cc). Two irregularities this idiom has that no earlier
- port did, both handled with Builder::Custom() rather than forced into the
- named combinators:
+ from ASTControlFlow.cc). One irregularity this idiom has that no earlier
+ port did, handled with Builder::Custom() rather than forced into the named
+ combinators: unlike every other anchor ported so far, BCNewIter never runs
+ its own Consume2 DataFlow resolution (BCNewIter::Resolved() is hardcoded
+ false), so "object"/"deeply" are never wired into Input()/in1_/in2_ -- this
+ matcher has always had to walk `prev`/`prev->prev` directly to find them,
+ and still does, via ForeachObjectDeeplyStep. Since that step inspects the
+ anchor's *backward* neighbors while every other step in this
+ (forward-anchored) spec walks *forward*, it deliberately never touches the
+ shared Cursor.
 
- 1. Unlike every other anchor ported so far, BCNewIter never runs its own
-    Consume2 DataFlow resolution (BCNewIter::Resolved() is hardcoded
-    false), so "object"/"deeply" are never wired into Input()/in1_/in2_ --
-    this matcher has always had to walk `prev`/`prev->prev` directly to
-    find them, and still does, in the first Custom() step below. Since that
-    step inspects the anchor's *backward* neighbors while every other step
-    in this (forward-anchored) spec walks *forward*, it deliberately never
-    touches the shared Cursor.
-
- 2. The value/slot extraction is inherently branchy: if compressAST() has
-    already merged the per-iteration setup (SetVar value; [SetVar slot;])
-    together with whatever body code follows into one CodeBlock, they must
-    be read from that CodeBlock's front instead of the flat list, and *no*
-    cursor advance is needed (the preceding Optional() capture already
-    consumed the CodeBlock); if not, they're read directly off the flat
-    list and the cursor must advance past whichever of them were found.
-    This is exactly the same "still CodeBlock-dependent until Stage 8"
-    situation as `for`'s iter/limit/incr -- see the note there and in
-    Matt/CLAUDE.md -- except here a CodeBlock isn't even guaranteed to
-    exist (unlike `for`, where 3 consecutive SetVars always force one).
+ Before Stage 8 (Decompiler::compressAST() removal) this also needed a
+ second Custom() step and an Optional(CodeBlock) capture, to handle
+ value/slot possibly having been pre-merged with the body into one opaque
+ CodeBlock. That's gone now -- nothing merges statements into anything
+ anymore, so value/[slot] are always read directly off the flat list, and
+ whatever remains after them is just Statements(kBody), same as every
+ other idiom's free-form body capture.
  */
 Spec BuildForeachDoPattern() {
   enum {
     kDeeplyConst, kSetObject,
-    kSetIter, kBrStart, kJtRepeat, kBodyBlock,
-    kSetValueNode, kSetSlotNode,
+    kSetIter, kBrStart, kJtRepeat,
+    kSetValueNode, kSetSlotNode, kBody,
     kIterNext, kJtStart, kIterDone, kBrRepeat, kPushNil,
   };
   return Builder(Tag::NewIter, kFwd)
-    // -- Walk backward from the anchor for "object"/"deeply" (see note 1).
+    // -- Walk backward from the anchor for "object"/"deeply" (see class note).
     .Custom(ForeachObjectDeeplyStep(kDeeplyConst, kSetObject))
     // -- Everything else walks forward from the anchor as usual.
     .Required(Tag::SetVar, kSetIter, /*mustBeResolved=*/false)
     .Required(Tag::Branch, kBrStart, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJtRepeat, /*mustBeResolved=*/false)
-    .Optional(Tag::Any, kBodyBlock, [](Node *n) { return dynamic_cast<CodeBlock*>(n) != nullptr; },
-              /*mustBeResolved=*/true)
-    // -- Extract setValue/[setSlot] from the CodeBlock's front, or straight
-    //    off the flat list if there's no CodeBlock (see note 2).
+    // -- Read value/[slot] directly off the flat list; whatever's left is body.
     .Custom([](Cursor &c, Match &m) -> bool {
-      auto *cb = m.has(kBodyBlock) ? static_cast<CodeBlock*>(m.node(kBodyBlock)) : nullptr;
-      BCSetVar *setValueNode = nullptr;
-      BCSetVar *setSlotNode = nullptr;
-      if (cb) {
-        setValueNode = dynamic_cast<BCSetVar*>(cb->at(0));
-        setSlotNode = dynamic_cast<BCSetVar*>(cb->at(1));
-      } else {
-        Node *it = c.peek();
-        setValueNode = dynamic_cast<BCSetVar*>(it);
-        setSlotNode = it ? dynamic_cast<BCSetVar*>(it->next) : nullptr;
-      }
+      Node *it = c.peek();
+      auto *setValueNode = dynamic_cast<BCSetVar*>(it);
+      BCSetVar *setSlotNode = it ? dynamic_cast<BCSetVar*>(it->next) : nullptr;
 
       // "value" is required: it must read the iterator's value slot (4).
       if (!IsIterSlotSetter(setValueNode, 4)) return false;
       // "slot" is optional: it must read the iterator's tag slot (0).
       if (!IsIterSlotSetter(setSlotNode, 0)) setSlotNode = nullptr;
 
-      if (!cb) {
-        // No pre-merged CodeBlock: advance past whichever of
-        // setValueNode/setSlotNode were consumed directly off the list.
-        c.advance();
-        if (setSlotNode) c.advance();
-      }
+      c.advance();
+      if (setSlotNode) c.advance();
 
       m.SetNode(kSetValueNode, setValueNode);
       if (setSlotNode) m.SetNode(kSetSlotNode, setSlotNode); else m.SetAbsent(kSetSlotNode);
       return true;
     })
+    .Statements(kBody)
     .Required(Tag::IterNext, kIterNext, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJtStart, /*mustBeResolved=*/false)
     .Required(Tag::IterDone, kIterDone, /*mustBeResolved=*/false)
@@ -691,9 +673,9 @@ Spec BuildForeachDoPattern() {
       auto *setIter = m.as<BCSetVar>(kSetIter);
       Node *brStart = m.node(kBrStart);
       auto *jtRepeat = m.as<JumpTarget>(kJtRepeat);
-      auto *body = m.has(kBodyBlock) ? static_cast<CodeBlock*>(m.node(kBodyBlock)) : nullptr;
       auto *setValueNode = m.as<BCSetVar>(kSetValueNode);
       auto *setSlotNode = m.has(kSetSlotNode) ? m.as<BCSetVar>(kSetSlotNode) : nullptr;
+      const std::vector<Node*> &bodyRun = m.run(kBody);
       auto *iterNext = m.node(kIterNext);
       auto *jtStart = m.as<JumpTarget>(kJtStart);
       Node *iterDone = m.node(kIterDone);
@@ -711,21 +693,15 @@ Spec BuildForeachDoPattern() {
       Node::HandleBreakTargets(jtRepeat, afterPushNil, false);
       afterPushNil->Unlink();
 
-      // If setObject is a CodeBlock, only use the last expression.
       Node *obj = ExtractForeachObject(setObject);
 
       deeplyConst->Unlink();
       setIter->Unlink();
       brStart->Unlink();
       jtRepeat->Unlink();
-      if (body) {
-        body->pop_front();               // unlink 'setValue'
-        if (slot != -1) body->pop_front();  // unlink 'setSlot'
-        body->Unlink();
-      } else {
-        if (setValueNode) setValueNode->Unlink();
-        if (setSlotNode) setSlotNode->Unlink();
-      }
+      setValueNode->Unlink();
+      if (setSlotNode) setSlotNode->Unlink();
+      Node *body = bodyRun.empty() ? nullptr : bodyRun.front()->UnlinkChain(bodyRun.back());
       iterNext->Unlink();
       jtStart->Unlink();
       iterDone->Unlink();
@@ -751,13 +727,15 @@ bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }(
 /**
  \brief `foreach [slot,] value [deeply] in object collect body end`.
  ```
- [[preamble]], <object>, PushConst deeply, NewIter        -- anchor (as foreach...do)
+ [[unrelated preceding code]], <object>, PushConst deeply, NewIter  -- anchor (as foreach...do)
  SetVar iter
- CodeBlock initBlock: [ SetVar result := Array(iter[5], nil);  SetVar index := 0 ]
+ SetVar result := Array(iter[5], nil)   -- initResult
+ SetVar index := 0                       -- initIndex
  Branch brStart
  JumpTarget jtRepeat:
- CodeBlock setupBlock: [ SetVar value := iter[1];  [SetVar slot := iter[0];]
-                          SetARef(result, index, <body>); Pop ]
+ SetVar value := iter[1]                 -- setValueNode
+ [SetVar slot := iter[0]]                -- setSlotNode, optional
+ SetARef(result, index, <body>); Pop     -- collectStmt; <body> is its Element()
  IncrVar index (+1); Pop; Pop
  IterNext iterator
  JumpTarget jtStart:
@@ -769,7 +747,8 @@ bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }(
  Pop; Pop
  JumpTarget jtCleanup:
  GetVar result
- CodeBlock prepareForGC: [ SetVar result := nil;  SetVar iter := nil ]
+ SetVar result := nil                    -- clearResult
+ SetVar iter := nil                      -- clearIter
  ```
  Ported from the never-finished BCNewIter::ResolveForeachSlotValueCollect()
  (removed from ASTControlFlow.cc, along with its FIXME'd, commented-out,
@@ -779,13 +758,13 @@ bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }(
  Matt/CLAUDE.md for the reasoning. Shares BuildForeachDoPattern's backward
  object/deeply capture (ForeachObjectDeeplyStep) and its
  value/slot-extraction validation (IsIterSlotSetter), but is otherwise a
- genuinely different shape: `initBlock` (pre-sizing the result array) and
- `setupBlock`'s trailing `SetARef` collector have no equivalent in `do`, and
- unlike `do`'s optional single-node body, `collect`'s per-iteration setup
- is *always* >= 2 statements (value-set + the collect assignment), so it's
- *always* a CodeBlock by the time compressAST() is done -- no dual
- CodeBlock-or-raw-list fallback needed here, simplifying that part of the
- port relative to `do`.
+ genuinely different shape: pre-sizing the result array (`initResult`,
+ `initIndex`) and the trailing `SetARef` collector have no equivalent in
+ `do`. Every fixed-shape group here (`initResult`+`initIndex`;
+ `setValueNode`+`[setSlotNode]`+`collectStmt`; `clearResult`+`clearIter`)
+ is matched as individually Required() nodes, not via Statements() -- their
+ sizes are always exactly what's shown above, never a free-form run, so
+ there's nothing to capture generically.
 
  **Known limitation, not yet supported: `break` used from *inside* the
  `body` expression** (as opposed to landing on this construct from
@@ -800,53 +779,56 @@ bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }(
  break-landing zone", not just "Branch then Pop"), out of scope here.
  Confirmed safe to leave unhandled: since the compiler never emits the
  dead-Pop marker ResolveBreak() looks for, a break-containing `body` simply
- never resolves into the single clean expression Required(kBodyExpr) needs,
- so this whole spec fails to match -- exactly like today, before this port
- existed at all. No silent misdecompile; the function just stays flagged as
- unresolved, same as now.
+ never resolves into the single clean expression this spec's `Custom()`
+ step needs, so this whole spec fails to match -- exactly like today,
+ before this port existed at all. No silent misdecompile; the function
+ just stays flagged as unresolved, same as now.
  */
 Spec BuildForeachCollectPattern() {
   enum {
     kDeeplyConst, kSetObject,
-    kSetIter, kInitBlock, kBrStart, kJtRepeat,
-    kSetupBlock, kBodyExpr,
+    kSetIter, kInitResult, kInitIndex, kBrStart, kJtRepeat,
+    kSetValueNode, kSetSlotNode, kCollectStmt, kBodyExpr,
     kIncrIndex, kPopIV0, kPopIV1,
     kIterNext, kJtStart, kIterDone, kBrRepeat, kSkipCleanup,
     kBreakTargets, kSetResult2, kPopR0, kPopR1,
-    kJtCleanup, kGetResult, kPrepareForGC,
+    kJtCleanup, kGetResult, kClearResult, kClearIter,
   };
   return Builder(Tag::NewIter, kFwd)
     // -- Walk backward from the anchor for "object"/"deeply" (shared with
-    //    foreach...do; see its class comment, note 1).
+    //    foreach...do; see its class comment).
     .Custom(ForeachObjectDeeplyStep(kDeeplyConst, kSetObject))
     // -- Everything else walks forward from the anchor as usual.
     .Required(Tag::SetVar, kSetIter, /*mustBeResolved=*/false)
-    .Required(Tag::Any, kInitBlock, [](Node *n) {
-        auto *cb = dynamic_cast<CodeBlock*>(n);
-        return cb && cb->size() == 2
-            && dynamic_cast<BCSetVar*>(cb->at(0))
-            && dynamic_cast<BCSetVar*>(cb->at(1));
-      }, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kInitResult, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kInitIndex, /*mustBeResolved=*/true)
     .Required(Tag::Branch, kBrStart, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJtRepeat, /*mustBeResolved=*/false)
-    .Required(Tag::Any, kSetupBlock, [](Node *n) { return dynamic_cast<CodeBlock*>(n) != nullptr; },
-              /*mustBeResolved=*/true)
-    // -- Validate value/[slot] at the block's front, extract the collect
-    //    expression from its trailing SetARef(result, index, <body>); Pop.
-    .Custom([](Cursor&, Match &m) -> bool {
-      auto *cb = static_cast<CodeBlock*>(m.node(kSetupBlock));
-      int n = cb->size();
-      if (n != 2 && n != 3) return false;
-      if (!IsIterSlotSetter(dynamic_cast<BCSetVar*>(cb->at(0)), 4)) return false;
-      if (n == 3 && !IsIterSlotSetter(dynamic_cast<BCSetVar*>(cb->at(1)), 0)) return false;
+    // -- Read value/[slot] directly off the flat list, then the collect
+    //    expression out of the trailing SetARef(result, index, <body>); Pop.
+    .Custom([](Cursor &c, Match &m) -> bool {
+      auto *setValueNode = dynamic_cast<BCSetVar*>(c.peek());
+      if (!IsIterSlotSetter(setValueNode, 4)) return false;
+      c.advance();
 
-      auto *collectStmt = dynamic_cast<BCPop*>(cb->at(n - 1));
+      auto *setSlotNode = dynamic_cast<BCSetVar*>(c.peek());
+      if (IsIterSlotSetter(setSlotNode, 0)) {
+        c.advance();
+      } else {
+        setSlotNode = nullptr;
+      }
+
+      auto *collectStmt = dynamic_cast<BCPop*>(c.peek());
       if (!collectStmt) return false;
       auto *setARef = dynamic_cast<BCSetARef*>(collectStmt->Input());
       if (!setARef) return false;
       Node *bodyExpr = setARef->Element();
       if (!bodyExpr) return false;
+      c.advance();
 
+      m.SetNode(kSetValueNode, setValueNode);
+      if (setSlotNode) m.SetNode(kSetSlotNode, setSlotNode); else m.SetAbsent(kSetSlotNode);
+      m.SetNode(kCollectStmt, collectStmt);
       m.SetNode(kBodyExpr, bodyExpr);
       return true;
     })
@@ -864,10 +846,8 @@ Spec BuildForeachCollectPattern() {
     .Required(Tag::Pop, kPopR1, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJtCleanup, /*mustBeResolved=*/false)
     .Required(Tag::GetVar, kGetResult, /*mustBeResolved=*/false)
-    .Required(Tag::Any, kPrepareForGC, [](Node *n) {
-        auto *cb = dynamic_cast<CodeBlock*>(n);
-        return cb && cb->size() == 2;
-      }, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kClearResult, /*mustBeResolved=*/true)
+    .Required(Tag::SetVar, kClearIter, /*mustBeResolved=*/true)
     .JumpPair(kBrStart, kJtStart)
     .JumpPair(kBrRepeat, kJtRepeat)
     .JumpPair(kSkipCleanup, kJtCleanup)
@@ -877,10 +857,13 @@ Spec BuildForeachCollectPattern() {
       auto *deeplyConst = m.as<BCPushConst>(kDeeplyConst);
       Node *setObject = m.node(kSetObject);
       auto *setIter = m.as<BCSetVar>(kSetIter);
-      auto *initBlock = m.as<CodeBlock>(kInitBlock);
+      auto *initResult = m.as<BCSetVar>(kInitResult);
+      auto *initIndex = m.as<BCSetVar>(kInitIndex);
       Node *brStart = m.node(kBrStart);
       auto *jtRepeat = m.as<JumpTarget>(kJtRepeat);
-      auto *setupBlock = m.as<CodeBlock>(kSetupBlock);
+      auto *setValueNode = m.as<BCSetVar>(kSetValueNode);
+      auto *setSlotNode = m.has(kSetSlotNode) ? m.as<BCSetVar>(kSetSlotNode) : nullptr;
+      Node *collectStmt = m.node(kCollectStmt);
       Node *bodyExpr = m.node(kBodyExpr);
       Node *incrIndex = m.node(kIncrIndex);
       Node *popIV0 = m.node(kPopIV0);
@@ -896,26 +879,27 @@ Spec BuildForeachCollectPattern() {
       Node *popR1 = m.node(kPopR1);
       auto *jtCleanup = m.as<JumpTarget>(kJtCleanup);
       Node *getResult = m.node(kGetResult);
-      auto *prepareForGC = m.as<CodeBlock>(kPrepareForGC);
+      Node *clearResult = m.node(kClearResult);
+      Node *clearIter = m.node(kClearIter);
 
-      // Local indices, read from the already-validated init/setup blocks.
-      int resultLocal = static_cast<BCSetVar*>(initBlock->at(0))->b();
-      int indexLocal = static_cast<BCSetVar*>(initBlock->at(1))->b();
-      int n = setupBlock->size();
-      int value = static_cast<BCSetVar*>(setupBlock->at(0))->b();
-      int slot = (n == 3) ? static_cast<BCSetVar*>(setupBlock->at(1))->b() : -1;
+      int resultLocal = initResult->b();
+      int indexLocal = initIndex->b();
+      int value = setValueNode->b();
+      int slot = setSlotNode ? setSlotNode->b() : -1;
       int iter = setIter->b();
       bool deeply = (deeplyConst->b() == TRUEREF);
 
-      // If setObject is a CodeBlock, only use the last expression.
       Node *obj = ExtractForeachObject(setObject);
 
       deeplyConst->Unlink();
       setIter->Unlink();
-      initBlock->Unlink();
+      initResult->Unlink();
+      initIndex->Unlink();
       brStart->Unlink();
       jtRepeat->Unlink();
-      setupBlock->Unlink();  // bodyExpr was already detached by BCSetARef::Resolve()
+      setValueNode->Unlink();
+      if (setSlotNode) setSlotNode->Unlink();
+      collectStmt->Unlink();  // bodyExpr was already detached by BCSetARef::Resolve()
       incrIndex->Unlink();
       popIV0->Unlink();
       popIV1->Unlink();
@@ -930,7 +914,8 @@ Spec BuildForeachCollectPattern() {
       popR1->Unlink();
       jtCleanup->Unlink();
       getResult->Unlink();
-      prepareForGC->Unlink();
+      clearResult->Unlink();
+      clearIter->Unlink();
 
       dec.useLocalAs(iter, Decompiler::Local::Use::iter);
       dec.useLocalAs(indexLocal, Decompiler::Local::Use::iter);
@@ -1010,29 +995,54 @@ Spec BuildTryPattern(bool isProvider) {
     kHandlers, kLastHandler, kLastExBody,
     kTrailingTargets, kExPop, kJtDone,
   };
-  Cond bodyCond = isProvider
-    ? Cond([](Node *n) { return n->IsExpr(); })
-    : Cond([](Node *n) { return n->IsStatement(); });
 
-  return Builder(Tag::NewHandler, kFwd)
-    .Guard([](Node *a) { return a->b() >= 1; })
-    .Required(Tag::Any, kBody, bodyCond, /*mustBeResolved=*/true)
+  Builder spec(Tag::NewHandler, kFwd);
+  spec.Guard([](Node *a) { return a->b() >= 1; });
+  // `body`/each handler's exBody is captured via StatementsThenExpr()/
+  // Statements() (ASTPattern.h), not a single-node Required() -- a try body
+  // or handler body is routinely more than one statement long, a shape a
+  // single-node capture can't see now that compressAST() (which used to
+  // physically pre-merge such runs into one CodeBlock before this pass ran)
+  // is gone. The statement-shaped variant (isProvider=false) still requires
+  // at least one statement (NonEmpty) -- a try body is never truly empty --
+  // while the expr-shaped variant's OptionalStatementsThenExpr() lets a
+  // handler body be entirely absent (straight through to its Branch), same
+  // as the original's Optional() did for the single-node case.
+  if (isProvider) {
+    spec.StatementsThenExpr(kBody);
+  } else {
+    spec.Statements(kBody);
+    spec.NonEmpty(kBody);
+  }
+  spec
     .Required(Tag::PopHandlers, kBodyPop, /*mustBeResolved=*/false)
-    .Required(Tag::Branch, kBrDone, /*mustBeResolved=*/false)
-    .Repeat(kHandlers, [](Node *a) { return a->b() - 1; },
-            Builder()
-              .Required(Tag::ExceptionHandler, 0, /*mustBeResolved=*/false)
-              .Optional(Tag::Any, 1, bodyCond, /*mustBeResolved=*/true)
-              .Required(Tag::Branch, 2, /*mustBeResolved=*/false))
-    .Required(Tag::ExceptionHandler, kLastHandler, /*mustBeResolved=*/false)
-    .Optional(Tag::Any, kLastExBody, bodyCond, /*mustBeResolved=*/true)
+    .Required(Tag::Branch, kBrDone, /*mustBeResolved=*/false);
+
+  Builder handlerSub;
+  handlerSub.Required(Tag::ExceptionHandler, 0, /*mustBeResolved=*/false);
+  if (isProvider) {
+    handlerSub.OptionalStatementsThenExpr(1);
+  } else {
+    handlerSub.Statements(1);
+  }
+  handlerSub.Required(Tag::Branch, 2, /*mustBeResolved=*/false);
+
+  spec.Repeat(kHandlers, [](Node *a) { return a->b() - 1; }, handlerSub);
+  spec.Required(Tag::ExceptionHandler, kLastHandler, /*mustBeResolved=*/false);
+  if (isProvider) {
+    spec.OptionalStatementsThenExpr(kLastExBody);
+  } else {
+    spec.Statements(kLastExBody);
+  }
+  spec
     .Repeat(kTrailingTargets, [](Node *a) { return a->b() - 1; },
             Builder().Required(Tag::JumpTarget, 0, /*mustBeResolved=*/false))
     .Required(Tag::PopHandlers, kExPop, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJtDone, /*mustBeResolved=*/false)
     .Name(isProvider ? "try-expr" : "try-statement")
-    .Priority(10)
-    .Build([isProvider](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+    .Priority(10);
+
+  return spec.Build([isProvider](Decompiler &dec, Node *anchor, Match &m) -> Node* {
       auto *jtDone = m.as<JumpTarget>(kJtDone);
       auto *exNode = dec.MakeNode<CFTry>(
         dec, anchor->pc(), isProvider ? kProvidesOne : kProvidesNone, anchor, jtDone);

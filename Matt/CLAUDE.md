@@ -44,12 +44,11 @@ Core decompiler (~3,000 lines, the focus of this work):
 | `AST.h` / `AST.cc` | `ast::Node` base class, doubly-linked-list plumbing, `JumpPairMatches()`, `HandleBreakTargets()` |
 | `ASTAdmin.h` / `.cc` | `Bytecode`, `Consume1/2/N` — generic stack-consuming base classes ("pop N values off the simulated stack") |
 | `ASTDataFlow.h` / `.cc` | One leaf node class per "plain" bytecode: push/pop/arith/path/array/frame ops. Mechanical, not the pain point. |
-| `ASTControlFlow.h` / `.cc` | One node class per branch/loop/exception/call bytecode, plus the hand-written pattern-matching `ResolveXxx()` methods (being migrated out, see below) |
-| `ASTControlFlowHelper.h` / `.cc` | Synthetic "resolved" nodes (`CFLoop`, `CFWhile`, `CFIfThen`, `CFForLoop`, `CFTry`, `CodeBlock`, `JumpTarget`, …) built once a pattern matches |
-| `ASTPattern.h` / `.cc` | **New**: declarative pattern-combinator engine (see below) |
-| `ASTControlFlowPatterns.cc` | **New**: where control-flow idioms get registered as `pattern::Spec`s |
-| `ASTMacros.h` | Old `REQUIRED_NODE`/`OPTIONAL_NODE`/`REQUIRED_COND`/`OPTIONAL_COND` macros, still used by not-yet-ported matchers |
-| `Decompiler.h` / `.cc` | Driver: decodes raw bytecode into the initial node list (`generateAST`), runs the fixpoint resolve loop (`solve`), prints source (`printSource`). Owns all AST nodes (`nodePool_`/`MakeNode<T>`). |
+| `ASTControlFlow.h` / `.cc` | One node class per branch/loop/exception/call bytecode; every `Resolve(Pass::ControlFlow)` just calls `pattern::TryResolve(this)` now — no hand-written matchers left |
+| `ASTControlFlowHelper.h` / `.cc` | Synthetic "resolved" nodes (`CFLoop`, `CFWhile`, `CFIfThen`, `CFForLoop`, `CFTry`, `JumpTarget`, …) built once a pattern matches |
+| `ASTPattern.h` / `.cc` | Declarative pattern-combinator engine (see below) |
+| `ASTControlFlowPatterns.cc` | Where every control-flow idiom is registered as a `pattern::Spec` |
+| `Decompiler.h` / `.cc` | Driver: decodes raw bytecode into the initial node list (`generateAST`), runs the fixpoint resolve loop (`solve`, now just DataFlow + ControlFlow, no Compression phase), prints source (`printSource`). Owns all AST nodes (`nodePool_`/`MakeNode<T>`). |
 | `Printer.h`/`.cc`, `ObjectPrinter.h`/`.cc` | Generic text-layout + Newton-object/source pretty-printer, reused by the decompiler for output |
 
 Unrelated tools that happen to live in `Matt/` (not touched by this work):
@@ -59,13 +58,13 @@ Unrelated tools that happen to live in `Matt/` (not touched by this work):
 ## Branch
 
 This work lives on `AST_pattern_matching` (branched off `restructure`). Matt
-reviews and commits each stage himself as it lands:
-`455fd20 "Initial commit for new pattern matching AST"` (arena,
-`JumpPairMatches`, the pattern engine, `loop`), then
-`8b8cecf "Adding patterns for While-Do and Repeat-Until"` (which, despite
-the name, also included `or`). Whatever's ported since the latest commit
-(currently: `if`/`then`/`else`, all three shapes) is uncommitted until he
-does the same.
+reviews and commits each stage himself as it lands: `455fd20` (arena,
+`JumpPairMatches`, the pattern engine, `loop`), `8b8cecf` (`while/do`,
+`repeat/until`, and `or`), `3b1157e` (`if/then/else`, `for`), `e9eccc7`
+(`foreach...do`), `a8826ad` (`try...onException...do`), `7ab0e4d`
+(`foreach...collect`). Stage 8 (removing `compressAST()`/`CodeBlock` and the
+handful of real bugs that removal surfaced — see below) is uncommitted as of
+this writing, since it landed most recently.
 
 ## How to build and test
 
@@ -413,10 +412,17 @@ same category of fundamental, information-theoretic ambiguity as the
    — **every idiom the plan identified is now either on the pattern engine
    or (for `and`) already correctly handled by it indirectly. Nothing left
    before step 8.**
-8. **Next up.** Delete `ASTMacros.h`, `Decompiler::compressAST()` and the Compression
-   phase of `Decompiler::solve()`, `CodeBlock`'s list-splicing methods
-   (`add`/`moveToBody`/`pop_back`/`pop_front`/`UnlinkIfEmpty`), and every
-   now-unreferenced `ResolveXxx()` declaration.
+8. ~~Delete `ASTMacros.h`, `Decompiler::compressAST()` and the Compression
+   phase of `Decompiler::solve()`, `CodeBlock`'s list-splicing methods, and
+   every now-unreferenced `ResolveXxx()` declaration~~ — done. See the full
+   write-up below — this was by far the riskiest stage (it removed a
+   mechanism several *other* things turned out to depend on silently), and
+   is the one stage that genuinely required going back and forth between
+   "looks done" and "is actually correct" more than once. **The whole
+   redesign plan is now complete**: every idiom lives on the pattern
+   engine, and every trace of the old bundle-into-`CodeBlock` architecture
+   is gone. Remaining, deliberately-scoped-out work is listed at the end of
+   this section, not as a numbered stage — there is no more "next stage."
 
 **After every single port, re-run the regression recipe above before moving
 to the next idiom** — don't batch multiple idiom ports between checks. Also
@@ -427,27 +433,188 @@ everything except `loop`, which passes `false`) — a `break <value>` inside
 the body. All three mattered in practice: the multi-statement case is what
 originally exposed the `PrintBodyChain` gap below.
 
-`CodeBlock` currently still exists as a *mid-resolution* list node built by
-`compressAST()` (a still-active separate pass) — it has **not** yet been
-demoted to print-time-only. `Node::UnlinkChain(Node *last)` (added next to
-`UnlinkRange`) is the primitive that lets matchers pull a
-`Statements()`-captured run out of the list as a walkable chain without
-needing a `CodeBlock` wrapper. **Every `ControlBlock`-derived `Print()`
-that prints a `body_` must go through the shared `PrintBodyChain(dec,
-body_, flags=0)` helper in `ASTControlFlowHelper.cc`, not
-`body_->PrintOnNewLine(flags)` directly** — `PrintOnNewLine()` only knows
-how to print a *single* node (or a real `CodeBlock*`, via its overridden
-`IsMultiStatement()`); a raw multi-node chain from `UnlinkChain()` would
-silently print only its first statement and drop the rest, since plain
-`Node::IsMultiStatement()` is `false` by default. `PrintBodyChain()`
+`Node::UnlinkChain(Node *last)` (added next to `UnlinkRange`) is the
+primitive that lets matchers pull a `Statements()`-captured run out of the
+list as a walkable chain without needing a `CodeBlock` wrapper. **Every
+`ControlBlock`-derived `Print()` that prints a `body_` must go through the
+shared `PrintBodyChain(dec, body_, flags=0)` helper in
+`ASTControlFlowHelper.cc`, not `body_->PrintOnNewLine(flags)` directly** —
+`PrintOnNewLine()` only knows how to print a *single* node; a raw multi-node
+chain from `UnlinkChain()` would silently print only its first statement and
+drop the rest, since plain `Node::IsMultiStatement()` is `false` by default
+(nothing overrides it anymore — see Stage 8 below). `PrintBodyChain()`
 detects the single-vs-chain case itself and, for a real chain, honors
-`kPrintSuppressBeginEnd`/`kPrintSuppressList` exactly like `CodeBlock::Print()`
-does (`CFRepeat` needs `kPrintSuppressBeginEnd` since `repeat`/`until` are
-already the delimiters; `CFLoop`/`CFWhile` don't). This was originally added
-for `CFLoop`, then found to be *also* missing on `CFWhile`/`CFRepeat` when
-those were ported — check every `ControlBlock` subclass's `Print()` when
-porting a matcher that feeds it a `Statements()`-derived body, not just the
-one you're actively working on.
+`kPrintSuppressBeginEnd`/`kPrintSuppressList` (`CFRepeat` needs
+`kPrintSuppressBeginEnd` since `repeat`/`until` are already the delimiters;
+`CFLoop`/`CFWhile` don't). This was originally added for `CFLoop`, then
+found to be *also* missing on `CFWhile`/`CFRepeat` when those were ported —
+check every `ControlBlock` subclass's `Print()` when porting a matcher that
+feeds it a `Statements()`-derived body, not just the one you're actively
+working on. Stage 8 (below) is exactly this lesson recurring at full scale.
+
+### Stage 8: removing `compressAST()`/`CodeBlock` — what actually broke, and why
+
+This stage looked mechanical going in (delete a pass, delete a now-unused
+class, remove a handful of `CodeBlock*`-dependent captures the earlier
+stages had already flagged as fragile) and **built and passed the 12-package
+regression corpus clean on the very first attempt** — for the raw statement-
+run captures (`for`, `foreach...do`, `foreach...collect`'s init/setup). But
+`compressAST()` turned out to have a second, silent job nothing had flagged:
+merging *any* run of "statement(s) followed by exactly one trailing expr"
+into one opaque node, not just for control-flow bodies. Two entirely
+different classes of code depended on that second job, and both broke the
+moment it was gone — a genuine lesson in why "it built and the diff on file
+1 looked fine" is not the same as "it's correct":
+
+1. **`if/then/else`-as-expression and `try`-as-expression bodies.**
+   `BuildIfThenElseExprPattern`'s `kBody`/`kElseBody` and
+   `BuildTryPattern(isProvider=true)`'s body/handler-body captures used a
+   single-node `Required(Tag::Any, slot, IsExpr)` — which implicitly relied
+   on `compressAST()` having pre-merged a NewtonScript compound expression
+   (`begin stmt1; stmt2; value end`, legal anywhere an expression is
+   expected) into one node satisfying `IsExpr()`. Confirmed via the 12-
+   package regression: a `return if cond then begin a; b end else nil`
+   construct that used to resolve stopped resolving entirely (dumped raw
+   bytecode instead). **Fix**: two new `Builder` combinators in
+   `ASTPattern.h`, direction-aware (forward and backward), mirroring
+   `compressAST()`'s exact old merge boundary:
+   - `StatementsThenExpr(slot)` — captures "0+ statements, then exactly 1
+     required trailing expr" into `m.run(slot)`, same shape as
+     `Statements()`'s captured run, extracted the same way
+     (`run.front()->UnlinkChain(run.back())`).
+   - `OptionalStatementsThenExpr(slot)` — same, but the whole run may be
+     entirely absent (e.g. an exception handler with no body at all before
+     its `Branch`) — mirrors `Optional()`'s "no match, mark absent" outcome
+     rather than rejecting the whole pattern.
+   Applied to `BuildIfThenElseExprPattern` (`kBody`/`kElseBody`) and
+   `BuildTryPattern(isProvider=true)` (main body via
+   `StatementsThenExpr`, each handler body via
+   `OptionalStatementsThenExpr`). The statement-shaped `try` variant
+   (`isProvider=false`) had the *same* latent bug — its handler bodies used
+   a single-node `Optional(Tag::Any, slot, IsStatement)` — fixed the same
+   way with plain `Statements()` (multi-statement handler bodies are
+   naturally "0 or more", no trailing-expr requirement needed there).
+   These captures are structurally safe to generalize this way because
+   `if/then/else` and `try` bodies have **real, unambiguous boundaries**
+   (the next `Branch`/`JumpTarget`/`PopHandlers`/`ExceptionHandler` in the
+   bytecode) — there's no risk of over-reaching into unrelated preceding
+   code, unlike case 2 below.
+
+2. **`CFTry`'s own constructor re-derives the same shape independently.**
+   Easy to miss: the pattern *spec* validates the body/handler-body shapes
+   above, but `CFTry`'s constructor (`ASTControlFlowHelper.cc`) never reads
+   those captured slots back — per its own class comment, it re-walks the
+   raw node list from `first` (the anchor) to `last` (`jtDone`) itself,
+   rediscovering the same boundaries. Fixed in parallel with the pattern
+   captures: `ConsumeOptionalBody(Node *&it, bool isProvider, Node **outTail)`
+   (local to `ASTControlFlowHelper.cc`) walks the same "0+ statements, then
+   optionally 1 expr" shape directly against the still-fully-linked list.
+   The subtler half of this fix: the constructor's original blanket cleanup
+   sweep (`while (first->next && first->next != last) first->next->Unlink();`)
+   unlinks nodes **one at a time**, and plain `Node::Unlink()` nulls out the
+   unlinked node's own `prev`/`next` — fine for genuine single-node
+   scaffolding (`PopHandlers`, `Branch`, `ExceptionHandler`, trailing
+   `JumpTarget`s), but it would silently **truncate a multi-node body chain
+   to its head node** if run over one, since each `Unlink()` in the sweep
+   severs that node's `next` before printing ever sees it. Fix: detach
+   `body_` and each handler's body via `UnlinkChain()` (preserves internal
+   links) the moment it's identified, *before* the generic single-node
+   sweep runs over whatever's left (which, once bodies are pre-detached, is
+   only ever genuine single scaffolding nodes — safe for plain `Unlink()`).
+
+3. **`CFForLoop`'s body was *never* actually multi-statement-safe**, even
+   before Stage 8 — `BuildForLoopPattern`'s `kBody` used a single-node
+   `Optional(Tag::Any, kBody, IsStatement)` the whole time; it only ever
+   worked because `compressAST()` pre-merged a real multi-statement body
+   into one `CodeBlock` first. Same fix pattern as case 1: switched to
+   `Statements(kBody)` (already exists, no new combinator needed here) and
+   `CFForLoop::Print()`'s `body_->PrintOnNewLine()` → `PrintBodyChain(dec,
+   body_)`, same as the other `ControlBlock` subclasses. Also fixed the
+   equivalent single-node-assuming `Print()` bugs (same class of issue as
+   case 1, just on the print side, not the capture side) in
+   `CFForEachSlotValueDo::Print()`, `ExceptionHandler::Print()`, and
+   `CFTry::Print()` — all switched to `PrintBodyChain()`. `CFIfThen::Print()`
+   had two branches gated on `body_->IsMultiStatement()`/
+   `elseBody_->IsMultiStatement()` that are now **permanently dead** (that
+   virtual is `false` everywhere except the now-deleted `CodeBlock`) —
+   removed them; the sibling branch each one gated against (a plain
+   `for (Node *it = body_; it; it = it->next)` loop) was already
+   chain-safe and is now the only path taken, so this is a pure
+   dead-code removal, not a behavior change.
+   `CFForEachSlotValueCollect::Print()`'s `body_->Print()` stayed
+   untouched — its body is always a single expression (`BCSetARef::Element()`),
+   never a chain, by construction.
+
+4. **The one dead end, explicitly not repeated**: a nested `for` loop with
+   an arithmetic operand computed by an interleaved statement —
+   `loc7 := loc11 + begin loc3 := 7 - (loc8 - 1); loc3 end` in the old
+   `compressAST()`-based baseline — regressed to a raw unresolved dump
+   (confirmed via the 12-package corpus, `SolitoDeluxe2.5/Games/Pyramid.pkg`
+   → `setupCards`). Root cause: `Consume2::Resolve()` (`ASTAdmin.cc`, backs
+   `BinaryOperator` and friends) requires strict adjacency
+   (`prev->IsExpr() && prev->prev->IsExpr()`) — it never had a
+   `compressAST()`-equivalent fallback of its own, it just benefited from
+   one running first. **First attempted fix (reverted, do not retry
+   without a fundamentally different approach)**: a generic
+   `FindOperandBackward()` that let *any* `Consume1`/`Consume2`/`ConsumeN`
+   walk backward past an interleaved `IsStatement()` node to find its real
+   operand. This is **unsound** and was caught only by the regression
+   corpus, not by reasoning about it in advance: it cannot distinguish "a
+   statement that computes the exact value this operand's `GetVar` then
+   reads" (the one legitimate case) from "there is no pending expression
+   value here at all, and the nearest expr further back belongs to
+   something completely unrelated" (e.g. a function's own trailing
+   implicit-`nil`-return `PushConst` sitting *after* an unrelated `SetVar`
+   statement) — list adjacency plus `IsStatement()`/`IsExpr()` alone is not
+   enough information to tell those apart. Tried on the 12-package corpus:
+   it "fixed" the one real case but silently produced **wrong** (not just
+   unresolved) output on 9 of the other 12 files, mostly by having
+   `Consume2` reach back through an entire run of prior statements to grab
+   some unrelated earlier expression as an operand. Reverted in full
+   (`ASTAdmin.h`/`.cc` are back to their pre-Stage-8 state, confirmed via
+   `git diff --stat`). **Current status**: this one nested-arithmetic-
+   operand shape is left unresolved (dumps raw bytecode, same as any other
+   not-yet-handled shape) — consistent with this codebase's core
+   discipline of "never wrong, only unresolved." If it recurs often enough
+   in the real corpus to be worth fixing, the sound fix is almost
+   certainly narrower and more structural than a generic backward skip —
+   e.g. recognizing the specific "`SetVar x`, immediately followed later by
+   a `GetVar x` that's itself operand N of an outer Consume" shape, or
+   giving `pattern::TryResolve` a chance to run *before* generic DataFlow
+   operand consumption for exactly this case — not a blanket change to
+   `Consume1`/`Consume2`/`ConsumeN`'s operand search.
+
+5. **Everything else genuinely improved, not just "stayed the same".**
+   Several of the 12 corpus files came out *better* than the pre-Stage-8
+   baseline, not just different — `compressAST()`'s greedy merging had been
+   silently over-reaching in ways nobody had previously noticed, folding
+   entirely unrelated preceding statements into a nearby `or`'s left
+   operand whenever they happened to sit next to each other in the flat
+   list (e.g. a dozen unrelated statements swallowed into
+   `if begin ...lots of unrelated code...; cond end or cond2 then ...`,
+   where the correct reading is those statements standing on their own,
+   followed by a plain `if cond or cond2 then ...`). One corpus file's
+   "13 unresolved nodes" warning (present on 3 separate functions in the
+   pre-Stage-8 baseline) is now gone on 2 of the 3 and unchanged
+   (confirmed byte-identical, a pre-existing unrelated limitation) on the
+   third.
+
+**Net result, verified via the full recipe** (12-package corpus vs. the
+pre-Stage-8 baseline, plus fresh hand-written `-script` tests for
+multi-statement if/then/else-as-expression, try-as-expression, try-as-
+statement with mixed single/multi/absent handler bodies, multi-statement
+`for`/`foreach...do` bodies, and the single/empty-body edge cases): zero
+regressions, several corpus files strictly improved, one narrow and now
+well-understood limitation left unresolved (case 4 above) rather than
+silently wrong.
+
+### What's left (not a numbered stage — deliberately out of scope here)
+- The `argFrame`/`numArgs` encoding discrepancy from the diagnostic logging
+  described above (`viewSetupFormScript`) — root cause not investigated.
+- The nested-arithmetic-operand case from Stage 8 item 4 above.
+- The pre-existing "13/12 unresolved nodes" corpus failures already
+  catalogued in `Decompiler.cc`'s scratch-log comment block — unrelated to
+  this redesign, never claimed to be fixed by it.
 
 ## Hard-won C++ gotcha (don't re-discover this)
 

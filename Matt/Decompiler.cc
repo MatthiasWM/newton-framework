@@ -745,12 +745,6 @@ void Decompiler::solve()
       continue;
     }
     if (p.DebugAST()) { p.Item(); p.Print("DataFlow passes done"); p.ItemDone(); }
-    // ---- Compression Pass
-    if (compressAST()) {
-      if (p.DebugAST()) printAST("Compression Pass");
-      continue;
-    }
-    if (p.DebugAST()) { p.Item(); p.Print("Compression passes done"); p.ItemDone(); }
     // ---- Control Flow Pass
     numASTChanges = 0;
     for (Node *nd = first_; nd && !numASTChanges; nd = nd->Resolve(Node::Pass::ControlFlow)) { }
@@ -762,53 +756,6 @@ void Decompiler::solve()
     // ---- No more changes on any level
     break;
   }
-}
-
-/**
- \brief Combine multiple statements into a single Code Block.
-
- This method walks the Root layer of the AST and finds multiple consecutive
- statements, or one or more statements followed by an expression, and groups
- them into a new node that presents as a single statement or expression.
-
- This resolves only the first occurrence of this pattern and then returns true.
- To compress the entire AST, this method should be called until it returns false.
-
- \return true if there were any changes.
- */
-bool Decompiler::compressAST()
-{
-  Node *nd = first_;
-  while (nd) {
-    if (nd->IsStatement()) {
-      int numStmts = 1;
-      Node *it = nd->next;
-      bool isExpr = false;
-      while (it) {
-        if (it->IsExpr()) {
-          isExpr = true;
-          numStmts++;
-          break;
-        }
-        if (!it->IsStatement()) {
-          break;
-        }
-        numStmts++;
-        it = it->next;
-      }
-      if (numStmts > 1) {
-        CodeBlock *codeBlock = MakeNode<CodeBlock>(*this, nd->pc(), isExpr ? kProvidesOne : kProvidesNone);
-        // Insert codeBlock before nd
-        nd->InsertBefore(codeBlock);
-        codeBlock->moveToBody(nd, numStmts);
-        nd = codeBlock->next;
-        return true;
-//        nd = codeBlock;
-      }
-    }
-    nd = nd->next;
-  }
-  return false;
 }
 
 /**

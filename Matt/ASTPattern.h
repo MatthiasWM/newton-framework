@@ -219,6 +219,106 @@ public:
     return *this;
   }
 
+  /** Capture "0+ statement nodes, then exactly 1 required trailing expr
+      node" directly off the flat list -- the shape a NewtonScript compound-
+      expression body (`begin stmt1; stmt2; finalValue end`) has when it's
+      used somewhere a single expression is expected (an if/then/else
+      branch, a try body or handler body). This is the flat-list equivalent
+      of what the old, now-removed `compressAST()` pre-pass used to do by
+      physically merging such a run into one CodeBlock node before the
+      ControlFlow pass ran: any run of statements immediately followed by
+      exactly one expr node is one semantic unit. `Required(Tag::Any, slot,
+      IsExpr)` alone only sees the *first* node of such a run and fails to
+      match a multi-node one -- use this instead wherever a captured "body"
+      may legally be more than one statement long. Captures the whole run
+      (statements + trailing expr, in source order) into `m.run(slot)`,
+      exactly like Statements() -- callers extract it the same way, via
+      `run.front()->UnlinkChain(run.back())`. Direction-aware: for a
+      backward-walking spec, the trailing expr is the *first* node the
+      cursor encounters (it's last in source order), so the search order
+      flips accordingly, though every current use is forward. See
+      OptionalStatementsThenExpr() for the variant where the whole body may
+      be entirely absent. */
+  Builder &StatementsThenExpr(int slot) {
+    steps_.push_back([slot](Cursor &c, Match &m) -> bool {
+      Cursor look = c;
+      std::vector<Node*> run;
+      if (c.direction() == kFwd) {
+        while (Node *nd = look.peek()) {
+          if (!nd->IsStatement()) break;
+          run.push_back(nd);
+          look.advance();
+        }
+        Node *tail = look.peek();
+        if (!tail || !tail->IsExpr()) return false;
+        run.push_back(tail);
+        look.advance();
+      } else {
+        Node *tail = look.peek();
+        if (!tail || !tail->IsExpr()) return false;
+        run.push_back(tail);
+        look.advance();
+        while (Node *nd = look.peek()) {
+          if (!nd->IsStatement()) break;
+          run.push_back(nd);
+          look.advance();
+        }
+        std::reverse(run.begin(), run.end());
+      }
+      m.SetRun(slot, std::move(run));
+      c = look;
+      return true;
+    });
+    return *this;
+  }
+
+  /** Same as StatementsThenExpr(), but the whole body may be entirely
+      absent (e.g. an exception handler with no statements at all before
+      its Branch) -- in that case the run is left empty and the slot is
+      marked absent (m.has(slot) == false), same as Optional()'s "no match"
+      outcome, rather than rejecting the whole pattern. A leading run of
+      statements with no trailing expr is still rejected outright (that
+      shape is malformed, not "absent"), same as StatementsThenExpr(). */
+  Builder &OptionalStatementsThenExpr(int slot) {
+    steps_.push_back([slot](Cursor &c, Match &m) -> bool {
+      Cursor look = c;
+      std::vector<Node*> run;
+      if (c.direction() == kFwd) {
+        while (Node *nd = look.peek()) {
+          if (!nd->IsStatement()) break;
+          run.push_back(nd);
+          look.advance();
+        }
+        Node *tail = look.peek();
+        if (!tail || !tail->IsExpr()) {
+          if (!run.empty()) return false;
+          m.SetAbsent(slot);
+          return true;
+        }
+        run.push_back(tail);
+        look.advance();
+      } else {
+        Node *tail = look.peek();
+        if (!tail || !tail->IsExpr()) {
+          m.SetAbsent(slot);
+          return true;
+        }
+        run.push_back(tail);
+        look.advance();
+        while (Node *nd = look.peek()) {
+          if (!nd->IsStatement()) break;
+          run.push_back(nd);
+          look.advance();
+        }
+        std::reverse(run.begin(), run.end());
+      }
+      m.SetRun(slot, std::move(run));
+      c = look;
+      return true;
+    });
+    return *this;
+  }
+
   /** Reject the whole match unless a prior Statements(slot) captured at
       least one node. Some idioms (e.g. `if...then`) never omit their body
       entirely the way `loop`/`while`/`repeat` can (which default to a `nil`

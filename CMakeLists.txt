@@ -194,7 +194,6 @@ set ( HEADERFILES
   Matt/ObjectPrinter.h
   Matt/Decompiler.h
   Matt/AST.h
-  Matt/ASTMacros.h
   Matt/ASTAdmin.h
   Matt/ASTDataFlow.h
   Matt/ASTControlFlow.h
