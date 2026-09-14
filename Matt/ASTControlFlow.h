@@ -101,7 +101,6 @@ public:
   int provides() override { return kProvidesUnknown; }
   bool Resolved() override { return false; }
   Node *Resolve(Pass pass) override;
-  Node *ResolveForeachSlotValueCollect();
   void Print(uint32_t flags = 0) override;
 };
 

@@ -514,6 +514,48 @@ void CFForEachSlotValueDo::Print(uint32_t flags)
   body_->PrintOnNewLine();
 }
 
+#pragma mark - CFForEachSlotValueCollect
+
+CFForEachSlotValueCollect::CFForEachSlotValueCollect(
+    Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body)
+: ControlBlock(d, pc, kProvidesOne),
+object_(obj), slot_(slot), value_(value), deeply_(deeply)
+{
+  body_ = body ? body : NewNil();
+}
+
+void CFForEachSlotValueCollect::PrintChildren(bool deep)
+{
+  dec.p.Tag();
+  dec.p.Print("##### ---> Foreach ");
+  if (slot_ != -1) {
+    dec.printLocal(slot_);
+    dec.p.Print(", ");
+  }
+  dec.printLocal(value_);
+  if (deeply_) dec.p.Print(" deeply");
+  dec.p.Print(" in");
+  if (object_) object_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--> collect ");
+  if (body_) body_->PrintNode(deep);
+  dec.p.Tag(); dec.p.Print("##### <--- Foreach Done");
+}
+
+void CFForEachSlotValueCollect::Print(uint32_t flags)
+{
+  dec.p.Print("foreach ");
+  if (slot_ != -1) {
+    dec.printLocal(slot_);
+    dec.p.Print(", ");
+  }
+  dec.printLocal(value_);
+  if (deeply_) dec.p.Print(" deeply");
+  dec.p.Print(" in ");
+  object_->Print();
+  dec.p.Print(" collect ");
+  body_->Print();
+}
+
 #pragma mark - ExceptionHandler
 
 void ExceptionHandler::PrintChildren(bool deep)

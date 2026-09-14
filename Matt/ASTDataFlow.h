@@ -82,6 +82,7 @@ class BCPop : public Consume1 {
 public:
   BCPop(Decompiler &d, int pc, int a, int b) : Consume1(d, pc, a, b) { }
   const char *Class() override { return "BCPop"; }
+  pattern::Tag tag() const override { return pattern::Tag::Pop; }
   int provides() override { if (in_) return kProvidesNone; else return kProvidesUnknown; }
   Node *Resolve(Pass pass) override;
   void Print(uint32_t flags = 0) override;

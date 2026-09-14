@@ -102,6 +102,31 @@ message (from edits adding/removing lines earlier in a file) is expected
 noise, not a regression — check the actual diff content, not just whether
 `diff` reports any difference at all.
 
+The 12-package curated sample used throughout this file's port-by-port
+verification happened to include two packages that crashed on a pre-existing
+`assert(i < (int)locals_.size())` in `Decompiler::decompile()`
+(`SolitoDeluxe2.5/sdx25.pkg`, `Motile/motile.pkg`) — every regression check
+above diffed clean *except* a line-number shift inside that one assertion
+message, which is why it kept coming up. That assert is now replaced with a
+diagnostic (`fprintf` to stderr: file, `ObjectPrinter::RefPath()`, slot
+index, tag name, `locals_.size()` vs. `numArgs_`/`numLocals_`, `argFrame`'s
+real length, and the raw bit-packed `numArgs` field) followed by `break`
+instead of aborting — so a mismatch no longer takes down the whole
+decompile, just skips naming the extra slot(s). Both of those two packages
+turned out to hit the **exact same shape**: a zero-arg `func()` named
+`viewSetupFormScript` where the raw `numArgs` field decodes to
+`numArgs_=0, numLocals_=0`, but `argFrame` has one extra named slot
+(`prefs`) the bit-packed count doesn't account for — with both packages now
+decompiling that function's *body* correctly regardless (worth understanding
+*how*, since it clearly isn't reading the name from `locals_[3]`). Root
+cause not yet investigated — likely an NTK `kPlainFuncClass` encoding edge
+case specific to this zero-arg/zero-local shape, not a general local-count
+bug, since normal functions with real args/locals work fine throughout the
+whole corpus. `viewSetupFormScript` appearing verbatim in two unrelated
+packages suggests shared boilerplate (a proto/library template both apps
+were built from), which might make it easier to track down where it
+originates.
+
 ## The pattern-finder redesign (in progress)
 
 ### The problem
@@ -136,18 +161,23 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
   list**, no physical `CodeBlock` needed), repeated groups (`Repeat`, for
   N-handler `try` blocks etc.).
 - `Builder` — the DSL: `Required`/`Optional`/`Statements`/`NonEmpty`/
-  `Repeat`/`JumpPair`/`Guard`/`Name`/`Priority`/`Custom`, ending in
-  `.Build(callback)`.
+  `ZeroOrMore`/`Repeat`/`JumpPair`/`Guard`/`Name`/`Priority`/`Custom`, ending
+  in `.Build(callback)`.
   - `NonEmpty(slot)` rejects the match unless a prior `Statements(slot)`
     captured at least one node — needed for idioms (like `if...then`) that,
     unlike `loop`/`while`/`repeat`, never default to a `nil` body.
+  - `ZeroOrMore(tag, slot)` is `Statements()`'s sibling for a run keyed on
+    an exact `tag()` instead of `IsStatement()` — e.g. a cluster of
+    `JumpTarget`s. Unlike `Repeat()` (whose count is known ahead of time
+    from the anchor), this greedily takes as many as match and always
+    succeeds, even with zero.
   - `Custom(step)` is the escape hatch: embed a raw `Step` (the same
     `bool(Cursor&, Match&)` function type every other combinator compiles
     down to) for logic too irregular to express declaratively — a capture
     whose cursor advancement is conditional on what an *earlier* capture
     found, or a capture that needs to walk the anchor's neighbors in the
-    *opposite* direction from the rest of the spec. So far only
-    `foreach...do` has needed it (twice — see below); reach for it only
+    *opposite* direction from the rest of the spec. `foreach...do` and
+    `foreach...collect` both need it (see below); reach for it only
     when the named combinators genuinely can't express what's needed.
 - `Register(spec)` / `TryResolve(anchor)` — a `Tag`-indexed registry; a new
   idiom is a **new file-scope static registration**, zero edits to the
@@ -280,32 +310,110 @@ a port — but it's a legitimate future robustness improvement if `try`
 blocks ever misdecompile in a way the other, more rigorously-checked
 idioms wouldn't.
 
+`foreach...collect` (`BuildForeachCollectPattern`) is done, replacing the
+never-finished `ResolveForeachSlotValueCollect()` (which the original left
+mid-rewrite, hitting an unconditional `break` with commented-out,
+non-compiling construction code). **Its bytecode shape was re-derived from
+scratch** — per the standing rule in step 7 below, the abandoned sketch's
+own structure was not trusted; instead: write a hand-compiled
+`foreach...collect` script, dump it with `-debug bc`/`-decompile
+-debug ast`, and read the *already-resolved* parts of the decompiler's own
+output (most of the surrounding data flow resolves generically even with no
+control-flow matcher present) to reconstruct the exact shape empirically.
+That process is worth repeating for any future idiom this doc doesn't
+already cover in detail. Concretely, `collect` differs from `do` in three
+ways:
+- It pre-sizes a result array (`result := Array(iterator[5], nil)`, where
+  `iterator[5]` is the object's total slot count) and a running `index :=
+  0` before the loop — a `initBlock` `CodeBlock` with no equivalent in `do`.
+- Its per-iteration setup is *never* just the optional single node `do` can
+  have — it's *always* `SetVar value := iterator[1]; [SetVar slot :=
+  iterator[0];] SetARef(result, index, <body>); Pop`, i.e. always >= 2
+  statements, so it's *always* a `CodeBlock` by the time this pattern runs
+  (no `Custom()`-driven CodeBlock-or-raw-list fallback needed here, unlike
+  `do` — one less irregularity, not more, despite `collect` looking scarier
+  on paper). The collect expression itself comes out of that block's
+  trailing `Pop`'s `Input()` (a `BCSetARef`) via `.Element()` — and per
+  `BCSetARef::Resolve()` (ASTDataFlow.cc), `Element()` is **already
+  unlinked from the root list** by ordinary DataFlow resolution, same as
+  any Consume1 `in_` — don't call `.Unlink()` on it again, that's a
+  double-unlink into a null `prev`.
+- Break-handling is structurally different, not just re-derived: `do`'s
+  `break` reuses the existing `BCBranch::ResolveBreak()`/`CFBreak`
+  machinery (a `Branch` immediately followed by a dead-code `BCPop`);
+  `collect`'s compiles to `push value; Branch <landing zone>` with **no**
+  following Pop (the pushed value is consumed at the landing zone, not
+  discarded), so `ResolveBreak()` never recognizes it. This spec instead
+  matches that whole landing-zone shape directly and structurally
+  (`ZeroOrMore(JumpTarget)` + optional result-override `SetVar` + cleanup),
+  exactly mirroring what the original's incomplete sketch was reaching for.
+
+**Known, deliberate, documented limitation**: `break` used *from inside*
+the collect body expression itself (e.g. `foreach x in y collect if cond
+then break z else x`) is not supported — recognizing it would need a new
+dedicated pattern (matching "Branch whose target is this construct's own
+break-landing zone", not the existing Branch-then-Pop shape), which is a
+real additional feature, not a structural translation, and was scoped out.
+Confirmed safe rather than silently wrong: since the compiler never emits
+the dead-Pop marker `ResolveBreak()` looks for, a break-containing body
+never resolves into the single clean expression this spec's
+`Required(kBodyExpr)`-equivalent step needs, so the *whole* construct
+simply fails to match — exactly the same "stays unresolved" outcome as
+before this port existed, verified by testing that exact case and diffing
+byte-identical against pre-port output.
+
+**This port paid off immediately on real data**: the regression corpus
+sample includes `SolitoDeluxe2.5/sdx25.pkg`, whose `viewSetupFormScript`
+helper (the same function implicated in the `argFrame`/`numArgs`
+diagnostic finding above) contains a real `foreach slot, value in ... collect
+{...}` construct, appearing at three call sites in that one package. All
+three now resolve correctly (`popup := foreach loc0, loc1 in
+GetRoot().|Extras:SoloDx:Tactile|.game collect {item: loc1.userName, sym:
+loc0};`) where they previously stayed permanently unresolved — this is
+also, incidentally, evidence the same shared-template theory from the
+`argFrame` finding is plausible: this exact helper function structure
+(`viewSetupFormScript`, plus whatever calls into this `collect`) recurring
+verbatim across otherwise-unrelated packages.
+
+**`and` needed no new registration at all** — the plan's step 7 framing
+("and... currently only recovered as print-time sugar... never matched as
+its own construct") was written before the if/then/else port (step 3)
+existed, and turned out to already be moot once it landed: `a and b`
+compiles to *exactly* the same bytecode as `if a then b else nil` (the
+original's own class comment already said so), `BuildIfThenElseExprPattern`
+already builds a `CFIfThen` for that shape, and the **pre-existing,
+untouched** print-time sugar in `CFIfThen::Print()` already recognizes a
+bare-`nil` `elseBody_` and prints `and` instead of the full if/then/else.
+Verified round-tripping correctly as-is in every context tried: `return a
+and b`, `x := a and b`, nested (`a and b and c`) — no code change, only the
+stale `// TODO: and` checklist comment at the top of `ASTControlFlow.cc`
+needed updating. One real, unfixable gap surfaced along the way, not a bug:
+`and` used as a bare **statement** whose value is never consumed (e.g. `a
+and Print(b);`) decompiles as `if a then Print(b);` (no `and`), because the
+compiler elides the "else nil" push entirely when nothing needs the
+resulting value — at that point the bytecode for `a and b;` and `if a then
+b;` is *identical*, so no amount of pattern-matching (at resolve time or
+print time) can recover which one the source actually said. This is the
+same category of fundamental, information-theoretic ambiguity as the
+`and`/`if-then-else` overlap itself, just one directional case of it.
+
 ### Order of remaining work
 1. ~~Port `or`~~ — done.
 2. ~~Port `while/do`, `repeat/until`~~ — done.
-3. ~~Port the three `if/then/else` shapes~~ — done. `and` (currently only
-   recovered as print-time sugar in `CFIfThen::Print()`, never matched as
-   its own construct) is deliberately deferred to step 7, per the original
-   plan — it needs the same shape as the if/else-expr spec above (reusing
-   `MakeIfThen`), just with `elseBody` forced to a literal `nil` check.
+3. ~~Port the three `if/then/else` shapes~~ — done.
 4. ~~Port `for...to...by...do`~~ — done (still `CodeBlock`-dependent, see above).
 5. ~~Port `foreach...do`~~ — done (also `CodeBlock`-dependent in places, see
    above; introduced `Builder::Custom()`).
 6. ~~Port `try...onException...do`~~ — done. Turned out to be the shortest
    port yet (see above) — every real matcher is now on the pattern engine.
-7. **Next up.** Implement `foreach...collect` and `and` as fresh
-   registrations — this is the acceptance test for the whole redesign
-   (should now be tractable ~40-line registrations, not 130-line
-   near-duplicates). `foreach...collect` will likely reuse most of
-   `BuildForeachDoPattern`'s structure (same backward object/deeply
-   `Custom()` step, same CodeBlock-front extraction idea, different tail
-   shape) — worth checking whether it's cleaner to factor out a shared
-   helper between the two once collect's actual shape is back in view (it
-   was mid-rewrite and non-compiling in the original, so don't assume its
-   old structure is trustworthy — re-derive the bytecode shape from
-   scratch, same as every other port here has). `and` reuses `MakeIfThen`
-   with `elseBody` forced to a literal `nil` check, per step 3's note.
-8. Delete `ASTMacros.h`, `Decompiler::compressAST()` and the Compression
+7. ~~Implement `foreach...collect` and `and`~~ — done. `foreach...collect`
+   needed a genuine new registration (introduced `Builder::ZeroOrMore()`
+   and the new `CFForEachSlotValueCollect` node class); `and` turned out to
+   need *no* new code at all, just a stale comment fix (see above for both)
+   — **every idiom the plan identified is now either on the pattern engine
+   or (for `and`) already correctly handled by it indirectly. Nothing left
+   before step 8.**
+8. **Next up.** Delete `ASTMacros.h`, `Decompiler::compressAST()` and the Compression
    phase of `Decompiler::solve()`, `CodeBlock`'s list-splicing methods
    (`add`/`moveToBody`/`pop_back`/`pop_front`/`UnlinkIfEmpty`), and every
    now-unreferenced `ResolveXxx()` declaration.

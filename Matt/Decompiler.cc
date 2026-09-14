@@ -23,6 +23,11 @@
 
 using namespace ast;
 
+// Set by newtc.cc/BookWriter.cc whenever a new package/script/file is
+// loaded; used below purely for diagnostics (which file was being
+// decompiled when something looked wrong).
+extern std::string currentFileName;
+
 /*
  NTK Settings:
  Platform: platform file used is reflected in the "info" entry. All other
@@ -386,7 +391,28 @@ void Decompiler::decompile(Ref ref)
     if (IsFrame(argFrame)) {
       CObjectIterator iter(argFrame);
       for (int i = 0; !iter.done(); iter.next(), ++i) {
-        assert(i < (int)locals_.size());
+        // TODO: this has been seen to fire on real packages (e.g.
+        // SolitoDeluxe2.5/sdx25.pkg, Motile/motile.pkg) -- argFrame has more
+        // slots than `3 (system) + numArgs_ + numLocals_` predicts. Log
+        // what we can instead of crashing, so decompilation of the rest of
+        // the package can continue; once we know why this happens, fold the
+        // fix into the numArgs_/numLocals_ math above instead of guarding
+        // here forever.
+        if (i >= (int)locals_.size()) {
+          fprintf(stderr,
+            "Decompiler::decompile(): argFrame has more slots than expected!\n"
+            "  file: '%s'\n"
+            "  path: '%s'\n"
+            "  slot index i=%d, tag='%s'\n"
+            "  locals_.size()=%d (3 system + numArgs_=%d + numLocals_=%d)\n"
+            "  argFrame length=%d, raw 'numArgs' field=0x%08lx\n",
+            currentFileName.c_str(),
+            p.RefPath().c_str(),
+            i, SymbolName(iter.tag()),
+            (int)locals_.size(), numArgs_, numLocals_,
+            (int)Length(argFrame), (unsigned long)numArgs);
+          break;  // nowhere left to put the remaining names -- stop here
+        }
         locals_[i].ref = iter.tag();
         if (i > 3+numArgs_) locals_[i].use = Local::Use::noted;
       }

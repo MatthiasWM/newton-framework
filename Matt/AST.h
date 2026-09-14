@@ -49,6 +49,7 @@ enum class Tag : uint16_t {
   IterDone,
   NewHandler,
   PopHandlers,
+  Pop,
 };
 } // namespace pattern
 

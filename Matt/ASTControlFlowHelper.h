@@ -163,6 +163,26 @@ public:
   void Print(uint32_t flags = 0) override;
 };
 
+/**
+ \brief `foreach [slot,] value [deeply] in object collect body end`.
+ Unlike CFForEachSlotValueDo, `body` here is always a single expression
+ (never a statement / multi-statement chain) -- it's whatever gets assigned
+ into the result array on each iteration, not a free-form loop body -- so
+ Print() never needs PrintOnNewLine()'s begin/end handling.
+ \see BCNewIter::Resolve(), Matt/ASTControlFlowPatterns.cc (BuildForeachCollectPattern)
+ */
+class CFForEachSlotValueCollect : public ControlBlock {
+  Node *object_ = nullptr;
+  int slot_ = -1;
+  int value_ = -1;
+  bool deeply_ = false;
+public:
+  CFForEachSlotValueCollect(Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body);
+  const char *Class() override { return "CFForEachSlotValueCollect"; }
+  void PrintChildren(bool deep) override;
+  void Print(uint32_t flags = 0) override;
+};
+
 class ExceptionHandler : public JumpTarget {
 protected:
   int excp_ = -1;

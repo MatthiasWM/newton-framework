@@ -195,6 +195,30 @@ public:
     return *this;
   }
 
+  /** Capture a variable-length (possibly empty) run of consecutive nodes all
+      matching `t`, directly off the flat list -- like Statements(), but
+      keyed on an exact tag() rather than IsStatement(). For idioms whose
+      "zero or more of exactly this shape" run isn't statement-shaped, e.g.
+      a cluster of JumpTargets (see BuildForeachCollectPattern's break-target
+      skip in ASTControlFlowPatterns.cc, ported from the original's
+      `for (;;) REQUIRED_NODE(JumpTarget, ...)` idiom). Unlike Repeat(), the
+      count isn't known ahead of the match -- this greedily takes as many as
+      match and always succeeds, even with zero. */
+  Builder &ZeroOrMore(Tag t, int slot) {
+    steps_.push_back([t, slot](Cursor &c, Match &m) -> bool {
+      std::vector<Node*> run;
+      while (Node *nd = c.peek()) {
+        if (nd->tag() != t) break;
+        run.push_back(nd);
+        c.advance();
+      }
+      if (c.direction() == kBwd) std::reverse(run.begin(), run.end());
+      m.SetRun(slot, std::move(run));
+      return true;
+    });
+    return *this;
+  }
+
   /** Reject the whole match unless a prior Statements(slot) captured at
       least one node. Some idioms (e.g. `if...then`) never omit their body
       entirely the way `loop`/`while`/`repeat` can (which default to a `nil`
