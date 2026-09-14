@@ -50,7 +50,6 @@ public:
   const char *Class() override { return "BCBranchIfFalse"; }
   pattern::Tag tag() const override { return pattern::Tag::BranchIfFalse; }
   int provides() override { return kProvidesUnknown; }
-  Node *ResolveIfTheElse();
   Node *Resolve(Pass pass) override;
   bool Resolved() override { return false; }
   void Print(uint32_t flags = 0) override;

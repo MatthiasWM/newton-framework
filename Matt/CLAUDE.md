@@ -58,11 +58,14 @@ Unrelated tools that happen to live in `Matt/` (not touched by this work):
 
 ## Branch
 
-This work lives on `AST_pattern_matching` (branched off `restructure`).
-Matt committed the arena/`JumpPairMatches`/pattern-engine/`loop` work as
-`455fd20 "Initial commit for new pattern matching AST"`; everything ported
-since (currently: `while`, `repeat`, `or`) is uncommitted on top of that
-until he reviews and commits it himself.
+This work lives on `AST_pattern_matching` (branched off `restructure`). Matt
+reviews and commits each stage himself as it lands:
+`455fd20 "Initial commit for new pattern matching AST"` (arena,
+`JumpPairMatches`, the pattern engine, `loop`), then
+`8b8cecf "Adding patterns for While-Do and Repeat-Until"` (which, despite
+the name, also included `or`). Whatever's ported since the latest commit
+(currently: `if`/`then`/`else`, all three shapes) is uncommitted until he
+does the same.
 
 ## How to build and test
 
@@ -132,31 +135,101 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
   length statement runs (`Statements`, captured **directly off the flat
   list**, no physical `CodeBlock` needed), repeated groups (`Repeat`, for
   N-handler `try` blocks etc.).
-- `Builder` — the DSL: `Required`/`Optional`/`Statements`/`Repeat`/
-  `JumpPair`/`Guard`/`Name`/`Priority`, ending in `.Build(callback)`.
+- `Builder` — the DSL: `Required`/`Optional`/`Statements`/`NonEmpty`/
+  `Repeat`/`JumpPair`/`Guard`/`Name`/`Priority`, ending in `.Build(callback)`.
+  `NonEmpty(slot)` rejects the match unless a prior `Statements(slot)`
+  captured at least one node — needed for idioms (like `if...then`) that,
+  unlike `loop`/`while`/`repeat`, never default to a `nil` body.
 - `Register(spec)` / `TryResolve(anchor)` — a `Tag`-indexed registry; a new
   idiom is a **new file-scope static registration**, zero edits to the
   anchor bytecode's own class.
 
 `Matt/ASTControlFlowPatterns.cc` is where idioms get registered. Ported so
-far: `loop...end`, `while...do...end`, `repeat...until...end`, `a or b` —
-`BCBranch::ResolveLoop()`, `BCBranchIfTrue::ResolveWhileDo()`,
-`BCBranchIfTrue::ResolveOr()`, and `BCBranchIfFalse::ResolveRepeatUntil()`
-are all **deleted** from `ASTControlFlow.cc`/`.h`. `ResolveIfTheElse()`
-(BranchIfFalse) is the only hand-written matcher left on those two branch
-classes; `for`/`foreach`/`try` are untouched.
+far: `loop...end`, `while...do...end`, `repeat...until...end`, `a or b`,
+all three `if...then...[else...]` shapes (bare, statement/statement,
+expr/expr), and `for...to...by...do`. `BCBranch::ResolveLoop()`,
+`BCBranchIfTrue::ResolveWhileDo()`, `BCBranchIfTrue::ResolveOr()`,
+`BCBranchIfFalse::ResolveRepeatUntil()`, `BCBranchIfFalse::ResolveIfTheElse()`,
+and the entire body of `BCBranchLoop::Resolve()` (it had no separate
+`ResolveXxx()`, the matcher lived inline) are all **deleted/replaced** in
+`ASTControlFlow.cc`/`.h` — `BCBranch`/`BCBranchIfTrue`/`BCBranchIfFalse`/
+`BCBranchLoop` have no hand-written matching logic left at all, only
+`pattern::TryResolve(this)`. Only `foreach`/`try` are untouched.
+
+The three if/then/else specs (`BuildIfThenPattern`, `BuildIfThenElsePattern`,
+`BuildIfThenElseExprPattern` in `ASTControlFlowPatterns.cc`) share one
+`MakeIfThen(...)` construction helper. One deliberate, documented departure
+from 1:1 fidelity: the original's expr-shape optionally captured the
+`Branch`/`JumpTarget` else-scaffolding (never required it structurally), but
+its own class comment states the shape "exists only as if/then/else" — a
+value-producing conditional needs both sides to produce a value, so
+expr-with-no-else isn't just rare, it's impossible. The expr spec makes
+that else-scaffolding `Required()`, not `Optional()`; if that's ever wrong
+for some package, the spec fails to match and that function shows up as an
+unresolved node — a visible failure, not a silently wrong one. The two
+statement-shape specs (bare-if vs if/else) needed no such assumption: they
+split cleanly because "next node is a JumpTarget" vs "next node is a
+Branch" are exhaustive, mutually exclusive alternatives, provable from how
+the bytecode is shaped, not from any belief about what NTK does.
+
+`CFIfThen::Print()` had the same latent `IsMultiStatement()` gap as
+`CFWhile`/`CFRepeat` (see below) but couldn't just switch to
+`PrintBodyChain()` — it has its own bespoke always-`begin`/`end` policy
+(`forceBeginEnd`) and an "else if" chain special-case. Fixed narrowly
+instead: added an `IsChainMultiStatement(Node*)` helper (same idea as
+`PrintBodyChain`'s single-vs-chain check) for the two `body_`/`elseBody_`
+"is this actually multi-statement" tests (including the `a and b` sugar
+guard), and turned the two single-node-assuming `body_->Print()` /
+`elseBody_->PrintOnNewLine()` calls into loops over the chain. Same
+lesson as before: **grep every `IsMultiStatement()` call and every
+`body_->Print()`/`PrintOnNewLine()` call across `ASTControlFlowHelper.cc`
+whenever a newly-ported matcher can feed a `ControlBlock` a
+`Statements()`-derived body — don't assume only the class you're actively
+porting is affected.**
+
+`for...to...by...do` (`BuildForLoopPattern` in `ASTControlFlowPatterns.cc`)
+is the **one exception** to "no `CodeBlock` needed" among everything ported
+so far, and it's not a design compromise — it's a direct, unavoidable
+consequence of `compressAST()` still being active. `iter`/`limit`/`incr`
+are set by three consecutive `BCSetVar` *statements* right before the
+loop's own scaffolding; since `compressAST()` pre-merges any run of 2+
+statements before the ControlFlow pass ever runs, those three SetVars (plus
+whatever unrelated code precedes them) are *already* fused into one opaque
+`CodeBlock` by the time this pattern is tried — there is no flat-list
+position where `Required(Tag::SetVar, ...)` could address them
+individually today. The spec still requires a `CodeBlock` (`Required(Any,
+cond: dynamic_cast<CodeBlock*> && size()>=4)`) and reaches into its tail by
+fixed offset inside the callback, exactly like the original — this is
+intentional, documented fragility, not an oversight. It should become
+`Statements(preamble) + Required(SetVar,iter) + Required(SetVar,limit) +
+Required(SetVar,incr)` (no `CodeBlock` at all) once Stage 8 removes
+`compressAST()` and those three statements become individually-addressable
+list nodes again. **This is worth remembering for `foreach` too** — it will
+likely hit the identical constraint for its own multi-statement setup, and
+should get the identical documented treatment rather than a fight to avoid
+`CodeBlock` prematurely.
+
+Also caught while porting `for`: the original's local-consistency check
+`limit = getLimit->b(); if (getLimit->b() != limit) break;` compares a
+freshly-assigned value to its own source — it's dead code, always true,
+almost certainly meant to check `setLimit->b()` (mirroring the real
+iter/incr checks either side of it). Preserved exactly as a no-op in the
+port (fixing it would be a behavior change, and it's evidently never
+mattered against the real corpus) but flagged in a comment at the port site
+— worth a look if `for` loops with a local-index mismatch ever misdecompile.
 
 ### Order of remaining work
 1. ~~Port `or`~~ — done.
 2. ~~Port `while/do`, `repeat/until`~~ — done.
-3. Port the three `if/then/else` shapes (bare-if, if/else-statement,
-   if/else-expression) as three registrations sharing one construction
-   helper — this is also where `and` (currently only recovered as print-time
-   sugar in `CFIfThen::Print()`, never matched as its own construct) should
-   eventually slot in as a fourth registration.
-4. Port `for...to...by...do` — first idiom needing the *tail* of a captured
-   statement run.
-5. Port `foreach...do` — first idiom needing the *head* of a run.
+3. ~~Port the three `if/then/else` shapes~~ — done. `and` (currently only
+   recovered as print-time sugar in `CFIfThen::Print()`, never matched as
+   its own construct) is deliberately deferred to step 7, per the original
+   plan — it needs the same shape as the if/else-expr spec above (reusing
+   `MakeIfThen`), just with `elseBody` forced to a literal `nil` check.
+4. ~~Port `for...to...by...do`~~ — done (still `CodeBlock`-dependent, see above).
+5. Port `foreach...do` — first idiom needing the *head* of a run (and,
+   per the note above, likely ALSO stuck reaching into a `CodeBlock` for
+   its slot/value setup statements until Stage 8).
 6. Port `try...onException...do` — exercises `Repeat()` for real.
 7. Only once all of the above are green: implement `foreach...collect` and
    `and` as fresh registrations — this is the acceptance test for the whole

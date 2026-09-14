@@ -148,65 +148,10 @@ void BCBranchIfTrue::Print(uint32_t flags) {
  \note A `break` command is not allowed in the branches unless the *if* stament
  is inside an other loop.
  \see CFIfThen
+ \see Matt/ASTControlFlowPatterns.cc -- the three patterns described above
+ are registered there (BuildIfThenPattern/BuildIfThenElsePattern/
+ BuildIfThenElseExprPattern), not hand-matched in this class anymore.
  */
-
-/**
- \brief Find patterns around a branch-if-false instruction and resolve them.
-
- This instruction can be the start of an if...then...else... construct. There
- are three different patterns: if-expr-then-expr-else-expr, if-expr-then-stmt,
- and if-expr-then-stmt-else-stmt.
-
- If a matching pattern is found, branch commands and jump targets are removed
- and this node is replaced with a CFIfThen, holding the instructions
- inside the 'then' and 'else' branch.
- */
-Node *BCBranchIfFalse::ResolveIfTheElse() {
-  // ---- Check for the if...then...else... pattern
-  do { // If any of the pattern checks fail, we can escape using 'break'.
-    // -- Store the result of our exploration here
-    Node *it = next;
-    Node *ifStmt = nullptr;
-    Node *elseStmt = nullptr;
-    JumpTarget *jt1 = nullptr;
-    JumpTarget *jt2 = nullptr;
-    BCBranch *bi2 = nullptr;
-    bool returnsAValue = false;
-    bool hasElse = false;
-
-    // -- Try this pattern
-    /*          */  if (pc() > b()) break;  // Jump must be forward
-    /* expr     */  if (!in_) break;
-    /* branch.f */  // <-- you are here
-    /* n-stmts  */  if (it->IsStatement()) { ifStmt = it; it = it->next; }
-    /* [expr]   */  else if (it->IsExpr()) { ifStmt = it; returnsAValue = true; it = it->next; }
-    /*          */  else break;
-    /* [branch] */  if ((bi2 = dynamic_cast<BCBranch*>(it))) { hasElse = true; it = it->next; }
-    /* target   */  if ((jt1 = dynamic_cast<JumpTarget*>(it))) it = it->next; else break;
-    /*          */  if (!JumpPairMatches(this, jt1)) break;
-    /*          */  if (hasElse) {
-    /* n-stmts  */    if (!returnsAValue && it->IsStatement()) { elseStmt = it; it = it->next; }
-    /* [expr]   */    else if (returnsAValue && it->IsExpr()) { elseStmt = it; it = it->next; }
-    /*          */    else break;
-    /* target   */    if (!(jt2 = dynamic_cast<JumpTarget*>(it))) break;
-    /*          */    if (!JumpPairMatches(bi2, jt2)) break;
-    /*          */  }
-
-    // -- The pattern matches. Replace everything with a CFIfThen
-    CFIfThen *newNode = dec.MakeNode<CFIfThen>(dec, pc_, in_, returnsAValue);
-    newNode->body_ = ifStmt->Unlink();
-    jt1->Unlink();
-    if (hasElse) {
-      newNode->elseBody_ = elseStmt->Unlink();
-      bi2->Unlink();
-      jt2->Unlink();
-    }
-    ReplaceWith(newNode);
-    dec.numASTChanges++;
-    return newNode;
-  } while (0);
-  return nullptr;
-}
 
 Node *BCBranchIfFalse::Resolve(Pass pass)
 {
@@ -221,10 +166,9 @@ Node *BCBranchIfFalse::Resolve(Pass pass)
     }
   }
   if ((pass == Pass::ControlFlow) && (in_)) {
-    if (Node *nextNode = ResolveIfTheElse()) return nextNode;
-    // `repeat...until` is matched by the pattern engine
-    // (Matt/ASTControlFlowPatterns.cc) rather than a hand-written
-    // ResolveXxx() here.
+    // `if...then...else...` (all three shapes) and `repeat...until` are both
+    // matched by the pattern engine (Matt/ASTControlFlowPatterns.cc) rather
+    // than hand-written ResolveXxx() methods here.
     if (Node *nextNode = pattern::TryResolve(this)) return nextNode;
   }
   return next;
@@ -268,66 +212,10 @@ BCBranchLoop::BCBranchLoop(Decompiler &d, int pc, int a, int b)
 Node *BCBranchLoop::Resolve(Pass pass)
 {
   if (pass != Pass::ControlFlow) return next;
-  do {
-    // ---- Try the for...to...by...do... pattern and take breaks into account.
-    // We are at the end of the pattern, so walk backwards down the AST root.
-    Node *it = prev;
-    int iter = -1, limit = -1, incr = -1;
-    //           ( BCBranchLoop, this )
-    REQUIRED_NODE( BCGetVar,   getLimit, it, true  ) { it = it->prev; }
-    REQUIRED_NODE( JumpTarget, jtTest,   it, false ) { it = it->prev; }
-    REQUIRED_NODE( BCIncrVar,  incIter,  it, false ) { it = it->prev; }
-    OPTIONAL_COND( Node, body, body->IsStatement(), it, false) { it = it->prev; }
-    REQUIRED_NODE( JumpTarget, jtAgain,  it, false ) { it = it->prev; }
-    REQUIRED_NODE( BCBranch,   brTest,   it, false ) { it = it->prev; }
-    REQUIRED_NODE( BCGetVar,   getIter,  it, false ) { it = it->prev; }
-    REQUIRED_NODE( CodeBlock,  start,    it, true  ) { it = it->prev; }
-    int nInstr = start->size(); if (nInstr < 4) break;
-    REQUIRED_NODE( BCGetVar,   getIncr,  start->at(nInstr-1), true);
-    REQUIRED_NODE( BCSetVar,   setIncr,  start->at(nInstr-2), true);
-    REQUIRED_NODE( BCSetVar,   setLimit, start->at(nInstr-3), true);
-    REQUIRED_NODE( BCSetVar,   setIter,  start->at(nInstr-4), true);
-
-    // The pattern is correct. Now check the use of locals
-    iter  = setIter->b();  if (getIter->b() != iter)   break;
-    limit = getLimit->b(); if (getLimit->b() != limit) break;
-    incr  = setIncr->b();  if (getIncr->b() != incr)   break;
-
-    // Locals are correct. Now check the jump instructions.
-    if (!JumpPairMatches(this, jtAgain)) break;
-    if (!JumpPairMatches(brTest, jtTest)) break;
-
-    // ---- If we reach all this way, the pattern matches.
-    // Eval and unlink all the jump targets of break instructions inside the loop
-    int prov = HandleBreakTargets(brTest, it = next, true);
-    // Unlink all nodes in the pattern, so they can be relinked down the AST or later deleted
-    getLimit->Unlink();
-    jtTest->Unlink();
-    incIter->Unlink();
-    jtAgain->Unlink();
-    brTest->Unlink();
-    getIter->Unlink();
-
-    start->pop_back();
-    start->pop_back();
-    start->pop_back();
-    start->pop_back();
-    start->UnlinkIfEmpty();
-
-    // Mark the locals with an alternative use, so they are not declared
-    dec.useLocalAs(incr, Decompiler::Local::Use::iter);
-    dec.useLocalAs(limit, Decompiler::Local::Use::iter);
-    dec.useLocalAs(iter, Decompiler::Local::Use::iter);
-
-    // Create a CFForLoop node that replaces the entire pattern
-    if (body) body->Unlink(); else body = NewNil();
-    CFForLoop *forLoopNode = dec.MakeNode<CFForLoop>(dec, pc(), prov, setIter, setLimit->input(), setIncr->input(), body);
-    ReplaceWith(forLoopNode);
-
-    // Wrap things up
-    dec.numASTChanges++;
-    return forLoopNode->next;
-  } while (0);
+  // `for...to...by...do` is matched by the pattern engine
+  // (Matt/ASTControlFlowPatterns.cc) rather than a hand-written matcher
+  // here.
+  if (Node *nextNode = pattern::TryResolve(this)) return nextNode;
   return next;
 }
 

@@ -195,6 +195,19 @@ public:
     return *this;
   }
 
+  /** Reject the whole match unless a prior Statements(slot) captured at
+      least one node. Some idioms (e.g. `if...then`) never omit their body
+      entirely the way `loop`/`while`/`repeat` can (which default to a `nil`
+      body via NewNil() instead) -- this makes that requirement explicit
+      rather than silently accepting an empty run where the original
+      hand-written matcher would have `break`d out. */
+  Builder &NonEmpty(int slot) {
+    steps_.push_back([slot](Cursor&, Match &m) -> bool {
+      return !m.run(slot).empty();
+    });
+    return *this;
+  }
+
   /** Match `sub` `count(anchor)` times in a row, capturing one sub-Match per
       iteration. `sub` is direction-less; it walks the same cursor as the
       enclosing spec. */

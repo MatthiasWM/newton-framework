@@ -191,6 +191,168 @@ Spec BuildOrPattern() {
 
 bool registerOr = [] { Register(BuildOrPattern()); return true; }();
 
+#pragma mark - if ... then ... [else ...]
+
+/**
+ \brief Shared construction step for all three if/then/else shapes below:
+ wire up a CFIfThen from already-captured (but not yet unlinked from the
+ JumpTarget/Branch scaffolding) pieces, unlink that scaffolding, and splice
+ the new node in. `body`/`elseBody` must already be unlinked from the root
+ list by the caller (their extraction differs: a statement run needs
+ UnlinkChain(), a single expr node just needs Unlink()); `elseBody == nullptr`
+ means "no else clause" (bi2/jt2 are then ignored).
+ */
+Node *MakeIfThen(Decompiler &dec, Node *anchor, bool returnsAValue,
+                  Node *body, JumpTarget *jt1,
+                  Node *elseBody, Node *bi2, JumpTarget *jt2) {
+  Node *cond = static_cast<BCBranchIfFalse*>(anchor)->Input();
+  auto *newNode = dec.MakeNode<CFIfThen>(dec, anchor->pc(), cond, returnsAValue);
+  newNode->body_ = body;
+  jt1->Unlink();
+  if (elseBody) {
+    newNode->elseBody_ = elseBody;
+    bi2->Unlink();
+    jt2->Unlink();
+  }
+  anchor->ReplaceWith(newNode);
+  dec.numASTChanges++;
+  return newNode;
+}
+
+/**
+ \brief `if cond then body end` (bare, no else): a forward BranchIfFalse
+ whose target JumpTarget follows immediately after the (non-empty)
+ statement body, with no intervening Branch/else scaffolding at all.
+ ```
+ BranchIfFalse jt1      -- anchor
+ <body>                 -- non-empty statement run
+ JumpTarget jt1:
+ ```
+ This spec and BuildIfThenElsePattern() below are mutually exclusive by
+ construction, not by priority: after the body run, the very next node is
+ either a JumpTarget (this spec) or a Branch (the with-else spec) -- never
+ both -- so which one matches is fully determined by the bytecode, not by
+ try-order.
+ Ported from the hand-written BCBranchIfFalse::ResolveIfTheElse() (removed
+ from ASTControlFlow.cc), which handled all three if/then/else shapes in
+ one function; see the class comment above BCBranchIfFalse::Resolve() there
+ for the original's own description of the three patterns.
+ */
+Spec BuildIfThenPattern() {
+  enum { kBody, kJt1 };
+  return Builder(Tag::BranchIfFalse, kFwd)
+    .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
+    .Statements(kBody)
+    .NonEmpty(kBody)
+    .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
+    .JumpPair(Builder::kAnchor, kJt1)
+    .Name("if-then")
+    .Priority(5)
+    .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      auto *jt1 = m.as<JumpTarget>(kJt1);
+      const std::vector<Node*> &bodyRun = m.run(kBody);
+      Node *body = bodyRun.front()->UnlinkChain(bodyRun.back());
+      return MakeIfThen(dec, anchor, /*returnsAValue=*/false, body, jt1,
+                         /*elseBody=*/nullptr, /*bi2=*/nullptr, /*jt2=*/nullptr);
+    });
+}
+
+bool registerIfThen = [] { Register(BuildIfThenPattern()); return true; }();
+
+/**
+ \brief `if cond then body else elseBody end`, both branches statements:
+ ```
+ BranchIfFalse jt1      -- anchor
+ <body>                 -- non-empty statement run
+ Branch jt2
+ JumpTarget jt1:
+ <elseBody>             -- non-empty statement run
+ JumpTarget jt2:
+ ```
+ See BuildIfThenPattern() above for why this and the bare if-then never
+ both match the same bytecode.
+ */
+Spec BuildIfThenElsePattern() {
+  enum { kBody, kBi2, kJt1, kElseBody, kJt2 };
+  return Builder(Tag::BranchIfFalse, kFwd)
+    .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
+    .Statements(kBody)
+    .NonEmpty(kBody)
+    .Required(Tag::Branch, kBi2, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
+    .JumpPair(Builder::kAnchor, kJt1)
+    .Statements(kElseBody)
+    .NonEmpty(kElseBody)
+    .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
+    .JumpPair(kBi2, kJt2)
+    .Name("if-then-else")
+    .Priority(5)
+    .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      Node *bi2 = m.node(kBi2);
+      auto *jt1 = m.as<JumpTarget>(kJt1);
+      auto *jt2 = m.as<JumpTarget>(kJt2);
+      const std::vector<Node*> &bodyRun = m.run(kBody);
+      const std::vector<Node*> &elseRun = m.run(kElseBody);
+      Node *body = bodyRun.front()->UnlinkChain(bodyRun.back());
+      Node *elseBody = elseRun.front()->UnlinkChain(elseRun.back());
+      return MakeIfThen(dec, anchor, /*returnsAValue=*/false, body, jt1, elseBody, bi2, jt2);
+    });
+}
+
+bool registerIfThenElse = [] { Register(BuildIfThenElsePattern()); return true; }();
+
+/**
+ \brief `if cond then body else elseBody end`, both branches expressions --
+ the shape that also doubles as `a and b` sugar when elseBody is a bare
+ `nil` (recovered at print time in CFIfThen::Print(), not matched here).
+ ```
+ BranchIfFalse jt1      -- anchor
+ <body: expr>
+ Branch jt2
+ JumpTarget jt1:
+ <elseBody: expr>
+ JumpTarget jt2:
+ ```
+ Unlike the two statement-shaped specs above, this one requires the else
+ clause (bi2/jt1/jt2 are all Required, not Optional) rather than mirroring
+ the original's structurally-optional-but-never-actually-absent branch
+ capture. That's a deliberate, documented simplification, not an oversight:
+ the original's own class comment states this shape "exists only as
+ if/then/else" -- a value-producing conditional needs both sides to produce
+ a value for the bytecode to make sense in the first place, so an
+ expression-bodied if/then with no else is not just empirically rare but
+ structurally impossible. If that assumption is ever wrong for some package,
+ this spec will simply fail to match (never a wrong answer) and that
+ function will show up as an unresolved node -- a visible, detectable
+ failure, not a silent one.
+ */
+Spec BuildIfThenElseExprPattern() {
+  enum { kBody, kBi2, kJt1, kElseBody, kJt2 };
+  return Builder(Tag::BranchIfFalse, kFwd)
+    .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
+    .Required(Tag::Any, kBody, [](Node *n) { return n->IsExpr(); }, /*mustBeResolved=*/true)
+    .Required(Tag::Branch, kBi2, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
+    .JumpPair(Builder::kAnchor, kJt1)
+    .Required(Tag::Any, kElseBody, [](Node *n) { return n->IsExpr(); }, /*mustBeResolved=*/true)
+    .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
+    .JumpPair(kBi2, kJt2)
+    .Name("if-then-else-expr")
+    .Priority(5)
+    .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      Node *body = m.node(kBody);
+      Node *elseBody = m.node(kElseBody);
+      Node *bi2 = m.node(kBi2);
+      auto *jt1 = m.as<JumpTarget>(kJt1);
+      auto *jt2 = m.as<JumpTarget>(kJt2);
+      body->Unlink();
+      elseBody->Unlink();
+      return MakeIfThen(dec, anchor, /*returnsAValue=*/true, body, jt1, elseBody, bi2, jt2);
+    });
+}
+
+bool registerIfThenElseExpr = [] { Register(BuildIfThenElseExprPattern()); return true; }();
+
 #pragma mark - repeat ... until ... end
 
 /**
@@ -238,5 +400,127 @@ Spec BuildRepeatPattern() {
 }
 
 bool registerRepeat = [] { Register(BuildRepeatPattern()); return true; }();
+
+#pragma mark - for iter to limit by incr do body end
+
+/**
+ \brief `for iter := start to limit by incr do body end`.
+ ```
+ [[preamble]], SetVar iter, SetVar limit, SetVar incr    -- "start" (see note)
+ GetVar iter                                              -- getIter
+ Branch brTest                                            -- jump to the test first
+ JumpTarget jtAgain:
+ <body>                                                    -- optional, one node
+ IncrVar incr                                              -- incIter
+ JumpTarget jtTest:
+ GetVar limit                                              -- getLimit
+ BranchLoop jtAgain                                         -- anchor: tests and loops back
+ ```
+ Ported from the hand-written BCBranchLoop::Resolve() (its whole body used
+ to live here, not a separate ResolveXxx() -- BCBranchLoop had no other use
+ for Resolve()). This is the first idiom where the "no CodeBlock needed"
+ promise of Statements() does NOT hold yet: `iter`/`limit`/`incr` are set by
+ three consecutive BCSetVar *statements*, so as long as
+ Decompiler::compressAST() keeps pre-merging any run of 2+ statements before
+ the ControlFlow pass runs (it still does -- see Matt/CLAUDE.md), those
+ three SetVars are already fused into one opaque CodeBlock ("start") by the
+ time this pattern is tried, indistinguishable on the flat list from
+ whatever unrelated statements preceded them. There is no way to require
+ them individually via Statements()/Required() today; the CodeBlock and its
+ tail-indexing has to stay, exactly as fragile as in the original, until
+ Stage 8 (compressAST() removal) makes iter/limit/incr individually
+ addressable list nodes again -- at which point this spec should become
+ `Statements(preamble) + Required(SetVar,iter) + Required(SetVar,limit) +
+ Required(SetVar,incr)` and the whole CodeBlock-reaching callback below goes
+ away.
+ */
+Spec BuildForLoopPattern() {
+  enum { kGetLimit, kJtTest, kIncIter, kBody, kJtAgain, kBrTest, kGetIter, kStart };
+  return Builder(Tag::BranchLoop, kBwd)
+    .Required(Tag::GetVar, kGetLimit, /*mustBeResolved=*/true)
+    .Required(Tag::JumpTarget, kJtTest, /*mustBeResolved=*/false)
+    .Required(Tag::IncrVar, kIncIter, /*mustBeResolved=*/false)
+    .Optional(Tag::Any, kBody, [](Node *n) { return n->IsStatement(); }, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJtAgain, /*mustBeResolved=*/false)
+    .Required(Tag::Branch, kBrTest, /*mustBeResolved=*/false)
+    .Required(Tag::GetVar, kGetIter, /*mustBeResolved=*/false)
+    .Required(Tag::Any, kStart, [](Node *n) {
+        auto *cb = dynamic_cast<CodeBlock*>(n);
+        return cb && cb->size() >= 4;
+      }, /*mustBeResolved=*/true)
+    .JumpPair(Builder::kAnchor, kJtAgain)
+    .JumpPair(kBrTest, kJtTest)
+    .Name("for-to-by-do")
+    .Priority(10)
+    .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      auto *getLimit = m.as<BCGetVar>(kGetLimit);
+      Node *jtTest = m.node(kJtTest);
+      Node *incIter = m.node(kIncIter);
+      Node *body = m.has(kBody) ? m.node(kBody) : nullptr;
+      Node *jtAgain = m.node(kJtAgain);
+      Node *brTest = m.node(kBrTest);
+      auto *getIter = m.as<BCGetVar>(kGetIter);
+      auto *start = m.as<CodeBlock>(kStart);
+
+      // Reach into the CodeBlock's tail for iter/limit/incr -- see the class
+      // comment above for why this is still necessary today.
+      int nInstr = start->size();
+      auto *getIncr  = dynamic_cast<BCGetVar*>(start->at(nInstr - 1));
+      auto *setIncr  = dynamic_cast<BCSetVar*>(start->at(nInstr - 2));
+      auto *setLimit = dynamic_cast<BCSetVar*>(start->at(nInstr - 3));
+      auto *setIter  = dynamic_cast<BCSetVar*>(start->at(nInstr - 4));
+      if (!getIncr || !getIncr->Resolved()) return nullptr;
+      if (!setIncr || !setIncr->Resolved()) return nullptr;
+      if (!setLimit || !setLimit->Resolved()) return nullptr;
+      if (!setIter || !setIter->Resolved()) return nullptr;
+
+      // Check that all three loop locals agree between their SetVar (inside
+      // the CodeBlock tail) and GetVar (found separately, on the flat list).
+      int iter = setIter->b();
+      if (getIter->b() != iter) return nullptr;
+      // NOTE: faithfully reproduces the original BCBranchLoop::Resolve():
+      // this compares getLimit->b() to itself (limit was just assigned FROM
+      // getLimit->b(), two lines up), so it can never reject a match. It
+      // was almost certainly meant to check setLimit->b() against
+      // getLimit->b(), mirroring the iter/incr checks either side of it.
+      // Left exactly as-is -- fixing it would be a behavior change, not a
+      // faithful port, and nothing in the regression corpus has ever
+      // tripped whatever it was meant to catch.
+      int limit = getLimit->b();
+      if (getLimit->b() != limit) return nullptr;
+      int incr = setIncr->b();
+      if (getIncr->b() != incr) return nullptr;
+
+      Node *afterAnchor = anchor->next;
+      int prov = Node::HandleBreakTargets(brTest, afterAnchor, true);
+
+      getLimit->Unlink();
+      jtTest->Unlink();
+      incIter->Unlink();
+      jtAgain->Unlink();
+      brTest->Unlink();
+      getIter->Unlink();
+
+      start->pop_back();
+      start->pop_back();
+      start->pop_back();
+      start->pop_back();
+      start->UnlinkIfEmpty();
+
+      // Mark the locals with an alternative use, so they are not declared.
+      dec.useLocalAs(incr, Decompiler::Local::Use::iter);
+      dec.useLocalAs(limit, Decompiler::Local::Use::iter);
+      dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+
+      if (body) body->Unlink(); else body = anchor->NewNil();
+      auto *forLoopNode = dec.MakeNode<CFForLoop>(
+        dec, anchor->pc(), prov, setIter, setLimit->Input(), setIncr->Input(), body);
+      anchor->ReplaceWith(forLoopNode);
+      dec.numASTChanges++;
+      return forLoopNode->next;
+    });
+}
+
+bool registerForLoop = [] { Register(BuildForLoopPattern()); return true; }();
 
 } // namespace

@@ -188,6 +188,17 @@ void PrintBodyChain(Decompiler &dec, Node *head, uint32_t flags = 0) {
   }
   if ((flags & kPrintSuppressList) == 0) dec.p.EndList();
 }
+
+/**
+ \brief Like Node::IsMultiStatement(), but also true for a raw chain of N>=2
+ nodes produced by pattern::Builder::Statements() + Node::UnlinkChain() --
+ which Node::IsMultiStatement() (false by default, true only on CodeBlock)
+ has no way to see, since it only ever looks at the single node it's called
+ on, never its `next` chain.
+ */
+bool IsChainMultiStatement(Node *n) {
+  return n && (n->next != nullptr || n->IsMultiStatement());
+}
 } // namespace
 
 #pragma mark - ControlBlock
@@ -297,7 +308,7 @@ void CFIfThen::PrintChildren(bool deep) {
 void CFIfThen::Print(uint32_t flags)
 {
   if ((provides() == kProvidesOne) && elseBody_ && elseBody_->IsNIL()
-      && !cond_->IsMultiStatement() && !body_->IsMultiStatement()) {
+      && !cond_->IsMultiStatement() && !IsChainMultiStatement(body_)) {
     Precedence pp = dec.precedence;
     bool parentheses = (dec.precedence > kPrecedenceAndOr);
     dec.precedence = kPrecedenceAndOr;
@@ -330,7 +341,11 @@ void CFIfThen::Print(uint32_t flags)
         if (forceBeginEnd) dec.p.Print("begin");
         dec.p.DeepList(";");
         dec.p.FreshLine();
-        body_->Print();
+        for (Node *it = body_; it; it = it->next) {
+          dec.p.Item();
+          it->Print();
+          dec.p.ItemDone();
+        }
         dec.p.EndList();
         if (elseBody_) {
           dec.p.FreshLine();
@@ -350,7 +365,13 @@ void CFIfThen::Print(uint32_t flags)
         } else {
           // Only one statement, print "begin end" if requested
           if (forceBeginEnd) dec.p.Print("begin");
-          elseBody_->PrintOnNewLine();
+          dec.p.DeepList(";");
+          for (Node *it = elseBody_; it; it = it->next) {
+            dec.p.Item();
+            it->Print();
+            dec.p.ItemDone();
+          }
+          dec.p.EndList();
           if (forceBeginEnd) { dec.p.FreshLine(); dec.p.Print("end"); }
         }
       }
