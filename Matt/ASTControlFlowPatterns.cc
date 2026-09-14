@@ -523,4 +523,202 @@ Spec BuildForLoopPattern() {
 
 bool registerForLoop = [] { Register(BuildForLoopPattern()); return true; }();
 
+#pragma mark - foreach [slot,] value [deeply] in object do body end
+
+/**
+ \brief `foreach [slot,] value [deeply] in object do body end`.
+ ```
+ [[preamble]], <object>       -- setObject (see note on Custom() step below)
+ PushConst deeply
+ NewIter                       -- anchor
+ SetVar iter
+ Branch brStart                -- jump to the "done?" test first
+ JumpTarget jtRepeat:
+ [SetVar value := iterator[4]]  -- setValueNode, required
+ [SetVar slot  := iterator[0]]  -- setSlotNode, optional
+ <body>                         -- whatever of the above CodeBlock is left over
+ IterNext iterator
+ JumpTarget jtStart:
+ IterDone iterator
+ BranchIfFalse brRepeat
+ PushConst nil                  -- pushNil ("clear iterator" is the node right after it)
+ ```
+ Ported from the hand-written BCNewIter::ResolveForeachSlotValueDo() (removed
+ from ASTControlFlow.cc). Two irregularities this idiom has that no earlier
+ port did, both handled with Builder::Custom() rather than forced into the
+ named combinators:
+
+ 1. Unlike every other anchor ported so far, BCNewIter never runs its own
+    Consume2 DataFlow resolution (BCNewIter::Resolved() is hardcoded
+    false), so "object"/"deeply" are never wired into Input()/in1_/in2_ --
+    this matcher has always had to walk `prev`/`prev->prev` directly to
+    find them, and still does, in the first Custom() step below. Since that
+    step inspects the anchor's *backward* neighbors while every other step
+    in this (forward-anchored) spec walks *forward*, it deliberately never
+    touches the shared Cursor.
+
+ 2. The value/slot extraction is inherently branchy: if compressAST() has
+    already merged the per-iteration setup (SetVar value; [SetVar slot;])
+    together with whatever body code follows into one CodeBlock, they must
+    be read from that CodeBlock's front instead of the flat list, and *no*
+    cursor advance is needed (the preceding Optional() capture already
+    consumed the CodeBlock); if not, they're read directly off the flat
+    list and the cursor must advance past whichever of them were found.
+    This is exactly the same "still CodeBlock-dependent until Stage 8"
+    situation as `for`'s iter/limit/incr -- see the note there and in
+    Matt/CLAUDE.md -- except here a CodeBlock isn't even guaranteed to
+    exist (unlike `for`, where 3 consecutive SetVars always force one).
+ */
+Spec BuildForeachDoPattern() {
+  enum {
+    kDeeplyConst, kSetObject,
+    kSetIter, kBrStart, kJtRepeat, kBodyBlock,
+    kSetValueNode, kSetSlotNode,
+    kIterNext, kJtStart, kIterDone, kBrRepeat, kPushNil,
+  };
+  return Builder(Tag::NewIter, kFwd)
+    // -- Walk backward from the anchor for "object"/"deeply" (see note 1).
+    .Custom([](Cursor&, Match &m) -> bool {
+      Node *anchor = m.anchor();
+      auto *deeplyConst = dynamic_cast<BCPushConst*>(anchor->prev);
+      if (!deeplyConst || !deeplyConst->Resolved()) return false;
+      if (deeplyConst->b() != NILREF && deeplyConst->b() != TRUEREF) return false;
+      Node *setObject = anchor->prev->prev;
+      if (!setObject || !setObject->Resolved() || !setObject->IsExpr()) return false;
+      m.SetNode(kDeeplyConst, deeplyConst);
+      m.SetNode(kSetObject, setObject);
+      return true;
+    })
+    // -- Everything else walks forward from the anchor as usual.
+    .Required(Tag::SetVar, kSetIter, /*mustBeResolved=*/false)
+    .Required(Tag::Branch, kBrStart, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJtRepeat, /*mustBeResolved=*/false)
+    .Optional(Tag::Any, kBodyBlock, [](Node *n) { return dynamic_cast<CodeBlock*>(n) != nullptr; },
+              /*mustBeResolved=*/true)
+    // -- Extract setValue/[setSlot] from the CodeBlock's front, or straight
+    //    off the flat list if there's no CodeBlock (see note 2).
+    .Custom([](Cursor &c, Match &m) -> bool {
+      auto *cb = m.has(kBodyBlock) ? static_cast<CodeBlock*>(m.node(kBodyBlock)) : nullptr;
+      BCSetVar *setValueNode = nullptr;
+      BCSetVar *setSlotNode = nullptr;
+      if (cb) {
+        setValueNode = dynamic_cast<BCSetVar*>(cb->at(0));
+        setSlotNode = dynamic_cast<BCSetVar*>(cb->at(1));
+      } else {
+        Node *it = c.peek();
+        setValueNode = dynamic_cast<BCSetVar*>(it);
+        setSlotNode = it ? dynamic_cast<BCSetVar*>(it->next) : nullptr;
+      }
+
+      // "value" is required: it must read the iterator's value slot (4).
+      if (!setValueNode) return false;
+      auto *valueARef = dynamic_cast<BCARef*>(setValueNode->Input());
+      if (!valueARef) return false;
+      if (!dynamic_cast<BCGetVar*>(valueARef->input1())) return false;
+      auto *valueConst = dynamic_cast<BCPushConst*>(valueARef->input2());
+      if (!valueConst || valueConst->b() != 4) return false;
+
+      // "slot" is optional: it must read the iterator's tag slot (0).
+      bool haveSlot = false;
+      do {
+        if (!setSlotNode) break;
+        auto *slotARef = dynamic_cast<BCARef*>(setSlotNode->Input());
+        if (!slotARef) break;
+        if (!dynamic_cast<BCGetVar*>(slotARef->input1())) break;
+        auto *slotConst = dynamic_cast<BCPushConst*>(slotARef->input2());
+        if (!slotConst || slotConst->b() != 0) break;
+        haveSlot = true;
+      } while (0);
+      if (!haveSlot) setSlotNode = nullptr;
+
+      if (!cb) {
+        // No pre-merged CodeBlock: advance past whichever of
+        // setValueNode/setSlotNode were consumed directly off the list.
+        c.advance();
+        if (setSlotNode) c.advance();
+      }
+
+      m.SetNode(kSetValueNode, setValueNode);
+      if (setSlotNode) m.SetNode(kSetSlotNode, setSlotNode); else m.SetAbsent(kSetSlotNode);
+      return true;
+    })
+    .Required(Tag::IterNext, kIterNext, /*mustBeResolved=*/false)
+    .Required(Tag::JumpTarget, kJtStart, /*mustBeResolved=*/false)
+    .Required(Tag::IterDone, kIterDone, /*mustBeResolved=*/false)
+    .Required(Tag::BranchIfFalse, kBrRepeat, /*mustBeResolved=*/false)
+    .Required(Tag::PushConst, kPushNil, [](Node *n) { return n->b() == NILREF; }, /*mustBeResolved=*/false)
+    .JumpPair(kBrStart, kJtStart)
+    .JumpPair(kBrRepeat, kJtRepeat)
+    .Name("foreach-do")
+    .Priority(10)
+    .Build([](Decompiler &dec, Node *anchor, Match &m) -> Node* {
+      auto *deeplyConst = m.as<BCPushConst>(kDeeplyConst);
+      Node *setObject = m.node(kSetObject);
+      auto *setIter = m.as<BCSetVar>(kSetIter);
+      Node *brStart = m.node(kBrStart);
+      auto *jtRepeat = m.as<JumpTarget>(kJtRepeat);
+      auto *body = m.has(kBodyBlock) ? static_cast<CodeBlock*>(m.node(kBodyBlock)) : nullptr;
+      auto *setValueNode = m.as<BCSetVar>(kSetValueNode);
+      auto *setSlotNode = m.has(kSetSlotNode) ? m.as<BCSetVar>(kSetSlotNode) : nullptr;
+      auto *iterNext = m.node(kIterNext);
+      auto *jtStart = m.as<JumpTarget>(kJtStart);
+      Node *iterDone = m.node(kIterDone);
+      Node *brRepeat = m.node(kBrRepeat);
+      Node *pushNil = m.node(kPushNil);
+
+      int value = setValueNode->b();
+      int slot = setSlotNode ? setSlotNode->b() : -1;
+      int iter = setIter->b();
+      bool deeply = (deeplyConst->b() == TRUEREF);
+
+      // Eval and unlink the jump targets of any break instructions inside
+      // the loop, then remove the trailing "clear iterator" cleanup node.
+      Node *afterPushNil = pushNil->next;
+      Node::HandleBreakTargets(jtRepeat, afterPushNil, false);
+      afterPushNil->Unlink();
+
+      // If setObject is a CodeBlock, only use the last expression.
+      auto *objBlock = dynamic_cast<CodeBlock*>(setObject);
+      Node *obj = nullptr;
+      if (objBlock) {
+        obj = objBlock->back();
+        objBlock->pop_back();
+        objBlock->UnlinkIfEmpty();
+      } else {
+        obj = setObject;
+        setObject->Unlink();
+      }
+
+      deeplyConst->Unlink();
+      setIter->Unlink();
+      brStart->Unlink();
+      jtRepeat->Unlink();
+      if (body) {
+        body->pop_front();               // unlink 'setValue'
+        if (slot != -1) body->pop_front();  // unlink 'setSlot'
+        body->Unlink();
+      } else {
+        if (setValueNode) setValueNode->Unlink();
+        if (setSlotNode) setSlotNode->Unlink();
+      }
+      iterNext->Unlink();
+      jtStart->Unlink();
+      iterDone->Unlink();
+      brRepeat->Unlink();
+      pushNil->Unlink();
+
+      if (slot != -1) dec.useLocalAs(slot, Decompiler::Local::Use::iter);
+      dec.useLocalAs(value, Decompiler::Local::Use::iter);
+      dec.useLocalAs(iter, Decompiler::Local::Use::iter);
+
+      auto *foreachNode = dec.MakeNode<CFForEachSlotValueDo>(
+        dec, anchor->pc(), slot, value, deeply, obj, body);
+      anchor->ReplaceWith(foreachNode);
+      dec.numASTChanges++;
+      return foreachNode->next;
+    });
+}
+
+bool registerForeachDo = [] { Register(BuildForeachDoPattern()); return true; }();
+
 } // namespace

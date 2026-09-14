@@ -208,6 +208,25 @@ public:
     return *this;
   }
 
+  /** Escape hatch: embed an arbitrary matching step at this point in the
+      sequence, for the parts of an idiom too irregular for the named
+      combinators above to express -- e.g. a capture whose cursor
+      advancement is conditional on what an *earlier* capture found (see
+      BuildForeachDoPattern's slot/value extraction in
+      ASTControlFlowPatterns.cc, which needs this twice: once to inspect
+      `anchor->prev`/`anchor->prev->prev` directly, since that idiom walks
+      backward from the anchor for its setup while everything else about it
+      is matched forward, and once for the setValue/setSlot extraction
+      itself). A Custom step may ignore the Cursor entirely (if it only
+      needs to inspect already-captured nodes or the anchor's own
+      neighbors) or drive it manually via peek()/advance(); prefer the named
+      combinators wherever they fit and reach for this only when they
+      genuinely can't express what's needed. */
+  Builder &Custom(Step step) {
+    steps_.push_back(std::move(step));
+    return *this;
+  }
+
   /** Match `sub` `count(anchor)` times in a row, capturing one sub-Match per
       iteration. `sub` is direction-less; it walks the same cursor as the
       enclosing spec. */

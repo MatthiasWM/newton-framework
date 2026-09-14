@@ -136,10 +136,19 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
   list**, no physical `CodeBlock` needed), repeated groups (`Repeat`, for
   N-handler `try` blocks etc.).
 - `Builder` — the DSL: `Required`/`Optional`/`Statements`/`NonEmpty`/
-  `Repeat`/`JumpPair`/`Guard`/`Name`/`Priority`, ending in `.Build(callback)`.
-  `NonEmpty(slot)` rejects the match unless a prior `Statements(slot)`
-  captured at least one node — needed for idioms (like `if...then`) that,
-  unlike `loop`/`while`/`repeat`, never default to a `nil` body.
+  `Repeat`/`JumpPair`/`Guard`/`Name`/`Priority`/`Custom`, ending in
+  `.Build(callback)`.
+  - `NonEmpty(slot)` rejects the match unless a prior `Statements(slot)`
+    captured at least one node — needed for idioms (like `if...then`) that,
+    unlike `loop`/`while`/`repeat`, never default to a `nil` body.
+  - `Custom(step)` is the escape hatch: embed a raw `Step` (the same
+    `bool(Cursor&, Match&)` function type every other combinator compiles
+    down to) for logic too irregular to express declaratively — a capture
+    whose cursor advancement is conditional on what an *earlier* capture
+    found, or a capture that needs to walk the anchor's neighbors in the
+    *opposite* direction from the rest of the spec. So far only
+    `foreach...do` has needed it (twice — see below); reach for it only
+    when the named combinators genuinely can't express what's needed.
 - `Register(spec)` / `TryResolve(anchor)` — a `Tag`-indexed registry; a new
   idiom is a **new file-scope static registration**, zero edits to the
   anchor bytecode's own class.
@@ -147,14 +156,15 @@ A declarative combinator engine, `Matt/ASTPattern.h/.cc`:
 `Matt/ASTControlFlowPatterns.cc` is where idioms get registered. Ported so
 far: `loop...end`, `while...do...end`, `repeat...until...end`, `a or b`,
 all three `if...then...[else...]` shapes (bare, statement/statement,
-expr/expr), and `for...to...by...do`. `BCBranch::ResolveLoop()`,
+expr/expr), `for...to...by...do`, and `foreach...do`. `BCBranch::ResolveLoop()`,
 `BCBranchIfTrue::ResolveWhileDo()`, `BCBranchIfTrue::ResolveOr()`,
 `BCBranchIfFalse::ResolveRepeatUntil()`, `BCBranchIfFalse::ResolveIfTheElse()`,
-and the entire body of `BCBranchLoop::Resolve()` (it had no separate
-`ResolveXxx()`, the matcher lived inline) are all **deleted/replaced** in
-`ASTControlFlow.cc`/`.h` — `BCBranch`/`BCBranchIfTrue`/`BCBranchIfFalse`/
-`BCBranchLoop` have no hand-written matching logic left at all, only
-`pattern::TryResolve(this)`. Only `foreach`/`try` are untouched.
+the entire body of `BCBranchLoop::Resolve()` (it had no separate
+`ResolveXxx()`, the matcher lived inline), and
+`BCNewIter::ResolveForeachSlotValueDo()` are all **deleted/replaced** in
+`ASTControlFlow.cc`/`.h`. Only `BCNewIter::ResolveForeachSlotValueCollect()`
+(`foreach...collect`, still broken/unfinished, deferred to step 7) and
+`try` are untouched.
 
 The three if/then/else specs (`BuildIfThenPattern`, `BuildIfThenElsePattern`,
 `BuildIfThenElseExprPattern` in `ASTControlFlowPatterns.cc`) share one
@@ -218,6 +228,27 @@ port (fixing it would be a behavior change, and it's evidently never
 mattered against the real corpus) but flagged in a comment at the port site
 — worth a look if `for` loops with a local-index mismatch ever misdecompile.
 
+`foreach...do` (`BuildForeachDoPattern`) hit the `CodeBlock` constraint too,
+as predicted above, but in a *weaker* form than `for`: since a `foreach`
+loop's per-iteration setup is only 1-2 statements (`SetVar value` and
+optionally `SetVar slot`), there's no guaranteed-3-consecutive-statements
+invariant forcing a `CodeBlock` to always exist. So the spec has to handle
+*both* cases the original did — setValue/setSlot read from a captured
+CodeBlock's front elements if compressAST() merged them with the body, or
+straight off the flat list (with explicit cursor advancement) if it didn't.
+That dependency on an *earlier* Optional capture's outcome doesn't fit
+`Statements()`/`Required()`, so it's the first (and, so far, only) user of
+the new `Custom()` escape hatch — twice over, actually: once for this
+branchy extraction, and once because `BCNewIter` is architecturally
+special. It's a `Consume2` (object, deeply) but its `Resolve()` unconditionally
+returns `next` on the DataFlow pass and hardcodes `Resolved() → false`
+forever, so it never gets its operands auto-wired into `in1_`/`in2_` the
+normal way — the matcher has *always* had to walk `prev`/`prev->prev`
+directly to find "object"/"deeply", and the port does too, via a
+`Custom()` step that (uniquely among every pattern so far) ignores the
+spec's own forward `Cursor` and inspects the anchor's backward neighbors
+instead.
+
 ### Order of remaining work
 1. ~~Port `or`~~ — done.
 2. ~~Port `while/do`, `repeat/until`~~ — done.
@@ -227,9 +258,8 @@ mattered against the real corpus) but flagged in a comment at the port site
    plan — it needs the same shape as the if/else-expr spec above (reusing
    `MakeIfThen`), just with `elseBody` forced to a literal `nil` check.
 4. ~~Port `for...to...by...do`~~ — done (still `CodeBlock`-dependent, see above).
-5. Port `foreach...do` — first idiom needing the *head* of a run (and,
-   per the note above, likely ALSO stuck reaching into a `CodeBlock` for
-   its slot/value setup statements until Stage 8).
+5. ~~Port `foreach...do`~~ — done (also `CodeBlock`-dependent in places, see
+   above; introduced `Builder::Custom()`).
 6. Port `try...onException...do` — exercises `Repeat()` for real.
 7. Only once all of the above are green: implement `foreach...collect` and
    `and` as fresh registrations — this is the acceptance test for the whole
