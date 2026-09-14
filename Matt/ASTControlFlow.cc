@@ -120,6 +120,23 @@ Node *BCBranchIfTrue::Resolve(Pass pass)
   // Give the compress pass a chance to build a larger condition
   if ((pass == Pass::ControlFlow) && (!in_)) {
     if (!in_ && prev->IsExpr()) {
+      // Single-node only, deliberately -- this anchor tag is shared by two
+      // different registered patterns (BuildWhilePattern and
+      // BuildOrPattern, ASTControlFlowPatterns.cc), and this consumption
+      // runs before either's own Builder chain (and thus before we know
+      // which one, if either, will end up matching) even starts. A `while`
+      // loop's condition can legitimately span more than one bytecode
+      // instruction (see BuildWhilePattern's own class comment for why and
+      // how it extends this single node backward itself, once it already
+      // knows it's specifically trying to match a loop) -- but `a or b`'s
+      // left operand `a` has no reliable boundary marker the way a loop's
+      // condition does (a loop's is always preceded by a JumpTarget; `a`
+      // is simply preceded by whatever ordinary code came before it in the
+      // function). Attempting the same backward walk unconditionally here
+      // was tried and reverted: it silently absorbed unrelated preceding
+      // statements into `or`'s left operand -- caught by the 12-package
+      // sample, exactly the over-merging failure mode `compressAST()`'s
+      // removal (Stage 8) was supposed to eliminate for good.
       in_ = prev;
       prev->Unlink();
       dec.numASTChanges++;

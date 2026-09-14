@@ -31,6 +31,33 @@ public:
   bool Resolved() override { return false; }
 };
 
+/**
+ \brief Wraps a NewtonScript compound expression (`begin stmt1; stmt2;
+ value end`) used as a single inline value -- specifically, a `while`
+ loop's or `a or b`'s own condition, when that condition is itself more
+ than one bytecode instruction (e.g. `i := StrPos(...); i` -- a statement
+ computing a value, immediately followed by reading it back as the actual
+ boolean test). Built directly by BCBranchIfTrue::Resolve()
+ (ASTControlFlow.cc), not by the pattern engine -- that method's own
+ backward condition-consumption runs *before* the Builder chain for
+ `while`/`or` even starts, and needs a single node reporting IsExpr()==true
+ to hand back as `Input()`, the same as the far more common single-node
+ case. Print() renders the whole chain inline (`begin ...; ... end`), never
+ with PrintBodyChain()'s begin/end-suppression flags or PrintOnNewLine()'s
+ line-wrapping -- this is a *value* embedded in a larger statement (`while
+ <this> do ...`), not a printed body of its own.
+ */
+class CompoundExpr : public Node {
+  Node *body_ = nullptr;
+public:
+  CompoundExpr(Decompiler &d, int pc, Node *body) : Node(d, pc), body_(body) { }
+  const char *Class() override { return "CompoundExpr"; }
+  int provides() override { return kProvidesOne; }
+  bool Resolved() override { return true; }
+  void PrintChildren(bool deep) override;
+  void Print(uint32_t flags = 0) override;
+};
+
 class ControlBlock : public Node {
 public:
   int provides_ = kProvidesNone;

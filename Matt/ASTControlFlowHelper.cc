@@ -32,6 +32,27 @@ void JumpTarget::PrintNode(bool deep)
   dec.p.Printf(" from %d", origin_);
 }
 
+#pragma mark - CompoundExpr
+
+void CompoundExpr::PrintChildren(bool deep)
+{
+  if (body_) body_->PrintNode(deep);
+}
+
+void CompoundExpr::Print(uint32_t flags)
+{
+  dec.p.Print("begin");
+  dec.p.DeepList(";");
+  for (Node *it = body_; it; it = it->next) {
+    dec.p.Item();
+    it->Print();
+    dec.p.ItemDone();
+  }
+  dec.p.Trailer();
+  dec.p.Print("end");
+  dec.p.EndList();
+}
+
 
 namespace {
 /**

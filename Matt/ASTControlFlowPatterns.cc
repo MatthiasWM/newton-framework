@@ -84,17 +84,50 @@ bool registerLoop = [] { Register(BuildLoopPattern()); return true; }();
  JumpTarget jt1:
  <body>                -- optional, at most one node while compressAST() runs
  JumpTarget jt2:
- <cond>                -- anchor's Input()
+ [<condPrefix>]         -- 0+ statements, see below
+ <cond>                -- anchor's Input(), set by BCBranchIfTrue::Resolve()
  BranchIfTrue jt1       -- anchor
  ```
  Ported from the hand-written BCBranchIfTrue::ResolveWhileDo() (removed from
  ASTControlFlow.cc); walks backward from the anchor, mirroring `loop`.
+
+ `<cond>` may itself be preceded by 0+ ordinary statements (e.g. `i :=
+ StrPos(...); i` used as the test -- a statement computing a value,
+ immediately followed by reading it back as the actual boolean), found via
+ corpus-scale testing (Test/run_corpus.py). `BCBranchIfTrue::Resolve()`'s
+ own pre-consumption of `<cond>` (before this Builder chain even starts)
+ only ever grabs the single trailing node -- deliberately: that
+ pre-consumption is shared with BuildOrPattern's `a or b`, whose left
+ operand has no reliable boundary marker the way a loop's condition does,
+ so walking backward through statements there would (and, when tried,
+ did) silently absorb unrelated preceding code. Extending the condition
+ backward is therefore done here instead, in a Custom() step, specifically
+ because by this point we're already committed to trying `while` and not
+ `or` -- walk backward through statements *looking for* `kJt2` (a
+ JumpTarget, the loop's own test-label landing, so still a provably
+ bounded search, not guesswork); anything found is folded into
+ `<cond>` as one CompoundExpr (ASTControlFlowHelper.h) in the callback.
  */
 Spec BuildWhilePattern() {
-  enum { kJt2, kBody, kJt1, kBranch2 };
+  enum { kJt2, kCondPrefix, kBody, kJt1, kBranch2 };
   return Builder(Tag::BranchIfTrue, kBwd)
     .Guard([](Node *a) { return a->b() <= a->pc(); })  // jump must be backward
-    .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
+    .Custom([](Cursor &c, Match &m) -> bool {
+      std::vector<Node*> prefix;
+      Node *nd = c.peek();
+      while (nd && nd->IsStatement()) {
+        prefix.push_back(nd);
+        c.advance();
+        nd = c.peek();
+      }
+      auto *jt2 = dynamic_cast<JumpTarget*>(nd);
+      if (!jt2) return false;
+      c.advance();
+      if (c.direction() == kBwd) std::reverse(prefix.begin(), prefix.end());
+      m.SetRun(kCondPrefix, std::move(prefix));
+      m.SetNode(kJt2, jt2);
+      return true;
+    })
     .Statements(kBody)
     .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
     .JumpPair(Builder::kAnchor, kJt1)
@@ -116,7 +149,19 @@ Spec BuildWhilePattern() {
         ? anchor->NewNil()
         : bodyRun.front()->UnlinkChain(bodyRun.back());
 
-      Node *cond = static_cast<BCBranchIfTrue*>(anchor)->Input();
+      auto *branchIfTrue = static_cast<BCBranchIfTrue*>(anchor);
+      const std::vector<Node*> &condPrefix = m.run(kCondPrefix);
+      if (!condPrefix.empty()) {
+        // Splice the already-consumed single-node condition (Input(), from
+        // BCBranchIfTrue::Resolve()) onto the end of the statement prefix
+        // captured above, and wrap the whole chain as one CompoundExpr.
+        Node *tail = branchIfTrue->Input();
+        Node *prefixHead = condPrefix.front()->UnlinkChain(condPrefix.back());
+        condPrefix.back()->next = tail;
+        tail->prev = condPrefix.back();
+        branchIfTrue->Input(dec.MakeNode<CompoundExpr>(dec, prefixHead->pc(), prefixHead));
+      }
+      Node *cond = branchIfTrue->Input();
       auto *wd = dec.MakeNode<CFWhile>(dec, anchor->pc(), prov, cond, body);
       branch2->Unlink();
       jt1->Unlink();
@@ -301,13 +346,20 @@ Spec BuildIfThenElsePattern() {
   enum { kBody, kBi2, kJt1, kElseBody, kJt2, kTrailingPop };
   return Builder(Tag::BranchIfFalse, kFwd)
     .Guard([](Node *a) { return a->pc() <= a->b(); })  // jump must be forward
+    // Neither kBody nor kElseBody requires NonEmpty(): a genuinely empty
+    // branch -- e.g. `if arg0 <> nil then end else <real work> end`, found
+    // via corpus-scale testing (Test/run_corpus.py) -- is a real, if
+    // unusual, NewtonScript shape (equivalent to `if arg0 = nil then <real
+    // work> end`, apparently compiled by testing the *complement* of the
+    // written condition rather than negating it, still using the full
+    // if/then/else scaffolding with one side simply empty). The callback
+    // falls back to NewNil() for an empty run, same as every other
+    // idiom's optional/possibly-empty body (loop/while/repeat/for/foreach).
     .StatementsOrExpr(kBody)
-    .NonEmpty(kBody)
     .Required(Tag::Branch, kBi2, /*mustBeResolved=*/false)
     .Required(Tag::JumpTarget, kJt1, /*mustBeResolved=*/false)
     .JumpPair(Builder::kAnchor, kJt1)
     .StatementsOrExpr(kElseBody)
-    .NonEmpty(kElseBody)
     .Required(Tag::JumpTarget, kJt2, /*mustBeResolved=*/false)
     .JumpPair(kBi2, kJt2)
     // -- A branch whose captured run ends in a bare expression (see
@@ -340,8 +392,8 @@ Spec BuildIfThenElsePattern() {
       auto *jt2 = m.as<JumpTarget>(kJt2);
       const std::vector<Node*> &bodyRun = m.run(kBody);
       const std::vector<Node*> &elseRun = m.run(kElseBody);
-      Node *body = bodyRun.front()->UnlinkChain(bodyRun.back());
-      Node *elseBody = elseRun.front()->UnlinkChain(elseRun.back());
+      Node *body = bodyRun.empty() ? anchor->NewNil() : bodyRun.front()->UnlinkChain(bodyRun.back());
+      Node *elseBody = elseRun.empty() ? anchor->NewNil() : elseRun.front()->UnlinkChain(elseRun.back());
       if (m.has(kTrailingPop)) m.node(kTrailingPop)->Unlink();
       return MakeIfThen(dec, anchor, /*returnsAValue=*/false, body, jt1, elseBody, bi2, jt2);
     });

@@ -829,6 +829,131 @@ the decompiler — worth fixing separately since it blocks hand-writing any
 future `-script` repro that needs a conditional `break` inside a bare
 `loop`.
 
+**Third fix, same session: `while` with a compound (multi-instruction)
+condition.** The new #1 cluster after the fix above
+(`BCBranch,JumpTarget,JumpTarget,BCBranchIfTrue`, 202 occurrences) was
+`GroupMail_1.0.pkg`'s `parseAddresses` — already examined earlier in this
+session as one of the two originally-crashing functions this file's
+`argFrame` diagnostic finding came from. Root cause, one layer deeper than
+either fix above: `BCBranchIfTrue::Resolve()` (`ASTControlFlow.cc`) grabs
+its own condition via a bare `prev->IsExpr()` check, in a special
+*pre*-consumption step that runs *before* the pattern engine's own Builder
+chain even starts (its own comment: "give the compress pass a chance to
+build a larger condition" — that pass is `compressAST()`, long gone).
+`while COND do` doesn't require `COND` to be a single bytecode
+instruction — `i := StrPos(names, ",", 0); i` (a statement computing a
+value, immediately followed by reading it back as the boolean test) is a
+completely ordinary, *not NTK-specific* compound condition; a
+hand-compiled repro via our own compiler reproduces the identical shape
+(a scratch hand-written `-script` test, not checked in — this one was
+never an NTK-optimizer divergence, just a gap the 12-package sample's own
+coverage happened to miss). The single-node check only ever grabbed the trailing `i`, leaving
+`i := StrPos(...)` sitting between the true condition and the anchor,
+which blocked `BuildWhilePattern`'s own backward `JumpTarget` search
+entirely.
+
+**The fix that didn't work, caught by the 12-package sample before moving
+on**: extending `BCBranchIfTrue::Resolve()`'s pre-consumption itself to
+walk backward through statements (mirroring `StatementsThenExpr()`)
+seemed reasonable — until the 12-package diff showed `if begin
+unrelatedStmt1; unrelatedStmt2; cond end or cond2 then ...` in place of
+those statements standing on their own before a plain `if cond or cond2
+then ...`. Root cause: this same anchor tag/pre-consumption step is
+*shared* by two different registered patterns — `BuildWhilePattern` (a
+loop's condition, always immediately preceded by a `JumpTarget`: the
+loop's own test-label landing) and `BuildOrPattern` (`a or b`'s left
+operand `a`, evaluated wherever it appears in a straight line, with no
+such boundary at all). The pre-consumption step runs before either
+pattern is even tried, so it has no way to know which one — if either —
+will end up matching, and walking backward unconditionally there silently
+absorbed `or`'s unrelated preceding statements too. **This is exactly the
+over-merging failure mode `compressAST()`'s removal (Stage 8) was
+supposed to eliminate for good**, resurfacing here for the same
+structural reason it did the first time a generic backward-skip was tried
+this session (see Stage 8's item 4, `ASTAdmin.cc` `Consume1`/`Consume2`)
+— a lesson worth internalizing at this point: *any* backward statement-walk
+triggered by something other than a specific, already-committed-to pattern
+match is unsound, no matter how the boundary condition is phrased.
+
+**The actual fix**: revert `BCBranchIfTrue::Resolve()`'s pre-consumption
+to single-node-only (exactly as it always was — safe for both `while` and
+`or`), and instead extend the condition backward *inside
+`BuildWhilePattern`'s own Builder chain* (`ASTControlFlowPatterns.cc`),
+specifically because by the time that spec's own steps run, we're already
+committed to trying `while`, never `or`. A new `Custom()` step there
+replaces the old `.Required(Tag::JumpTarget, kJt2)`: walk backward through
+`IsStatement()` nodes *looking for* a `JumpTarget` (still a provably
+bounded search — a `Builder::kBwd` Custom step, not open-ended, and it
+simply fails the whole match if it runs off into something that's neither
+a statement nor a `JumpTarget`); the captured prefix is spliced onto the
+front of the already-consumed single-node condition in the callback and
+wrapped in one `CompoundExpr` (see below). `BuildOrPattern` is completely
+untouched by any of this — it still only ever sees the single-node
+condition, exactly as before.
+
+**New node type: `CompoundExpr`** (`ASTControlFlowHelper.h`/`.cc`) — the
+same "wrap a multi-node chain so it reports `IsExpr()==true` and prints as
+one inline `begin ...; ... end` value" idea considered and *rejected*
+earlier this session for `Consume1`/`Consume2`'s generic operand search
+(Stage 8 finding), but sound here for the same reason the fix above is
+sound: this one's only ever constructed inside `BuildWhilePattern`'s own
+callback, after that specific, bounded backward search already succeeded
+— never generically, never speculatively. `CFWhile::Print()`/`CFOr::Print()`
+needed **no changes at all**: since `cond_`/`left_` are single `Node*`
+fields whose `Print()` is already just `cond_->Print()`, wrapping the
+multi-node case in one real node made the existing single-node print path
+correct automatically, for both the 1-node case (unchanged, no wrapper)
+and the N-node case (dispatches to `CompoundExpr::Print()`).
+
+**Verified**: 12-package sample byte-identical to the pre-Stage-8 baseline
+(not just "no new diffs" — confirmed zero diffs at all once the `or`
+regression was caught and fixed, restoring exact parity); hand-written
+`-script` tests confirm our own compiler independently reproduces the
+compound-`while`-condition shape (not NTK-only) and resolves it correctly,
+and a dedicated `a or b`-with-preceding-statements test confirms those
+statements print standing on their own, never absorbed. Corpus-scale
+impact: **another 283 packages** cumulative this session flipped
+`UNRESOLVED → CLEAN` (1,540 → 1,823 of 2,349, 65.6% → 77.6%), unresolved
+cluster count 531 → 451, **zero regressions**. `Test/round_trip.py`
+re-run (200 `CLEAN` packages) shows the same single pre-existing mismatch,
+no new ones.
+
+**Fourth fix, same session: an if/then/else branch may be genuinely
+empty.** New #1 cluster after the fix above
+(`BCBranchIfFalse,BCBranch,JumpTarget,JumpTarget`, 79 occurrences) was
+`ObEx Demo.pkg`'s `_proto._proto.ExpandOutput`. Root cause, much simpler
+than the previous three: `BuildIfThenElsePattern`'s `kBody`/`kElseBody`
+both required `NonEmpty()` — reasonable for the "real" if/then/else shape,
+but the real idiom here is `if arg0 = nil then end else if IsArray(arg0)
+then ... elseif IsFrame(arg0) then ... else ... end;` — a guard clause
+whose "then" branch is compiled as **zero bytecode instructions**, not
+even a placeholder `nil` push, with the entire classification chain living
+in the `else`. `NonEmpty()`'s all-or-nothing rejection meant this
+construct never matched anything at all. Fix: removed `NonEmpty()` from
+both slots (kept `StatementsOrExpr()` itself, so a non-empty branch
+still captures exactly as before) and, in the callback, fall back to
+`anchor->NewNil()` for an empty run — the same convention every other
+optional/possibly-empty body already uses (`loop`/`while`/`repeat`/`for`/
+`foreach`), so an empty branch prints as an explicit `begin nil end`
+rather than a bare `begin end`, consistent with the rest of the codebase
+rather than a new special case. No new risk of false-positive matches:
+the surrounding structural requirements (`BranchIfFalse` + `Branch` + two
+`JumpTarget`s + both `JumpPair` checks) are unchanged and already
+specific enough to not be triggered by unrelated code.
+
+**Verified**: 12-package sample — the one file that changed was a genuine
+improvement, not a regression: it also happened to fully resolve this
+session's very last pre-existing "12 unresolved nodes" case from the
+original baseline (an unrelated `elseif` chain with one empty `nil`
+branch of its own, `gameType = 'pyramid`), leaving **zero warnings across
+the entire 12-package sample for the first time this session**. Every
+hand-written `-script` test from all three fixes above still resolves
+cleanly. Corpus-scale impact: **another 54 packages** flipped `UNRESOLVED
+→ CLEAN` (cumulative this session: 1,540 → 1,877 of 2,349, 65.6% →
+79.9%), unresolved cluster count 451 → 404, **zero regressions**.
+`Test/round_trip.py` re-run (200 `CLEAN` packages): same single
+pre-existing mismatch, no new ones.
+
 **Tier 2 — `Test/round_trip.py`**: formalizes the self-consistency idea
 already sketched (but left unfinished, its diff step commented out) in the
 repo-root `testdec` script. Decompile → recompile with our own
