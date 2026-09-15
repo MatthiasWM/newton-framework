@@ -564,9 +564,10 @@ void ObjectPrinter::PrintDependents(RefArg ref)
     if (IsArray(ref) || IsFrame(ref)) {
       FOREACH(ref, slot); {
         if (ISREALPTR(slot)) {
-          if (map[slot].DontPrint()) {
+          auto& nd = map[slot];
+          if (nd.DontPrint()) {
             ;
-          } else if (map[slot].EarlyPrint()) {
+          } else if (nd.EarlyPrint()) {
             PrintPartialTree(slot);
           } else {
             PrintDependents(slot);
@@ -582,6 +583,21 @@ void ObjectPrinter::PrintDependents(RefArg ref)
 
  The recursion ensures that all dependent branches and binaries are printed
  first. Only then is this branch printed.
+
+ Some packages contain genuinely circular object graphs (a chain of two or
+ more multiply-referenced frames/arrays that eventually points back to one
+ of its own ancestors). `visited_` guards against that: it is set the
+ moment we *enter* a branch, before recursing into its dependents, so a
+ back-edge that loops around to a branch still in progress is recognized
+ and stopped here instead of recursing forever and overflowing the stack.
+ This is the same entry-guard idiom `BuildRefMapLength()` already uses, and
+ `visited_` is reset across the whole map (mirroring `BuildRefMap()`'s own
+ reset between its two passes) right before printing starts.
+
+ Note this only prevents the crash: the back-edge that closes the cycle
+ still prints as a forward reference to a `DefineGlobalConstant` that
+ hasn't been emitted yet, which NTK cannot reload as-is. Genuine cycles are
+ rare enough in real packages that this hasn't been worth solving further.
  */
 void ObjectPrinter::PrintPartialTree(RefArg ref)
 {
@@ -590,14 +606,15 @@ void ObjectPrinter::PrintPartialTree(RefArg ref)
     return;
 
   Node &nd = map[ref];
-  // The branch was already printed. We are done.
-  if (nd.printed_)
+  // Already printed, or currently being printed higher up the call stack
+  // (a circular reference looping back to an ancestor). Either way, don't
+  // recurse into it again.
+  if (nd.visited_) {
     return;
+  }
+  nd.visited_ = true;
   // Make sure that all dependents are printed first.
   PrintDependents(ref);
-  // If the following condition is true, we have a circular dependency.
-  // TODO: enable a check if that ever occurs, and if it does, write some code for it.
-  if (nd.printed_) return;
   nd.printed_ = true;
   // Print the label header, then the branch itself
   // TODO: see if there is debugging or other information we can use to generate meaningful label names
@@ -755,7 +772,7 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
   // back ('|slotvalue|iter|), so suppress this info here.
   // TODO: use this info when naming args and locals though!
   Ref debuggerInfo = GetFrameSlot(func, SYMA(debuggerInfo));
-  if (NOTNIL(debuggerInfo)) 
+  if (NOTNIL(debuggerInfo))
     map[debuggerInfo].suppressEarlyPrint_ = true;
 
   // Some stuff *must* be declared as a global constant first.
@@ -896,6 +913,11 @@ void ObjectPrinter::Print(RefArg ref)
   DeepList(";\n"); SetIndent(0);
   if (IsArray(ref) || IsFrame(ref)) {
     BuildRefMap(ref);
+    // BuildRefMap()'s own second pass (BuildRefMapLength) leaves visited_
+    // set on every mapped node; reset it here so PrintPartialTree() can
+    // reuse the same field as its own entry guard against circular
+    // object graphs (see PrintPartialTree()'s comment).
+    for (auto &nd: map) nd.second.visited_ = false;
     PrintPartialTree(ref);
   } else {
     PrintRef(ref);

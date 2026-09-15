@@ -1109,6 +1109,76 @@ original (see "The actual goal" at the top of this file) — stays a
 selective, manual final check applied to samples that pass all three
 tiers above, not something automated at corpus scale.
 
+### Fix 6: `ObjectPrinter::PrintPartialTree`/`PrintDependents` stack overflow on genuinely circular object graphs
+
+Not a decompiler-pattern bug — a pre-existing bug in `ObjectPrinter.cc`
+itself (the pass that prints the resolved AST back out as NewtonScript
+source), found by hand: `calendar.pkg` and several other real packages
+reproducibly crashed with `UndefinedBehaviorSanitizer: stack-overflow`
+deep inside a `PrintDependents → PrintPartialTree → PrintDependents → ...`
+chain (confirmed identical on unmodified HEAD, 3/3 runs).
+
+**Root cause**: some packages' object graphs contain a genuine cycle — a
+small chain of multiply-referenced frames/arrays (`Node::numRefs_ > 1`,
+i.e. `EarlyPrint()`) that, followed far enough, loops back to one of its
+own ancestors still on the call stack. `PrintPartialTree(ref)` only sets
+`nd.printed_ = true` *after* its own `PrintDependents(ref)` call returns —
+so a back-edge reaching an ancestor mid-print sees `printed_` still
+`false` and recurses again, forever. Debug instrumentation (temporary,
+removed once the fix landed) confirmed a real repeating triple of `Ref`
+values recurring at every sampled depth, not just very deep acyclic
+nesting.
+
+The fix pattern was already in this exact file, just not applied here:
+`BuildRefMapLength()` uses `visited_` as an **entry** guard (`if
+(nd.visited_) return; nd.visited_ = true;`, set *before* recursing), and
+`BuildRefMap()` explicitly resets `visited_` across the whole `map`
+between its own two internal passes. Applied the same idiom to
+`PrintPartialTree()`: set `nd.visited_ = true` at entry, before calling
+`PrintDependents(ref)`, and reset `visited_` across `map` once, in
+`ObjectPrinter::Print()`, right after `BuildRefMap()` (which otherwise
+leaves it `true` everywhere from its own `BuildRefMapLength` pass) and
+right before the print pass begins. A back-edge to an ancestor still being
+printed now hits the guard and returns immediately instead of recursing;
+the ancestor itself finishes normally once the recursion unwinds.
+
+**Known residual limitation** (documented in the code, not yet fixed):
+this stops the crash but does not make every genuinely-cyclic package
+fully round-trippable. The back-edge that closes the cycle still gets
+printed as a plain reference to the ancestor's label — a symbol naming a
+`DefineGlobalConstant` that, in emission order, hasn't been emitted yet.
+Spot-checked via `Test/round_trip.py` against 10 of the 11 packages this
+fix newly made `CLEAN`: 4 fully round-trip (`OK`); 6, including
+`calendar.pkg` itself, fail recompilation (`GEN2_FAILED`) with exactly
+this shape — `newtc -script` on our own gen1 output reports `Undefined
+variable 'Ref_NNN`. Whether a cycle's forward-reference lands on an
+already-defined or not-yet-defined label depends on that package's
+specific traversal order, which is why some cyclic packages already work
+and others don't. A complete fix would need to detect which specific slot
+closes the loop and defer *only* that one assignment to a statement after
+all the cycle's members are defined (`Ref_862.someSlot := Ref_883;`)
+rather than inlining it — not attempted here; flagged as a follow-up
+since it's a meaningfully bigger design change than "stop the crash."
+
+**Verified**: rebuilt and reran; `calendar.pkg` and the other reproduction
+cases run to completion (exit 0) instead of aborting. 12-package sample
+byte-identical to the last known-good baseline. All accumulated
+hand-written `-script` tests still resolve with zero `WARNING` lines.
+Corpus sweep against a freshly-generated true HEAD baseline (not the stale
+on-disk manifest, which turned out to reflect an intermediate,
+partially-edited state from earlier in this session and was not a valid
+comparison point): **CRASHED 85 → 61, CLEAN 1,895 → 1,906, UNRESOLVED 369
+→ 382, zero regressions** (`--compare` confirms `REGRESSED (0)`). Of the
+24 packages that stopped crashing, 11 are now fully `CLEAN` and 13 now
+correctly report unresolved AST nodes instead of stack-overflowing —
+strictly better in both cases, since previously none of them produced any
+usable output at all. Crash clusters 33 → 9; the remaining 9 are unrelated
+pre-existing issues (e.g. `PocketWeb/pocketweb24d.pkg` hits the *same*
+`PrintDependents` stack-overflow signature but via plain, non-early-print
+recursion down a genuinely deep, non-cyclic structure — confirmed
+unchanged on both pre- and post-fix binaries, a separate bug, not a
+regression from this fix, and not addressed here).
+
 ## Hard-won C++ gotcha (don't re-discover this)
 
 `Decompiler` holds `std::vector<std::unique_ptr<ast::Node>> nodePool_` as
