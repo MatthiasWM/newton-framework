@@ -1179,6 +1179,65 @@ recursion down a genuinely deep, non-cyclic structure — confirmed
 unchanged on both pre- and post-fix binaries, a separate bug, not a
 regression from this fix, and not addressed here).
 
+### Fix 7: recover real arg/local names from NTK's `debuggerInfo`
+
+NTK-compiled `kPlainFuncClass` ("fast", NOS2-style) functions always have
+`argFrame: nil` (see the format comment above `mDecompile()`), so without
+another source of names every arg/local prints as a synthetic `arg0`,
+`loc0`, ... placeholder. But when a package was compiled with NTK's debug
+flag set, each function frame also carries a `debuggerInfo` slot — until
+now, only ever read by the `-debug bc`/`-debug ast` dump path, and even
+there gated behind `IsArray(literals_)`, so it rarely got printed.
+
+**Scanned the full non-book/sound/font/movie corpus** (2,349 packages) for
+functions with a non-nil `debuggerInfo`: **401 packages (17%)** have at
+least one. Dumped the raw contents for several real functions (`newtc
+Matt/Decompiler.cc`'s existing `::PrintObject` dump machinery, extended to
+also print `debuggerInfo` unconditionally) to work out the shape:
+`debuggerInfo` is an array whose element `[0]` is a header frame
+(`{<funcName>: <id>}`, not otherwise used here) followed by exactly
+`numArgs_ + numLocals_` symbols — the function's original arg/local names,
+in the same order they occupy in `argFrame` (args first, then locals).
+Confirmed against `Mines.pkg`'s `BlowUp` (14 names covering 2 args + 6
+declared locals + two `for`-loops' hidden limit/incr triples — NTK's `for`
+loop desugars into 3 real, separately-named locals, e.g. `longitude`,
+`` |longitude\|limit| ``, `` |longitude\|incr| ``) and `NewGame` (0 args,
+10 locals across three more `for`-loop triples) — in both cases the name
+count matched `numArgs_ + numLocals_` exactly and the resulting per-slot
+names lined up with the decompiled body's actual variable usage.
+
+**The fix** (`Decompiler::decompile()`, inside the `kPlainFuncClass`
+branch, right after the synthetic `arg%d`/`loc%d` placeholder names are
+generated and before the — in practice always-nil — `argFrame` override
+check): read `debuggerInfo`, and if it's an array of exactly `1 +
+numArgs_ + numLocals_` elements, overwrite `locals_[i+3].ref` with
+`GetArraySlot(debuggerInfo, i+1)` for each arg/local index. A length
+mismatch is logged to stderr (same diagnostic style as the existing
+argFrame-mismatch guard a few lines below) and the synthetic names are
+left in place rather than risking a wrong mapping. This only ever
+replaces the *name* used when printing — `Local::Use` classification
+(arg/local/loop/...) and everything downstream in AST resolution are
+untouched, so this is purely a cosmetic readability improvement, not a
+new source of decompilation logic.
+
+**Verified**: 12-package sample — exactly the 4 files that carry
+`debuggerInfo` (`Mines.pkg`, `Pyramid.pkg`, `Aces.pkg`, `Canfield.pkg`)
+differ, and every differing line is the expected identifier substitution
+(`arg0`→`unit`, `loc0`→`i`, etc.) with identical `WARNING` counts before
+and after — confirmed by inspection, not just a diff-is-nonempty check.
+All hand-written `-script` tests (never carry debug info) byte-identical.
+Full corpus sweep: **totals unchanged** (CLEAN 1,906, UNRESOLVED 382,
+CRASHED 61 — expected, since this only changes identifier text, never
+resolve/crash status) and `--compare` against the pre-fix manifest
+confirms `Fixed (0)` / `REGRESSED (0)`. `Test/round_trip.py` re-run (150
+`CLEAN` packages, including all 4 newly-renamed ones): 125 `OK`, 24
+`GEN2_FAILED`, 1 `MISMATCH` — the exact same `DockTrnspTCPIP.pkg` bug
+already documented above, not a new one. Individually re-checked the two
+new `MISMATCH`/`GEN2_FAILED` results this batch surfaced
+(`Aces.pkg`/`Canfield.pkg` → `MISMATCH`, `Mines.pkg` → `GEN2_FAILED`)
+against the pre-Fix-7 binary: identical status on both, confirming these
+are pre-existing, unrelated to this change.
+
 ## Hard-won C++ gotcha (don't re-discover this)
 
 `Decompiler` holds `std::vector<std::unique_ptr<ast::Node>> nodePool_` as

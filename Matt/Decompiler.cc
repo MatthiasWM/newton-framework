@@ -382,6 +382,34 @@ void Decompiler::decompile(Ref ref)
       snprintf(buf, 30, "loc%d", i);
       locals_.push_back( { MakeSymbol(buf), Local::Use::local } );
     }
+    // If NTK compiled this function with the debugger flag set, `debuggerInfo`
+    // is an array: element 0 is a header frame ({<funcName>: <id>}, not used
+    // here), followed by exactly `numArgs_ + numLocals_` symbols -- the
+    // original arg/local names, in the same order they'd occupy in argFrame.
+    // This is the only source of real names for this (newer) function
+    // format, since its `argFrame` is always nil -- without it, every local
+    // prints as the synthetic arg0/loc0 placeholders just generated above.
+    {
+      Ref debuggerInfo = GetFrameSlot(ref, SYMA(debuggerInfo));
+      if (IsArray(debuggerInfo)) {
+        int n = Length(debuggerInfo);
+        if (n == 1 + numArgs_ + numLocals_) {
+          for (int i = 0; i < numArgs_ + numLocals_; i++) {
+            Ref name = GetArraySlot(debuggerInfo, i + 1);
+            if (IsSymbol(name))
+              locals_[i + 3].ref = name;
+          }
+        } else {
+          fprintf(stderr,
+            "Decompiler::decompile(): debuggerInfo has unexpected length!\n"
+            "  file: '%s'\n"
+            "  path: '%s'\n"
+            "  debuggerInfo length=%d, expected 1 + numArgs_=%d + numLocals_=%d\n",
+            currentFileName.c_str(), p.RefPath().c_str(),
+            n, numArgs_, numLocals_);
+        }
+      }
+    }
     // if there *is* an argFrame, copy those names that are defined
     Ref argFrame = GetFrameSlot(ref, SYMA(argFrame));
     if (IsFrame(argFrame)) {
