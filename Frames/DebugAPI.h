@@ -58,4 +58,12 @@ private:
 extern CNSDebugAPI *	NewNSDebugAPI(CInterpreter * interpreter);
 extern void				DeleteNSDebugAPI(CNSDebugAPI * inDebugAPI);
 
+/* -----------------------------------------------------------------------------
+	Source-line lookup for a compiled function's line table -- see the
+	implementation in DebugAPI.cc for the table format and how it's built
+	(CFunctionState::noteLine() in CompilerSupport.cc, gated on the
+	dbgKeepLineTable global var / newtc's -g flag).
+----------------------------------------------------------------------------- */
+extern bool	FindSourceLine(RefArg inFunc, ArrayIndex inPC, RefVar & outFile, ArrayIndex & outLine);
+
 #endif	/* __DEBUGAPI_H */

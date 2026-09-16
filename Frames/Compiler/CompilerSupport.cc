@@ -24,6 +24,7 @@
 
 #define kLiteralsChunkSize			16
 #define kInstructionsChunkSize  128
+#define kLineTableChunkSize			16	// entries (pc,line pairs), not slots
 
 
 /*----------------------------------------------------------------------
@@ -103,6 +104,19 @@ CFunctionState::CFunctionState(CCompiler * inCompiler, RefArg inArgs, CFunctionS
 		fKeepVarNames = NOTNIL(GetGlobalVar(MakeSymbol("dbgKeepVarNames")));
 	else
 		fKeepVarNames = false;
+
+	fNumOfLineEntries = 0;
+	fLastLineNo = -1;
+	fKeepLineTable = FrameHasSlot(gVarFrame, MakeSymbol("dbgKeepLineTable"))
+						&& NOTNIL(GetGlobalVar(MakeSymbol("dbgKeepLineTable")));
+	if (fKeepLineTable)
+	{
+		// slot 0 is the source file name; (pc,line) pairs follow from slot 1.
+		fLineTable = AllocateArray(MakeSymbol("lineTable"), 1 + kLineTableChunkSize * 2);
+		SetArraySlot(fLineTable, 0, MakeStringFromCString(fCompiler->fileName()));
+	}
+	else
+		fLineTable = NILREF;
 }
 
 
@@ -525,8 +539,8 @@ CFunctionState::makeCodeBlock(void)
 
 	SetLength(fLiterals, fNumOfLiterals);
 	SetLength(fInstructions, curPC());
-	cbf = (fFuncDepth < 0 && !fKeepVarNames)	? MakeCodeBlockFrame()
-															: MakeDebugCodeBlockFrame();
+	cbf = (fFuncDepth < 0 && !fKeepVarNames && !fKeepLineTable)	? MakeCodeBlockFrame()
+																					: MakeDebugCodeBlockFrame();
 	if (fFuncDepth >= 0)
 		SetFrameSlot(cbf, SYMA(debuggerInfo), MAKEINT(fFuncDepth));
 
@@ -584,6 +598,12 @@ CFunctionState::makeCodeBlock(void)
 	}
 	SetArraySlot(cbf, kFunctionArgFrameIndex, fArgFrame);
 
+	if (fKeepLineTable && fNumOfLineEntries > 0)
+	{
+		SetLength(fLineTable, 1 + fNumOfLineEntries * 2);
+		SetFrameSlot(cbf, MakeSymbol("lineTable"), fLineTable);
+	}
+
 	if (gPrintLiterals)
 	{
 		PrintObject(fLiterals, 0);
@@ -609,6 +629,33 @@ CFunctionState::emit(Opcode a, int b)
 		return emitOne((a << 3) | b);
 	else
 		return emitThree((a << 3) | 0x07, b);
+}
+
+
+/*----------------------------------------------------------------------
+	Record a (pc, line) entry in this function's line table -- called by
+	CCompiler::walkForCode() right before it starts generating code for a
+	new statement, with the source line number that was captured for that
+	statement back when it was parsed (see the TOKENbegin grammar actions
+	in Compiler.cc, which stash one line number per statement alongside it
+	in the statement-sequence array).
+	Args:		inLine	source line number of the statement about to be compiled
+	Return:	--
+----------------------------------------------------------------------*/
+
+void
+CFunctionState::noteLine(int inLine)
+{
+	if (!fKeepLineTable || inLine == fLastLineNo)
+		return;
+
+	ArrayIndex slot = 1 + fNumOfLineEntries * 2;
+	if (slot + 1 >= Length(fLineTable))
+		SetLength(fLineTable, Length(fLineTable) + kLineTableChunkSize * 2);
+	SetArraySlot(fLineTable, slot, MAKEINT(curPC()));
+	SetArraySlot(fLineTable, slot + 1, MAKEINT(inLine));
+	fNumOfLineEntries++;
+	fLastLineNo = inLine;
 }
 
 

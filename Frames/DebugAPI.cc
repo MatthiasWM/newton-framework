@@ -548,6 +548,75 @@ FDisasmRange(RefArg rcvr, RefArg inFunc, RefArg inStart, RefArg inEnd)
 
 
 /* -----------------------------------------------------------------------------
+	Look up the source location for a PC within a compiled function, using
+	the (file, pc, line) table CFunctionState::noteLine() builds when a
+	function is compiled with the dbgKeepLineTable global var set (see
+	CompilerSupport.cc, and newtc's -g flag) -- entries are (pc, line)
+	pairs stored in a "lineTable" frame slot, pcs non-decreasing in
+	statement order.
+
+	Intended for breakpoint checks against a live interpreter call frame:
+	the caller already has the running function's Ref directly (it's
+	VMState::func -- see Interpreter.h -- retained on CInterpreter's
+	ctrlStack for the whole call, no separate lookup needed to get here)
+	and its current PC (VMState::pc).
+
+	Finds the last entry whose pc is <= inPC, i.e. the statement whose
+	bytecode currently contains inPC -- not just an exact statement-start
+	match, so this also resolves correctly for a PC in the *middle* of a
+	statement (e.g. partway through a compound expression).
+
+	Args:		inFunc		a compiled function frame
+				inPC			bytecode offset within inFunc's `instructions`
+				outFile		set to the source file name (NS string), if found
+				outLine		set to the source line number, if found
+	Return:	true if inFunc has a line table and inPC resolved to an entry;
+				false if inFunc wasn't compiled with line info, or inPC falls
+				before the first recorded statement (e.g. a synthetic/native
+				function, or the small entry-setup prologue some function
+				shapes emit before their first real statement).
+----------------------------------------------------------------------------- */
+
+bool
+FindSourceLine(RefArg inFunc, ArrayIndex inPC, RefVar & outFile, ArrayIndex & outLine)
+{
+	if (!IsFrame(inFunc)) {
+		return false;
+	}
+	RefVar lineTable(GetFrameSlot(inFunc, MakeSymbol("lineTable")));
+	if (!IsArray(lineTable)) {
+		return false;
+	}
+
+	ArrayIndex length = Length(lineTable);
+	if (length < 3) {
+		return false;
+	}
+	ArrayIndex numEntries = (length - 1) / 2;
+
+	// Binary search the (pc,line) pairs at slots [1,2], [3,4], ... for the
+	// last entry whose pc is <= inPC.
+	ArrayIndex lo = 0, hi = numEntries;	// invariant: answer, if any, is in [lo,hi)
+	while (lo + 1 < hi)
+	{
+		ArrayIndex mid = lo + (hi - lo) / 2;
+		ArrayIndex midPC = RVALUE(GetArraySlot(lineTable, 1 + mid * 2));
+		if (midPC <= inPC)
+			lo = mid;
+		else
+			hi = mid;
+	}
+	if (RVALUE(GetArraySlot(lineTable, 1 + lo * 2)) > inPC) {
+		return false;
+	}
+
+	outFile = GetArraySlot(lineTable, 0);
+	outLine = RVALUE(GetArraySlot(lineTable, 1 + lo * 2 + 1));
+	return true;
+}
+
+
+/* -----------------------------------------------------------------------------
 	Disassemble function object.
 	Args:		inFunc
 	Return:	--

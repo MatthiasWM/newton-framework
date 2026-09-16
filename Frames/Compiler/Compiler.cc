@@ -350,6 +350,7 @@ CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions)
 	}
 	// prime the input stream
 	lineNumber = 1; colmNumber = 0;
+	shiftLineNumber = 1;
 	consumeChar();
 }
 
@@ -622,6 +623,13 @@ yyloop:
 		if (yyssp >= &yyss[stackSize-1] && parserStackOverflow()) goto yyoverflow;
 		*++yyssp = yystate = yytable[yyn];
 		*++yyvsp = theToken.value.ref;
+		// lineNumber, at this exact point, is the line of the token just
+		// shifted -- unlike lineNo() read from inside a grammar action,
+		// which (thanks to LALR(1) lookahead) already reflects whatever
+		// token comes *after* the construct that action just finished
+		// reducing. shiftLineNumber is what CFunctionState::noteLine()
+		// callers (see cases 3/5/110/111 in parser()) should use instead.
+		shiftLineNumber = lineNumber;
 		yychar = -1;
 		if (yyerrflag > 0) --yyerrflag;
 		goto yyloop;
@@ -708,14 +716,17 @@ case 1:
 					{	yyval = MakeArray(0); }
 break;
 case 3:
-					{	yyval = MakeArray(1);
-						SetArraySlot(yyval, 0, yyvsp[0]); }
+					{	yyval = MakeArray(2);
+						SetArraySlot(yyval, 0, MAKEINT(shiftLineNumber));
+						SetArraySlot(yyval, 1, yyvsp[0]); }
 break;
 case 4:
 					{	yyval = yyvsp[-1];  if (is1Expression) YYACCEPT; }
 break;
 case 5:
-					{	yyval = yyvsp[-3];  AddArraySlot(yyval, yyvsp[0]); }
+					{	yyval = yyvsp[-3];
+						AddArraySlot(yyval, MAKEINT(shiftLineNumber));
+						AddArraySlot(yyval, yyvsp[0]); }
 break;
 case 11:
 					{	yyval = AllocatePT1(TOKENself, RA(NILREF)); }
@@ -999,11 +1010,13 @@ case 109:
 					{	yyval = MakeArray(0); }
 break;
 case 110:
-					{	yyval = MakeArray(1);
-						SetArraySlot(yyval, 0, yyvsp[0]); }
+					{	yyval = MakeArray(2);
+						SetArraySlot(yyval, 0, MAKEINT(shiftLineNumber));
+						SetArraySlot(yyval, 1, yyvsp[0]); }
 break;
 case 111:
-					{	AddArraySlot(yyvsp[-2], yyvsp[0]);
+					{	AddArraySlot(yyvsp[-2], MAKEINT(shiftLineNumber));
+						AddArraySlot(yyvsp[-2], yyvsp[0]);
 						yyval = yyvsp[-2]; }
 break;
 case 112:
@@ -1486,7 +1499,11 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 			break;
 
 		case TOKENbegin:
-			for (i = 0, count = Length(p1); i < count; ++i)
+			// p1 is [line0, stmt0, line1, stmt1, ...] -- see the expr_seq
+			// grammar actions (cases 109/110/111) and the command_plus
+			// grammar actions (cases 3/5, for the top-level program) in
+			// parser(); skip the line numbers, only walk the statements.
+			for (i = 1, count = Length(p1); i < count; i += 2)
 				WalkNodes(GetArraySlot(p1, i), inContext, inWalker, inPostProcessing);
 			break;
 
@@ -1533,7 +1550,9 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 			break;
 
 		case TOKENrepeat:
-			for (i = 0, count = Length(p1); i < count; ++i)
+			// p1 is [line0, stmt0, line1, stmt1, ...] -- see the expr_seq
+			// grammar actions (cases 109/110/111) in parser().
+			for (i = 1, count = Length(p1); i < count; i += 2)
 				WalkNodes(GetArraySlot(p1, i), inContext, inWalker, inPostProcessing);
 			WalkNodes(p2, inContext, inWalker, inPostProcessing);
 			break;
@@ -2050,21 +2069,25 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 		break;
 
 	case TOKENbegin:
-		//	p1 = expr seq
-		numOfElements = Length(p1);
+		//	p1 = [line0, stmt0, line1, stmt1, ...] -- see the expr_seq
+		//	grammar actions (cases 109/110/111) and the command_plus
+		//	grammar actions (cases 3/5, for the top-level program) in
+		//	parser().
+		numOfElements = Length(p1) / 2;
 		if (numOfElements > 0)
 		{
 			ArrayIndex	finalNode = numOfElements - 1;
 			for (i = 0; i < numOfElements; ++i)
 			{
+				func->noteLine(RINT(GetArraySlot(p1, i * 2)));
 				if (i < finalNode)
 				{
-					if (walkForCode(GetArraySlot(p1, i), true) != 0)
+					if (walkForCode(GetArraySlot(p1, i * 2 + 1), true) != 0)
 						emitPop();
 				}
 				else
 				{
-					isFinalNode = walkForCode(GetArraySlot(p1, i), inFinalNode);
+					isFinalNode = walkForCode(GetArraySlot(p1, i * 2 + 1), inFinalNode);
 				}
 			}
 		}
@@ -2301,10 +2324,13 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 		{
 			ArrayIndex	loopStart = curPC();
 			func->beginLoop();
-			numOfElements = Length(p1);
+			// p1 is [line0, stmt0, line1, stmt1, ...] -- see the expr_seq
+			// grammar actions (cases 109/110/111) in parser().
+			numOfElements = Length(p1) / 2;
 			for (i = 0; i < numOfElements; ++i)
 			{
-				if (walkForCode(GetArraySlot(p1, i), true) != 0)
+				func->noteLine(RINT(GetArraySlot(p1, i * 2)));
+				if (walkForCode(GetArraySlot(p1, i * 2 + 1), true) != 0)
 					emitPop();
 			}
 			walkForCode(p2, false);

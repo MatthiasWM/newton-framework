@@ -49,6 +49,7 @@ public:
 	ExprAST *	parse(void);	// FOR DEBUG
 
 	ArrayIndex	lineNo(void) const;
+	const char *	fileName(void) const;
 	void			error(NewtonErr inErr);
 	void			errorWithValue(NewtonErr inErr, RefArg inValue);
 
@@ -150,6 +151,12 @@ private:
 	CFunctionState *	func;				// +00
 	ArrayIndex	lineNumber;				// +04
 	ArrayIndex	colmNumber;
+	/** Line of the most recently *shifted* (not merely peeked) token --
+	  see the shift action in parser(). Grammar actions that want "the
+	  source line this construct is on" should use this, not lineNo(),
+	  which reflects the parser's current lookahead and so already points
+	  past whatever construct just finished reducing. */
+	ArrayIndex	shiftLineNumber;
 	CInputStream *		stream;			// +08
 	UniChar		theChar;					//			lexer input -- char last read from the stream
 	Token			theToken;				//			lexer output -- transitioning from the yylval global
@@ -208,6 +215,7 @@ public:
 	ArrayIndex	emitPlaceholder(void);
 	ArrayIndex	curPC(void) const;
 	void			backpatch(ArrayIndex inPC, Opcode a, int b);
+	void			noteLine(int inLine);
 
 private:
 	CCompiler *		fCompiler;			// +00
@@ -241,6 +249,16 @@ private:
 	bool				fKeepVarNames;		// +50
 	CFunctionState *	fScope;			// +54
 	CFunctionState *	fNext;			// +58
+	/** Line table: [filename, pc0, line0, pc1, line1, ...] -- one (pc, line)
+	  pair per source line whose first bytecode is emitted (recorded in
+	  emit()), so a debugger can map a running function's PC back to a
+	  source location by searching this table (pcs are non-decreasing, in
+	  emission order). Only populated when fKeepLineTable is set, mirroring
+	  fKeepVarNames -- see dbgKeepLineTable in CFunctionState's constructor. */
+	RefStruct		fLineTable;
+	ArrayIndex		fNumOfLineEntries;
+	int				fLastLineNo;
+	bool				fKeepLineTable;
 };
 
 
@@ -284,6 +302,7 @@ inline	ArrayIndex	CCompiler::emitPlaceholder(void)			{ return func->emitPlacehol
 inline	void			CCompiler::emit(Opcode a, int b)			{ func->emit(a,b); }
 inline	void			CCompiler::backpatch(ArrayIndex inPC, Opcode a, int b)	{ func->backpatch(inPC, a, b); }
 inline	ArrayIndex	CCompiler::lineNo(void) const				{ return lineNumber; }
+inline	const char *	CCompiler::fileName(void) const			{ return stream->fileName(); }
 
 
 #endif	/* __COMPILER_H */

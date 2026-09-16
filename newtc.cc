@@ -58,6 +58,7 @@ static bool forceNOS_ { false };
 static bool debugAST_ { false };
 static bool debugBC_ { false };
 static std::string debugTrap_;
+static bool compileForDebug_ { false };
 
 extern void handleArgHello();
 
@@ -262,6 +263,19 @@ void handleArgNos2()
 {
   forceNOS_ = true;
   DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
+}
+
+/**
+ \brief Switch the compiler to keep debug information: arg/local names
+ (`dbgKeepVarNames`) and a per-function source (file, pc, line) table
+ (`dbgKeepLineTable`), both read by `CFunctionState` in CompilerSupport.cc.
+ */
+void handleArgG()
+{
+  compileForDebug_ = true;
+  DefGlobalVar(MakeSymbol("compileForDebug"), compileForDebug_?TRUEREF:NILREF);
+  DefGlobalVar(MakeSymbol("dbgKeepVarNames"), TRUEREF);
+  DefGlobalVar(MakeSymbol("dbgKeepLineTable"), TRUEREF);
 }
 
 /**
@@ -574,6 +588,8 @@ int handleArgs(int argc, char **argv)
         handleArgNos1();
       } else if (cmd == "-nos2") {
         handleArgNos2();
+      } else if (cmd == "-g") {
+        handleArgG();
       } else if (cmd == "-clear") {
         handleArgClear();
       } else if (cmd == "-drop") {
@@ -666,6 +682,7 @@ int handleArgs(int argc, char **argv)
  - [x] -drop : drop the latest ref#, delete the object, and decrement the ref counter
  - [x] -debug level : (may be a bit pattern at some point)
  - [ ] -compare : compares ref0 and ref1, clears, and sets ref0 to true or nil
+ - [x] -g : enable debugging mode (for "-script")
  - Writer:
  - [x] -opkg filename : write ref0 as a package
  - [x] -onsof filename : write ref0 as a Newton Script Object File
@@ -676,9 +693,26 @@ int handleArgs(int argc, char **argv)
  - [ ] -diff : compare the decompiled text output of ref0 and ref1
  - [x] -- : same as -print
 
- \todo not much of a difference between -s and -r, or -script and -run, right?
+  \todo not much of a difference between -s and -r, or -script and -run, right?
 
- \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
+  \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
+
+  \todo Implement "run package"
+
+  \todo Implement build with debug information.
+
+  \todo Implement command line debugger for scripts and packages.
+      - set clear list breakpoints
+      - step, next, continue
+      - break on  exception
+      - break on unknown binary function call (NewtonOS ROM code)
+      - inspect variable values at breakpoints
+
+  \todo add DAP support: Debug Adapter Protocol
+      - https://microsoft.github.io/debug-adapter-protocol/specification
+
+  \todo Add VSCode extension language support, compiling, and debugging
+        for Newton Script packages and scripts.
 
  */
 int main(int argc, char **argv) {

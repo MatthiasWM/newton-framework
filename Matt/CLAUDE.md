@@ -1238,6 +1238,135 @@ new `MISMATCH`/`GEN2_FAILED` results this batch surfaced
 against the pre-Fix-7 binary: identical status on both, confirming these
 are pre-existing, unrelated to this change.
 
+## Runtime debugging: per-function source-line tables
+
+Goal: let a future debugger map a running function's bytecode PC back to
+`(source file, line)` -- for stack traces, stepping, and (see below)
+setting breakpoints by line number. This is the compiler side of that;
+the interpreter side (an *existing, dormant* breakpoint mechanism) is
+covered after it.
+
+**Where the data comes from**: `CFunctionState::noteLine(int)`
+(`Frames/Compiler/CompilerSupport.cc`) appends a `(pc, line)` pair to a
+per-function `RefStruct fLineTable` whenever the line differs from the
+last one recorded. `makeCodeBlock()` attaches the finished table --
+prefixed with the source file name at slot 0 -- to the compiled frame as
+a new, ordinary named slot, `lineTable` (a plain `SetFrameSlot`, not one
+of the fixed `kFunctionXIndex` positional slots real NTK/this compiler's
+runtime format defines -- this is purely a debug-time extra, invisible to
+anything that doesn't know to look for it). Entirely opt-in: gated behind
+a `dbgKeepLineTable` global var (mirroring the existing
+`dbgKeepVarNames`), wired to newtc's `-g` flag (which also now actually
+sets `dbgKeepVarNames` -- previously `-g` only set an inert
+`compileForDebug` var nothing read).
+
+**Where `noteLine()` is called from -- and why not from `emit()`**: the
+obvious first idea -- call it from `CFunctionState::emit()`, using
+`fCompiler->lineNo()` -- silently produces garbage. This compiler parses
+the *entire* source into a complete parse tree before code generation
+ever starts (`CCompiler::compile()`: `int err = parser(); ... /* only
+now */ walkForCode(...)`), so by the time any `emit()` call happens,
+`lineNo()` (the lexer's scan position) already sits at end-of-file. The
+right hook is the one place that actually knows source line and PC
+together at the right time: `CCompiler::walkForCode()`'s `TOKENbegin`
+case (and `TOKENrepeat`'s, which -- unlike every other use of the
+`expr_seq` grammar rule -- doesn't get wrapped in `TOKENbegin` and so
+needs the same treatment separately), which iterates a statement
+sequence and now calls `func->noteLine(line)` immediately before
+generating each statement's code, where `line` comes from the sequence
+array itself (see below).
+
+**Where the line number is captured -- and a real LALR(1) lookahead trap**:
+`expr_seq`'s grammar actions (`parser()` in `Compiler.cc` -- cases 109
+empty / 110 single / 111 append; do not confuse these with the
+similarly-shaped but unrelated `expr_star`/`expr_plus` array-literal-element
+rules a few cases earlier, or `command_plus` (cases 1/3/5), which is the
+*top-level* program's own statement list and needs the identical
+treatment for the same reason) now interleave a captured line number with
+each statement: `[line0, stmt0, line1, stmt1, ...]`. The obvious source
+for that line number, `lineNo()` read inside the grammar action, is
+**wrong** -- confirmed by hand-tracing actual output against a real
+bytecode disassembly (`-debug bc`): every recorded line was systematically
+the line of the *following* statement (or the block's closing
+keyword/EOF, for the last statement), because a reduce action in an
+LALR(1) parser fires only after the parser has already peeked one token
+past the construct just completed -- by then the lexer's scan position
+has moved past whatever whitespace/newlines separate this statement from
+the next one. Fixed by capturing the line at the point of the parser's
+**shift** action instead (`parser()`'s `yyloop`, right after `*++yyvsp =
+theToken.value.ref;`) into a new `CCompiler::shiftLineNumber` field, and
+reading *that* (not `lineNo()`) in the grammar actions -- it reflects the
+last token actually consumed, immune to the 1-token lookahead a reduce
+needs to fire. This is exact for every single-line statement (the
+overwhelming majority of real code); the one remaining, well-understood
+imprecision is that a multi-line construct (an `if`/`while`/`repeat`
+spanning several source lines) gets attributed to its *last* line, not
+its first, since that's still "the last token shifted" by the time the
+whole construct's own entry is recorded. Getting first-line precision for
+those would need a mid-rule grammar action (a real, new rule the parser
+tables don't currently have -- would require regenerating
+`Frames/Compiler/y.tab.c` from `NewtonScript.y` via an actual
+yacc/bison run, not a hand-edit of the pasted switch in `Compiler.cc`) --
+judged not worth the toolchain risk for this.
+
+**The query side**: `FindSourceLine(RefArg inFunc, ArrayIndex inPC, RefVar
+&outFile, ArrayIndex &outLine)` (`Frames/DebugAPI.cc`/`.h`) binary-searches
+a function's `lineTable` for the last entry whose pc is `<= inPC`, so it
+resolves correctly even for a PC in the middle of a statement's own
+bytecode. Takes the function `Ref` directly, matching how the interpreter
+already works: `VMState::func` (`Frames/Interpreter.h`) retains a full Ref
+to the running function frame for the entire call (not just a decoded
+pointer to its `instructions`), so a caller already holding a live call
+frame (or `CNSDebugAPI::function(index)`, which returns the same thing)
+never needs any separate lookup to get here.
+
+**Verified**: rebuilt; a small hand-written script's `lineTable` matches a
+manual trace against `-debug bc`'s disassembly exactly (single-line
+statements exact; `if`/`repeat` blocks land on their last line, as
+described above). Cross-checked at real-world scale: recompiled
+`Boxer.pkg`'s full decompiled source (8,517 lines) with `-g`, zero
+exceptions, 300 populated `lineTable` slots, spot-checked pcs/lines
+strictly increasing and consistent with the source. 12-package sample
+byte-identical (this feature is off by default; every accumulated
+hand-written `-script` test -- which also now exercises the modified
+`command_plus`/`expr_seq`/`TOKENrepeat` grammar code paths, since those
+are shared regardless of `-g` -- resolves with zero `WARNING` lines).
+Full corpus sweep: totals unchanged (1,906 CLEAN / 382 UNRESOLVED / 61
+CRASHED) and `--compare` confirms `Fixed (0)` / `REGRESSED (0)`, exactly
+as expected since the corpus sweep never passes `-g`.
+
+### Existing (dormant) breakpoint infrastructure -- don't rebuild this
+
+While investigating where to plug this in, found that a **complete**
+breakpoint-checking mechanism already exists in the ported interpreter,
+just never wired up: `gFramesBreakPoints` (`Frames/Interpreter.cc`) is a
+frame `{programCounter: [{programCounter:, instructions:, disabled:,
+temporary:}, ...]}` -- each entry keyed by **(instructions-object
+identity, raw pc)**, not by file/line at all. `CInterpreter::
+handleBreakPoints()` loops that array, compares `instructionOffset`/
+`instructions` (the interpreter's own cached current-function state)
+against each entry, and invokes a NewtonScript-level `BreakLoop` callback
+on a hit -- removing temporary (single-shot, e.g. step-over) breakpoints
+as it goes. Confirmed via grep: `handleBreakPoints()` has a declaration
+(`Interpreter.h`), a full definition, and **zero call sites** anywhere in
+the dispatch loop -- genuinely dead code, not just rarely exercised.
+
+This means the runtime check itself (the hot per-opcode comparison) is
+already implemented and doesn't need `lineTable`/`FindSourceLine` at all
+-- those exist to solve the *other* half: translating a human's
+`(file, line)` into the `(instructions, pc)` pair `handleBreakPoints()`
+actually checks, once, at the moment a breakpoint is *set* (the reverse
+direction of what `FindSourceLine` currently does -- not yet built), and
+translating back for display during stepping/stack traces (what
+`FindSourceLine` already does). Still open, not started: wiring
+`handleBreakPoints()` into `CInterpreter::run1()`'s dispatch loop gated on
+`gFramesBreakPointsEnabled`; the reverse `(file, line) -> (instructions,
+pc)` lookup; and a decision on whether `lineTable` stays embedded in the
+compiled frame (current state) or gets extracted into the side-car
+`Foo.nsdbg` file design sketched in `Matt/MATT.md` (motivation there:
+ROM-extracted packages can't be modified to embed debug data, so a
+uniform side-car keeps one code path instead of two for both cases).
+
 ## Hard-won C++ gotcha (don't re-discover this)
 
 `Decompiler` holds `std::vector<std::unique_ptr<ast::Node>> nodePool_` as
