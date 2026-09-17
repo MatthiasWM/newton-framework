@@ -1551,6 +1551,216 @@ hand-written tests zero `WARNING` lines, corpus sweep unchanged (1,906
 CLEAN / 382 UNRESOLVED / 61 CRASHED), `--compare` confirms `Fixed (0)` /
 `REGRESSED (0)`.
 
+### The raw lookups, exposed directly: `DbgSourceLineToFuncPC`/`DbgFuncPCToSourceLine`
+
+Matt scaffolded these two himself (declarations in `DebugAPI.h`, call
+sites + registration already added to `newtc.cc`'s `init()`) and asked to
+have the bodies filled in. Straightforward NS-callable wrappers around
+`FindPCForLine`/`FindSourceLine` directly -- unlike `DbgAddBreakpoint`,
+these don't install anything, just return the raw resolved location, for
+tooling that wants to *show* a location without setting a breakpoint
+there. `DbgSourceLineToFuncPC(filename, line)` returns `{function:, pc:,
+line:}` (`line` is the actual line landed on, same snap-forward semantics
+as `FindPCForLine`); `DbgFuncPCToSourceLine(func, pc)` returns
+`{filename:, line:}`, converting the line table's interned-symbol file
+back to a proper NS string via `SymbolName()`/`MakeStringFromCString()`
+for display. Both return `nil` on no match, matching `DbgAddBreakpoint`'s
+convention. Verified with a round-trip script: resolved a known line,
+fed the returned `(function, pc)` back through the reverse lookup, got
+the original `(filename, line)` back exactly; a nonexistent filename
+correctly returned `nil`.
+
+**Update**: `DbgRemoveBreakpoint`'s dropped registration (flagged above) is
+now restored, alongside the `Step`/`StepIn`/`StepOut` registrations below.
+
+## `Step()`/`StepIn()`/`StepOut()`
+
+Matt's own research notes (`Matt/MATT.md`) list these alongside `RunUntil`
+(his own, trivial -- a temporary breakpoint + `ExitBreakLoop()`) as the
+remaining pieces of a REPL-style debugger. Unlike `RunUntil`/
+`DbgAddBreakpoint`, these can't be built from the static breakpoint list:
+a breakpoint is keyed by a specific, known-in-advance `(instructions, pc)`
+pair, but `StepIn`'s target function isn't known until you're already
+inside it. All three also share a hazard a static approach doesn't handle
+for free: a breakpoint fires for *any* activation of a function, not just
+the one being stepped from -- misfiring on recursion.
+
+So: one unified, dynamic mechanism, checked per-instruction alongside
+`handleBreakPoints()` (same `gFramesBreakPointsEnabled` gate, no new one).
+New state (`Frames/Interpreter.h`/`.cc`): `StepKind` (`kStepOver`/
+`kStepInto`/`kStepOut`), `gStepping`/`gStepKind`/`gStepFunc` (GC-rooted)/
+`gStepStackDepth`/`gStepLine`. `StartStep(StepKind)` arms it;
+`CInterpreter::checkStep()` (called from `run1()` right next to
+`handleBreakPoints()`, under the same GC-safety pointer refresh already in
+place there) checks completion: `STACKINDEX(ctrlStack) < gStepStackDepth`
+means we've returned past the starting frame (kStepOut's own condition,
+and how kStepOver/kStepInto both finish if the current function returns
+before reaching another line); otherwise, for kStepInto at any depth, or
+kStepOver at exactly the starting depth, `FindSourceLine()` against the
+`(func, line)` snapshot detects reaching a new statement. The depth check
+is what makes this recursion-safe -- confirmed by test, see below.
+Hitting a real breakpoint while a step is in flight cancels the step
+(`handleBreakPoints()`'s hit path now also clears `gStepping`), so a stale
+step never lingers into an unrelated later pause.
+
+**Two bugs found only by actually testing this from NewtonScript** (not
+obvious from reasoning about the interpreter in isolation -- worth
+recording since they'd bite anyone extending this):
+
+1. **`StartStep()` must snapshot the *paused* location, not live state at
+   the moment it's called.** `Step()` etc. are themselves invoked by typing
+   a command into the break loop's own REPL, which compiles and evaluates
+   that command through the interpreter too -- pushing its own `VMState`
+   at least one frame deeper than where execution actually paused. The
+   first implementation had `StartStep()` read `gInterpreter->vm`/
+   `ctrlStack` directly, so `gStepStackDepth` ended up one frame *too
+   deep* -- once that evaluation's own frame popped (immediately), the
+   depth-check fired instantly, before the paused function ever resumed.
+   Fixed by having `EnterBreakLoop()` snapshot `vm->func`/
+   `STACKINDEX(ctrlStack)`/`instructionOffset` into new globals
+   (`gPausedFunc` (GC-rooted), `gPausedStackDepth`, `gPausedPC`) at the
+   moment it's entered -- *before* any nested command evaluation can run
+   -- and having `StartStep()` read from those instead of live state.
+2. **`kStepInto` needs to explicitly ignore the break loop's own command
+   evaluation too, not just `kStepOver`.** `kStepOver` already skipped
+   deeper frames unconditionally (`depth > gStepStackDepth: return`), which
+   incidentally also skipped the REPL's own nested evaluation of the
+   `Step()` call. `kStepInto` has no such blanket skip -- it needs to
+   detect a *new* deeper frame (that's the whole point) -- so with bug #1
+   fixed alone, it still fired immediately on the REPL's own temporary
+   evaluation wrapper (a different function than the one stepping started
+   from, so the naive `(func,line)` comparison matched "found it").
+   Fixed with a one-time latch, `gStepResumed`: `checkStep()` ignores
+   everything while `depth > gPausedStackDepth` (still unwinding the
+   command's own evaluation) until depth first returns to the paused
+   level, *then* flips `gStepResumed = true` and applies the normal
+   per-kind logic from that point on -- which still correctly detects a
+   later, *genuine* deeper call (confirmed by test: `StepIn()` landing
+   inside a real callee shows `depth` increasing *after* `gStepResumed`
+   flips, not before).
+
+**Guarded against misuse**: `FDbgStep`/`FDbgStepIn`/`FDbgStepOut`
+(`Frames/DebugAPI.cc`) each call the already NS-callable `FExitBreakLoop()`
+(`REP.cc`, `extern "C"` -- linker requires the linkage to match its actual
+declaration) *before* `StartStep()`. `FExitBreakLoop()` throws
+`kNSErrNotInBreakLoop` immediately if there's no active break loop, so
+calling one of these from ordinary top-level code fails cleanly instead of
+arming step state that never gets a chance to complete. Safe ordering:
+`FExitBreakLoop()` only marks the enclosing loop done; the actual unwind
+happens once the calling native function returns, so `StartStep()` still
+runs first when there *is* an active loop. Registered as `Step`/`StepIn`/
+`StepOut` (`newtc.cc`, zero args) alongside the restored
+`DbgRemoveBreakpoint`.
+
+**Verified** with hand-written recursive and non-recursive NewtonScript,
+driven by piping REPL input via stdin (`printf 'Step();\n' | newtc -g
+-script ... -print`, discovered as the way to actually get a command into
+a live break loop non-interactively, vs. the earlier `</dev/null` tests
+which only ever proved a pause happens, never what a resume does) and
+reading which `Print` calls did/didn't fire:
+- Step over a non-call line: advances exactly one statement.
+- Step over a line with a call: the callee runs to completion (all its
+  own `Print`s fire) without stopping inside it, then stops on the next
+  line of the *same* frame.
+- Step into a line with a call: stops on the callee's first statement,
+  confirmed with a temporary diagnostic (removed after) showing the exact
+  depth increase and differing function -- before that statement's own
+  `Print` has fired, i.e. genuinely at its entry, not after running it.
+- Step out from inside a call: the rest of that call runs to completion,
+  then stops immediately upon returning to the caller, before the
+  caller's next statement.
+- Recursion (the case this whole design exists for): broke on a
+  self-recursive call site, removed that breakpoint (so it wouldn't
+  re-fire on the way down), stepped over the recursive call from a
+  depth-2 activation -- the *entire* recursive descent (depth 1, depth 0,
+  and both returns) ran uninterrupted, landing back in the depth-2
+  frame's own next statement. A plain `(instructions, pc)`-keyed static
+  breakpoint would have misfired partway down; this didn't.
+- Misuse (`Step()` from ordinary top-level code, no break loop active):
+  clean `kNSErrNotInBreakLoop` exception, no hang, no stuck state.
+
+Full regression discipline: 12-package sample byte-identical, hand-written
+`-script` tests zero `WARNING` lines, full corpus sweep unchanged (1,906
+CLEAN / 382 UNRESOLVED / 61 CRASHED), `--compare` confirms `Fixed (0)` /
+`REGRESSED (0)` -- expected, since decompiling never executes bytecode and
+this is purely an execution-time feature.
+
+### Fixed: stepping didn't work from a plain `BreakLoop()` call
+
+Real NTK's documented debugging idiom (`NTK.cc`/the NTK docs: "Breaking
+Using BreakLoop() -- executing the BreakLoop global function also puts you
+in a break loop. Typically, you will embed this call in a function in
+which you're having problems.") is to embed a bare `BreakLoop();` call
+directly in the code being debugged -- not to go through
+`DbgAddBreakpoint`. Caught by Matt actually trying it (`test.ns`):
+`Step()` from a break loop entered that way ran to completion instead of
+stopping again.
+
+**Root cause**: `gPausedFunc`/`gPausedStackDepth`/`gPausedPC` (what
+`StartStep()` reads to arm a step -- see the section above) were only
+ever captured inside `EnterBreakLoop()`, *my own* C++ wrapper around
+`DoBlock(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)), ...)`. That's the
+path a hit breakpoint or a completed step takes, but a bare `BreakLoop()`
+call from NewtonScript goes straight to `FBreakLoop()` (`REP.cc`) --
+never through my wrapper at all, so the snapshot was always whatever
+stale values were left over (or the `NILREF`/`0`/`0` from
+`InitInterpreter()`, if no breakpoint had ever fired yet).
+
+**Fix**: moved the snapshot out of `EnterBreakLoop()` into a new
+`SnapshotPausedLocation()` (`Frames/Interpreter.cc`), called from
+`FBreakLoop()` itself (`REP.cc`, now `#include`s `Interpreter.h`) -- the
+one place every route into a break loop actually passes through, whether
+that's my breakpoint/step machinery or NewtonScript code calling
+`BreakLoop()` directly. `EnterBreakLoop()` no longer does its own
+snapshot; it's redundant now that the true common entry point handles it.
+
+**A second wrinkle surfaced getting this right**: by the time
+`FBreakLoop()`'s own C++ body starts running, `gInterpreter->vm` is *not*
+the calling function's frame -- native function calls
+(`CInterpreter::call()`/`send()`) push a fresh `VMState` for the call
+itself before invoking the C++ function, so `vm->func` there is
+`'BreakLoop`'s own native-function object, and `instructionOffset` is the
+`-1` sentinel `callPlainCFunction()` sets -- neither is a usable resume
+point. The actual caller, with its real resume PC, is exactly one frame
+below: both `call()` and `send()` do `VMState *prev = vm; vm =
+ctrlStack.push();`, so `vm - 1` is always the caller at that point --
+confirmed by reading both call sites directly rather than guessing
+(`VMStack::at()`'s indexing is by whole-`VMState` frame number, *not*
+`STACKINDEX`'s raw `Ref`-slot count, which nearly produced an off-by-a-
+wrong-amount bug here; simple pointer arithmetic on the `VMState*`, the
+same idiom `VMStack::pop()` itself already uses internally, sidesteps
+that entirely). `gPausedStackDepth` is `STACKINDEX(ctrlStack) -
+kNumOfItemsInStackFrame` for the same reason -- one whole frame shallower
+than where the synthetic native-call frame currently sits.
+
+**Known, minor, documented precision gap**: unlike a breakpoint hit
+(which always lands exactly on a recorded statement-start PC), a bare
+`BreakLoop()` call's captured `gPausedPC` lands one instruction *short* of
+the true next-statement boundary (`vm->pc` is written before the call's
+own last operand byte is consumed, confirmed against a hand-dumped
+`lineTable`: `BreakLoop()` on line 3 spans pc 0-2, `Print(1)` starts
+exactly at pc 3, but the captured resume PC was 2). Net effect: the
+*first* `Step()`/`StepIn()`/`StepOut()` issued immediately after a raw
+`BreakLoop()` call advances only to that true boundary (no visible
+`Print` output yet, since nothing has run there), and a *second* call
+actually executes that line and advances further -- confirmed exactly by
+test (`Step();Step();` shows the expected output appearing only after the
+second call). This doesn't affect `DbgAddBreakpoint`-triggered pauses at
+all (those already land exactly on a statement boundary). Not fixed --
+would need snapping `gPausedPC` forward to the next `lineTable` boundary
+in `SnapshotPausedLocation()` itself, which is straightforward if this
+turns out to be worth doing; flagged rather than done speculatively.
+
+**Verified**: re-ran every `Step`/`StepIn`/`StepOut`/recursion/misuse
+scenario from the section above unchanged (all still pass -- confirms the
+snapshot relocation didn't regress the `DbgAddBreakpoint` path), plus the
+new direct-`BreakLoop()` scenario (`Step();Step();` on a function that
+opens with a bare `BreakLoop();`), matching the precision gap described
+above exactly. Full regression discipline again: 12-package sample byte-
+identical, hand-written tests zero `WARNING` lines, corpus sweep unchanged
+(1,906 CLEAN / 382 UNRESOLVED / 61 CRASHED), `--compare` confirms
+`Fixed (0)` / `REGRESSED (0)`.
+
 ## Hard-won C++ gotcha (don't re-discover this)
 
 `Decompiler` holds `std::vector<std::unique_ptr<ast::Node>> nodePool_` as

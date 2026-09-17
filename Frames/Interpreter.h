@@ -183,6 +183,7 @@ public:
 	void		popHandlers(void);
 
 	void		handleBreakPoints(void);
+	void		checkStep(void);
 
 	CInterpreter *	next;					// x00
 	ULong			id;						// x04
@@ -352,8 +353,14 @@ Ref		DoSend(RefArg rcvr, RefArg impl, RefArg msg, ArrayIndex numArgs);
 Ref		SetBreakPoints(Ref);
 bool		EnableBreakPoints(bool);
 void		EnterBreakLoop(void);
+void		SnapshotPausedLocation(void);
 Ref		AddBreakPoint(RefArg inFunc, ArrayIndex inPC, bool inTemporary);
 void		RemoveBreakPoint(RefArg inBreakPoint);
+
+// Step()/StepIn()/StepOut() -- see CInterpreter::checkStep(), called
+// per-instruction alongside handleBreakPoints() when gStepping is set.
+enum StepKind { kStepOver, kStepInto, kStepOut };
+void		StartStep(StepKind inKind);
 
 #if defined(__cplusplus)
 }

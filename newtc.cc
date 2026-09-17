@@ -100,6 +100,36 @@ bool init()
   SetFrameSlot(dbgRemoveFn, MakeSymbol("numargs"), MAKEINT(1));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DbgRemoveBreakpoint")), dbgRemoveFn);
 
+  Ref dbgSourceLineToFuncPC = AllocateFrame();
+  SetFrameSlot(dbgSourceLineToFuncPC, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgSourceLineToFuncPC, MakeSymbol("function"), (Ref)FDbgSourceLineToFuncPC);
+  SetFrameSlot(dbgSourceLineToFuncPC, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DbgSourceLineToFuncPC")), dbgSourceLineToFuncPC);
+
+  Ref dbgFuncPCToSourceLine = AllocateFrame();
+  SetFrameSlot(dbgFuncPCToSourceLine, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgFuncPCToSourceLine, MakeSymbol("function"), (Ref)FDbgFuncPCToSourceLine);
+  SetFrameSlot(dbgFuncPCToSourceLine, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DbgFuncPCToSourceLine")), dbgFuncPCToSourceLine);
+
+  Ref dbgStepFn = AllocateFrame();
+  SetFrameSlot(dbgStepFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgStepFn, MakeSymbol("function"), (Ref)FDbgStep);
+  SetFrameSlot(dbgStepFn, MakeSymbol("numargs"), MAKEINT(0));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("Step")), dbgStepFn);
+
+  Ref dbgStepInFn = AllocateFrame();
+  SetFrameSlot(dbgStepInFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgStepInFn, MakeSymbol("function"), (Ref)FDbgStepIn);
+  SetFrameSlot(dbgStepInFn, MakeSymbol("numargs"), MAKEINT(0));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("StepIn")), dbgStepInFn);
+
+  Ref dbgStepOutFn = AllocateFrame();
+  SetFrameSlot(dbgStepOutFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgStepOutFn, MakeSymbol("function"), (Ref)FDbgStepOut);
+  SetFrameSlot(dbgStepOutFn, MakeSymbol("numargs"), MAKEINT(0));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("StepOut")), dbgStepOutFn);
+
   return true;
 }
 

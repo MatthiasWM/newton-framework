@@ -323,7 +323,7 @@ CNSDebugAPI::tempValue(ArrayIndex index, ArrayIndex inTempIndex)
 	if (stkIndex >= stackStart(index+1))
 		ThrowExFramesWithBadValue(kNSErrOutOfRange, MAKEINT(inTempIndex));
 	return *(fInterpreter->dataStack.base + stkIndex);
-	
+
 }
 
 
@@ -746,6 +746,115 @@ FDbgRemoveBreakpoint(RefArg inRcvr, RefArg inBreakPoint)
 {
 	RemoveBreakPoint(inBreakPoint);
 	return NILREF;
+}
+
+
+/**
+ \brief Ns-callable wrapper around FindPCForLine() -- the raw lookup,
+ without installing a breakpoint (see DbgAddBreakpoint() above for that).
+ inFilename may be a symbol or a plain string, same as DbgAddBreakpoint().
+ \return a frame containing the ref in `function`, the PC in `pc`, and the
+ line this actually landed on in `line` (see FindPCForLine()'s own comment
+ on snapping forward past comment/blank/no-code lines -- `line` tells the
+ caller when that happened, since it can differ from inLine); or nil if
+ inFilename was never compiled with dbgKeepLineTable set, or inLine is
+ past every registered function's last statement in that file.
+ */
+Ref
+FDbgSourceLineToFuncPC(RefArg inRcvr, RefArg inFilename, RefArg inLine)
+{
+	RefVar	fileSym;
+	if (IsSymbol(inFilename))
+		fileSym = inFilename;
+	else if (IsString(inFilename))
+	{
+		char	filename[256];
+		ConvertFromUnicode(GetUString(inFilename), filename, 255);
+		fileSym = MakeSymbol(filename);
+	}
+	else
+		ThrowBadTypeWithFrameData(kNSErrNotAString, inFilename);
+
+	ArrayIndex	line = RINDEX(inLine);
+
+	RefVar		func;
+	ArrayIndex	pc, actualLine;
+	if (!FindPCForLine(fileSym, line, func, pc, actualLine))
+		return NILREF;
+
+	RefVar outFrame(AllocateFrame());
+	SetFrameSlot(outFrame, MakeSymbol("function"), func);
+	SetFrameSlot(outFrame, MakeSymbol("pc"), MAKEINT(pc));
+	SetFrameSlot(outFrame, MakeSymbol("line"), MAKEINT(actualLine));
+	return outFrame;
+}
+
+
+/**
+ \brief NS-callable wrapper around FindSourceLine() -- e.g. for a stack
+ trace or "where am I" display, given a live call frame's function + PC
+ (see CNSDebugAPI::function()/PC(), or VMState::func/pc directly).
+ \return a frame containing the filename as a string in `filename` and the
+ line number in `line`; or nil if inFunc wasn't compiled with
+ dbgKeepLineTable set, or inPC falls before its first recorded statement.
+ */
+Ref
+FDbgFuncPCToSourceLine(RefArg inRcvr, RefArg inFunc, RefArg inPC)
+{
+	RefVar		file;
+	ArrayIndex	line;
+	if (!FindSourceLine(inFunc, RINDEX(inPC), file, line))
+		return NILREF;
+
+	RefVar outFrame(AllocateFrame());
+	SetFrameSlot(outFrame, MakeSymbol("filename"), MakeStringFromCString(SymbolName(file)));
+	SetFrameSlot(outFrame, MakeSymbol("line"), MAKEINT(line));
+	return outFrame;
+}
+
+
+/* -----------------------------------------------------------------------------
+	NewtonScript-callable Step()/StepIn()/StepOut(). Each calls the already
+	NS-callable FExitBreakLoop() (REP.cc) *first* -- it throws
+	kNSErrNotInBreakLoop immediately if there's no active break loop to
+	resume, before StartStep() (Interpreter.cc) ever touches any gStep*
+	global, so calling one of these from ordinary top-level code (not
+	paused at a breakpoint or a prior step) fails cleanly instead of arming
+	step state that would then never get a chance to complete.
+
+	Safe ordering, not a race: FExitBreakLoop() only *marks* the enclosing
+	BreakLoop() as done (REP.cc: `*gBreakLoopDone = true`); the unwind back
+	through EnterBreakLoop() into CInterpreter::run1() only happens once
+	this function -- itself running inside that BreakLoop()'s own DoBlock
+	call -- returns. So StartStep() still runs before anything resumes.
+----------------------------------------------------------------------------- */
+
+extern "C" Ref FExitBreakLoop(RefArg inRcvr);	// REP.cc; not declared in any shared header
+
+Ref
+FDbgStep(RefArg inRcvr)
+{
+	Ref result = FExitBreakLoop(inRcvr);
+	StartStep(kStepOver);
+	return result;
+}
+
+
+Ref
+FDbgStepIn(RefArg inRcvr)
+{
+	Ref result = FExitBreakLoop(inRcvr);
+	StartStep(kStepInto);
+	return result;
+}
+
+
+Ref
+FDbgStepOut(RefArg inRcvr)
+{
+	Ref result = FExitBreakLoop(inRcvr);
+	StartStep(kStepOut);
+	return result;
 }
 
 

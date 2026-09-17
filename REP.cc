@@ -14,6 +14,7 @@
 #include "REPTranslators.h"
 #include "Funcs.h"
 #include "ROMResources.h"
+#include "Interpreter.h"
 
 #include <cassert>
 
@@ -489,6 +490,12 @@ REPExceptionNotify(Exception * inException)
 Ref
 FBreakLoop(RefArg inRcvr)
 {
+	// Record where we're pausing (for Step()/StepIn()/StepOut(), should
+	// this call to BreakLoop() -- or a breakpoint/step that got here via
+	// EnterBreakLoop(), Frames/Interpreter.cc -- resume before finishing)
+	// before anything else runs.
+	SnapshotPausedLocation();
+
 	RefVar	savedContext(gREPContext);
 	gREPContext = inRcvr;
 	gREPLevel++;

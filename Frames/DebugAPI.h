@@ -105,4 +105,17 @@ extern bool	FindPCForLine(RefArg inFile, ArrayIndex inLine, RefVar & outFunc, Ar
 extern Ref	FDbgAddBreakpoint(RefArg inRcvr, RefArg inFilename, RefArg inLine);
 extern Ref	FDbgRemoveBreakpoint(RefArg inRcvr, RefArg inBreakPoint);
 
+extern Ref  FDbgSourceLineToFuncPC(RefArg inRcvr, RefArg inFilename, RefArg inLine);
+extern Ref  FDbgFuncPCToSourceLine(RefArg inRcvr, RefArg inFunc, RefArg inPC);
+
+/* -----------------------------------------------------------------------------
+	NewtonScript-callable: Step()/StepIn()/StepOut() -- only meaningful
+	called from inside an active break loop (paused at a breakpoint or a
+	prior step). See CInterpreter::checkStep()/StartStep() (Interpreter.cc)
+	for how completion is detected; these just arm one and resume.
+----------------------------------------------------------------------------- */
+extern Ref	FDbgStep(RefArg inRcvr);
+extern Ref	FDbgStepIn(RefArg inRcvr);
+extern Ref	FDbgStepOut(RefArg inRcvr);
+
 #endif	/* __DEBUGAPI_H */

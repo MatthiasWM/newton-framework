@@ -63,6 +63,22 @@ CInterpreter *	gInterpreterList;				// +10 0C10545C link to next interpreter ins
 bool				gFramesBreakPointsEnabled;	// +14 0C105460 - byte
 Ref				gFramesBreakPoints;			// +18 0C105464 - frame, GCRoot
 
+// Step()/StepIn()/StepOut() state -- see CInterpreter::checkStep().
+bool				gStepping;						// is a step currently armed?
+bool				gStepResumed;					// have we unwound back to gPausedStackDepth yet?
+StepKind			gStepKind;
+Ref				gStepFunc;						// GCRoot; function we started stepping from
+ArrayIndex		gStepStackDepth;				// ctrlStack depth we started stepping from
+ArrayIndex		gStepLine;						// source line at step start (0 if unknown)
+
+// The location EnterBreakLoop() paused at -- see its own comment. This is
+// what StartStep() actually reads (not live gInterpreter state), since by
+// the time a NewtonScript-level Step() call runs, the break loop's own
+// nested evaluation of it is already at least one frame deeper.
+Ref				gPausedFunc;					// GCRoot
+ArrayIndex		gPausedStackDepth;
+int				gPausedPC;
+
 extern ArrayIndex		gCurrentStackPos;
 
 
@@ -565,6 +581,13 @@ InitInterpreter(void)
 	gFramesBreakPoints = NILREF;
 	AddGCRoot(&gFramesBreakPoints);
 	InitDebugFunctionRegistry();
+
+	// initialize stepping
+	gStepping = false;
+	gStepFunc = NILREF;
+	AddGCRoot(&gStepFunc);
+	gPausedFunc = NILREF;
+	AddGCRoot(&gPausedFunc);
 }
 
 
@@ -1141,12 +1164,13 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			{
 				instructionOffset = (int)(instrPtr - instrBase);
 				handleBreakPoints();
-				// A hit breakpoint runs arbitrary NewtonScript (EnterBreakLoop(),
-				// via DoBlock) before returning here, which can trigger a GC
-				// compaction -- re-derive every raw pointer/index cached from a
-				// heap object before touching it again, exactly as the outer
-				// loop above does on entry. instructionOffset itself is right
-				// where we left it (a breakpoint doesn't change program state).
+				checkStep();
+				// A hit breakpoint or completed step runs arbitrary NewtonScript
+				// (EnterBreakLoop(), via DoBlock) before returning here, which can
+				// trigger a GC compaction -- re-derive every raw pointer/index
+				// cached from a heap object before touching it again, exactly as
+				// the outer loop above does on entry. instructionOffset itself is
+				// right where we left it (neither changes program state).
 				instrBase = (unsigned char *)BinaryData(instructions);
 				instrPtr = instrBase + instructionOffset;
 				literalSlot = NOTNIL(literals) ? ((FrameObject *)ObjectPtr(literals))->slot : NULL;
@@ -3617,8 +3641,45 @@ RemoveBreakPoint(RefArg inBreakPoint)
 void
 EnterBreakLoop(void)
 {
+	// The snapshot Step()/StepIn()/StepOut() need (gPausedFunc/
+	// gPausedStackDepth/gPausedPC) is captured in SnapshotPausedLocation(),
+	// called from FBreakLoop() (REP.cc) itself -- not here -- so it covers
+	// every way of entering a break loop uniformly, not just this one. See
+	// that function's own comment for why.
 	RefVar	breakLoop(GetFrameSlot(RA(gFunctionFrame), SYMA(BreakLoop)));
 	DoBlock(breakLoop, RA(NILREF));
+}
+
+
+/*------------------------------------------------------------------------------
+	Snapshot "where we are" for Step()/StepIn()/StepOut() to later resume
+	from, into gPausedFunc/gPausedStackDepth/gPausedPC. Called from
+	FBreakLoop() (REP.cc) -- the one place every path into a break loop
+	passes through, whether that's a hit breakpoint or completed step (via
+	EnterBreakLoop(), above) or NewtonScript code calling 'BreakLoop
+	directly (the documented NTK idiom: embed a bare BreakLoop() call in
+	code you're debugging, per NTK.cc/the NTK docs -- "Breaking Using
+	BreakLoop(): executing the BreakLoop global function also puts you in
+	a break loop").
+
+	By the time this runs, gInterpreter->vm is *not* the calling function's
+	own frame: a native function call (CInterpreter::call()/send()) pushes
+	a fresh VMState for the call itself before invoking the C++ function,
+	so vm->func here is 'BreakLoop's own native-function object, not
+	whatever called it, and instructionOffset is the -1 sentinel
+	callPlainCFunction() sets -- neither is a real resume point. The
+	caller's own VMState, with its real resume PC, is exactly one frame
+	below: both call() and send() do `VMState *prev = vm; vm =
+	ctrlStack.push();`, so `vm - 1` is always the caller here.
+------------------------------------------------------------------------------*/
+
+void
+SnapshotPausedLocation(void)
+{
+	VMState * callerVM = gInterpreter->vm - 1;
+	gPausedFunc = callerVM->func;
+	gPausedStackDepth = STACKINDEX(gInterpreter->ctrlStack) - kNumOfItemsInStackFrame;
+	gPausedPC = RVALUE(callerVM->pc);
 }
 
 
@@ -3655,8 +3716,109 @@ CInterpreter::handleBreakPoints(void)
 			gFramesBreakPoints = NILREF;
 		if (isBP)
 		{
+			// Hitting a real breakpoint supersedes any step in flight --
+			// stop for the breakpoint, don't leave a stale step armed.
+			gStepping = false;
 			EnterBreakLoop();
 		}
+	}
+}
+
+
+/*------------------------------------------------------------------------------
+	Arm a step, snapshotting from the currently paused frame -- only
+	meaningful called from inside an active break loop (see
+	FDbgStep()/FDbgStepIn()/FDbgStepOut(), DebugAPI.cc, which guard that
+	before calling this). Turns on gFramesBreakPointsEnabled the same way
+	AddBreakPoint() does, so CInterpreter::checkStep() actually gets called.
+	Args:		inKind	which of Step()/StepIn()/StepOut() this is for
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+StartStep(StepKind inKind)
+{
+	// Read the *paused* location EnterBreakLoop() saved, not live
+	// gInterpreter state -- see gPausedFunc's own comment for why.
+	gStepKind = inKind;
+	gStepFunc = gPausedFunc;
+	gStepStackDepth = gPausedStackDepth;
+
+	RefVar		file;
+	ArrayIndex	line;
+	gStepLine = FindSourceLine(gStepFunc, gPausedPC, file, line) ? line : 0;
+
+	gStepping = true;
+	gStepResumed = false;
+	gFramesBreakPointsEnabled = true;
+}
+
+
+/*------------------------------------------------------------------------------
+	Step()/StepIn()/StepOut() completion check -- called every instruction
+	alongside handleBreakPoints() (same gFramesBreakPointsEnabled gate, see
+	run1()), a no-op unless StartStep() armed gStepping.
+
+	Unlike a breakpoint, a step's target isn't a known-in-advance
+	(instructions, pc) pair -- kStepInto in particular can land in a
+	function we haven't executed yet, so there's nothing to register ahead
+	of time. Checked dynamically instead: STACKINDEX(ctrlStack) against the
+	depth snapshotted in StartStep() tells us whether we've returned past
+	the starting frame (kStepOut's own condition, and how kStepOver/
+	kStepInto both finish if the current function returns before reaching
+	another line); FindSourceLine() against the (func, line) snapshot tells
+	us whether we've reached a new statement at or above that depth. The
+	depth check is what makes this recursion-safe: a breakpoint keyed only
+	by (instructions, pc) would misfire on a deeper recursive activation of
+	the same function; comparing depth against the snapshot doesn't.
+------------------------------------------------------------------------------*/
+
+void
+CInterpreter::checkStep(void)
+{
+	if (!gStepping)
+		return;
+
+	ArrayIndex depth = STACKINDEX(ctrlStack);
+
+	if (!gStepResumed)
+	{
+		// Still unwinding the break loop's own nested evaluation of the
+		// Step()/StepIn()/StepOut() call itself -- that runs through the
+		// interpreter too, at least one frame deeper than where we
+		// paused (gPausedStackDepth == gStepStackDepth here), so ignore
+		// it rather than comparing against unrelated (func,line) pairs
+		// from the REPL's own temporary wrapper. Once we're back down to
+		// the paused depth, real execution has resumed -- flip this once
+		// and fall through to the normal per-kind checks below (which,
+		// for kStepInto, still need to detect a *new* deeper call from
+		// here on -- this guard only covers unwinding the command itself).
+		if (depth > gPausedStackDepth)
+			return;
+		gStepResumed = true;
+	}
+
+	if (depth < gStepStackDepth)
+	{
+		// Returned past the frame we started in.
+		gStepping = false;
+		EnterBreakLoop();
+		return;
+	}
+	if (gStepKind == kStepOut)
+		return;
+	if (gStepKind == kStepOver && depth > gStepStackDepth)
+		return;		// inside a deeper call -- let it run
+
+	// kStepInto at any depth >= start, or kStepOver at exactly the start
+	// depth: stop on the first (func,line) that differs from the snapshot.
+	RefVar		file;
+	ArrayIndex	line;
+	if (FindSourceLine(vm->func, instructionOffset, file, line)
+	 && (!EQ(vm->func, gStepFunc) || line != gStepLine))
+	{
+		gStepping = false;
+		EnterBreakLoop();
 	}
 }
 
