@@ -23,6 +23,7 @@
 #include "DeveloperNotification.h"
 #include "REPTranslators.h"
 #include "ROMResources.h"
+#include "DebugAPI.h"
 
 DeclareException(exMessage, exRootException);
 DeclareException(exInterpreter, exRootException);
@@ -563,6 +564,7 @@ InitInterpreter(void)
 	gFramesBreakPointsEnabled = false;
 	gFramesBreakPoints = NILREF;
 	AddGCRoot(&gFramesBreakPoints);
+	InitDebugFunctionRegistry();
 }
 
 
@@ -1128,6 +1130,32 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 
 		for ( ; ; )
 		{
+			// Debugging support: a single bool check costs nothing when no
+			// breakpoints are active (see SetBreakPoints()/EnableBreakPoints()
+			// and Matt/CLAUDE.md, "Runtime debugging"). Only when it's on do
+			// we pay to keep instructionOffset in sync and scan the
+			// breakpoint list -- this is what ROM NewtonOS split into a
+			// separate TInterpreter::SlowRun() loop for; one flag check here
+			// gets the same behavior without a second copy of the dispatcher.
+			if (gFramesBreakPointsEnabled)
+			{
+				instructionOffset = (int)(instrPtr - instrBase);
+				handleBreakPoints();
+				// A hit breakpoint runs arbitrary NewtonScript (EnterBreakLoop(),
+				// via DoBlock) before returning here, which can trigger a GC
+				// compaction -- re-derive every raw pointer/index cached from a
+				// heap object before touching it again, exactly as the outer
+				// loop above does on entry. instructionOffset itself is right
+				// where we left it (a breakpoint doesn't change program state).
+				instrBase = (unsigned char *)BinaryData(instructions);
+				instrPtr = instrBase + instructionOffset;
+				literalSlot = NOTNIL(literals) ? ((FrameObject *)ObjectPtr(literals))->slot : NULL;
+				if (is2x)
+					localSlot = dataStack.base + localsIndex;
+				else
+					localSlot = ((FrameObject *)ObjectPtr(vm->locals))->slot;
+			}
+
 			a = *instrPtr++;
 			b = a & 0x07;
 
@@ -3320,7 +3348,7 @@ CInterpreter::handleException(Exception * inException, int inDepth, StackState &
 	if (!DeveloperNotified(inException) && NOTNIL(GetGlobalVar(SYMA(breakOnThrows))))
 	{
 		gREPout->exceptionNotify(inException);
-		DoBlock(GetFrameSlot(RA(gFunctionFrame), SYMA(BreakLoop)), RA(NILREF));
+		EnterBreakLoop();
 		RememberDeveloperNotified(inException);
 	}
 
@@ -3510,6 +3538,90 @@ EnableBreakPoints(bool doEnable)
 }
 
 
+/*------------------------------------------------------------------------------
+	Add one breakpoint to gFramesBreakPoints, creating the frame/array on
+	first use. Returns the breakpoint frame itself -- it doubles as its own
+	handle for RemoveBreakPoint(), since handleBreakPoints() (below) already
+	treats each array element as one independent breakpoint; no separate id
+	scheme is needed. Also turns breakpoint checking on: an added breakpoint
+	that run1() never actually looks for would be a silent no-op otherwise.
+	Args:		inFunc		a compiled function (its `instructions` binary is
+								the identity handleBreakPoints() matches on)
+				inPC			bytecode offset within inFunc to break at
+				inTemporary	if true, this breakpoint removes itself the first
+								time it's hit (see handleBreakPoints())
+	Return:	the new breakpoint frame
+------------------------------------------------------------------------------*/
+
+Ref
+AddBreakPoint(RefArg inFunc, ArrayIndex inPC, bool inTemporary)
+{
+	if (ISNIL(gFramesBreakPoints))
+		gFramesBreakPoints = AllocateFrame();
+
+	RefVar	bps(GetFrameSlot(gFramesBreakPoints, SYMA(programCounter)));
+	if (ISNIL(bps))
+	{
+		bps = MakeArray(0);
+		SetFrameSlot(gFramesBreakPoints, SYMA(programCounter), bps);
+	}
+
+	RefVar	bp(AllocateFrame());
+	SetFrameSlot(bp, SYMA(programCounter), MAKEINT(inPC));
+	SetFrameSlot(bp, SYMA(instructions), GetFrameSlot(inFunc, SYMA(instructions)));
+	if (inTemporary)
+		SetFrameSlot(bp, SYMA(temporary), TRUEREF);
+	AddArraySlot(bps, bp);
+
+	gFramesBreakPointsEnabled = true;
+	return bp;
+}
+
+
+/*------------------------------------------------------------------------------
+	Remove one breakpoint (as returned by AddBreakPoint()) from
+	gFramesBreakPoints. Safe to call on a breakpoint that's already gone --
+	e.g. a temporary one handleBreakPoints() already consumed on its own.
+	Args:		inBreakPoint	a Ref previously returned by AddBreakPoint()
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+RemoveBreakPoint(RefArg inBreakPoint)
+{
+	if (ISNIL(gFramesBreakPoints))
+		return;
+
+	RefVar	bps(GetFrameSlot(gFramesBreakPoints, SYMA(programCounter)));
+	if (ISNIL(bps))
+		return;
+
+	ArrayIndex index = ArrayPosition(bps, inBreakPoint, 0, NILREF);
+	if (index != kIndexNotFound)
+		ArrayRemoveCount(bps, index, 1);
+
+	if (Length(bps) == 0)
+		RemoveSlot(gFramesBreakPoints, SYMA(programCounter));
+	if (Length(gFramesBreakPoints) == 0)
+		gFramesBreakPoints = NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	Enter the NewtonScript-level break loop -- the same 'BreakLoop function
+	both a hit breakpoint (handleBreakPoints(), below) and breakOnThrows
+	(handleException()) drop into. Factored out so there's exactly one
+	place that knows how to do this, not two copies of the same DoBlock call.
+------------------------------------------------------------------------------*/
+
+void
+EnterBreakLoop(void)
+{
+	RefVar	breakLoop(GetFrameSlot(RA(gFunctionFrame), SYMA(BreakLoop)));
+	DoBlock(breakLoop, RA(NILREF));
+}
+
+
 void
 CInterpreter::handleBreakPoints(void)
 {
@@ -3543,8 +3655,7 @@ CInterpreter::handleBreakPoints(void)
 			gFramesBreakPoints = NILREF;
 		if (isBP)
 		{
-			RefVar	breakLoop(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)));
-			DoBlock(breakLoop, RA(NILREF));
+			EnterBreakLoop();
 		}
 	}
 }

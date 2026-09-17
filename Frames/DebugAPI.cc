@@ -13,6 +13,8 @@
 #include "NewtonErrors.h"
 #include "Opcodes.h"
 #include "ROMResources.h"
+#include "Strings.h"
+#include "Unicode.h"
 
 
 /* -----------------------------------------------------------------------------
@@ -568,7 +570,8 @@ FDisasmRange(RefArg rcvr, RefArg inFunc, RefArg inStart, RefArg inEnd)
 
 	Args:		inFunc		a compiled function frame
 				inPC			bytecode offset within inFunc's `instructions`
-				outFile		set to the source file name (NS string), if found
+				outFile		set to the source file name (an interned symbol --
+								see FindPCForLine(), below, for why), if found
 				outLine		set to the source line number, if found
 	Return:	true if inFunc has a line table and inPC resolved to an entry;
 				false if inFunc wasn't compiled with line info, or inPC falls
@@ -613,6 +616,136 @@ FindSourceLine(RefArg inFunc, ArrayIndex inPC, RefVar & outFile, ArrayIndex & ou
 	outFile = GetArraySlot(lineTable, 0);
 	outLine = RVALUE(GetArraySlot(lineTable, 1 + lo * 2 + 1));
 	return true;
+}
+
+
+/* -----------------------------------------------------------------------------
+	The debug function registry: every function ever compiled with
+	dbgKeepLineTable set registers itself here (see
+	CFunctionState::makeCodeBlock(), CompilerSupport.cc), so FindPCForLine()
+	has something to search -- there's no other way to go from "a source
+	file and line" to "which compiled function is that", short of scanning
+	every such function that currently exists.
+
+	Deliberately simple: a flat, GC-rooted array, one entry per compiled
+	function, never pruned. This is fine for what it's for -- an active
+	debugging session already accepts the -g overhead, and keeping every
+	debug-compiled function reachable/inspectable for the session's
+	lifetime is exactly what you want. Known, accepted limitation: nothing
+	currently unregisters a *stale* entry after recompiling the same file
+	(e.g. iterating on a script during a session) -- the old and new
+	compiled functions from that file both stay registered and searchable.
+	Revisit if that turns out to matter in practice.
+----------------------------------------------------------------------------- */
+
+static Ref	gDebugFunctions;
+
+void
+InitDebugFunctionRegistry(void)
+{
+	gDebugFunctions = NILREF;
+	AddGCRoot(&gDebugFunctions);
+}
+
+
+void
+RegisterDebugFunction(RefArg inFunc)
+{
+	if (ISNIL(gDebugFunctions))
+		gDebugFunctions = MakeArray(0);
+	AddArraySlot(gDebugFunctions, inFunc);
+}
+
+
+bool
+FindPCForLine(RefArg inFile, ArrayIndex inLine, RefVar & outFunc, ArrayIndex & outPC, ArrayIndex & outActualLine)
+{
+	if (ISNIL(gDebugFunctions))
+		return false;
+
+	bool		found = false;
+	ArrayIndex	bestLine = 0;
+	ArrayIndex	numFuncs = Length(gDebugFunctions);
+	for (ArrayIndex i = 0; i < numFuncs; ++i)
+	{
+		RefVar	func(GetArraySlot(gDebugFunctions, i));
+		RefVar	lineTable(GetFrameSlot(func, MakeSymbol("lineTable")));
+		if (!IsArray(lineTable) || Length(lineTable) < 3)
+			continue;
+		if (!EQ(GetArraySlot(lineTable, 0), inFile))
+			continue;
+
+		ArrayIndex	numEntries = (Length(lineTable) - 1) / 2;
+		for (ArrayIndex e = 0; e < numEntries; ++e)
+		{
+			ArrayIndex line = RVALUE(GetArraySlot(lineTable, 1 + e * 2 + 1));
+			// Smallest recorded line >= inLine, across every candidate
+			// function -- the statement inLine "snaps forward" to.
+			if (line >= inLine && (!found || line < bestLine))
+			{
+				found = true;
+				bestLine = line;
+				outFunc = func;
+				outPC = RVALUE(GetArraySlot(lineTable, 1 + e * 2));
+				outActualLine = line;
+			}
+		}
+	}
+	return found;
+}
+
+
+/* -----------------------------------------------------------------------------
+	NewtonScript-callable wrappers around FindPCForLine()/AddBreakPoint()/
+	RemoveBreakPoint() -- see newtc.cc's init() for how these get registered
+	as the global functions DbgAddBreakpoint/DbgRemoveBreakpoint.
+
+	DbgAddBreakpoint(filename, line) resolves (filename, line) to a compiled
+	function + PC the same way a source-level debugger would (snapping
+	forward past comment/blank/no-code lines -- see FindPCForLine()'s own
+	comment), installs a breakpoint there, and returns a Ref that identifies
+	it -- pass that Ref to DbgRemoveBreakpoint() later to take it back out.
+	Returns nil if filename was never compiled with dbgKeepLineTable set, or
+	line is past every registered function's last statement in that file.
+
+	DbgRemoveBreakpoint(ref) removes a specific breakpoint. Safe to call
+	with a Ref for a breakpoint that already fired and removed itself (see
+	AddBreakPoint()'s `temporary` argument -- not exposed here; every
+	breakpoint DbgAddBreakpoint() installs is a permanent one, removed only
+	by an explicit DbgRemoveBreakpoint() call).
+----------------------------------------------------------------------------- */
+
+Ref
+FDbgAddBreakpoint(RefArg inRcvr, RefArg inFilename, RefArg inLine)
+{
+	RefVar	fileSym;
+	if (IsSymbol(inFilename))
+		fileSym = inFilename;
+	else if (IsString(inFilename))
+	{
+		char	filename[256];
+		ConvertFromUnicode(GetUString(inFilename), filename, 255);
+		fileSym = MakeSymbol(filename);
+	}
+	else
+		ThrowBadTypeWithFrameData(kNSErrNotAString, inFilename);
+
+	ArrayIndex	line = RINDEX(inLine);
+
+	RefVar		func;
+	ArrayIndex	pc, actualLine;
+	if (!FindPCForLine(fileSym, line, func, pc, actualLine))
+		return NILREF;
+
+	return AddBreakPoint(func, pc, false);
+}
+
+
+Ref
+FDbgRemoveBreakpoint(RefArg inRcvr, RefArg inBreakPoint)
+{
+	RemoveBreakPoint(inBreakPoint);
+	return NILREF;
 }
 
 

@@ -13,6 +13,7 @@
 #include "Frames/Interpreter.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
+#include "Frames/DebugAPI.h"
 #include "REPTranslators.h"
 
 #include <cstdio>
@@ -86,6 +87,18 @@ bool init()
   SetFrameSlot(gConstFn, MakeSymbol("function"), (Ref)FDefineGlobalConstant);
   SetFrameSlot(gConstFn, MakeSymbol("numargs"), MAKEINT(2));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DefineGlobalConstant")), gConstFn);
+
+  Ref dbgAddFn = AllocateFrame();
+  SetFrameSlot(dbgAddFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgAddFn, MakeSymbol("function"), (Ref)FDbgAddBreakpoint);
+  SetFrameSlot(dbgAddFn, MakeSymbol("numargs"), MAKEINT(2));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DbgAddBreakpoint")), dbgAddFn);
+
+  Ref dbgRemoveFn = AllocateFrame();
+  SetFrameSlot(dbgRemoveFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(dbgRemoveFn, MakeSymbol("function"), (Ref)FDbgRemoveBreakpoint);
+  SetFrameSlot(dbgRemoveFn, MakeSymbol("numargs"), MAKEINT(1));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DbgRemoveBreakpoint")), dbgRemoveFn);
 
   return true;
 }

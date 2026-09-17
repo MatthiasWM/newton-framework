@@ -351,6 +351,9 @@ Ref		DoSend(RefArg rcvr, RefArg impl, RefArg msg, ArrayIndex numArgs);
 
 Ref		SetBreakPoints(Ref);
 bool		EnableBreakPoints(bool);
+void		EnterBreakLoop(void);
+Ref		AddBreakPoint(RefArg inFunc, ArrayIndex inPC, bool inTemporary);
+void		RemoveBreakPoint(RefArg inBreakPoint);
 
 #if defined(__cplusplus)
 }

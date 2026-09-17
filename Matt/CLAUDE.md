@@ -1356,16 +1356,200 @@ already implemented and doesn't need `lineTable`/`FindSourceLine` at all
 -- those exist to solve the *other* half: translating a human's
 `(file, line)` into the `(instructions, pc)` pair `handleBreakPoints()`
 actually checks, once, at the moment a breakpoint is *set* (the reverse
-direction of what `FindSourceLine` currently does -- not yet built), and
-translating back for display during stepping/stack traces (what
-`FindSourceLine` already does). Still open, not started: wiring
-`handleBreakPoints()` into `CInterpreter::run1()`'s dispatch loop gated on
-`gFramesBreakPointsEnabled`; the reverse `(file, line) -> (instructions,
-pc)` lookup; and a decision on whether `lineTable` stays embedded in the
-compiled frame (current state) or gets extracted into the side-car
-`Foo.nsdbg` file design sketched in `Matt/MATT.md` (motivation there:
-ROM-extracted packages can't be modified to embed debug data, so a
-uniform side-car keeps one code path instead of two for both cases).
+direction -- see below), and translating back for display during
+stepping/stack traces (what `FindSourceLine` already does).
+
+Note on the embedded-vs-side-car-file question this section used to raise:
+resolved. "ROM code" only ever means code *decompiled* from the original
+ROM in this project -- once loaded, it's a recompiled object living in
+RAM like anything else, freely modifiable, `lineTable` included. No
+side-car `Foo.nsdbg` file is needed; the embedded-in-frame design stays.
+
+### The reverse lookup: `(file, line) -> (function, pc)` -- done
+
+For *setting* a breakpoint by source line: `FindPCForLine(RefArg inFile,
+ArrayIndex inLine, RefVar &outFunc, ArrayIndex &outPC, ArrayIndex
+&outActualLine)` (`Frames/DebugAPI.cc`/`.h`).
+
+**The registry problem this has to solve**: `FindSourceLine` (the forward
+direction) only works because the caller already has a specific
+function's `Ref` in hand. Going the other way -- "here's a file and line,
+which compiled function is that" -- has no such starting point; NOTHING
+about a bare `(file, line)` pair identifies which of potentially many
+compiled functions to search. Solved with a registry: every function
+compiled with `dbgKeepLineTable` set now calls the new
+`RegisterDebugFunction()` from `CFunctionState::makeCodeBlock()` (right
+next to where `lineTable` gets attached), appending itself to a flat,
+GC-rooted array (`gDebugFunctions`, `Frames/DebugAPI.cc`; GC-rooted at
+`InitDebugFunctionRegistry()`, called once from `InitInterpreter()`
+alongside the existing `gFramesBreakPoints` init). `FindPCForLine` scans
+that array for functions whose `lineTable` file matches, and among those,
+returns the entry with the smallest recorded line `>= inLine` -- i.e. it
+snaps *forward* to the next line that actually has code, same as most
+source-level debuggers do when you set a breakpoint on a comment/blank/
+declaration-only line. Deliberately never pruned (documented in the code)
+-- an active debug session already accepts the `-g` overhead, and keeping
+every debug-compiled function searchable for the session's lifetime is
+the point; the accepted trade-off is that recompiling the same file mid-session
+leaves the old function's entries in the registry too, alongside the new one.
+
+**Made this practical**: switched `lineTable`'s file slot (element 0) from
+an NS *string* to an interned *symbol* (`MakeSymbol`, not
+`MakeStringFromCString`, in `CompilerSupport.cc`) -- since symbols are
+interned, matching a query file against every candidate function's own
+`lineTable[0]` is a plain `EQ()`, not a content comparison (no
+`CompareStrings`-equivalent utility existed to reach for anyway).
+`FindSourceLine`'s `outFile` is therefore now a symbol too; updated its
+doc comment to match.
+
+**Known limitation, inherited from the line-attribution imprecision
+already documented above**: a query line that falls *past* a function's
+own last real statement can resolve into an *enclosing* scope's own
+trailing entry instead of returning "not found" -- e.g. querying the
+`end` line for a function nested inside a single-statement top-level
+program can match the outer program's own artifact entry (itself line-
+attributed to "whatever comes after," same root cause). Only matters for
+queries on lines with no real code that also happen to sit in this
+specific gap; every real statement's line, and blank/comment lines
+genuinely inside a function's true body, resolve correctly. Not fixed --
+would need tracking each function's actual start/end line extent (not
+just per-statement lines), which has the same "no clean LALR reduce-time
+hook" problem as everything else in this section.
+
+**Verified**: a temporary CLI test compiled a script with `-g` and queried
+every line 1..N, cross-checked by hand: exact-match lines resolve exactly
+(pc and line both correct); no-code lines (declarations with no
+initializer, blank/comment gaps, the middle of a multi-line `if`) snap
+forward to the correct next statement's pc; lines past all recorded code
+return "not found". Repeated with a two-function file to confirm the
+registry correctly attributes each line to *its own* function's pc, not a
+sibling's (the one exception being the documented last-line-of-a-block
+artifact above, reproduced deliberately to confirm it's exactly the
+already-known cause, not a new bug). Removed the test scaffolding once
+confirmed. Full regression discipline again: 12-package sample byte-
+identical, hand-written `-script` tests zero `WARNING` lines, corpus
+sweep unchanged (1,906 CLEAN / 382 UNRESOLVED / 61 CRASHED) with
+`--compare` confirming `Fixed (0)` / `REGRESSED (0)`.
+
+### Wiring `handleBreakPoints()` into the dispatch loop -- done
+
+Real Newton OS ROM split this into two copies of the interpreter --
+`TInterpreter::Run()` and a separate `TInterpreter::SlowRun()` for when
+debugging is active. Explicitly avoided duplicating that here: `run1()`
+(`Frames/Interpreter.cc`) already has exactly one dispatch loop, and the
+existing `gFramesBreakPointsEnabled` bool (already declared, already had a
+public setter, `EnableBreakPoints()`, but until now nothing ever read it)
+is cheap enough to check on every single instruction without needing a
+second loop. Added, at the top of the inner per-instruction `for(;;)`:
+
+```cpp
+if (gFramesBreakPointsEnabled)
+{
+    instructionOffset = (int)(instrPtr - instrBase);
+    handleBreakPoints();
+    // re-derive every raw pointer cached from a heap object, in case
+    // a hit breakpoint ran NS code that triggered a GC compaction
+    instrBase = (unsigned char *)BinaryData(instructions);
+    instrPtr = instrBase + instructionOffset;
+    literalSlot = ...; localSlot = ...;   // same as the outer loop's own setup
+}
+```
+
+The GC-safety re-derivation matters and is easy to miss: `handleBreakPoints()`,
+on a hit, calls the new `EnterBreakLoop()` (factored out of two identical
+inline `DoBlock(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)), ...)` calls
+that already existed -- `handleBreakPoints()`'s own hit path, and the
+pre-existing, separately-triggered `breakOnThrows` mechanism in
+`handleException()` -- one function now, not two copies), which runs
+arbitrary NewtonScript via `DoBlock`. This heap compacts (confirmed
+earlier this session, debugging the `PrintDependents` cycle crash), so any
+raw pointer derived from a heap object (`instrBase`/`instrPtr`, and the
+cached `literalSlot`/`localSlot`) can dangle across that call and must be
+re-derived before the dispatch loop touches them again -- exactly what the
+outer loop already does on every call/return transition, just repeated
+here for the one additional reentry point breakpoints introduce.
+
+**Verified**: a temporary CLI test (compiled a script, hand-built a
+`{programCounter: [{programCounter:, instructions:, temporary:}]}` frame
+matching the exact shape `handleBreakPoints()` already expected, called
+`SetBreakPoints()`/`EnableBreakPoints(true)`, then interpreted the script)
+confirmed: a matching `(instructions, pc)` correctly entered the break
+loop (observed `'BreakLoop` is in fact already bound to something in this
+build -- printed "Entering break loop" -- confirming the whole chain from
+`run1()` down to a real NS-level break handler fires correctly end to
+end); a non-matching pc ran to completion normally with the correct
+result and left the (non-temporary in that test) breakpoint list
+untouched. Removed the test scaffolding once confirmed. 12-package
+sample byte-identical; every hand-written `-script` test still resolves
+with zero `WARNING` lines; full corpus sweep unchanged (1,906 CLEAN / 382
+UNRESOLVED / 61 CRASHED) and `--compare` confirms `Fixed (0)` /
+`REGRESSED (0)` -- expected, since decompiling never executes bytecode
+and so never touches `run1()` at all; this change is exercised only by
+actually *running* a script, which the temporary CLI test did separately.
+
+### Exposing it to NewtonScript: `DbgAddBreakpoint`/`DbgRemoveBreakpoint` -- done
+
+Everything above (`FindPCForLine`, `AddBreakPoint`/`RemoveBreakPoint`,
+`handleBreakPoints()`) was C++-only. Made it usable from an actual running
+script with two new native functions, `DbgAddBreakpoint(filename, line)`
+(returns a Ref -- nil if nothing resolved, otherwise a handle) and
+`DbgRemoveBreakpoint(ref)`.
+
+**How a C++ function becomes NS-callable here** (this took real digging —
+worth recording so it isn't re-derived next time): there is no symbolic
+registration table in this codebase's own source. A native function is
+just a 3-slot frame, read by fixed *position* (`kPlainCFunctionClassIndex/
+PtrIndex/NumArgsIndex`, `Frames/Interpreter.h`) -- `{class:
+kPlainCFunctionClass, function: &lt;C fn pointer&gt;, numargs: N}` -- bound to
+a name by being placed as a slot value in `gFunctionFrame` under that
+symbol. Real Newton's own built-ins (`'BreakLoop` included -- which is
+why it already printed "Entering break loop" in earlier testing, unbound
+by any code in *this* tree) live this way inside a frozen, historical ROM
+data blob (`ROMData/*/RefData.s`), assembled once from a real ROM image
+and never meant to be hand-extended. `Frames/Funcs.cc`
+(`InitBuiltInFunctions`/`AddPlainCFunction`) looks like the table to
+extend but is dead: unreachable, references a `gConstNSData` that exists
+nowhere else in the tree, and `AddPlainCFunction` has no definition
+anywhere. The actually-working idiom to copy is already in this file:
+`newtc.cc`'s own `init()` hand-builds this exact 3-slot shape in live C++
+for `MakeBinaryFromHex`/`DefineGlobalConstant` -- copied that pattern
+verbatim for the two new functions.
+
+**Implementation** (`Frames/DebugAPI.cc`/`.h`): `FDbgAddBreakpoint`
+resolves `(filename, line)` via `FindPCForLine` (accepting either a
+symbol or a plain NS string for `filename` -- converted via
+`ConvertFromUnicode(GetUString(...), ...)`, the same idiom
+`FLoadDataFile` (`Frames/RefIO.cc`) already uses for a filename argument),
+then calls `AddBreakPoint()` and returns the resulting breakpoint frame
+directly as the caller's handle -- no separate id scheme needed, since
+`handleBreakPoints()` already treats each array element as one
+independent breakpoint. `FDbgRemoveBreakpoint` just forwards to
+`RemoveBreakPoint()`. Registered in `newtc.cc`'s `init()` as
+`DbgAddBreakpoint`/`DbgRemoveBreakpoint` (2 args / 1 arg).
+
+**Verified end to end from real NewtonScript** (not just C++): a script
+defining `global myTestFunc() ... end`, calling `DbgAddBreakpoint(<its own
+filename>, <a line inside myTestFunc>)`, then calling `myTestFunc()` --
+correctly printed everything *before* the breakpoint's line, then entered
+the break loop exactly there (confirmed nothing after that line ever
+printed). A second run added the same breakpoint but called
+`DbgRemoveBreakpoint` on the returned Ref before invoking the function --
+ran to completion with every `Print` firing and no pause. A third run
+with a nonexistent filename confirmed `DbgAddBreakpoint` returns `nil`
+cleanly (no throw), and that `DbgRemoveBreakpoint(nil)` is a safe no-op.
+One idiom worth noting for later scripts: NewtonScript's `global`
+declaration is only valid as a *top-level* command (`command: expr |
+global_decl` in the grammar -- `global_decl` is not itself one of
+`expr`'s alternatives), so it can't be nested inside a `begin...end`
+block; and `global myTestFunc; myTestFunc := func()...end;` (declare, then
+assign a function *value*) does not make `myTestFunc()` callable as a bare
+function call -- got "Undefined global function" -- only the dedicated
+`global myTestFunc() ... end;` form (a distinct grammar production,
+`kTokenGFunction`) registers a name as an actually-callable global
+function. Full regression discipline: 12-package sample byte-identical,
+hand-written tests zero `WARNING` lines, corpus sweep unchanged (1,906
+CLEAN / 382 UNRESOLVED / 61 CRASHED), `--compare` confirms `Fixed (0)` /
+`REGRESSED (0)`.
 
 ## Hard-won C++ gotcha (don't re-discover this)
 

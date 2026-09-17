@@ -15,6 +15,7 @@
 #include "Symbols.h"
 #include "Iterators.h"
 #include "ROMResources.h"
+#include "DebugAPI.h"
 
 #include "Compiler.h"
 
@@ -111,9 +112,12 @@ CFunctionState::CFunctionState(CCompiler * inCompiler, RefArg inArgs, CFunctionS
 						&& NOTNIL(GetGlobalVar(MakeSymbol("dbgKeepLineTable")));
 	if (fKeepLineTable)
 	{
-		// slot 0 is the source file name; (pc,line) pairs follow from slot 1.
+		// Slot 0 is the source file name -- interned as a symbol, not a
+		// string, so FindPCForLine() (DebugAPI.cc) can match files with a
+		// plain EQ() across every registered function instead of a content
+		// comparison. (pc,line) pairs follow from slot 1.
 		fLineTable = AllocateArray(MakeSymbol("lineTable"), 1 + kLineTableChunkSize * 2);
-		SetArraySlot(fLineTable, 0, MakeStringFromCString(fCompiler->fileName()));
+		SetArraySlot(fLineTable, 0, MakeSymbol(fCompiler->fileName()));
 	}
 	else
 		fLineTable = NILREF;
@@ -602,6 +606,7 @@ CFunctionState::makeCodeBlock(void)
 	{
 		SetLength(fLineTable, 1 + fNumOfLineEntries * 2);
 		SetFrameSlot(cbf, MakeSymbol("lineTable"), fLineTable);
+		RegisterDebugFunction(cbf);
 	}
 
 	if (gPrintLiterals)
