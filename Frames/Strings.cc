@@ -54,7 +54,7 @@ Ref	FStrMunger(RefArg inRcvr, RefArg s1, RefArg s1start, RefArg s1count,
 										  RefArg s2, RefArg s2start, RefArg s2count);
 Ref	FStrPos(RefArg inRcvr, RefArg inStr, RefArg inSubstr, RefArg inStart);
 Ref	FStrReplace(RefArg inRcvr, RefArg inStr, RefArg inSubstr, RefArg inReplacement, RefArg inCount);
-Ref	FSubStr(RefArg inRcvr, RefArg inStr, RefArg inStart, RefArg inCount);
+Ref	FSubstr(RefArg inRcvr, RefArg inStr, RefArg inStart, RefArg inCount);
 Ref	FTrimString(RefArg inRcvr, RefArg ioStr);
 Ref	FUpcase(RefArg inRcvr, RefArg ioStr);
 Ref	FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont);
@@ -736,7 +736,7 @@ StrMunger(RefArg s1, ArrayIndex s1start, ArrayIndex s1count,
 	if (s1count == kIndexNotFound)
 		s1count = richStr1.length() - s1start;
 	s1start = MINMAX(0, s1start, richStr1.length());
-	s1count = MINMAX(0, s1count, richStr1.length());
+	s1count = MINMAX(0, s1count, richStr1.length() - s1start);	// ROM: what is left after start
 
 	if (ISNIL(s2))
 		richStr1.deleteRange(s1start, s1count);
@@ -746,7 +746,7 @@ StrMunger(RefArg s1, ArrayIndex s1start, ArrayIndex s1count,
 		if (s2count == kIndexNotFound)
 			s2count = richStr2.length() - s2start;
 		s2start = MINMAX(0, s2start, richStr2.length());
-		s2count = MINMAX(0, s2count, richStr2.length());
+		s2count = MINMAX(0, s2count, richStr2.length() - s2start);	// ROM: what is left after start
 		richStr1.mungeRange(s1start, s1count, &richStr2, s2start, s2count);
 	}
 }
@@ -1254,7 +1254,7 @@ FStrReplace(RefArg inRcvr, RefArg inStr, RefArg inSubstr, RefArg inReplacement, 
 }
 
 Ref
-FSubStr(RefArg inRcvr, RefArg inStr, RefArg inStart, RefArg inCount)
+FSubstr(RefArg inRcvr, RefArg inStr, RefArg inStart, RefArg inCount)
 {
 	return Substring(inStr, RINT(inStart), NOTNIL(inCount) ? RINDEX(inCount) : kIndexNotFound);
 }

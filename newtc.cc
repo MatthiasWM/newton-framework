@@ -342,8 +342,8 @@ void handleArgDap()
 {
   DAPStartIO();       // from here on, stdout carries only DAP messages
   handleArgDbg();     // its messages still go to the stdio translator, i.e. stderr
-  // Not yet: exceptions stop in a break loop, but the client can't be told
-  // until "stopped" events (step 5.3).
+  // Off while no program runs; DAP:WaitForLaunch() sets it from the
+  // client's exception filter.
   DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
   DAPInstallTranslators();
   if (!RunEmbeddedScript(gDAPScript))

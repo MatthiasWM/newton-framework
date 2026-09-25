@@ -1,0 +1,13 @@
+// DAP (step 5.3): a breakpoint (installed by the program itself, at PC 0 of
+// Work) stops every call with reason "breakpoint".
+global Work(n)
+begin
+  local sum := 0;
+  for i := 1 to n do
+    sum := sum + i;
+  sum;
+end;
+
+InstallBreakPoint(functions.Work, 0);
+Print(Work(3));
+Print(Work(4));

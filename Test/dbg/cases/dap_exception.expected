@@ -1,0 +1,33 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_exception.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"setExceptionBreakpoints","arguments":{"filters":["all"]}}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"setExceptionBreakpoints"}
+-> {"seq":4,"type":"request","command":"configurationDone"}
+<- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"configurationDone"}
+<- {"seq":6,"type":"event","event":"output","body":{"category":"stderr","output":"    !!! Exception: Expected a number\n"}}
+<- {"seq":7,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Fail(1), 3: Return\n"}}
+<- {"seq":8,"type":"event","event":"stopped","body":{"reason":"exception","threadId":1,"allThreadsStopped":true,"text":"Expected a number"}}
+-> {"seq":5,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
+<- {"seq":9,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Fail, pc 3","line":0,"column":0},{"id":1,"name":"<program>, pc 8","line":0,"column":0}],"totalFrames":2}}
+-> {"seq":6,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":10,"type":"response","request_seq":6,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":11,"type":"event","event":"output","body":{"category":"stdout","output":"\"caught\"\n"}}
+<- {"seq":12,"type":"event","event":"output","body":{"category":"stderr","output":"    !!! Exception: Expected a number\n"}}
+<- {"seq":13,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Fail(2), 3: Return\n"}}
+<- {"seq":14,"type":"event","event":"stopped","body":{"reason":"exception","threadId":1,"allThreadsStopped":true,"text":"Expected a number"}}
+-> {"seq":7,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":15,"type":"response","request_seq":7,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":16,"type":"event","event":"output","body":{"category":"stderr","output":"    File \"$DIR/dap_exception.ns\"; Line 13 !!! Exception: -48404, Expected a number\n"}}
+<- {"seq":17,"type":"event","event":"exited","body":{"exitCode":1}}
+<- {"seq":18,"type":"event","event":"terminated"}
+-> {"seq":8,"type":"request","command":"disconnect"}
+<- {"seq":19,"type":"response","request_seq":8,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

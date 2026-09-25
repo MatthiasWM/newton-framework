@@ -11,6 +11,7 @@
 #include "Frames/Frames.h"
 #include "Frames/Globals.h"
 #include "Frames/Funcs.h"
+#include "Frames/Interpreter.h"
 #include "REPTranslators.h"
 
 #include <cstdio>
@@ -198,6 +199,8 @@ private:
   std::string * fText;          // text not sent yet
   const char *  fCategory;      // "stdout" or "stderr"
   bool          fLastWasCR;
+  std::string * fCapture;       // if set, write() also appends here
+  std::string * fStopText;      // the exception that stops in the break loop
 };
 
 const CClassInfo *
@@ -224,6 +227,8 @@ PDAPOutTranslator::make(void)
   fText = new std::string;
   fCategory = "stdout";
   fLastWasCR = false;
+  fCapture = nullptr;
+  fStopText = new std::string;
   return this;
 }
 
@@ -231,6 +236,7 @@ void
 PDAPOutTranslator::destroy(void)
 {
   delete fText, fText = nullptr;
+  delete fStopText, fStopText = nullptr;
 }
 
 NewtonErr
@@ -266,6 +272,8 @@ PDAPOutTranslator::write(const char * inText, size_t inLen)
     if (fLastWasCR)
       ch = '\n';
     *fText += ch;
+    if (fCapture != nullptr)
+      *fCapture += ch;
     if (ch == '\n')
       flush();
   }
@@ -320,9 +328,37 @@ PDAPOutTranslator::flush(void)
               + fCategory + "\",\"output\":" + QuoteJSON(text) + "}}");
 }
 
+// The program stopped: tell the client why, DAP:Stopped(reason, text).
+// gBreakLoopReason says why (Interpreter.h); for an exception, text is the
+// message exceptionNotify() printed just before.
 void
 PDAPOutTranslator::enterBreakLoop(int inLevel)
-{ }
+{
+  const char * reason = "pause";      // the program called BreakLoop()
+  switch (gBreakLoopReason) {
+    case kBreakLoopCalled: break;
+    case kBreakLoopBreakPoint: reason = "breakpoint"; break;
+    case kBreakLoopStep: reason = "step"; break;
+    case kBreakLoopException: reason = "exception"; break;
+  }
+  gBreakLoopReason = kBreakLoopCalled;
+  std::string text;
+  text.swap(*fStopText);
+  while (!text.empty() && (text.back() == '\n' || text.back() == ' '))
+    text.pop_back();
+  size_t start = text.find_first_not_of(' ');
+  text = (start == std::string::npos) ? std::string() : text.substr(start);
+  static const std::string kPrefix = "!!! Exception: ";   // see REPExceptionNotify
+  if (text.compare(0, kPrefix.size(), kPrefix) == 0)
+    text.erase(0, kPrefix.size());
+  flush();
+
+  RefVar args(MakeArray(2));
+  SetArraySlot(args, 0, MakeStringFromCString(reason));
+  if (!text.empty())
+    SetArraySlot(args, 1, MakeStringFromCString(text.c_str()));
+  DoMessage(GetGlobalVar(MakeSymbol("DAP")), MakeSymbol("Stopped"), args);
+}
 
 void
 PDAPOutTranslator::exitBreakLoop(void)
@@ -334,15 +370,25 @@ PDAPOutTranslator::stackTrace(void * interpreter)
   REPStackTrace(interpreter);
 }
 
+// An exception as "stderr" output. If it is about to stop in a break loop
+// (breakOnThrows), the text is also kept for the "stopped" event, and it is
+// not counted as an error of the program: the program may still catch it.
 void
 PDAPOutTranslator::exceptionNotify(Exception * inException)
 {
   flush();
   fCategory = "stderr";
+  bool stopping = (gBreakLoopReason == kBreakLoopException);
+  if (stopping) {
+    fStopText->clear();
+    fCapture = fStopText;
+  }
   REPExceptionNotify(inException);
+  fCapture = nullptr;
   flush();
   fCategory = "stdout";
-  ++gDAPExceptionCount;
+  if (!stopping)
+    ++gDAPExceptionCount;
 }
 
 

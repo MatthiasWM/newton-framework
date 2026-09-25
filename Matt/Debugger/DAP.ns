@@ -4,7 +4,11 @@
 // handleArgDap) loads the NS Debug Tools, then this file, then:
 //   1. DAP:WaitForLaunch() handles requests until the client has sent
 //      "launch" and "configurationDone", and returns the launch arguments;
-//   2. newtc runs the program (arguments.program) like -script;
+//   2. newtc runs the program (arguments.program) like -script; when it
+//      stops in a break loop (breakpoint, step, exception, BreakLoop()),
+//      C++ calls DAP:Stopped(reason, text), and the break loop hands every
+//      request to DAP:Dispatch() until one resumes the program
+//      (ExitBreakLoop);
 //   3. DAP:Finish(exitCode) sends "exited" and "terminated" and handles
 //      requests until "disconnect" (which quits newtc) or end of input.
 //
@@ -20,11 +24,15 @@
 // Keep in mind: NewtonScript compares strings with StrEqual, not "="
 // (which compares references). A symbol keeps the spelling it was first
 // created with; this file is loaded before any user code, so the DAP keys
-// below get their camelCase spelling.
+// below get their camelCase spelling. The same goes for names in this file:
+// a method called StackFrames would turn the DAP key "stackFrames" into
+// "StackFrames". Don't name anything like a DAP key with other capitals.
 
 DefGlobalVar('DAP, {
   launchArgs: nil,    // arguments of the "launch" request
   configured: nil,    // true once "configurationDone" arrived
+  running: nil,       // true while the program runs (or is stopped)
+  breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
 
   // -- Sending
 
@@ -61,7 +69,10 @@ DefGlobalVar('DAP, {
     text;
   end,
 
-  // Handle one message from the client.
+  // Handle one message from the client. The handlers run with
+  // breakOnThrows off (an error in the debugger must not stop in a break
+  // loop); afterwards it follows the exception filter while the program
+  // runs.
   Dispatch: func(msg)
   begin
     if not (IsFrame(msg) and IsString(msg.type) and StrEqual(msg.type, "request")) then
@@ -69,10 +80,12 @@ DefGlobalVar('DAP, {
     local handler := if IsString(msg.command) then GetSlot(DAPRequests, Intern(msg.command));
     if not IsFunction(handler) then
       return :SendErrorResponse(msg, "Unsupported request \"" & msg.command & "\"");
+    breakOnThrows := nil;
     try
       Perform(DAPRequests, Intern(msg.command), [msg])
     onexception |evt.ex| do
       :SendErrorResponse(msg, :ExceptionText(CurrentException()));
+    breakOnThrows := running and breakOnExceptions;
   end,
 
   // Handle requests until the program can start. Returns the launch
@@ -85,6 +98,8 @@ DefGlobalVar('DAP, {
       if not msg then return nil;
       :Dispatch(msg);
     end;
+    running := true;
+    breakOnThrows := breakOnExceptions;
     launchArgs;
   end,
 
@@ -92,11 +107,94 @@ DefGlobalVar('DAP, {
   // "disconnect" (quits newtc) or end of input.
   Finish: func(exitCode)
   begin
+    running := nil;
+    breakOnThrows := nil;
     :SendEvent("exited", {exitCode: exitCode});
     :SendEvent("terminated", nil);
     local msg;
     while msg := DAPReceive() do
       :Dispatch(msg);
+  end,
+
+  // -- Stopping
+
+  // Called by C++ (PDAPOutTranslator) when the program stops in a break
+  // loop. reason: "breakpoint", "step", "exception" (text: the exception),
+  // or "pause" (the program called BreakLoop()).
+  Stopped: func(reason, text)
+  begin
+    local body := {reason: reason, threadId: 1, allThreadsStopped: true};
+    if StrEqual(reason, "pause") then
+      body.description := "Paused in BreakLoop()";
+    if text then
+      body.text := text;
+    :SendEvent("stopped", body);
+  end,
+
+  // The stopped program's stack frames, newest first, as DAP StackFrames.
+  // A frame's id is its index in the stack object (0 = oldest) plus 1; ids
+  // are valid while the program is stopped. Without source (bytecode
+  // level), the name shows the PC.
+  CollectStackFrames: func()
+  begin
+    local stack := kNSDTools:CurrentStack();
+    local frames := [];
+    for frame := stack:FindBreakLoop() - 1 to 0 by -1 do
+    begin
+      local fn := stack:Function(frame);
+      local name := :FunctionName(fn, stack:Implementor(frame), frame);
+      local stackFrame := {id: frame + 1, name: name, line: 0, column: 0};
+      if call kNSDIsInterpreted with (fn) then
+        stackFrame.name := name & ", pc " & stack:ProgramCounter(frame)
+      else
+        stackFrame.presentationHint := "subtle";
+      AddArraySlot(frames, stackFrame);
+    end;
+    frames;
+  end,
+
+  // A short name for the function at a stack frame: Name for a global
+  // function, Object.Name for a method, <program> for the program itself.
+  FunctionName: func(fn, implementor, frame)
+  begin
+    local name := kNSDTools:GetDebugNameOf(fn);
+    if not name and fn and implementor then
+    begin
+      local slot := kNSDTools:FindSlotName(implementor, fn);
+      if slot then
+        name := :ObjectName(implementor) & "." & slot;
+    end;
+    if not name and fn then
+      name := :ShortName(kNSDTools:SearchForObjectName(fn));
+    if name then
+      return name;
+    if frame = 0 then
+      return "<program>";
+    if not fn then
+      return "<unknown function>";
+    "<function>";
+  end,
+
+  // A name for a frame: its debug name, a global name (without "vars."),
+  // or its address.
+  ObjectName: func(obj)
+  begin
+    local name := kNSDTools:GetDebugNameOf(obj);
+    if not name then
+      name := :ShortName(kNSDTools:SearchForObjectName(obj));
+    if name then name else "{" & kNSDTools:RefToHexString(obj) & "}";
+  end,
+
+  // "functions.Foo" -> "Foo", "vars.Bar" -> "Bar".
+  ShortName: func(name)
+  begin
+    if not name then
+      return nil;
+    if BeginsWith(name, "functions.") then
+      return SubStr(name, 10, nil);
+    if BeginsWith(name, "vars.") then
+      return SubStr(name, 5, nil);
+    name;
   end,
 });
 
@@ -107,7 +205,11 @@ DefGlobalVar('DAPRequests, {
 
   initialize: func(request)
   begin
-    :SendResponse(request, {supportsConfigurationDoneRequest: true});
+    :SendResponse(request, {
+      supportsConfigurationDoneRequest: true,
+      exceptionBreakpointFilters: [
+        {filter: "all", label: "All Exceptions", default: true,
+         description: "Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]});
     :SendEvent("initialized", nil);
   end,
 
@@ -132,6 +234,17 @@ DefGlobalVar('DAPRequests, {
     :SendResponse(request, {breakpoints: breakpoints});
   end,
 
+  // The "All Exceptions" checkbox.
+  setExceptionBreakpoints: func(request)
+  begin
+    breakOnExceptions := nil;
+    if IsFrame(request.arguments) and IsArray(request.arguments.filters) then
+      foreach filter in request.arguments.filters do
+        if IsString(filter) and StrEqual(filter, "all") then
+          breakOnExceptions := true;
+    :SendResponse(request, nil);
+  end,
+
   configurationDone: func(request)
   begin
     configured := true;
@@ -140,6 +253,27 @@ DefGlobalVar('DAPRequests, {
 
   threads: func(request)
     :SendResponse(request, {threads: [{id: 1, name: "NewtonScript"}]}),
+
+  stackTrace: func(request)
+  begin
+    local frames := :CollectStackFrames();
+    local total := Length(frames);
+    local args := request.arguments;
+    local first := if IsFrame(args) and IsInteger(args.startFrame) then Min(args.startFrame, total) else 0;
+    local count := if IsFrame(args) and IsInteger(args.levels) and args.levels > 0 then Min(args.levels, total - first) else total - first;
+    local result := Array(count, nil);
+    for i := 0 to count - 1 do
+      result[i] := frames[first + i];
+    :SendResponse(request, {stackFrames: result, totalFrames: total});
+  end,
+
+  // ExitBreakLoop() only marks the break loop as done (it ends when this
+  // request is handled), and throws if the program isn't stopped.
+  continue: func(request)
+  begin
+    ExitBreakLoop();
+    :SendResponse(request, {allThreadsContinued: true});
+  end,
 
   disconnect: func(request)
   begin

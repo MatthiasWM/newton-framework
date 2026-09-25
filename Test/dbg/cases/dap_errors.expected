@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 -> {"seq":2,"type":"request","command":"launch","arguments":{}}
 <- {"seq":2,"type":"event","event":"initialized"}
 <- {"seq":3,"type":"response","request_seq":2,"success":false,"command":"launch","message":"launch: \"program\" is missing (the NewtonScript file to run)"}
@@ -8,11 +8,16 @@
 -> {"seq":4,"type":"request","command":"configurationDone"}
 <- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"configurationDone"}
 <- {"seq":6,"type":"event","event":"output","body":{"category":"stdout","output":"\"before\"\n"}}
-<- {"seq":7,"type":"event","event":"output","body":{"category":"stderr","output":"    File \"$DIR/dap_errors.ns\"; Line 7 !!! Exception: -48404, Expected a number\n"}}
-<- {"seq":8,"type":"event","event":"exited","body":{"exitCode":1}}
-<- {"seq":9,"type":"event","event":"terminated"}
--> {"seq":5,"type":"request","command":"disconnect"}
-<- {"seq":10,"type":"response","request_seq":5,"success":true,"command":"disconnect"}
+<- {"seq":7,"type":"event","event":"output","body":{"category":"stderr","output":"    !!! Exception: Expected a number\n"}}
+<- {"seq":8,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 3: Push 'Print\n"}}
+<- {"seq":9,"type":"event","event":"stopped","body":{"reason":"exception","threadId":1,"allThreadsStopped":true,"text":"Expected a number"}}
+-> {"seq":5,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":10,"type":"response","request_seq":5,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":11,"type":"event","event":"output","body":{"category":"stderr","output":"    File \"$DIR/dap_errors.ns\"; Line 7 !!! Exception: -48404, Expected a number\n"}}
+<- {"seq":12,"type":"event","event":"exited","body":{"exitCode":1}}
+<- {"seq":13,"type":"event","event":"terminated"}
+-> {"seq":6,"type":"request","command":"disconnect"}
+<- {"seq":14,"type":"response","request_seq":6,"success":true,"command":"disconnect"}
 
 --- stderr ---
 BREAKPOINTS ENABLED

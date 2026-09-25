@@ -1599,7 +1599,12 @@ DefineGlobalConstant('kNSDTools, {
       printDepth := savedPrintDepth;
       breakOnThrows := savedBreakOnThrows;
       if enter then
+      begin
         NSDOriginalBreakLoop();
+        // newtc: keep a breakOnThrows set in the break loop (e.g. by the
+        // user, or by VS Code); the package restored the value from before.
+        savedBreakOnThrows := breakOnThrows;
+      end;
       try
         savedPrintDepth := printDepth;
         vars.printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;

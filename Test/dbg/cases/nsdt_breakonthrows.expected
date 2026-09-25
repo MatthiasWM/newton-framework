@@ -1,0 +1,13 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+    !!! Exception: Expected a number
+functions.Fail(1), 3: Return
+Entering break loop
+#2        nil
+#2        nil
+Exiting break loop
+"caught 1"
+"caught 2"
+nil

@@ -1,0 +1,13 @@
+// DAP (step 5.3): with "All Exceptions" on (breakOnThrows), every exception
+// stops with reason "exception" and its text, also one the program catches
+// (which then doesn't count for the exit code). An uncaught one ends the
+// program with exit code 1.
+global Fail(x)
+  x + 'oops;
+
+try
+  Fail(1)
+onexception |evt.ex| do
+  Print("caught");
+Fail(2);
+Print("not reached");

@@ -1,8 +1,7 @@
 {"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
-{"command": "launch", "arguments": {}}
+wait initialized
 {"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "setExceptionBreakpoints", "arguments": {"filters": []}}
 {"command": "configurationDone"}
-wait stopped
-{"command": "continue", "arguments": {"threadId": 1}}
 wait terminated
 {"command": "disconnect"}

@@ -1,8 +1,12 @@
 {"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
-{"command": "launch", "arguments": {}}
+wait initialized
 {"command": "launch", "arguments": {"program": "$PROGRAM"}}
 {"command": "configurationDone"}
 wait stopped
+{"command": "threads"}
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "stackTrace", "arguments": {"threadId": 1, "startFrame": 1, "levels": 1}}
 {"command": "continue", "arguments": {"threadId": 1}}
 wait terminated
+{"command": "continue", "arguments": {"threadId": 1}}
 {"command": "disconnect"}

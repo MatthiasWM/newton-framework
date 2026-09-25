@@ -583,10 +583,47 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       Code, run "Run Extension (samples)", open samples/hello.ns, F5.
       Test: `NEWTC=<newtc> npm test` in vsnewt starts a real debug session in
       a downloaded VS Code and checks output and exit code.
-- [ ] 5.3 Stopping: `stopped` with a reason (C++ records it: breakpoint,
-      step = temporary breakpoint, exception, explicit BreakLoop()),
-      `threads` (one), `stackTrace`, `continue`. The in-translator blocks while
-      waiting for a message (the break loop busy-loops on REPIdle otherwise).
+- [x] 5.3 Stopping: `stopped` events, `stackTrace`, `continue`, exceptions.
+      - Why it stopped is recorded in C++: `gBreakLoopReason` (Interpreter.h,
+        not in ROM) is set right before the interpreter calls BreakLoop:
+        `kBreakLoopBreakPoint` / `kBreakLoopStep` (only temporary breakpoints
+        hit) in `handleBreakPoints()`, `kBreakLoopException` in
+        `handleException()` (breakOnThrows); nothing = the program called
+        BreakLoop(). `PDAPOutTranslator::enterBreakLoop()` turns it into
+        `DAP:Stopped(reason, text)`: reason "breakpoint", "step",
+        "exception" (text: the exception, captured from the exceptionNotify()
+        that comes just before), or "pause" (description "Paused in
+        BreakLoop()"). An exception that stops is not counted for the exit
+        code (the program may still catch it).
+      - `stackTrace`: from the tools' stack object (`kNSDTools:CurrentStack()`,
+        frames from `FindBreakLoop() - 1` down to 0), newest first; id =
+        stack index + 1; name `Inner, pc 2` (Name for globals, Object.Name
+        for methods, `<program>` for the program; native frames get
+        presentationHint "subtle"); line/column 0 until Phase 6 gives them a
+        source; `startFrame`/`levels` paging, `totalFrames`.
+      - `continue` = `ExitBreakLoop()` (then the response). The break loop
+        blocks in `PDAPInTranslator::produceFrame()` while waiting.
+      - Exceptions: capability `exceptionBreakpointFilters` "all" ("All
+        Exceptions", default on); `setExceptionBreakpoints` sets
+        `DAP.breakOnExceptions`. breakOnThrows follows it while the program
+        runs (`DAP.running`), is off before and after it, and off while a
+        request is handled (a mistake in the debugger must not stop).
+        newtc change in the tools' BreakLoop: a breakOnThrows set in the
+        break loop is kept (the package restored the value from before, so
+        neither the user nor VS Code could turn it off while stopped).
+      Symbol spelling bit us: a DAP.ns method `StackFrames` turned the key
+      `stackFrames` into `StackFrames` (renamed to `CollectStackFrames`).
+      Fixed on the way: `SubStr` (and `Abs`, `Ceiling`, `Floor`, `Signum`)
+      were stubs returning nil: the built-in function table uses the ROM
+      names (`FSubstr`, `FAbs`, ...), which were the stubs in Stubs.cc, while
+      the real code used other capitals (`FSubStr`, `Fabs`, ...). Renamed to
+      the ROM names, stubs removed. `StrMunger` (behind `SubStr`, `StrMunger`)
+      clamped the count to the string length instead of what is left after
+      the start (ROM: `length - start`), so `SubStr(s, 10, nil)` copied past
+      the end.
+      Tests: `dap_breakloop`, `dap_breakpoint`, `dap_exception`,
+      `dap_exception_off`, `nsdt_breakonthrows`; VSNewt sample
+      `samples/stopping.ns`.
 - [ ] 5.4 `scopes`/`variables`: arguments, locals, self, stack values;
       expandable frames/arrays via variablesReference handles.
 - [ ] 5.5 `next`/`stepIn`/`stepOut` (= Step/StepIn/StepOut, instruction
@@ -671,8 +708,16 @@ Interpreter and runtime
   test (temps of/above a NOS 1 frame); may be related to B1.
 - [ ] B3 **Stubs**: `Stubs.cc` has many built-ins that just return nil.
   Replaced so far because the debugger needs them: `GetGlobals`, `ArrayPos`,
-  `Display`. Still stubs, e.g. `Abs`. Go through the list and implement the
-  ones a script can reasonably call (compare with the ROM).
+  `Display`; in 5.3 `Abs`, `Ceiling`, `Floor`, `Signum`, `SubStr` (the real
+  code existed with other capitals, see 5.3). Go through the list and
+  implement the ones a script can reasonably call (compare with the ROM).
+  Still to check from the capitals scan: `FSetupTetheredListener` is a stub
+  while `FSetUpTetheredListener` exists (NTK); `Fmin`/`Fmax` are stubs and
+  `FMin`/`FMax` real, and the ROM has both spellings (which one is 'Min?).
+  Stubs whose name the ROM doesn't know are unused (`Farray`, `Fdebug`,
+  `FhasVariable`, `Fisa`, `FmodalState`, `FntkDownload`, `FntkListener`,
+  `ForigPhrase`, `Freal`, `Fstats`, `FGetSortID`): delete them. Also check
+  against the ROM: `Floor` returns a real, `Ceiling` an integer (>= 1).
 - [ ] B4 **Sorted array set operations**: `GenOrderedSetOp`
   (Frames/SortedArrays.cc, behind `BDifference`, `BIntersect`, `BMerge`)
   divides a `Ref*` difference by `sizeof(Ref)`, as `LSearch` did (lines

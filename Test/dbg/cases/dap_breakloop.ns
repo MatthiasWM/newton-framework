@@ -1,0 +1,13 @@
+// DAP (step 5.3): the program calls BreakLoop(). newtc sends "stopped"
+// (reason "pause"), answers "stackTrace" (newest frame first, the PC in the
+// name, paging with startFrame/levels), and "continue" resumes it.
+global Inner(x)
+begin
+  BreakLoop();
+  x * 2;
+end;
+
+global Outer(y)
+  Inner(y + 1);
+
+Print(Outer(20));

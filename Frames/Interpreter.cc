@@ -62,6 +62,7 @@ CInterpreter *	gInterpreterList;				// +10 0C10545C link to next interpreter ins
 bool				gFramesBreakPointsEnabled;	// +14 0C105460 - byte
 Ref				gFramesBreakPoints;			// +18 0C105464 - frame, GCRoot
 extern bool		gAccurateStackTrace;			// +1C 0C105468 - SetDebugMode(), in DebugAPI.cc
+BreakLoopReason	gBreakLoopReason = kBreakLoopCalled;	// not in ROM, see Interpreter.h
 
 extern ArrayIndex		gCurrentStackPos;
 
@@ -3419,8 +3420,10 @@ CInterpreter::handleException(Exception * inException, int inDepth, StackState &
 
 	if (!DeveloperNotified(inException) && NOTNIL(GetGlobalVar(SYMA(breakOnThrows))))
 	{
+		gBreakLoopReason = kBreakLoopException;	// not in ROM
 		gREPout->exceptionNotify(inException);
 		DoBlock(GetFrameSlot(RA(gFunctionFrame), SYMA(BreakLoop)), RA(NILREF));
+		gBreakLoopReason = kBreakLoopCalled;
 		RememberDeveloperNotified(inException);
 	}
 
@@ -3622,6 +3625,7 @@ CInterpreter::handleBreakPoints(void)
 	if (NOTNIL(bps))
 	{
 		bool					isBP = false;
+		bool					isStep = true;		// not in ROM: only temporary ones hit
 		CObjectIterator	iter(bps);
 		for ( ; !iter.done(); iter.next())
 		{
@@ -3636,6 +3640,8 @@ CInterpreter::handleBreakPoints(void)
 					{
 						ArrayRemoveCount(bps, RINDEX(iter.tag()), 1);
 					}
+					else
+						isStep = false;
 				}
 			}
 		}
@@ -3646,7 +3652,9 @@ CInterpreter::handleBreakPoints(void)
 		if (isBP)
 		{
 			RefVar	breakLoop(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)));
+			gBreakLoopReason = isStep ? kBreakLoopStep : kBreakLoopBreakPoint;	// not in ROM
 			DoBlock(breakLoop, RA(NILREF));
+			gBreakLoopReason = kBreakLoopCalled;
 		}
 	}
 }

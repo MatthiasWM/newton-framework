@@ -361,6 +361,20 @@ void		SetFastLoopFlags(void);
 }
 #endif
 
+/* Not in ROM: why the interpreter is about to call BreakLoop, for a
+   debugger that must say why it stopped (DAP "stopped" event). Set right
+   before the call and cleared after it; a debugger reads it when the break
+   loop starts. kBreakLoopCalled means nothing was recorded: the program
+   called BreakLoop() itself. */
+enum BreakLoopReason
+{
+	kBreakLoopCalled,
+	kBreakLoopBreakPoint,	// a breakpoint
+	kBreakLoopStep,			// a temporary breakpoint (Step, StepIn, ...)
+	kBreakLoopException		// breakOnThrows; exceptionNotify() comes first
+};
+extern BreakLoopReason	gBreakLoopReason;
+
 
 
 #endif	/* __INTERPRETER_H */

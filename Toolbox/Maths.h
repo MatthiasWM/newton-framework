@@ -38,9 +38,9 @@ Ref	FBitNot(RefArg inRcvr, RefArg a);
 Ref	FNegate(RefArg inRcvr, RefArg a);
 
 // Utilities - Integer Math
-Ref	Fabs(RefArg inRcvr, RefArg inArg);
-Ref	Fceiling(RefArg inRcvr, RefArg inArg);
-Ref	Ffloor(RefArg inRcvr, RefArg inArg);
+Ref	FAbs(RefArg inRcvr, RefArg inArg);
+Ref	FCeiling(RefArg inRcvr, RefArg inArg);
+Ref	FFloor(RefArg inRcvr, RefArg inArg);
 Ref	FMax(RefArg inRcvr, RefArg a, RefArg b);
 Ref	FMin(RefArg inRcvr, RefArg a, RefArg b);
 Ref	FLShift(RefArg inRcvr, RefArg a, RefArg inShift);
@@ -71,7 +71,7 @@ Ref	Fnextafterd(RefArg inRcvr, RefArg a, RefArg b);
 Ref	Frint(RefArg inRcvr, RefArg inArg);
 Ref	Frinttol(RefArg inRcvr, RefArg inArg);
 Ref	Fscalb(RefArg inRcvr, RefArg a, RefArg b);
-Ref	Fsignum(RefArg inRcvr, RefArg inArg);
+Ref	FSignum(RefArg inRcvr, RefArg inArg);
 Ref	Fsignbit(RefArg inRcvr, RefArg inArg);
 
 Ref	Fcopysign(RefArg inRcvr, RefArg a, RefArg b);

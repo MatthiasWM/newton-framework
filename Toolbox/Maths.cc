@@ -216,7 +216,7 @@ FORD(RefArg inRcvr, RefArg a)
 ----------------------------------------------------------------------------- */
 
 Ref
-Fabs(RefArg inRcvr, RefArg inArg)
+FAbs(RefArg inRcvr, RefArg inArg)
 {
 	if (ISINT(inArg))
 	{
@@ -237,7 +237,7 @@ Fabs(RefArg inRcvr, RefArg inArg)
 }
 
 Ref
-Fceiling(RefArg inRcvr, RefArg inArg)
+FCeiling(RefArg inRcvr, RefArg inArg)
 {
 	double x = CoerceToDouble(inArg);
 	double ceilx = ceil(x);
@@ -342,7 +342,7 @@ Ffabs(RefArg inRcvr, RefArg inArg)
 }
 
 Ref
-Ffloor(RefArg inRcvr, RefArg inArg)
+FFloor(RefArg inRcvr, RefArg inArg)
 {
 	double x = CoerceToDouble(inArg);
 	return MakeReal(floor(x));
@@ -609,7 +609,7 @@ Fcopysign(RefArg inRcvr, RefArg a, RefArg b)
 }
 
 Ref
-Fsignum(RefArg inRcvr, RefArg inArg)
+FSignum(RefArg inRcvr, RefArg inArg)
 {
 	if (ISINT(inArg))
 	{

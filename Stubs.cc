@@ -169,7 +169,6 @@ Ref EWSetError(RefArg rcvr);
 Ref EWUnEscape(RefArg rcvr);
 Ref EWUniAtomHandler(RefArg rcvr);
 Ref EWUploadFile(RefArg rcvr);
-Ref FAbs(RefArg rcvr);
 Ref FActivate1XPackage(RefArg rcvr);
 Ref FAddCapitalizedEntry(RefArg rcvr);
 Ref FAddUnitInfo(RefArg rcvr);
@@ -177,7 +176,6 @@ Ref FAddWordInfo(RefArg rcvr);
 Ref FAdjustParagraph(RefArg rcvr);
 Ref FAutoAdd(RefArg rcvr);
 Ref FAutoRemove(RefArg rcvr);
-Ref FCeiling(RefArg rcvr);
 Ref FChildTemplateFromTopic(RefArg rcvr);
 Ref FClearCorrectionInfo(RefArg rcvr);
 Ref FClearWordInfoFlags(RefArg rcvr);
@@ -220,7 +218,6 @@ Ref FExtractRange(RefArg rcvr);
 Ref FFindDictionaryFrame(RefArg rcvr);
 Ref FFindNewInfo(RefArg rcvr);
 Ref FFindWordInfo(RefArg rcvr);
-Ref FFloor(RefArg rcvr);
 Ref FForLoop(RefArg rcvr);
 Ref FGetBinaryCompander(RefArg rcvr);
 Ref FGetBinaryCompanderData(RefArg rcvr);
@@ -281,7 +278,6 @@ Ref FSetWordInfoFlags(RefArg rcvr);
 Ref FSetWordList(RefArg rcvr);
 Ref FSetupTetheredListener(RefArg rcvr);
 Ref FSetupVisibleChildren(RefArg rcvr);
-Ref FSignum(RefArg rcvr);
 Ref FSoundClose(RefArg rcvr);
 Ref FSoundIsActive(RefArg rcvr);
 Ref FSoundIsPaused(RefArg rcvr);
@@ -611,7 +607,6 @@ Ref FPSSidToPid(RefArg rcvr);
 Ref FSplitInkAt(RefArg rcvr);
 Ref FNumInkWordsInRange(RefArg rcvr);
 Ref FRepeatInfoToText(RefArg rcvr);
-Ref FSubstr(RefArg rcvr);
 Ref FWordUnitToWordInfo(RefArg rcvr);
 Ref FmodalState(RefArg rcvr);
 Ref FStdioOff(RefArg rcvr);
@@ -913,7 +908,6 @@ Ref EWSetError(RefArg rcvr) { return NILREF; }
 Ref EWUnEscape(RefArg rcvr) { return NILREF; }
 Ref EWUniAtomHandler(RefArg rcvr) { return NILREF; }
 Ref EWUploadFile(RefArg rcvr) { return NILREF; }
-Ref FAbs(RefArg rcvr) { return NILREF; }
 Ref FActivate1XPackage(RefArg rcvr) { return NILREF; }
 Ref FAddCapitalizedEntry(RefArg rcvr) { return NILREF; }
 Ref FAddUnitInfo(RefArg rcvr) { return NILREF; }
@@ -921,7 +915,6 @@ Ref FAddWordInfo(RefArg rcvr) { return NILREF; }
 Ref FAdjustParagraph(RefArg rcvr) { return NILREF; }
 Ref FAutoAdd(RefArg rcvr) { return NILREF; }
 Ref FAutoRemove(RefArg rcvr) { return NILREF; }
-Ref FCeiling(RefArg rcvr) { return NILREF; }
 Ref FChildTemplateFromTopic(RefArg rcvr) { return NILREF; }
 Ref FClearCorrectionInfo(RefArg rcvr) { return NILREF; }
 Ref FClearWordInfoFlags(RefArg rcvr) { return NILREF; }
@@ -964,7 +957,6 @@ Ref FExtractRange(RefArg rcvr) { return NILREF; }
 Ref FFindDictionaryFrame(RefArg rcvr) { return NILREF; }
 Ref FFindNewInfo(RefArg rcvr) { return NILREF; }
 Ref FFindWordInfo(RefArg rcvr) { return NILREF; }
-Ref FFloor(RefArg rcvr) { return NILREF; }
 Ref FForLoop(RefArg rcvr) { return NILREF; }
 Ref FGetBinaryCompander(RefArg rcvr) { return NILREF; }
 Ref FGetBinaryCompanderData(RefArg rcvr) { return NILREF; }
@@ -1025,7 +1017,6 @@ Ref FSetWordInfoFlags(RefArg rcvr) { return NILREF; }
 Ref FSetWordList(RefArg rcvr) { return NILREF; }
 Ref FSetupTetheredListener(RefArg rcvr) { return NILREF; }
 Ref FSetupVisibleChildren(RefArg rcvr) { return NILREF; }
-Ref FSignum(RefArg rcvr) { return NILREF; }
 Ref FSoundClose(RefArg rcvr) { return NILREF; }
 Ref FSoundIsActive(RefArg rcvr) { return NILREF; }
 Ref FSoundIsPaused(RefArg rcvr) { return NILREF; }
@@ -1355,7 +1346,6 @@ Ref FPSSidToPid(RefArg rcvr) { return NILREF; }
 Ref FSplitInkAt(RefArg rcvr) { return NILREF; }
 Ref FNumInkWordsInRange(RefArg rcvr) { return NILREF; }
 Ref FRepeatInfoToText(RefArg rcvr) { return NILREF; }
-Ref FSubstr(RefArg rcvr) { return NILREF; }
 Ref FWordUnitToWordInfo(RefArg rcvr) { return NILREF; }
 Ref FmodalState(RefArg rcvr) { return NILREF; }
 Ref FStdioOff(RefArg rcvr) { return NILREF; }

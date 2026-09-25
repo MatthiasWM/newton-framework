@@ -1,0 +1,10 @@
+// newtc change in the tools' BreakLoop: a breakOnThrows set in the break
+// loop is kept after it (the package restored the value from before). The
+// first exception stops; there the user turns breakOnThrows off, so the
+// second one doesn't stop.
+global Fail(x)
+  x + 'oops;
+
+try Fail(1) onexception |evt.ex| do Print("caught 1");
+try Fail(2) onexception |evt.ex| do Print("caught 2");
+Print(breakOnThrows);

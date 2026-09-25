@@ -1,0 +1,11 @@
+// DAP (step 5.3): with "All Exceptions" off, exceptions don't stop: the
+// caught one is handled, the uncaught one ends the program (exit code 1).
+global Fail(x)
+  x + 'oops;
+
+try
+  Fail(1)
+onexception |evt.ex| do
+  Print("caught");
+Fail(2);
+Print("not reached");
