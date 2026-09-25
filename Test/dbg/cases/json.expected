@@ -1,0 +1,29 @@
+{seq: 1, 
+ type: "request", 
+ command: "initialize", 
+ arguments: {clientID: "vscode", linesStartAt1: true, pathFormat: "path"}}
+"vscode"
+"{"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"vscode","linesStartAt1":true,"pathFormat":"path"}}"
+[0, -7, 3000000000, 2305843009213693951, -2305843009213693952]
+[2.30584e+18, -2.30584e+18, 1.00000e+20, 1.50000, -0.00250000, 1000.00]
+"[2305843009213693951,-2305843009213693952]"
+"[0,-7,1.5,-0.0025,0.3333333333333333,0.1,1000]"
+[true, nil, nil]
+"[true,false]"
+19
+$q
+""q\"b\\s/n\nt\t \u00E9 \uD83D\uDE00 \u00E9\uD83D\uDE00""
+""\u00E9\rx""
+"{"a":"sym","b":"x","c":[],"d":{}}"
+nil
+"JSON: expected ',' or ']' at offset 5"
+"JSON: expected ':' at offset 5"
+"JSON: expected a key string at offset 1"
+"JSON: unexpected character at offset 0"
+"JSON: unterminated string at offset 4"
+"JSON: unexpected text after the value at offset 4"
+"JSON: unexpected text after the value at offset 2"
+"JSON: unexpected end of text at offset 0"
+"JSON: can't convert this object (not a frame, array, string, number, symbol, character, true, or nil)"
+"JSON: nested too deeply at offset 257"
+"JSON: nested too deeply (a cycle?)"

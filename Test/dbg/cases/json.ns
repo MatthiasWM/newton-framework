@@ -1,0 +1,59 @@
+// JSONParse / JSONStringify (Matt/JSON.cc): JSON <-> NewtonScript objects,
+// the base for DAP. No -dbg needed.
+global TryParse(text)
+begin
+  try Print(JSONParse(text))
+  onexception |evt.ex.msg| do Print(CurrentException().message);
+end;
+
+// A DAP request: objects become frames (slot order kept), keys symbols.
+req := JSONParse("{\"seq\": 1, \"type\": \"request\", \"command\": \"initialize\",
+  \"arguments\": {\"clientID\": \"vscode\", \"linesStartAt1\": true, \"pathFormat\": \"path\"}}");
+Print(req);
+Print(req.arguments.clientID);
+Print(JSONStringify(req));
+
+// Numbers: integers if they fit (62 bits on a 64-bit host, like integer
+// literals), else reals; reals written in the shortest exact form.
+Print(JSONParse("[0, -7, 3000000000, 2305843009213693951, -2305843009213693952]"));
+Print(JSONParse("[2305843009213693952, -2305843009213693953, 99999999999999999999, 1.5, -2.5e-3, 1e3]"));
+Print(JSONStringify([2305843009213693951, -2305843009213693951 - 1]));
+Print(JSONStringify([0, -7, 1.5, -0.0025, 1.0/3.0, 0.1, 1000.0]));
+
+// true, false, null; nil is written as false.
+Print(JSONParse("[true, false, null]"));
+Print(JSONStringify([true, nil]));
+
+// Strings: escapes and \u (incl. surrogate pairs) in; the non-ASCII
+// characters of a NewtonScript string go through UTF-8; \u out.
+s := JSONParse("\"q\\\"b\\\\s\\/n\\nt\\t \\u00e9 \\ud83d\\ude00 \u00E9D83DDE00\u\"");
+Print(StrLen(s));
+Print(ExtractUniChar(s, 0));
+Print(JSONStringify(s));
+Print(JSONStringify("\u00E9\u" & $\n & "x"));
+
+// Symbols and characters become strings.
+Print(JSONStringify({a: 'sym, b: $x, c: [], d: {}}));
+
+// Round trip.
+text := "{\"body\":{\"stackFrames\":[{\"id\":1,\"name\":\"Fib\",\"line\":3,\"column\":0}],\"totalFrames\":1},\"success\":true}";
+Print(JSONStringify(JSONParse(text)) = text);
+
+// Errors.
+TryParse("[1, 2");
+TryParse("{\"a\" 1}");
+TryParse("{1: 2}");
+TryParse("tru");
+TryParse("\"abc");
+TryParse("[1] x");
+TryParse("01x");
+TryParse("");
+try JSONStringify({fn: func() nil})
+onexception |evt.ex.msg| do Print(CurrentException().message);
+
+// Too deep (a limit of 256 levels), or a cycle.
+t := ""; for i := 1 to 300 do t := t & "[";
+TryParse(t);
+f := {a: 1}; f.me := f;
+try JSONStringify(f)
+onexception |evt.ex.msg| do Print(CurrentException().message);

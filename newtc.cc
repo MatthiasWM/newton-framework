@@ -13,6 +13,7 @@
 #include "Frames/Interpreter.h"
 #include "Frames/DebugAPI.h"
 #include "Matt/EmbeddedScript.h"
+#include "Matt/JSON.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -144,6 +145,10 @@ bool init()
   defGlobalCFunction("DefineGlobalConstant", (void*)FDefineGlobalConstant, 2);
 
   installNSDebugToolsNatives();
+
+  // JSON <-> NewtonScript objects (for DAP, see Matt/JSON.h)
+  defGlobalCFunction("JSONParse", (void*)FJSONParse, 1);
+  defGlobalCFunction("JSONStringify", (void*)FJSONStringify, 1);
 
   return true;
 }

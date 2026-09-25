@@ -503,32 +503,80 @@ enough for testing; 4.1 and 4.2 are low priority.
 - [ ] 4.2 (low priority) Cleaner REPL output: the `#2 nil` result lines after
       every command. (The location on each stop is done: the tools' BreakLoop.)
 
-### Phase 5: Debugger engine interface (C++)
-Evaluate first (Matt): implement DAP as a new pair of REP translators, like
-`PHammerInTranslator`/`PHammerOutTranslator` (the NTK Inspector connection):
-the break loop already reads commands through `gREPin` and writes through
-`gREPout`, so a DAP translator could plug in without changing the loop.
-- [ ] 5.1 Put a C++ interface around the REPL-level operations: commands
-      (continue, step kinds, set/clear breakpoints, stack, scopes/variables,
-      evaluate) and events (stopped + reason, output, exited). The REPL of
-      Phase 4 uses it too, so the Phase 0 tests cover it.
-- [ ] 5.2 The break loop waits on a command source that can be stdin *or* a
-      queue fed from another thread (needed because cppdap is threaded while
-      the interpreter must stay on one thread).
+### Phase 5: DAP, bytecode level (revised 2026-09-25)
+Decisions (Matt): no TypeScript, no cppdap. newtc has its own small DAP
+layer: C++ converts JSON <-> NewtonScript objects and moves the messages;
+the DAP handlers are NewtonScript (embedded like NSDebugTools.ns) and use
+the NS Debug Tools directly (CurrentStack, Step, StepIn, ...). DAP plugs in
+as a pair of REP translators (like PHammerIn/OutTranslator): the break loop
+is unchanged. No threads: the in-translator reads messages synchronously.
+- [x] 5.1 JSON <-> NewtonScript objects in C++ (`Matt/JSON.{h,cc}`, reusable
+      for LSP later) plus NS functions `JSONParse(str)`, `JSONStringify(obj)`
+      (registered in newtc.cc `init()`, so always available, not only with
+      `-dbg`). C++: `ParseJSON(text, length)`, `ToJSON(obj)`.
+      Objects <-> frames (keys <-> symbols, slot order kept; keys must be
+      printable ASCII), arrays <-> arrays, strings (UTF-8 <-> UTF-16, \u
+      escapes incl. surrogate pairs; output is pure ASCII with \uXXXX),
+      numbers: integer if it fits in `kRefValueBits` (62 bits on a 64-bit
+      host, -2^61 .. 2^61-1, the range the compiler accepts for literals;
+      30 on a Newton), else real; reals written in the
+      shortest form that reads back exactly (NaN/Inf -> null); true <-> true,
+      false/null -> nil, nil -> false; symbols and characters -> strings;
+      anything else throws. Errors throw `|evt.ex.msg|` with a message and
+      the offset, e.g. "JSON: expected ',' or ']' at offset 5". Nesting is
+      limited to 256 levels (a cyclic frame throws instead of overflowing).
+      A real that is a whole number is written without a fraction (1000.0 ->
+      `1000`) and reads back as an integer; JSON doesn't tell them apart.
+      NewtonScript gotchas: `try` and `self` are reserved (so no function
+      `Try`, no slot `f.self`); `.ns` sources are read as MacRoman, so tests
+      write non-ASCII characters as `\u00E9\u`. Test: `json`.
+- [ ] 5.2 Message framing (`Content-Length` header + JSON) and `-dap`: the
+      DAP translator pair; handshake (initialize -> capabilities, launch with
+      `program`, setBreakpoints until configurationDone), run the program
+      (like `-dbg -script`), `output` events for Print/Write, `exited`,
+      `terminated`. In `-dap` mode stdout carries only DAP; stray output goes
+      to stderr. Test harness: a small Python DAP client in Test/dbg.
+- [ ] 5.3 Stopping: `stopped` with a reason (C++ records it: breakpoint,
+      step = temporary breakpoint, exception, explicit BreakLoop()),
+      `threads` (one), `stackTrace`, `continue`. The in-translator blocks while
+      waiting for a message (the break loop busy-loops on REPIdle otherwise).
+- [ ] 5.4 `scopes`/`variables`: arguments, locals, self, stack values;
+      expandable frames/arrays via variablesReference handles.
+- [ ] 5.5 `next`/`stepIn`/`stepOut` (= Step/StepIn/StepOut, instruction
+      granularity), `evaluate` (like a REPL line), `pause` (atomic flag
+      checked by the slow loop; later).
+- [ ] 5.6 `-dap-server <port>` (TCP, for debugging newtc itself) and
+      `-dap-log <file>` (all messages both ways).
+Symbol spelling: NewtonScript symbols are case-insensitive and keep the
+spelling they were first created with, while DAP keys are case-sensitive
+camelCase. Checked: none of ~60 DAP keys clashes with an existing symbol;
+the DAP handlers are loaded before any user code, so their keys are created
+first with the right spelling.
 
-### Phase 6: DAP, bytecode level
-- [ ] 6.1 Add cppdap (CMake), `-dap` flag, stdio transport; initialize/
-      launch/configurationDone/disconnect; output events; run to completion.
-- [ ] 6.2 Stop on `BreakLoop()`/breakpoint/exception → `stopped`,
-      `threads`, `stackTrace`.
-- [ ] 6.3 `scopes`/`variables` (args, locals, self, value-stack temps).
-- [ ] 6.4 `continue`/`next`/`stepIn`/`stepOut`.
-- [ ] 6.5 Showing bytecode. Proposal: each unmapped function gets a
-      *virtual source* (DAP `sourceReference`) holding its disassembly, one
-      instruction per line. Line breakpoints and stepping then map 1:1 to
-      PCs and reuse the source-level machinery. Optional extra: DAP
-      `disassemble` + instruction breakpoints for VS Code's Disassembly view.
-- [ ] 6.6 `evaluate` (VS Code debug console) → same evaluation as the break loop.
+### Phase 6: Bytecode display in VS Code
+- [ ] 6.1 Each unmapped function gets a *virtual source* (DAP
+      `sourceReference`, answered by the `source` request) holding its
+      disassembly, one instruction per line; stack frames point to it, and
+      line breakpoints in it map 1:1 to PCs (InstallBreakPoint). Optional:
+      DAP `disassemble` + instruction breakpoints for VS Code's Disassembly view.
+
+### Debugging newtc while it serves DAP (recommendation)
+1. `newtc -dap-server <port>` started under lldb from the newtc window
+   (CodeLLDB is installed; `.vscode/launch.json` already has cppdbg/lldb
+   configurations). In the VSNewt test workspace, the NewtonScript launch
+   configuration gets `"debugServer": <port>`: VS Code connects to the
+   running newtc instead of starting one (the attribute exists for developing
+   debug adapters).
+2. `-dap-log <file>` and VS Code's `"trace": true` for the traffic.
+3. Fallback for stdio mode: CodeLLDB attach with `"waitFor": true`, plus an
+   environment variable (e.g. `NEWTC_WAIT_FOR_DEBUGGER=1`) that makes newtc
+   wait until lldb is attached.
+4. Most adapter work needs no VS Code at all: the Python DAP client tests.
+VSNewt stays a thin shell (its existing TypeScript; no debugger logic in
+it): `contributes.debuggers` (type `newtonscript`) with a
+DebugAdapterExecutable `newtc -dap`, `languages` for .ns, and
+`breakpoints: [{language: "newtonscript"}]`; a setting for the newtc path so
+development uses build/VSCode/newtc.
 
 ### Phase 7: Source level, internal map
 - [ ] 7.1 In-memory representation: per chunk {files[], functions[{key,
@@ -592,6 +640,21 @@ Interpreter and runtime
   pointer of type 'CStoreObjRef'` (UBSan). Seen with a temporary HOME in
   `Test/dbg/test_terminal.py`.
 
+- [ ] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
+  `"a"b\c"` (`SafelyPrintString`, Frames/ObjectPrinter.cc, marked "not
+  complete yet"): `"`, `\` and control characters (CR, LF, tab) are not
+  escaped, so the output is no valid NewtonScript. Matters for DAP variable
+  values (5.4). Check what ROM `SafelyPrintString` does.
+
+- [ ] B14 **Integers overflow silently**: integers have 62 bits on a 64-bit
+  host (`kRefValueBits`), but arithmetic wraps without notice:
+  `1152921504606846975 * 4` gives `-4` (e.g. Interpreter.cc
+  `MAKEINT(RINT(a) + RINT(b))`). Check what the ROM does (throw, or convert
+  to a real?). Also: the compiler rejects the literal `-2305843009213693952`
+  (it negates the out-of-range 2^61), like C does; `-2305843009213693951 - 1`
+  works. And a 62-bit integer can't go into a package or NSOF file for a
+  real Newton (30 bits): check what the writers do with one.
+
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
   builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
@@ -618,7 +681,7 @@ Decompiler
   branches.
 - [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
   the first 30 manifest packages, with the binary from before 1.1 too.
-- [ ] B11 **ASCII only characters**: make sure that the decompiler outputs only
+- [ ] B12 **ASCII only characters**: make sure that the decompiler outputs only
   ASCII characters and that characters that were originally non-ASCII UTF-16
   are output a escaped sequences - eventually we have to decide if NewtonScript
   shall go all UTF-8.
