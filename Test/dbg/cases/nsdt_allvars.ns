@@ -1,0 +1,18 @@
+//! -nos1
+// Step 3.1c: GetAllNamedVars(level) for NOS 1 code (named argFrame): all
+// arguments and locals by name. It then probes the symbols in Calc's
+// literals with FindVar and warns about undeclared ones it finds; the global
+// total is not among them, because FindVar only looks lexically (lookup flag
+// 1, as in ROM), not at globals. breakOnThrows is switched off while it
+// probes (a failed probe throws), and restored afterwards.
+global Calc(a, b)
+begin
+  local sum := a + b;
+  BreakLoop();
+  total := sum;
+  sum * 2;
+end;
+
+total := 0;
+breakOnThrows := 'yes;
+Print(Calc(3, 4));

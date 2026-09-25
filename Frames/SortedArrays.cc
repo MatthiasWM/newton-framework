@@ -499,7 +499,7 @@ LSearch(RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest, RefArg inK
 			for (arrayItem = arrayStart + startIndex; arrayItem < arrayEnd; arrayItem++)
 				if (EQ(*arrayItem, inItem))
 				{
-					index = (arrayItem - arrayStart) / sizeof(Ref);
+					index = arrayItem - arrayStart;	// pointer difference counts Refs, not bytes
 					break;
 				}
 		}
@@ -517,7 +517,7 @@ LSearch(RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest, RefArg inK
 		{
 			if (testFn.applyTest(inItem, arrayItem) == kItemEqualCriteria)
 			{
-				index = (arrayItem - arrayStart) / sizeof(Ref);
+				index = arrayItem - arrayStart;	// pointer difference counts Refs, not bytes
 				break;
 			}
 		}

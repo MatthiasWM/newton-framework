@@ -112,6 +112,48 @@ DefineGlobalConstant('kNSDTools, {
   EnableBreakPoints: func(enable)
     NSDEnableBreakPoints(enable),
 
+  // Search the _proto chain of `frame` for `slot`. If found, add the slot
+  // and the _proto steps to `path` (backwards: slot first) and return true.
+  ProtoSlotPath: func(frame, slot, path)
+  begin
+    if IsInstance(frame, 'frame) and HasSlot(frame, '_proto) then
+    begin
+      if HasSlot(frame._proto, slot) then
+      begin
+        AddArraySlot(path, slot);
+        AddArraySlot(path, '_proto);
+        return true;
+      end;
+      local found := self:ProtoSlotPath(frame._proto, slot, path);
+      if found then
+        AddArraySlot(path, '_proto);
+      return found;
+    end;
+    return nil;
+  end,
+
+  // Search the _parent chain of `frame` (and the _proto chain of every
+  // parent) for `slot`, like ProtoSlotPath.
+  ParentSlotPath: func(frame, slot, path)
+  begin
+    if IsInstance(frame, 'frame) and HasSlot(frame, '_parent) then
+    begin
+      if HasSlot(frame._parent, slot) then
+      begin
+        AddArraySlot(path, slot);
+        AddArraySlot(path, '_parent);
+        return true;
+      end;
+      local found := self:ProtoSlotPath(frame._parent, slot, path);
+      if not found then
+        found := self:ParentSlotPath(frame._parent, slot, path);
+      if found then
+        AddArraySlot(path, '_parent);
+      return found;
+    end;
+    return nil;
+  end,
+
   // True if the PCs on the stack are exact: SetDebugMode(true) is on, or
   // breakpoints are enabled (the interpreter then runs its slow loop).
   StackIsAccurate: func(stack)
@@ -270,6 +312,141 @@ DefineGlobalConstant('kNSDTools, {
         stack:SetFindVar(frame, name, value);
       call kNSDSetTrace with (oldTrace);
       return value;
+    end,
+
+  // GetPathToSlot(frame, slot): the path from `frame` to where `slot` is
+  // found by inheritance, e.g. _proto._proto.count; an empty path if the
+  // slot is not found. The _proto chain is searched first, then _parent.
+  GetPathToSlot: func()
+    func(frame, slot)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local path := SetClass([], 'pathExpr);
+      if HasSlot(frame, slot) then
+      begin
+        AddArraySlot(path, slot);
+        call kNSDSetTrace with (oldTrace);
+        return path;
+      end
+      else if not self:ProtoSlotPath(frame, slot, path) then
+        self:ParentSlotPath(frame, slot, path);
+      // the search built the path backwards: reverse it
+      local last := Length(path) - 1;
+      for i := 0 to (last + 1) div 2 - 1 do
+      begin
+        local swap := path[last - i];
+        path[last - i] := path[i];
+        path[i] := swap;
+      end;
+      call kNSDSetTrace with (oldTrace);
+      return path;
+    end,
+
+  // GetPathWhereSet(frame, slot): the path to where `slot := value` in a
+  // method of `frame` would store the value. Assigning to a slot inherited
+  // through _proto creates it in the frame (or in the last _parent on the
+  // way); a slot found through _parent is changed where it is.
+  // (Ref_720: in the package a plain function, it does not use self.)
+  GetPathWhereSet: func()
+    func(frame, slot)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local path := GetPathToSlot(frame, slot);
+      local length := Length(path);
+      if length < 2 then
+      begin
+        call kNSDSetTrace with (oldTrace);
+        return path;
+      end;
+      for i := length - 1 to 1 by -1 do
+        if path[i - 1] = '_parent then
+        begin
+          path[i] := path[length - 1];    // cut the path after that _parent
+          SetLength(path, i + 1);
+          break;
+        end
+        else if i - 1 = 0 then
+        begin
+          path[i - 1] := path[length - 1];  // no _parent: the frame itself
+          SetLength(path, 1);
+          break;
+        end;
+      call kNSDSetTrace with (oldTrace);
+      return path;
+    end,
+
+  // GetAllNamedVars(level): a frame with all named variables of the function
+  // at `level` (from DebuggerInfo, or the argFrame of NOS 1 code). Then every
+  // symbol in the function's literals that can be read as a variable is added
+  // too; those the receiver doesn't have as a slot are listed in a warning:
+  // they are used without being declared (e.g. accidental globals).
+  GetAllNamedVars: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1 - level;
+      local fn := stack:Function(frame);
+      local namedVars := {};
+      if call kNSDHasDebugInfo with (fn) then
+      begin
+        local info := fn.DebuggerInfo;
+        local skip := info[0];
+        local count := Length(info) - skip - 1;
+        local disassembler := MakeDisassembler(fn);
+        for i := 0 to count - 1 do
+          namedVars.(disassembler:GetArgName(i + 3)) := stack:GetVar(frame, i);
+        local argFrame := fn.argFrame;
+        for i := 1 to skip do
+        begin
+          local name := info[i];
+          if not HasPath(namedVars, name) and HasPath(argFrame, name) then
+            namedVars.(name) := stack:FindVar(frame, name);
+        end;
+      end
+      else if IsInstance(fn, 'CodeBlock) then
+      begin
+        namedVars := Clone(fn.argFrame);
+        RemoveSlot(namedVars, '_nextArgFrame);
+        RemoveSlot(namedVars, '_parent);
+        RemoveSlot(namedVars, '_implementor);
+        foreach name, value in namedVars do
+          namedVars.(name) := stack:FindVar(frame, name);
+      end;
+      if HasPath(fn, 'literals) and PrimClassOf(fn.literals) = 'Array then
+      begin
+        local found := [];
+        local savedBreakOnThrows := GetGlobals().breakOnThrows;
+        GetGlobals().(EnsureInternal('breakOnThrows)) := nil;
+        foreach literal in fn.literals do
+          if IsInstance(literal, 'symbol) and not HasSlot(namedVars, literal) then
+            try
+              namedVars.(literal) := stack:FindVar(frame, literal);
+              AddArraySlot(found, literal);
+            onexception |evt.ex.fr.intrp| do
+              nil;
+        local warned := nil;
+        local receiver := GetCurrentReceiver(level);
+        foreach name in found do
+        begin
+          local undeclared := if receiver then
+                                Length(GetPathToSlot(receiver, name)) = 0
+                              else
+                                true;
+          if undeclared then
+          begin
+            if not warned then
+              Write("WARNING: You have not declared the following variables:\n");
+            warned := true;
+            Write("    " & SPrintObject(name) & $\n);
+          end;
+        end;
+        if warned then
+          Write($\n);
+        breakOnThrows := savedBreakOnThrows;
+      end;
+      call kNSDSetTrace with (oldTrace);
+      return namedVars;
     end
 });
 
@@ -280,5 +457,6 @@ DefineGlobalConstant('kNSDTools, {
 
 foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
                  'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,
-                 'GetAllTempVars, 'GetNamedVar, 'SetNamedVar] do
+                 'GetAllTempVars, 'GetNamedVar, 'SetNamedVar, 'GetAllNamedVars,
+                 'GetPathToSlot, 'GetPathWhereSet] do
   DefGlobalFn(name, Perform(kNSDTools, name, []));

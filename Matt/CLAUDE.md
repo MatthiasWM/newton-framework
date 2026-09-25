@@ -364,9 +364,21 @@ regression checks (MATT.md) still apply when shared code is touched.
         `GetNamedVar` fails like on a Newton with code not compiled for
         debugging. Idea for Phases 7/8: have the compiler write DebuggerInfo.
         Tests: `nsdt_self`, `nsdt_temps`, `nsdt_named`.
-  - [ ] 3.1c ... the remaining 18 globals in groups (`GetAllNamedVars` with
-        `GetPathToSlot`/`GetPathWhereSet`), the disassembler, the replacement
-        BreakLoop, QuickStackTrace/StackTrace.
+  - [x] 3.1c `GetPathToSlot(frame, slot)` (path through `_proto`, then
+        `_parent`, e.g. `_parent._proto._proto.count`; helpers `ProtoSlotPath`,
+        `ParentSlotPath`), `GetPathWhereSet(frame, slot)` (where `slot :=`
+        stores: cut after the last `_parent`, else the frame itself),
+        `GetAllNamedVars(level)` (named vars as a frame; then probes literal
+        symbols with FindVar and warns about undeclared ones; its DebuggerInfo
+        branch needs `MakeDisassembler`, coming with the disassembler). FindVar
+        only looks lexically (ROM passes lookup flag 1), so globals are never
+        reported as undeclared, on a Newton either.
+        Fixed on the way: `GetGlobals()` was a stub returning nil (ROM:
+        `gVarFrame`); `LSearch` divided a `Ref*` difference by `sizeof(Ref)`,
+        so indexes below 8 came out as 0.
+        Tests: `nsdt_paths`, `nsdt_allvars`.
+  - [ ] 3.1d ... the remaining 15 globals in groups, the disassembler, the
+        replacement BreakLoop, QuickStackTrace/StackTrace.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
       shortcuts.
@@ -455,6 +467,12 @@ regression checks (MATT.md) still apply when shared code is touched.
   a different order when the allocator changes. Other packages: 1909 CLEAN,
   371 UNRESOLVED, 69 CRASHED with ASan vs. the last manifest's 1906/382/61
   (that manifest is older; 13 packages got better since).
+- **Sorted array set operations**: `GenOrderedSetOp` (Frames/SortedArrays.cc,
+  behind `BDifference`, `BIntersect`, `BMerge`) has the same `Ref*` difference
+  divided by `sizeof(Ref)` as `LSearch` had (lines ~956-968: copies too few
+  elements, truncates the result). `BMerge([...], [...], '|<|, nil, nil)` hangs.
+  Also `LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil (general test
+  path). Not fixed yet; nothing in the debugger uses them.
 - **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
   30 manifest packages, with the binary from before 1.1 too (pre-existing).
 

@@ -1,4 +1,5 @@
 #include "Objects.h"
+#include "Globals.h"
 
 #if !defined(forNTK)
 extern "C" {
@@ -1296,7 +1297,7 @@ Ref FDeActivate1_2EXPackage(RefArg rcvr) { return NILREF; }
 Ref FRecognizeTextInStyles(RefArg rcvr) { return NILREF; }
 Ref FPhoneSymToString(RefArg rcvr) { return NILREF; }
 Ref FDrawMeetingGrid(RefArg rcvr) { return NILREF; }
-Ref FGetGlobals(RefArg rcvr) { return NILREF; }
+Ref FGetGlobals(RefArg rcvr) { return gVarFrame; }	// as in ROM: the global variables frame
 Ref FGetNames(RefArg rcvr) { return NILREF; }
 Ref FlocalVar(RefArg rcvr) { return NILREF; }
 Ref FFontDescent(RefArg rcvr) { return NILREF; }

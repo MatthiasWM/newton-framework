@@ -1,0 +1,19 @@
+// Step 3.1c: GetPathToSlot(frame, slot) and GetPathWhereSet(frame, slot).
+// obj inherits count from base through _proto (two steps); child's _parent
+// is obj. Reading count from child finds it at _parent._proto._proto.count.
+// Assigning count in child's methods would store it in obj
+// (_parent.count): _proto slots are copied into the frame when set, _parent
+// slots are changed where they are. Without a _parent, it's the frame itself.
+// Also checks LSearch, which returned wrong indexes before this step.
+base := {count: 1};
+mid := {_proto: base};
+obj := {_proto: mid, name: "obj"};
+child := {_parent: obj};
+Print(GetPathToSlot(obj, 'name));
+Print(GetPathToSlot(obj, 'count));
+Print(GetPathToSlot(child, 'count));
+Print(GetPathToSlot(child, 'nothere));
+Print(GetPathWhereSet(child, 'count));
+Print(GetPathWhereSet(obj, 'count));
+Print(LSearch([10, 20, 30], 30, 1, '|=|, nil));
+Print(LSearch([0, 'a, 'b], 'b, 1, '|=|, nil));
