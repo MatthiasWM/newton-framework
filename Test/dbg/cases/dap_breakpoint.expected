@@ -8,7 +8,7 @@
 <- {"seq":5,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('n=3), 0: PushConstant 0\n"}}
 <- {"seq":6,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
 -> {"seq":4,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work, pc 0","line":0,"column":0},{"id":1,"name":"<program>, pc 5","line":0,"column":0}],"totalFrames":2}}
+<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":1,"column":1,"source":{"name":"Work.nsbc","path":"Work.nsbc","sourceReference":1}},{"id":1,"name":"<program>","line":3,"column":1,"source":{"name":"program.nsbc","path":"program.nsbc","sourceReference":2}}],"totalFrames":2}}
 -> {"seq":5,"type":"request","command":"continue","arguments":{"threadId":1}}
 <- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
 <- {"seq":9,"type":"event","event":"output","body":{"category":"stdout","output":"6\n"}}

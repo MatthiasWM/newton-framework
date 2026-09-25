@@ -39,6 +39,8 @@ DefGlobalVar('DAP, {
   configured: nil,    // true once "configurationDone" arrived
   running: nil,       // true while the program runs (or is stopped)
   handles: [],        // what each variablesReference (index + 1) stands for
+  stopReason: nil,    // why the program stopped (reason as passed to Stopped)
+  listings: [],       // the bytecode listings; a sourceReference is index + 1
   breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
 
   // -- Sending
@@ -146,30 +148,85 @@ DefGlobalVar('DAP, {
     end;
     if text then
       body.text := text;
+    stopReason := reason;
     handles := [];      // references are valid until the program resumes
     :SendEvent("stopped", body);
   end,
 
   // The stopped program's stack frames, newest first, as DAP StackFrames.
   // A frame's id is its index in the stack object (0 = oldest) plus 1; ids
-  // are valid while the program is stopped. Without source (bytecode
-  // level), the name shows the PC.
+  // are valid while the program is stopped. A NewtonScript function's
+  // frame points into its bytecode listing (see Listing): the newest frame
+  // at the instruction that runs next (after an exception: the one that
+  // threw), the others at their call.
   CollectStackFrames: func()
   begin
     local stack := kNSDTools:CurrentStack();
     local frames := [];
-    for frame := stack:FindBreakLoop() - 1 to 0 by -1 do
+    local newest := stack:FindBreakLoop() - 1;
+    for frame := newest to 0 by -1 do
     begin
       local fn := stack:Function(frame);
       local name := :FunctionName(fn, stack:Implementor(frame), frame);
       local stackFrame := {id: frame + 1, name: name, line: 0, column: 0};
       if call kNSDIsInterpreted with (fn) then
-        stackFrame.name := name & ", pc " & stack:ProgramCounter(frame)
+      begin
+        local listing := :Listing(fn, name);
+        local atNext := frame = newest and not (stopReason and StrEqual(stopReason, "exception"));
+        // path: only for display (VS Code builds the document's URI from
+        // it); the text comes from the "source" request
+        stackFrame.source := {name: listing.name, path: listing.name, sourceReference: listing.ref};
+        stackFrame.line := :LineOfPC(listing, stack:ProgramCounter(frame), atNext);
+        stackFrame.column := 1;
+      end
       else
         stackFrame.presentationHint := "subtle";
       AddArraySlot(frames, stackFrame);
     end;
     frames;
+  end,
+
+  // -- Bytecode listings (virtual sources)
+
+  // The listing of a NewtonScript function: its disassembly, one
+  // instruction per line ("   25: GetVar  t"), made once per function and
+  // kept for the session. {fn, name, ref (the sourceReference), pcs (the PC
+  // of each line), text, breakpoints (installed from this listing)}.
+  Listing: func(fn, name)
+  begin
+    foreach listing in listings do
+      if listing.fn = fn then
+        return listing;
+    local disassembler := MakeDisassembler(fn);
+    disassembler:PrintVerbosity(nil);
+    local pcs := [];
+    local text := "";
+    local pc := 0;
+    local length := Length(fn.instructions);
+    while pc < length do
+    begin
+      AddArraySlot(pcs, pc);
+      local instruction := DAPCaptureOutput(func() disassembler:PrintInstruction(pc));
+      text := text & (if pc < 10 then "    " else if pc < 100 then "   " else if pc < 1000 then "  " else " ")
+              & pc & ": " & instruction & kLF;
+      pc := pc + disassembler:InstrLength(pc);
+    end;
+    local fileName := if StrEqual(name, "<program>") then "program" else name;
+    local listing := {fn: fn, name: fileName & ".nsbc", ref: Length(listings) + 1,
+                      pcs: pcs, text: text, breakpoints: []};
+    AddArraySlot(listings, listing);
+    listing;
+  end,
+
+  // The line (1-based) of the instruction at pc; if atNext is nil, of the
+  // instruction before pc (a caller's PC is after its call instruction).
+  LineOfPC: func(listing, pc, atNext)
+  begin
+    local line := 0;
+    foreach index, linePC in listing.pcs do
+      if linePC < pc or (atNext and linePC = pc) then
+        line := index + 1;
+    Max(line, 1);
   end,
 
   // A short name for the function at a stack frame: Name for a global
@@ -449,16 +506,49 @@ DefGlobalVar('DAPRequests, {
     :SendResponse(request, nil);
   end,
 
-  // Source breakpoints come with the debug maps (Phase 9); for now every
-  // breakpoint is reported as not verified.
+  // Breakpoints in a bytecode listing (source with a sourceReference) are
+  // NS Debug Tools breakpoints at the instruction of each line; they replace
+  // the ones set in that listing before. Breakpoints in source files come
+  // with the debug maps (Phase 9); for now they are reported as not
+  // verified.
   setBreakpoints: func(request)
   begin
+    local args := request.arguments;
+    local requested := if IsFrame(args) and IsArray(args.breakpoints) then args.breakpoints else [];
+    local ref := if IsFrame(args) and IsFrame(args.source) then args.source.sourceReference;
     local breakpoints := [];
-    if IsFrame(request.arguments) and IsArray(request.arguments.breakpoints) then
-      foreach bp in request.arguments.breakpoints do
+    if IsInteger(ref) and ref >= 1 and ref <= Length(listings) then
+    begin
+      local listing := listings[ref - 1];
+      foreach bp in listing.breakpoints do
+        RemoveBreakPoint(bp);
+      listing.breakpoints := [];
+      foreach bp in requested do
+        if IsInteger(bp.line) and bp.line >= 1 and bp.line <= Length(listing.pcs) then
+        begin
+          AddArraySlot(listing.breakpoints, InstallBreakPoint(listing.fn, listing.pcs[bp.line - 1]));
+          AddArraySlot(breakpoints, {verified: true, line: bp.line});
+        end
+        else
+          AddArraySlot(breakpoints, {verified: nil, line: bp.line, message: "No instruction on this line"});
+    end
+    else
+      foreach bp in requested do
         AddArraySlot(breakpoints, {verified: nil, line: bp.line,
                                    message: "Breakpoints in source files are not supported yet"});
     :SendResponse(request, {breakpoints: breakpoints});
+  end,
+
+  // The text of a bytecode listing.
+  source: func(request)
+  begin
+    local args := request.arguments;
+    local ref := if IsFrame(args.source) and args.source.sourceReference then
+                   args.source.sourceReference else args.sourceReference;
+    if not (IsInteger(ref) and ref >= 1 and ref <= Length(listings)) then
+      Throw('|evt.ex.msg|, "Unknown source " & ref);
+    :SendResponse(request, {content: listings[ref - 1].text,
+                            mimeType: "text/x-newtonscript-bytecode"});
   end,
 
   // The "All Exceptions" checkbox.

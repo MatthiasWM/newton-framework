@@ -1,0 +1,25 @@
+// A closure that uses a local of its function only as the receiver of a
+// message send (d:P(...)). The compiler's walker for closed-over variables
+// skipped send receivers (WalkNodes, ':' case; the ROM walks them), so d
+// stayed on the stack and the closure threw "Undefined variable".
+global F()
+begin
+  local d := {P: func(p) p * 10};
+  local g := func() d:P(1);
+  call g with ();
+end;
+Print(F());
+
+o := {M: func()
+  begin
+    local d := {P: func(p) p * 10};
+    local r := [];
+    for i := 0 to 2 do
+    begin
+      local k := i;   // a closure over the for variable i itself: see B16
+      local g := func() d:P(k);
+      AddArraySlot(r, call g with ());
+    end;
+    r;
+  end};
+Print(o:M());

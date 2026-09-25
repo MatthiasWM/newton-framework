@@ -59,12 +59,14 @@ int DAPExceptionCount(void);
 //   DAPPause() -> nil; stop the running program at the next poll
 //   DAPCallWithSelf(fn, receiver, args) -> fn's result, called with self = receiver
 //   DAPErrorText(errorCode) -> the REPL's text for the error, or nil
+//   DAPCaptureOutput(fn) -> what calling fn printed, as a string
 extern "C" Ref FDAPReceive(RefArg rcvr);
 extern "C" Ref FDAPSend(RefArg rcvr, RefArg inMessage);
 extern "C" Ref FDAPExit(RefArg rcvr, RefArg inCode);
 extern "C" Ref FDAPPrintObject(RefArg rcvr, RefArg inObj);
 extern "C" Ref FDAPPause(RefArg rcvr);
 extern "C" Ref FDAPErrorText(RefArg rcvr, RefArg inCode);
+extern "C" Ref FDAPCaptureOutput(RefArg rcvr, RefArg inFn);
 extern "C" Ref FDAPCallWithSelf(RefArg rcvr, RefArg inFn, RefArg inReceiver, RefArg inArgs);
 
 #endif // MATT_DAP_H

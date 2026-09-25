@@ -726,11 +726,46 @@ the DAP handlers are loaded before any user code, so their keys are created
 first with the right spelling.
 
 ### Phase 6: Bytecode display in VS Code
-- [ ] 6.1 Each unmapped function gets a *virtual source* (DAP
-      `sourceReference`, answered by the `source` request) holding its
-      disassembly, one instruction per line; stack frames point to it, and
-      line breakpoints in it map 1:1 to PCs (InstallBreakPoint). Optional:
-      DAP `disassemble` + instruction breakpoints for VS Code's Disassembly view.
+- [x] 6.1 Bytecode listings: every NewtonScript function on the stack gets
+      a *virtual source* (DAP `sourceReference`), its disassembly with one
+      instruction per line (`   25: GetVar               t`), made by the
+      tools' disassembler (`PrintInstruction`; new native
+      `DAPCaptureOutput(fn)` returns what a function prints). `DAP.listings`
+      keeps one per function for the session: {fn, name (`Work.nsbc`,
+      `program.nsbc`), ref, pcs (the PC of each line), text, breakpoints}.
+      - Stack frames point into them: `source` {name, path (= name, only
+        for display; VS Code builds the document URI from it and fails
+        without), sourceReference}, `line`, `column` 1. The newest frame is
+        at the instruction that runs next (after an exception: the one that
+        threw; `DAP.stopReason`), callers at their call instruction (their
+        PC is after it). The name no longer shows ", pc N".
+      - `source` request: the listing text, mimeType
+        `text/x-newtonscript-bytecode`.
+      - `setBreakpoints` with a sourceReference: the tools'
+        `InstallBreakPoint(fn, pc)` for each line, replacing those set from
+        that listing before (`RemoveBreakPoint`); a line without an
+        instruction is not verified. Breakpoints in .ns files stay
+        unverified until Phase 9.
+      - VSNewt: language `newtonscript-bytecode` (`.nsbc`, that mimetype),
+        a small TextMate grammar (syntaxes/newtonscript-bytecode.tmLanguage.json:
+        PC, opcode, strings, symbols, numbers), breakpoints allowed in it.
+        VS Code opens the listing at every stop and highlights the line;
+        clicking in the gutter sets bytecode breakpoints (they last for the
+        session). VS Code registers its debug: document provider when the
+        debug view comes up; the VSNewt test opens it first.
+      Fixed on the way: the compiler's `WalkNodes` skipped the receiver of a
+      message send (`:` node; the ROM walks it after the arguments), so a
+      local used only as a receiver inside a closure (`func() d:P(1)`) was
+      not closed over and was "Undefined variable". Test `closure_send`.
+      NewtonScript: a program's global function named like a shortcut
+      (`Stop`, `stop`: symbols are case-insensitive) replaces the shortcut
+      and takes its spelling.
+      Tests: `dap_listing` (listing text, frame lines, breakpoints set,
+      replaced, cleared, a line past the end); the DAP transcripts now show
+      sources; VSNewt "Shows a bytecode listing for a stopped function"
+      (opens the listing as a VS Code document: language, current line).
+      Optional, not done: DAP `disassemble` + instruction breakpoints for
+      VS Code's Disassembly view.
 
 ### Debugging newtc while it serves DAP
 1. In the newtc window, start "newtc: -dap-server 4711" (lldb). newtc waits
@@ -828,6 +863,12 @@ Interpreter and runtime
   result string in some branches. In the ROM it is the `&` conversion
   (strings, numbers, symbols, characters), not the printer. DAP uses its
   own `DAPPrintObject`.
+
+- [ ] B16 **A closure over a `for` loop variable is a syntax error**:
+  `for i := 0 to 2 do begin local g := func() i; ... end` gives -48601
+  "syntax error" (with a copy, `local k := i; func() k`, it works). Check
+  whether the ROM/NTK compiler refuses this on purpose (the loop keeps
+  hidden locals i|limit, i|incr) or whether it is a porting bug.
 
 - [ ] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
   `"a"b\c"` (`SafelyPrintString`, Frames/ObjectPrinter.cc, marked "not

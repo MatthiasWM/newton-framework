@@ -1603,6 +1603,11 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 		case TOKENsendIfDefined:
 			for (i = 0, count = Length(p3); i < count; ++i)
 				WalkNodes(GetArraySlot(p3, i), inContext, inWalker, inPostProcessing);
+			// ROM: then the receiver (nil for inherited:). Was missing, so a
+			// local used only as a receiver in a closure was not noted as
+			// closed over and was "undefined" in the closure.
+			if (NOTNIL(p2))
+				WalkNodes(p2, inContext, inWalker, inPostProcessing);
 			break;
 		}
 	}

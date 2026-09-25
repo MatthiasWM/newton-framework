@@ -1,4 +1,4 @@
-mask /pc \d+/pc N/
+mask /"line":\d+/"line":N/
 mask /Spin\(\), \d+: [^"]*?\\n/Spin(), N: ...\\n/
 mask /"value":"\d+","type":"int"/"value":"N","type":"int"/
 {"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}

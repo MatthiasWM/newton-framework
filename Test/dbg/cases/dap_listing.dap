@@ -1,0 +1,22 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "source", "arguments": {"source": {"name": "Work.nsbc", "sourceReference": 1}, "sourceReference": 1}}
+{"command": "source", "arguments": {"source": {"name": "program.nsbc", "sourceReference": 2}, "sourceReference": 2}}
+{"command": "setBreakpoints", "arguments": {"source": {"name": "Work.nsbc", "sourceReference": 1}, "breakpoints": [{"line": 6}, {"line": 99}]}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "setBreakpoints", "arguments": {"source": {"name": "Work.nsbc", "sourceReference": 1}, "breakpoints": []}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait terminated
+{"command": "source", "arguments": {"sourceReference": 42}}
+{"command": "disconnect"}

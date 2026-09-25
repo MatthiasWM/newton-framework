@@ -159,6 +159,7 @@ bool init()
   defGlobalCFunction("DAPPause", (void*)FDAPPause, 0);
   defGlobalCFunction("DAPCallWithSelf", (void*)FDAPCallWithSelf, 3);
   defGlobalCFunction("DAPErrorText", (void*)FDAPErrorText, 1);
+  defGlobalCFunction("DAPCaptureOutput", (void*)FDAPCaptureOutput, 1);
 
   return true;
 }

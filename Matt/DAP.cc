@@ -363,6 +363,7 @@ public:
   void        exceptionNotify(Exception * inException) override;
 
   std::string printToString(RefArg inObj);   // not part of the protocol
+  std::string callToString(RefArg inFn);     // not part of the protocol
 
 private:
   void        write(const char * inText, size_t inLen);
@@ -574,6 +575,29 @@ PDAPOutTranslator::printToString(RefArg inObj)
   return text;
 }
 
+// What calling inFn (no arguments) prints, instead of sending it.
+std::string
+PDAPOutTranslator::callToString(RefArg inFn)
+{
+  flush();
+  std::string text;
+  std::string * savedCapture = fCapture;
+  bool savedCaptureOnly = fCaptureOnly;
+  fCapture = &text;
+  fCaptureOnly = true;
+  unwind_protect
+  {
+    DoBlock(inFn, RA(NILREF));
+  }
+  on_unwind
+  {
+    fCapture = savedCapture;
+    fCaptureOnly = savedCaptureOnly;
+  }
+  end_unwind;
+  return text;
+}
+
 void
 PDAPOutTranslator::exceptionNotify(Exception * inException)
 {
@@ -685,4 +709,14 @@ Ref FDAPPrintObject(RefArg rcvr, RefArg inObj)
   if (gDAPOutTranslator == nullptr || gREPout != gDAPOutTranslator)
     return NILREF;
   return MakeStringFromCString(gDAPOutTranslator->printToString(inObj).c_str());
+}
+
+
+// DAPCaptureOutput(fn): call fn (no arguments) and return what it printed
+// (Write, Print, ...) as a string, with LF line ends. Only in -dap mode.
+Ref FDAPCaptureOutput(RefArg rcvr, RefArg inFn)
+{
+  if (gDAPOutTranslator == nullptr || gREPout != gDAPOutTranslator)
+    return NILREF;
+  return MakeStringFromCString(gDAPOutTranslator->callToString(inFn).c_str());
 }

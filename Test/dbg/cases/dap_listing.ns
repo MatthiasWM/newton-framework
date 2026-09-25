@@ -1,0 +1,20 @@
+// DAP (step 6.1): bytecode listings. Every NewtonScript function on the
+// stack gets a virtual source (sourceReference) with its disassembly, one
+// instruction per line; stack frames point at a line: the newest at the
+// instruction that runs next, the callers at their call. Breakpoints set
+// in a listing (setBreakpoints with the sourceReference) are breakpoints
+// at those instructions; a new set replaces the old one, a line past the
+// end is not verified.
+global Add(a, b)
+  a + b;
+
+global Work(x)
+begin
+  local y := Add(x, 1);
+  y * 2;
+end;
+
+InstallBreakPoint(functions.Work, 0);
+Print(Work(10));
+Print(Work(20));
+Print(Work(30));
