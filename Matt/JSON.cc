@@ -409,17 +409,19 @@ std::string ToJSON(RefArg obj)
 }
 
 
-/*------------------------------------------------------------------------------
-  NewtonScript functions
-------------------------------------------------------------------------------*/
-
-// JSONParse(string): the object the JSON text describes.
-Ref FJSONParse(RefArg rcvr, RefArg inString)
+std::string QuoteJSON(const std::string &text)
 {
-  if (!IsString(inString))
-    ThrowBadTypeWithFrameData(kNSErrNotAString, inString);
-  // NewtonScript strings are UTF-16: convert to UTF-8 for the parser
-  UniChar *s = GetUString(inString);
+  std::u16string u;
+  for (unsigned char ch : text) u += (char16_t)ch;
+  std::string out;
+  WriteString(out, (const UniChar *)u.c_str(), u.size());
+  return out;
+}
+
+
+std::string UTF8FromString(RefArg str)
+{
+  UniChar *s = GetUString(str);
   std::string utf8;
   for (size_t i = 0; s[i]; ++i) {
     unsigned cp = s[i];
@@ -432,6 +434,21 @@ Ref FJSONParse(RefArg rcvr, RefArg inString)
     else if (cp < 0x10000) { utf8 += (char)(0xE0 | (cp >> 12)); utf8 += (char)(0x80 | ((cp >> 6) & 0x3F)); utf8 += (char)(0x80 | (cp & 0x3F)); }
     else { utf8 += (char)(0xF0 | (cp >> 18)); utf8 += (char)(0x80 | ((cp >> 12) & 0x3F)); utf8 += (char)(0x80 | ((cp >> 6) & 0x3F)); utf8 += (char)(0x80 | (cp & 0x3F)); }
   }
+  return utf8;
+}
+
+
+/*------------------------------------------------------------------------------
+  NewtonScript functions
+------------------------------------------------------------------------------*/
+
+// JSONParse(string): the object the JSON text describes.
+Ref FJSONParse(RefArg rcvr, RefArg inString)
+{
+  if (!IsString(inString))
+    ThrowBadTypeWithFrameData(kNSErrNotAString, inString);
+  // NewtonScript strings are UTF-16: convert to UTF-8 for the parser
+  std::string utf8 = UTF8FromString(inString);
   return ParseJSON(utf8.data(), utf8.size());
 }
 

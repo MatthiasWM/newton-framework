@@ -1,0 +1,7 @@
+// A whole DAP session (newtc -dap, step 5.2): handshake, the program's
+// output as "output" events, "exited" and "terminated" at its end, then
+// requests until "disconnect". Driven by dap_session.dap.
+Print("Hello, DAP!");
+Print({a: 1, b: [2, 3]});
+Write("no newline, ");
+Write("the rest");

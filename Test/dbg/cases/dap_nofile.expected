@@ -1,0 +1,16 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true}}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/no_such_file.ns"}}
+<- {"seq":2,"type":"event","event":"initialized"}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"configurationDone"}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"configurationDone"}
+<- {"seq":5,"type":"event","event":"output","body":{"category":"stderr","output":"    !!! Exception: Can't open the program \"$DIR/no_such_file.ns\"\n"}}
+<- {"seq":6,"type":"event","event":"exited","body":{"exitCode":1}}
+<- {"seq":7,"type":"event","event":"terminated"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

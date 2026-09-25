@@ -11,6 +11,13 @@ Every test case lives in Test/dbg/cases/ and consists of:
   <name>.args      (optional) extra newtc arguments, placed before -script,
                    e.g. -dbg
 
+A DAP case has a <name>.dap script instead of <name>.in: newtc runs as
+`newtc [args] -dap`, and dap_client.py plays the script (requests, `wait
+<event>`, `eof`; see there) against it. In the script, $PROGRAM is the
+case's .ns file (absolute path) and $DIR its directory. The expected output
+is the transcript of all messages, with $DIR put back for the directory,
+then stderr and the exit code.
+
 Output is normalized before comparing: heap references printed as
 `#<hex>` or `#0x<hex>` change from run to run, so any `#` followed by 6 or
 more hex digits becomes `#<ref>`. Short immediates like `#2` (nil) are kept.
@@ -26,12 +33,15 @@ Usage:
 
 import argparse
 import difflib
+import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import dap_client  # noqa: E402
 CASES = HERE / "cases"
 REPO = HERE.parent.parent
 DEFAULT_NEWTC = REPO / "build" / "VSCode" / "newtc"
@@ -45,11 +55,28 @@ def normalize(text):
     return REF_RE.sub("#<ref>", text)
 
 
+def run_dap_case(newtc, ns, extra):
+    directory = str(ns.parent)
+    transcript, err, code = dap_client.run_script(
+        newtc, ns.with_suffix(".dap").read_text(), ns.parent,
+        {"PROGRAM": str(ns), "DIR": directory}, extra)
+    # paths appear JSON-escaped in the transcript
+    transcript = transcript.replace(json.dumps(directory)[1:-1], "$DIR")
+    out = transcript
+    if err:
+        out += "\n--- stderr ---\n" + err
+    if code != 0:
+        out += f"\n--- exit code {code} ---\n"
+    return normalize(out)
+
+
 def run_case(newtc, ns):
-    inp = ns.with_suffix(".in")
-    stdin = inp.read_bytes() if inp.exists() else b""
     args_file = ns.with_suffix(".args")
     extra = args_file.read_text().split() if args_file.exists() else []
+    if ns.with_suffix(".dap").exists():
+        return run_dap_case(newtc, ns, extra)
+    inp = ns.with_suffix(".in")
+    stdin = inp.read_bytes() if inp.exists() else b""
     try:
         proc = subprocess.run(
             [str(newtc), *extra, "-script", ns.name],

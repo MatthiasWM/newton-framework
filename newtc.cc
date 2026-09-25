@@ -14,6 +14,7 @@
 #include "Frames/DebugAPI.h"
 #include "Matt/EmbeddedScript.h"
 #include "Matt/JSON.h"
+#include "Matt/DAP.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -149,6 +150,11 @@ bool init()
   // JSON <-> NewtonScript objects (for DAP, see Matt/JSON.h)
   defGlobalCFunction("JSONParse", (void*)FJSONParse, 1);
   defGlobalCFunction("JSONStringify", (void*)FJSONStringify, 1);
+
+  // Debug Adapter Protocol messages (see Matt/DAP.h)
+  defGlobalCFunction("DAPReceive", (void*)FDAPReceive, 0);
+  defGlobalCFunction("DAPSend", (void*)FDAPSend, 1);
+  defGlobalCFunction("DAPExit", (void*)FDAPExit, 1);
 
   return true;
 }
@@ -321,6 +327,65 @@ void handleArgDbg()
     "if HasPath(functions, 'SetupMyDebug) then SetupMyDebug(true);\n" };
   if (!RunEmbeddedScript(enable))
     throw(std::runtime_error("Can't enable the debugger."));
+}
+
+extern const EmbeddedScript gDAPScript;            // Matt/Debugger/DAP.ns
+
+/**
+ \brief Be a debug adapter (Debug Adapter Protocol) on stdin/stdout.
+ Started by VS Code (or any DAP client) as `newtc -dap`. Sets up the
+ debugger like -dbg, then the protocol in Matt/Debugger/DAP.ns handles the
+ requests until the client launches a program, runs it like -script, and
+ reports its end. See Matt/DAP.h.
+ */
+void handleArgDap()
+{
+  DAPStartIO();       // from here on, stdout carries only DAP messages
+  handleArgDbg();     // its messages still go to the stdio translator, i.e. stderr
+  // Not yet: exceptions stop in a break loop, but the client can't be told
+  // until "stopped" events (step 5.3).
+  DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
+  DAPInstallTranslators();
+  if (!RunEmbeddedScript(gDAPScript))
+    throw(std::runtime_error("Can't load the debug adapter."));
+
+  RefVar dap(GetGlobalVar(MakeSymbol("DAP")));
+  int exitCode = 0;
+  newton_try
+  {
+    RefVar launchArgs(DoMessage(dap, MakeSymbol("WaitForLaunch"), RA(NILREF)));
+    if (IsFrame(launchArgs)) {
+      std::string program = UTF8FromString(GetFrameSlot(launchArgs, MakeSymbol("program")));
+      int exceptions = DAPExceptionCount();
+      newton_try
+      {
+        FILE *f = fopen(program.c_str(), "rb");
+        if (f == nullptr) {
+          static std::string message;   // ThrowMsg keeps the pointer
+          message = "Can't open the program \"" + program + "\"";
+          ThrowMsg(message.c_str());
+        }
+        fclose(f);
+        handleArgScript(program);
+      }
+      newton_catch_all
+      {
+        gREPout->exceptionNotify(CurrentException());
+      }
+      end_try;
+      if (DAPExceptionCount() > exceptions)
+        exitCode = 1;
+      RefVar args(MakeArray(1));
+      SetArraySlot(args, 0, MAKEINT(exitCode));
+      DoMessage(dap, MakeSymbol("Finish"), args);
+    }
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+    gREPout->flush();
+  }
+  end_try;
 }
 
 /**
@@ -606,6 +671,9 @@ the commands in the given order.
   Debugging
   -dbg                    Debug: load Apple's NS Debug Tools and NSD Shortcuts, and
                           enable breakpoints and breakOnThrows
+  -dap                    Be a debug adapter for VS Code: speak the Debug Adapter
+                          Protocol on stdin/stdout, run the program given by the
+                          client's "launch" request
 
   Options
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
@@ -645,6 +713,8 @@ int handleArgs(int argc, char **argv)
         handleArgS(std::string(argv[argi++]));
       } else if (cmd == "-dbg") {
         handleArgDbg();
+      } else if (cmd == "-dap") {
+        handleArgDap();
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {

@@ -36,6 +36,13 @@ Ref ParseJSON(const char *text, size_t length);
     contains something JSON can't express. */
 std::string ToJSON(RefArg obj);
 
+/** A C string as a JSON string literal (with quotes). Bytes >= 0x80 are
+    taken as Latin-1. For the text newtc prints, which is ASCII. */
+std::string QuoteJSON(const std::string &text);
+
+/** A NewtonScript string (UTF-16) as UTF-8. */
+std::string UTF8FromString(RefArg str);
+
 // NewtonScript functions, registered in newtc.cc:
 //   JSONParse(string) -> object, JSONStringify(object) -> string
 extern "C" Ref FJSONParse(RefArg rcvr, RefArg inString);

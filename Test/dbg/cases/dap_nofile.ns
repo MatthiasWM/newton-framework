@@ -1,0 +1,3 @@
+// A DAP session whose program doesn't exist: the error is reported as
+// "stderr" output, exit code 1. Then the client goes away without
+// "disconnect" (end of input): newtc quits by itself.

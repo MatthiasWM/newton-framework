@@ -1,0 +1,149 @@
+// DAP.ns: the Debug Adapter Protocol for `newtc -dap`, in NewtonScript.
+//
+// Built into newtc (like NSDebugTools.ns). newtc -dap (newtc.cc,
+// handleArgDap) loads the NS Debug Tools, then this file, then:
+//   1. DAP:WaitForLaunch() handles requests until the client has sent
+//      "launch" and "configurationDone", and returns the launch arguments;
+//   2. newtc runs the program (arguments.program) like -script;
+//   3. DAP:Finish(exitCode) sends "exited" and "terminated" and handles
+//      requests until "disconnect" (which quits newtc) or end of input.
+//
+// Messages are frames. DAPReceive() returns the next one (nil at end of
+// input), DAPSend(frame) sends one and adds its "seq". Both convert with
+// JSON (Matt/JSON.h): objects <-> frames, false/null -> nil, nil -> false.
+// Print and friends become "output" events in C++ (Matt/DAP.cc).
+//
+// A request {command: "xyz", ...} is handled by DAPRequests.xyz(request),
+// which must answer with :SendResponse(request, body). If it throws, the
+// client gets an error response with the exception's text.
+//
+// Keep in mind: NewtonScript compares strings with StrEqual, not "="
+// (which compares references). A symbol keeps the spelling it was first
+// created with; this file is loaded before any user code, so the DAP keys
+// below get their camelCase spelling.
+
+DefGlobalVar('DAP, {
+  launchArgs: nil,    // arguments of the "launch" request
+  configured: nil,    // true once "configurationDone" arrived
+
+  // -- Sending
+
+  SendResponse: func(request, body)
+  begin
+    local response := {type: "response", request_seq: request.seq,
+                        success: true, command: request.command};
+    if body then response.body := body;
+    DAPSend(response);
+  end,
+
+  SendErrorResponse: func(request, text)
+    DAPSend({type: "response", request_seq: request.seq, success: nil,
+             command: request.command, message: text}),
+
+  SendEvent: func(eventName, body)
+  begin
+    local event := {type: "event", event: eventName};
+    if body then event.body := body;
+    DAPSend(event);
+  end,
+
+  // -- Receiving
+
+  // The text for an error response.
+  ExceptionText: func(ex)
+  begin
+    if ex.message then return ex.message;
+    local text := "Exception " & ex.name;
+    if IsFrame(ex.data) and ex.data.errorCode then
+      text := text & ", error " & ex.data.errorCode
+    else if ex.error then
+      text := text & ", error " & ex.error;
+    text;
+  end,
+
+  // Handle one message from the client.
+  Dispatch: func(msg)
+  begin
+    if not (IsFrame(msg) and IsString(msg.type) and StrEqual(msg.type, "request")) then
+      return nil;
+    local handler := if IsString(msg.command) then GetSlot(DAPRequests, Intern(msg.command));
+    if not IsFunction(handler) then
+      return :SendErrorResponse(msg, "Unsupported request \"" & msg.command & "\"");
+    try
+      Perform(DAPRequests, Intern(msg.command), [msg])
+    onexception |evt.ex| do
+      :SendErrorResponse(msg, :ExceptionText(CurrentException()));
+  end,
+
+  // Handle requests until the program can start. Returns the launch
+  // arguments, or nil at end of input.
+  WaitForLaunch: func()
+  begin
+    while not (launchArgs and configured) do
+    begin
+      local msg := DAPReceive();
+      if not msg then return nil;
+      :Dispatch(msg);
+    end;
+    launchArgs;
+  end,
+
+  // The program has ended. Tell the client, then handle requests until
+  // "disconnect" (quits newtc) or end of input.
+  Finish: func(exitCode)
+  begin
+    :SendEvent("exited", {exitCode: exitCode});
+    :SendEvent("terminated", nil);
+    local msg;
+    while msg := DAPReceive() do
+      :Dispatch(msg);
+  end,
+});
+
+// Request handlers, one per DAP command. self is DAPRequests; slots of DAP
+// (launchArgs, SendResponse, ...) are reached through _parent.
+DefGlobalVar('DAPRequests, {
+  _parent: DAP,
+
+  initialize: func(request)
+  begin
+    :SendResponse(request, {supportsConfigurationDoneRequest: true});
+    :SendEvent("initialized", nil);
+  end,
+
+  launch: func(request)
+  begin
+    local args := request.arguments;
+    if not (IsFrame(args) and IsString(args.program)) then
+      Throw('|evt.ex.msg|, "launch: \"program\" is missing (the NewtonScript file to run)");
+    launchArgs := args;
+    :SendResponse(request, nil);
+  end,
+
+  // Source breakpoints come with the debug maps (Phase 9); for now every
+  // breakpoint is reported as not verified.
+  setBreakpoints: func(request)
+  begin
+    local breakpoints := [];
+    if IsFrame(request.arguments) and IsArray(request.arguments.breakpoints) then
+      foreach bp in request.arguments.breakpoints do
+        AddArraySlot(breakpoints, {verified: nil, line: bp.line,
+                                   message: "Breakpoints in source files are not supported yet"});
+    :SendResponse(request, {breakpoints: breakpoints});
+  end,
+
+  configurationDone: func(request)
+  begin
+    configured := true;
+    :SendResponse(request, nil);
+  end,
+
+  threads: func(request)
+    :SendResponse(request, {threads: [{id: 1, name: "NewtonScript"}]}),
+
+  disconnect: func(request)
+  begin
+    :SendResponse(request, nil);
+    DAPExit(0);
+  end,
+});

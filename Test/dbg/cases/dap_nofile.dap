@@ -1,0 +1,5 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+{"command": "launch", "arguments": {"program": "$DIR/no_such_file.ns"}}
+{"command": "configurationDone"}
+wait terminated
+eof

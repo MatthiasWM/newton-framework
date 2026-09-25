@@ -573,9 +573,10 @@ function (embed_newtonscript target nsfile name)
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
 
-target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h)
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
 
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'

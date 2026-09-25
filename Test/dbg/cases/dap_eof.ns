@@ -1,0 +1,2 @@
+// The client goes away (end of input) before launching anything: newtc
+// quits quietly with exit code 0.

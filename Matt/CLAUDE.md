@@ -530,12 +530,46 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       NewtonScript gotchas: `try` and `self` are reserved (so no function
       `Try`, no slot `f.self`); `.ns` sources are read as MacRoman, so tests
       write non-ASCII characters as `\u00E9\u`. Test: `json`.
-- [ ] 5.2 Message framing (`Content-Length` header + JSON) and `-dap`: the
-      DAP translator pair; handshake (initialize -> capabilities, launch with
-      `program`, setBreakpoints until configurationDone), run the program
-      (like `-dbg -script`), `output` events for Print/Write, `exited`,
-      `terminated`. In `-dap` mode stdout carries only DAP; stray output goes
-      to stderr. Test harness: a small Python DAP client in Test/dbg.
+- [x] 5.2 `newtc -dap`: message framing, the translator pair, the handshake,
+      running the program, output. Pieces:
+      - C++ `Matt/DAP.{h,cc}`: `Content-Length` framing (CRLF; a plain LF
+        is accepted). NS natives `DAPReceive()` (next message as a frame, nil
+        at end of input), `DAPSend(frame)` (adds `"seq"` as the first member,
+        so NS frames never need to be modified), `DAPExit(code)`.
+        `DAPStartIO()` keeps the real stdout for DAP only (dup) and points
+        file descriptor 1 at stderr, so any stray printf/cout can't corrupt
+        the protocol. `PDAPOutTranslator`: everything printed (Print, Write,
+        results, stack traces) becomes an `output` event, one per line or
+        at flush(); exceptions (`exceptionNotify`) get category `stderr` and
+        are counted for the exit code. It builds the event JSON as a C++
+        string, because it runs while the object printer walks NS objects
+        (a GC there could move them). `PDAPInTranslator`: in a break loop,
+        `produceFrame()` waits for a message and calls `DAP:Dispatch(msg)`,
+        returning nil (nothing to evaluate); end of input ends the break
+        loop like for stdio.
+      - NS `Matt/Debugger/DAP.ns` (embedded as `gDAPScript`): global `DAP`
+        (state `launchArgs`, `configured`; `SendResponse`,
+        `SendErrorResponse`, `SendEvent`, `Dispatch`, `WaitForLaunch`,
+        `Finish`) and `DAPRequests` (`_parent: DAP`; one method per command:
+        `initialize` (capabilities, then the `initialized` event), `launch`
+        (needs `program`), `setBreakpoints` (all unverified until Phase 9),
+        `configurationDone`, `threads` (one thread), `disconnect` (quits)).
+        An unknown command or a handler that throws gets `success: false`
+        with a message.
+      - newtc.cc `handleArgDap()`: DAPStartIO, the `-dbg` setup (its
+        messages go to stderr), `breakOnThrows := nil` until 5.3 can report
+        exception stops, DAP translators, DAP.ns, `DAP:WaitForLaunch()`,
+        run the program like `-script` (a missing file is reported by name),
+        `DAP:Finish(exitCode)` (`exited` with 1 if an exception was
+        reported, `terminated`, then requests until `disconnect` or end of
+        input).
+      Tests: `Test/dbg/dap_client.py` (a DAP client; also usable by hand:
+      `dap_client.py script.dap PROGRAM=/path/x.ns`) and `.dap` cases in the
+      harness (a `.dap` script instead of `.in`: requests as JSON lines,
+      `wait <event>`, `eof`; the expected output is the message
+      transcript): `dap_session`, `dap_errors`, `dap_nofile`, `dap_eof`.
+      NewtonScript gotchas: `ClassOf(func() nil)` is `'_function` in newtc
+      (use `IsFunction`); strings compare with `StrEqual`, not `=`.
 - [ ] 5.3 Stopping: `stopped` with a reason (C++ records it: breakpoint,
       step = temporary breakpoint, exception, explicit BreakLoop()),
       `threads` (one), `stackTrace`, `continue`. The in-translator blocks while

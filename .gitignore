@@ -31,3 +31,6 @@ a
 b
 newtc
 newtc.zip
+
+# Python
+__pycache__/

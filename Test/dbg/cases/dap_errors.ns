@@ -1,0 +1,7 @@
+// Errors in a DAP session: a launch request without a program gets an error
+// response; an exception in the program is reported as "stderr" output and
+// ends it with exit code 1 (exceptions don't stop in a break loop in -dap
+// mode yet, see step 5.3).
+Print("before");
+Print(1 + 'a);
+Print("not reached");
