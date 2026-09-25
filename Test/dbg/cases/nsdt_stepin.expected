@@ -1,0 +1,24 @@
+Entering break loop
+#2        nil
+Exiting break loop
+Entering break loop
+#2        nil
+Exiting break loop
+Entering break loop
+[true, 0, true]
+#2        nil
+#2        nil
+Exiting break loop
+Entering break loop
+7
+#2        nil
+#2        nil
+Exiting break loop
+Entering break loop
+"Can't step into a non-interpreted function."
+#2        nil
+11
+#2        nil
+#2        nil
+Exiting break loop
+-5

@@ -404,7 +404,7 @@ regression checks (MATT.md) still apply when shared code is touched.
         FrameHasPath, GetVariable, GetFramePath). newtc: `-dbg` sets
         `becausePeterSaidSo` (our code has no DebuggerInfo); `Disassemble`
         catches `|evt.ex|` (the package had `|ex.evt|`, which never matches).
-        `DisasmRange` written from its bytecode (decompiler bug, see below).
+        `DisasmRange` written from its bytecode (decompiler bug B8).
         NOS 2 variables show as `[ n ]` (no DebuggerInfo).
         Fixed on the way: `ExtractByte` was signed (ROM: unsigned, so opcodes
         >= 0x80 decoded negative); `ExtractWord`, `ExtractLong`, `ExtractXLong`,
@@ -413,8 +413,21 @@ regression checks (MATT.md) still apply when shared code is touched.
         now byte by byte as in ROM (Utilities/DataStuffing.cc); `Display` was a
         stub (ROM: `PrintObject` without newline).
         Test: `nsdt_disasm`.
-  - [ ] 3.1f ... the remaining 7: `Where`, `QuickStackTrace`, `Step`, `StepIn`,
-        `StepOut`, `RunUntil`, `SetCurrentPC`; the replacement BreakLoop;
+  - [x] 3.1f Stepping: `Step()` (decodes the instruction at the PC and sets
+        a temporary breakpoint where execution goes next: after it, at the
+        branch target (decided from the stack for branch-if-true/false and
+        branch-if-loop-not-done), or in the caller on return; then
+        `ExitBreakLoop()`), `StepIn()` (callee from call/invoke/send/resend and
+        the stack; breakpoint at its pc 0; falls back to `Step()`; refuses
+        natives and BreakLoop), `StepOut()`, `RunUntil(fn, pc)`,
+        `SetCurrentPC(pc)`; helper `FindInterpretedFunctionBelow`. Stepping
+        needs breakpoints enabled. newtc: `Step`'s `stopPoint` is a local (the
+        package assigned a global). Known limitation (Apple's design): a
+        temporary breakpoint fires in any activation of the function, so
+        stepping over a recursive call stops in the inner call.
+        Tests: `nsdt_step`, `nsdt_stepin`.
+  - [ ] 3.1g `Where`, `QuickStackTrace`; the replacement BreakLoop (prints
+        where it stopped, calls NSDBreakLoopEntry/Exit);
         StackTraceOld/StackTrace.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
@@ -482,14 +495,36 @@ regression checks (MATT.md) still apply when shared code is touched.
 ### Later: the rest of the VS Code extension
 - `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.
 
-## Bugs found on the way (not fixed yet)
+## Known bugs (to fix)
 
-- **Recursion is broken in NOS 1 code** (`-nos1`, or a `//! -nos1` script;
-  no longer the default). A recursive `Fib(n)` returns `n-1`; even
+Every bug found while working on the debugger goes here until it is fixed:
+check it off (with the commit) when fixed, don't delete it. Bugs fixed right
+away are described in the step where they were found (0.2, 1.3, 2.1, 3.1c-e).
+
+Interpreter and runtime
+- [ ] B1 **Recursion is broken in NOS 1 code** (`-nos1`, or a `//! -nos1`
+  script; no longer the default). A recursive `Fib(n)` returns `n-1`; even
   `if n < 2 then return n` gives wrong values. Looks like the NOS 1 argFrame
   (locals) is shared instead of copied per call. NOS 2 code is correct. It
   still matters: a 2.x ROM also runs NOS 1 packages.
-- **Decompiler output depends on memory layout.** With AddressSanitizer on (Debug
+- [ ] B2 **NOS 1 CodeBlock frames in `CNSDebugAPI::stackStart()`**: its
+  `stackFrame` is the stack top at call time (args stay on the stack), yet
+  stackStart adds 3 like for NOS 2 functions. Verify against the ROM and a
+  test (temps of/above a NOS 1 frame); may be related to B1.
+- [ ] B3 **Stubs**: `Stubs.cc` has many built-ins that just return nil.
+  Replaced so far because the debugger needs them: `GetGlobals`, `ArrayPos`,
+  `Display`. Still stubs, e.g. `Abs`. Go through the list and implement the
+  ones a script can reasonably call (compare with the ROM).
+- [ ] B4 **Sorted array set operations**: `GenOrderedSetOp`
+  (Frames/SortedArrays.cc, behind `BDifference`, `BIntersect`, `BMerge`)
+  divides a `Ref*` difference by `sizeof(Ref)`, as `LSearch` did (lines
+  ~956-968): copies too few elements, truncates the result.
+- [ ] B5 **`BMerge([...], [...], '|<|, nil, nil)` hangs.**
+- [ ] B6 **`LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil** (the general
+  test path, `CGeneralizedTestFnVar`).
+
+Decompiler
+- [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
   builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
   without ASan (Debug or Release) but fail with it: 11 recurse without end (stack
   overflow; with a bigger stack they run out of NewtonScript memory instead),
@@ -501,22 +536,24 @@ regression checks (MATT.md) still apply when shared code is touched.
   b003eaf, so not caused by the debugger work. Lead:
   `std::map<Ref, Node> map` in Matt/ObjectPrinter.h:69 is ordered by object
   address, so the printer (and its cycle handling, "Fix 6") visits objects in
-  a different order when the allocator changes. Other packages: 1909 CLEAN,
-  371 UNRESOLVED, 69 CRASHED with ASan vs. the last manifest's 1906/382/61
-  (that manifest is older; 13 packages got better since).
-- **Decompiler drops statements** (found in NS Debug Tools.pkg, `Ref_270` =
-  `DisasmRange`): in `if A then X else if B then Y else begin if C then Z;
-  <more statements> end`, the decompiled source ends after `if C then Z`;
-  the bytecode (pc 52-96: a second `if` and the call to `Disassemble`) is
-  missing. See `newtc -pkg ... -debug bc -decompile`, search for "DisasmRange".
-- **Sorted array set operations**: `GenOrderedSetOp` (Frames/SortedArrays.cc,
-  behind `BDifference`, `BIntersect`, `BMerge`) has the same `Ref*` difference
-  divided by `sizeof(Ref)` as `LSearch` had (lines ~956-968: copies too few
-  elements, truncates the result). `BMerge([...], [...], '|<|, nil, nil)` hangs.
-  Also `LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil (general test
-  path). Not fixed yet; nothing in the debugger uses them.
-- **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
-  30 manifest packages, with the binary from before 1.1 too (pre-existing).
+  a different order when the allocator changes. Totals with ASan: 1909 CLEAN,
+  371 UNRESOLVED, 69 CRASHED.
+- [ ] B8 **Drops statements** (NS Debug Tools.pkg, `Ref_270` = `DisasmRange`):
+  in `if A then X else if B then Y else begin if C then Z; <more statements>
+  end`, the decompiled source ends after `if C then Z`; the bytecode (pc 52-96:
+  a second `if` and the call to `Disassemble`) is missing. See
+  `newtc -pkg ... -debug bc -decompile`, search for "DisasmRange".
+- [ ] B9 **Loses parentheses** (NS Debug Tools.pkg, `StepIn`): an `if` without
+  `else` whose condition is `A or B` is printed as `A or B and X`, which means
+  `A or (B and X)`. The bytecode (pc 160-207) evaluates `A or B` first, then
+  branches.
+- [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
+  the first 30 manifest packages, with the binary from before 1.1 too.
+
+Open work (not bugs)
+- `-run` (run a loaded 'form package) is not implemented.
+- newtc's compiler writes no `DebuggerInfo` (NTK's variable names), so NOS 2
+  locals have no names in the debugger (Phases 7/8).
 
 ## Embedding a .ns file in newtc
 

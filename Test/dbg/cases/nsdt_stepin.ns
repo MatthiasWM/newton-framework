@@ -1,0 +1,18 @@
+// Step 3.1f: StepIn finds the callee from the instruction and the stack.
+// Work's bytecode: pc 6 sends Double to obj (message on top, receiver
+// below it); pc 11 calls the native function Max.
+// - At the send, StepIn stops at pc 0 of the method obj.Double; StepOut
+//   returns to Work at 7.
+// - At the native call, StepIn refuses and stays in the break loop.
+obj := {Double: func(n) n * 2};
+
+global Work(x)
+begin
+  BreakLoop();
+  local a := obj:Double(x);
+  local b := Max(a, 1);
+  a + b;
+end;
+
+GloballyEnableBreakPoints(true);
+Print(Work(-3));

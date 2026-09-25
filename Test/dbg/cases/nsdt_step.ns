@@ -1,0 +1,26 @@
+// Step 3.1f: Step, StepIn, StepOut, RunUntil, SetCurrentPC. Stepping sets
+// temporary breakpoints, so breakpoints are enabled first.
+// Work's bytecode: BreakLoop is called at pc 1 (PC 2 after it); pc 6 calls
+// Add; pc 15 is BranchIfFalse for "y > 5" (to 26); 18-25 doubles y; 26
+// pushes y; 27 returns.
+// - Step: 2 -> 3. RunUntil(Work, 6): at the call. StepIn: Add's pc 0.
+//   Step: Add's pc 1. StepOut: back in Work at 7, after the call.
+// - RunUntil(Work, 15): the condition (true) is on the stack; Step decides
+//   the branch is not taken: 18.
+// - SetCurrentPC(26) skips the doubling: Work returns 11, not 22.
+// - Step at 27 (return) stops in the caller, the script (not Work).
+global Add(a, b)
+begin
+  a + b;
+end;
+
+global Work(x)
+begin
+  BreakLoop();
+  local y := Add(x, 1);
+  if y > 5 then y := y * 2;
+  y;
+end;
+
+GloballyEnableBreakPoints(true);
+Print(Work(10));

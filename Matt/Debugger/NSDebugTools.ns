@@ -464,6 +464,21 @@ DefineGlobalConstant('kNSDTools, {
   InstallBreakPoints: func(breakPoints)
     NSDInstallBreakPoints(breakPoints),
 
+  // The newest NewtonScript function on the stack at frame `frame` or older
+  // (native functions are skipped): {function:, programCounter:}, or nil.
+  // The stepping functions stop there when the current function returns.
+  FindInterpretedFunctionBelow: func(stack, frame)
+  begin
+    while 0 <= frame do
+    begin
+      local fn := stack:Function(frame);
+      if call kNSDIsInterpreted with (fn) then
+        return {function: fn, programCounter: stack:ProgramCounter(frame)};
+      frame := frame - 1;
+    end;
+    return nil;
+  end,
+
   // Add a temporary breakpoint: it is removed when it is hit. Used for
   // stepping. Throws if fn is not a NewtonScript function or pc not an int.
   InstallTempBreakPoint: func(fn, pc)
@@ -954,6 +969,146 @@ DefineGlobalConstant('kNSDTools, {
     func(breakPoint)
       ClassOf(breakPoint) = 'frame and breakPoint.userLabel,
 
+  // Step(): execute one instruction of the function that stopped, stepping
+  // over calls. It decodes the instruction at the PC and sets a temporary
+  // breakpoint where execution goes next: after the instruction, at the
+  // branch target (taken or not, decided from the values on the stack), or
+  // in the caller when returning; then it continues. Breakpoints must be
+  // enabled (GloballyEnableBreakPoints) for this to stop again.
+  Step: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1;
+      local fn := stack:Function(frame);
+      local pc := stack:ProgramCounter(frame);
+      local disassembler := MakeDisassembler(fn);
+      local opcode := disassembler:InstrOpcode(pc);
+      local parameter := disassembler:InstrParameter(pc);
+      local length := disassembler:InstrLength(pc);
+      if opcode = 0 and parameter = 2 then          // return
+      begin
+        // newtc: a local; the package assigned the global stopPoint
+        local stopPoint := self:FindInterpretedFunctionBelow(stack, frame - 1);
+        if stopPoint then
+          self:InstallTempBreakPoint(stopPoint.function, stopPoint.programCounter)
+        else
+        begin
+          call kNSDSetTrace with (oldTrace);
+          return "Can't step because you'll return to an non-interpreted function";
+        end;
+      end
+      else if opcode = 11 then                      // branch
+        self:InstallTempBreakPoint(fn, parameter)
+      else if opcode = 12 or opcode = 13 then       // branch-if-true, branch-if-false
+      begin
+        local condition := stack:temporary(frame, 0);
+        local taken := if opcode = 12 then condition else not condition;
+        self:InstallTempBreakPoint(fn, if taken then parameter else pc + length);
+      end
+      else if opcode = 23 then                      // branch-if-loop-not-done
+      begin
+        local limit := stack:temporary(frame, 0);
+        local index := stack:temporary(frame, 1);
+        local increment := stack:temporary(frame, 2);
+        if increment > 0 and index <= limit or (increment < 0 and limit <= index) then
+          self:InstallTempBreakPoint(fn, parameter)
+        else
+          self:InstallTempBreakPoint(fn, pc + length);
+      end
+      else
+        self:InstallTempBreakPoint(fn, pc + length);
+      call kNSDSetTrace with (oldTrace);
+      return ExitBreakLoop();
+    end,
+
+  // StepIn(): if the instruction at the PC calls a NewtonScript function,
+  // stop at its first instruction; otherwise like Step(). The callee is
+  // found from the instruction and the values on the stack.
+  StepIn: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1;
+      local fn := stack:Function(frame);
+      local pc := stack:ProgramCounter(frame);
+      local disassembler := MakeDisassembler(fn);
+      local opcode := disassembler:InstrOpcode(pc);
+      local parameter := disassembler:InstrParameter(pc);
+      local length := disassembler:InstrLength(pc);
+      local callee :=
+        if opcode = 5 then                          // call: the name is on top
+          functions.(stack:temporary(frame, 0))
+        else if opcode = 6 then                     // invoke: the function is on top
+          stack:temporary(frame, 0)
+        else if opcode = 7 or opcode = 8 then       // send: message on top, then receiver
+          GetVariable(stack:temporary(frame, 1), stack:temporary(frame, 0))
+        else if opcode = 9 or opcode = 10 then      // resend: inherited from the implementor
+          stack:Implementor(frame)._proto.(stack:temporary(frame, 0));
+      if callee = functions.BreakLoop then
+      begin
+        call kNSDSetTrace with (oldTrace);
+        return "Can't step into the Breakloop.";
+      end
+      else if not callee then
+      begin
+        call kNSDSetTrace with (oldTrace);
+        return Step();
+      end
+      else if call kNSDIsInterpreted with (callee) then
+      begin
+        self:InstallTempBreakPoint(callee, 0);
+        return ExitBreakLoop();
+      end
+      else
+      begin
+        call kNSDSetTrace with (oldTrace);
+        return "Can't step into a non-interpreted function.";
+      end;
+    end,
+
+  // StepOut(): continue until the current function returns, and stop in the
+  // (NewtonScript) function it returns to.
+  StepOut: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local stopPoint := self:FindInterpretedFunctionBelow(stack, stack:FindBreakLoop() - 2);
+      if stopPoint then
+      begin
+        self:InstallTempBreakPoint(stopPoint.function, stopPoint.programCounter);
+        call kNSDSetTrace with (oldTrace);
+        return ExitBreakLoop();
+      end;
+      call kNSDSetTrace with (oldTrace);
+      return "Can't step out because the caller is not an interpreted function";
+    end,
+
+  // RunUntil(fn, pc): continue until pc of fn is reached (a temporary
+  // breakpoint).
+  RunUntil: func()
+    func(fn, pc)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      self:InstallTempBreakPoint(fn, pc);
+      call kNSDSetTrace with (oldTrace);
+      return ExitBreakLoop();
+    end,
+
+  // SetCurrentPC(pc): change where the function that stopped continues.
+  SetCurrentPC: func()
+    func(pc)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local result := stack:SetProgramCounter(stack:FindBreakLoop() - 1, pc);
+      call kNSDSetTrace with (oldTrace);
+      return result;
+    end,
+
   // GloballyEnableBreakPoints(flag): turn all breakpoints on or off (the
   // interpreter runs its slow loop while they are on) and return the
   // previous setting. On a Newton, it also updated the NS Debug Tools app.
@@ -993,5 +1148,6 @@ foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
                  'GetPathToSlot, 'GetPathWhereSet, 'InstallBreakPoint,
                  'RemoveBreakPoint, 'RemoveAllBreakPoints, 'GetAllBreakPoints,
                  'EnableBreakPoint, 'SetBreakPointLabel, 'GetBreakPointLabel,
-                 'GloballyEnableBreakPoints] do
+                 'GloballyEnableBreakPoints, 'Step, 'StepIn, 'StepOut, 'RunUntil,
+                 'SetCurrentPC] do
   DefGlobalFn(name, Perform(kNSDTools, name, []));

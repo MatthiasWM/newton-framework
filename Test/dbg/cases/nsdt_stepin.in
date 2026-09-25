@@ -1,0 +1,9 @@
+RunUntil(functions.Work, 6);
+StepIn();
+Print([GetCurrentFunction(0) = obj.Double, GetCurrentPC(0), GetCurrentReceiver(0) = obj]);
+StepOut();
+Print(GetCurrentPC(0));
+RunUntil(functions.Work, 11);
+Print(StepIn());
+Print(GetCurrentPC(0));
+ExitBreakLoop();
