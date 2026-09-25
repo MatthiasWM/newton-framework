@@ -5,9 +5,9 @@ Stack trace:
    4 : (#<ref>) <function, 0 args, #<ref>> : 2
    3 : (functions.BreakLoop)[native]
    2 : (functions.Inner) : 2
-       0 x [arg 0]: 40
+       0 [arg 0]: 40
    1 : (functions.Outer) : 9
-       0 y [arg 0]: 20
+       0 [arg 0]: 20
    0 : (#<ref>) <function, 0 args, #<ref>> : 5
 #2        nil
 #2        nil

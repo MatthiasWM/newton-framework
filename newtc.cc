@@ -71,7 +71,11 @@ bool init()
 
   InitObjectSystem();
 
-  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(0));
+  // Compile for NewtonOS 2.x by default, like the 2.x ROM and NTK's
+  // "Newton 2.0 Platform". NewtonOS 2.1 uses the same code format.
+  // NOS 1.x code is only generated on request (-nos1, or "//! -nos1" in the
+  // first line of a script, as written by the decompiler for NOS 1 packages).
+  DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
   // DefGlobalVar(SYMA(printDepth), MAKEINT(7));
 
   Ref hexFn = AllocateFrame();
@@ -518,7 +522,7 @@ the commands in the given order.
 
   Options
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
-  -nos2                   Compile for NewtonOS 2.x
+  -nos2                   Compile for NewtonOS 2.x and 2.1 (default)
   -debug ast              Print the progress of the AST while decompiling
   -debug bc               Print the ByteCode of functions before decompiling
   -trap path.to.func      Break into debugger when decompiling this function
@@ -640,8 +644,8 @@ int handleArgs(int argc, char **argv)
  - [ ] -run : run (open) the current object loaded by -pkg, -nsof, or -script, like tapping an app icon
  - [x] -hello : create the a Hello, Wold! application object
  - Controller:
- - [x] -nos1 : compile into NewtonOS 1.x format (default)
- - [x] -nos2 : compile into NewtonOS 2.x format
+ - [x] -nos1 : compile into NewtonOS 1.x format
+ - [x] -nos2 : compile into NewtonOS 2.x format (default)
  - [ ] -pkg0 name symbol : generate a minimal `package0` package object
  - [ ] -pkg1 name symbol : generate a minimal `package1` package object
  - [ ] -addpart ??? : add the most recent object as the next part to ref0

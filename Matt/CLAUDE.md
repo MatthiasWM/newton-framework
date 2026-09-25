@@ -207,9 +207,28 @@ regression checks (MATT.md) still apply when shared code is touched.
       DAP later (EOF = client gone). Tests: `breakloop_eof`, `breakloop_eof_nested`.
 
 ### Phase 1: Reactivate ROM breakpoints (C++ only)
-- [ ] 1.1 Read how the ROM's slow loop calls `handleBreakPoints()`; call it
-      from `run1()` behind `gFramesBreakPointsEnabled` (measure the cost of
-      one loop with a flag vs. a separate slow loop).
+- [x] 1.1 Breakpoints are checked in the interpreter loop, the ROM way.
+      ROM: `TInterpreter::AlternatingLoops()` switches between `FastRun()` and
+      `SlowRun()` depending on the `isFast` flag (offset x60), which
+      `SetFastLoopFlag()` sets when `gAccurateStackTrace`, tracing,
+      `gFramesBreakPointsEnabled`, and profiling are all off. `EnableBreakPoints()` calls
+      it. `SlowRun` calls `HandleBreakPoints()` before every instruction, with
+      `instructionOffset` pointing at that instruction, and re-reads the
+      instruction pointer each time. Both loops check `isFast` only after a
+      call or return and return false to switch loops, true when done.
+      The port's `handleBreakPoints()` matches ROM `HandleBreakPoints`.
+      Ours (Interpreter.cc): `run1<kSlow>()` is a template, so both loops come
+      from one source; `alternatingLoops()` and `setFastLoopFlag()` as in ROM
+      (only breakpoints decide for now); `isFast` restored in Interpreter.h;
+      `EnableBreakPoints()` updates every interpreter. The slow loop re-derives
+      `instrBase`/`instrPtr`/`literalSlot`/`localSlot` after
+      `handleBreakPoints()` (GC, changed PC). A PC changed in the break loop
+      comes back via `call()` → `vm->pc` → `return` → `instructionOffset`.
+      Cost, Release build, 10M-iteration loop + Fib(29), breakpoints off:
+      baseline 0.80 s; one loop with a per-instruction flag test 0.90 s (+11%);
+      alternating loops 0.81 s (noise). With the slow loop forced on
+      (temporarily), all tests and the benchmark gave identical results.
+      Not testable from NewtonScript until 1.2.
 - [ ] 1.2 Expose `NSDInstallBreakPoints`/`NSDEnableBreakPoints` as natives.
       Test: a hand-built `{programCounter: [{instructions:, programCounter:,
       temporary:}]}` frame stops at that PC; the temporary one fires once.
@@ -294,6 +313,16 @@ regression checks (MATT.md) still apply when shared code is touched.
 ### Later: the rest of the VS Code extension
 - `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.
 
+## Bugs found on the way (not fixed yet)
+
+- **Recursion is broken in NOS 1 code** (`-nos1`, or a `//! -nos1` script;
+  no longer the default). A recursive `Fib(n)` returns `n-1`; even
+  `if n < 2 then return n` gives wrong values. Looks like the NOS 1 argFrame
+  (locals) is shared instead of copied per call. NOS 2 code is correct. It
+  still matters: a 2.x ROM also runs NOS 1 packages.
+- **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
+  30 manifest packages, with the binary from before 1.1 too (pre-existing).
+
 ## Conventions
 
 - **Line endings**: CR (`\r`) is a leftover from classic Mac OS. Input must
@@ -305,6 +334,16 @@ regression checks (MATT.md) still apply when shared code is touched.
   stack traces); `PStdioInTranslator::produceFrame()` ends a break loop line
   at LF, CR, or CRLF. Test: `line_endings`. `ObjectPrinter` printing char
   0x0D as `$\n` is correct NewtonScript and stays.
+
+- **NewtonOS 2.x is the default target.** newtc compiles for NOS 2
+  (`compilerCompatibility` 1; 2.1 uses the same code format). NOS 1 code is
+  generated only on request (`-nos1`, or `//! -nos1` as the decompiler writes it
+  for NOS 1 packages, so round trips still work).
+- **What NewtonScript is for** (keep in mind for performance tradeoffs):
+  interpreter calls are GUI-style callbacks to user actions (plus timers
+  for games). Scripts are not expected to run long functions. NewtonScript's
+  goals are low memory use (`_proto` inheritance) and low battery use
+  (deep sleep whenever nothing happens).
 
 ## Decisions (2026-09-25)
 
