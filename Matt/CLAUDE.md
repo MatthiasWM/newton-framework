@@ -287,7 +287,11 @@ regression checks (MATT.md) still apply when shared code is touched.
         Fixed on the way (found by ASan): the REPL's printer hex-dumped
         `Length()` bytes of a CObject binary's data, reading past the C object;
         now prints `<CObject, length 32>` like ROM's `<%s, length %d>`.
-  - [ ] receiver/implementor: `Receiver`, `Implementor`
+  - [x] receiver/implementor: `Receiver(i)`, `Implementor(i)` return the
+        frame's `rcvr`/`impl` (ROM offsets 0x10/0x0C of the stack frame; port
+        matches). Test: `debugapi_receiver` (method inherited through
+        `_proto`: receiver is the object, implementor the proto; a slot
+        changed through `Receiver()` is seen by the running method).
   - [ ] vars: `GetVar`, `SetVar`, `FindVar`, `SetFindVar`
   - [ ] temps: `NumTemps`, `TempValue`, `SetTempValue`
 - [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three

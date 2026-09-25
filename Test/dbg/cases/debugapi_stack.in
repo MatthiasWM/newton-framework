@@ -1,4 +1,4 @@
-api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()};
+api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()}; nil;
 Print(api:AccurateStack());
 Print(api:NumStackFrames());
 for i := 0 to api:NumStackFrames() - 1 do if api:Function(i) = functions.Inner then innerIndex := i;

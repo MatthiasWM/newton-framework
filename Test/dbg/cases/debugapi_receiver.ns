@@ -1,0 +1,8 @@
+// Step 2.1: Receiver(i) and Implementor(i). obj inherits Tick from base
+// through _proto, so in Tick's frame the receiver (self) is obj and the
+// implementor (where Tick was found) is base. The break loop changes
+// obj.count through Receiver(); Tick then adds 5 to the new value: 15.
+base := {Tick: func(n) begin BreakLoop(); count := count + n; end};
+obj := {_proto: base, count: 1};
+obj:Tick(5);
+Print(obj.count);

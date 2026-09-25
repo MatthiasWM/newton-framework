@@ -1,25 +1,18 @@
 Entering break loop
 #2        nil
-nil
-#2        nil
-5
-#2        nil
 #2        nil
 1
 #2        nil
 true
 #2        nil
-2
+true
 #2        nil
--1
+nil
 #2        nil
-    !!! Exception: Value out of range
-#2        nil
-6
-#2        nil
-#2        nil
+#<ref> {_proto: {Tick: <function, 1 arg, #<ref>>}, 
+            count: 1}
+#28       10
 #2        nil
 #2        nil
 Exiting break loop
-"after"
-42
+15

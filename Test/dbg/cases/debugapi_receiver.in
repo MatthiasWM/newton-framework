@@ -1,0 +1,10 @@
+api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()}; nil;
+for i := 0 to api:NumStackFrames() - 1 do if api:Function(i) = base.Tick then tickIndex := i;
+Print(tickIndex);
+Print(api:Receiver(tickIndex) = obj);
+Print(api:Implementor(tickIndex) = base);
+Print(api:Implementor(tickIndex) = obj);
+theSelf := api:Receiver(tickIndex);
+theSelf.count := 10;
+api := nil;
+ExitBreakLoop();

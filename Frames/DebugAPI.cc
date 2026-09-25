@@ -181,6 +181,29 @@ FNSDProgramCounter(RefArg rcvr, RefArg inIndex)
 
 
 /*------------------------------------------------------------------------------
+	The receiver (self) of a stack frame.
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDReceiver(RefArg rcvr, RefArg inIndex)
+{
+	return GetNSDebugAPI(rcvr)->receiver(RINT(inIndex));
+}
+
+
+/*------------------------------------------------------------------------------
+	The implementor of a stack frame: the frame in the _proto/_parent chain
+	of the receiver where the method was found.
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDImplementor(RefArg rcvr, RefArg inIndex)
+{
+	return GetNSDebugAPI(rcvr)->implementor(RINT(inIndex));
+}
+
+
+/*------------------------------------------------------------------------------
 	Change the PC of a stack frame: execution continues there.
 	Return:	nil
 ------------------------------------------------------------------------------*/

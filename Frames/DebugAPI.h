@@ -68,5 +68,7 @@ extern "C" Ref FNSDNumStackFrames(RefArg rcvr);
 extern "C" Ref FNSDFunction(RefArg rcvr, RefArg inIndex);
 extern "C" Ref FNSDProgramCounter(RefArg rcvr, RefArg inIndex);
 extern "C" Ref FNSDSetProgramCounter(RefArg rcvr, RefArg inIndex, RefArg inPC);
+extern "C" Ref FNSDReceiver(RefArg rcvr, RefArg inIndex);
+extern "C" Ref FNSDImplementor(RefArg rcvr, RefArg inIndex);
 
 #endif	/* __DEBUGAPI_H */

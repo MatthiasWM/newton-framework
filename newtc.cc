@@ -109,6 +109,8 @@ static void installNSDebugToolsNatives()
   addMethod("Function", (void*)FNSDFunction, 1);
   addMethod("ProgramCounter", (void*)FNSDProgramCounter, 1);
   addMethod("SetProgramCounter", (void*)FNSDSetProgramCounter, 2);
+  addMethod("Receiver", (void*)FNSDReceiver, 1);
+  addMethod("Implementor", (void*)FNSDImplementor, 1);
   DefGlobalVar(EnsureInternal(MakeSymbol("NSDSelfFuncs")), selfFuncs);
 }
 
