@@ -844,13 +844,38 @@ in the interpreter (C++), not in NewtonScript.
       LineOfPC; CodeForLine with moves), `Test/lines_invariant.py`.
 
 ### Phase 8: DAP, source level
-- [ ] 8.1 Stack frames with the real `.ns` file and line; the bytecode
-      listing stays the fallback for functions without a line table.
-- [ ] 8.2 Breakpoints by file:line. The program is compiled and run one
-      top-level statement at a time, and VS Code sends breakpoints before
-      anything is compiled: unresolved breakpoints stay pending and are
-      resolved whenever new code is compiled, before it runs (then a
-      `breakpoint` event: verified, snapped to the statement's line).
+- [x] 8.1 Stack frames with the real `.ns` file and line: for a function
+      with a line table, `LineOfPC(fn, pc)` gives `source` {name (the file
+      name), path} and `line`; the newest frame looks up its PC (next
+      instruction; after an exception PC - 1, the one that threw), callers
+      PC - 1 (their PC is after the call). Only absolute paths count
+      (`IsAbsolutePath`): code without a file (the tools' own
+      "NSDebugTools.ns", `Compile()`: "<unknown>") keeps its bytecode
+      listing, so a stack can mix source and listing frames. -dap compiles
+      the program with -g, so its frames show the .ns file.
+      Tests: the DAP transcripts show the source files; `dap_listing` now
+      compiles its functions with Compile() to keep testing listings;
+      VSNewt "Shows the source line, or a bytecode listing" (both in one
+      session).
+- [x] 8.2 Breakpoints by file:line. `setBreakpoints` with a source path
+      replaces that file's breakpoints (`DAP.lineBreakpoints`: {id, path,
+      line, verified, actualLine, installed}). Each is resolved with
+      `CodeForLine` and installed with the tools' `InstallBreakPoint(fn,
+      pc)` in every function with code on that line (reported verified, at
+      the line used). The program is compiled and run one top-level
+      statement at a time and VS Code sends breakpoints before anything is
+      compiled, so an unresolved breakpoint stays pending ("No code for
+      this line yet: set when the code is compiled"). New compiler hook
+      `gCompiledStatementHook` (CompilerSupport.cc; ParseFile calls it after
+      compiling a statement, before running it): in -dap mode
+      `DAP:NewCode()` installs the pending breakpoints that have code now
+      and sends a `breakpoint` event (reason "changed", verified, line).
+      Breakpoints set while the program runs arrive through the poll.
+      Tests: `dap_line_breakpoints` (pending -> verified at compile, a line
+      without code moving to the next statement, replacing the set while
+      stopped, one still pending when set); `dap_session` now sets line 99
+      (no code; stays pending); VSNewt "Stops at a breakpoint set in the
+      source file" (a SourceBreakpoint set through the VS Code API).
 - [ ] 8.3 Line stepping in C++: a step mode in the slow loop (next to the
       pause poll): over = a new line in the same or an outer frame, in = any
       new line, out = frame depth drops; recursion- and exception-safe.

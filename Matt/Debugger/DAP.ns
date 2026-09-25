@@ -41,6 +41,8 @@ DefGlobalVar('DAP, {
   handles: [],        // what each variablesReference (index + 1) stands for
   stopReason: nil,    // why the program stopped (reason as passed to Stopped)
   listings: [],       // the bytecode listings; a sourceReference is index + 1
+  lineBreakpoints: [], // breakpoints set in source files, see LineBreakpoint
+  nextBreakpointId: 1,
   breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
 
   // -- Sending
@@ -156,9 +158,10 @@ DefGlobalVar('DAP, {
   // The stopped program's stack frames, newest first, as DAP StackFrames.
   // A frame's id is its index in the stack object (0 = oldest) plus 1; ids
   // are valid while the program is stopped. A NewtonScript function's
-  // frame points into its bytecode listing (see Listing): the newest frame
-  // at the instruction that runs next (after an exception: the one that
-  // threw), the others at their call.
+  // frame points at its source line if it was compiled with a line table
+  // (-g; LineOfPC), else into its bytecode listing (see Listing): the
+  // newest frame at the instruction that runs next (after an exception: the
+  // one that threw), the others at their call (their PC is after it).
   CollectStackFrames: func()
   begin
     local stack := kNSDTools:CurrentStack();
@@ -171,12 +174,20 @@ DefGlobalVar('DAP, {
       local stackFrame := {id: frame + 1, name: name, line: 0, column: 0};
       if call kNSDIsInterpreted with (fn) then
       begin
-        local listing := :Listing(fn, name);
+        local pc := stack:ProgramCounter(frame);
         local atNext := frame = newest and not (stopReason and StrEqual(stopReason, "exception"));
-        // path: only for display (VS Code builds the document's URI from
-        // it); the text comes from the "source" request
-        stackFrame.source := {name: listing.name, path: listing.name, sourceReference: listing.ref};
-        stackFrame.line := :LineOfPC(listing, stack:ProgramCounter(frame), atNext);
+        local where := LineOfPC(fn, if atNext then pc else pc - 1);
+        if where and :IsAbsolutePath(where[0]) then
+          stackFrame.source := {name: :FileName(where[0]), path: where[0]}
+        else
+        begin
+          local listing := :Listing(fn, name);
+          // path: only for display (VS Code builds the document's URI
+          // from it); the text comes from the "source" request
+          stackFrame.source := {name: listing.name, path: listing.name, sourceReference: listing.ref};
+          where := [nil, :LineOfPC(listing, pc, atNext)];
+        end;
+        stackFrame.line := where[1];
         stackFrame.column := 1;
       end
       else
@@ -184,6 +195,79 @@ DefGlobalVar('DAP, {
       AddArraySlot(frames, stackFrame);
     end;
     frames;
+  end,
+
+  // True for an absolute file path (a line table's file can also be a name
+  // like "NSDebugTools.ns" or "<unknown>" for code from Compile()).
+  IsAbsolutePath: func(path)
+    IsString(path) and StrLen(path) > 1
+      and (path[0] = $/ or (StrLen(path) > 2 and path[1] = $: and (path[2] = $\\ or path[2] = $/))),
+
+  // The last part of a path: "/a/b/work.ns" -> "work.ns".
+  FileName: func(path)
+  begin
+    local start := 0;
+    for i := 0 to StrLen(path) - 1 do
+      if path[i] = $/ or path[i] = $\\ then
+        start := i + 1;
+    SubStr(path, start, nil);
+  end,
+
+  // -- Breakpoints in source files
+
+  // A breakpoint the client set at `line` of the file `path`: {id, path,
+  // line (as requested), verified, actualLine, installed (the NS Debug Tools
+  // breakpoints)}. It is installed where the code for that line starts
+  // (CodeForLine; a line without code moves to the next statement), in
+  // every function that has code there. Code that isn't compiled yet
+  // leaves it pending; NewCode() tries again after each compiled statement.
+  NewLineBreakpoint: func(path, line)
+  begin
+    local bp := {id: nextBreakpointId, path: path, line: line,
+                 verified: nil, actualLine: nil, installed: []};
+    nextBreakpointId := nextBreakpointId + 1;
+    :InstallLineBreakpoint(bp);
+    bp;
+  end,
+
+  // Install bp if its code is compiled; true if it was.
+  InstallLineBreakpoint: func(bp)
+  begin
+    local found := if IsInteger(bp.line) then CodeForLine(bp.path, bp.line);
+    if not (found and Length(found.code) > 0) then
+      return nil;
+    foreach place in found.code do
+      AddArraySlot(bp.installed, InstallBreakPoint(place[0], place[1]));
+    bp.verified := true;
+    bp.actualLine := found.line;
+    true;
+  end,
+
+  RemoveLineBreakpoint: func(bp)
+    foreach installed in bp.installed do
+      RemoveBreakPoint(installed),
+
+  // bp as a DAP Breakpoint.
+  BreakpointBody: func(bp)
+  begin
+    local body := {id: bp.id, verified: bp.verified,
+                   line: if bp.actualLine then bp.actualLine else bp.line};
+    if not bp.verified then
+      body.message := "No code for this line yet: set when the code is compiled";
+    body;
+  end,
+
+  // Called by C++ after each top-level statement of the program is compiled
+  // and before it runs: install the pending breakpoints that have code now,
+  // and tell the client ("breakpoint" event).
+  NewCode: func()
+  begin
+    local saved := breakOnThrows;
+    breakOnThrows := nil;
+    foreach bp in lineBreakpoints do
+      if not bp.verified and :InstallLineBreakpoint(bp) then
+        :SendEvent("breakpoint", {reason: "changed", breakpoint: :BreakpointBody(bp)});
+    breakOnThrows := saved;
   end,
 
   // -- Bytecode listings (virtual sources)
@@ -508,9 +592,9 @@ DefGlobalVar('DAPRequests, {
 
   // Breakpoints in a bytecode listing (source with a sourceReference) are
   // NS Debug Tools breakpoints at the instruction of each line; they replace
-  // the ones set in that listing before. Breakpoints in source files come
-  // with the debug maps (Phase 9); for now they are reported as not
-  // verified.
+  // the ones set in that listing before. Breakpoints in a source file
+  // (source with a path) replace those set in that file before; see
+  // NewLineBreakpoint.
   setBreakpoints: func(request)
   begin
     local args := request.arguments;
@@ -532,10 +616,23 @@ DefGlobalVar('DAPRequests, {
         else
           AddArraySlot(breakpoints, {verified: nil, line: bp.line, message: "No instruction on this line"});
     end
-    else
-      foreach bp in requested do
-        AddArraySlot(breakpoints, {verified: nil, line: bp.line,
-                                   message: "Breakpoints in source files are not supported yet"});
+    else if IsFrame(args) and IsFrame(args.source) and IsString(args.source.path) then
+    begin
+      local path := args.source.path;
+      local kept := [];
+      foreach bp in lineBreakpoints do
+        if StrEqual(bp.path, path) then
+          :RemoveLineBreakpoint(bp)
+        else
+          AddArraySlot(kept, bp);
+      lineBreakpoints := kept;
+      foreach wanted in requested do
+      begin
+        local bp := :NewLineBreakpoint(path, wanted.line);
+        AddArraySlot(lineBreakpoints, bp);
+        AddArraySlot(breakpoints, :BreakpointBody(bp));
+      end;
+    end;
     :SendResponse(request, {breakpoints: breakpoints});
   end,
 

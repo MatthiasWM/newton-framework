@@ -191,6 +191,10 @@ private:
    see Matt/LineTables.h. */
 extern void (*gCompiledFunctionHook)(RefArg inFunction);
 
+/* Not in ROM: called by ParseFile() with every top-level statement it
+   compiled, before running it; see Matt/DAP.cc. */
+extern void (*gCompiledStatementHook)(RefArg inCodeBlock);
+
 class	CFunctionState
 {
 public:

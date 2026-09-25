@@ -216,6 +216,10 @@ ParseFile(const char * inFilename)
 			//	Disassemble(codeBlock);		// not original
 			}
 
+			// not in ROM: a debugger may install breakpoints in the new code
+			if (NOTNIL(codeBlock) && gCompiledStatementHook != NULL)
+				gCompiledStatementHook(codeBlock);
+
 			result = NOTNIL(codeBlock) ? InterpretBlock(codeBlock, RA(NILREF)) : NILREF;
 
 			if (NOTNIL(GetGlobalVar(MakeSymbol("showLoadResults"))))

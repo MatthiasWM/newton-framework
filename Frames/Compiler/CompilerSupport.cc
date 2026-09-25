@@ -471,6 +471,10 @@ CFunctionState::noteMsgEnvReference(MsgEnvComponent msg)
 // debugger keeps a list of them to find code by file and line).
 void (*gCompiledFunctionHook)(RefArg inFunction) = NULL;
 
+// Not in ROM: called by ParseFile() with every top-level statement it
+// compiled, before running it (a debugger resolves pending breakpoints).
+void (*gCompiledStatementHook)(RefArg inCodeBlock) = NULL;
+
 void
 CFunctionState::noteLine(int inLine)
 {

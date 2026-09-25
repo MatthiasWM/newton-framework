@@ -44,7 +44,9 @@ bool DAPStartLog(const char *inPath);
 void DAPInstallTranslators(void);
 
 /** While the program runs, look for requests (pause, setBreakpoints, ...)
-    every so often (installs the interpreter's gDebuggerPoll). */
+    every so often (installs the interpreter's gDebuggerPoll), and install
+    pending breakpoints in each statement the compiler makes before it runs
+    (gCompiledStatementHook, DAP:NewCode()). */
 void DAPSetPolling(bool inPolling);
 
 /** Number of exceptions reported so far (they are sent as "stderr" output);

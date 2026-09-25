@@ -10,9 +10,9 @@
 -> {"seq":4,"type":"request","command":"threads"}
 <- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"threads","body":{"threads":[{"id":1,"name":"NewtonScript"}]}}
 -> {"seq":5,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"Inner","line":3,"column":1,"source":{"name":"Inner.nsbc","path":"Inner.nsbc","sourceReference":1}},{"id":2,"name":"Outer","line":5,"column":1,"source":{"name":"Outer.nsbc","path":"Outer.nsbc","sourceReference":2}},{"id":1,"name":"<program>","line":3,"column":1,"source":{"name":"program.nsbc","path":"program.nsbc","sourceReference":3}}],"totalFrames":3}}
+<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"Inner","line":6,"column":1,"source":{"name":"dap_breakloop.ns","path":"$DIR/dap_breakloop.ns"}},{"id":2,"name":"Outer","line":11,"column":1,"source":{"name":"dap_breakloop.ns","path":"$DIR/dap_breakloop.ns"}},{"id":1,"name":"<program>","line":13,"column":1,"source":{"name":"dap_breakloop.ns","path":"$DIR/dap_breakloop.ns"}}],"totalFrames":3}}
 -> {"seq":6,"type":"request","command":"stackTrace","arguments":{"threadId":1,"startFrame":1,"levels":1}}
-<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Outer","line":5,"column":1,"source":{"name":"Outer.nsbc","path":"Outer.nsbc","sourceReference":2}}],"totalFrames":3}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Outer","line":11,"column":1,"source":{"name":"dap_breakloop.ns","path":"$DIR/dap_breakloop.ns"}}],"totalFrames":3}}
 -> {"seq":7,"type":"request","command":"continue","arguments":{"threadId":1}}
 <- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
 <- {"seq":11,"type":"event","event":"output","body":{"category":"stdout","output":"42\n"}}

@@ -1,0 +1,15 @@
+// DAP (step 8.2): breakpoints by file and line. Set before the program
+// runs, nothing is compiled yet: they are pending (verified false). The
+// program is compiled one top-level statement at a time; after each one,
+// before it runs, newtc installs the pending breakpoints that have code now
+// and sends a "breakpoint" event (verified, at the line used: a line
+// without code moves to the next statement, 12 -> 14). A new set for the
+// file replaces the old one, also while stopped.
+global Work(x)
+begin
+  local y := x + 1;
+  y * 2;
+end;
+
+Print(Work(1));
+Print(Work(2));

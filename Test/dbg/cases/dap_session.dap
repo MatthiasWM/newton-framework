@@ -3,7 +3,7 @@
 {"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript", "linesStartAt1": true, "pathFormat": "path"}}
 wait initialized
 {"command": "launch", "arguments": {"program": "$PROGRAM"}}
-{"command": "setBreakpoints", "arguments": {"source": {"path": "$PROGRAM"}, "breakpoints": [{"line": 4}]}}
+{"command": "setBreakpoints", "arguments": {"source": {"path": "$PROGRAM"}, "breakpoints": [{"line": 99}]}}
 {"command": "configurationDone"}
 wait terminated
 {"command": "threads"}

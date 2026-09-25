@@ -1,0 +1,56 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_line_breakpoints.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"setBreakpoints","arguments":{"source":{"path":"$DIR/dap_line_breakpoints.ns"},"breakpoints":[{"line":10},{"line":12},{"line":15},{"line":99}]}}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"setBreakpoints","body":{"breakpoints":[{"id":1,"verified":false,"line":10,"message":"No code for this line yet: set when the code is compiled"},{"id":2,"verified":false,"line":12,"message":"No code for this line yet: set when the code is compiled"},{"id":3,"verified":false,"line":15,"message":"No code for this line yet: set when the code is compiled"},{"id":4,"verified":false,"line":99,"message":"No code for this line yet: set when the code is compiled"}]}}
+-> {"seq":4,"type":"request","command":"configurationDone"}
+<- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"configurationDone"}
+<- {"seq":6,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":1,"verified":true,"line":10}}}
+<- {"seq":7,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":2,"verified":true,"line":14}}}
+<- {"seq":8,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 0: PushConstant 1\n"}}
+<- {"seq":9,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":5,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":10,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":14,"column":1,"source":{"name":"dap_line_breakpoints.ns","path":"$DIR/dap_line_breakpoints.ns"}}],"totalFrames":1}}
+-> {"seq":6,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":11,"type":"response","request_seq":6,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":12,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=1), 0: GetVar x\n"}}
+<- {"seq":13,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":7,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":14,"type":"response","request_seq":7,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":10,"column":1,"source":{"name":"dap_line_breakpoints.ns","path":"$DIR/dap_line_breakpoints.ns"}}],"totalFrames":2}}
+-> {"seq":8,"type":"request","command":"setBreakpoints","arguments":{"source":{"path":"$DIR/dap_line_breakpoints.ns"},"breakpoints":[{"line":11},{"line":15}]}}
+<- {"seq":15,"type":"response","request_seq":8,"success":true,"command":"setBreakpoints","body":{"breakpoints":[{"id":5,"verified":true,"line":11},{"id":6,"verified":false,"line":15,"message":"No code for this line yet: set when the code is compiled"}]}}
+-> {"seq":9,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":16,"type":"response","request_seq":9,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":17,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=1), 4: GetVar y\n"}}
+<- {"seq":18,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":10,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":19,"type":"response","request_seq":10,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":11,"column":1,"source":{"name":"dap_line_breakpoints.ns","path":"$DIR/dap_line_breakpoints.ns"}}],"totalFrames":2}}
+-> {"seq":11,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":20,"type":"response","request_seq":11,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":21,"type":"event","event":"output","body":{"category":"stdout","output":"4\n"}}
+<- {"seq":22,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":6,"verified":true,"line":15}}}
+<- {"seq":23,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 0: PushConstant 2\n"}}
+<- {"seq":24,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":12,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":25,"type":"response","request_seq":12,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":15,"column":1,"source":{"name":"dap_line_breakpoints.ns","path":"$DIR/dap_line_breakpoints.ns"}}],"totalFrames":1}}
+-> {"seq":13,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":26,"type":"response","request_seq":13,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":27,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=2), 4: GetVar y\n"}}
+<- {"seq":28,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":14,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":29,"type":"response","request_seq":14,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":11,"column":1,"source":{"name":"dap_line_breakpoints.ns","path":"$DIR/dap_line_breakpoints.ns"}}],"totalFrames":2}}
+-> {"seq":15,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":30,"type":"response","request_seq":15,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":31,"type":"event","event":"output","body":{"category":"stdout","output":"6\n"}}
+<- {"seq":32,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":33,"type":"event","event":"terminated"}
+-> {"seq":16,"type":"request","command":"disconnect"}
+<- {"seq":34,"type":"response","request_seq":16,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

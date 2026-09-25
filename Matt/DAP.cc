@@ -12,6 +12,7 @@
 #include "Frames/Globals.h"
 #include "Frames/Funcs.h"
 #include "Frames/Interpreter.h"
+#include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
 
 #include <cstdio>
@@ -195,6 +196,27 @@ bool DAPPoll(void)
   return pause;
 }
 
+/*------------------------------------------------------------------------------
+  The compiler's statement hook (gCompiledStatementHook): the program's next
+  top-level statement is compiled and about to run; DAP:NewCode() installs
+  the pending breakpoints that have code now.
+------------------------------------------------------------------------------*/
+
+void DAPCompiledStatement(RefArg inCodeBlock)
+{
+  if (!gDAPPolling)   // only while the program runs
+    return;
+  newton_try
+  {
+    DoMessage(GetGlobalVar(MakeSymbol("DAP")), MakeSymbol("NewCode"), RA(NILREF));
+  }
+  newton_catch_all
+  {
+    fprintf(stderr, "newtc: error installing breakpoints in new code\n");
+  }
+  end_try;
+}
+
 } // namespace
 
 
@@ -202,6 +224,7 @@ void DAPSetPolling(bool inPolling)
 {
   gDAPPolling = inPolling;
   gDebuggerPoll = DAPPoll;
+  gCompiledStatementHook = DAPCompiledStatement;
 }
 
 
