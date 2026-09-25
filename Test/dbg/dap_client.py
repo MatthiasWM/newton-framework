@@ -44,8 +44,11 @@ class DAPError(Exception):
 
 
 class Client:
-    def __init__(self, proc):
-        self.proc = proc
+    """Talks DAP over a connection: write(bytes), fileno(), read(max) -> bytes
+    (b"" at the end). ProcessConnection and SocketConnection below."""
+
+    def __init__(self, connection):
+        self.connection = connection
         self.seq = 0
         self.buffer = b""
         self.lines = []
@@ -54,17 +57,16 @@ class Client:
         self.seq += 1
         message = {"seq": self.seq, "type": "request", **message}
         body = json.dumps(message, separators=(",", ":")).encode()
-        self.proc.stdin.write(b"Content-Length: %d\r\n\r\n" % len(body) + body)
-        self.proc.stdin.flush()
+        self.connection.write(b"Content-Length: %d\r\n\r\n" % len(body) + body)
         self.lines.append("-> " + body.decode())
         return self.seq
 
     def _read_some(self, deadline):
-        fd = self.proc.stdout.fileno()
+        fd = self.connection.fileno()
         while time.time() < deadline:
             ready, _, _ = select.select([fd], [], [], 0.1)
             if ready:
-                data = self.proc.stdout.read1(65536)
+                data = self.connection.read(65536)
                 if not data:
                     return False
                 self.buffer += data
@@ -114,40 +116,90 @@ class Client:
                 return m
 
 
+class ProcessConnection:
+    """newtc -dap: DAP on the process's stdin/stdout."""
+
+    def __init__(self, proc):
+        self.proc = proc
+
+    def write(self, data):
+        self.proc.stdin.write(data)
+        self.proc.stdin.flush()
+
+    def fileno(self):
+        return self.proc.stdout.fileno()
+
+    def read(self, count):
+        return self.proc.stdout.read1(count)
+
+    def close(self):
+        self.proc.stdin.close()
+
+
+class SocketConnection:
+    """newtc -dap-server: DAP on a TCP connection."""
+
+    def __init__(self, sock):
+        self.sock = sock
+
+    def write(self, data):
+        self.sock.sendall(data)
+
+    def fileno(self):
+        return self.sock.fileno()
+
+    def read(self, count):
+        return self.sock.recv(count)
+
+    def close(self):
+        self.sock.shutdown(1)   # no more requests; still read the rest
+
+
+def play(client, script, substitutions):
+    """Play a .dap script (see above) with `client`. Returns the masks."""
+    masks = []
+    for line in script.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        for key, value in substitutions.items():
+            line = line.replace("$" + key, value)
+        if line.startswith("mask "):
+            pattern, replacement = line[6:-1].split("/", 1)
+            masks.append((re.compile(pattern), replacement))
+        elif line.startswith("wait "):
+            client.wait_event(line[5:].strip())
+        elif line == "eof":
+            client.connection.close()
+        else:
+            client.request(json.loads(line))
+    while client.receive() is not None:
+        pass
+    return masks
+
+
+def transcript_of(client, masks=()):
+    transcript = "\n".join(client.lines) + "\n"
+    for pattern, replacement in masks:
+        transcript = pattern.sub(replacement, transcript)
+    return transcript
+
+
 def run_script(newtc, script, cwd, substitutions, extra_args=()):
     """Play `script` against `newtc -dap`. Returns (transcript, stderr, exit code)."""
     proc = subprocess.Popen([str(newtc), *extra_args, "-dap"], cwd=cwd,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    client = Client(proc)
+    client = Client(ProcessConnection(proc))
     masks = []
     try:
-        for line in script.splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            for key, value in substitutions.items():
-                line = line.replace("$" + key, value)
-            if line.startswith("mask "):
-                pattern, replacement = line[6:-1].split("/", 1)
-                masks.append((re.compile(pattern), replacement))
-            elif line.startswith("wait "):
-                client.wait_event(line[5:].strip())
-            elif line == "eof":
-                proc.stdin.close()
-            else:
-                client.request(json.loads(line))
-        while client.receive() is not None:
-            pass
+        masks = play(client, script, substitutions)
         proc.wait(timeout=TIMEOUT)
     except (DAPError, subprocess.TimeoutExpired) as e:
         client.lines.append(f"--- ERROR: {e} ---")
         proc.kill()
         proc.wait()
     stderr = proc.stderr.read().decode("utf-8", "replace")
-    transcript = "\n".join(client.lines) + "\n"
-    for pattern, replacement in masks:
-        transcript = pattern.sub(replacement, transcript)
-    return transcript, stderr, proc.returncode
+    return transcript_of(client, masks), stderr, proc.returncode
 
 
 def main():

@@ -31,6 +31,15 @@
     stdout goes to stderr. Call before anything is printed in -dap mode. */
 void DAPStartIO(void);
 
+/** -dap-server: wait for one client on TCP port inPort (127.0.0.1 only)
+    and use the connection instead of stdin/stdout, which stay as they
+    are (for running newtc under a debugger). False on failure. */
+bool DAPStartServer(int inPort);
+
+/** -dap-log: write every message to this file, both ways ("-> " from the
+    client, "<- " to it). False if it can't be opened. */
+bool DAPStartLog(const char *inPath);
+
 /** Replace the REP translators (gREPin, gREPout) with the DAP ones. */
 void DAPInstallTranslators(void);
 

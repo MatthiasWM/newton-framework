@@ -355,11 +355,17 @@ extern const EmbeddedScript gDAPScript;            // Matt/Debugger/DAP.ns
  debugger like -dbg, then the protocol in Matt/Debugger/DAP.ns handles the
  requests until the client launches a program, runs it like -script, and
  reports its end. See Matt/DAP.h.
+ \param port -1: talk on stdin/stdout; else wait for one client on this
+   TCP port (-dap-server), and stdin/stdout stay as they are.
  */
-void handleArgDap()
+void handleArgDap(int port = -1)
 {
-  DAPStartIO();       // from here on, stdout carries only DAP messages
-  handleArgDbg();     // its messages still go to the stdio translator, i.e. stderr
+  if (port < 0) {
+    DAPStartIO();     // from here on, stdout carries only DAP messages
+  } else if (!DAPStartServer(port)) {
+    throw(std::runtime_error("Can't start the DAP server."));
+  }
+  handleArgDbg();     // its messages still go to the stdio translator (stderr with -dap)
   // Off while no program runs; DAP:WaitForLaunch() sets it from the
   // client's exception filter.
   DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
@@ -696,6 +702,11 @@ the commands in the given order.
   -dap                    Be a debug adapter for VS Code: speak the Debug Adapter
                           Protocol on stdin/stdout, run the program given by the
                           client's "launch" request
+  -dap-server <port>      Like -dap, but wait for one client on this TCP port
+                          (localhost), e.g. VS Code with "debugServer": <port>;
+                          for running newtc itself in a debugger
+  -dap-log <filename>     Write all DAP messages to this file (before -dap or
+                          -dap-server)
 
   Options
   -g                      Compile with debug information: variable names (DebuggerInfo);
@@ -739,6 +750,15 @@ int handleArgs(int argc, char **argv)
         handleArgDbg();
       } else if (cmd == "-dap") {
         handleArgDap();
+      } else if (cmd == "-dap-server") {
+        if (argi>=argc)
+          throw(std::runtime_error("-dap-server: port number expected."));
+        handleArgDap(std::stoi(argv[argi++]));
+      } else if (cmd == "-dap-log") {
+        if (argi>=argc)
+          throw(std::runtime_error("-dap-log: file name expected."));
+        if (!DAPStartLog(argv[argi++]))
+          throw(std::runtime_error("-dap-log: can't open the file."));
       } else if (cmd == "-g") {
         handleArgG();
       } else if (cmd == "-hello") {

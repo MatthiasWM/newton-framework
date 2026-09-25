@@ -701,8 +701,24 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       "\n" in a string is a CR; DAP.ns uses `kLF` for output.
       Test client: `mask /regex/replacement/` for values that vary (where a
       pause stops). Tests: `dap_step`, `dap_evaluate`, `dap_pause`.
-- [ ] 5.6 `-dap-server <port>` (TCP, for debugging newtc itself) and
-      `-dap-log <file>` (all messages both ways).
+- [x] 5.6 `-dap-server <port>` and `-dap-log <file>` (for working on newtc).
+      - `-dap-server <port>`: like -dap, but newtc listens on 127.0.0.1:port,
+        serves one client over TCP, and exits after the session; stdin and
+        stdout stay free (the tools' messages go to the terminal), so newtc
+        can run in a debugger. POSIX sockets; not on Windows yet.
+      - `-dap-log <file>` (before -dap/-dap-server): every message both ways,
+        one line each, in the test transcript format ("-> " from the client,
+        "<- " to it), flushed at once.
+      - VSNewt: `"debugServer": <port>` in a launch configuration makes the
+        extension connect (DebugAdapterServer) instead of starting newtc;
+        `"log": <file>` adds -dap-log. Snippet "NewtonScript: Connect to
+        newtc -dap-server". newtc's (untracked) .vscode/launch.json has
+        "newtc: -dap-server 4711" (lldb, with -dap-log /tmp/newtc-dap.log).
+      Tests: `Test/dbg/test_dap_extras.py` (the log equals the client's
+      transcript; the same session over TCP gives the same transcript;
+      stdout stays free); VSNewt `npm test` runs sessions with "log" and
+      "debugServer". The client (dap_client.py) talks over a pipe or a
+      socket (ProcessConnection, SocketConnection).
 Symbol spelling: NewtonScript symbols are case-insensitive and keep the
 spelling they were first created with, while DAP keys are case-sensitive
 camelCase. Checked: none of ~60 DAP keys clashes with an existing symbol;
@@ -716,23 +732,24 @@ first with the right spelling.
       line breakpoints in it map 1:1 to PCs (InstallBreakPoint). Optional:
       DAP `disassemble` + instruction breakpoints for VS Code's Disassembly view.
 
-### Debugging newtc while it serves DAP (recommendation)
-1. `newtc -dap-server <port>` started under lldb from the newtc window
-   (CodeLLDB is installed; `.vscode/launch.json` already has cppdbg/lldb
-   configurations). In the VSNewt test workspace, the NewtonScript launch
-   configuration gets `"debugServer": <port>`: VS Code connects to the
-   running newtc instead of starting one (the attribute exists for developing
-   debug adapters).
-2. `-dap-log <file>` and VS Code's `"trace": true` for the traffic.
-3. Fallback for stdio mode: CodeLLDB attach with `"waitFor": true`, plus an
-   environment variable (e.g. `NEWTC_WAIT_FOR_DEBUGGER=1`) that makes newtc
-   wait until lldb is attached.
-4. Most adapter work needs no VS Code at all: the Python DAP client tests.
+### Debugging newtc while it serves DAP
+1. In the newtc window, start "newtc: -dap-server 4711" (lldb). newtc waits
+   for a client ("newtc: waiting for a DAP client on port 4711").
+2. In the VSNewt test window (Extension Development Host), run a
+   NewtonScript configuration with `"debugServer": 4711` (snippet
+   "NewtonScript: Connect to newtc -dap-server"). Breakpoints in newtc's
+   C++ stop in the newtc window; one session, then newtc exits.
+3. The traffic: `-dap-log <file>` (the configuration above writes
+   /tmp/newtc-dap.log), or `"log": "<file>"` in a VSNewt configuration.
+4. Most adapter work needs no VS Code at all: the .dap cases and
+   `Test/dbg/dap_client.py script.dap PROGRAM=...`.
+Not done (not needed so far): CodeLLDB attach with "waitFor" plus an
+environment variable that makes newtc wait for the debugger.
 VSNewt stays a thin shell (its existing TypeScript; no debugger logic in
 it): `contributes.debuggers` (type `newtonscript`) with a
 DebugAdapterExecutable `newtc -dap`, `languages` for .ns, and
-`breakpoints: [{language: "newtonscript"}]`; a setting for the newtc path so
-development uses build/VSCode/newtc.
+`breakpoints: [{language: "newtonscript"}]`; the setting
+`vsnewt.newtcPath` for a development build of newtc.
 
 ### Phase 7: Source level, internal map
 - [ ] 7.1 In-memory representation: per chunk {files[], functions[{key,

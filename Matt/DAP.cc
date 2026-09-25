@@ -28,7 +28,11 @@
 #define fileno _fileno
 #define read _read
 #else
+#include <arpa/inet.h>
+#include <csignal>
+#include <netinet/in.h>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #endif
 
@@ -42,6 +46,17 @@ int gDAPExceptionCount = 0;
 bool gDAPPolling = false;     // look for requests while the program runs
 int gDAPBreakLoopDepth = 0;   // > 0 while stopped in a break loop
 bool gDAPPauseRequested = false;
+FILE *gDAPLog = nullptr;      // -dap-log: every message, both ways
+
+// -dap-log: one line per message, as in the test transcripts: "-> " from
+// the client to newtc, "<- " from newtc to the client.
+void LogMessage(const char *direction, const std::string &json)
+{
+  if (gDAPLog == nullptr)
+    return;
+  fprintf(gDAPLog, "%s%s\n", direction, json.c_str());
+  fflush(gDAPLog);
+}
 
 /*------------------------------------------------------------------------------
   Input. newtc reads stdin itself (not through a FILE), so that
@@ -112,6 +127,7 @@ bool ReadMessage(std::string &outJSON)
       return false;
   outJSON = gInBuffer.substr(0, (size_t)length);
   gInBuffer.erase(0, (size_t)length);
+  LogMessage("-> ", outJSON);
   return true;
 }
 
@@ -129,6 +145,7 @@ void SendMessage(const std::string &json)
   fprintf(gDAPOut, "Content-Length: %zu\r\n\r\n", message.size());
   fwrite(message.data(), 1, message.size(), gDAPOut);
   fflush(gDAPOut);
+  LogMessage("<- ", message);
 }
 
 /*------------------------------------------------------------------------------
@@ -185,6 +202,48 @@ void DAPSetPolling(bool inPolling)
 {
   gDAPPolling = inPolling;
   gDebuggerPoll = DAPPoll;
+}
+
+
+bool DAPStartLog(const char *inPath)
+{
+  gDAPLog = fopen(inPath, "w");
+  return gDAPLog != nullptr;
+}
+
+
+bool DAPStartServer(int inPort)
+{
+#if defined(_WIN32)
+  fprintf(stderr, "newtc: -dap-server is not supported on Windows yet\n");
+  return false;
+#else
+  int listener = socket(AF_INET, SOCK_STREAM, 0);
+  if (listener < 0)
+    return false;
+  int yes = 1;
+  setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+  struct sockaddr_in address = {};
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);   // this machine only
+  address.sin_port = htons((uint16_t)inPort);
+  if (bind(listener, (struct sockaddr *)&address, sizeof(address)) < 0
+   || listen(listener, 1) < 0) {
+    perror("newtc: -dap-server");
+    close(listener);
+    return false;
+  }
+  fprintf(stderr, "newtc: waiting for a DAP client on port %d\n", inPort);
+  int connection = accept(listener, nullptr, nullptr);
+  close(listener);
+  if (connection < 0)
+    return false;
+  fprintf(stderr, "newtc: DAP client connected\n");
+  signal(SIGPIPE, SIG_IGN);   // a client that goes away is end of input
+  gDAPInFd = connection;
+  gDAPOut = fdopen(dup(connection), "wb");
+  return gDAPOut != nullptr;
+#endif
 }
 
 
