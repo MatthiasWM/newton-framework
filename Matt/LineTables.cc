@@ -8,7 +8,9 @@
 #include "Matt/JSON.h"
 
 #include "Frames/Frames.h"
+#include "Frames/Interpreter.h"
 #include "Frames/Compiler/Compiler.h"
+#include "ROMResources.h"
 
 #include <climits>
 #include <cstdlib>
@@ -48,7 +50,128 @@ std::string CanonicalPath(const std::string &path)
   return path;
 }
 
+/*------------------------------------------------------------------------------
+  Where a pc is in a line table: the line, and whether a line's code starts
+  exactly at pc (a statement start). False if fn has no line table.
+------------------------------------------------------------------------------*/
+
+bool LineAt(RefArg fn, long pc, long *outLine, bool *outAtStart)
+{
+  RefVar table(TableOf(fn));
+  if (ISNIL(table))
+    return false;
+  ArrayIndex count = (Length(table) - 1) / 2;
+  ArrayIndex low = 0, high = count;
+  while (low < high) {
+    ArrayIndex middle = (low + high) / 2;
+    if (EntryPC(table, middle) <= pc)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+  ArrayIndex entry = (low == 0) ? 0 : low - 1;
+  *outLine = EntryLine(table, entry);
+  *outAtStart = (low > 0 && EntryPC(table, entry) == pc);
+  return true;
+}
+
+/*------------------------------------------------------------------------------
+  Line stepping. The interpreter asks StepCheck() before every instruction
+  (gDebuggerStep) while a step is active.
+------------------------------------------------------------------------------*/
+
+LineStepKind gStepKind = kLineStepNone;
+Ref gStepInstructions = NILREF;   // the start function's code (GC root)
+long gStepDepth = 0;              // the start frame's index
+long gStepLine = 0;               // the start line
+long gStepLastPC = 0;             // the last pc seen in the start function
+long gStepStartPC = 0;
+bool gStepResuming = false;       // not back at the start point yet
+
+bool StepCheck(RefArg fn, long pc, long depth)
+{
+  if (gStepKind == kLineStepNone)
+    return false;
+  bool sameFunction = IsFrame(fn)
+    && EQ(GetFrameSlot(fn, SYMA(instructions)), gStepInstructions);
+  if (gStepResuming) {
+    // The debugger's own code (the break loop, the request handler) runs in
+    // deeper frames until the program is back where it stopped: nothing to
+    // check there. Back in the start frame, the instruction we stopped at
+    // may be checked once more (a stop at a breakpoint) or not (a stop from
+    // this check): skip it, then check as usual.
+    if (depth > gStepDepth)
+      return false;
+    gStepResuming = false;
+    if (depth == gStepDepth && sameFunction && pc == gStepStartPC)
+      return false;
+  }
+  long line;
+  bool atStart;
+  bool hasLines = LineAt(fn, pc, &line, &atStart);
+  bool stop = false;
+
+  if (depth < gStepDepth)
+    // left the start function (return, exception): stop in the caller,
+    // wherever it continues; past code without lines (C++, the tools)
+    stop = hasLines;
+  else if (depth == gStepDepth && !sameFunction)
+    // the next top-level statement (each is a function of its own)
+    stop = hasLines && atStart;
+  else if (depth == gStepDepth) {
+    // in the start function: a new statement, or back to a statement
+    // start (a loop)
+    if (gStepKind != kLineStepOut)
+      stop = atStart && (line != gStepLine || pc <= gStepLastPC);
+    gStepLastPC = pc;
+  }
+  else if (gStepKind == kLineStepIn)
+    // deeper: a called function, at its first statement
+    stop = hasLines && atStart;
+
+  if (stop)
+    CancelLineStep();
+  return stop;
+}
+
 } // namespace
+
+
+void StartLineStep(LineStepKind kind, RefArg fn, long pc, long depth)
+{
+  long line;
+  bool atStart;
+  if (!LineAt(fn, pc, &line, &atStart))
+    line = 0;
+  gStepKind = kind;
+  gStepInstructions = IsFrame(fn) ? GetFrameSlot(fn, SYMA(instructions)) : NILREF;
+  gStepDepth = depth;
+  gStepLine = line;
+  gStepLastPC = pc;
+  gStepStartPC = pc;
+  gStepResuming = true;
+  gDebuggerStep = StepCheck;
+}
+
+
+void CancelLineStep(void)
+{
+  gStepKind = kLineStepNone;
+  gStepInstructions = NILREF;
+  gDebuggerStep = NULL;
+}
+
+
+Ref FStartLineStep(RefArg rcvr, RefArg inKind, RefArg inFn, RefArg inPC, RefArg inDepth)
+{
+  LineStepKind kind = EQ(inKind, MakeSymbol("in")) ? kLineStepIn
+                    : EQ(inKind, MakeSymbol("out")) ? kLineStepOut
+                    : kLineStepOver;
+  if (!ISINT(inPC) || !ISINT(inDepth))
+    return NILREF;
+  StartLineStep(kind, inFn, RINT(inPC), RINT(inDepth));
+  return TRUEREF;
+}
 
 
 void InstallLineTables(void)
@@ -56,6 +179,7 @@ void InstallLineTables(void)
   if (ISNIL(gFunctions)) {
     gFunctions = MakeArray(0);
     AddGCRoot(&gFunctions);
+    AddGCRoot(&gStepInstructions);
   }
   gCompiledFunctionHook = RememberFunction;
 }

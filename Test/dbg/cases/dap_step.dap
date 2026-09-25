@@ -3,22 +3,22 @@ wait initialized
 {"command": "launch", "arguments": {"program": "$PROGRAM"}}
 {"command": "configurationDone"}
 wait stopped
-{"command": "next", "arguments": {"threadId": 1}}
+{"command": "next", "arguments": {"threadId": 1, "granularity": "instruction"}}
 wait stopped
-{"command": "next", "arguments": {"threadId": 1}}
+{"command": "next", "arguments": {"threadId": 1, "granularity": "instruction"}}
 wait stopped
-{"command": "next", "arguments": {"threadId": 1}}
-wait stopped
-{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
-{"command": "stepIn", "arguments": {"threadId": 1}}
-wait stopped
-{"command": "stackTrace", "arguments": {"threadId": 1}}
-{"command": "stepOut", "arguments": {"threadId": 1}}
+{"command": "next", "arguments": {"threadId": 1, "granularity": "instruction"}}
 wait stopped
 {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
-{"command": "stepOut", "arguments": {"threadId": 1}}
+{"command": "stepIn", "arguments": {"threadId": 1, "granularity": "instruction"}}
 wait stopped
 {"command": "stackTrace", "arguments": {"threadId": 1}}
-{"command": "stepOut", "arguments": {"threadId": 1}}
+{"command": "stepOut", "arguments": {"threadId": 1, "granularity": "instruction"}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
+{"command": "stepOut", "arguments": {"threadId": 1, "granularity": "instruction"}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "stepOut", "arguments": {"threadId": 1, "granularity": "instruction"}}
 wait terminated
 {"command": "disconnect"}

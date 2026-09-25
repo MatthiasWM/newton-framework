@@ -1,0 +1,97 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_line_step.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"configurationDone"}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"configurationDone"}
+<- {"seq":5,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 0: GetVar x\n"}}
+<- {"seq":6,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":4,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":19,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":5,"type":"request","command":"stepIn","arguments":{"threadId":1}}
+<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"stepIn"}
+<- {"seq":9,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Add('a=10, 'b=1), 0: GetVar a\n"}}
+<- {"seq":10,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":6,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":11,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"Add","line":10,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":3}}
+-> {"seq":7,"type":"request","command":"stepOut","arguments":{"threadId":1}}
+<- {"seq":12,"type":"response","request_seq":7,"success":true,"command":"stepOut"}
+<- {"seq":13,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 4: SetVar y\n"}}
+<- {"seq":14,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":8,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":15,"type":"response","request_seq":8,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":19,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":9,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":16,"type":"response","request_seq":9,"success":true,"command":"next"}
+<- {"seq":17,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 5: PushConstant 1\n"}}
+<- {"seq":18,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":10,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":19,"type":"response","request_seq":10,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":20,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":11,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":20,"type":"response","request_seq":11,"success":true,"command":"next"}
+<- {"seq":21,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 22: GetVar y\n"}}
+<- {"seq":22,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":12,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":23,"type":"response","request_seq":12,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":21,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":13,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":24,"type":"response","request_seq":13,"success":true,"command":"next"}
+<- {"seq":25,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 26: GetVar i|incr\n"}}
+<- {"seq":26,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":14,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":27,"type":"response","request_seq":14,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":20,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":15,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":28,"type":"response","request_seq":15,"success":true,"command":"next"}
+<- {"seq":29,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 22: GetVar y\n"}}
+<- {"seq":30,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":16,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":31,"type":"response","request_seq":16,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":21,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":17,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":32,"type":"response","request_seq":17,"success":true,"command":"next"}
+<- {"seq":33,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 26: GetVar i|incr\n"}}
+<- {"seq":34,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":18,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":35,"type":"response","request_seq":18,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":20,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":19,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":36,"type":"response","request_seq":19,"success":true,"command":"next"}
+<- {"seq":37,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 36: PushConstant 1\n"}}
+<- {"seq":38,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":20,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":39,"type":"response","request_seq":20,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":22,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":21,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":40,"type":"response","request_seq":21,"success":true,"command":"next"}
+<- {"seq":41,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 67: GetVar y\n"}}
+<- {"seq":42,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":22,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":43,"type":"response","request_seq":22,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":23,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":23,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":44,"type":"response","request_seq":23,"success":true,"command":"next"}
+<- {"seq":45,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 75: GetVar y\n"}}
+<- {"seq":46,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":24,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":47,"type":"response","request_seq":24,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":24,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":2}}
+-> {"seq":25,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":48,"type":"response","request_seq":25,"success":true,"command":"next"}
+<- {"seq":49,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 5: Push 'Print\n"}}
+<- {"seq":50,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":26,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":51,"type":"response","request_seq":26,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":28,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":1}}
+-> {"seq":27,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":52,"type":"response","request_seq":27,"success":true,"command":"next"}
+<- {"seq":53,"type":"event","event":"output","body":{"category":"stdout","output":"46\n"}}
+<- {"seq":54,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 0: Push \"next statement\"\n"}}
+<- {"seq":55,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":28,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":56,"type":"response","request_seq":28,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":29,"column":1,"source":{"name":"dap_line_step.ns","path":"$DIR/dap_line_step.ns"}}],"totalFrames":1}}
+-> {"seq":29,"type":"request","command":"next","arguments":{"threadId":1}}
+<- {"seq":57,"type":"response","request_seq":29,"success":true,"command":"next"}
+<- {"seq":58,"type":"event","event":"output","body":{"category":"stdout","output":"\"next statement\"\n"}}
+<- {"seq":59,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":60,"type":"event","event":"terminated"}
+-> {"seq":30,"type":"request","command":"disconnect"}
+<- {"seq":61,"type":"response","request_seq":30,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

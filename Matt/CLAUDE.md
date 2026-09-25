@@ -876,10 +876,37 @@ in the interpreter (C++), not in NewtonScript.
       stopped, one still pending when set); `dap_session` now sets line 99
       (no code; stays pending); VSNewt "Stops at a breakpoint set in the
       source file" (a SourceBreakpoint set through the VS Code API).
-- [ ] 8.3 Line stepping in C++: a step mode in the slow loop (next to the
-      pause poll): over = a new line in the same or an outer frame, in = any
-      new line, out = frame depth drops; recursion- and exception-safe.
-      DAP granularity "instruction" keeps Apple's Step.
+- [x] 8.3 Line stepping in C++. New interpreter hook `gDebuggerStep(fn,
+      pc, frameIndex)` (Interpreter.h, not in ROM): while set, the slow loop
+      calls it before every instruction (next to the breakpoint check and
+      the pause poll; frameIndex on the CNSDebugAPI scale, 0 = oldest);
+      true stops there (reason kBreakLoopStep). `Matt/LineTables.cc`:
+      `StartLineStep(kind, fn, pc, depth)` / `CancelLineStep()`, NS
+      function `StartLineStep('over | '|in| | 'out, fn, pc, depth)`.
+      Rules (`StepCheck`): left the start frame (return, exception) -> stop
+      in the caller where it continues (if it has a line table); the same
+      depth but another function -> the next top-level statement, at its
+      start; in the start function -> a statement start of another line, or
+      one jumped back to (a loop body on its own line stops once per
+      iteration, and the loop line too; a loop on one line runs as a
+      whole); deeper -> only for 'in, at the first statement of a function
+      with a line table (recursion and calls run through for 'over). 'out
+      stops only on leaving the frame (or at the next top-level statement).
+      Code without a line table is run through. Resuming: the break loop
+      and the request handler run in deeper frames first; checks start when
+      the program is back in the start frame, skipping the start
+      instruction if it gets checked again. Any stop cancels the step
+      (`PDAPOutTranslator::enterBreakLoop`, e.g. a breakpoint in a called
+      function), and the end of the program.
+      DAP: `next`/`stepIn`/`stepOut` step by line when the stopped function
+      has a line table and the request doesn't say granularity
+      "instruction"; otherwise Apple's Step/StepIn/StepOut as before. The
+      adapter's own DAP.ns is now loaded without line tables and variable
+      names (handleArgDap clears dbgKeepLineNumbers/dbgKeepVarNames while
+      loading it), or stepping would stop in it.
+      Tests: `dap_line_step` (step in/out, next over a call, recursion, a
+      multi-line and a one-line loop, into the next top-level statement,
+      off the end); `dap_step` now asks for granularity "instruction".
 - [ ] 8.4 (optional) DAP `disassemble` + instructionPointerReference, so VS
       Code's Disassembly view shows bytecode next to the source (VS Code
       switches between source and instruction level; Matt).

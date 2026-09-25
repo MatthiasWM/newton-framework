@@ -1,6 +1,6 @@
-// DAP (step 5.5): next / stepIn / stepOut are Apple's Step, StepIn,
-// StepOut: one bytecode instruction at a time, stopping with reason
-// "step". Work: 0 GetVar x, 1 PushConstant 1, 2 Push 'Add, 3 Call 2,
+// DAP (step 5.5): next / stepIn / stepOut with granularity "instruction"
+// (or in code without a line table) are Apple's Step, StepIn, StepOut: one
+// bytecode instruction at a time, stopping with reason "step". Work: 0 GetVar x, 1 PushConstant 1, 2 Push 'Add, 3 Call 2,
 // 4 SetVar y, ... stepIn at the Call stops at PC 0 of Add; stepOut
 // returns to Work after the call. Stepping out of the program itself
 // isn't possible (it returns to C++): newtc says so and continues.

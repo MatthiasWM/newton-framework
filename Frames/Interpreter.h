@@ -386,6 +386,13 @@ typedef bool (*DebuggerPollProc)(void);
 extern DebuggerPollProc	gDebuggerPoll;
 #define kDebuggerPollInterval 1000
 
+/* Not in ROM: a debugger's step check (line stepping). While set, the slow
+   loop calls it before every instruction with the running function, the
+   PC, and the frame's index (as in CNSDebugAPI: 0 = oldest); true stops in
+   a break loop there (reason kBreakLoopStep). See Matt/LineTables.h. */
+typedef bool (*DebuggerStepProc)(RefArg inFunction, long inPC, long inFrameIndex);
+extern DebuggerStepProc	gDebuggerStep;
+
 
 
 #endif	/* __INTERPRETER_H */

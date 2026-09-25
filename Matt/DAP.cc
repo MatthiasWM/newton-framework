@@ -7,6 +7,7 @@
 
 #include "Matt/DAP.h"
 #include "Matt/JSON.h"
+#include "Matt/LineTables.h"
 
 #include "Frames/Frames.h"
 #include "Frames/Globals.h"
@@ -544,6 +545,7 @@ PDAPOutTranslator::enterBreakLoop(int inLevel)
     case kBreakLoopPause: reason = "pause"; break;
   }
   gBreakLoopReason = kBreakLoopCalled;
+  CancelLineStep();   // any stop ends a line step (e.g. a breakpoint on the way)
   ++gDAPBreakLoopDepth;
   std::string text;
   text.swap(*fStopText);

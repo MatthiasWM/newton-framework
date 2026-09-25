@@ -1,0 +1,29 @@
+// DAP (step 8.3): stepping by source line (the program has line tables).
+// next stops at the next statement of the same function (a call runs
+// through, recursion too); a loop whose body is on its own line stops at
+// the body and at the loop line once per iteration, a loop on one line
+// runs as a whole; stepIn stops at the first statement of the called
+// function; stepOut in the caller, right after the call; at the end of a
+// top-level statement, the next one; after the last one the program ends.
+global Add(a, b)
+begin
+  local sum := a + b;
+  sum;
+end;
+
+global Fact(n)
+  if n <= 1 then 1 else n * Fact(n - 1);
+
+global Work(x)
+begin
+  local y := Add(x, 1);
+  for i := 1 to 2 do
+    y := y + i;
+  for i := 1 to 2 do y := y + i;
+  y := y + Fact(3);
+  y * 2;
+end;
+
+InstallBreakPoint(functions.Work, 0);
+Print(Work(10));
+Print("next statement");

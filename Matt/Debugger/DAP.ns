@@ -513,6 +513,25 @@ DefGlobalVar('DAP, {
     results[0];
   end,
 
+  // Step by source line (kind 'over, '|in|, 'out; C++, StartLineStep) if
+  // the stopped function has a line table and the client didn't ask for
+  // single instructions (granularity "instruction", e.g. VS Code's
+  // Disassembly view). Resumes the program and returns true; nil if not.
+  LineStep: func(request, kind)
+  begin
+    local args := request.arguments;
+    if IsFrame(args) and IsString(args.granularity) and StrEqual(args.granularity, "instruction") then
+      return nil;
+    local stack := kNSDTools:CurrentStack();
+    local frame := stack:FindBreakLoop() - 1;
+    local fn := stack:Function(frame);
+    if not (call kNSDIsInterpreted with (fn) and HasSlot(fn, 'lineTable)) then
+      return nil;
+    StartLineStep(kind, fn, stack:ProgramCounter(frame), frame);
+    ExitBreakLoop();
+    true;
+  end,
+
   // After Step(), StepIn(), StepOut(): nil if they resumed the program (it
   // stops again, reason "step"); a message if they can't step there (e.g.
   // returning to C++ at the end of a top-level statement): then continue.
@@ -743,14 +762,20 @@ DefGlobalVar('DAPRequests, {
     :SendResponse(request, {variables: result});
   end,
 
-  // Stepping is Apple's: Step (over calls), StepIn, StepOut, one bytecode
-  // instruction at a time. StepIn into a native function or BreakLoop
-  // steps over it.
+  // Stepping: by source line where the function has a line table (see
+  // LineStep), else Apple's Step (over calls), StepIn, StepOut, one
+  // bytecode instruction at a time. StepIn into a native function or
+  // BreakLoop steps over it.
   next: func(request)
-    :StepAndRespond(request, Step()),
+    if :LineStep(request, 'over) then
+      :SendResponse(request, nil)
+    else
+      :StepAndRespond(request, Step()),
 
   stepIn: func(request)
   begin
+    if :LineStep(request, '|in|) then
+      return :SendResponse(request, nil);
     local result := StepIn();
     if IsString(result) then
       result := Step();
@@ -758,7 +783,10 @@ DefGlobalVar('DAPRequests, {
   end,
 
   stepOut: func(request)
-    :StepAndRespond(request, StepOut()),
+    if :LineStep(request, 'out) then
+      :SendResponse(request, nil)
+    else
+      :StepAndRespond(request, StepOut()),
 
   // While the program runs, C++ looks for requests every so often
   // (DAPPoll); DAPPause() makes it stop there, reason "pause".

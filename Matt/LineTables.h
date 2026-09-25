@@ -38,10 +38,30 @@ Ref LineOfPC(RefArg fn, long pc);
     own). nil if nothing matches. */
 Ref CodeForLine(RefArg file, long line);
 
+/** Line stepping (the interpreter's gDebuggerStep, checked before every
+    instruction while a step is active). Starting from pc of fn in the
+    frame with index depth (0 = oldest, as in CNSDebugAPI):
+    - over: stop at a new statement of that function (or at a statement
+      start it jumps back to: once per loop iteration), in the caller once
+      it returns (or an exception leaves it), or at the next top-level
+      statement; calls (recursion included) run through;
+    - in: like over, and also at the first statement of a called function
+      that has a line table;
+    - out: in the caller once the function returns, or at the next
+      top-level statement.
+    Code without a line table (C++, the NS Debug Tools) is run through. Any
+    stop ends the step (CancelLineStep, e.g. from a breakpoint). */
+enum LineStepKind { kLineStepNone, kLineStepOver, kLineStepIn, kLineStepOut };
+void StartLineStep(LineStepKind kind, RefArg fn, long pc, long depth);
+void CancelLineStep(void);
+
 // NewtonScript functions, registered in newtc.cc:
 //   LineOfPC(fn, pc) -> [file, line] or nil
 //   CodeForLine(file, line) -> {line:, code: [[fn, pc], ...]} or nil
+//   StartLineStep(kind, fn, pc, depth) -> true; kind 'over, 'in, 'out;
+//     resume the program (ExitBreakLoop) to run the step
 extern "C" Ref FLineOfPC(RefArg rcvr, RefArg inFn, RefArg inPC);
 extern "C" Ref FCodeForLine(RefArg rcvr, RefArg inFile, RefArg inLine);
+extern "C" Ref FStartLineStep(RefArg rcvr, RefArg inKind, RefArg inFn, RefArg inPC, RefArg inDepth);
 
 #endif // MATT_LINETABLES_H

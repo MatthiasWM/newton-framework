@@ -64,6 +64,7 @@ Ref				gFramesBreakPoints;			// +18 0C105464 - frame, GCRoot
 extern bool		gAccurateStackTrace;			// +1C 0C105468 - SetDebugMode(), in DebugAPI.cc
 BreakLoopReason	gBreakLoopReason = kBreakLoopCalled;	// not in ROM, see Interpreter.h
 DebuggerPollProc	gDebuggerPoll = NULL;						// not in ROM, see Interpreter.h
+DebuggerStepProc	gDebuggerStep = NULL;						// not in ROM, see Interpreter.h
 
 extern ArrayIndex		gCurrentStackPos;
 
@@ -1199,6 +1200,18 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 					if (gDebuggerPoll())
 					{
 						gBreakLoopReason = kBreakLoopPause;
+						DoBlock(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)), RA(NILREF));
+						gBreakLoopReason = kBreakLoopCalled;
+					}
+				}
+				// Not in ROM: line stepping.
+				if (gDebuggerStep != NULL)
+				{
+					RefVar	stepFn(vm->func);
+					long		frameIndex = STACKINDEX(ctrlStack) / kNumOfItemsInStackFrame - 1;
+					if (gDebuggerStep(stepFn, instructionOffset, frameIndex))
+					{
+						gBreakLoopReason = kBreakLoopStep;
 						DoBlock(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)), RA(NILREF));
 						gBreakLoopReason = kBreakLoopCalled;
 					}

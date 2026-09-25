@@ -166,6 +166,7 @@ bool init()
   InstallLineTables();
   defGlobalCFunction("LineOfPC", (void*)FLineOfPC, 2);
   defGlobalCFunction("CodeForLine", (void*)FCodeForLine, 2);
+  defGlobalCFunction("StartLineStep", (void*)FStartLineStep, 4);
 
   return true;
 }
@@ -379,7 +380,13 @@ void handleArgDap(int port = -1)
   // client's exception filter.
   DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
   DAPInstallTranslators();
-  if (!RunEmbeddedScript(gDAPScript))
+  // The adapter's own code gets no line tables or variable names (like the
+  // tools): line stepping and source frames must not stop in it.
+  DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), NILREF);
+  DefGlobalVar(MakeSymbol("dbgKeepVarNames"), NILREF);
+  bool loaded = RunEmbeddedScript(gDAPScript);
+  handleArgG();
+  if (!loaded)
     throw(std::runtime_error("Can't load the debug adapter."));
 
   RefVar dap(GetGlobalVar(MakeSymbol("DAP")));
@@ -409,6 +416,7 @@ void handleArgDap(int port = -1)
       }
       end_try;
       DAPSetPolling(false);
+      CancelLineStep();   // a step still running when the program ended
       if (DAPExceptionCount() > exceptions)
         exitCode = 1;
       RefVar args(MakeArray(1));
