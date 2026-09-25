@@ -17,6 +17,12 @@
 
 #include <cassert>
 
+#if defined(HAVE_LIBEDIT)
+#include <editline/readline.h>
+#include <unistd.h>
+#include <string>
+#endif
+
 /*----------------------------------------------------------------------
 	D e c l a r a t i o n s
 ----------------------------------------------------------------------*/
@@ -1349,7 +1355,62 @@ bool
 PStdioInTranslator::inputEnded(void)
 {
 	return fileRef == NULL
-		|| feof(fileRef) != 0;
+		|| feof(fileRef) != 0
+		|| fEndOfInput;
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in original: read a line from a terminal with line editing (arrow
+	keys, Ctrl-A/E, ...) and a history (up/down arrow), kept in
+	~/.newtc_history. Only if newtc was built with libedit (HAVE_LIBEDIT);
+	produceFrame() uses it when stdin and stdout are a terminal.
+------------------------------------------------------------------------------*/
+
+Ref
+PStdioInTranslator::produceFrameFromTerminal(void)
+{
+	RefVar	result;
+#if defined(HAVE_LIBEDIT)
+	static bool historyLoaded = false;
+	static std::string historyFile;
+	static std::string lastLine;
+	if (!historyLoaded)
+	{
+		historyLoaded = true;
+		const char * home = getenv("HOME");
+		if (home != NULL)
+		{
+			historyFile = std::string(home) + "/.newtc_history";
+			read_history(historyFile.c_str());
+		}
+	}
+
+	gREPout->flush();
+	fflush(stdout);
+	char prompt[32];
+	if (gREPLevel > 1)
+		snprintf(prompt, sizeof(prompt), "(newtc %d) ", gREPLevel);
+	else
+		snprintf(prompt, sizeof(prompt), "(newtc) ");
+	char * line = readline(prompt);
+	if (line == NULL)			// Ctrl-D
+	{
+		fEndOfInput = true;
+		return result;
+	}
+	if (line[0] != 0 && lastLine != line)
+	{
+		add_history(line);
+		lastLine = line;
+		if (!historyFile.empty())
+			write_history(historyFile.c_str());
+	}
+	RefVar source(MakeStringFromCString(line));
+	free(line);
+	result = ParseString(source);
+#endif
+	return result;
 }
 
 Ref
@@ -1359,6 +1420,11 @@ PStdioInTranslator::produceFrame(int inLevel)
 
 	if (fileRef == NULL)
 		return result;
+
+#if defined(HAVE_LIBEDIT)
+	if (isatty(fileno(fileRef)) && isatty(fileno(stdout)))
+		return produceFrameFromTerminal();
+#endif
 
 	// Not in original (which used fgets): accept LF, CR, and CRLF as line
 	// endings. After a CR we must not wait for a possible LF, because on a

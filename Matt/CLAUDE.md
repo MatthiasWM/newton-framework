@@ -481,11 +481,27 @@ regression checks (MATT.md) still apply when shared code is touched.
       `RunUntil`; `Get/SetNamedVar`, `Get/SetTempVar`; `Disasm`.
 
 ### Phase 4: Comfortable command-line REPL
-- [ ] 4.1 Break-loop input filter: a line that is a bare command word
-      (`c`, `n`, `s`, `finish`, `bt`, `b ...`, `info b`, ...) becomes a call;
-      anything else is evaluated as NewtonScript as before.
-- [ ] 4.2 On stop, show function, PC, and the current instruction (`dishere` style).
-- [ ] 4.3 (optional) Line editing/history.
+Abbreviated (Matt): once DAP works, the terminal REPL matters less. 4.3 is
+enough for testing; 4.1 and 4.2 are low priority.
+- [x] 4.3 Line editing and history in the break loop: arrow keys, Ctrl-A/E,
+      ..., up/down recall earlier lines, prompt `(newtc) ` (`(newtc 2) ` in
+      a nested break loop), history kept in `~/.newtc_history`. Uses libedit's
+      readline() if CMake finds it (macOS always has it; Linux if installed);
+      otherwise newtc builds without it and reads plain stdin as before. No
+      new dependency. Only when stdin and stdout are a terminal, so pipes
+      (tests, VSNewt) are unchanged. Ctrl-D ends input like end of file.
+      (REP.cc `PStdioInTranslator::produceFrameFromTerminal`; CMake
+      `HAVE_LIBEDIT`.) Test: `Test/dbg/test_terminal.py` (runs newtc in a
+      pseudo-terminal: types a command, recalls it with the up arrow, checks
+      the history file in a temporary HOME; exit 2 if built without libedit).
+      Checked that a build without libedit (configure with
+      `-DEDITLINE_LIBRARY=EDITLINE_LIBRARY-NOTFOUND`) compiles and passes the
+      tests.
+- [ ] 4.1 (low priority) Break-loop input filter: a line that is a bare
+      command word (`c`, `n`, `s`, `finish`, `bt`, `b ...`, `info b`, ...)
+      becomes a call; anything else is evaluated as NewtonScript as before.
+- [ ] 4.2 (low priority) Cleaner REPL output: the `#2 nil` result lines after
+      every command. (The location on each stop is done: the tools' BreakLoop.)
 
 ### Phase 5: Debugger engine interface (C++)
 Evaluate first (Matt): implement DAP as a new pair of REP translators, like
@@ -569,6 +585,12 @@ Interpreter and runtime
 - [ ] B5 **`BMerge([...], [...], '|<|, nil, nil)` hangs.**
 - [ ] B6 **`LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil** (the general
   test path, `CGeneralizedTestFnVar`).
+
+- [ ] B11 **Undefined behaviour when the store is created**: the first run
+  with a new HOME (no store in `~/Library` yet) reports
+  `Stores/FlashStore.cc:1896:35: runtime error: reference binding to null
+  pointer of type 'CStoreObjRef'` (UBSan). Seen with a temporary HOME in
+  `Test/dbg/test_terminal.py`.
 
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug

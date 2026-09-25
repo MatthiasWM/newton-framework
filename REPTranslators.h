@@ -119,6 +119,9 @@ private:
 	char *	fBuf;
 	size_t	fBufSize;
 	bool		fSkipLF = false;		// not in original, see produceFrame()
+	bool		fEndOfInput = false;	// not in original: end of terminal input (Ctrl-D)
+
+	Ref		produceFrameFromTerminal(void);	// not in original
 };
 
 

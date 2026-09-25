@@ -657,6 +657,20 @@ target_link_libraries (newtc PRIVATE
   "-framework IOKit"
 )
 
+# Line editing and history in the break loop, if the system has libedit
+# (macOS always has it; Linux if installed). Without it, newtc reads plain
+# lines from stdin. Not a required dependency.
+find_path (EDITLINE_INCLUDE_DIR editline/readline.h)
+find_library (EDITLINE_LIBRARY edit)
+if (EDITLINE_INCLUDE_DIR AND EDITLINE_LIBRARY)
+  message (STATUS "newtc: line editing with libedit (${EDITLINE_LIBRARY})")
+  target_compile_definitions (newtc PRIVATE HAVE_LIBEDIT=1)
+  target_include_directories (newtc PRIVATE ${EDITLINE_INCLUDE_DIR})
+  target_link_libraries (newtc PRIVATE ${EDITLINE_LIBRARY})
+else ()
+  message (STATUS "newtc: no libedit, plain line input")
+endif ()
+
 
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
