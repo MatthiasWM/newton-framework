@@ -57,6 +57,9 @@ FSetDebugMode(RefArg rcvr, RefArg inDebugOn)
 {
 	bool ast = gAccurateStackTrace;
 	gAccurateStackTrace = NOTNIL(inDebugOn);
+	// Not in ROM, which switches to the slow loop only the next time
+	// SetFastLoopFlag() is called (e.g. by EnableBreakPoints).
+	SetFastLoopFlags();
 	return MAKEBOOLEAN(ast);
 }
 

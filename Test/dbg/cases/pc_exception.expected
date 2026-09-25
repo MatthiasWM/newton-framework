@@ -1,0 +1,47 @@
+"fail 1"
+    !!! Exception: ObjectPtr of non-pointer
+Entering break loop
+WARNING:  Inaccurate stack trace.  Use SetDebugMode(true) for accurate stack traces.
+Stack trace:
+   4 : (functions.StackTrace)[native]
+   3 : (#<ref>) <function, 0 args, #<ref>> : 2
+   2 : (functions.BreakLoop)[native]
+   1 : (functions.Fail) : 9
+       0 [arg 0]: 1
+       1: 4
+   0 : (#<ref>) <function, 0 args, #<ref>> : 8
+#2        nil
+#2        nil
+Exiting break loop
+"caught 1"
+"fail 2"
+    !!! Exception: ObjectPtr of non-pointer
+Entering break loop
+Stack trace:
+   4 : (functions.StackTrace)[native]
+   3 : (#<ref>) <function, 0 args, #<ref>> : 2
+   2 : (functions.BreakLoop)[native]
+   1 : (functions.Fail) : 25
+       0 [arg 0]: 2
+       1: 7
+   0 : (#<ref>) <function, 0 args, #<ref>> : 10
+#2        nil
+#2        nil
+Exiting break loop
+"caught 2"
+"fail 3"
+    !!! Exception: ObjectPtr of non-pointer
+Entering break loop
+WARNING:  Inaccurate stack trace.  Use SetDebugMode(true) for accurate stack traces.
+Stack trace:
+   4 : (functions.StackTrace)[native]
+   3 : (#<ref>) <function, 0 args, #<ref>> : 2
+   2 : (functions.BreakLoop)[native]
+   1 : (functions.Fail) : 25
+       0 [arg 0]: 3
+       1: 10
+   0 : (#<ref>) <function, 0 args, #<ref>> : 10
+#2        nil
+#2        nil
+Exiting break loop
+"caught 3"

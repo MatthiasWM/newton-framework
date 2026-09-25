@@ -61,6 +61,7 @@ CInterpreter *	gInterpreter;					// +0C 0C105458
 CInterpreter *	gInterpreterList;				// +10 0C10545C link to next interpreter instance
 bool				gFramesBreakPointsEnabled;	// +14 0C105460 - byte
 Ref				gFramesBreakPoints;			// +18 0C105464 - frame, GCRoot
+extern bool		gAccurateStackTrace;			// +1C 0C105468 - SetDebugMode(), in DebugAPI.cc
 
 extern ArrayIndex		gCurrentStackPos;
 
@@ -1124,15 +1125,28 @@ CInterpreter::alternatingLoops(ArrayIndex initialStackDepth)
 /*------------------------------------------------------------------------------
 	Decide which interpreter loop to use.
 	ROM: the fast loop is used only when gAccurateStackTrace, tracing,
-	gFramesBreakPointsEnabled, and function profiling are all off. We only
-	have a use for the slow loop with breakpoints yet.
+	gFramesBreakPointsEnabled, and function profiling are all off. We use the
+	slow loop for breakpoints and for accurate stack traces (SetDebugMode).
 	Call this whenever one of these settings changes.
 ------------------------------------------------------------------------------*/
 
 void
 CInterpreter::setFastLoopFlag(void)
 {
-	isFast = !gFramesBreakPointsEnabled;
+	isFast = !gFramesBreakPointsEnabled && !gAccurateStackTrace;
+}
+
+
+/*------------------------------------------------------------------------------
+	Call setFastLoopFlag() for every interpreter.
+	The settings it depends on are global.
+------------------------------------------------------------------------------*/
+
+void
+SetFastLoopFlags(void)
+{
+	for (CInterpreter * intrp = gInterpreterList; intrp != NULL; intrp = intrp->next)
+		intrp->setFastLoopFlag();
 }
 
 
@@ -1186,6 +1200,13 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 				else
 					localSlot = ((FrameObject *)ObjectPtr(vm->locals))->slot;
 			}
+			// As in ROM SlowRun(): keep instructionOffset pointing at the next
+			// instruction (an opcode with 7 in its low bits has a 16-bit
+			// operand). If this instruction throws, the exception handler
+			// enters the break loop through call(), which saves
+			// instructionOffset as this frame's PC, so the PC is exact.
+			if (kSlow)
+				instructionOffset = (instrPtr - instrBase) + (((*instrPtr & 0x07) == 0x07) ? 3 : 1);
 
 			a = *instrPtr++;
 			b = a & 0x07;
@@ -3533,13 +3554,14 @@ RememberDeveloperNotified(Exception * inException)
 void
 ForgetDeveloperNotified(ExceptionName inName)
 {
-	NotifyItem * p, * prevp;
-
-	for (prevp = p = gDeveloperNotified; p != NULL; prevp = p, p = p->next)
+	// As in ROM: walk the links, so that removing the first item updates
+	// gDeveloperNotified (the port used to leave it pointing at freed memory).
+	for (NotifyItem ** link = &gDeveloperNotified; *link != NULL; link = &(*link)->next)
 	{
+		NotifyItem * p = *link;
 		if (p->name == inName)
 		{
-			prevp->next = p->next;
+			*link = p->next;
 			free(p->name);
 			free(p);
 			break;
@@ -3567,9 +3589,7 @@ EnableBreakPoints(bool doEnable)
 {
 	bool	prevEnable = gFramesBreakPointsEnabled;
 	gFramesBreakPointsEnabled = doEnable;
-	// ROM does this for one interpreter; the flag is global, so do all of them
-	for (CInterpreter * intrp = gInterpreterList; intrp != NULL; intrp = intrp->next)
-		intrp->setFastLoopFlag();
+	SetFastLoopFlags();	// ROM does this for one interpreter; the flag is global
 	return prevEnable;
 }
 
