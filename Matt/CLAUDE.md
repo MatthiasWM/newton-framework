@@ -318,8 +318,14 @@ regression checks (MATT.md) still apply when shared code is touched.
         Tests: `debugapi_temps` (stopped mid-expression by a breakpoint; next
         frame native), `debugapi_temps_call` (next frame a NewtonScript
         function).
-- [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three
-      installed functions (`Ref_22`/`Ref_27`, likely `MakeDisassembler` & co.).
+- [x] 2.2 `NSDFindSlotName(context, obj)`: tag of the first *own* slot whose
+      value EQs obj, else nil (the ARM code uses `NewIterator()`, i.e. no
+      `_proto` chain, unlike the ROM's `FindSlotName()` that StackTrace uses).
+      `NSDRefToHexString(obj)`: `sprintf("#%lX", ref)` as a string. Test:
+      `natives_misc`. Part 0 installs `MakeDisassembler`, `DisasmRange`,
+      `Disasm`: all NewtonScript (`Ref_27`), no natives.
+      **All natives of NS Debug Tools.pkg now exist in newtc**
+      (`installNSDebugToolsNatives()` in newtc.cc).
 
 ### Phase 3: NS Debug Tools NewtonScript on top
 - [ ] 3.1 Clean up the decompiled NSDT source into `Matt/Debugger/NSDebugTools.ns`

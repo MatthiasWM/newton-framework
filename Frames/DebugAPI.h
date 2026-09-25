@@ -62,6 +62,8 @@ extern void				DeleteNSDebugAPI(CNSDebugAPI * inDebugAPI);
 extern "C" Ref FNSDInstallBreakPoints(RefArg rcvr, RefArg inBreakPoints);
 extern "C" Ref FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable);
 extern "C" Ref FNSDMakeNSDebugAPI(RefArg rcvr);
+extern "C" Ref FNSDFindSlotName(RefArg rcvr, RefArg inContext, RefArg inObj);
+extern "C" Ref FNSDRefToHexString(RefArg rcvr, RefArg inObj);
 // methods of NSDSelfFuncs, called with the debug API frame as receiver
 extern "C" Ref FNSDAccurateStack(RefArg rcvr);
 extern "C" Ref FNSDNumStackFrames(RefArg rcvr);

@@ -1,0 +1,18 @@
+// Step 2.2: NSDFindSlotName(context, obj) and NSDRefToHexString(obj).
+// NSDFindSlotName only searches the context's own slots (not its _proto
+// chain, unlike StackTrace's FindSlotName): 'a lives in base, so looking for
+// 1 in obj finds nothing. For an array, the tag is the index.
+// NSDRefToHexString shows the raw Ref: 42 is #A8 (int << 2), nil #2, true #1A.
+thing := [1];
+base := {a: 1};
+obj := {_proto: base, b: 2, c: thing};
+Print(NSDFindSlotName(obj, thing));
+Print(NSDFindSlotName(obj, 2));
+Print(NSDFindSlotName(obj, 1));
+Print(NSDFindSlotName(base, 1));
+Print(NSDFindSlotName([10, 20, 30], 20));
+Print(NSDFindSlotName(obj, 99));
+Print(NSDRefToHexString(42));
+Print(NSDRefToHexString(nil));
+Print(NSDRefToHexString(true));
+Print(NSDRefToHexString(obj));

@@ -97,6 +97,8 @@ static void installNSDebugToolsNatives()
   defGlobalCFunction("NSDInstallBreakPoints", (void*)FNSDInstallBreakPoints, 1);
   defGlobalCFunction("NSDEnableBreakPoints", (void*)FNSDEnableBreakPoints, 1);
   defGlobalCFunction("NSDMakeNSDebugAPI", (void*)FNSDMakeNSDebugAPI, 0);
+  defGlobalCFunction("NSDFindSlotName", (void*)FNSDFindSlotName, 2);
+  defGlobalCFunction("NSDRefToHexString", (void*)FNSDRefToHexString, 1);
 
   // Methods of the debug API object: {_proto: NSDSelfFuncs, nsDebugAPI: ...}
   RefVar selfFuncs(AllocateFrame());

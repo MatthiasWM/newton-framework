@@ -11,6 +11,7 @@
 #include "CObjectBinaries.h"
 #include "NewtGlobals.h"
 #include "Funcs.h"
+#include "Iterators.h"
 #include "Lookup.h"
 #include "NewtonErrors.h"
 #include "Opcodes.h"
@@ -101,6 +102,42 @@ Ref
 FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable)
 {
 	return MAKEBOOLEAN(EnableBreakPoints(NOTNIL(inEnable)));
+}
+
+
+/*------------------------------------------------------------------------------
+	Find the name of the slot that holds an object.
+	Unlike FindSlotName() (used by StackTrace), this only looks at the
+	context's own slots, not its _proto chain, as in the ARM code.
+	Args:		rcvr				ignored
+				inContext		frame or array
+				inObj				object to look for (compared with EQ)
+	Return:	the slot's tag (index for an array), or nil
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDFindSlotName(RefArg rcvr, RefArg inContext, RefArg inObj)
+{
+	CObjectIterator iter(inContext, false);
+	for ( ; !iter.done(); iter.next())
+	{
+		if (EQ(iter.value(), inObj))
+			return iter.tag();
+	}
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	The raw Ref of an object in hex, like the REPL prints it: "#<hex>".
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDRefToHexString(RefArg rcvr, RefArg inObj)
+{
+	char str[32];
+	snprintf(str, sizeof(str), "#%lX", (unsigned long)inObj.h->ref);
+	return MakeStringFromCString(str);
 }
 
 
