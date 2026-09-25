@@ -1,0 +1,5 @@
+// A bare BreakLoop() stops the script; commands typed at the break loop
+// are evaluated, and ExitBreakLoop() continues after the BreakLoop() call.
+Print("before");
+BreakLoop();
+Print("after");

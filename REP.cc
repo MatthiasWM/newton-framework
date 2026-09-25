@@ -281,7 +281,18 @@ void
 BreakLoop(void)
 {
 	while (!*gBreakLoopDone)
+	{
+		// Not in original: a Newton's serial input never ends, but stdin
+		// does. Waiting for more input would spin forever, so quit instead,
+		// like gdb does at end of input.
+		if (gREPin->inputEnded())
+		{
+			gREPout->flush();
+			fprintf(stderr, "newtc: end of input in break loop, quitting.\n");
+			exit(1);
+		}
 		REPIdle();
+	}
 }
 
 
@@ -1332,6 +1343,13 @@ PStdioInTranslator::frameAvailable(void)
 {
 	return fileRef != NULL
 		&& feof(fileRef) == 0;
+}
+
+bool
+PStdioInTranslator::inputEnded(void)
+{
+	return fileRef == NULL
+		|| feof(fileRef) != 0;
 }
 
 Ref

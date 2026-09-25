@@ -1,0 +1,11 @@
+"before"
+Entering break loop
+"level 1"
+#2        nil<CR>
+Entering break loop
+"level 2"
+#2        nil
+--- stderr ---
+newtc: end of input in break loop, quitting.
+
+--- exit code 1 ---

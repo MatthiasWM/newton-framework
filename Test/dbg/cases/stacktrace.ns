@@ -1,0 +1,14 @@
+// StackTrace() from a break loop two function calls deep.
+// Known broken (plan step 0.2): every frame prints "Skipping bad stack frame".
+global Inner(x)
+begin
+  BreakLoop();
+  x + 1;
+end;
+
+global Outer(y)
+begin
+  Inner(y * 2);
+end;
+
+Print(Outer(20));

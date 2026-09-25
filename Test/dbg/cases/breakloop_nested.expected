@@ -1,0 +1,15 @@
+"before"
+Entering break loop
+"level 1"
+#2        nil<CR>
+Entering break loop
+"level 2"
+#2        nil<CR>
+#2        nil<CR>
+Exiting break loop
+#2        nil<CR>
+"back in level 1"
+#2        nil<CR>
+#2        nil<CR>
+Exiting break loop
+"after"

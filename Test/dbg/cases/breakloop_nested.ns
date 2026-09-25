@@ -1,0 +1,5 @@
+// BreakLoop() typed inside a break loop opens a second level;
+// each ExitBreakLoop() leaves one level.
+Print("before");
+BreakLoop();
+Print("after");

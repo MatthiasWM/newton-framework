@@ -183,19 +183,22 @@ void handleArgScript(const std::string &filename)
 }
 
 /**
- \brief Load a script from a text file, compile it, and write the result object into ref#.
- \todo Check Newton exception handling
+ \brief Run (open) the current object, like tapping an app icon in NewtonOS.
+
+ -run takes no argument. It works on the object held in ref# by a previous
+ -pkg, -nsof, or -script command, so all three can be run the same way,
+ e.g. `newtc -nsof app.nsof -run`. For a 'form package, the idea is to take
+ its 'form part and open the main view.
+
+ \todo Not implemented yet; prints a note and leaves ref# unchanged.
  */
-void handleArgRun(const std::string &filename)
+void handleArgRun()
 {
-  currentFileName = filename;
-  Ref fn = ParseFile(filename.c_str());
-  Ref result = InterpretBlock(fn, RA(NILREF));
-  addGlobalRef(result);
+  std::cerr << "newtc: -run is not implemented yet, ignored." << std::endl;
 }
 
 /**
- \brief Compile a script and write the resulting object into ref#.
+ \brief Compile and run a script and write the resulting object into ref#.
  */
 void handleArgS(const std::string &script)
 {
@@ -230,19 +233,6 @@ void handleArgS(const std::string &script)
   }
   end_try;
 
-  addGlobalRef(result);
-}
-
-/**
- \brief Compile and run a script and write the resulting object into ref#.
- */
-void handleArgR(const std::string &script)
-{
-  currentFileName = "<script>";
-  Ref src = MakeStringFromCString(script.c_str());
-  Ref fn = ParseString(src);
-  Ref result = InterpretBlock(fn, RA(NILREF));
-  addGlobalRef(result);
   addGlobalRef(result);
 }
 
@@ -507,11 +497,11 @@ the commands in the given order.
   Input Commands
   -pkg <filename>         Load a package file and hold it as a Newton object
   -nsof <filename>        Load a Newton streaming object file
-  -script <filename>      Read a source file, compile it, and hold the result
-  -run <filename>         Read a source file, compile it, and run it
-  -s <script>             Compile the script
-  -r <script>             Compile the script and run it
+  -script <filename>      Read a source file, compile and run it, and hold the result
+  -s <script>             Compile and run the script, and hold the result
   -hello                  Compile a "Hello World" app and hold it
+  -run                    Run (open) the current object from -pkg, -nsof, or -script
+                          (not implemented yet)
 
   Output Commands
   -opkg <filename>        Write the current object to a package file
@@ -557,17 +547,11 @@ int handleArgs(int argc, char **argv)
           throw(std::runtime_error("Missing filename after -script ... ."));
         handleArgScript(std::string(argv[argi++]));
       } else if (cmd == "-run") {
-        if ((argi >= argc) || (argv[argi][0] == '-'))
-          throw(std::runtime_error("Missing filename after -run ... ."));
-        handleArgRun(std::string(argv[argi++]));
+        handleArgRun();
       } else if (cmd == "-s") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing script after -s ... ."));
         handleArgS(std::string(argv[argi++]));
-      } else if (cmd == "-r") {
-        if ((argi >= argc) || (argv[argi][0] == '-'))
-          throw(std::runtime_error("Missing script after -r ... ."));
-        handleArgR(std::string(argv[argi++]));
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {
@@ -651,10 +635,9 @@ int handleArgs(int argc, char **argv)
  package description and all parts that could be read
  - [x] -nsof filename : read a Newton Script Object file and hold the contents
  as and object.
- - [x] -script filename : read a NewtonScript file and compile the script
- - [x] -run filename : read, compile, and run some Newton Script
- - [x] -s "script" : compile the script, result is stored in a global ref#
- - [x] -r "script" : compile and run the script, result is stored in a global ref#
+ - [x] -script filename : read a NewtonScript file, compile and run it, result is stored in a global ref#
+ - [x] -s "script" : compile and run the script, result is stored in a global ref#
+ - [ ] -run : run (open) the current object loaded by -pkg, -nsof, or -script, like tapping an app icon
  - [x] -hello : create the a Hello, Wold! application object
  - Controller:
  - [x] -nos1 : compile into NewtonOS 1.x format (default)
@@ -675,8 +658,6 @@ int handleArgs(int argc, char **argv)
  - [ ] -hex : write as a hexadecimal dump
  - [ ] -diff : compare the decompiled text output of ref0 and ref1
  - [x] -- : same as -print
-
- \todo not much of a difference between -s and -r, or -script and -run, right?
 
  \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
 

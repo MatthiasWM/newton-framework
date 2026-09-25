@@ -93,4 +93,216 @@ internal map is generated. Unmapped functions will fall back to ByteCode
 debugging.
 
 
+---
 
+# Working notes (maintained by Claude — update as we go)
+
+## Findings (2026-09-25)
+
+- **The break loop already works.** `newtc -s 'Print("before"); BreakLoop(); Print("after");'`
+  with commands piped on stdin enters the loop, evaluates NewtonScript, and
+  `ExitBreakLoop()` resumes. `FBreakLoop`/`FExitBreakLoop` live in `REP.cc`.
+  But `StackTrace()` prints `*** Skipping bad stack frame` for every frame and
+  warns "Inaccurate stack trace. Use SetDebugMode(true)".
+- **The ROM breakpoint machinery is ported but dormant.** `gFramesBreakPoints`,
+  `gFramesBreakPointsEnabled`, `SetBreakPoints()`, `EnableBreakPoints()` and
+  `CInterpreter::handleBreakPoints()` exist in `Frames/Interpreter.cc`;
+  `handleBreakPoints()` has no call site (the ROM called it from the "slow"
+  interpreter loop `SlowRun`, which was not ported).
+- **NS Debug Tools.pkg decompiles cleanly** with `newtc -pkg ... -decompile`
+  (about 4000 lines). Almost everything is NewtonScript. `Step`, `StepIn`,
+  `StepOut`, `RunUntil`, `Where`, `InstallBreakPoint`, and the rest work like this: they
+  inspect the stack through a debug API object, decode the current
+  instruction (`MakeDisassembler`), install a *temporary* breakpoint at the
+  next PC (or the branch target, or PC 0 of the callee), then call `ExitBreakLoop()`.
+  `FindBreakLoop()` locates the paused frame by searching the stack for
+  `functions.BreakLoop`, so it doesn't need a separate "paused location" snapshot.
+- **The ARM code is small and already has C++ equivalents here:**
+
+  | NSDT native (ARM `BinCFunction`) | C++ in this repo |
+  |---|---|
+  | `NSDInstallBreakPoints(bps)` | `SetBreakPoints()` (Interpreter.cc) |
+  | `NSDEnableBreakPoints(bool)` | `EnableBreakPoints()` (Interpreter.cc) |
+  | `NSDMakeNSDebugAPI()` + `NSDSelfFuncs` methods `AccurateStack, NumStackFrames, Function, ProgramCounter, SetProgramCounter, Receiver, Implementor, GetVar, SetVar, FindVar, SetFindVar, NumTemps, TempValue, SetTempValue` | `CNSDebugAPI` methods (Frames/DebugAPI.cc) |
+  | `NSDFindSlotName`, `NSDRefToHexString` | `FindSlotName` exists; hex string is trivial |
+
+  NSDT saves the ROM `BreakLoop` as `NSDOriginalBreakLoop` and installs its
+  own NewtonScript `BreakLoop`, which prints the location and calls the
+  optional hooks `NSDBreakLoopEntry`/`NSDBreakLoopExit`.
+- **Apple already shipped shortcuts:** `NSDShortCuts/myFunctions` (plain
+  NewtonScript source next to the pkg) defines `s` (Step, one bytecode
+  instruction and steps over calls), `si` (StepIn), `so` (StepOut), `r`/`cont`/`e`
+  (continue), `w` (Where), `qs`/`st` (stack traces), `stop`/`stopat`/
+  `clearbp`/`listbps`, `gl`/`sl` (get/set local), `dis`/`dishere`, and more.
+  Apple's users type them as calls, e.g. `s()`.
+- **First attempt (branch `try_to_debug`, notes in that branch's
+  `Matt/CLAUDE.md`, "Runtime debugging" onward).** Worth keeping:
+  - Checking breakpoints in `run1()` behind `gFramesBreakPointsEnabled`.
+    After a hit, re-derive `instrBase`/`instrPtr`/`literalSlot`/`localSlot`,
+    because NewtonScript run inside the break loop can compact the heap.
+  - Compiler line numbers must be captured at parser *shift* time
+    (`shiftLineNumber`). Reading `lineNo()` in a reduce action is off by one
+    statement (LALR lookahead). Codegen runs after the full parse, so
+    `emit()` can't read the lexer position.
+  - How a C++ function becomes NS-callable: a
+    `{class: kPlainCFunctionClass, function:, numargs:}` frame placed in
+    `gFunctionFrame` (see `newtc.cc` `init()`). `Frames/Funcs.cc` is dead code.
+  - A native function's own `VMState` is pushed before it runs, so the
+    caller is `vm - 1`.
+
+  Deliberately **not** carried over: the custom `checkStep()` stepping engine
+  and the `gPaused*` snapshot globals. This time we follow Apple's design
+  (temporary breakpoints plus `FindBreakLoop`) as closely as possible.
+
+## Plan
+
+Rules: one small step at a time. Every step ends with something Matt can
+run and see, and an automated test that keeps it working. Decompiler
+regression checks (MATT.md) still apply when shared code is touched.
+
+### Phase 0: Groundwork
+- [x] 0.1 Debugger test harness: `Test/dbg/cases/<name>.ns` + `<name>.in`
+      (stdin commands for the break loop) + `<name>.expected`. Run
+      `Test/dbg/run_dbg_tests.py` (all), `... <name>` (filter), `-v` (show
+      output), `--update <name>` (accept new output). Runs `newtc -script`,
+      10 s timeout, normalizes heap refs to `#<ref>` and shows a lone `\r` as
+      `<CR>`. Every later step adds a case.
+      Found while building it:
+      - `-run <file>` crashed after every script (it ran the result a second
+        time). Now `-run` takes no argument and will run (open) whatever
+        `-pkg`, `-nsof`, or `-script` loaded, e.g. `newtc -nsof app.nsof -run`
+        (VSNewt already calls it that way). Not implemented yet. `-r` was
+        removed; `-s` does the same. Compiling NewtonScript always runs it,
+        so `-script`/`-s` compile *and* run.
+      - At end of stdin the break loop spins forever (step 0.3).
+      - The REPL prints each result as `#<ref>  <value>\r`. In a terminal the
+        `\r` makes the next line overwrite it (Phase 4.2).
+- [ ] 0.2 Make `StackTrace()` work in a break loop (fix "Skipping bad stack
+      frame"; understand `SetDebugMode`/accurate stack/`vm->pc`).
+- [x] 0.3 End of input inside a break loop quits newtc (message on stderr,
+      exit code 1) instead of spinning. New virtual `PInTranslator::
+      inputEnded()` (default `false`, so the Hammer/Null translators are unchanged);
+      `PStdioInTranslator` returns true at `feof(stdin)`; `BreakLoop()`
+      (REP.cc) checks it. Same as gdb/pdb at end of input, and right for
+      DAP later (EOF = client gone). Tests: `breakloop_eof`, `breakloop_eof_nested`.
+
+### Phase 1: Reactivate ROM breakpoints (C++ only)
+- [ ] 1.1 Read how the ROM's slow loop calls `handleBreakPoints()`; call it
+      from `run1()` behind `gFramesBreakPointsEnabled` (measure the cost of
+      one loop with a flag vs. a separate slow loop).
+- [ ] 1.2 Expose `NSDInstallBreakPoints`/`NSDEnableBreakPoints` as natives.
+      Test: a hand-built `{programCounter: [{instructions:, programCounter:,
+      temporary:}]}` frame stops at that PC; the temporary one fires once.
+- [ ] 1.3 PCs are exact while paused (`GetCurrentPC` = next instruction).
+
+### Phase 2: The NS Debug Tools native layer
+- [ ] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
+      method group at a time (stack/function/PC → receiver/implementor →
+      vars → temps). Test each from a break loop.
+- [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three
+      installed functions (`Ref_22`/`Ref_27`, likely `MakeDisassembler` & co.).
+
+### Phase 3: NS Debug Tools NewtonScript on top
+- [ ] 3.1 Clean up the decompiled NSDT source into `Matt/Debugger/NSDebugTools.ns`
+      (plus Apple's `myFunctions`) and embed it into newtc at build time.
+- [ ] 3.2 `-dbg` flag: load the tools, enable breakpoints, set
+      `breakOnThrows`, install Apple's `myFunctions` shortcuts.
+- [ ] 3.3 Verify the Apple API one group per step: `Where`/`QuickStackTrace`;
+      `GetCurrentFunction`/`GetCurrentPC`; `InstallBreakPoint`/
+      `RemoveBreakPoint`/`GetAllBreakPoints`; `Step`; `StepIn`; `StepOut`;
+      `RunUntil`; `Get/SetNamedVar`, `Get/SetTempVar`; `Disasm`.
+
+### Phase 4: Comfortable command-line REPL
+- [ ] 4.1 Break-loop input filter: a line that is a bare command word
+      (`c`, `n`, `s`, `finish`, `bt`, `b ...`, `info b`, ...) becomes a call;
+      anything else is evaluated as NewtonScript as before.
+- [ ] 4.2 On stop, show function, PC, and the current instruction (`dishere` style).
+- [ ] 4.3 (optional) Line editing/history.
+
+### Phase 5: Debugger engine interface (C++)
+- [ ] 5.1 Put a C++ interface around the REPL-level operations: commands
+      (continue, step kinds, set/clear breakpoints, stack, scopes/variables,
+      evaluate) and events (stopped + reason, output, exited). The REPL of
+      Phase 4 uses it too, so the Phase 0 tests cover it.
+- [ ] 5.2 The break loop waits on a command source that can be stdin *or* a
+      queue fed from another thread (needed because cppdap is threaded while
+      the interpreter must stay on one thread).
+
+### Phase 6: DAP, bytecode level
+- [ ] 6.1 Add cppdap (CMake), `-dap` flag, stdio transport; initialize/
+      launch/configurationDone/disconnect; output events; run to completion.
+- [ ] 6.2 Stop on `BreakLoop()`/breakpoint/exception → `stopped`,
+      `threads`, `stackTrace`.
+- [ ] 6.3 `scopes`/`variables` (args, locals, self, value-stack temps).
+- [ ] 6.4 `continue`/`next`/`stepIn`/`stepOut`.
+- [ ] 6.5 Showing bytecode. Proposal: each unmapped function gets a
+      *virtual source* (DAP `sourceReference`) holding its disassembly, one
+      instruction per line. Line breakpoints and stepping then map 1:1 to
+      PCs and reuse the source-level machinery. Optional extra: DAP
+      `disassemble` + instruction breakpoints for VS Code's Disassembly view.
+- [ ] 6.6 `evaluate` (VS Code debug console) → same evaluation as the break loop.
+
+### Phase 7: Source level, internal map
+- [ ] 7.1 In-memory representation: per chunk {files[], functions[{key,
+      file, pc→line table}]}; runtime index `instructions`-Ref → entry, and
+      (file, line) → [(function, pc)]. Both lookup functions, tested with
+      hand-built maps.
+- [ ] 7.2 Function keys per chunk kind: live compiled Ref; compiler-
+      assigned ID (NSOF/pkg); walk-order index (decompiled pkg); blob offset
+      (ROM).
+- [ ] 7.3 Line-level stepping (`n`/`s` repeat bytecode steps until the
+      line changes, depth-aware so recursion doesn't stop early).
+
+### Phase 8: Generating and storing maps
+- [ ] 8.1 Compiler generates the map in memory (compile-and-debug). Test:
+      breakpoint by `file:line`, then `n`/`s`.
+- [ ] 8.2 `.nsdbg` side-car format (delta-encoded, PC-sorted, file table,
+      checksum; see MATT.md) with a round-trip test.
+- [ ] 8.3 Compiler writes `.nsdbg` next to `-opkg`/`-onsof`; the loader
+      restores the mapping.
+- [ ] 8.4 Decompiler writes source + `.nsdbg` for packages.
+- [ ] 8.5 ROM: decompiled source + offset-keyed map.
+
+### Phase 9: DAP, source level
+- [ ] 9.1 `setBreakpoints` by file/line, source-mapped stack frames,
+      fall back to Phase 6.5 virtual sources for unmapped functions.
+
+### Later: the rest of the VS Code extension
+- `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.
+
+## Conventions
+
+- **Line endings**: CR (`\r`) is a leftover from classic Mac OS. Input must
+  treat CR, LF, and CRLF the same wherever it shows up, because existing
+  packages and sources still contain CR. Everything newtc *writes* for general
+  use should use LF (Unix/current macOS). Known offender: the REPL result
+  print (`gREPout->putc(0x0D)` in `REPAcceptLine`, Phase 4.2).
+
+## Decisions (2026-09-25)
+
+1. **ROM source** is in `./newtonos.s` (132 MB, git-ignored, ARM
+   disassembly with labels). Apple's class names are `Txxx`; this port renamed
+   them to `Cxxx` (`TInterpreter` → `CInterpreter`, `TNSDebugAPI` →
+   `CNSDebugAPI`, `TDictionary` → `CDictionary`). Useful labels:
+   `SlowRun__12TInterpreterFl` (line ~941591),
+   `HandleBreakPoints__12TInterpreterFv` (~903964),
+   `SetBreakPoints__12TInterpreterFRC6RefVar`, `EnableBreakPoints__12TInterpreterFUc`,
+   `TNSDebugAPI::*` (~901908), `FBreakLoop` (~871677). Search with `grep -n`;
+   never read the whole file.
+2. **NS Debug Tools as a `.ns` file**: check in the decompiled NewtonScript
+   as a readable source file (real names and comments). It gets **embedded
+   into the newtc binary at build time** (CMake generates a C++ string from
+   it), so newtc has no runtime dependency on external files. The same applies to
+   Apple's `myFunctions` shortcuts.
+3. **Shortcuts**: bare-word commands in the break loop follow gdb (`c`, `n`,
+   `s`, `finish`, `bt`, `b`, `info b`, ...). Apple's functions stay callable
+   as `s()`, `si()`, and so on. `bt` depends on the `StackTrace()` fix (0.2).
+4. **VS Code**: one extension, `/Users/matt/dev/VSNewt.git/vsnewt`
+   (TypeScript; it already runs `newtc` for compile/run commands, with binaries
+   in `bin/<platform>/newtc`). The long-term goal is one extension with the best
+   NewtonScript support we can build: compiler, debugger, syntax highlighting,
+   completion. Proposal: the extension stays thin and `newtc` does the work, in
+   two modes: `-dap` (Debug Adapter Protocol, via
+   `contributes.debuggers` + a `DebugAdapterExecutable`) and later `-lsp`
+   (Language Server Protocol: diagnostics, completion, go-to-definition,
+   all reusing the compiler). A TextMate grammar handles highlighting.

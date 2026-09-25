@@ -41,6 +41,8 @@ public:
 	virtual Timeout		idle(void) = 0;
 	virtual bool			frameAvailable(void) = 0;
 	virtual Ref			produceFrame(int inLevel) = 0;
+  // -- not in original: true when no more input will ever arrive (end of file)
+	virtual bool			inputEnded(void) { return false; }
 };
 
 
@@ -109,6 +111,7 @@ public:
 	Timeout		idle(void) override;
 	bool			frameAvailable(void) override;
 	Ref			produceFrame(int inLevel) override;
+	bool			inputEnded(void) override;
     // -- end of protocol
 
 private:

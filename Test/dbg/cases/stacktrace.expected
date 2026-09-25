@@ -1,0 +1,13 @@
+Entering break loop
+WARNING:  Inaccurate stack trace.  Use SetDebugMode(true) for accurate stack traces.
+Stack trace:
+   5 :   *** Skipping bad stack frame
+   4 :   *** Skipping bad stack frame
+   3 :   *** Skipping bad stack frame
+   2 :   *** Skipping bad stack frame
+   1 :   *** Skipping bad stack frame
+   0 :   *** Skipping bad stack frame
+#2        nil<CR>
+#2        nil<CR>
+Exiting break loop
+41

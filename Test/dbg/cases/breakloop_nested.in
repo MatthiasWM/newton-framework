@@ -1,0 +1,6 @@
+Print("level 1");
+BreakLoop();
+Print("level 2");
+ExitBreakLoop();
+Print("back in level 1");
+ExitBreakLoop();

@@ -1,0 +1,7 @@
+"before"
+Entering break loop
+
+--- stderr ---
+newtc: end of input in break loop, quitting.
+
+--- exit code 1 ---

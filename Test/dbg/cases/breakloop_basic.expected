@@ -1,0 +1,7 @@
+"before"
+Entering break loop
+42
+#2        nil<CR>
+#2        nil<CR>
+Exiting break loop
+"after"

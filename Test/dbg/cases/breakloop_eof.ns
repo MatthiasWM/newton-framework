@@ -1,0 +1,5 @@
+// No input at all: the break loop must quit newtc (exit code 1)
+// instead of waiting forever. "after" is never printed.
+Print("before");
+BreakLoop();
+Print("after");

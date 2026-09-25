@@ -1,0 +1,4 @@
+// Input ends inside a nested break loop: newtc quits from there.
+Print("before");
+BreakLoop();
+Print("after");
