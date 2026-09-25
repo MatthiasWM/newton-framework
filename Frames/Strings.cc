@@ -770,7 +770,9 @@ StrPosition(RefArg str, RefArg substr, ArrayIndex startPos)
 	ArrayIndex	substrLen = richSubstr.length();
 	ArrayIndex	pos = kIndexNotFound;
 
-	for ( ; startPos + substrLen < strLen; startPos++)
+	if ((int32_t)startPos < 0)	// ROM: a negative start is 0
+		startPos = 0;
+	for ( ; startPos + substrLen <= strLen; startPos++)	// ROM: <= (was <: a match at the end was not found)
 	{
 		if (richStr.compareSubStringCommon(richSubstr, startPos, substrLen) == 0)
 		{

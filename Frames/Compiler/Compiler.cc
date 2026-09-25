@@ -114,6 +114,7 @@ int		yychar;			// +0C	token type --> theToken.id
 int		yystate;			// +10	state
 short *	yyssp;			// +14	state stack ptr
 YYSTYPE *yyvsp;			// +18	value stack ptr
+int *		yylsp;			// not in ROM: line stack ptr (line of each entry's first token)
 YYSTYPE	yyval;			// +1C	$$
 YYSTYPE	yylval;			// +20	token value --> theToken.value.ref
 short *	yyss;				// +24	state stack base
@@ -322,6 +323,10 @@ CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions)
 	stream = inStream;
 	yaccStack = AllocateArray(SYMA(yaccStack), kInitYaccStackSize);
 	sStack = (short *)malloc(kInitYaccStackSize * sizeof(short));
+	lStack = (int *)malloc(kInitYaccStackSize * sizeof(int));	// not in ROM
+	fKeepLines = NOTNIL(GetGlobalVar(MakeSymbol("dbgKeepLineNumbers")));
+	fLineFile = NILREF;
+	fStatementLine = 0;
 	is1Expression = inByExpressions;
 	funcDepthPtr = NULL;
 	tokenQueueIndex = 0;
@@ -362,6 +367,41 @@ CCompiler::~CCompiler()
 {
 	UnlockRef(yaccStack);
 	// shouldn’t we free(sStack)?
+	free(lStack);	// not in ROM
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in ROM: line tables (-g).
+	withLine() wraps a statement in [TOKENline, line, statement] when line
+	tables are on; code generation records the line. Without -g the tree is
+	exactly as before.
+	lineFile() is the file name all line tables of this compile share: the
+	absolute path of the source file, else the stream's name.
+------------------------------------------------------------------------------*/
+
+Ref
+CCompiler::withLine(RefArg inNode, int inLine)
+{
+	if (!fKeepLines || inLine <= 0)
+		return inNode;
+	return AllocatePT2(TOKENline, MAKEINT(inLine), inNode);
+}
+
+Ref
+CCompiler::lineFile(void)
+{
+	if (ISNIL(fLineFile))
+	{
+		const char * name = stream->fileName();
+		char path[PATH_MAX];
+		if (name == NULL || name[0] == 0)
+			name = "<unknown>";
+		else if (name[0] != '/' && realpath(name, path) != NULL)
+			name = path;
+		fLineFile = MakeStringFromCString(name);
+	}
+	return fLineFile;
 }
 
 
@@ -420,6 +460,8 @@ CCompiler::compile(void)
 		if (graphLen > 0)
 		{
 			RefVar finalPT(GetArraySlot(GetArraySlot(graph, 1), graphLen - 1));
+			if (RINT(GetArraySlot(finalPT, 0)) == TOKENline)	// not in ROM
+				finalPT = GetArraySlot(finalPT, 2);
 			if (RINT(GetArraySlot(finalPT, 0)) == TOKENEQL)
 				warning("= at top level... did you mean := ?");
 		}
@@ -580,6 +622,7 @@ int
 CCompiler::parser(void)
 {
 	int		yym, yyn;
+	int		yyline;		// not in ROM: see yyreduce
 #if YYDEBUG
 	char *	yys;
 #endif
@@ -590,7 +633,9 @@ CCompiler::parser(void)
 	yyssp = yyss = sStack;
 	yystate = 0;
 	yyvsp = vStack;
+	yylsp = lStack;
 	*sStack = 0;
+	*lStack = 0;
 
 yyloop:
 	if ((yyn = yydefred[yystate]) != 0) goto yyreduce;
@@ -622,6 +667,7 @@ yyloop:
 		if (yyssp >= &yyss[stackSize-1] && parserStackOverflow()) goto yyoverflow;
 		*++yyssp = yystate = yytable[yyn];
 		*++yyvsp = theToken.value.ref;
+		*++yylsp = theToken.location.lineNumber;
 		yychar = -1;
 		if (yyerrflag > 0) --yyerrflag;
 		goto yyloop;
@@ -660,6 +706,7 @@ yyloop:
 				if (yyssp >= &yyss[stackSize-1] && parserStackOverflow()) goto yyoverflow;
 				*++yyssp = yystate = yytable[yyn];
 				*++yyvsp = theToken.value.ref;
+				*++yylsp = theToken.location.lineNumber;
 				goto yyloop;
 			}
 			else
@@ -672,6 +719,7 @@ yyloop:
 				if (yyssp <= yyss) goto yyabort;
 				--yyssp;
 				--yyvsp;
+				--yylsp;
 			}
 		}
 	}
@@ -700,6 +748,9 @@ yyreduce:
 #endif
 	yym = yylen[yyn];
 	yyval = yyvsp[1-yym];
+	// not in ROM: the line of the rule's first token (or of the lookahead
+	// for an empty rule)
+	yyline = (yym > 0) ? yylsp[1-yym] : theToken.location.lineNumber;
 
 //•••••• PASTE SWITCH FROM y.tab.c : yyparse HERE
     switch (yyn)
@@ -709,13 +760,13 @@ case 1:
 break;
 case 3:
 					{	yyval = MakeArray(1);
-						SetArraySlot(yyval, 0, yyvsp[0]); }
+						SetArraySlot(yyval, 0, withLine(yyvsp[0], yylsp[0])); }
 break;
 case 4:
 					{	yyval = yyvsp[-1];  if (is1Expression) YYACCEPT; }
 break;
 case 5:
-					{	yyval = yyvsp[-3];  AddArraySlot(yyval, yyvsp[0]); }
+					{	yyval = yyvsp[-3];  AddArraySlot(yyval, withLine(yyvsp[0], yylsp[0])); }
 break;
 case 11:
 					{	yyval = AllocatePT1(TOKENself, RA(NILREF)); }
@@ -838,14 +889,14 @@ case 61:
 					{	/* CHECK THIS… */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(TOKENconst, yyvsp[-4]));
-						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
+						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
 						yyval = AllocatePT2(TOKENcall, SYMA(DefGlobalFn), fn); }
 break;
 case 62:
 					{	/* …AND THIS */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(TOKENconst, yyvsp[-4]));
-						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
+						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
 						yyval = AllocatePT2(TOKENcall, SYMA(DefGlobalFn), fn); }
 break;
 case 63:
@@ -891,10 +942,10 @@ case 76:
 					{	yyval = AllocatePT3(TOKENsendIfDefined, yyvsp[-3], AllocatePT1(TOKENself, RA(NILREF)), yyvsp[-1]); }
 break;
 case 77:
-					{	yyval = AllocatePT3(TOKENif, yyvsp[-4], yyvsp[-2], yyvsp[0]); }
+					{	yyval = AllocatePT3(TOKENif, yyvsp[-4], withLine(yyvsp[-2], yylsp[-2]), withLine(yyvsp[0], yylsp[0])); }
 break;
 case 78:
-					{	yyval = AllocatePT3(TOKENif, yyvsp[-2], yyvsp[0], RA(NILREF)); }
+					{	yyval = AllocatePT3(TOKENif, yyvsp[-2], withLine(yyvsp[0], yylsp[0]), RA(NILREF)); }
 break;
 case 79:
 					{	/* nothing to do here */ }
@@ -912,24 +963,24 @@ case 83:
 					{	/* nothing to do here */ }
 break;
 case 84:
-					{	yyval = AllocatePT1(TOKENloop, yyvsp[0]); }
+					{	yyval = AllocatePT1(TOKENloop, withLine(yyvsp[0], yylsp[0])); }
 break;
 case 85:
-					{	yyval = AllocatePT5(TOKENfor, yyvsp[-6], yyvsp[-4], yyvsp[-2], AllocatePT1(TOKENconst, MAKEINT(1)), yyvsp[0]); }
+					{	yyval = AllocatePT5(TOKENfor, yyvsp[-6], yyvsp[-4], yyvsp[-2], AllocatePT1(TOKENconst, MAKEINT(1)), withLine(yyvsp[0], yylsp[0])); }
 break;
 case 86:
-					{	yyval = AllocatePT5(TOKENfor, yyvsp[-8], yyvsp[-6], yyvsp[-4], yyvsp[-2], yyvsp[0]); }
+					{	yyval = AllocatePT5(TOKENfor, yyvsp[-8], yyvsp[-6], yyvsp[-4], yyvsp[-2], withLine(yyvsp[0], yylsp[0])); }
 break;
 case 87:
 					{	RefVar	req(MakeArray(2));
 						SetArraySlot(req, 0, yyvsp[-7]);
 						SetArraySlot(req, 1, yyvsp[-5]);
-						yyval = AllocatePT5(TOKENforeach, yyvsp[-1], yyvsp[-2], yyvsp[0], req, yyvsp[-4]); }
+						yyval = AllocatePT5(TOKENforeach, yyvsp[-1], yyvsp[-2], withLine(yyvsp[0], yylsp[0]), req, yyvsp[-4]); }
 break;
 case 88:
 					{	RefVar	req(MakeArray(1));
 						SetArraySlot(req, 0, yyvsp[-5]);
-						yyval = AllocatePT5(TOKENforeach, yyvsp[-1], yyvsp[-2], yyvsp[0], req, yyvsp[-4]); }
+						yyval = AllocatePT5(TOKENforeach, yyvsp[-1], yyvsp[-2], withLine(yyvsp[0], yylsp[0]), req, yyvsp[-4]); }
 break;
 case 89:
 					{	yyval = NILREF; }
@@ -946,19 +997,19 @@ case 92:
 						yyval = SYMA(collect); }
 break;
 case 93:
-					{	yyval = AllocatePT2(TOKENwhile, yyvsp[-2], yyvsp[0]); }
+					{	yyval = AllocatePT2(TOKENwhile, yyvsp[-2], withLine(yyvsp[0], yylsp[0])); }
 break;
 case 94:
-					{	yyval = AllocatePT2(TOKENrepeat, yyvsp[-2], yyvsp[0]); }
+					{	yyval = AllocatePT2(TOKENrepeat, yyvsp[-2], withLine(yyvsp[0], yylsp[0])); }
 break;
 case 95:
-					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
+					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
 break;
 case 96:
-					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(TRUEREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
+					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(TRUEREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
 break;
 case 97:
-					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(TRUEREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
+					{	yyval = AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(TRUEREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)); }
 break;
 case 98:
 					{	yyval = AllocatePT2(TOKENtry, AllocatePT1(TOKENbegin, yyvsp[-1]), yyvsp[0]); }
@@ -972,7 +1023,7 @@ case 100:
 						AddArraySlot(yyval, yyvsp[0]); }
 break;
 case 101:
-					{	yyval = AllocatePT2(TOKENonexception, yyvsp[-2], yyvsp[0]); }
+					{	yyval = AllocatePT2(TOKENonexception, yyvsp[-2], withLine(yyvsp[0], yylsp[0])); }
 break;
 case 102:
 					{	yyval = AllocatePT1(TOKENBuildArray, yyvsp[-1]); }
@@ -1000,10 +1051,10 @@ case 109:
 break;
 case 110:
 					{	yyval = MakeArray(1);
-						SetArraySlot(yyval, 0, yyvsp[0]); }
+						SetArraySlot(yyval, 0, withLine(yyvsp[0], yylsp[0])); }
 break;
 case 111:
-					{	AddArraySlot(yyvsp[-2], yyvsp[0]);
+					{	AddArraySlot(yyvsp[-2], withLine(yyvsp[0], yylsp[0]));
 						yyval = yyvsp[-2]; }
 break;
 case 112:
@@ -1227,6 +1278,7 @@ break;
 	yyssp -= yym;
 	yystate = *yyssp;
 	yyvsp -= yym;
+	yylsp -= yym;
 	yym = yylhs[yyn];
 	if (yystate == 0 && yym == 0)
 	{
@@ -1238,6 +1290,7 @@ break;
 		yystate = YYFINAL;
 		*++yyssp = YYFINAL;
 		*++yyvsp = yyval;
+		*++yylsp = yyline;
 		if (yychar < 0)
 		{
 			if ((yychar = getToken()) < 0) yychar = 0;
@@ -1272,6 +1325,7 @@ break;
 	if (yyssp >= &yyss[stackSize-1] && parserStackOverflow()) goto yyoverflow;
 	*++yyssp = yystate;
 	*++yyvsp = yyval;
+	*++yylsp = yyline;
 	goto yyloop;
 
 yyoverflow:
@@ -1314,6 +1368,9 @@ CCompiler::parserStackOverflow(void)
 			LockRef(yaccStack);
 			vStack = Slots(yaccStack);
 			yyvsp = vStack + i;
+
+			lStack = (int *)realloc(lStack, newSize * sizeof(int));	// not in ROM
+			yylsp = lStack + i;
 
 			stackSize = newSize;
 			ovflw = false;
@@ -1491,6 +1548,7 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 			break;
 
 		case TOKENglobal:
+		case TOKENline:		// not in ROM: [TOKENline, line, statement]
 			WalkNodes(p2, inContext, inWalker, inPostProcessing);
 			break;
 
@@ -2054,6 +2112,17 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 			emitVarGet(p1);
 		break;
 
+	case TOKENline:
+		//	not in ROM: p1 = line, p2 = statement (-g)
+		{
+			int savedLine = fStatementLine;
+			fStatementLine = RINT(p1);
+			func->noteLine(fStatementLine);
+			isFinalNode = walkForCode(p2, inFinalNode);
+			fStatementLine = savedLine;
+		}
+		break;
+
 	case TOKENbegin:
 		//	p1 = expr seq
 		numOfElements = Length(p1);
@@ -2281,6 +2350,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 			int	loopStart = curPC();
 			func->beginLoop();
 			walkForCode(p1, false);
+			func->noteLine(fStatementLine);	// not in ROM: the loop's line
 			emitPop();
 			emitBranch(loopStart);
 			func->endLoop();
@@ -2293,6 +2363,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 			ArrayIndex	loopStart = curPC();
 			func->beginLoop();
 			walkForCode(p2, false);
+			func->noteLine(fStatementLine);	// not in ROM: the loop's line
 			emitPop();
 			backpatch(entryBranch, kOpcodeBranch, curPC());
 			walkForCode(p1, false);
@@ -2366,6 +2437,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 			func->beginLoop();
 			if (walkForCode(p5, true) != 0)
 				emitPop();
+			func->noteLine(fStatementLine);	// not in ROM: the loop's line
 			emitVarGet(iterIncr);
 			emitVarIncr(p1);
 			backpatch(entryBranch, kOpcodeBranch, curPC());
@@ -2468,6 +2540,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 				if (walkForCode(p3, true))
 					emitPop();
 			}
+			func->noteLine(fStatementLine);	// not in ROM: the loop's line
 
 			emitVarGet(iterVarSym);
 			emit(kOpcodeSimple, kSimpleIterNext);

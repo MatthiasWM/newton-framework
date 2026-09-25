@@ -573,7 +573,7 @@ function (embed_newtonscript target nsfile name)
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
 
-target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h)
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/LineTables.cc Matt/LineTables.h)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)

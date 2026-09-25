@@ -445,6 +445,10 @@ CCompiler::consumeToken(void)
 		while (IsWhiteSpace(theChar))
 			consumeChar();
 
+		// not in ROM: where the token starts, for line tables (-g)
+		theToken.location.lineNumber = lineNumber;
+		theToken.location.colmNumber = colmNumber;
+
 		switch (theChar)
 		{
 		case (UniChar)EOF: case 0:

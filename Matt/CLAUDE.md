@@ -786,30 +786,86 @@ DebugAdapterExecutable `newtc -dap`, `languages` for .ns, and
 `breakpoints: [{language: "newtonscript"}]`; the setting
 `vsnewt.newtcPath` for a development build of newtc.
 
-### Phase 7: Source level, internal map
-- [ ] 7.1 In-memory representation: per chunk {files[], functions[{key,
-      file, pc→line table}]}; runtime index `instructions`-Ref → entry, and
-      (file, line) → [(function, pc)]. Both lookup functions, tested with
-      hand-built maps.
-- [ ] 7.2 Function keys per chunk kind: live compiled Ref; compiler-
-      assigned ID (NSOF/pkg); walk-order index (decompiled pkg); blob offset
-      (ROM).
-- [ ] 7.3 Line-level stepping (`n`/`s` repeat bytecode steps until the
-      line changes, depth-aware so recursion doesn't stop early).
+### Phase 7: Line tables in the compiler (revised 2026-09-25)
+Decisions (Matt): code newtc compiles carries its line table *in the
+function object*, like NTK's DebuggerInfo (it travels into NSOF and
+packages; no side-car pairing or checksums; a Newton ignores the slot). A
+side-car `.nsdbg` is only for code whose binary must not change
+(decompiled packages, ROM; Phase 9). Lookups have one path: the function's
+own table, else one registered for its `instructions`. Line stepping runs
+in the interpreter (C++), not in NewtonScript.
+- [x] 7.1 Line numbers in the parser. The lexer records where each token
+      starts (`theToken.location`; it reads one character ahead, so
+      `lineNumber` after a token can already be the next line). The yacc
+      driver (Compiler.cc `parser()`) keeps a line stack next to the value
+      stack (`lStack`/`yylsp`): a shift pushes the token's line, a reduce
+      pushes the line of the rule's first token (`yyline`). With -g
+      (`CCompiler::fKeepLines`, global `dbgKeepLineNumbers`), `withLine()`
+      wraps statements in `[TOKENline, line, statement]` (TOKENline = 920,
+      not a lexer token): top-level statements (rules 3, 5), statement
+      sequences (110, 111), if branches (77, 78), loop bodies (84-88, 93),
+      repeat's until (94), function bodies (61, 62, 95-97), onexception
+      handlers (101). Without -g the tree is exactly as before.
+      `WalkNodes` descends into the wrapper; the top-level "=" warning
+      looks through it.
+- [x] 7.2 Code generation: `walkForCode` case TOKENline calls
+      `CFunctionState::noteLine(line)` and generates the statement;
+      `noteLine` appends (pc, line) when the line changes (or replaces the
+      last entry if no code came since). Loops note their own line again
+      before the control code at the bottom. `makeCodeBlock` stores
+      `lineTable: [lineTable: file, pc, line, ...]` in the function; the
+      file is one string per compile (absolute path via realpath, else the
+      stream's name, e.g. "NSDebugTools.ns"). -g sets dbgKeepLineNumbers
+      (with dbgKeepVarNames); -dbg and -dap do -g. Closures share the
+      template's instructions and carry its table.
+      **The code doesn't change**: `Test/lines_invariant.py` decompiles
+      corpus packages, compiles the source without and with line tables,
+      and compares the decompiled results (ignoring the shared file name
+      constant and Ref_N numbering): 300 packages, 0 different (9 skipped:
+      already failing without line tables); every function compiled from
+      the source has a table (the few without are ROM functions reached
+      through magic pointers).
+- [x] 7.3 Lookups, `Matt/LineTables.{h,cc}`: the compiler reports every
+      function it makes with a line table (new hook
+      `gCompiledFunctionHook` in CompilerSupport.cc, so the compiler
+      doesn't depend on newtc); `InstallLineTables()` keeps them in one
+      list (GC root). `LineOfPC(fn, pc)` -> [file, line] (binary search;
+      a prologue before the first entry, like copying closed-over args,
+      belongs to the first line). `CodeForLine(file, line)` ->
+      {line, code: [[fn, pc], ...]}: the functions with code on that line
+      (lowest pc each); a line without code moves to the next line with
+      code in a function spanning it, else (between top-level statements)
+      the next line with code in the file; paths compared after realpath.
+      Both are NewtonScript functions, too.
+      Fixed on the way: `StrPos` didn't find a match at the very end of the
+      string (the port looped while `start + len < strLen`; ROM `<=`), and
+      now treats a negative start as 0 like the ROM.
+      Tests: `line_tables` (tables of loops, a multi-line if, a closure;
+      LineOfPC; CodeForLine with moves), `Test/lines_invariant.py`.
 
-### Phase 8: Generating and storing maps
-- [ ] 8.1 Compiler generates the map in memory (compile-and-debug). Test:
-      breakpoint by `file:line`, then `n`/`s`.
-- [ ] 8.2 `.nsdbg` side-car format (delta-encoded, PC-sorted, file table,
-      checksum; see MATT.md) with a round-trip test.
-- [ ] 8.3 Compiler writes `.nsdbg` next to `-opkg`/`-onsof`; the loader
-      restores the mapping.
-- [ ] 8.4 Decompiler writes source + `.nsdbg` for packages.
-- [ ] 8.5 ROM: decompiled source + offset-keyed map.
+### Phase 8: DAP, source level
+- [ ] 8.1 Stack frames with the real `.ns` file and line; the bytecode
+      listing stays the fallback for functions without a line table.
+- [ ] 8.2 Breakpoints by file:line. The program is compiled and run one
+      top-level statement at a time, and VS Code sends breakpoints before
+      anything is compiled: unresolved breakpoints stay pending and are
+      resolved whenever new code is compiled, before it runs (then a
+      `breakpoint` event: verified, snapped to the statement's line).
+- [ ] 8.3 Line stepping in C++: a step mode in the slow loop (next to the
+      pause poll): over = a new line in the same or an outer frame, in = any
+      new line, out = frame depth drops; recursion- and exception-safe.
+      DAP granularity "instruction" keeps Apple's Step.
+- [ ] 8.4 (optional) DAP `disassemble` + instructionPointerReference, so VS
+      Code's Disassembly view shows bytecode next to the source (VS Code
+      switches between source and instruction level; Matt).
 
-### Phase 9: DAP, source level
-- [ ] 9.1 `setBreakpoints` by file/line, source-mapped stack frames,
-      fall back to Phase 6.5 virtual sources for unmapped functions.
+### Phase 9: Code without source
+- [ ] 9.1 The decompiler writes a `.nsdbg` next to its output: for each
+      function, keyed by its object path in the package
+      (`part.0.data.theForm.viewClickScript`, ObjectPrinter::RefPath) plus a
+      hash of its instructions, the line table into the decompiled source.
+      Loading a package with its .nsdbg registers the tables.
+- [ ] 9.2 Later: ROM code (with Einstein), `-run` for form packages.
 
 ### Later: the rest of the VS Code extension
 - `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.

@@ -80,5 +80,6 @@
 #define TOKENBuildArray 275
 #define TOKENBuildFrame 276
 #define TOKENKeepGoing 296
+#define TOKENline 920		// not in ROM: [TOKENline, line, statement], only with -g (line tables)
 
 #endif	/* __TOKENS_H */

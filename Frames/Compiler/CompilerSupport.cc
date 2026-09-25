@@ -74,6 +74,8 @@ CFunctionState::CFunctionState(CCompiler * inCompiler, RefArg inArgs, CFunctionS
 	fNumOfLiterals = 0;
 	fNext = NULL;	// not in the original
 	fLoop = NULL;
+	fLineTable = NILREF;	// not in the original
+	fLastLine = 0;
 
 	if (ioDepthPtr != NULL)
 	{
@@ -458,6 +460,39 @@ CFunctionState::noteMsgEnvReference(MsgEnvComponent msg)
 }
 
 
+/*----------------------------------------------------------------------
+	Not in ROM: line tables (-g). Record that the code from the current PC
+	on belongs to line inLine: [lineTable: file, pc, line, pc, line, ...],
+	sorted by PC. A new entry only when the line changes; if no code was
+	generated since the last entry, that entry gets the new line.
+----------------------------------------------------------------------*/
+
+// Not in ROM: called with every function compiled with a line table (a
+// debugger keeps a list of them to find code by file and line).
+void (*gCompiledFunctionHook)(RefArg inFunction) = NULL;
+
+void
+CFunctionState::noteLine(int inLine)
+{
+	if (!fCompiler->keepsLines() || inLine <= 0 || inLine == fLastLine)
+		return;
+	if (ISNIL(fLineTable))
+	{
+		fLineTable = AllocateArray(MakeSymbol("lineTable"), 1);
+		SetArraySlot(fLineTable, 0, fCompiler->lineFile());
+	}
+	ArrayIndex length = Length(fLineTable);
+	if (length >= 3 && RINT(GetArraySlot(fLineTable, length - 2)) == (long)curPC())
+		SetArraySlot(fLineTable, length - 1, MAKEINT(inLine));
+	else
+	{
+		AddArraySlot(fLineTable, MAKEINT(curPC()));
+		AddArraySlot(fLineTable, MAKEINT(inLine));
+	}
+	fLastLine = inLine;
+}
+
+
 bool
 CFunctionState::noteVarReference(RefArg inVarName)
 {
@@ -583,6 +618,12 @@ CFunctionState::makeCodeBlock(void)
 		}
 	}
 	SetArraySlot(cbf, kFunctionArgFrameIndex, fArgFrame);
+	if (NOTNIL(fLineTable))		// not in ROM: line table (-g)
+	{
+		SetFrameSlot(cbf, MakeSymbol("lineTable"), fLineTable);
+		if (gCompiledFunctionHook != NULL)
+			gCompiledFunctionHook(cbf);
+	}
 
 	if (gPrintLiterals)
 	{

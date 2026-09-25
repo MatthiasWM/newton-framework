@@ -160,6 +160,21 @@ private:
 	Ref *			vStack;					// +14	parser value stack
 	short *		sStack;					// +18	parser state stack
 	bool			is1Expression;			// +1C	interpret expression-at-a-time
+
+	// Not in ROM: line tables (-g, global dbgKeepLineNumbers). The parser
+	// keeps the line of each stack entry's first token; statements are
+	// wrapped in [TOKENline, line, statement]; code generation records
+	// (pc, line) in each function's lineTable slot. See Matt/CLAUDE.md, 7.1.
+public:
+	bool			keepsLines(void) const	{ return fKeepLines; }
+	Ref			lineFile(void);			// the file name for line tables
+	int			statementLine(void) const	{ return fStatementLine; }
+private:
+	Ref			withLine(RefArg inNode, int inLine);
+	int *			lStack;					// parser line stack
+	bool			fKeepLines;
+	RefStruct	fLineFile;
+	int			fStatementLine;			// line of the statement being generated
 //	int32_t		x20;						// +20	never referenced
 	int *			funcDepthPtr;			// +24
 //	bool			isStackedToken;		// +28
@@ -171,6 +186,10 @@ private:
 /*------------------------------------------------------------------------------
 	C F u n c t i o n S t a t e
 ------------------------------------------------------------------------------*/
+
+/* Not in ROM: called with every function compiled with a line table (-g);
+   see Matt/LineTables.h. */
+extern void (*gCompiledFunctionHook)(RefArg inFunction);
 
 class	CFunctionState
 {
@@ -201,6 +220,7 @@ public:
 	ArrayIndex	literalOffset(RefArg);
 	void		noteMsgEnvReference(MsgEnvComponent);
 	bool		noteVarReference(RefArg);
+	void		noteLine(int inLine);	// not in ROM: see CCompiler::keepsLines()
 
 	ArrayIndex	emit(Opcode a, int b);
 	ArrayIndex	emitOne(unsigned char bytecode);
@@ -241,6 +261,8 @@ private:
 	bool				fKeepVarNames;		// +50
 	CFunctionState *	fScope;			// +54
 	CFunctionState *	fNext;			// +58
+	RefStruct		fLineTable;			// not in ROM: [lineTable: file, pc, line, ...]
+	int				fLastLine;			// not in ROM
 };
 
 

@@ -15,6 +15,7 @@
 #include "Matt/EmbeddedScript.h"
 #include "Matt/JSON.h"
 #include "Matt/DAP.h"
+#include "Matt/LineTables.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -160,6 +161,11 @@ bool init()
   defGlobalCFunction("DAPCallWithSelf", (void*)FDAPCallWithSelf, 3);
   defGlobalCFunction("DAPErrorText", (void*)FDAPErrorText, 1);
   defGlobalCFunction("DAPCaptureOutput", (void*)FDAPCaptureOutput, 1);
+
+  // Source lines of functions compiled with -g (see Matt/LineTables.h)
+  InstallLineTables();
+  defGlobalCFunction("LineOfPC", (void*)FLineOfPC, 2);
+  defGlobalCFunction("CodeForLine", (void*)FCodeForLine, 2);
 
   return true;
 }
@@ -316,11 +322,13 @@ void handleArgS(const std::string &script)
  Functions compiled from now on get a DebuggerInfo slot with the names of
  their arguments and locals (the compiler does it when the global
  dbgKeepVarNames is set), so the debugger can show and find variables by
- name. Planned: the debug map (source lines, Matt/CLAUDE.md Phase 8).
+ name, and a lineTable slot (global dbgKeepLineNumbers): the source file
+ and (pc, line) pairs, for source-level debugging.
  */
 void handleArgG()
 {
   DefGlobalVar(MakeSymbol("dbgKeepVarNames"), TRUEREF);
+  DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), TRUEREF);
 }
 
 extern const EmbeddedScript gNSDebugToolsScript;   // Matt/Debugger/NSDebugTools.ns
@@ -710,8 +718,8 @@ the commands in the given order.
                           -dap-server)
 
   Options
-  -g                      Compile with debug information: variable names (DebuggerInfo);
-                          -dbg and -dap do this, too
+  -g                      Compile with debug information: variable names (DebuggerInfo)
+                          and line tables; -dbg and -dap do this, too
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
   -nos2                   Compile for NewtonOS 2.x and 2.1 (default)
   -debug ast              Print the progress of the AST while decompiling
