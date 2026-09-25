@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 <- {"seq":2,"type":"event","event":"initialized"}
 -> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_evaluate.ns"}}
 <- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}

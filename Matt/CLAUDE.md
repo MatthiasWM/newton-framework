@@ -907,9 +907,37 @@ in the interpreter (C++), not in NewtonScript.
       Tests: `dap_line_step` (step in/out, next over a call, recursion, a
       multi-line and a one-line loop, into the next top-level statement,
       off the end); `dap_step` now asks for granularity "instruction".
-- [ ] 8.4 (optional) DAP `disassemble` + instructionPointerReference, so VS
-      Code's Disassembly view shows bytecode next to the source (VS Code
-      switches between source and instruction level; Matt).
+- [x] 8.4 VS Code's Disassembly view (bytecode next to the source;
+      switching between source and instruction level). Capabilities
+      `supportsDisassembleRequest`, `supportsSteppingGranularity` (VS Code
+      then sends granularity "instruction" while the Disassembly view has
+      the focus: Apple's instruction steps), `supportsInstructionBreakpoints`.
+      Addresses: VS Code sees one address space, NewtonScript one bytecode
+      per function; each listing gets a 64 KB window (bytecode is smaller,
+      branch targets are 16 bits): address = listing ref * 0x10000 + pc
+      (`AddressOf`, `ListingAt`, `HexString`, `ParseHex`). Listings are now
+      made for every interpreted frame and keyed by `instructions` (closures
+      share them); they keep each instruction's text (`texts`).
+      - Stack frames: `instructionPointerReference` (the next instruction;
+        callers and exceptions: the instruction before the PC).
+      - `disassemble`: instructionCount instructions from instructionOffset
+        instructions after the one at memoryReference (+ offset bytes):
+        address, instructionBytes ("27 00 08"), instruction, symbol (at pc
+        0), and location + line from the line table; outside the function
+        "invalid" instructions (DAP wants exactly instructionCount).
+      - `setInstructionBreakpoints`: replaces the ones set before; an
+        address that doesn't start an instruction is not verified.
+      VS Code's view asks for -50..+50 and 0..50 instructions around the
+      IP; in the test window it logs an internal "Cannot read properties of
+      undefined (reading 'element')" (also without the invalid padding; the
+      requests and answers are right): check in a real window.
+      Test harness: `run_dbg_tests.py` now flags keys of newtc's messages
+      that start with a capital (the symbol spelling trap bit again: a
+      method `InstructionBytes` respelled `instructionBytes`).
+      Tests: `dap_disassemble` (frames' addresses, disassemble around the
+      IP, before the start and past the end, an unknown address,
+      instruction breakpoints valid and not, an instruction step); VSNewt
+      "Opens the Disassembly view" (VS Code's own requests).
 
 ### Phase 9: Code without source
 - [ ] 9.1 The decompiler writes a `.nsdbg` next to its output: for each

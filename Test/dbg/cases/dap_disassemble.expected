@@ -1,0 +1,46 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_disassemble.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"configurationDone"}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"configurationDone"}
+<- {"seq":5,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 0: GetVar x\n"}}
+<- {"seq":6,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":4,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
+<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":13,"column":1,"source":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"instructionPointerReference":"0x10000"},{"id":1,"name":"<program>","line":18,"column":1,"source":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"instructionPointerReference":"0x20004"}],"totalFrames":2}}
+-> {"seq":5,"type":"request","command":"disassemble","arguments":{"memoryReference":"0x10000","instructionOffset":-2,"instructionCount":6}}
+<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"disassemble","body":{"instructions":[{"address":"0xFFFE","instruction":"","presentationHint":"invalid"},{"address":"0xFFFF","instruction":"","presentationHint":"invalid"},{"address":"0x10000","instructionBytes":"7B","instruction":"GetVar               x","symbol":"Work.nsbc","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":13},{"address":"0x10001","instructionBytes":"24","instruction":"PushConstant         1","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":13},{"address":"0x10002","instructionBytes":"18","instruction":"Push                 'Add","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":13},{"address":"0x10003","instructionBytes":"2A","instruction":"Call                 2","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":13}]}}
+-> {"seq":6,"type":"request","command":"disassemble","arguments":{"memoryReference":"0x10000","offset":3,"instructionOffset":3,"instructionCount":5}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"disassemble","body":{"instructions":[{"address":"0x10006","instructionBytes":"27 00 08","instruction":"PushConstant         2","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":14},{"address":"0x10009","instructionBytes":"C7 00 07","instruction":"Multiply             2","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":14},{"address":"0x1000C","instructionBytes":"02","instruction":"Return","location":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"line":14},{"address":"0x1000D","instruction":"","presentationHint":"invalid"},{"address":"0x1000E","instruction":"","presentationHint":"invalid"}]}}
+-> {"seq":7,"type":"request","command":"disassemble","arguments":{"memoryReference":"0x990000","instructionCount":2}}
+<- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"disassemble","body":{"instructions":[{"address":"0x990000","instruction":"","presentationHint":"invalid"},{"address":"0x990001","instruction":"","presentationHint":"invalid"}]}}
+-> {"seq":8,"type":"request","command":"setInstructionBreakpoints","arguments":{"breakpoints":[{"instructionReference":"0x10003"},{"instructionReference":"0x10007"}]}}
+<- {"seq":11,"type":"response","request_seq":8,"success":true,"command":"setInstructionBreakpoints","body":{"breakpoints":[{"verified":true,"instructionReference":"0x10003"},{"verified":false,"instructionReference":"0x10007","message":"No instruction at this address"}]}}
+-> {"seq":9,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":12,"type":"response","request_seq":9,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":13,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 3: Call 2 ['Add(10, 1)]\n"}}
+<- {"seq":14,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":10,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":15,"type":"response","request_seq":10,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":13,"column":1,"source":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"instructionPointerReference":"0x10003"}],"totalFrames":2}}
+-> {"seq":11,"type":"request","command":"next","arguments":{"threadId":1,"granularity":"instruction"}}
+<- {"seq":16,"type":"response","request_seq":11,"success":true,"command":"next"}
+<- {"seq":17,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 4: SetVar y\n"}}
+<- {"seq":18,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
+-> {"seq":12,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
+<- {"seq":19,"type":"response","request_seq":12,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":13,"column":1,"source":{"name":"dap_disassemble.ns","path":"$DIR/dap_disassemble.ns"},"instructionPointerReference":"0x10004"}],"totalFrames":2}}
+-> {"seq":13,"type":"request","command":"setInstructionBreakpoints","arguments":{"breakpoints":[]}}
+<- {"seq":20,"type":"response","request_seq":13,"success":true,"command":"setInstructionBreakpoints","body":{"breakpoints":[]}}
+-> {"seq":14,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":21,"type":"response","request_seq":14,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":22,"type":"event","event":"output","body":{"category":"stdout","output":"22\n"}}
+<- {"seq":23,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":24,"type":"event","event":"terminated"}
+-> {"seq":15,"type":"request","command":"disconnect"}
+<- {"seq":25,"type":"response","request_seq":15,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

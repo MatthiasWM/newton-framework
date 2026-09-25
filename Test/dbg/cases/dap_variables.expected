@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 <- {"seq":2,"type":"event","event":"initialized"}
 -> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_variables.ns"}}
 <- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
@@ -8,7 +8,7 @@
 <- {"seq":5,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Tally('items=[#<ref>], 'factor=2), 65: Pop\n"}}
 <- {"seq":6,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true,"description":"Paused in BreakLoop()"}}
 -> {"seq":4,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Tally","line":12,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"}},{"id":1,"name":"<program>","line":18,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"}}],"totalFrames":2}}
+<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Tally","line":12,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"},"instructionPointerReference":"0x10041"},{"id":1,"name":"<program>","line":18,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"},"instructionPointerReference":"0x2000D"}],"totalFrames":2}}
 -> {"seq":5,"type":"request","command":"scopes","arguments":{"frameId":2}}
 <- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"scopes","body":{"scopes":[{"name":"Arguments","presentationHint":"arguments","variablesReference":1,"expensive":false},{"name":"Locals","presentationHint":"locals","variablesReference":2,"expensive":false}]}}
 -> {"seq":6,"type":"request","command":"variables","arguments":{"variablesReference":1}}
@@ -31,7 +31,7 @@
 <- {"seq":18,"type":"event","event":"output","body":{"category":"stdout","output":"(#<ref>).Scaled('x=5), 7: BranchIfNotNil 14\n"}}
 <- {"seq":19,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true,"description":"Paused in BreakLoop()"}}
 -> {"seq":14,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":20,"type":"response","request_seq":14,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"counter.Scaled","line":16,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"}},{"id":1,"name":"<program>","line":19,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"}}],"totalFrames":2}}
+<- {"seq":20,"type":"response","request_seq":14,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"counter.Scaled","line":16,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"},"instructionPointerReference":"0x30007"},{"id":1,"name":"<program>","line":19,"column":1,"source":{"name":"dap_variables.ns","path":"$DIR/dap_variables.ns"},"instructionPointerReference":"0x40005"}],"totalFrames":2}}
 -> {"seq":15,"type":"request","command":"scopes","arguments":{"frameId":2}}
 <- {"seq":21,"type":"response","request_seq":15,"success":true,"command":"scopes","body":{"scopes":[{"name":"Arguments","presentationHint":"arguments","variablesReference":1,"expensive":false},{"name":"Locals","presentationHint":"locals","variablesReference":2,"expensive":false},{"name":"Stack","variablesReference":3,"expensive":false}]}}
 -> {"seq":16,"type":"request","command":"variables","arguments":{"variablesReference":1}}

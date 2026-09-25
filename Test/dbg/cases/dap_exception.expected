@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 <- {"seq":2,"type":"event","event":"initialized"}
 -> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_exception.ns"}}
 <- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
@@ -11,7 +11,7 @@
 <- {"seq":7,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Fail('x=1), 3: Return\n"}}
 <- {"seq":8,"type":"event","event":"stopped","body":{"reason":"exception","threadId":1,"allThreadsStopped":true,"text":"Expected a number"}}
 -> {"seq":5,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":9,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Fail","line":6,"column":1,"source":{"name":"dap_exception.ns","path":"$DIR/dap_exception.ns"}},{"id":1,"name":"<program>","line":9,"column":1,"source":{"name":"dap_exception.ns","path":"$DIR/dap_exception.ns"}}],"totalFrames":2}}
+<- {"seq":9,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Fail","line":6,"column":1,"source":{"name":"dap_exception.ns","path":"$DIR/dap_exception.ns"},"instructionPointerReference":"0x10002"},{"id":1,"name":"<program>","line":9,"column":1,"source":{"name":"dap_exception.ns","path":"$DIR/dap_exception.ns"},"instructionPointerReference":"0x20007"}],"totalFrames":2}}
 -> {"seq":6,"type":"request","command":"continue","arguments":{"threadId":1}}
 <- {"seq":10,"type":"response","request_seq":6,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
 <- {"seq":11,"type":"event","event":"output","body":{"category":"stdout","output":"\"caught\"\n"}}

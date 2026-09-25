@@ -55,6 +55,31 @@ def normalize(text):
     return REF_RE.sub("#<ref>", text)
 
 
+def capitalized_keys(transcript):
+    """Keys of newtc's messages that start with a capital letter. DAP keys
+    are camelCase; a capital means a NewtonScript symbol was created first
+    with other capitals (e.g. a method StackFrames respells stackFrames)."""
+    found = set()
+
+    def walk(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key[:1].isupper():
+                    found.add(key)
+                walk(item)
+        elif isinstance(value, list):
+            for item in value:
+                walk(item)
+
+    for line in transcript.splitlines():
+        if line.startswith("<- {"):
+            try:
+                walk(json.loads(line[3:]))
+            except ValueError:
+                pass
+    return sorted(found)
+
+
 def run_dap_case(newtc, ns, extra):
     directory = str(ns.parent)
     transcript, err, code = dap_client.run_script(
@@ -63,6 +88,9 @@ def run_dap_case(newtc, ns, extra):
     # paths appear JSON-escaped in the transcript
     transcript = transcript.replace(json.dumps(directory)[1:-1], "$DIR")
     out = transcript
+    wrong = capitalized_keys(transcript)
+    if wrong:
+        out += "\n--- keys with a capital letter: " + ", ".join(wrong) + " ---\n"
     if err:
         out += "\n--- stderr ---\n" + err
     if code != 0:

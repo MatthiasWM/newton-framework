@@ -42,6 +42,7 @@ DefGlobalVar('DAP, {
   stopReason: nil,    // why the program stopped (reason as passed to Stopped)
   listings: [],       // the bytecode listings; a sourceReference is index + 1
   lineBreakpoints: [], // breakpoints set in source files, see LineBreakpoint
+  instructionBreakpoints: [], // installed from the Disassembly view
   nextBreakpointId: 1,
   breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
 
@@ -189,6 +190,9 @@ DefGlobalVar('DAP, {
         end;
         stackFrame.line := where[1];
         stackFrame.column := 1;
+        local listing := :Listing(fn, name);
+        stackFrame.instructionPointerReference :=
+          :AddressOf(listing, listing.pcs[:LineOfPC(listing, pc, atNext) - 1]);
       end
       else
         stackFrame.presentationHint := "subtle";
@@ -273,17 +277,21 @@ DefGlobalVar('DAP, {
   // -- Bytecode listings (virtual sources)
 
   // The listing of a NewtonScript function: its disassembly, one
-  // instruction per line ("   25: GetVar  t"), made once per function and
-  // kept for the session. {fn, name, ref (the sourceReference), pcs (the PC
-  // of each line), text, breakpoints (installed from this listing)}.
+  // instruction per line ("   25: GetVar  t"), made once per function (its
+  // instructions: closures of one function share them) and kept for the
+  // session. {fn, name, ref (the sourceReference), pcs (the PC of each
+  // line), texts (each instruction), text, breakpoints (installed from
+  // this listing)}. Its instructions also have addresses (AddressOf) for
+  // VS Code's Disassembly view.
   Listing: func(fn, name)
   begin
     foreach listing in listings do
-      if listing.fn = fn then
+      if listing.fn.instructions = fn.instructions then
         return listing;
     local disassembler := MakeDisassembler(fn);
     disassembler:PrintVerbosity(nil);
     local pcs := [];
+    local texts := [];
     local text := "";
     local pc := 0;
     local length := Length(fn.instructions);
@@ -291,15 +299,76 @@ DefGlobalVar('DAP, {
     begin
       AddArraySlot(pcs, pc);
       local instruction := DAPCaptureOutput(func() disassembler:PrintInstruction(pc));
+      AddArraySlot(texts, instruction);
       text := text & (if pc < 10 then "    " else if pc < 100 then "   " else if pc < 1000 then "  " else " ")
               & pc & ": " & instruction & kLF;
       pc := pc + disassembler:InstrLength(pc);
     end;
     local fileName := if StrEqual(name, "<program>") then "program" else name;
     local listing := {fn: fn, name: fileName & ".nsbc", ref: Length(listings) + 1,
-                      pcs: pcs, text: text, breakpoints: []};
+                      pcs: pcs, texts: texts, text: text, breakpoints: []};
     AddArraySlot(listings, listing);
     listing;
+  end,
+
+  // -- Addresses (VS Code's Disassembly view)
+  // VS Code sees code as one address space; NewtonScript has one bytecode
+  // per function. Each listing gets a 64 KB window (a function's bytecode
+  // is smaller: branch targets are 16 bits): address = ref * 0x10000 + pc.
+
+  AddressOf: func(listing, pc)
+    "0x" & :HexString(listing.ref * 65536 + pc),
+
+  // [listing, pc] for an address (a string "0x..."), plus a byte offset;
+  // the listing is nil if there is none.
+  ListingAt: func(reference, offset)
+  begin
+    local address := :ParseHex(reference) + (if IsInteger(offset) then offset else 0);
+    local ref := address div 65536;
+    [if ref >= 1 and ref <= Length(listings) then listings[ref - 1], address mod 65536];
+  end,
+
+  HexString: func(number)
+  begin
+    local digits := "0123456789ABCDEF";
+    local text := "";
+    repeat
+      text := digits[number mod 16] & text;
+      number := number div 16;
+    until number = 0;
+    text;
+  end,
+
+  ParseHex: func(text)
+  begin
+    local number := 0;
+    if not IsString(text) then
+      return 0;
+    for i := (if BeginsWith(text, "0x") or BeginsWith(text, "0X") then 2 else 0) to StrLen(text) - 1 do
+    begin
+      local c := Ord(text[i]);
+      local digit := if c >= 48 and c <= 57 then c - 48
+                     else if c >= 65 and c <= 70 then c - 55
+                     else if c >= 97 and c <= 102 then c - 87;
+      if not digit then
+        return number;
+      number := number * 16 + digit;
+    end;
+    number;
+  end,
+
+  // The bytes of instruction i of a listing, "5B 00 02".
+  BytesOfInstruction: func(listing, i)
+  begin
+    local first := listing.pcs[i];
+    local last := if i + 1 < Length(listing.pcs) then listing.pcs[i + 1] else Length(listing.fn.instructions);
+    local bytes := "";
+    for pc := first to last - 1 do
+    begin
+      local byte := ExtractByte(listing.fn.instructions, pc);
+      bytes := bytes & (if pc > first then " " else "") & (if byte < 16 then "0" else "") & :HexString(byte);
+    end;
+    bytes;
   end,
 
   // The line (1-based) of the instruction at pc; if atNext is nil, of the
@@ -594,6 +663,9 @@ DefGlobalVar('DAPRequests, {
   begin
     :SendResponse(request, {
       supportsConfigurationDoneRequest: true,
+      supportsDisassembleRequest: true,
+      supportsSteppingGranularity: true,
+      supportsInstructionBreakpoints: true,
       exceptionBreakpointFilters: [
         {filter: "all", label: "All Exceptions", default: true,
          description: "Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]});
@@ -651,6 +723,85 @@ DefGlobalVar('DAPRequests, {
         AddArraySlot(lineBreakpoints, bp);
         AddArraySlot(breakpoints, :BreakpointBody(bp));
       end;
+    end;
+    :SendResponse(request, {breakpoints: breakpoints});
+  end,
+
+  // VS Code's Disassembly view: instructionCount instructions, starting
+  // instructionOffset instructions from the one at memoryReference (+
+  // offset bytes). Each has its address, bytes, text, and, if its function
+  // has a line table, its source line (VS Code shows source and bytecode
+  // together). Past a function's first or last instruction: "invalid"
+  // instructions, as DAP wants exactly instructionCount of them.
+  disassemble: func(request)
+  begin
+    local args := request.arguments;
+    local listingAndPC := :ListingAt(args.memoryReference, args.offset);
+    local listing := listingAndPC[0];
+    local count := if IsInteger(args.instructionCount) then args.instructionCount else 0;
+    local first := if IsInteger(args.instructionOffset) then args.instructionOffset else 0;
+    local base := :ParseHex(args.memoryReference) + (if IsInteger(args.offset) then args.offset else 0);
+    local instructions := [];
+    if listing then
+    begin
+      first := first + :LineOfPC(listing, listingAndPC[1] + 1, nil) - 1;
+      base := listing.ref * 65536;
+    end;
+    for k := 0 to count - 1 do
+    begin
+      local i := first + k;
+      if listing and i >= 0 and i < Length(listing.pcs) then
+      begin
+        local pc := listing.pcs[i];
+        local instruction := {address: :AddressOf(listing, pc),
+                              instructionBytes: :BytesOfInstruction(listing, i),
+                              instruction: listing.texts[i]};
+        if i = 0 then
+          instruction.symbol := listing.name;
+        local where := LineOfPC(listing.fn, pc);
+        if where and :IsAbsolutePath(where[0]) then
+        begin
+          instruction.location := {name: :FileName(where[0]), path: where[0]};
+          instruction.line := where[1];
+        end;
+        AddArraySlot(instructions, instruction);
+      end
+      else
+      begin
+        // an address outside the function: before its start, or after
+        // its end
+        local address := if not listing then base + i
+                         else if i < 0 then base + i
+                         else base + Length(listing.fn.instructions) + i - Length(listing.pcs);
+        AddArraySlot(instructions, {address: "0x" & :HexString(Max(address, 0)),
+                                    instruction: "", presentationHint: "invalid"});
+      end;
+    end;
+    :SendResponse(request, {instructions: instructions});
+  end,
+
+  // Breakpoints set in the Disassembly view: at the instruction of each
+  // address; they replace the ones set there before.
+  setInstructionBreakpoints: func(request)
+  begin
+    foreach bp in instructionBreakpoints do
+      RemoveBreakPoint(bp);
+    instructionBreakpoints := [];
+    local breakpoints := [];
+    local requested := if IsFrame(request.arguments) and IsArray(request.arguments.breakpoints)
+                       then request.arguments.breakpoints else [];
+    foreach wanted in requested do
+    begin
+      local listingAndPC := :ListingAt(wanted.instructionReference, wanted.offset);
+      local listing := listingAndPC[0];
+      if listing and LSearch(listing.pcs, listingAndPC[1], 0, '|=|, nil) then
+      begin
+        AddArraySlot(instructionBreakpoints, InstallBreakPoint(listing.fn, listingAndPC[1]));
+        AddArraySlot(breakpoints, {verified: true, instructionReference: wanted.instructionReference});
+      end
+      else
+        AddArraySlot(breakpoints, {verified: nil, instructionReference: wanted.instructionReference,
+                                   message: "No instruction at this address"});
     end;
     :SendResponse(request, {breakpoints: breakpoints});
   end,

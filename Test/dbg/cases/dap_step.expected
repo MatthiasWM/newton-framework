@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 <- {"seq":2,"type":"event","event":"initialized"}
 -> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_step.ns"}}
 <- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
@@ -20,25 +20,25 @@
 <- {"seq":14,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 3: Call 2 ['Add(10, 1)]\n"}}
 <- {"seq":15,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
 -> {"seq":7,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
-<- {"seq":16,"type":"response","request_seq":7,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}}],"totalFrames":2}}
+<- {"seq":16,"type":"response","request_seq":7,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x10003"}],"totalFrames":2}}
 -> {"seq":8,"type":"request","command":"stepIn","arguments":{"threadId":1,"granularity":"instruction"}}
 <- {"seq":17,"type":"response","request_seq":8,"success":true,"command":"stepIn"}
 <- {"seq":18,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Add('a=10, 'b=1), 0: GetVar a\n"}}
 <- {"seq":19,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
 -> {"seq":9,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":20,"type":"response","request_seq":9,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"Add","line":8,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}},{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}},{"id":1,"name":"<program>","line":17,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}}],"totalFrames":3}}
+<- {"seq":20,"type":"response","request_seq":9,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"Add","line":8,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x30000"},{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x10003"},{"id":1,"name":"<program>","line":17,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x20004"}],"totalFrames":3}}
 -> {"seq":10,"type":"request","command":"stepOut","arguments":{"threadId":1,"granularity":"instruction"}}
 <- {"seq":21,"type":"response","request_seq":10,"success":true,"command":"stepOut"}
 <- {"seq":22,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Work('x=10), 4: SetVar y\n"}}
 <- {"seq":23,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
 -> {"seq":11,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":1}}
-<- {"seq":24,"type":"response","request_seq":11,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}}],"totalFrames":2}}
+<- {"seq":24,"type":"response","request_seq":11,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Work","line":12,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x10004"}],"totalFrames":2}}
 -> {"seq":12,"type":"request","command":"stepOut","arguments":{"threadId":1,"granularity":"instruction"}}
 <- {"seq":25,"type":"response","request_seq":12,"success":true,"command":"stepOut"}
 <- {"seq":26,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 5: Push 'Print\n"}}
 <- {"seq":27,"type":"event","event":"stopped","body":{"reason":"step","threadId":1,"allThreadsStopped":true}}
 -> {"seq":13,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":28,"type":"response","request_seq":13,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":17,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"}}],"totalFrames":1}}
+<- {"seq":28,"type":"response","request_seq":13,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"<program>","line":17,"column":1,"source":{"name":"dap_step.ns","path":"$DIR/dap_step.ns"},"instructionPointerReference":"0x20005"}],"totalFrames":1}}
 -> {"seq":14,"type":"request","command":"stepOut","arguments":{"threadId":1,"granularity":"instruction"}}
 <- {"seq":29,"type":"event","event":"output","body":{"category":"console","output":"Can't step out because the caller is not an interpreted function; continuing.\n"}}
 <- {"seq":30,"type":"response","request_seq":14,"success":true,"command":"stepOut"}

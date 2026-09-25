@@ -1,3 +1,4 @@
+mask /"instructionPointerReference":"0x[0-9A-F]+"/"instructionPointerReference":"0x..."/
 mask /"line":\d+/"line":N/
 mask /Spin\(\), \d+: [^"]*?\\n/Spin(), N: ...\\n/
 mask /"value":"\d+","type":"int"/"value":"N","type":"int"/

@@ -1,0 +1,20 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "disassemble", "arguments": {"memoryReference": "0x10000", "instructionOffset": -2, "instructionCount": 6}}
+{"command": "disassemble", "arguments": {"memoryReference": "0x10000", "offset": 3, "instructionOffset": 3, "instructionCount": 5}}
+{"command": "disassemble", "arguments": {"memoryReference": "0x990000", "instructionCount": 2}}
+{"command": "setInstructionBreakpoints", "arguments": {"breakpoints": [{"instructionReference": "0x10003"}, {"instructionReference": "0x10007"}]}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
+{"command": "next", "arguments": {"threadId": 1, "granularity": "instruction"}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}
+{"command": "setInstructionBreakpoints", "arguments": {"breakpoints": []}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait terminated
+{"command": "disconnect"}

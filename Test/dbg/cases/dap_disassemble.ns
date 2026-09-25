@@ -1,0 +1,18 @@
+// DAP (step 8.4): VS Code's Disassembly view. Stack frames carry an
+// instructionPointerReference: each function's listing has a 64 KB window
+// of addresses (ref * 0x10000 + pc). "disassemble" returns instructions
+// around an address with their bytes, text, and source line; past the
+// function's first or last instruction, "invalid" ones. Instruction
+// breakpoints stop at an address that starts an instruction; stepping with
+// granularity "instruction" goes one bytecode at a time.
+global Add(a, b)
+  a + b;
+
+global Work(x)
+begin
+  local y := Add(x, 1);
+  y * 2;
+end;
+
+InstallBreakPoint(functions.Work, 0);
+Print(Work(10));

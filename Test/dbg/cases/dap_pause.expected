@@ -1,5 +1,5 @@
 -> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
-<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
 <- {"seq":2,"type":"event","event":"initialized"}
 -> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_pause.ns"}}
 <- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
@@ -12,7 +12,7 @@
 <- {"seq":7,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Spin(), N: ...\n"}}
 <- {"seq":8,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true}}
 -> {"seq":6,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
-<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Spin","line":N,"column":1,"source":{"name":"dap_pause.ns","path":"$DIR/dap_pause.ns"}},{"id":1,"name":"<program>","line":N,"column":1,"source":{"name":"dap_pause.ns","path":"$DIR/dap_pause.ns"}}],"totalFrames":2}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Spin","line":N,"column":1,"source":{"name":"dap_pause.ns","path":"$DIR/dap_pause.ns"},"instructionPointerReference":"0x..."},{"id":1,"name":"<program>","line":N,"column":1,"source":{"name":"dap_pause.ns","path":"$DIR/dap_pause.ns"},"instructionPointerReference":"0x..."}],"totalFrames":2}}
 -> {"seq":7,"type":"request","command":"evaluate","arguments":{"expression":"n > 0","frameId":2,"context":"repl"}}
 <- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"evaluate","body":{"result":"true","type":"boolean","variablesReference":0}}
 -> {"seq":8,"type":"request","command":"pause","arguments":{"threadId":1}}
