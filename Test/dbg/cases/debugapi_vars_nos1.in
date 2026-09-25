@@ -1,0 +1,9 @@
+api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()}; nil;
+for i := 0 to api:NumStackFrames() - 1 do if api:Function(i) = functions.Calc then calc := i;
+Print([(api:GetVar(calc, 0)), api:GetVar(calc, 1), api:GetVar(calc, 2)]);
+Print(api:FindVar(calc, 'sum));
+api:SetFindVar(calc, 'sum, 50);
+api:FindVar(calc, 'nothere);
+api:SetFindVar(calc, 'nothere, 1);
+api := nil;
+ExitBreakLoop();

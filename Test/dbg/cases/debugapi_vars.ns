@@ -1,0 +1,16 @@
+// Step 2.1: GetVar(i, n) and SetVar(i, n, value) on a NOS 2 function.
+// Arguments come first: a is var 0, b var 1, the local sum var 2. Setting
+// sum to 100 changes what Calc prints and returns. Var 3 is out of range.
+// FindVar needs named locals (an argFrame), which NOS 2 functions don't
+// have, so it throws.
+// Note: [(api:GetVar(...)), ...] needs the parentheses; [api:GetVar(...)]
+// would be an array of class 'api holding a call to a global GetVar().
+global Calc(a, b)
+begin
+  local sum := a + b;
+  BreakLoop();
+  Print([a, b, sum]);
+  sum * 2;
+end;
+
+Print(Calc(3, 4));

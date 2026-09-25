@@ -1,0 +1,16 @@
+//! -nos1
+// Step 2.1: the same with NOS 1 code (a CodeBlock), whose arguments and
+// locals live in a named argFrame. GetVar works by index, FindVar and
+// SetFindVar by name. Unknown names throw "Undefined variable" (for
+// SetFindVar only since this step, as in ROM).
+// Note: [(api:GetVar(...)), ...] needs the parentheses; [api:GetVar(...)]
+// would be an array of class 'api holding a call to a global GetVar().
+global Calc(a, b)
+begin
+  local sum := a + b;
+  BreakLoop();
+  Print([a, b, sum]);
+  sum * 2;
+end;
+
+Print(Calc(3, 4));

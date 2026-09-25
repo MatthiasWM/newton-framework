@@ -1,0 +1,15 @@
+Entering break loop
+#2        nil
+#2        nil
+[3, 4, 7]
+#2        nil
+7
+#2        nil
+#2        nil
+    !!! Exception: Undefined variable
+    !!! Exception: Undefined variable
+#2        nil
+#2        nil
+Exiting break loop
+[3, 4, 50]
+100

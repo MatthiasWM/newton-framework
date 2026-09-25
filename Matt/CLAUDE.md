@@ -292,7 +292,16 @@ regression checks (MATT.md) still apply when shared code is touched.
         matches). Test: `debugapi_receiver` (method inherited through
         `_proto`: receiver is the object, implementor the proto; a slot
         changed through `Receiver()` is seen by the running method).
-  - [ ] vars: `GetVar`, `SetVar`, `FindVar`, `SetFindVar`
+  - [x] vars: `GetVar(i, n)`/`SetVar(i, n, v)` by index (args first, then
+        locals; NOS 2 on the stack, NOS 1 in the argFrame, natives their args)
+        and `FindVar(i, sym)`/`SetFindVar(i, sym, v)` by name (lexical lookup
+        in the frame's argFrame, so only NOS 1 code and closures have names).
+        Port checked against ROM `TNSDebugAPI`; fixed: `setFindVar` ignored a
+        failed `SetVariableOrGlobal()`, ROM throws "Undefined variable".
+        Tests: `debugapi_vars` (NOS 2), `debugapi_vars_nos1`.
+        NewtonScript gotcha: `[api:GetVar(i, 0), ...]` is an array of class
+        `'api` holding a call to a *global* `GetVar`; write
+        `[(api:GetVar(i, 0)), ...]`.
   - [ ] temps: `NumTemps`, `TempValue`, `SetTempValue`
 - [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three
       installed functions (`Ref_22`/`Ref_27`, likely `MakeDisassembler` & co.).

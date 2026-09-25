@@ -204,6 +204,48 @@ FNSDImplementor(RefArg rcvr, RefArg inIndex)
 
 
 /*------------------------------------------------------------------------------
+	Get and set arguments and locals of a stack frame by index. Arguments come
+	first. NOS 2 functions keep them on the stack, NOS 1 code blocks in their
+	argFrame. Throws if the index is out of range.
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDGetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex)
+{
+	return GetNSDebugAPI(rcvr)->getVar(RINT(inIndex), RINT(inVarIndex));
+}
+
+
+Ref
+FNSDSetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex, RefArg inValue)
+{
+	GetNSDebugAPI(rcvr)->setVar(RINT(inIndex), RINT(inVarIndex), inValue);
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	Get and set a variable of a stack frame by name, looked up lexically from
+	the frame's locals (argFrame). Throws if the frame has no locals or the
+	variable is not found.
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym)
+{
+	return GetNSDebugAPI(rcvr)->findVar(RINT(inIndex), inSym);
+}
+
+
+Ref
+FNSDSetFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym, RefArg inValue)
+{
+	GetNSDebugAPI(rcvr)->setFindVar(RINT(inIndex), inSym, inValue);
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
 	Change the PC of a stack frame: execution continues there.
 	Return:	nil
 ------------------------------------------------------------------------------*/
@@ -460,7 +502,8 @@ CNSDebugAPI::setFindVar(ArrayIndex index, RefArg inSym, RefArg inVar)
 	if (ISNIL(locals))
 		ThrowExInterpreterWithSymbol(kNSErrUndefinedVariable, inSym);
 
-	SetVariableOrGlobal(locals, inSym, inVar, kLexicalLookup);
+	if (!SetVariableOrGlobal(locals, inSym, inVar, kLexicalLookup))
+		ThrowExInterpreterWithSymbol(kNSErrUndefinedVariable, inSym);	// as in ROM
 }
 
 

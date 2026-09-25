@@ -70,5 +70,9 @@ extern "C" Ref FNSDProgramCounter(RefArg rcvr, RefArg inIndex);
 extern "C" Ref FNSDSetProgramCounter(RefArg rcvr, RefArg inIndex, RefArg inPC);
 extern "C" Ref FNSDReceiver(RefArg rcvr, RefArg inIndex);
 extern "C" Ref FNSDImplementor(RefArg rcvr, RefArg inIndex);
+extern "C" Ref FNSDGetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex);
+extern "C" Ref FNSDSetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex, RefArg inValue);
+extern "C" Ref FNSDFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym);
+extern "C" Ref FNSDSetFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym, RefArg inValue);
 
 #endif	/* __DEBUGAPI_H */
