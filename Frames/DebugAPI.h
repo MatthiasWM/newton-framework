@@ -58,4 +58,8 @@ private:
 extern CNSDebugAPI *	NewNSDebugAPI(CInterpreter * interpreter);
 extern void				DeleteNSDebugAPI(CNSDebugAPI * inDebugAPI);
 
+// NS Debug Tools natives, see DebugAPI.cc
+extern "C" Ref FNSDInstallBreakPoints(RefArg rcvr, RefArg inBreakPoints);
+extern "C" Ref FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable);
+
 #endif	/* __DEBUGAPI_H */

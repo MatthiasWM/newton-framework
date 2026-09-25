@@ -1,0 +1,17 @@
+// Step 1.2: a temporary breakpoint at pc 0 of Inner stops before Inner's
+// first instruction, fires only once, and removes itself. When the list
+// is empty, the whole breakpoint frame is removed (NSDInstallBreakPoints
+// returns the previous frame: nil).
+// Inner's bytecode: pc 0 starts Print("inner " & x), pc 10 starts x + 1.
+global Inner(x)
+begin
+  Print("inner " & x);
+  x + 1;
+end;
+
+NSDInstallBreakPoints({programCounter: [
+  {instructions: functions.Inner.instructions, programCounter: 0, temporary: true}]});
+Print(NSDEnableBreakPoints(true));
+Print(Inner(1));
+Print(Inner(2));
+Print(NSDInstallBreakPoints(nil));

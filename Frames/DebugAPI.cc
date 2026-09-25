@@ -61,6 +61,44 @@ FSetDebugMode(RefArg rcvr, RefArg inDebugOn)
 }
 
 
+/* -----------------------------------------------------------------------------
+	N S   D e b u g   T o o l s   n a t i v e s
+	"NS Debug Tools.pkg" installs these as ARM code (package part "NSDCPatch1").
+	Both are thin wrappers around the ROM's TInterpreter methods.
+----------------------------------------------------------------------------- */
+extern "C" Ref FNSDInstallBreakPoints(RefArg rcvr, RefArg inBreakPoints);
+extern "C" Ref FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable);
+
+/*------------------------------------------------------------------------------
+	Replace the breakpoint list.
+	Args:		rcvr				ignored
+				inBreakPoints	{programCounter: [{instructions:, programCounter:,
+									disabled:, temporary:}, ...]} or nil
+	Return:	the previous breakpoint list
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDInstallBreakPoints(RefArg rcvr, RefArg inBreakPoints)
+{
+	return SetBreakPoints(inBreakPoints);
+}
+
+
+/*------------------------------------------------------------------------------
+	Enable or disable all breakpoints. While enabled, the interpreter runs
+	its slow loop, which checks the breakpoint list before every instruction.
+	Args:		rcvr				ignored
+				inEnable			non-nil to enable
+	Return:	true if breakpoints were enabled before
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable)
+{
+	return MAKEBOOLEAN(EnableBreakPoints(NOTNIL(inEnable)));
+}
+
+
 CNSDebugAPI *
 NewNSDebugAPI(CInterpreter * interpreter)
 {

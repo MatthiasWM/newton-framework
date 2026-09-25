@@ -11,6 +11,7 @@
 #include "Matt/ObjectPrinter.h"
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
+#include "Frames/DebugAPI.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -63,6 +64,21 @@ extern void handleArgHello();
 
 
 /**
+ \brief Make a C function callable from NewtonScript as a global function.
+ \param name NewtonScript name of the function
+ \param fn C function taking the receiver plus numArgs RefArgs, returning a Ref
+ \param numArgs number of NewtonScript arguments
+ */
+static void defGlobalCFunction(const char *name, void *fn, int numArgs)
+{
+  Ref cFn = AllocateFrame();
+  SetFrameSlot(cFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(cFn, MakeSymbol("function"), (Ref)fn);
+  SetFrameSlot(cFn, MakeSymbol("numargs"), MAKEINT(numArgs));
+  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol(name)), cFn);
+}
+
+/**
  \brief Initialize the newtc tool and the NewtonScript toolkit.
  */
 bool init()
@@ -78,17 +94,12 @@ bool init()
   DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
   // DefGlobalVar(SYMA(printDepth), MAKEINT(7));
 
-  Ref hexFn = AllocateFrame();
-  SetFrameSlot(hexFn, MakeSymbol("class"), kPlainCFunctionClass);
-  SetFrameSlot(hexFn, MakeSymbol("function"), (Ref)FStuffHex);
-  SetFrameSlot(hexFn, MakeSymbol("numargs"), MAKEINT(2));
-  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("MakeBinaryFromHex")), hexFn);
+  defGlobalCFunction("MakeBinaryFromHex", (void*)FStuffHex, 2);
+  defGlobalCFunction("DefineGlobalConstant", (void*)FDefineGlobalConstant, 2);
 
-  Ref gConstFn = AllocateFrame();
-  SetFrameSlot(gConstFn, MakeSymbol("class"), kPlainCFunctionClass);
-  SetFrameSlot(gConstFn, MakeSymbol("function"), (Ref)FDefineGlobalConstant);
-  SetFrameSlot(gConstFn, MakeSymbol("numargs"), MAKEINT(2));
-  SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol("DefineGlobalConstant")), gConstFn);
+  // NS Debug Tools natives (ARM code in "NS Debug Tools.pkg")
+  defGlobalCFunction("NSDInstallBreakPoints", (void*)FNSDInstallBreakPoints, 1);
+  defGlobalCFunction("NSDEnableBreakPoints", (void*)FNSDEnableBreakPoints, 1);
 
   return true;
 }

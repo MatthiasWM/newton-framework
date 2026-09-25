@@ -1,0 +1,20 @@
+// Step 1.2: a breakpoint that is not temporary fires on every call.
+// 'disabled skips it, and NSDEnableBreakPoints(nil) switches all
+// breakpoints off (it returns the previous setting: true).
+// Inner's bytecode: pc 0 starts Print("inner " & x), pc 10 starts x + 1.
+global Inner(x)
+begin
+  Print("inner " & x);
+  x + 1;
+end;
+
+bp := {instructions: functions.Inner.instructions, programCounter: 10};
+NSDInstallBreakPoints({programCounter: [bp]});
+NSDEnableBreakPoints(true);
+Print(Inner(1));
+Print(Inner(2));
+bp.disabled := true;
+Print(Inner(3));
+bp.disabled := nil;
+Print(NSDEnableBreakPoints(nil));
+Print(Inner(4));

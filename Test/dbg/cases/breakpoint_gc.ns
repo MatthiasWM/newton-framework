@@ -1,0 +1,19 @@
+// Step 1.2: garbage collection inside the break loop. The heap is filled
+// with garbage before Work is compiled; the break loop drops the garbage and
+// runs GC(), which may move Work's bytecode and literals. When Work resumes,
+// the interpreter must re-read its pointers and still compute the right result.
+// The breakpoint is at pc 10, in the middle of the last statement, when
+// "result: " and t are already on the stack.
+junk := [];
+for i := 1 to 2000 do AddArraySlot(junk, Clone("some garbage to fill the heap"));
+
+global Work(a)
+begin
+  local t := a * 2;
+  "result: " & t & " " & a;
+end;
+
+NSDInstallBreakPoints({programCounter: [
+  {instructions: functions.Work.instructions, programCounter: 10, temporary: true}]});
+NSDEnableBreakPoints(true);
+Print(Work(21));

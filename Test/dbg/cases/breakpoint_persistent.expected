@@ -1,0 +1,26 @@
+"inner 1"
+Entering break loop
+WARNING:  Inaccurate stack trace.  Use SetDebugMode(true) for accurate stack traces.
+Stack trace:
+   4 : (functions.StackTrace)[native]
+   3 : (#<ref>) <function, 0 args, #<ref>> : 2
+   2 : (functions.BreakLoop)[native]
+   1 : (functions.Inner) : 10
+       0 [arg 0]: 1
+   0 : (#<ref>) <function, 0 args, #<ref>> : 3
+#2        nil
+#2        nil
+Exiting break loop
+2
+"inner 2"
+Entering break loop
+"stopped again"
+#2        nil
+#2        nil
+Exiting break loop
+3
+"inner 3"
+4
+true
+"inner 4"
+5

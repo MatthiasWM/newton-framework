@@ -1,0 +1,3 @@
+junk := nil;
+GC();
+ExitBreakLoop();

@@ -229,9 +229,21 @@ regression checks (MATT.md) still apply when shared code is touched.
       alternating loops 0.81 s (noise). With the slow loop forced on
       (temporarily), all tests and the benchmark gave identical results.
       Not testable from NewtonScript until 1.2.
-- [ ] 1.2 Expose `NSDInstallBreakPoints`/`NSDEnableBreakPoints` as natives.
-      Test: a hand-built `{programCounter: [{instructions:, programCounter:,
-      temporary:}]}` frame stops at that PC; the temporary one fires once.
+- [x] 1.2 `NSDInstallBreakPoints(bps)` and `NSDEnableBreakPoints(flag)` are
+      NewtonScript functions (`FNSD...` in DebugAPI.cc, registered in newtc.cc
+      `init()` via the new `defGlobalCFunction()` helper). Disassembling the
+      package's ARM code (part "NSDCPatch1", offsets 0x9C and 0xFC) showed thin
+      wrappers: they call (confirmed through the jump table, see below) ROM
+      `TInterpreter::SetBreakPoints` (returns the
+      previous frame) and `TInterpreter::EnableBreakPoints(flag <> nil)`
+      (returns the previous setting as true/nil). Tests: `breakpoint_temporary`
+      (pc 0, fires once, removes itself and the empty list),
+      `breakpoint_persistent` (every call; `disabled`; switched off),
+      `breakpoint_gc` (GC in the break loop while stopped mid-statement; a
+      temporary print confirmed the bytecode really moved, and the result is
+      still right). `Disasm` is not registered: NSDT brings its own (Phase 3).
+      To find PCs for tests: end the script with `functions.Foo;` and run
+      `newtc -script x.ns -debug bc -decompile`.
 - [ ] 1.3 PCs are exact while paused (`GetCurrentPC` = next instruction),
       including a stop inside an instruction (exception): honour
       `SetDebugMode(true)` like ROM's slow loop by storing `vm->pc` per
@@ -323,6 +335,39 @@ regression checks (MATT.md) still apply when shared code is touched.
 - **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
   30 manifest packages, with the binary from before 1.1 too (pre-existing).
 
+## How to read the ARM code in NS Debug Tools.pkg
+
+The natives are `BinCFunction`s: `{class: 'BinCFunction, code: <binary>,
+numargs:, offset:}`. The code binary is in the decompiled package
+(`newtc -pkg ".../NS Debug Tools.pkg" -decompile`, e.g. `Ref_299` for part
+NSDCPatch1, `Ref_334` for NSDCPatch2) as `MakeBinaryFromHex("...")`. The
+words are big-endian. To disassemble: extract the hex into a file, swap each
+4-byte word to little-endian, wrap it in `p.s` as
+`.text / .arm / _start: / .incbin "p.bin"`, then run
+`xcrun clang -target armv4t-none-eabi -c p.s -o p.o` and
+`xcrun llvm-objdump -d --triple=armv4t-none-eabi p.o`.
+
+**ROM calls go through the public jump table** (the MMU maps it, so ROM bugs
+can be patched later and packages have fixed entry points across ROM
+versions). `ldr pc, [pc, #-4]` followed by `0x018xxxxx` is such a call.
+Verified chain:
+1. entry i is at virtual `0x01800000 + 4*i`; the ROM stores it at
+   `gROMPublicJumpTable` (0x13000..0x15E0C) + 4*i. It is a `b` to a
+   `VEC_<name>` address (`.equ VEC_...` in newtonos.s).
+2. the MMU maps that VEC_ address to ROM
+   `(((a>>5) & 0xffffff80) | (a & 0x7f)) - 0xCE000` (Matt's formula,
+   verified): a patch table entry, a `b` to the real function.
+`Matt/tools/rom_jumptable.py <index or 0x018xxxxx address> ...` follows the
+chain and prints the names (reads newtonos.s, under a second). The original
+ROM calls through these tables almost everywhere; newtonos.s shows those
+calls already resolved by name (`bl VEC_Name`).
+Symbol lists (git-ignored, repo root): `symbols.txt` (address, name) and
+`Symbols_demangled_by_name.txt`.
+NSDCPatch1 uses entries 1978 `GetGInterpreter()`, 2045
+`TInterpreter::SetBreakPoints`, 2096 `TInterpreter::EnableBreakPoints`, and
+2339 `PublicFiller_1` (an unused slot: the code throws if a function's entry
+is the same as that filler entry, i.e. the ROM is too old).
+
 ## Conventions
 
 - **Line endings**: CR (`\r`) is a leftover from classic Mac OS. Input must
@@ -339,11 +384,12 @@ regression checks (MATT.md) still apply when shared code is touched.
   (`compilerCompatibility` 1; 2.1 uses the same code format). NOS 1 code is
   generated only on request (`-nos1`, or `//! -nos1` as the decompiler writes it
   for NOS 1 packages, so round trips still work).
-- **What NewtonScript is for** (keep in mind for performance tradeoffs):
-  interpreter calls are GUI-style callbacks to user actions (plus timers
-  for games). Scripts are not expected to run long functions. NewtonScript's
-  goals are low memory use (`_proto` inheritance) and low battery use
-  (deep sleep whenever nothing happens).
+- **Why the original code looks the way it does**: NewtonOS was built for
+  low memory (`_proto` inheritance) and low battery use (deep sleep whenever
+  nothing happens); interpreter calls are short GUI-style callbacks to user
+  actions (plus timers for games). This explains many implementation choices.
+  It is *not* a goal for us: memory and battery hardly matter today, so don't
+  over-optimize; prefer clarity.
 
 ## Decisions (2026-09-25)
 
