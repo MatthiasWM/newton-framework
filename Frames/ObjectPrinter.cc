@@ -422,6 +422,11 @@ PrintObjectAux(Ref obj, int indent, int depth)
 					} else if (EQ(objClass, SYMA(instructions)) && doPrintCode) {
 						PrintInstructions(obj);
 
+					} else if (EQ(objClass, SYMA(CObject))) {
+						// A handle to C data: BinaryData() is the C object, which is not
+						// Length() bytes long, so don't dump it. Format as in ROM.
+						REPprintf("<%s, length %d>", SymbolName(objClass), Length(obj));
+
 					} else if (IsSymbol(objClass)) {
 						if (IsSubclass(objClass, SYMA(string))) {
 							REPprintf("\"");

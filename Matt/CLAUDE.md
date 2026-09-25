@@ -265,8 +265,31 @@ regression checks (MATT.md) still apply when shared code is touched.
 
 ### Phase 2: The NS Debug Tools native layer
 - [ ] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
-      method group at a time (stack/function/PC → receiver/implementor →
-      vars → temps). Test each from a break loop.
+      method group at a time. Test each from a break loop.
+      How the ARM code (NSDCPatch2, `Ref_334`) works: 33 ROM call stubs at
+      the start (all resolved by name with rom_jumptable.py: `TNSDebugAPI`
+      methods, `AllocateCObjectBinary`, `GetFrameSlotRef`, `BinaryData`, ...).
+      `NSDMakeNSDebugAPI()` = `AllocateCObjectBinary(NewNSDebugAPI(
+      GetGInterpreter()), <b DeleteNSDebugAPI>, 0, 0)`. Every method does
+      `api = BinaryData(GetFrameSlotRef(self, 'nsDebugAPI))` and calls the
+      `TNSDebugAPI` method, converting with RINT/MAKEINT and nil/true.
+      NS Debug Tools builds `{_proto: NSDSelfFuncs, nsDebugAPI: ...}`
+      (`CurrentStack()`). Frame index 0 is the oldest frame.
+  - [x] stack/function/PC: `NSDMakeNSDebugAPI`, `AccurateStack`,
+        `NumStackFrames`, `Function(i)`, `ProgramCounter(i)` (-1 for native
+        frames), `SetProgramCounter(i, pc)` (returns nil). Port's
+        `CNSDebugAPI` checked against ROM `TNSDebugAPI` (StackFrameAt throws for
+        a bad index, PC, SetPC, Function). Registered in newtc.cc
+        (`installNSDebugToolsNatives()`; `NSDSelfFuncs` is a global var).
+        Not in ROM: the methods check that `nsDebugAPI` is a CObject binary.
+        Test: `debugapi_stack` (finds Inner's frame, changes its PC to skip a
+        statement, deletes the object with GC()).
+        Fixed on the way (found by ASan): the REPL's printer hex-dumped
+        `Length()` bytes of a CObject binary's data, reading past the C object;
+        now prints `<CObject, length 32>` like ROM's `<%s, length %d>`.
+  - [ ] receiver/implementor: `Receiver`, `Implementor`
+  - [ ] vars: `GetVar`, `SetVar`, `FindVar`, `SetFindVar`
+  - [ ] temps: `NumTemps`, `TempValue`, `SetTempValue`
 - [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three
       installed functions (`Ref_22`/`Ref_27`, likely `MakeDisassembler` & co.).
 

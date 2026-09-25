@@ -1,0 +1,14 @@
+api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()};
+Print(api:AccurateStack());
+Print(api:NumStackFrames());
+for i := 0 to api:NumStackFrames() - 1 do if api:Function(i) = functions.Inner then innerIndex := i;
+Print(innerIndex);
+Print(api:Function(innerIndex + 1) = functions.BreakLoop);
+Print(api:ProgramCounter(innerIndex));
+Print(api:ProgramCounter(innerIndex + 1));
+api:Function(99);
+api:SetProgramCounter(innerIndex, 6);
+Print(api:ProgramCounter(innerIndex));
+api := nil;
+GC();
+ExitBreakLoop();

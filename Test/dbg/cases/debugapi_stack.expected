@@ -1,0 +1,30 @@
+Entering break loop
+#<ref> {_proto: {AccurateStack: <native function, 0 args, #<ref>>, 
+                     NumStackFrames: <native function, 0 args, #<ref>>, 
+                     function: <native function, 1 arg, #<ref>>, 
+                     programCounter: <native function, 1 arg, #<ref>>, 
+                     SetProgramCounter: <native function, 2 args, #<ref>>}, 
+            nsDebugAPI: <CObject, length 32>}
+nil
+#2        nil
+5
+#2        nil
+#2        nil
+1
+#2        nil
+true
+#2        nil
+2
+#2        nil
+-1
+#2        nil
+    !!! Exception: Value out of range
+#2        nil
+6
+#2        nil
+#2        nil
+#2        nil
+#2        nil
+Exiting break loop
+"after"
+42

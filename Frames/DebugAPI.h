@@ -61,5 +61,12 @@ extern void				DeleteNSDebugAPI(CNSDebugAPI * inDebugAPI);
 // NS Debug Tools natives, see DebugAPI.cc
 extern "C" Ref FNSDInstallBreakPoints(RefArg rcvr, RefArg inBreakPoints);
 extern "C" Ref FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable);
+extern "C" Ref FNSDMakeNSDebugAPI(RefArg rcvr);
+// methods of NSDSelfFuncs, called with the debug API frame as receiver
+extern "C" Ref FNSDAccurateStack(RefArg rcvr);
+extern "C" Ref FNSDNumStackFrames(RefArg rcvr);
+extern "C" Ref FNSDFunction(RefArg rcvr, RefArg inIndex);
+extern "C" Ref FNSDProgramCounter(RefArg rcvr, RefArg inIndex);
+extern "C" Ref FNSDSetProgramCounter(RefArg rcvr, RefArg inIndex, RefArg inPC);
 
 #endif	/* __DEBUGAPI_H */

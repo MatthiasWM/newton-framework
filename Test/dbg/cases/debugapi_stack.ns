@@ -1,0 +1,17 @@
+// Step 2.1: the debug API object, stack/function/PC methods. In the break
+// loop inside Inner, build the object like NS Debug Tools' CurrentStack()
+// does, find Inner's frame, read PCs, and change Inner's PC so that
+// execution skips Print("skipped").
+// Inner's bytecode: BreakLoop is called at pc 1, so the PC is 2 (the pop of
+// its result); Print("skipped") is pc 3-5, its pop pc 6. Setting the PC to 6
+// skips both; the pop at 6 removes BreakLoop's result instead.
+// Dropping the object and GC() deletes the CNSDebugAPI (checked by ASan).
+global Inner(x)
+begin
+  BreakLoop();
+  Print("skipped");
+  Print("after");
+  x + 1;
+end;
+
+Print(Inner(41));

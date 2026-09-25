@@ -8,6 +8,8 @@
 #define forDebug 1
 
 #include "DebugAPI.h"
+#include "CObjectBinaries.h"
+#include "NewtGlobals.h"
 #include "Funcs.h"
 #include "Lookup.h"
 #include "NewtonErrors.h"
@@ -99,6 +101,95 @@ Ref
 FNSDEnableBreakPoints(RefArg rcvr, RefArg inEnable)
 {
 	return MAKEBOOLEAN(EnableBreakPoints(NOTNIL(inEnable)));
+}
+
+
+/* -----------------------------------------------------------------------------
+	The debug API object (package part "NSDCPatch2").
+	NSDMakeNSDebugAPI() wraps a new CNSDebugAPI in a C object binary. NS Debug
+	Tools stores it in the nsDebugAPI slot of a frame whose _proto is the
+	global NSDSelfFuncs, a frame of the methods below. Each method gets that
+	frame as receiver and calls the CNSDebugAPI method of the same name.
+	Stack frame index 0 is the oldest frame, NumStackFrames()-1 the newest.
+----------------------------------------------------------------------------- */
+
+static void
+DeleteNSDebugAPIProc(void * inData)
+{
+	DeleteNSDebugAPI((CNSDebugAPI *)inData);
+}
+
+
+/*------------------------------------------------------------------------------
+	Get the CNSDebugAPI from the receiver's nsDebugAPI slot.
+	Not in ROM: we check the slot, the ROM just uses whatever is there.
+------------------------------------------------------------------------------*/
+
+static CNSDebugAPI *
+GetNSDebugAPI(RefArg inRcvr)
+{
+	RefVar api(GetFrameSlot(inRcvr, MakeSymbol("nsDebugAPI")));
+	if (!IsBinary(api) || !EQ(ClassOf(api), SYMA(CObject)))
+		ThrowBadTypeWithFrameData(kNSErrNotABinaryObject, api);
+	return (CNSDebugAPI *)BinaryData(api);
+}
+
+
+/*------------------------------------------------------------------------------
+	Create a debug API object for the current interpreter.
+	Return:	a C object binary; the CNSDebugAPI is deleted when it is collected
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDMakeNSDebugAPI(RefArg rcvr)
+{
+	return AllocateCObjectBinary(NewNSDebugAPI(gInterpreter), DeleteNSDebugAPIProc, NULL, NULL);
+}
+
+
+Ref
+FNSDAccurateStack(RefArg rcvr)
+{
+	return MAKEBOOLEAN(GetNSDebugAPI(rcvr)->accurateStack());
+}
+
+
+Ref
+FNSDNumStackFrames(RefArg rcvr)
+{
+	return MAKEINT(GetNSDebugAPI(rcvr)->numStackFrames());
+}
+
+
+Ref
+FNSDFunction(RefArg rcvr, RefArg inIndex)
+{
+	return GetNSDebugAPI(rcvr)->function(RINT(inIndex));
+}
+
+
+/*------------------------------------------------------------------------------
+	The PC of a stack frame: the next instruction to execute.
+	Return:	int, -1 if the frame has no PC (native function)
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDProgramCounter(RefArg rcvr, RefArg inIndex)
+{
+	return MAKEINT((int)GetNSDebugAPI(rcvr)->PC(RINT(inIndex)));
+}
+
+
+/*------------------------------------------------------------------------------
+	Change the PC of a stack frame: execution continues there.
+	Return:	nil
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDSetProgramCounter(RefArg rcvr, RefArg inIndex, RefArg inPC)
+{
+	GetNSDebugAPI(rcvr)->setPC(RINT(inIndex), RINT(inPC));
+	return NILREF;
 }
 
 

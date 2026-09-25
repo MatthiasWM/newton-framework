@@ -64,6 +64,20 @@ extern void handleArgHello();
 
 
 /**
+ \brief Make a NewtonScript function object for a C function.
+ \param fn C function taking the receiver plus numArgs RefArgs, returning a Ref
+ \param numArgs number of NewtonScript arguments
+ */
+static Ref makeCFunction(void *fn, int numArgs)
+{
+  RefVar cFn(AllocateFrame());
+  SetFrameSlot(cFn, MakeSymbol("class"), kPlainCFunctionClass);
+  SetFrameSlot(cFn, MakeSymbol("function"), (Ref)fn);
+  SetFrameSlot(cFn, MakeSymbol("numargs"), MAKEINT(numArgs));
+  return cFn;
+}
+
+/**
  \brief Make a C function callable from NewtonScript as a global function.
  \param name NewtonScript name of the function
  \param fn C function taking the receiver plus numArgs RefArgs, returning a Ref
@@ -71,11 +85,31 @@ extern void handleArgHello();
  */
 static void defGlobalCFunction(const char *name, void *fn, int numArgs)
 {
-  Ref cFn = AllocateFrame();
-  SetFrameSlot(cFn, MakeSymbol("class"), kPlainCFunctionClass);
-  SetFrameSlot(cFn, MakeSymbol("function"), (Ref)fn);
-  SetFrameSlot(cFn, MakeSymbol("numargs"), MAKEINT(numArgs));
+  RefVar cFn(makeCFunction(fn, numArgs));
   SetFrameSlot(gFunctionFrame, EnsureInternal(MakeSymbol(name)), cFn);
+}
+
+/**
+ \brief Install the natives of "NS Debug Tools.pkg" (ARM code in the original).
+ */
+static void installNSDebugToolsNatives()
+{
+  defGlobalCFunction("NSDInstallBreakPoints", (void*)FNSDInstallBreakPoints, 1);
+  defGlobalCFunction("NSDEnableBreakPoints", (void*)FNSDEnableBreakPoints, 1);
+  defGlobalCFunction("NSDMakeNSDebugAPI", (void*)FNSDMakeNSDebugAPI, 0);
+
+  // Methods of the debug API object: {_proto: NSDSelfFuncs, nsDebugAPI: ...}
+  RefVar selfFuncs(AllocateFrame());
+  auto addMethod = [&](const char *name, void *fn, int numArgs) {
+    RefVar cFn(makeCFunction(fn, numArgs));
+    SetFrameSlot(selfFuncs, MakeSymbol(name), cFn);
+  };
+  addMethod("AccurateStack", (void*)FNSDAccurateStack, 0);
+  addMethod("NumStackFrames", (void*)FNSDNumStackFrames, 0);
+  addMethod("Function", (void*)FNSDFunction, 1);
+  addMethod("ProgramCounter", (void*)FNSDProgramCounter, 1);
+  addMethod("SetProgramCounter", (void*)FNSDSetProgramCounter, 2);
+  DefGlobalVar(EnsureInternal(MakeSymbol("NSDSelfFuncs")), selfFuncs);
 }
 
 /**
@@ -97,9 +131,7 @@ bool init()
   defGlobalCFunction("MakeBinaryFromHex", (void*)FStuffHex, 2);
   defGlobalCFunction("DefineGlobalConstant", (void*)FDefineGlobalConstant, 2);
 
-  // NS Debug Tools natives (ARM code in "NS Debug Tools.pkg")
-  defGlobalCFunction("NSDInstallBreakPoints", (void*)FNSDInstallBreakPoints, 1);
-  defGlobalCFunction("NSDEnableBreakPoints", (void*)FNSDEnableBreakPoints, 1);
+  installNSDebugToolsNatives();
 
   return true;
 }
