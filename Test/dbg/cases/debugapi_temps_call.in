@@ -1,0 +1,9 @@
+api := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()}; nil;
+for i := 0 to api:NumStackFrames() - 1 do if api:Function(i) = functions.Work then work := i;
+Print(api:NumTemps(work));
+Print(api:TempValue(work, 0));
+Print(api:Function(work + 1) = functions.Helper);
+Print(api:GetVar(work + 1, 0));
+Print(api:NumTemps(work + 1));
+api := nil;
+ExitBreakLoop();

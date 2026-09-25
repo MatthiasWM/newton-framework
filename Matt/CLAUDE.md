@@ -264,7 +264,7 @@ regression checks (MATT.md) still apply when shared code is touched.
       Conventions).
 
 ### Phase 2: The NS Debug Tools native layer
-- [ ] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
+- [x] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
       method group at a time. Test each from a break loop.
       How the ARM code (NSDCPatch2, `Ref_334`) works: 33 ROM call stubs at
       the start (all resolved by name with rom_jumptable.py: `TNSDebugAPI`
@@ -302,7 +302,22 @@ regression checks (MATT.md) still apply when shared code is touched.
         NewtonScript gotcha: `[api:GetVar(i, 0), ...]` is an array of class
         `'api` holding a call to a *global* `GetVar`; write
         `[(api:GetVar(i, 0)), ...]`.
-  - [ ] temps: `NumTemps`, `TempValue`, `SetTempValue`
+  - [x] temps: `NumTemps(i)`, `TempValue(i, n)`, `SetTempValue(i, n, v)`: the
+        values a frame pushed beyond its args and locals (half-evaluated
+        expressions; NSDT's `Step` reads the top one to predict branches).
+        Temp 0 is the deepest. Port checked against ROM (`StackStart`,
+        `NumTemps`, `TempValue`, `FunctionStackSize`).
+        Deliberate difference from ROM: `stackStart()` adds 3 only for
+        NewtonScript frames. Frame layout: a NOS 2 function's `stackFrame` is 3
+        below its first argument; a native function's is its first argument.
+        The ROM adds 3 for every frame, so when the next frame is native the
+        caller got 3 phantom temps above the stack top. NSDT never hit it (its
+        own BreakLoop is NewtonScript); we do while BreakLoop is native, and
+        whenever a native calls back into NewtonScript. (NOS 1 CodeBlock frames
+        keep ROM's +3; their stackFrame is the stack top at call time.)
+        Tests: `debugapi_temps` (stopped mid-expression by a breakpoint; next
+        frame native), `debugapi_temps_call` (next frame a NewtonScript
+        function).
 - [ ] 2.2 `NSDFindSlotName`, `NSDRefToHexString`; identify part 0's three
       installed functions (`Ref_22`/`Ref_27`, likely `MakeDisassembler` & co.).
 

@@ -74,5 +74,8 @@ extern "C" Ref FNSDGetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex);
 extern "C" Ref FNSDSetVar(RefArg rcvr, RefArg inIndex, RefArg inVarIndex, RefArg inValue);
 extern "C" Ref FNSDFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym);
 extern "C" Ref FNSDSetFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym, RefArg inValue);
+extern "C" Ref FNSDNumTemps(RefArg rcvr, RefArg inIndex);
+extern "C" Ref FNSDTempValue(RefArg rcvr, RefArg inIndex, RefArg inTempIndex);
+extern "C" Ref FNSDSetTempValue(RefArg rcvr, RefArg inIndex, RefArg inTempIndex, RefArg inValue);
 
 #endif	/* __DEBUGAPI_H */

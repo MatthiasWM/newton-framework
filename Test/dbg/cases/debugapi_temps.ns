@@ -1,0 +1,14 @@
+// Step 2.1: NumTemps(i), TempValue(i, n), SetTempValue(i, n, value).
+// A breakpoint at pc 10 of Work stops in the middle of its last statement,
+// when "result: " and t are already on the stack: Work has 2 temps.
+// Changing temp 1 (t) to 99 changes the result. Temp 2 is out of range.
+global Work(a)
+begin
+  local t := a * 2;
+  "result: " & t & " " & a;
+end;
+
+NSDInstallBreakPoints({programCounter: [
+  {instructions: functions.Work.instructions, programCounter: 10, temporary: true}]});
+NSDEnableBreakPoints(true);
+Print(Work(21));

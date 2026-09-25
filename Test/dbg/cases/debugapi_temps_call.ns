@@ -1,0 +1,16 @@
+// Step 2.1: temps when the next frame is a NewtonScript function. Work is
+// stopped inside the call Helper(t): its only temp is "result: ", because t
+// became Helper's argument (Helper's var 0), not Work's temp.
+global Helper(x)
+begin
+  BreakLoop();
+  x;
+end;
+
+global Work(a)
+begin
+  local t := a * 2;
+  "result: " & Helper(t);
+end;
+
+Print(Work(21));

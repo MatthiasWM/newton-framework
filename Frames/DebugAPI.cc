@@ -246,6 +246,35 @@ FNSDSetFindVar(RefArg rcvr, RefArg inIndex, RefArg inSym, RefArg inValue)
 
 
 /*------------------------------------------------------------------------------
+	Temporaries of a stack frame: the values it has pushed on the data stack
+	beyond its arguments and locals, e.g. the operands of an expression that
+	is half evaluated. Temp 0 is the first (deepest) one; NS Debug Tools'
+	temporary(i, n) counts from the top instead.
+------------------------------------------------------------------------------*/
+
+Ref
+FNSDNumTemps(RefArg rcvr, RefArg inIndex)
+{
+	return MAKEINT(GetNSDebugAPI(rcvr)->numTemps(RINT(inIndex)));
+}
+
+
+Ref
+FNSDTempValue(RefArg rcvr, RefArg inIndex, RefArg inTempIndex)
+{
+	return GetNSDebugAPI(rcvr)->tempValue(RINT(inIndex), RINT(inTempIndex));
+}
+
+
+Ref
+FNSDSetTempValue(RefArg rcvr, RefArg inIndex, RefArg inTempIndex, RefArg inValue)
+{
+	GetNSDebugAPI(rcvr)->setTempValue(RINT(inIndex), RINT(inTempIndex), inValue);
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
 	Change the PC of a stack frame: execution continues there.
 	Return:	nil
 ------------------------------------------------------------------------------*/
@@ -317,7 +346,16 @@ CNSDebugAPI::stackStart(ArrayIndex index)
 {
 	if (index == numStackFrames())
 		return (fInterpreter->dataStack.top - fInterpreter->dataStack.base) - 1;
-	return 3 + (RVALUE(stackFrameAt(index)->stackFrame) >> 6);
+	VMState * state = stackFrameAt(index);
+	ArrayIndex start = RVALUE(state->stackFrame) >> 6;
+	// Not in ROM, which always adds 3. That is right for NS functions, whose
+	// stackFrame is 3 below their first argument, but a native function's
+	// stackFrame is its first argument: the caller's numTemps() would count
+	// 3 values beyond the top of the stack. NS Debug Tools never noticed,
+	// because a paused frame always had its NewtonScript BreakLoop above it.
+	if (!IsNativeFunction(state->func))
+		start += 3;
+	return start;
 }
 
 
