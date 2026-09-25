@@ -570,6 +570,19 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       transcript): `dap_session`, `dap_errors`, `dap_nofile`, `dap_eof`.
       NewtonScript gotchas: `ClassOf(func() nil)` is `'_function` in newtc
       (use `IsFunction`); strings compare with `StrEqual`, not `=`.
+- [x] 5.2b VS Code starts `newtc -dap` (VSNewt, /Users/matt/dev/VSNewt.git/vsnewt,
+      github MatthiasWM/VSNewt). package.json: language `newtonscript`
+      (.ns/.newt/.newtonscript, language-configuration.json: comments,
+      brackets), `breakpoints` for it, debugger type `newtonscript` (launch
+      attributes `program`, optional `newtc`), setting `vsnewt.newtcPath`
+      (e.g. build/VSCode/newtc; also used by the compile commands),
+      activation `onDebugResolve:newtonscript`. extension.ts: a
+      DebugAdapterDescriptorFactory (`DebugAdapterExecutable(newtc, ['-dap'])`)
+      and a DebugConfigurationProvider (F5 without launch.json runs the active
+      .ns file). No debugger logic in TypeScript. Try it: open vsnewt in VS
+      Code, run "Run Extension (samples)", open samples/hello.ns, F5.
+      Test: `NEWTC=<newtc> npm test` in vsnewt starts a real debug session in
+      a downloaded VS Code and checks output and exit code.
 - [ ] 5.3 Stopping: `stopped` with a reason (C++ records it: breakpoint,
       step = temporary breakpoint, exception, explicit BreakLoop()),
       `threads` (one), `stackTrace`, `continue`. The in-translator blocks while
@@ -721,6 +734,11 @@ Decompiler
   shall go all UTF-8.
 
 Open work (not bugs)
+- `-g` (VSNewt's "Compile ... for debugging" commands pass it): compile with
+  debug information and write the debug map (Phase 8). newtc accepts and
+  ignores it until then.
+- The newtc in VSNewt's bin/darwin-arm64 is old (no -dap): copy a current
+  build there before packaging a VSIX.
 - `-run` (run a loaded 'form package) is not implemented.
 - newtc's compiler writes no `DebuggerInfo` (NTK's variable names), so NOS 2
   locals have no names in the debugger (Phases 7/8).

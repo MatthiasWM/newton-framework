@@ -676,6 +676,7 @@ the commands in the given order.
                           client's "launch" request
 
   Options
+  -g                      Compile with debug information (planned, ignored for now)
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
   -nos2                   Compile for NewtonOS 2.x and 2.1 (default)
   -debug ast              Print the progress of the AST while decompiling
@@ -715,6 +716,9 @@ int handleArgs(int argc, char **argv)
         handleArgDbg();
       } else if (cmd == "-dap") {
         handleArgDap();
+      } else if (cmd == "-g") {
+        // Planned: compile with debug information and write the debug map
+        // (Matt/CLAUDE.md, Phase 8). Accepted and ignored until then.
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {
