@@ -11,6 +11,23 @@
 #include "Unicode.h"
 #include "RSSymbols.h"
 
+// Newton binary data is big-endian, and offsets need not be aligned: read and
+// write multi-byte values byte by byte, as the ROM does. (The port used to
+// access them natively, which gave the wrong byte order on little-endian
+// hosts and misaligned accesses.)
+static inline uint16_t GetBigEndian16(const char * p)
+{ return (uint16_t)(((uint8_t)p[0] << 8) | (uint8_t)p[1]); }
+
+static inline uint32_t GetBigEndian32(const char * p)
+{ return ((uint32_t)(uint8_t)p[0] << 24) | ((uint32_t)(uint8_t)p[1] << 16)
+       | ((uint32_t)(uint8_t)p[2] << 8) | (uint32_t)(uint8_t)p[3]; }
+
+static inline void PutBigEndian16(char * p, uint16_t v)
+{ p[0] = (char)(v >> 8); p[1] = (char)v; }
+
+static inline void PutBigEndian32(char * p, uint32_t v)
+{ p[0] = (char)(v >> 24); p[1] = (char)(v >> 16); p[2] = (char)(v >> 8); p[3] = (char)v; }
+
 #pragma mark Bounds checking
 
 /* -----------------------------------------------------------------------------
@@ -78,8 +95,7 @@ FExtractUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(UniChar));
 
 	char * p = BinaryData(inObj);
-	UniChar uch;
-	memcpy(&uch, p+offset, sizeof(UniChar));	// yes, the offset is a char offset, not UniChar
+	UniChar uch = GetBigEndian16(p + offset);	// yes, the offset is a char offset, not UniChar
 	return MAKECHAR(uch);
 }
 
@@ -91,7 +107,7 @@ FExtractByte(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(int8_t));
 
 	char * p = BinaryData(inObj);
-	int8_t v = *(p + offset);
+	uint8_t v = *(p + offset);	// unsigned, as in ROM
 	return MAKEINT(v);
 }
 
@@ -103,7 +119,7 @@ FExtractWord(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(int16_t));
 
 	char * p = BinaryData(inObj);
-	int16_t v = *(int16_t *)(p + offset);
+	int16_t v = (int16_t)GetBigEndian16(p + offset);	// signed, as in ROM
 	return MAKEINT(v);
 }
 
@@ -115,7 +131,7 @@ FExtractLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(int32_t));
 
 	char * p = BinaryData(inObj);
-	int32_t v = *(int32_t *)(p + offset);
+	int32_t v = (int32_t)GetBigEndian32(p + offset);
 	uint32_t vMask = (uint32_t)kRefValueMask >> kRefTagBits;
 	if ((v & ~vMask) != 0)
 		ThrowErr(exFrames, kNSErrLongOutOfRange);
@@ -130,7 +146,7 @@ FExtractXLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(uint32_t));
 
 	char * p = BinaryData(inObj);
-	uint32_t v = *(uint32_t *)(p + offset);
+	uint32_t v = GetBigEndian32(p + offset);
 	return MAKEINT(v >> 3);
 }
 
@@ -214,7 +230,7 @@ FStuffUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(UniChar));
 
 	UniChar uc = ISINT(inData) ? RINT(inData) : RCHAR(inData);
-	*(UniChar *)(BinaryData(inObj) + offset) = uc;
+	PutBigEndian16(BinaryData(inObj) + offset, uc);
 	return NILREF;
 }
 
@@ -238,7 +254,7 @@ FStuffWord(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(int16_t));
 
 	int16_t v = RINT(inData);
-	*(int16_t *)(BinaryData(inObj) + offset) = v;
+	PutBigEndian16(BinaryData(inObj) + offset, (uint16_t)v);
 	return NILREF;
 }
 
@@ -249,7 +265,7 @@ FStuffLong(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(int32_t));
 
 	int32_t v = RINT(inData);
-	*(int32_t *)(BinaryData(inObj) + offset) = v;
+	PutBigEndian32(BinaryData(inObj) + offset, (uint32_t)v);
 	return NILREF;
 }
 

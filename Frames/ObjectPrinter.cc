@@ -29,6 +29,7 @@ Ref	FFramesStringer(RefArg rcvr, RefArg inArray);
 Ref	FEvalStringer(RefArg inRcvr, RefArg inFrame, RefArg inArray);
 Ref	FPrint(RefArg inRcvr, RefArg inObj);
 Ref	FWrite(RefArg inRcvr, RefArg inObj);
+Ref	FDisplay(RefArg inRcvr, RefArg inObj);
 }
 
 
@@ -1180,6 +1181,22 @@ FWrite(RefArg inRcvr, RefArg inObj)
 		SafelyPrintString(GetUString(inObj));
 	else
 		PrintObject(inObj, 0);
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	Print a Ref object the way Print does (strings in quotes, symbols with a
+	quote), but DON'T follow it with a newline. As in ROM.
+	Args:		inRcvr		the receiver
+				inObj			the object to print
+	Return:	nil
+------------------------------------------------------------------------------*/
+
+Ref
+FDisplay(RefArg inRcvr, RefArg inObj)
+{
+	PrintObject(inObj, 0);
 	return NILREF;
 }
 

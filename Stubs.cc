@@ -428,7 +428,6 @@ Ref FNewByName(RefArg rcvr);
 Ref FRecognize(RefArg rcvr);
 Ref FGetCardTypes(RefArg rcvr);
 Ref FUniqueAppend(RefArg rcvr);
-Ref FDisplay(RefArg rcvr);
 Ref FGetTone(RefArg rcvr);
 Ref FLoadOnlinePackage(RefArg rcvr);
 Ref FGetZoneList(RefArg rcvr);
@@ -1173,7 +1172,6 @@ Ref FNewByName(RefArg rcvr) { return NILREF; }
 Ref FRecognize(RefArg rcvr) { return NILREF; }
 Ref FGetCardTypes(RefArg rcvr) { return NILREF; }
 Ref FUniqueAppend(RefArg rcvr) { return NILREF; }
-Ref FDisplay(RefArg rcvr) { return NILREF; }
 Ref FGetTone(RefArg rcvr) { return NILREF; }
 Ref FLoadOnlinePackage(RefArg rcvr) { return NILREF; }
 Ref FGetZoneList(RefArg rcvr) { return NILREF; }

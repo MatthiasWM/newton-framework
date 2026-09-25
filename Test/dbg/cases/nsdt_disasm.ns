@@ -1,0 +1,24 @@
+// Step 3.1e: Apple's disassembler: Disasm(fn), DisasmRange(fn, start, stop),
+// MakeDisassembler(fn). Work covers 1-byte and 3-byte instructions, a
+// constant, literals, a freq-func (Multiply, Add, Stringer), and a for
+// loop. NOS 2 code has no names for its arguments and locals: [ 3 ] is a
+// (the first 3 are system slots), [ 4 ] is t. DisasmRange starts at the
+// next instruction boundary, warns about a negative start (and starts at 0)
+// and a stop past the end. Verbose output (vars.NSDParamFrame) explains the
+// operands. Disasm refuses non-functions.
+global Work(a)
+begin
+  local t := a * 2;
+  for i := 1 to 3 do t := t + i;
+  "result: " & t & " " & a;
+end;
+
+Disasm(functions.Work);
+DisasmRange(functions.Work, 5, 12);
+DisasmRange(functions.Work, -2, 1);
+DisasmRange(functions.Work, 44, 99);
+Disasm(42);
+d := MakeDisassembler(functions.Work);
+Print([(d:InstrOpcode(4)), d:InstrParameter(4), d:InstrLength(4)]);
+vars.NSDParamFrame := {Verbose: true};
+DisasmRange(functions.Work, 0, 5);

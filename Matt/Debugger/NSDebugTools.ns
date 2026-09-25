@@ -77,6 +77,335 @@ end);
 
 
 //------------------------------------------------------------------------------
+// The disassembler (package part 0)
+//------------------------------------------------------------------------------
+
+// True if fn may be disassembled: it was compiled with NTK's "Compile for
+// debugging" (it has DebuggerInfo), or the global becausePeterSaidSo is set.
+// (Ref_261: NewtonScript compiled to ARM by NTK; decoded from its code: it
+// calls FrameHasPath(fn, 'DebuggerInfo), then GetFramePath(vars,
+// 'becausePeterSaidSo).) newtc -dbg sets becausePeterSaidSo, see the end.
+DefineGlobalConstant('kNSDCanDisassemble, func(fn)
+  if HasPath(fn, 'DebuggerInfo) or vars.becausePeterSaidSo then true else nil);
+
+// The disassembler object; MakeDisassembler(fn) clones it. (Ref_41)
+DefineGlobalConstant('kNSDDisassemblerProto, {
+  _proto: {
+    // Verbose output: explain each operand in a comment.
+    PrintVerbosity: func(verbose)
+      fVerbosity := verbose <> nil,
+
+    // Column widths for the instruction name and its operand: an integer, or
+    // true for the default (21, 18), or nil for none.
+    PrettySpacing: func(instWidth, argWidth)
+    begin
+      if ClassOf(instWidth) = 'int then
+        fInstPad := instWidth
+      else if instWidth then
+        fInstPad := 21
+      else
+        fInstPad := 0;
+      if ClassOf(argWidth) = 'int then
+        fArgPad := argWidth
+      else if argWidth then
+        fArgPad := 18
+      else
+        fArgPad := 0;
+    end,
+
+    // Print objects on one line, completely, while disassembling.
+    PrintStateSave: func()
+    begin
+      fSavedPrettyPrint := prettyPrint;
+      fSavedPrintDepth := printDepth;
+      prettyPrint := nil;
+      printDepth := -1;
+    end,
+
+    PrintStateRestore: func()
+    begin
+      prettyPrint := fSavedPrettyPrint;
+      printDepth := fSavedPrintDepth;
+    end,
+
+    // Write str padded with spaces to `width` columns (at least one space);
+    // alignRight writes the padding first.
+    WriteToWidth: func(str, width, alignRight)
+    begin
+      local length := StrLen(str) + 1;
+      if not alignRight then
+        Write(str);
+      for i := width to length by -1 do
+        Write($ );
+      if alignRight then
+        Write(str)
+      else if width < length then
+        Write($ );
+    end,
+
+    // Print the instructions from pc `start` to pc `stop`, one per line.
+    Disassemble: func(start, stop)
+    begin
+      try
+        local length := Length(fDisasmFn.instructions);
+        local pc := 0;
+        self:PrintStateSave();
+        while pc < length do
+        begin
+          if start <= pc then
+          begin
+            if pc > stop then
+              break;
+            self:WriteToWidth(pc & "", 5, true);
+            Write($:);
+            Write($ );
+            self:PrintInstruction(pc);
+            Write($\n);
+          end;
+          pc := pc + self:InstrLength(pc);
+        end;
+        self:PrintStateRestore();
+      // newtc: the package caught |ex.evt| (sic), which never matches, so the
+      // print settings were not restored after an error.
+      onexception |evt.ex| do
+        self:PrintStateRestore();
+    end,
+
+    // Print the instruction at pc (no newline).
+    PrintInstruction: func(pc)
+    begin
+      local opcode := self:InstrOpcode(pc);
+      local parameter := self:InstrParameter(pc);
+      if opcode = 0 then
+        Write(Unary1OpNames[parameter])
+      else if opcode = 24 then            // freq-func
+      begin
+        self:WriteToWidth(OpNames[opcode] & FreqFuncInfo[parameter].name, fInstPad, nil);
+        if fVerbosity then
+        begin
+          self:WriteToWidth(NumberStr(FreqFuncInfo[parameter].numArgs), fArgPad, nil);
+          Write("\\\\ primitive function" && parameter & $, && FreqFuncInfo[parameter].numArgs && "arg(s)");
+        end
+        else
+          Write(FreqFuncInfo[parameter].numArgs);
+      end
+      else if opcode >= Length(OpNames) then
+      begin
+        if fVerbosity then
+        begin
+          self:WriteToWidth(NumberStr(parameter), fInstPad + fArgPad, nil);
+          Write("\\\\ unrecognized opcode" && parameter);
+        end
+        else
+          Write(opcode);
+      end
+      else
+      begin
+        self:WriteToWidth(OpNames[opcode], fInstPad, nil);
+        if opcode = 3 then                // push: a literal
+        begin
+          local literal := fDisasmFn.literals[parameter];
+          if IsInstance(literal, 'symbol) then
+            Write($' & SPrintObject(literal))
+          else
+            Display(literal);
+        end
+        else if opcode = 14 or opcode = 21 then   // find-var, set-find-var: a name
+        begin
+          if fVerbosity then
+          begin
+            self:WriteToWidth(SPrintObject(fDisasmFn.literals[parameter]), fArgPad, nil);
+            Write("\\\\ literal [" && parameter && $]);
+          end
+          else
+            Display(fDisasmFn.literals[parameter]);
+        end
+        else if opcode = 4 then           // push-constant: the Ref itself
+          Display(Ref(parameter))
+        else if opcode = 15 or opcode = 20 or opcode = 22 then  // get-var, set-var, incr-var
+        begin
+          local name := self:GetArgName(parameter);
+          if not IsInstance(name, 'string) then
+            name := SPrintObject(name);
+          if StrEqual(name, "") then
+            name := $[ && parameter && $];
+          if fVerbosity then
+          begin
+            self:WriteToWidth(name, fArgPad, nil);
+            Write("\\\\ argument or local [" && parameter && $]);
+          end
+          else
+            Write(name);
+        end
+        else
+          Write(parameter);
+      end;
+    end,
+
+    GetFindVarName: func(index)
+      index < Length(fDisasmFn.literals) and fDisasmFn.literals[index],
+
+    // The name of argument/local `index` (as used by get-var: the first 3
+    // are the argFrame's system slots), from the argFrame of NOS 1 code or
+    // the DebuggerInfo of NOS 2 code; nil if unknown.
+    GetArgName: func(index)
+    begin
+      if ClassOf(fDisasmFn) = 'CodeBlock then
+        return self:GetSlotName(fDisasmFn.argFrame, index);
+      if ClassOf(fDisasmFn) = '_function and ClassOf(fDisasmFn.DebuggerInfo) = 'dbg1 then
+      begin
+        local info := fDisasmFn.DebuggerInfo;
+        local name := info[index + info[0] + 1 - 3];
+        return if IsInstance(name, 'symbol) then name else info[name];
+      end;
+      return nil;
+    end,
+
+    Unary1OpNames: ["Pop", "Dup", "Return", "PushSelf", "SetLexScope",
+                    "IterNext", "IterDone", "PopHandlers"],
+
+    OpNames: ["Unary1", "Unary2", "Unary3", "Push", "PushConstant", "Call",
+              "Invoke", "Send", "SendIfDefined", "Resend", "ResendIfDefined",
+              "Branch", "BranchIfNotNil", "BranchIfNil", "FindVar", "GetVar",
+              "MakeFrame", "MakeArray", "GetPath", "SetPath", "SetVar",
+              "SetFindVar", "IncrVar", "BranchIfLoopNotDone", "",
+              "NewHandlers"],
+
+    // The frequently used functions called by freq-func n.
+    FreqFuncInfo: [
+      {name: "Add", numArgs: 2}, {name: "Subtract", numArgs: 2},
+      {name: "GetArraySlot", numArgs: 2}, {name: "SetArraySlot", numArgs: 3},
+      {name: "Equal", numArgs: 2}, {name: "Not", numArgs: 1},
+      {name: "NotEqual", numArgs: 2}, {name: "Multiply", numArgs: 2},
+      {name: "Divide", numArgs: 2}, {name: "Div", numArgs: 2},
+      {name: "LessThan", numArgs: 2}, {name: "GreaterThan", numArgs: 2},
+      {name: "GreaterOrEqual", numArgs: 2}, {name: "LessOrEqual", numArgs: 2},
+      {name: "BitAnd", numArgs: 2}, {name: "BitOr", numArgs: 2},
+      {name: "BitNot", numArgs: 2}, {name: "NewIterator", numArgs: 2},
+      {name: "Length", numArgs: 1}, {name: "Clone", numArgs: 1},
+      {name: "SetClass", numArgs: 2}, {name: "AddArraySlot", numArgs: 2},
+      {name: "Stringer", numArgs: 1}, {name: "HasPath", numArgs: 2},
+      {name: "ClassOf", numArgs: 1}],
+
+    // Decoding: an instruction byte is opcode (5 bits) and a 3-bit parameter;
+    // parameter 7 means the real one follows in the next 2 bytes.
+    InstrOpcode: func(pc)
+      ExtractByte(fDisasmFn.instructions, pc) >> 3,
+
+    InstrParameter: func(pc)
+    begin
+      if self:HasParm(ExtractByte(fDisasmFn.instructions, pc)) then
+      begin
+        local opcode := self:InstrOpcode(pc);
+        if opcode = 4 or opcode = 17 then   // push-constant, make-array: signed
+          return ExtractWord(fDisasmFn.instructions, pc + 1);
+        return bOr(ExtractByte(fDisasmFn.instructions, pc + 1) << 8,
+                   ExtractByte(fDisasmFn.instructions, pc + 2));
+      end;
+      return self:ArgSpec(ExtractByte(fDisasmFn.instructions, pc));
+    end,
+
+    InstrLength: func(pc)
+      if self:HasParm(ExtractByte(fDisasmFn.instructions, pc)) then 3 else 1,
+
+    HasParm: func(byte)
+      self:ArgSpec(byte) = 7,
+
+    ArgSpec: func(byte)
+      bAnd(byte, 7),
+
+    // The tag of the slot at `index` in `frame`, or nil.
+    GetSlotName: func(frame, index)
+    begin
+      local i := 0;
+      foreach tag, value in frame do
+        if i = index then
+          return tag
+        else
+          i := i + 1;
+      return nil;
+    end
+  },
+  class: 'Disassembler,
+  fDisasmFn: nil,
+  fVerbosity: true,
+  fInstPad: 0,
+  fArgPad: 0,
+  fSavedPrettyPrint: nil,
+  fSavedPrintDepth: nil
+});
+
+// MakeDisassembler(fn): a disassembler for the NewtonScript function fn.
+// Options come from the global frame vars.NSDParamFrame (DisasmInstWidth,
+// DisasmArgWidth, Verbose). (package part 0, Ref_27[0])
+DefGlobalFn('MakeDisassembler, func(fn)
+begin
+  if not call kNSDIsInterpreted with (fn) then
+    Throw('|evt.ex.fr.type;type.ref|, {errorCode: -48411, value: fn});
+  local disassembler := Clone(kNSDDisassemblerProto);
+  disassembler.fDisasmFn := fn;
+  if HasPath(vars, 'NSDParamFrame) and IsInstance(vars.NSDParamFrame, 'frame) then
+  begin
+    local params := vars.NSDParamFrame;
+    local instWidth := if HasSlot(params, 'DisasmInstWidth) then params.DisasmInstWidth else true;
+    local argWidth := if HasSlot(params, 'DisasmArgWidth) then params.DisasmArgWidth else true;
+    disassembler:PrettySpacing(instWidth, argWidth);
+    if HasSlot(params, 'Verbose) then
+      disassembler:PrintVerbosity(params.Verbose);
+  end
+  else
+  begin
+    disassembler:PrintVerbosity(nil);
+    disassembler:PrettySpacing(true, true);
+  end;
+  return disassembler;
+end);
+
+// Disasm(fn): print all instructions of fn. (Ref_248)
+DefGlobalFn('Disasm, func(fn)
+begin
+  local oldTrace := call kNSDSetTrace with (nil);
+  if not call kNSDIsInterpreted with (fn) then
+    Write("ERROR: Disasm( function ) requires an object of class 'CodeBlock or '_function.\n")
+  else if not call kNSDCanDisassemble with (fn) then
+    Write("ERROR: function not built with \"Compile for debugging\" option; cannot disassemble.\n")
+  else
+    MakeDisassembler(fn):Disassemble(0, Length(fn.instructions));
+  call kNSDSetTrace with (oldTrace);
+  return nil;
+end);
+
+// DisasmRange(fn, start, stop): print the instructions from pc start to
+// pc stop. (Ref_270; written from its bytecode: the decompiled source is
+// missing everything after the start check.)
+DefGlobalFn('DisasmRange, func(fn, start, stop)
+begin
+  local oldTrace := call kNSDSetTrace with (nil);
+  if not call kNSDIsInterpreted with (fn) then
+    Write("ERROR: DisasmRange(function, start, stop) requires a function argument of class 'CodeBlock or '_function.\n")
+  else if not call kNSDCanDisassemble with (fn) then
+    Write("ERROR: function not built with \"Compile for debugging\" option; cannot disassemble.\n")
+  else
+  begin
+    if start < 0 then
+    begin
+      Write("WARNING: DisasmRange(function, start, stop) requires a start value greater than 0.\n");
+      Write("         Disassembling from 0.\n\n");
+      start := 0;
+    end;
+    if stop > Length(fn.instructions) then
+    begin
+      Write("WARNING: The stop value you specified is larger than the length of the function.\n");
+      Write("         Disassembling to the end of the function.\n\n");
+    end;
+    MakeDisassembler(fn):Disassemble(start, stop);
+  end;
+  call kNSDSetTrace with (oldTrace);
+  return nil;
+end);
+
+
+//------------------------------------------------------------------------------
 // The stack object (Ref_531)
 //------------------------------------------------------------------------------
 
@@ -653,6 +982,10 @@ DefineGlobalConstant('kNSDTools, {
 //------------------------------------------------------------------------------
 // Install the global functions
 //------------------------------------------------------------------------------
+
+// newtc: newtc's compiler writes no DebuggerInfo, so let Disasm and
+// DisasmRange work on all functions (Apple's switch, see kNSDCanDisassemble).
+DefGlobalVar('becausePeterSaidSo, true);
 
 foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
                  'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,

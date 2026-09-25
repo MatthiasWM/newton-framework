@@ -395,9 +395,27 @@ regression checks (MATT.md) still apply when shared code is touched.
         result as true (`if (DoBlock(...))`, but nil is not 0); `SetRemove` always
         returned the array (`ISNIL()` on a C++ bool) instead of nil when nothing
         was removed. Test: `nsdt_breakpoints`.
-  - [ ] 3.1e ... the remaining 7: `Where`, `QuickStackTrace`, `Step`, `StepIn`,
-        `StepOut`, `RunUntil`, `SetCurrentPC`; the disassembler; the replacement
-        BreakLoop; StackTraceOld/StackTrace.
+  - [x] 3.1e The disassembler (package part 0): `MakeDisassembler(fn)`,
+        `Disasm(fn)`, `DisasmRange(fn, start, stop)`; `kNSDDisassemblerProto`
+        (Ref_41: `InstrOpcode`/`InstrParameter`/`InstrLength` for Step,
+        `PrintInstruction`, `GetArgName`, ...); `kNSDCanDisassemble` (Ref_261,
+        NewtonScript compiled to ARM by NTK: `HasPath(fn, 'DebuggerInfo) or
+        vars.becausePeterSaidSo`, decoded from its code via the jump table:
+        FrameHasPath, GetVariable, GetFramePath). newtc: `-dbg` sets
+        `becausePeterSaidSo` (our code has no DebuggerInfo); `Disassemble`
+        catches `|evt.ex|` (the package had `|ex.evt|`, which never matches).
+        `DisasmRange` written from its bytecode (decompiler bug, see below).
+        NOS 2 variables show as `[ n ]` (no DebuggerInfo).
+        Fixed on the way: `ExtractByte` was signed (ROM: unsigned, so opcodes
+        >= 0x80 decoded negative); `ExtractWord`, `ExtractLong`, `ExtractXLong`,
+        `ExtractUniChar`, `StuffWord`, `StuffLong`, `StuffUniChar` accessed the
+        data natively (little-endian, unaligned); Newton data is big-endian,
+        now byte by byte as in ROM (Utilities/DataStuffing.cc); `Display` was a
+        stub (ROM: `PrintObject` without newline).
+        Test: `nsdt_disasm`.
+  - [ ] 3.1f ... the remaining 7: `Where`, `QuickStackTrace`, `Step`, `StepIn`,
+        `StepOut`, `RunUntil`, `SetCurrentPC`; the replacement BreakLoop;
+        StackTraceOld/StackTrace.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
       shortcuts.
@@ -486,6 +504,11 @@ regression checks (MATT.md) still apply when shared code is touched.
   a different order when the allocator changes. Other packages: 1909 CLEAN,
   371 UNRESOLVED, 69 CRASHED with ASan vs. the last manifest's 1906/382/61
   (that manifest is older; 13 packages got better since).
+- **Decompiler drops statements** (found in NS Debug Tools.pkg, `Ref_270` =
+  `DisasmRange`): in `if A then X else if B then Y else begin if C then Z;
+  <more statements> end`, the decompiled source ends after `if C then Z`;
+  the bytecode (pc 52-96: a second `if` and the call to `Disassemble`) is
+  missing. See `newtc -pkg ... -debug bc -decompile`, search for "DisasmRange".
 - **Sorted array set operations**: `GenOrderedSetOp` (Frames/SortedArrays.cc,
   behind `BDifference`, `BIntersect`, `BMerge`) has the same `Ref*` difference
   divided by `sizeof(Ref)` as `LSearch` had (lines ~956-968: copies too few

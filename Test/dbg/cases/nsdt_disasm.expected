@@ -1,0 +1,51 @@
+    0: GetVar               [ 3 ]
+    1: PushConstant         2
+    4: Multiply             2
+    7: SetVar               [ 4 ]
+    8: PushConstant         1
+    9: SetVar               [ 5 ]
+   10: PushConstant         3
+   13: SetVar               [ 6 ]
+   14: PushConstant         1
+   15: SetVar               [ 7 ]
+   18: GetVar               [ 7 ]
+   21: GetVar               [ 5 ]
+   22: Branch               33
+   25: GetVar               [ 4 ]
+   26: GetVar               [ 5 ]
+   27: Add                  2
+   28: SetVar               [ 4 ]
+   29: GetVar               [ 7 ]
+   32: IncrVar              [ 5 ]
+   33: GetVar               [ 6 ]
+   34: BranchIfLoopNotDone  25
+   37: PushConstant         nil
+   38: Pop
+   39: Push                 "result: "
+   40: GetVar               [ 4 ]
+   41: Push                 " "
+   42: GetVar               [ 3 ]
+   43: Push                 'array
+   44: MakeArray            4
+   45: Stringer             1
+   48: Return
+    7: SetVar               [ 4 ]
+    8: PushConstant         1
+    9: SetVar               [ 5 ]
+   10: PushConstant         3
+WARNING: DisasmRange(function, start, stop) requires a start value greater than 0.
+         Disassembling from 0.
+
+    0: GetVar               [ 3 ]
+    1: PushConstant         2
+WARNING: The stop value you specified is larger than the length of the function.
+         Disassembling to the end of the function.
+
+   44: MakeArray            4
+   45: Stringer             1
+   48: Return
+ERROR: Disasm( function ) requires an object of class 'CodeBlock or '_function.
+[24, 7, 3]
+    0: GetVar               [ 3 ]             \\ argument or local [ 3 ]
+    1: PushConstant         2
+    4: Multiply             2                 \\ primitive function 7, 2 arg(s)
