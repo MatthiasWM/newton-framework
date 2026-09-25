@@ -1,3 +1,7 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
 functions.Work(10), 2: Pop
 Entering break loop
 2

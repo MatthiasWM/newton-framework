@@ -1,7 +1,8 @@
-WARNING: The program counter may not be accurate.
-         Enable breakpoints for better information.
-
-functions.Calc('a=3, 'b=4), 6?: Pop
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+functions.Calc('a=3, 'b=4), 6: Pop
 Entering break loop
 {a: 3, b: 4, sum: 7}
 #2        nil

@@ -1,7 +1,8 @@
-WARNING: The program counter may not be accurate.
-         Enable breakpoints for better information.
-
-(#<ref>).Tick(5), 2?: Pop
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+(#<ref>).Tick(5), 2: Pop
 Entering break loop
 true
 #2        nil

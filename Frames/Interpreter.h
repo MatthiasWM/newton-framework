@@ -127,6 +127,7 @@ public:
 	template <bool kSlow>
 	bool		run1(ArrayIndex initialStackDepth);
 	void		setFastLoopFlag(void);
+	void		setNativeStackFrame(ArrayIndex numArgs);
 
 	void		pushValue(Ref);
 	Ref		popValue(void);

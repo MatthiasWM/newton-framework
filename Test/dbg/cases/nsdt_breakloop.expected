@@ -1,3 +1,7 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
 entry: Inner, pc 10, x 1
 exit: nil
 1011

@@ -1,10 +1,14 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
 "first"
 "first"
 WARNING: Breakpoint already exists!
 2
 1
 "No such breakpoint exists"
-nil
+true
 functions.Inner(1), 0: Push "inner "
 Entering break loop
 0
@@ -28,6 +32,16 @@ Exiting break loop
 nil
 "inner 4"
 5
+    !!! Exception: '|evt.ex.fr.type;type.ref|
+functions.Throw('evt.ex.fr.type;type.ref, {#<ref>})
+Entering break loop
+#2        nil
+Exiting break loop
 "not a function"
+    !!! Exception: '|evt.ex.fr.type;type.ref|
+functions.Throw('evt.ex.fr.type;type.ref, {#<ref>})
+Entering break loop
+#2        nil
+Exiting break loop
 "pc not an integer"
 true

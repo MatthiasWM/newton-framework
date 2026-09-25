@@ -2436,6 +2436,22 @@ CInterpreter::stackFrameAt(ArrayIndex index)
 	FastDoSend
 ------------------------------------------------------------------------------*/
 
+/*------------------------------------------------------------------------------
+	Record where the arguments of a native function (now in vm) start on the
+	data stack: they are the top numArgs values. call() did this already, but
+	a native called as a method (send) kept stackFrame nil, in the ROM too, so
+	the debug API read its arguments (and the caller's temporaries) from the
+	bottom of the stack. Not in ROM.
+------------------------------------------------------------------------------*/
+
+void
+CInterpreter::setNativeStackFrame(ArrayIndex numArgs)
+{
+	int stackFrameIndex = STACKINDEX(dataStack) - numArgs + 1;
+	vm->stackFrame = MAKEINT((stackFrameIndex << kStackFrameFlagBits) | kStackFrameNoLocals);
+}
+
+
 int
 CInterpreter::unsafeDoSend(RefArg rcvr, RefArg impl, RefArg fn, ArrayIndex numArgs)
 {
@@ -2493,6 +2509,7 @@ CInterpreter::unsafeDoSend(RefArg rcvr, RefArg impl, RefArg fn, ArrayIndex numAr
 			// set up VM
 			vm = ctrlStack.push();
 			setSendEnv(rcvr, impl);
+			setNativeStackFrame(numArgs);
 
 			// call the function: pop args off the stack and replace with the result
 			Ref result = callCFuncPtr((CFunction) funSlot[kPlainCFunctionPtrIndex], numArgs);
@@ -2631,6 +2648,7 @@ CInterpreter::send(RefArg rcvr, RefArg impl, RefArg func, ArrayIndex numArgs)
 			callPlainCodeBlock(func, numArgs, 0x01);
 			return kNSFunction;
 		case kCFunction:
+			setNativeStackFrame(numArgs);
 			callPlainCFunction(func, numArgs);
 			return kCFunction;
 		}

@@ -454,9 +454,27 @@ regression checks (MATT.md) still apply when shared code is touched.
         NewtonScript gotcha: `to` is reserved (`for ... to`), not a parameter name.
         Tests: `nsdt_breakloop`; all other `-dbg` tests now also show the
         location line at each stop.
-- [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
-      enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
-      shortcuts.
+- [x] 3.2 **Milestone: `newtc -dbg` is a Newton with Apple's debug tools.**
+      It runs `NSDebugTools.ns`, then `Matt/Debugger/NSDShortCuts.ns` (Apple's
+      `NSDShortCuts/myFunctions` verbatim, LF line endings, plus the install
+      loop its InstallScripts did: every slot of `kFunctionsToInstall` becomes a
+      global function), then what the "Enable breakpoints" checkbox of the NS
+      Debug Tools about box did: `NSDEnableBreakPoints(true)` and
+      `SetupMyDebug(true)` (prints its settings; breakOnThrows on, printDepth 3,
+      printLength 50, stackTracePrintDepth -1). Shortcuts: `s()` Step, `si()`,
+      `so()`, `r()`/`cont()`/`e()` continue, `w()` Where, `qs()`/`st()`,
+      `stop(sym|fn, pc)`, `stopat(pc)`, `listbps()`, `clearbp(i)`,
+      `clearallbps()`, `contto(pc)`, `dis(fn, from, to)`, `dishere()`,
+      `args()`, `gl(name)`/`sl(name, v)`, ... (see the file). `stop` takes a
+      symbol like `'|functions.Work|`: it is compiled to find the function and
+      is the label `listbps()` shows.
+      With breakOnThrows on, deliberate exceptions stop in a break loop too.
+      Fixed on the way: a native function called as a method (send) got no
+      stack frame (`stackFrame` nil, in the ROM too), so its arguments showed
+      as garbage (and the caller's temps were wrong). `send`/`unsafeDoSend` now
+      call `setNativeStackFrame()` like `call()` does (Interpreter.cc).
+      Tests: `nsdt_session` (a whole session with shortcuts); the other `-dbg`
+      tests changed accordingly (settings lines, exact PCs, breakOnThrows).
 - [ ] 3.3 Verify the Apple API one group per step: `Where`/`QuickStackTrace`;
       `GetCurrentFunction`/`GetCurrentPC`; `InstallBreakPoint`/
       `RemoveBreakPoint`/`GetAllBreakPoints`; `Step`; `StepIn`; `StepOut`;

@@ -1,15 +1,13 @@
-WARNING: The program counter may not be accurate.
-         Enable breakpoints for better information.
-
-functions.Inner(40), 2?: Pop
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+functions.Inner(40), 2: Pop
 Entering break loop
 true
 #2        nil
 true
 #2        nil
-WARNING: The PC may not be accurate.
-         Enable breakpoints for better information.
-
 2
 #2        nil
 #2        nil

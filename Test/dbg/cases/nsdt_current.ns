@@ -1,8 +1,8 @@
 // Step 3.1a: NS Debug Tools, loaded by -dbg from the NSDebugTools.ns built
 // into newtc. GetCurrentFunction(level) and GetCurrentPC(level) look at the
 // function that called BreakLoop (level 0) and its caller (level 1).
-// GetCurrentPC warns while the PCs may be inexact; SetDebugMode(true) makes
-// them exact (slow interpreter loop) and the warning goes away.
+// (-dbg enables breakpoints, so the PCs are exact and there is no "may not
+// be accurate" warning.)
 global Inner(x)
 begin
   BreakLoop();

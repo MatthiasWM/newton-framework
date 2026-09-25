@@ -1,3 +1,7 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
 name
 _proto._proto.count
 _parent._proto._proto.count

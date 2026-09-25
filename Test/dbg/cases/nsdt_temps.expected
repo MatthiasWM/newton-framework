@@ -1,3 +1,7 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
 functions.Work(21), 10: Push " "
 Entering break loop
 [42, "result: ", 'bottom]
@@ -6,6 +10,11 @@ Entering break loop
 #2        nil
 99
 #2        nil
+    !!! Exception: Undefined variable
+(#<ref>).FindVar(1, 't)
+Entering break loop
+#2        nil
+Exiting break loop
     !!! Exception: Undefined variable
 #2        nil
 Exiting break loop

@@ -1,7 +1,8 @@
-WARNING: The program counter may not be accurate.
-         Enable breakpoints for better information.
-
-functions.Calc('a=3, 'b=4), 6?: Pop
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+functions.Calc('a=3, 'b=4), 6: Pop
 Entering break loop
 7
 #2        nil
@@ -9,6 +10,11 @@ Entering break loop
 #2        nil
 50
 #2        nil
+    !!! Exception: Undefined variable
+(#<ref>).FindVar(1, 'nothere)
+Entering break loop
+#2        nil
+Exiting break loop
     !!! Exception: Undefined variable
 #2        nil
 Exiting break loop

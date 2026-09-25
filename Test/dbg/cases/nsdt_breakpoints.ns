@@ -9,7 +9,10 @@
 //   it again (returns nil: it was disabled): Inner(3) stops. The package had
 //   this backwards; newtc follows the NTK documentation.
 // - After RemoveAllBreakPoints, nothing stops, and GetAllBreakPoints is nil.
-// - InstallBreakPoint throws for a non-function or a non-integer pc.
+// - InstallBreakPoint throws for a non-function or a non-integer pc (with
+//   -dbg, breakOnThrows is on: each throw stops in a break loop first).
+// - With -dbg, breakpoints are already on: GloballyEnableBreakPoints(true)
+//   returns true.
 global Inner(x)
 begin
   Print("inner " & x);

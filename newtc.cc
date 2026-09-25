@@ -296,15 +296,26 @@ void handleArgS(const std::string &script)
 }
 
 extern const EmbeddedScript gNSDebugToolsScript;   // Matt/Debugger/NSDebugTools.ns
+extern const EmbeddedScript gNSDShortCutsScript;   // Matt/Debugger/NSDShortCuts.ns
 
 /**
- \brief Load the NewtonScript debugger tools (Apple's NS Debug Tools).
- The tools are built into newtc from Matt/Debugger/NSDebugTools.ns.
+ \brief Set up a debugging session like a Newton with Apple's debug tools.
+ Loads NS Debug Tools and the NSD Shortcuts (both built into newtc from
+ Matt/Debugger/), then does what the "Enable breakpoints" checkbox in the
+ NS Debug Tools about box did: enable breakpoints and call the user's
+ SetupMyDebug(true) (from the shortcuts: breakOnThrows, printDepth, ...).
  */
 void handleArgDbg()
 {
   if (!RunEmbeddedScript(gNSDebugToolsScript))
     throw(std::runtime_error("Can't load the debugger tools."));
+  if (!RunEmbeddedScript(gNSDShortCutsScript))
+    throw(std::runtime_error("Can't load the debugger shortcuts."));
+  static const EmbeddedScript enable = { "<-dbg>",
+    "NSDEnableBreakPoints(true);\n"
+    "if HasPath(functions, 'SetupMyDebug) then SetupMyDebug(true);\n" };
+  if (!RunEmbeddedScript(enable))
+    throw(std::runtime_error("Can't enable the debugger."));
 }
 
 /**
@@ -588,7 +599,8 @@ the commands in the given order.
   -pkglist <filename>     Apply following commands to all 'form packages in the file
 
   Debugging
-  -dbg                    Load the NewtonScript debugger tools (Apple's NS Debug Tools)
+  -dbg                    Debug: load Apple's NS Debug Tools and NSD Shortcuts, and
+                          enable breakpoints and breakOnThrows
 
   Options
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)

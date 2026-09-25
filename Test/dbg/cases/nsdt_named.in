@@ -3,3 +3,4 @@ Print(GetNamedVar(0, 'b));
 Print(SetNamedVar(0, 'sum, 50));
 GetNamedVar(0, 'nothere);
 ExitBreakLoop();
+ExitBreakLoop();

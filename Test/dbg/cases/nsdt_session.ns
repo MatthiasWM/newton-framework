@@ -1,0 +1,24 @@
+// Step 3.2: a debugging session with -dbg (NS Debug Tools + NSD Shortcuts,
+// breakpoints and breakOnThrows on, SetupMyDebug(true) prints the settings),
+// using Apple's shortcuts:
+// - stop('|functions.Work|, 0): breakpoint at pc 0 of Work; the symbol is
+//   compiled to find the function and is the label listbps() shows.
+// - w() = Where, dishere() = disassemble around the PC, s() = Step,
+//   contto(pc) = run to pc, args() = the values on the stack (top first),
+//   si() = StepIn, qs() = QuickStackTrace, so() = StepOut, r() = continue.
+// Work's bytecode: pc 3 calls Add with 10 and 1 (on the stack: 10, 1, 'Add).
+global Add(a, b)
+begin
+  a + b;
+end;
+
+global Work(x)
+begin
+  local y := Add(x, 1);
+  if y > 5 then y := y * 2;
+  y;
+end;
+
+stop('|functions.Work|, 0);
+listbps();
+Print(Work(10));

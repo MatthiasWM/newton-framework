@@ -1,0 +1,44 @@
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50
+"0: functions.Work, 0"
+functions.Work(10), 0: GetVar [ 3 ]
+Entering break loop
+functions.Work(10), 0:	GetVar [ 3 ]
+#2        nil
+    0: GetVar               [ 3 ]
+    1: PushConstant         1
+    2: Push                 'Add
+    3: Call                 2
+    4: SetVar               [ 4 ]
+    5: GetVar               [ 4 ]
+    6: PushConstant         5
+    9: GreaterThan          2
+"pc = 0"
+#2        nil
+#2        nil
+Exiting break loop
+functions.Work(10), 1: PushConstant 1
+Entering break loop
+#2        nil
+Exiting break loop
+functions.Work(10), 3: Call 2 ['Add(10, 1)]
+Entering break loop
+#<ref> ['Add, 1, 10, 'bottom]
+#2        nil
+Exiting break loop
+functions.Add(10, 1), 0: GetVar [ 3 ]
+Entering break loop
+functions.Add(10, 1):0
+functions.Work(10):4
+<function, 0 args, #<ref>>():5
+#2        nil
+#2        nil
+Exiting break loop
+functions.Work(10), 4: SetVar [ 4 ]
+Entering break loop
+#2        nil
+#2        nil
+Exiting break loop
+22
