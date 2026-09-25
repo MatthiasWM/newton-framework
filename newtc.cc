@@ -155,6 +155,7 @@ bool init()
   defGlobalCFunction("DAPReceive", (void*)FDAPReceive, 0);
   defGlobalCFunction("DAPSend", (void*)FDAPSend, 1);
   defGlobalCFunction("DAPExit", (void*)FDAPExit, 1);
+  defGlobalCFunction("DAPPrintObject", (void*)FDAPPrintObject, 1);
 
   return true;
 }
@@ -306,6 +307,18 @@ void handleArgS(const std::string &script)
   addGlobalRef(result);
 }
 
+/**
+ \brief Compile with debug information, like NTK's "Compile for debugging".
+ Functions compiled from now on get a DebuggerInfo slot with the names of
+ their arguments and locals (the compiler does it when the global
+ dbgKeepVarNames is set), so the debugger can show and find variables by
+ name. Planned: the debug map (source lines, Matt/CLAUDE.md Phase 8).
+ */
+void handleArgG()
+{
+  DefGlobalVar(MakeSymbol("dbgKeepVarNames"), TRUEREF);
+}
+
 extern const EmbeddedScript gNSDebugToolsScript;   // Matt/Debugger/NSDebugTools.ns
 extern const EmbeddedScript gNSDShortCutsScript;   // Matt/Debugger/NSDShortCuts.ns
 
@@ -327,6 +340,8 @@ void handleArgDbg()
     "if HasPath(functions, 'SetupMyDebug) then SetupMyDebug(true);\n" };
   if (!RunEmbeddedScript(enable))
     throw(std::runtime_error("Can't enable the debugger."));
+  // Code compiled from now on keeps its variable names (-g)
+  handleArgG();
 }
 
 extern const EmbeddedScript gDAPScript;            // Matt/Debugger/DAP.ns
@@ -669,14 +684,16 @@ the commands in the given order.
   -pkglist <filename>     Apply following commands to all 'form packages in the file
 
   Debugging
-  -dbg                    Debug: load Apple's NS Debug Tools and NSD Shortcuts, and
-                          enable breakpoints and breakOnThrows
+  -dbg                    Debug: load Apple's NS Debug Tools and NSD Shortcuts,
+                          enable breakpoints and breakOnThrows, and compile the
+                          following code with variable names (-g)
   -dap                    Be a debug adapter for VS Code: speak the Debug Adapter
                           Protocol on stdin/stdout, run the program given by the
                           client's "launch" request
 
   Options
-  -g                      Compile with debug information (planned, ignored for now)
+  -g                      Compile with debug information: variable names (DebuggerInfo);
+                          -dbg and -dap do this, too
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
   -nos2                   Compile for NewtonOS 2.x and 2.1 (default)
   -debug ast              Print the progress of the AST while decompiling
@@ -717,8 +734,7 @@ int handleArgs(int argc, char **argv)
       } else if (cmd == "-dap") {
         handleArgDap();
       } else if (cmd == "-g") {
-        // Planned: compile with debug information and write the debug map
-        // (Matt/CLAUDE.md, Phase 8). Accepted and ignored until then.
+        handleArgG();
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {

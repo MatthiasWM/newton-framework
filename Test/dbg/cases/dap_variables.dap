@@ -1,0 +1,24 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "scopes", "arguments": {"frameId": 2}}
+{"command": "variables", "arguments": {"variablesReference": 1}}
+{"command": "variables", "arguments": {"variablesReference": 2}}
+{"command": "variables", "arguments": {"variablesReference": 3}}
+{"command": "variables", "arguments": {"variablesReference": 3, "start": 1, "count": 1}}
+{"command": "variables", "arguments": {"variablesReference": 4}}
+{"command": "variables", "arguments": {"variablesReference": 99}}
+{"command": "scopes", "arguments": {"frameId": 7}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "scopes", "arguments": {"frameId": 2}}
+{"command": "variables", "arguments": {"variablesReference": 1}}
+{"command": "variables", "arguments": {"variablesReference": 2}}
+{"command": "variables", "arguments": {"variablesReference": 3}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait terminated
+{"command": "disconnect"}

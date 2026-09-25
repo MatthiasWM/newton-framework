@@ -3,7 +3,7 @@ breakOnThrows  = True
 printDepth     = 3
 printLength    = 50
     !!! Exception: Expected a number
-functions.Fail(1), 3: Return
+functions.Fail('x=1), 3: Return
 Entering break loop
 #2        nil
 #2        nil

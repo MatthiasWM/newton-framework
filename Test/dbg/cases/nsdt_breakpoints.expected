@@ -9,7 +9,7 @@ WARNING: Breakpoint already exists!
 1
 "No such breakpoint exists"
 true
-functions.Inner(1), 0: Push "inner "
+functions.Inner('x=1), 0: Push "inner "
 Entering break loop
 0
 #2        nil
@@ -21,7 +21,7 @@ true
 "inner 2"
 3
 nil
-functions.Inner(3), 0: Push "inner "
+functions.Inner('x=3), 0: Push "inner "
 Entering break loop
 0
 #2        nil

@@ -42,8 +42,10 @@ int DAPExceptionCount(void);
 //   DAPReceive() -> the next message as a frame, nil at end of input
 //   DAPSend(frame) -> nil; writes the frame as a message, adds "seq"
 //   DAPExit(code) -> doesn't return; flushes and quits newtc
+//   DAPPrintObject(obj) -> what Print(obj) would print, as a string
 extern "C" Ref FDAPReceive(RefArg rcvr);
 extern "C" Ref FDAPSend(RefArg rcvr, RefArg inMessage);
 extern "C" Ref FDAPExit(RefArg rcvr, RefArg inCode);
+extern "C" Ref FDAPPrintObject(RefArg rcvr, RefArg inObj);
 
 #endif // MATT_DAP_H

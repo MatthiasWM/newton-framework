@@ -2,7 +2,7 @@ BREAKPOINTS ENABLED
 breakOnThrows  = True
 printDepth     = 3
 printLength    = 50
-functions.Inner(40), 2: Pop
+functions.Inner('x=40), 2: Pop
 Entering break loop
 true
 #2        nil

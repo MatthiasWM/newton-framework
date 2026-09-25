@@ -558,7 +558,7 @@ CFunctionState::makeCodeBlock(void)
 					iter.next();	// skip _implementor
 					for ( ; !iter.done(); iter.next())
 					{
-						AddArraySlot(dbg, iter.value());	// add inherited arg|local names
+						AddArraySlot(dbg, iter.tag());	// add inherited arg|local names (ROM: the tag; was value)
 					}
 				}
 			}

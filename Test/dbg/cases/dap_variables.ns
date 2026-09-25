@@ -1,0 +1,19 @@
+// DAP (step 5.4): scopes and variables. -dap compiles with variable names
+// (DebuggerInfo), so arguments and locals have their real names. Frames and
+// arrays can be expanded (variablesReference), arrays page with
+// start/count. A method shows self in Locals; values the function pushed
+// and hasn't used yet show in the Stack scope ("top" first).
+global Tally(items, factor)
+begin
+  local total := 0;
+  local info := {name: "tally", tags: ['a, 'b], nested: {deep: {deeper: 1}}};
+  foreach item in items do
+    total := total + item * factor;
+  BreakLoop();
+  total;
+end;
+
+counter := {count: 3, Scaled: func(x) x * count + (BreakLoop() or 0)};
+
+Print(Tally([1, 2, 3], 2));
+Print(counter:Scaled(5));

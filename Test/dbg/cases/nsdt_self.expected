@@ -2,7 +2,7 @@ BREAKPOINTS ENABLED
 breakOnThrows  = True
 printDepth     = 3
 printLength    = 50
-(#<ref>).Tick(5), 2: Pop
+(#<ref>).Tick('n=5), 2: Pop
 Entering break loop
 true
 #2        nil

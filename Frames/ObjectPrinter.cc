@@ -232,17 +232,21 @@ PrintObjectAux(Ref obj, int indent, int depth)
 						// print slots in frame
 							numOfSlots = Length(obj);
 							indent += REPprintf("{");
-							if (doPrettyPrint && depth <= printDepth) {
+							{
 								Ref	tag;
 								bool	isAggr = false;
-								// determine whether any slot in frame is aggregate
-								// and therefore this frame needs multi-line output
 								CObjectIterator	iter(obj);
-								for (i = 0; !iter.done() && !isAggr; iter.next(), ++i) {
-									if (printLength >= 0 && i >= printLength)
-										// don’t exceed number-of-slots-to-print preference
-										break;
-									isAggr = IsAggregate(iter.value());
+								// ROM: only prettyPrint makes a frame with aggregate slots
+								// multi-line; the slots are printed in any case
+								if (doPrettyPrint && depth <= printDepth) {
+									// determine whether any slot in frame is aggregate
+									// and therefore this frame needs multi-line output
+									for (i = 0; !iter.done() && !isAggr; iter.next(), ++i) {
+										if (printLength >= 0 && i >= printLength)
+											// don’t exceed number-of-slots-to-print preference
+											break;
+										isAggr = IsAggregate(iter.value());
+									}
 								}
 								// increment depth for slots in this frame
 								depth++;
@@ -318,13 +322,16 @@ PrintObjectAux(Ref obj, int indent, int depth)
 						} else {
 						// print elements in array
 							indent += REPprintf("[");
-							if (doPrettyPrint && depth <= printDepth) {
+							{
 								bool	isAggr = false;
 								CObjectIterator	iter(obj);
-								for (i = 0; !iter.done() && !isAggr; iter.next(), ++i) {
-									if (printLength >= 0 && i >= printLength)
-										break;
-									isAggr = IsAggregate(iter.value());
+								// ROM: only prettyPrint makes an array multi-line
+								if (doPrettyPrint && depth <= printDepth) {
+									for (i = 0; !iter.done() && !isAggr; iter.next(), ++i) {
+										if (printLength >= 0 && i >= printLength)
+											break;
+										isAggr = IsAggregate(iter.value());
+									}
 								}
 								if (!EQ(objClass, SYMA(array))) {
 									if (IsSymbol(objClass)) {

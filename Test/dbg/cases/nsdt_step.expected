@@ -2,56 +2,56 @@ BREAKPOINTS ENABLED
 breakOnThrows  = True
 printDepth     = 3
 printLength    = 50
-functions.Work(10), 2: Pop
+functions.Work('x=10), 2: Pop
 Entering break loop
 2
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 3: GetVar [ 3 ]
+functions.Work('x=10), 3: GetVar x
 Entering break loop
 3
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 6: Call 2 ['Add(10, 1)]
+functions.Work('x=10), 6: Call 2 ['Add(10, 1)]
 Entering break loop
 6
 #2        nil
 #2        nil
 Exiting break loop
-functions.Add(10, 1), 0: GetVar [ 3 ]
+functions.Add('a=10, 'b=1), 0: GetVar a
 Entering break loop
 [true, 0]
 #2        nil
 #2        nil
 Exiting break loop
-functions.Add(10, 1), 1: GetVar [ 4 ]
+functions.Add('a=10, 'b=1), 1: GetVar b
 Entering break loop
 1
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 7: SetVar [ 4 ]
+functions.Work('x=10), 7: SetVar y
 Entering break loop
 [true, 7]
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 15: BranchIfNil 26
+functions.Work('x=10), 15: BranchIfNil 26
 Entering break loop
 true
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 18: GetVar [ 4 ]
+functions.Work('x=10), 18: GetVar y
 Entering break loop
 18
 #2        nil
 #2        nil
 #2        nil
 Exiting break loop
-functions.Work(10), 27: Return
+functions.Work('x=10), 27: Return
 Entering break loop
 27
 #2        nil

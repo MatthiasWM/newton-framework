@@ -2,7 +2,7 @@ BREAKPOINTS ENABLED
 breakOnThrows  = True
 printDepth     = 3
 printLength    = 50
-functions.Work(21), 10: Push " "
+functions.Work('a=21), 10: Push " "
 Entering break loop
 [42, "result: ", 'bottom]
 #2        nil
@@ -10,12 +10,7 @@ Entering break loop
 #2        nil
 99
 #2        nil
-    !!! Exception: Undefined variable
-(#<ref>).FindVar(1, 't)
-Entering break loop
-#2        nil
-Exiting break loop
-    !!! Exception: Undefined variable
+#A8       42
 #2        nil
 Exiting break loop
 "result: 99 21"

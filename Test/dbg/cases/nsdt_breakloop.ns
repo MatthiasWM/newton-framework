@@ -21,9 +21,12 @@ end;
 
 global NSDBreakLoopEntry(fn, pc, params)
 begin
+  // params is [name, value, ...] ('paramNameAndValues) if the function has
+  // variable names (-dbg compiles with them), else [value, ...].
+  local x := if ClassOf(params) = 'paramNameAndValues then params[1] else params[0];
   // printDepth is 0 here (as set by the tools), so print flat values
-  Write("entry: " & (if fn = functions.Inner then "Inner" else "?") & ", pc " & pc & ", x " & params[0] & "\n");
-  params[0] > 1;
+  Write("entry: " & (if fn = functions.Inner then "Inner" else "?") & ", pc " & pc & ", x " & x & "\n");
+  x > 1;
 end;
 
 global NSDBreakLoopExit(didBreakLoopHappen)

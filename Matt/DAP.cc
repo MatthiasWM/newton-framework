@@ -193,6 +193,8 @@ public:
   void        stackTrace(void * interpreter) override;
   void        exceptionNotify(Exception * inException) override;
 
+  std::string printToString(RefArg inObj);   // not part of the protocol
+
 private:
   void        write(const char * inText, size_t inLen);
 
@@ -200,8 +202,11 @@ private:
   const char *  fCategory;      // "stdout" or "stderr"
   bool          fLastWasCR;
   std::string * fCapture;       // if set, write() also appends here
+  bool          fCaptureOnly;   // and doesn't send anything
   std::string * fStopText;      // the exception that stops in the break loop
 };
+
+PDAPOutTranslator * gDAPOutTranslator = nullptr;
 
 const CClassInfo *
 PDAPOutTranslator::classInfo(void)
@@ -228,6 +233,7 @@ PDAPOutTranslator::make(void)
   fCategory = "stdout";
   fLastWasCR = false;
   fCapture = nullptr;
+  fCaptureOnly = false;
   fStopText = new std::string;
   return this;
 }
@@ -271,9 +277,11 @@ PDAPOutTranslator::write(const char * inText, size_t inLen)
     fLastWasCR = (ch == '\r');
     if (fLastWasCR)
       ch = '\n';
-    *fText += ch;
     if (fCapture != nullptr)
       *fCapture += ch;
+    if (fCaptureOnly)
+      continue;
+    *fText += ch;
     if (ch == '\n')
       flush();
   }
@@ -373,6 +381,26 @@ PDAPOutTranslator::stackTrace(void * interpreter)
 // An exception as "stderr" output. If it is about to stop in a break loop
 // (breakOnThrows), the text is also kept for the "stopped" event, and it is
 // not counted as an error of the program: the program may still catch it.
+std::string
+PDAPOutTranslator::printToString(RefArg inObj)
+{
+  flush();
+  std::string text;
+  fCapture = &text;
+  fCaptureOnly = true;
+  unwind_protect
+  {
+    PrintObject(inObj, 0);
+  }
+  on_unwind
+  {
+    fCapture = nullptr;
+    fCaptureOnly = false;
+  }
+  end_unwind;
+  return text;
+}
+
 void
 PDAPOutTranslator::exceptionNotify(Exception * inException)
 {
@@ -470,6 +498,18 @@ void DAPInstallTranslators(void)
   PDAPOutTranslator::classInfo()->registerProtocol();
   PDAPInTranslator::classInfo()->registerProtocol();
   gREPout->flush();
-  gREPout = (POutTranslator *)MakeByName("POutTranslator", "PDAPOutTranslator");
+  gDAPOutTranslator = (PDAPOutTranslator *)MakeByName("POutTranslator", "PDAPOutTranslator");
+  gREPout = gDAPOutTranslator;
   gREPin = (PInTranslator *)MakeByName("PInTranslator", "PDAPInTranslator");
+}
+
+
+// DAPPrintObject(obj): what Print(obj) would print (without the newline),
+// as a string; follows printDepth, printLength, prettyPrint. For the
+// values of variables. Only in -dap mode.
+Ref FDAPPrintObject(RefArg rcvr, RefArg inObj)
+{
+  if (gDAPOutTranslator == nullptr || gREPout != gDAPOutTranslator)
+    return NILREF;
+  return MakeStringFromCString(gDAPOutTranslator->printToString(inObj).c_str());
 }

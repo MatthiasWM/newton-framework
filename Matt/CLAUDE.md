@@ -624,8 +624,39 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       Tests: `dap_breakloop`, `dap_breakpoint`, `dap_exception`,
       `dap_exception_off`, `nsdt_breakonthrows`; VSNewt sample
       `samples/stopping.ns`.
-- [ ] 5.4 `scopes`/`variables`: arguments, locals, self, stack values;
-      expandable frames/arrays via variablesReference handles.
+- [x] 5.4 `scopes`/`variables`.
+      - Variable names: `-g` sets the global `dbgKeepVarNames`, and the
+        (ROM) compiler then writes NTK's `DebuggerInfo` into NOS 2 functions
+        (class `'dbg1`: [skip, inherited names..., one entry per arg/local:
+        its name, or the index of its name when a closure keeps it in the
+        argFrame]), like NTK's "Compile for debugging". `-dbg` and `-dap`
+        do `-g` after loading the tools, so the program has names; the
+        disassembler, GetNamedVar, and the tools' location line use them.
+        Fixed on the way: the port's `makeCodeBlock` collected the
+        argFrame's values instead of its names (ROM: the iterator's tag).
+      - `scopes(frameId)`: Arguments, Locals (with `self` first if the
+        receiver is a frame), Stack (values the function pushed and hasn't
+        used yet, "top" first). Names from DebuggerInfo, or the argFrame
+        in NOS 1 code, else arg0/loc0 (numArgs: locals << 16 | args).
+        Compiler-made locals (`item|iter`, `i|limit`, `i|incr`) are shown.
+      - `variables(ref)`: a scope's variables, a frame's slots, or an
+        array's elements `[0]`, ... (`indexedVariables`, `start`/`count`).
+        Frames (functions too) and arrays are expandable. References are
+        indexes into `DAP.handles`, reset at every stop.
+      - Values: `ValueText()` prints like the REPL on one line (printDepth
+        0, printLength 10, prettyPrint nil: `{a: 1, b: {#...}}`), functions
+        as `<function, 1 arg>`, other binaries as `<class, length n>`; type
+        = ClassOf. New native `DAPPrintObject(obj)`: what Print would print,
+        as a string (PDAPOutTranslator::printToString, capture mode).
+        Fixed on the way: with `prettyPrint` nil the printer printed frames
+        and arrays as `{}`/`[]` (the port put the whole slot loop under the
+        prettyPrint test; ROM: only the multi-line decision).
+      NewtonScript gotchas: `'self` is a syntax error (reserved), write
+      `'|self|`; a send inside an array literal needs parentheses.
+      Tests: `dap_variables`; the `-dbg` tests now show names
+      (`functions.Add('a=10, 'b=1), 0: GetVar a`), `nsdt_temps` finds `t`
+      by name, `nsdt_breakloop` handles NSDBreakLoopEntry's params in both
+      forms ([name, value, ...] with names, [value, ...] without).
 - [ ] 5.5 `next`/`stepIn`/`stepOut` (= Step/StepIn/StepOut, instruction
       granularity), `evaluate` (like a REPL line), `pause` (atomic flag
       checked by the slow loop; later).
@@ -731,6 +762,14 @@ Interpreter and runtime
   `Stores/FlashStore.cc:1896:35: runtime error: reference binding to null
   pointer of type 'CStoreObjRef'` (UBSan). Seen with a temporary HOME in
   `Test/dbg/test_terminal.py`.
+
+- [ ] B15 **`SPrintObject` is half ported** (Frames/Strings.cc,
+  `MakeStringObject`): reals, nil, true, frames, arrays give `""`, a 62-bit
+  integer is cut to 32 bits (`1152921504606846975` -> `"-1"`,
+  `IntegerString(RINT(obj))`), and the function never copies into the
+  result string in some branches. In the ROM it is the `&` conversion
+  (strings, numbers, symbols, characters), not the printer. DAP uses its
+  own `DAPPrintObject`.
 
 - [ ] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
   `"a"b\c"` (`SafelyPrintString`, Frames/ObjectPrinter.cc, marked "not

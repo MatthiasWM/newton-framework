@@ -3,8 +3,8 @@
 // of its last statement, when "result: " and t (42) are on the stack.
 // Temporaries count from the top: 0 is t, 1 is "result: ". GetAllTempVars
 // ends with 'bottom. Setting temp 0 to 99 changes the result.
-// Work is NOS 2 code without DebuggerInfo, so GetNamedVar can't find its
-// local t by name ("Undefined variable"), as on a real Newton.
+// -dbg compiles with variable names (DebuggerInfo, like NTK's "Compile for
+// debugging"), so GetNamedVar finds Work's local t by name: 42.
 global Work(a)
 begin
   local t := a * 2;

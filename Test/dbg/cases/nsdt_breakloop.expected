@@ -6,12 +6,12 @@ entry: Inner, pc 10, x 1
 exit: nil
 1011
 entry: Inner, pc 10, x 2
-functions.Inner(2), 10: Pop
+functions.Inner('x=2), 10: Pop
 Entering break loop
-functions.Inner(2), 10:	Pop
+functions.Inner('x=2), 10:	Pop
 #2        nil
-functions.Inner(2):10
-functions.Outer(2):3
+functions.Inner('x=2):10
+functions.Outer('x=2):3
 <function, 0 args, #<ref>>():5
 #2        nil
 #2        nil
