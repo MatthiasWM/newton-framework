@@ -61,7 +61,7 @@ ResolveMagicPtr(Ref r)
 			return ObjectPtr(gROMMagicPointerTable.magicPointer[index]);
 		}
 	}
-	else if (table == 1)	// table 1 is globals - vars & functions
+	else if (table == 1)	// table 1: @4097 is vars, @4098 the built-in functions
 	{
 		if (index == 1)
 		{
@@ -69,7 +69,7 @@ ResolveMagicPtr(Ref r)
 		}
 		else if (index == 2)
 		{
-			return PTR(gFunctionFrame);
+			return ObjectPtr(*RSbuiltinFunctions);	// as in ROM (was gFunctionFrame)
 		}
 	}
 	else if (table < 10)	// remaining tables are unit import/export

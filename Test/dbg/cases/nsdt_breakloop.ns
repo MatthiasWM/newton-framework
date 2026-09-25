@@ -1,0 +1,36 @@
+// Step 3.1g: the tools' BreakLoop, Where, and StackTrace (= QuickStackTrace).
+// - Stopping prints where: "function(arguments), pc: instruction [what it
+//   is about to do]". Where() prints the same. With breakpoints on, the PCs
+//   are exact: no warning, no "?".
+// - StackTrace is now the tools' QuickStackTrace; the ROM's is StackTraceOld.
+// - NSDBreakLoopEntry(fn, pc, params) is called before the break loop; when
+//   it returns nil, the break loop is skipped (a conditional breakpoint:
+//   here, stop only when x > 1). NSDBreakLoopExit(didBreakLoopHappen) is
+//   called after: true or nil.
+global Inner(x)
+begin
+  local y := x * 10;
+  BreakLoop();
+  y + 1;
+end;
+
+global Outer(x)
+begin
+  Inner(x) + 1000;
+end;
+
+global NSDBreakLoopEntry(fn, pc, params)
+begin
+  // printDepth is 0 here (as set by the tools), so print flat values
+  Write("entry: " & (if fn = functions.Inner then "Inner" else "?") & ", pc " & pc & ", x " & params[0] & "\n");
+  params[0] > 1;
+end;
+
+global NSDBreakLoopExit(didBreakLoopHappen)
+begin
+  Write("exit: " & (if didBreakLoopHappen then "true" else "nil") & "\n");
+end;
+
+GloballyEnableBreakPoints(true);
+Print(Outer(1));
+Print(Outer(2));

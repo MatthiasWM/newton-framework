@@ -1,3 +1,7 @@
+WARNING: The program counter may not be accurate.
+         Enable breakpoints for better information.
+
+functions.Calc('a=3, 'b=4), 6?: Pop
 Entering break loop
 7
 #2        nil

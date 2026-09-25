@@ -328,7 +328,7 @@ regression checks (MATT.md) still apply when shared code is touched.
       (`installNSDebugToolsNatives()` in newtc.cc).
 
 ### Phase 3: NS Debug Tools NewtonScript on top
-- [ ] 3.1 Clean up the decompiled NSDT source into `Matt/Debugger/NSDebugTools.ns`
+- [x] 3.1 Clean up the decompiled NSDT source into `Matt/Debugger/NSDebugTools.ns`
       (plus Apple's `myFunctions`) and embed it into newtc at build time.
       Package layout (decompiled): part 0 = disassembler (`MakeDisassembler`,
       `Disasm`, `DisasmRange`; `Ref_41` is the disassembler proto); parts 1/2 =
@@ -408,10 +408,16 @@ regression checks (MATT.md) still apply when shared code is touched.
         NOS 2 variables show as `[ n ]` (no DebuggerInfo).
         Fixed on the way: `ExtractByte` was signed (ROM: unsigned, so opcodes
         >= 0x80 decoded negative); `ExtractWord`, `ExtractLong`, `ExtractXLong`,
-        `ExtractUniChar`, `StuffWord`, `StuffLong`, `StuffUniChar` accessed the
-        data natively (little-endian, unaligned); Newton data is big-endian,
-        now byte by byte as in ROM (Utilities/DataStuffing.cc); `Display` was a
-        stub (ROM: `PrintObject` without newline).
+        `ExtractUniChar`, `StuffWord`, `StuffLong`, `StuffUniChar` accessed all
+        data natively (little-endian, unaligned). Byte order depends on the
+        binary: the package/NSOF readers convert strings and reals to host
+        order (hasByteSwapping), everything else (instructions, bitmaps,
+        sounds, ...) stays big-endian. Now: host order for strings and reals,
+        big-endian (byte by byte) for the rest (Utilities/DataStuffing.cc;
+        test `datastuffing`). Matt: these functions are a bad idea in the
+        port in general (swapped vs. unswapped data, 4-byte Refs become 8-byte
+        Refs); use with care. `Display` was a stub (ROM: `PrintObject` without
+        newline).
         Test: `nsdt_disasm`.
   - [x] 3.1f Stepping: `Step()` (decodes the instruction at the PC and sets
         a temporary breakpoint where execution goes next: after it, at the
@@ -426,9 +432,28 @@ regression checks (MATT.md) still apply when shared code is touched.
         temporary breakpoint fires in any activation of the function, so
         stepping over a recursive call stops in the inner call.
         Tests: `nsdt_step`, `nsdt_stepin`.
-  - [ ] 3.1g `Where`, `QuickStackTrace`; the replacement BreakLoop (prints
-        where it stopped, calls NSDBreakLoopEntry/Exit);
-        StackTraceOld/StackTrace.
+  - [x] 3.1g `Where()`, `QuickStackTrace()`, and the tools' `BreakLoop`: on
+        every stop it prints `function(arguments), pc: instruction [what it
+        is about to do]` (`SimpleDecompile` shows the call/send/operator with
+        the actual values from the stack), and calls the optional hooks
+        `NSDBreakLoopEntry(fn, pc, params)` (nil = don't stop: conditional
+        breakpoints) and `NSDBreakLoopExit(didBreakLoopHappen)`. Installed
+        once: `StackTraceOld` := ROM `StackTrace`, `StackTrace` :=
+        `QuickStackTrace`, `NSDOriginalBreakLoop` := ROM `BreakLoop`,
+        `BreakLoop` := the tools' (a maker in kNSDTools; in the package it was
+        defined in the install script). All 27 functions of the package are in.
+        newtc changes: `Where` sets the stack before checking accuracy (the
+        package used it unset); `NSDBreakLoopExit` gets whether the break loop
+        ran (the package always passed true; the bytecode confirms it);
+        `breakOnThrows` is defined if missing.
+        Fixed on the way: `@4098` (magic pointer table 1, entry 2) resolved to
+        the RAM `functions` frame; the ROM resolves it to the built-in
+        functions (`RSbuiltinfunctions`), which `SearchForObjectName` needs
+        (Frames/RefMemory.cc). The .ns embedding now uses `unsigned char`
+        (bytes >= 0x80 didn't compile).
+        NewtonScript gotcha: `to` is reserved (`for ... to`), not a parameter name.
+        Tests: `nsdt_breakloop`; all other `-dbg` tests now also show the
+        location line at each stop.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
       shortcuts.
@@ -445,6 +470,10 @@ regression checks (MATT.md) still apply when shared code is touched.
 - [ ] 4.3 (optional) Line editing/history.
 
 ### Phase 5: Debugger engine interface (C++)
+Evaluate first (Matt): implement DAP as a new pair of REP translators, like
+`PHammerInTranslator`/`PHammerOutTranslator` (the NTK Inspector connection):
+the break loop already reads commands through `gREPin` and writes through
+`gREPout`, so a DAP translator could plug in without changing the loop.
 - [ ] 5.1 Put a C++ interface around the REPL-level operations: commands
       (continue, step kinds, set/clear breakpoints, stack, scopes/variables,
       evaluate) and events (stopped + reason, output, exited). The REPL of
@@ -549,6 +578,10 @@ Decompiler
   branches.
 - [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
   the first 30 manifest packages, with the binary from before 1.1 too.
+- [ ] B11 **ASCII only characters**: make sure that the decompiler outputs only
+  ASCII characters and that characters that were originally non-ASCII UTF-16
+  are output a escaped sequences - eventually we have to decide if NewtonScript
+  shall go all UTF-8.
 
 Open work (not bugs)
 - `-run` (run a loaded 'form package) is not implemented.

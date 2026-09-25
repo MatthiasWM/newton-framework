@@ -1,0 +1,17 @@
+// Byte order of Extract.../Stuff... (Utilities/DataStuffing.cc). The package
+// and NSOF readers convert strings (and reals) to the host's byte order;
+// every other binary keeps Newton's big-endian order. So for a string,
+// ExtractUniChar/StuffUniChar use host order; for any other binary, all
+// multi-byte values are big-endian. ExtractByte is unsigned (as in ROM).
+s := "abc";
+Print(ExtractUniChar(s, 2));
+StuffUniChar(s, 2, $x);
+Print(s);
+b := MakeBinaryFromHex("A0B1C2D3E4F5", 'data);
+Print(ExtractByte(b, 1));
+Print(ExtractWord(b, 1));
+Print(ExtractUniChar(b, 0));
+StuffWord(b, 0, 258);
+StuffLong(b, 2, 16909060);
+Print(b);
+Print(ExtractLong(b, 2));

@@ -11,22 +11,55 @@
 #include "Unicode.h"
 #include "RSSymbols.h"
 
-// Newton binary data is big-endian, and offsets need not be aligned: read and
-// write multi-byte values byte by byte, as the ROM does. (The port used to
-// access them natively, which gave the wrong byte order on little-endian
-// hosts and misaligned accesses.)
-static inline uint16_t GetBigEndian16(const char * p)
-{ return (uint16_t)(((uint8_t)p[0] << 8) | (uint8_t)p[1]); }
+// Byte order of multi-byte values in binary objects. On a Newton everything
+// is big-endian. In the port, the package and NSOF readers convert strings
+// and reals to the host's byte order (hasByteSwapping); all other binaries
+// (instructions, bitmaps, sounds, ...) keep Newton's big-endian order. So
+// read and write strings and reals in host order and everything else
+// big-endian, byte by byte (offsets need not be aligned).
+// (The port used to access all of them natively: wrong for most binaries on
+// little-endian hosts, and misaligned.)
+static bool InHostByteOrder(RefArg inObj)
+{
+#if defined(hasByteSwapping)
+	return IsString(inObj) || IsReal(inObj);
+#else
+	return true;	// big-endian host: both orders are the same
+#endif
+}
 
-static inline uint32_t GetBigEndian32(const char * p)
-{ return ((uint32_t)(uint8_t)p[0] << 24) | ((uint32_t)(uint8_t)p[1] << 16)
-       | ((uint32_t)(uint8_t)p[2] << 8) | (uint32_t)(uint8_t)p[3]; }
+static uint16_t Get16(RefArg inObj, const char * p)
+{
+	if (InHostByteOrder(inObj)) {
+		uint16_t v; memcpy(&v, p, sizeof(v)); return v;
+	}
+	return (uint16_t)(((uint8_t)p[0] << 8) | (uint8_t)p[1]);
+}
 
-static inline void PutBigEndian16(char * p, uint16_t v)
-{ p[0] = (char)(v >> 8); p[1] = (char)v; }
+static uint32_t Get32(RefArg inObj, const char * p)
+{
+	if (InHostByteOrder(inObj)) {
+		uint32_t v; memcpy(&v, p, sizeof(v)); return v;
+	}
+	return ((uint32_t)(uint8_t)p[0] << 24) | ((uint32_t)(uint8_t)p[1] << 16)
+		  | ((uint32_t)(uint8_t)p[2] << 8) | (uint32_t)(uint8_t)p[3];
+}
 
-static inline void PutBigEndian32(char * p, uint32_t v)
-{ p[0] = (char)(v >> 24); p[1] = (char)(v >> 16); p[2] = (char)(v >> 8); p[3] = (char)v; }
+static void Put16(RefArg inObj, char * p, uint16_t v)
+{
+	if (InHostByteOrder(inObj)) {
+		memcpy(p, &v, sizeof(v)); return;
+	}
+	p[0] = (char)(v >> 8); p[1] = (char)v;
+}
+
+static void Put32(RefArg inObj, char * p, uint32_t v)
+{
+	if (InHostByteOrder(inObj)) {
+		memcpy(p, &v, sizeof(v)); return;
+	}
+	p[0] = (char)(v >> 24); p[1] = (char)(v >> 16); p[2] = (char)(v >> 8); p[3] = (char)v;
+}
 
 #pragma mark Bounds checking
 
@@ -95,7 +128,7 @@ FExtractUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(UniChar));
 
 	char * p = BinaryData(inObj);
-	UniChar uch = GetBigEndian16(p + offset);	// yes, the offset is a char offset, not UniChar
+	UniChar uch = Get16(inObj, p + offset);	// yes, the offset is a char offset, not UniChar
 	return MAKECHAR(uch);
 }
 
@@ -119,7 +152,7 @@ FExtractWord(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(int16_t));
 
 	char * p = BinaryData(inObj);
-	int16_t v = (int16_t)GetBigEndian16(p + offset);	// signed, as in ROM
+	int16_t v = (int16_t)Get16(inObj, p + offset);	// signed, as in ROM
 	return MAKEINT(v);
 }
 
@@ -131,7 +164,7 @@ FExtractLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(int32_t));
 
 	char * p = BinaryData(inObj);
-	int32_t v = (int32_t)GetBigEndian32(p + offset);
+	int32_t v = (int32_t)Get32(inObj, p + offset);
 	uint32_t vMask = (uint32_t)kRefValueMask >> kRefTagBits;
 	if ((v & ~vMask) != 0)
 		ThrowErr(exFrames, kNSErrLongOutOfRange);
@@ -146,7 +179,7 @@ FExtractXLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 	BoundsCheck(inObj, offset, sizeof(uint32_t));
 
 	char * p = BinaryData(inObj);
-	uint32_t v = GetBigEndian32(p + offset);
+	uint32_t v = Get32(inObj, p + offset);
 	return MAKEINT(v >> 3);
 }
 
@@ -230,7 +263,7 @@ FStuffUniChar(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(UniChar));
 
 	UniChar uc = ISINT(inData) ? RINT(inData) : RCHAR(inData);
-	PutBigEndian16(BinaryData(inObj) + offset, uc);
+	Put16(inObj, BinaryData(inObj) + offset, uc);
 	return NILREF;
 }
 
@@ -254,7 +287,7 @@ FStuffWord(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(int16_t));
 
 	int16_t v = RINT(inData);
-	PutBigEndian16(BinaryData(inObj) + offset, (uint16_t)v);
+	Put16(inObj, BinaryData(inObj) + offset, (uint16_t)v);
 	return NILREF;
 }
 
@@ -265,7 +298,7 @@ FStuffLong(RefArg rcvr, RefArg inObj, RefArg inOffset, RefArg inData)
 	BoundsWriteCheck(inObj, offset, sizeof(int32_t));
 
 	int32_t v = RINT(inData);
-	PutBigEndian32(BinaryData(inObj) + offset, (uint32_t)v);
+	Put32(inObj, BinaryData(inObj) + offset, (uint32_t)v);
 	return NILREF;
 }
 

@@ -32,9 +32,9 @@ file(WRITE "${OUT}"
 
 #include \"Matt/EmbeddedScript.h\"
 
-static const char kSource[${byteCount} + 1] = {
+static const unsigned char kSource[${byteCount} + 1] = {
   ${bytes}0x00
 };
 
-extern const EmbeddedScript ${NAME} = { \"${fileName}\", kSource };
+extern const EmbeddedScript ${NAME} = { \"${fileName}\", reinterpret_cast<const char *>(kSource) };
 ")

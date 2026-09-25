@@ -1,0 +1,7 @@
+$b
+"axc"
+177
+-20030
+$\uA0B1
+MakeBinaryFromHex("010201020304", 'data)
+16909060

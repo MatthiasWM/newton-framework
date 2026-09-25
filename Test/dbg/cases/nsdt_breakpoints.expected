@@ -5,6 +5,7 @@ WARNING: Breakpoint already exists!
 1
 "No such breakpoint exists"
 nil
+functions.Inner(1), 0: Push "inner "
 Entering break loop
 0
 #2        nil
@@ -16,6 +17,7 @@ true
 "inner 2"
 3
 nil
+functions.Inner(3), 0: Push "inner "
 Entering break loop
 0
 #2        nil

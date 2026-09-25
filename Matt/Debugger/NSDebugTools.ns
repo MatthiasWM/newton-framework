@@ -76,6 +76,15 @@ begin
 end);
 
 
+// Write a value for the user: symbols with a quote, everything else like
+// Print, without a newline. (Ref_506)
+DefineGlobalConstant('kNSDWriteValue, func(value)
+  if IsInstance(value, 'symbol) then
+    Write($' & SPrintObject(value))
+  else
+    Display(value));
+
+
 //------------------------------------------------------------------------------
 // The disassembler (package part 0)
 //------------------------------------------------------------------------------
@@ -457,6 +466,335 @@ DefineGlobalConstant('kNSDTools, {
 
   EnableBreakPoints: func(enable)
     NSDEnableBreakPoints(enable),
+
+  //--- Printing functions and calls ---
+
+  RefToHexString: func(obj)
+    NSDRefToHexString(obj),
+
+  // The name of the slot of `context` that holds obj (own slots only).
+  FindSlotName: func(context, obj)
+    NSDFindSlotName(context, obj),
+
+  // "name" if obj is context itself, "name.slot" if a slot of context holds
+  // obj, else nil.
+  CheckForObjectName: func(context, name, obj)
+  begin
+    if obj = context then
+      return name;
+    local slot := self:FindSlotName(context, obj);
+    return slot and name & $. & slot;
+  end,
+
+  // A global name for obj: vars.x, functions.x (also the built-in functions,
+  // @4098), or nil.
+  SearchForObjectName: func(obj)
+  begin
+    local name := self:CheckForObjectName(vars, "vars", obj);
+    if not name then
+      name := self:CheckForObjectName(functions, "functions", obj);
+    if not name then
+      name := self:CheckForObjectName(@4098, "functions", obj);
+    return name;
+  end,
+
+  // The debug name NTK stored in obj, if any: a DebuggerInfo symbol or
+  // string, or a 'debug hash (needs GetDebugName from DebugHashToName.pkg).
+  GetDebugNameOf: func(obj)
+  begin
+    if not obj then
+      return nil;
+    local name := GetSlot(obj, 'DebuggerInfo);
+    if not (IsInstance(name, 'symbol) or IsInstance(name, 'string)) then
+    begin
+      name := GetSlot(obj, 'debug);
+      if IsInstance(name, 'int) and HasPath(functions, 'GetDebugName) then
+        name := GetDebugName(name);
+    end;
+    return name;
+  end,
+
+  // Write the best name for fn: its debug name, implementor.slot, a global
+  // name, or the function itself.
+  WriteFunctionName: func(fn, implementor)
+  begin
+    if fn then
+    begin
+      local name := self:GetDebugNameOf(fn);
+      if implementor and not name then
+      begin
+        local slot := self:FindSlotName(implementor, fn);
+        if slot then
+        begin
+          local implName := self:GetDebugNameOf(implementor);
+          if not implName then
+            implName := $( & self:RefToHexString(implementor) & $);
+          name := implName & $. & slot;
+        end;
+      end;
+      if not name then
+        name := self:SearchForObjectName(fn);
+      Write(if name then name else fn);
+    end
+    else if implementor then
+    begin
+      local implName := self:GetDebugNameOf(implementor);
+      if not implName then
+        implName := $( & self:RefToHexString(implementor) & $);
+      Write(implName & ".<unknown function>");
+    end
+    else
+      Write("<Unknown Function>");
+  end,
+
+  // The arguments of the function at `frame`: [name, value, ...] (class
+  // 'paramNameAndValues) if the names are known (DebuggerInfo, or the
+  // argFrame of NOS 1 code), else [value, ...] ('paramValues); nil if there
+  // is no function.
+  GetActualParamList: func(stack, frame)
+  begin
+    local fn := stack:Function(frame);
+    if not fn then
+      return nil;
+    local count := GetFunctionArgCount(fn);
+    local params;
+    if call kNSDHasDebugInfo with (fn) then
+    begin
+      local info := fn.DebuggerInfo;
+      local skip := info[0];
+      params := SetClass(Array(count * 2, nil), 'paramNameAndValues);
+      for i := 0 to count - 1 do
+      begin
+        local name := info[i + skip + 1];
+        params[i * 2] := if IsInstance(name, 'symbol) then name else info[name];
+        params[i * 2 + 1] := stack:GetVar(frame, i);
+      end;
+    end
+    else if IsInstance(fn, 'CodeBlock) then
+    begin
+      local index := -3;      // skip the argFrame's system slots
+      params := SetClass([], 'paramNameAndValues);
+      foreach name, value in fn.argFrame do
+      begin
+        if index >= 0 then
+        begin
+          AddArraySlot(params, name);
+          AddArraySlot(params, stack:FindVar(frame, name));
+        end;
+        index := index + 1;
+        if index = count then
+          break;
+      end;
+    end
+    else
+    begin
+      params := SetClass(Array(count, nil), 'paramValues);
+      for i := 0 to count - 1 do
+        params[i] := stack:GetVar(frame, i);
+    end;
+    return params;
+  end,
+
+  // Write the arguments of the function at `frame`: name=value, ... or
+  // value, ...
+  WriteActualParamList: func(stack, frame)
+  begin
+    local params := self:GetActualParamList(stack, frame);
+    if not params then
+      return Write("\u2026\u?\u2026\u");     // "...?..." with ellipses
+    local count := Length(params);
+    if ClassOf(params) = 'paramNameAndValues then
+    begin
+      local i := 0;
+      while i < count do
+      begin
+        Write(params[i]);
+        Write($=);
+        call kNSDWriteValue with (params[i + 1]);
+        i := i + 2;
+        if i < count - 1 then
+          Write(", ");
+      end;
+    end
+    else
+      for i := 0 to count - 1 do
+      begin
+        call kNSDWriteValue with (params[i]);
+        if i < count - 1 then
+          Write(", ");
+      end;
+    return nil;
+  end,
+
+  // Write "function(arguments)" for the function at `frame`.
+  WriteFunctionAndArgs: func(stack, frame)
+  begin
+    local fn := stack:Function(frame);
+    self:WriteFunctionName(fn, stack:Implementor(frame));
+    Write($();
+    self:WriteActualParamList(stack, frame);
+    Write($));
+  end,
+
+  // Write temporaries `first` down to `last` of `frame` as "(a, b, c)": the
+  // arguments of a call that is about to happen.
+  WriteDecompileParams: func(stack, frame, first, last)
+  begin
+    Write($();
+    for i := first to last by -1 do
+    begin
+      call kNSDWriteValue with (stack:temporary(frame, i));
+      if i > last then
+        Write(", ");
+    end;
+    Write($));
+  end,
+
+  // Names of the freq-func operators, for SimpleDecompile.
+  FreqFuncNames: ["+", "-", nil, nil, "=", nil, "<>", "*", "/", "div", "<", ">",
+                  ">=", "<=", "Band", "Bor", "Bnot", "NewIterator", "Length",
+                  "Clone", "SetClass", "AddArraySlot", "Stringer", "HasPath",
+                  "ClassOf"],
+
+  // After the instruction at the PC of `frame`, write what it is about to do
+  // with the actual values from the stack, e.g. " [Add(1, 2)]" for a call,
+  // " [obj:Double(3)]" for a send, " [10 < 20]" for an operator.
+  SimpleDecompile: func(stack, frame, disassembler)
+  begin
+    local pc := stack:ProgramCounter(frame);
+    local opcode := disassembler:InstrOpcode(pc);
+    local parameter := disassembler:InstrParameter(pc);
+    if opcode = 5 then                              // call
+    begin
+      Write(" [");
+      Write(stack:temporary(frame, 0));
+      self:WriteDecompileParams(stack, frame, parameter, 1);
+      Write($]);
+    end
+    else if opcode = 7 or opcode = 8 then           // send, send-if-defined
+    begin
+      Write(" [");
+      // the receiver: find the instruction that pushed it
+      if disassembler:InstrOpcode(pc - 1) = 3 then
+      begin
+        local receiverPC := pc - 2;
+        local receiverOp := disassembler:InstrOpcode(receiverPC);
+        local receiverParm := disassembler:InstrParameter(receiverPC);
+        if receiverOp = 0 and receiverParm = 3 then  // push-self
+          nil
+        else if receiverOp = 15 then                // get-var
+        begin
+          local name := disassembler:GetArgName(receiverParm);
+          Write(if name then name else "?1?");
+        end
+        else if receiverOp = 14 then                // find-var
+        begin
+          local name := disassembler:GetFindVarName(receiverParm);
+          Write(if name then name else "?2?");
+        end
+        else
+          Write("?3(" & NumberStr(receiverOp) & ")?");
+      end
+      else if disassembler:InstrOpcode(pc - 3) = 3 then
+      begin
+        if disassembler:InstrOpcode(pc - 4) = 0 and disassembler:InstrParameter(pc - 4) = 3 then
+          nil
+        else if disassembler:InstrOpcode(pc - 4) = 15 then
+        begin
+          local name := disassembler:GetArgName(disassembler:InstrParameter(pc - 4));
+          Write(if name then name else "?4?");
+        end
+        else
+          Write("?5(" & NumberStr(pc - 4) & ")?");
+      end
+      else
+        Write("?6?");
+      Write(if opcode = 7 then $: else ":?");
+      Write(stack:temporary(frame, 0));
+      self:WriteDecompileParams(stack, frame, parameter + 1, 2);
+      Write($]);
+    end
+    else if opcode = 9 or opcode = 10 then          // resend, resend-if-defined
+    begin
+      Write(" [");
+      Write("inherited");
+      Write(if opcode = 9 then $: else ":?");
+      Write(stack:temporary(frame, 0));
+      self:WriteDecompileParams(stack, frame, parameter, 1);
+      Write($]);
+    end
+    else if opcode = 24 then                        // freq-func
+    begin
+      local name := FreqFuncNames[parameter];
+      local numArgs := disassembler.FreqFuncInfo[parameter].numArgs;
+      if numArgs = 1 then
+      begin
+        if parameter = 5 then
+        begin
+          Write(" [not ");
+          Write(stack:temporary(frame, 0));
+          Write($]);
+        end
+        else
+        begin
+          Write(" [");
+          Write(name);
+          Write($();
+          Write(stack:temporary(frame, 0));
+          Write(")]");
+        end;
+      end
+      else if numArgs = 2 then
+      begin
+        if parameter = 2 then                       // array[index]
+        begin
+          Write(" [");
+          Write(stack:temporary(frame, 1));
+          Write($[);
+          Write(stack:temporary(frame, 0));
+          Write("]]");
+        end
+        else if parameter = 9 then
+        begin
+          Write(" [");
+          Write(stack:temporary(frame, 1));
+          Write(" div ");
+          Write(stack:temporary(frame, 0));
+          Write($]);
+        end
+        else if IsAlphaNumeric(name[0]) then
+        begin
+          Write(" [");
+          Write(name);
+          Write($();
+          Write(stack:temporary(frame, 1));
+          Write(", ");
+          Write(stack:temporary(frame, 0));
+          Write(")]");
+        end
+        else
+        begin
+          Write(" [");
+          Write(stack:temporary(frame, 1));
+          Write($ );
+          Write(name);
+          Write($ );
+          Write(stack:temporary(frame, 0));
+          Write($]);
+        end;
+      end
+      else if numArgs = 3 then                      // array[index] := value
+      begin
+        Write(" [");
+        Write(stack:temporary(frame, 2));
+        Write($[);
+        Write(stack:temporary(frame, 1));
+        Write("] := ");
+        Write(stack:temporary(frame, 0));
+        Write($]);
+      end;
+    end;
+  end,
 
   // Replace the breakpoint frame and return the previous one. Passing nil
   // and then the result back is how the tools read the current frame:
@@ -1109,6 +1447,180 @@ DefineGlobalConstant('kNSDTools, {
       return result;
     end,
 
+  // Where(): print where the break loop stopped: the function with its
+  // arguments, the PC, the instruction there, and what it's about to do.
+  Where: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local inaccurate := nil;
+      local savedPrintDepth := printDepth;
+      printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;
+      // newtc: the package called StackIsAccurate before setting the stack,
+      // so SetDebugMode(true) did not count; now the stack is set first.
+      local stack := self:CurrentStack();
+      if not call kNSDParam with ('NoInaccWarning) then
+      begin
+        inaccurate := not self:StackIsAccurate(stack);
+        if inaccurate then
+          Write("WARNING: The information may not be accurate.\n"
+                "         Enable breakpoints for better information.\n\n");
+      end;
+      try
+        local frame := stack:FindBreakLoop() - 1;
+        self:WriteFunctionAndArgs(stack, frame);
+        local fn := stack:Function(frame);
+        if call kNSDIsInterpreted with (fn) then
+        begin
+          local pc := stack:ProgramCounter(frame);
+          Write(", ");
+          Write(pc);
+          if inaccurate then
+            Write($?);
+          Write(":\t");
+          local disassembler := MakeDisassembler(fn);
+          disassembler:PrintVerbosity(nil);
+          disassembler:PrettySpacing(0, 0);
+          disassembler:PrintInstruction(pc);
+          self:SimpleDecompile(stack, frame, disassembler);
+        end;
+        Write($\n);
+        printDepth := savedPrintDepth;
+      onexception |evt.ex| do
+        printDepth := savedPrintDepth;
+      call kNSDSetTrace with (oldTrace);
+      return nil;
+    end,
+
+  // QuickStackTrace(): one line per function on the stack, from the one
+  // that stopped to the oldest: "function(arguments): pc". Installed as
+  // StackTrace (the ROM's is kept as StackTraceOld).
+  QuickStackTrace: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      try
+        local savedPrintDepth := printDepth;
+        printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;
+        local stack := self:CurrentStack();
+        local inaccurate := nil;
+        if not call kNSDParam with ('NoInaccWarning) then
+        begin
+          inaccurate := not self:StackIsAccurate(stack);
+          if inaccurate then
+            Write("WARNING: The stack trace may not be accurate.\n"
+                  "         Enable breakpoints for better information.\n\n");
+        end;
+        for frame := stack:FindBreakLoop() - 1 to 0 by -1 do
+        begin
+          self:WriteFunctionAndArgs(stack, frame);
+          if call kNSDIsInterpreted with (stack:Function(frame)) then
+          begin
+            local pc := stack:ProgramCounter(frame);
+            Write($: & (if pc >= 0 then NumberStr(pc) else "0"));
+            if inaccurate then
+              Write($?);
+          end
+          else
+            Write(" <native function>");
+          Write($\n);
+        end;
+        printDepth := savedPrintDepth;
+      onexception |evt.ex| do
+        printDepth := savedPrintDepth;
+      call kNSDSetTrace with (oldTrace);
+      return nil;
+    end,
+
+  // The replacement for the global BreakLoop, installed at the end (the
+  // original is kept as NSDOriginalBreakLoop). Before entering the break
+  // loop, it prints where it stopped (like Where). The optional global
+  // functions NSDBreakLoopEntry(fn, pc, params) and
+  // NSDBreakLoopExit(didBreakLoopHappen) are called before and after; if
+  // NSDBreakLoopEntry returns nil, the break loop is skipped (conditional
+  // breakpoints). (In the package this was defined in the install script.)
+  BreakLoop: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local savedBreakOnThrows := breakOnThrows;
+      local savedPrintDepth := printDepth;
+      local enter := true;
+      vars.printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;
+      vars.breakOnThrows := nil;
+      try
+        local stack := self:CurrentStack();
+        local inaccurate := nil;
+        if not call kNSDParam with ('NoInaccWarning) then
+        begin
+          inaccurate := not self:StackIsAccurate(stack);
+          if inaccurate then
+            Write("WARNING: The program counter may not be accurate.\n"
+                  "         Enable breakpoints for better information.\n\n");
+        end;
+        local frame := stack:FindBreakLoop() - 1;
+        local fn := stack:Function(frame);
+        local interpreted := call kNSDIsInterpreted with (fn);
+        local pc := interpreted and stack:ProgramCounter(frame);
+        if HasPath(functions, 'NSDBreakLoopEntry) then
+        begin
+          local params := self:GetActualParamList(stack, frame);
+          enter := NSDBreakLoopEntry(fn, pc, if params then params else SetClass([], 'paramValues));
+          call kNSDSetTrace with (nil);
+          enter := enter and true;
+          vars.printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;
+          vars.breakOnThrows := nil;
+        end;
+        if enter then
+        begin
+          self:WriteFunctionAndArgs(stack, frame);
+          if interpreted then
+          begin
+            pc := stack:ProgramCounter(frame);
+            local disassembler := MakeDisassembler(fn);
+            disassembler:PrintVerbosity(nil);
+            disassembler:PrettySpacing(0, 0);
+            Write(", ");
+            Write(pc);
+            if inaccurate then
+              Write($?);
+            Write(": ");
+            disassembler:PrintInstruction(pc);
+            self:SimpleDecompile(stack, frame, disassembler);
+          end;
+          Write($\n);
+        end;
+      onexception |evt.ex| do
+      begin
+        printDepth := savedPrintDepth;
+        breakOnThrows := nil;
+        Rethrow();
+      end;
+      printDepth := savedPrintDepth;
+      breakOnThrows := savedBreakOnThrows;
+      if enter then
+        NSDOriginalBreakLoop();
+      try
+        savedPrintDepth := printDepth;
+        vars.printDepth := if IsInteger(vars.stackTracePrintDepth) then vars.stackTracePrintDepth else 0;
+        vars.breakOnThrows := nil;
+        // newtc: the package passed true here in any case; the documented
+        // argument (NSDShortCuts/myFunctions) is whether the break loop ran.
+        if HasPath(functions, 'NSDBreakLoopExit) then
+          NSDBreakLoopExit(enter);
+      onexception |evt.ex| do
+      begin
+        vars.printDepth := savedPrintDepth;
+        vars.breakOnThrows := nil;
+        Rethrow();
+      end;
+      if IsInteger(vars.stackTracePrintDepth) and printDepth = vars.stackTracePrintDepth then
+        vars.printDepth := savedPrintDepth;
+      if not breakOnThrows then
+        vars.breakOnThrows := savedBreakOnThrows;
+      return call kNSDSetTrace with (oldTrace);
+    end,
+
   // GloballyEnableBreakPoints(flag): turn all breakpoints on or off (the
   // interpreter runs its slow loop while they are on) and return the
   // previous setting. On a Newton, it also updated the NS Debug Tools app.
@@ -1138,6 +1650,11 @@ DefineGlobalConstant('kNSDTools, {
 // Install the global functions
 //------------------------------------------------------------------------------
 
+// newtc: the tools read the global breakOnThrows; on a Newton, the NTK
+// connection or SetupMyDebug (NSDShortCuts) defined it.
+if not GlobalVarExists('breakOnThrows) then
+  DefGlobalVar('breakOnThrows, nil);
+
 // newtc: newtc's compiler writes no DebuggerInfo, so let Disasm and
 // DisasmRange work on all functions (Apple's switch, see kNSDCanDisassemble).
 DefGlobalVar('becausePeterSaidSo, true);
@@ -1149,5 +1666,16 @@ foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
                  'RemoveBreakPoint, 'RemoveAllBreakPoints, 'GetAllBreakPoints,
                  'EnableBreakPoint, 'SetBreakPointLabel, 'GetBreakPointLabel,
                  'GloballyEnableBreakPoints, 'Step, 'StepIn, 'StepOut, 'RunUntil,
-                 'SetCurrentPC] do
+                 'SetCurrentPC, 'Where, 'QuickStackTrace] do
   DefGlobalFn(name, Perform(kNSDTools, name, []));
+
+// Replace StackTrace and BreakLoop, keeping the ROM's as StackTraceOld and
+// NSDOriginalBreakLoop. Only once: loading the tools again must not replace
+// the originals with the replacements.
+if not HasPath(functions, 'NSDOriginalBreakLoop) then
+begin
+  DefGlobalFn('StackTraceOld, GetGlobalFn('StackTrace));
+  DefGlobalFn('StackTrace, GetGlobalFn('QuickStackTrace));
+  DefGlobalFn('NSDOriginalBreakLoop, GetGlobalFn('BreakLoop));
+  DefGlobalFn('BreakLoop, kNSDTools:BreakLoop());
+end;

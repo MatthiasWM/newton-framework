@@ -1,19 +1,24 @@
+functions.Work(-3), 2: Pop
 Entering break loop
 #2        nil
 Exiting break loop
+functions.Work(-3), 6: Send 1 ['obj:'double(-3)]
 Entering break loop
 #2        nil
 Exiting break loop
+(#<ref>).double(-3), 0: GetVar [ 3 ]
 Entering break loop
 [true, 0, true]
 #2        nil
 #2        nil
 Exiting break loop
+functions.Work(-3), 7: SetVar [ 4 ]
 Entering break loop
 7
 #2        nil
 #2        nil
 Exiting break loop
+functions.Work(-3), 11: Call 2 ['max(-6, 1)]
 Entering break loop
 "Can't step into a non-interpreted function."
 #2        nil
