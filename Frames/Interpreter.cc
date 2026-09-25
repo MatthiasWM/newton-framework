@@ -989,6 +989,8 @@ CInterpreter::CInterpreter()
 // set up a new VM state
 	vm = ctrlStack.push();
 	vm->pc = MAKEINT(0);
+
+	setFastLoopFlag();
 }
 
 
@@ -1083,7 +1085,7 @@ CInterpreter::run()
 		newton_try
 		{
 			IncrementCurrentStackPos();
-			run1(initialStackDepth);
+			alternatingLoops(initialStackDepth);
 			DecrementCurrentStackPos();
 		}
 		newton_catch(exRootException)
@@ -1098,10 +1100,50 @@ CInterpreter::run()
 }
 
 /*------------------------------------------------------------------------------
-	And this is where our story really starts…
+	Choose between the fast and the slow interpreter loop.
+	The ROM has two copies of the interpreter loop: TInterpreter::FastRun()
+	and TInterpreter::SlowRun(). The slow one checks breakpoints before
+	every instruction. Both check isFast after every call and return, and
+	return false to switch to the other loop, or true when they are done.
+	We generate both loops from the same source, run1<false> and run1<true>.
+------------------------------------------------------------------------------*/
+
+bool
+CInterpreter::alternatingLoops(ArrayIndex initialStackDepth)
+{
+	for ( ; ; )
+	{
+		if (!isFast && run1<true>(initialStackDepth))
+			return true;
+		if (run1<false>(initialStackDepth))
+			return true;
+	}
+}
+
+
+/*------------------------------------------------------------------------------
+	Decide which interpreter loop to use.
+	ROM: the fast loop is used only when gAccurateStackTrace, tracing,
+	gFramesBreakPointsEnabled, and function profiling are all off. We only
+	have a use for the slow loop with breakpoints yet.
+	Call this whenever one of these settings changes.
 ------------------------------------------------------------------------------*/
 
 void
+CInterpreter::setFastLoopFlag(void)
+{
+	isFast = !gFramesBreakPointsEnabled;
+}
+
+
+/*------------------------------------------------------------------------------
+	And this is where our story really starts…
+	kSlow: true for the ROM's SlowRun(), false for FastRun().
+	Return:	true when done, false to switch to the other loop
+------------------------------------------------------------------------------*/
+
+template <bool kSlow>
+bool
 CInterpreter::run1(ArrayIndex initialStackDepth)
 {
 	RefVar	var1;
@@ -1128,6 +1170,23 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 
 		for ( ; ; )
 		{
+			// As in ROM SlowRun(): check breakpoints before every instruction.
+			if (kSlow && gFramesBreakPointsEnabled)
+			{
+				instructionOffset = instrPtr - instrBase;
+				handleBreakPoints();
+				// A hit ran NewtonScript in the break loop: the GC may have
+				// moved objects, and the PC may have been changed. Re-derive
+				// everything the outer loop cached.
+				instrBase = (unsigned char *)BinaryData(instructions);
+				instrPtr = instrBase + instructionOffset;
+				literalSlot = NOTNIL(literals) ? ((FrameObject *)ObjectPtr(literals))->slot : NULL;
+				if (is2x)
+					localSlot = dataStack.base + localsIndex;
+				else
+					localSlot = ((FrameObject *)ObjectPtr(vm->locals))->slot;
+			}
+
 			a = *instrPtr++;
 			b = a & 0x07;
 
@@ -2065,7 +2124,9 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 bailCheck:
 		if (fnType == kCFunction
 		&& STACKINDEX(ctrlStack) < initialStackDepth)
-			break;
+			return true;
+		if (isFast == kSlow)
+			return false;	// switch loops, see alternatingLoops()
 	}
 }
 
@@ -3506,6 +3567,9 @@ EnableBreakPoints(bool doEnable)
 {
 	bool	prevEnable = gFramesBreakPointsEnabled;
 	gFramesBreakPointsEnabled = doEnable;
+	// ROM does this for one interpreter; the flag is global, so do all of them
+	for (CInterpreter * intrp = gInterpreterList; intrp != NULL; intrp = intrp->next)
+		intrp->setFastLoopFlag();
 	return prevEnable;
 }
 

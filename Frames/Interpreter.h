@@ -123,7 +123,10 @@ public:
 	void		setFlags(void);
 
 	void		run(void);
-	void		run1(ArrayIndex initialStackDepth);
+	bool		alternatingLoops(ArrayIndex initialStackDepth);
+	template <bool kSlow>
+	bool		run1(ArrayIndex initialStackDepth);
+	void		setFastLoopFlag(void);
 
 	void		pushValue(Ref);
 	Ref		popValue(void);
@@ -198,7 +201,7 @@ public:
 	bool			is2x;						// x54	locals for 2.x
 	int			localsIndex;			// x58	index into dataStack for 2.x locals
 	bool			isSend;					// x5C
-//	bool			isFast;					// x60
+	bool			isFast;					// x60	use the fast loop, see setFastLoopFlag()
 	int			traceIndent;			// x64
 	bool			isTraceGetEnabled;	// x68
 	bool			isTraceFuncEnabled;	// x69
