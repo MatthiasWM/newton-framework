@@ -1,0 +1,38 @@
+// Step 3.1d: Apple's breakpoint functions.
+// - InstallBreakPoint(fn, pc) returns the breakpoint; labels are any object.
+// - A duplicate is added with a warning; RemoveBreakPoint removes one, and
+//   complains if it's not there.
+// - Breakpoints fire only while GloballyEnableBreakPoints(true) is on: the
+//   first call of Inner stops at pc 0 (before "inner 1" is printed).
+// - EnableBreakPoint(bp, nil) disables the breakpoint (it returns true: it
+//   was enabled): Inner(2) doesn't stop; EnableBreakPoint(bp, true) enables
+//   it again (returns nil: it was disabled): Inner(3) stops. The package had
+//   this backwards; newtc follows the NTK documentation.
+// - After RemoveAllBreakPoints, nothing stops, and GetAllBreakPoints is nil.
+// - InstallBreakPoint throws for a non-function or a non-integer pc.
+global Inner(x)
+begin
+  Print("inner " & x);
+  x + 1;
+end;
+
+bp := InstallBreakPoint(functions.Inner, 0);
+Print(SetBreakPointLabel(bp, "first"));
+Print(GetBreakPointLabel(bp));
+dup := InstallBreakPoint(functions.Inner, 0);
+Print(Length(GetAllBreakPoints().programCounter));
+RemoveBreakPoint(dup);
+Print(Length(GetAllBreakPoints().programCounter));
+RemoveBreakPoint(dup);
+Print(GloballyEnableBreakPoints(true));
+Print(Inner(1));
+Print(EnableBreakPoint(bp, nil));
+Print(Inner(2));
+Print(EnableBreakPoint(bp, true));
+Print(Inner(3));
+RemoveAllBreakPoints();
+Print(GetAllBreakPoints());
+Print(Inner(4));
+try InstallBreakPoint(42, 0) onexception |evt.ex| do Print("not a function");
+try InstallBreakPoint(functions.Inner, 'x) onexception |evt.ex| do Print("pc not an integer");
+Print(GloballyEnableBreakPoints(nil));

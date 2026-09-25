@@ -377,8 +377,27 @@ regression checks (MATT.md) still apply when shared code is touched.
         `gVarFrame`); `LSearch` divided a `Ref*` difference by `sizeof(Ref)`,
         so indexes below 8 came out as 0.
         Tests: `nsdt_paths`, `nsdt_allvars`.
-  - [ ] 3.1d ... the remaining 15 globals in groups, the disassembler, the
-        replacement BreakLoop, QuickStackTrace/StackTrace.
+  - [x] 3.1d Breakpoint functions: `InstallBreakPoint(fn, pc)` (returns the
+        breakpoint frame; a duplicate is added with a warning),
+        `RemoveBreakPoint(bp)`, `RemoveAllBreakPoints()`, `GetAllBreakPoints()`,
+        `EnableBreakPoint(bp, flag)`, `SetBreakPointLabel(bp, label)`,
+        `GetBreakPointLabel(bp)`, `GloballyEnableBreakPoints(flag)`; library
+        helpers `InstallBreakPoints`, `InstallTempBreakPoint` (for stepping);
+        constants `kNSDIsInterpreted` (Ref_581), `kNSDIsOpen` (Ref_664).
+        newtc: `EnableBreakPoint(bp, enableMode)` follows the NTK documentation
+        (non-nil enables, nil disables; returns true if it was enabled). The
+        package had it backwards (`disabled := enableMode <> nil`, returning the
+        previous `disabled`).
+        newtc: `GloballyEnableBreakPoints` skips updating the NS Debug Tools app
+        (`GetRoot()` is nil without a GUI).
+        Fixed on the way: `ArrayPos` was a stub returning nil (now in Arrays.cc,
+        as in ROM: nil start = 0); `ArrayPosition` treated every test-function
+        result as true (`if (DoBlock(...))`, but nil is not 0); `SetRemove` always
+        returned the array (`ISNIL()` on a C++ bool) instead of nil when nothing
+        was removed. Test: `nsdt_breakpoints`.
+  - [ ] 3.1e ... the remaining 7: `Where`, `QuickStackTrace`, `Step`, `StepIn`,
+        `StepOut`, `RunUntil`, `SetCurrentPC`; the disassembler; the replacement
+        BreakLoop; StackTraceOld/StackTrace.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
       shortcuts.

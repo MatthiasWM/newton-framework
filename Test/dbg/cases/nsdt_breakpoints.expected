@@ -1,0 +1,31 @@
+"first"
+"first"
+WARNING: Breakpoint already exists!
+2
+1
+"No such breakpoint exists"
+nil
+Entering break loop
+0
+#2        nil
+#2        nil
+Exiting break loop
+"inner 1"
+2
+true
+"inner 2"
+3
+nil
+Entering break loop
+0
+#2        nil
+#2        nil
+Exiting break loop
+"inner 3"
+4
+nil
+"inner 4"
+5
+"not a function"
+"pc not an integer"
+true

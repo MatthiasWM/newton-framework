@@ -1,0 +1,4 @@
+Print(GetCurrentPC(0));
+ExitBreakLoop();
+Print(GetCurrentPC(0));
+ExitBreakLoop();

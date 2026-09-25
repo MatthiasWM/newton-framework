@@ -33,6 +33,7 @@ Ref	FAddArraySlot(RefArg inRcvr, RefArg ioArray, RefArg inObj);
 Ref	FArrayRemoveCount(RefArg inRcvr, RefArg ioArray, RefArg inStart, RefArg inCount);
 Ref	FSetLength(RefArg inRcvr, RefArg ioArray, RefArg inLength);
 
+Ref	FArrayPos(RefArg inRcvr, RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest);
 Ref	FSetAdd(RefArg inRcvr, RefArg ioArray, RefArg inMember, RefArg inUnique);
 Ref	FSetRemove(RefArg inRcvr, RefArg ioArray, RefArg inMember);
 Ref	FSetContains(RefArg inRcvr, RefArg inArray, RefArg inMember);
@@ -208,7 +209,7 @@ ArrayPosition(RefArg array, RefArg item, ArrayIndex start, RefArg test)
 			{
 				arg1 = GetArraySlot(array, start);
 				SetArraySlot(args, 1, arg1);
-				if (DoBlock(test, args))
+				if (NOTNIL(DoBlock(test, args)))	// as in ROM (a nil Ref is not 0)
 					break;
 			}
 		}
@@ -216,6 +217,23 @@ ArrayPosition(RefArg array, RefArg item, ArrayIndex start, RefArg test)
 			return start;
 	}
 	return kIndexNotFound;
+}
+
+
+/*------------------------------------------------------------------------------
+	ArrayPos(array, item, start, test): the index of the first element at or
+	after start that matches item (EQ, or test(item, element) is non-nil).
+	Args:		inStart		nil for 0
+	Return:	the index, or nil
+------------------------------------------------------------------------------*/
+
+Ref
+FArrayPos(RefArg inRcvr, RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest)
+{
+	// ROM passes -1 for nil, which its (signed) ArrayPosition clamps to 0
+	ArrayIndex start = ISNIL(inStart) ? 0 : RINT(inStart);
+	ArrayIndex index = ArrayPosition(inArray, inItem, start, inTest);
+	return (index == kIndexNotFound) ? NILREF : MAKEINT(index);
 }
 
 #if 0
@@ -558,7 +576,7 @@ FSetRemove(RefArg inRcvr, RefArg ioArray, RefArg inMember)
 	if (!IsArray(ioArray))
 		ThrowBadTypeWithFrameData(kNSErrNotAnArray, ioArray);
 
-	if (ISNIL(ArrayRemove(ioArray, inMember)))
+	if (!ArrayRemove(ioArray, inMember))	// bool, not a Ref
 		return NILREF;
 	return ioArray;
 }

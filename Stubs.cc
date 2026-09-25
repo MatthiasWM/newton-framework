@@ -529,7 +529,6 @@ Ref FScanWordEnd(RefArg rcvr);
 Ref FGetViewID(RefArg rcvr);
 Ref FCloseRemoteControl(RefArg rcvr);
 Ref FRecognizePoly(RefArg rcvr);
-Ref FArrayPos(RefArg rcvr);
 Ref FDrawLetterScript(RefArg rcvr);
 Ref FGetVBOStoredSize(RefArg rcvr);
 Ref FNBPLookupCount(RefArg rcvr);
@@ -1275,7 +1274,6 @@ Ref FScanWordEnd(RefArg rcvr) { return NILREF; }
 Ref FGetViewID(RefArg rcvr) { return NILREF; }
 Ref FCloseRemoteControl(RefArg rcvr) { return NILREF; }
 Ref FRecognizePoly(RefArg rcvr) { return NILREF; }
-Ref FArrayPos(RefArg rcvr) { return NILREF; }
 Ref FDrawLetterScript(RefArg rcvr) { return NILREF; }
 Ref FGetVBOStoredSize(RefArg rcvr) { return NILREF; }
 Ref FNBPLookupCount(RefArg rcvr) { return NILREF; }

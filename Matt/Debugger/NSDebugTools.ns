@@ -59,6 +59,23 @@ DefineGlobalConstant('kNSDHasDebugInfo, func(fn)
   HasPath(fn, 'DebuggerInfo) and IsInstance(fn.DebuggerInfo, 'dbg1));
 
 
+// True for NewtonScript functions (NOS 1 CodeBlock or NOS 2 _function),
+// which can be debugged; nil for native functions. (Ref_581)
+DefineGlobalConstant('kNSDIsInterpreted, func(fn)
+begin
+  local fnClass := ClassOf(fn);
+  return fnClass = 'CodeBlock or fnClass = '_function;
+end);
+
+// True if the view is open. (Ref_664)
+DefineGlobalConstant('kNSDIsOpen, func(view)
+begin
+  if HasVariable(view, 'IsOpen) then
+    return view:IsOpen();
+  return view.viewCObject <> nil;
+end);
+
+
 //------------------------------------------------------------------------------
 // The stack object (Ref_531)
 //------------------------------------------------------------------------------
@@ -111,6 +128,42 @@ DefineGlobalConstant('kNSDTools, {
 
   EnableBreakPoints: func(enable)
     NSDEnableBreakPoints(enable),
+
+  // Replace the breakpoint frame and return the previous one. Passing nil
+  // and then the result back is how the tools read the current frame:
+  // {programCounter: [breakpoint, ...]}, or nil if there are none.
+  InstallBreakPoints: func(breakPoints)
+    NSDInstallBreakPoints(breakPoints),
+
+  // Add a temporary breakpoint: it is removed when it is hit. Used for
+  // stepping. Throws if fn is not a NewtonScript function or pc not an int.
+  InstallTempBreakPoint: func(fn, pc)
+  begin
+    if call kNSDIsInterpreted with (fn) and HasPath(fn, 'instructions) then
+    begin
+      if IsInstance(pc, 'int) then
+      begin
+        local breakPoints := self:InstallBreakPoints(nil);
+        self:InstallBreakPoints(breakPoints);
+        local breakPoint := {instructions: fn.instructions, programCounter: pc,
+                             temporary: true};
+        if breakPoints then
+        begin
+          if breakPoints.programCounter then
+            AddArraySlot(breakPoints.programCounter, breakPoint)
+          else
+            breakPoints.programCounter := [breakPoint];
+        end
+        else
+          self:InstallBreakPoints({programCounter: [breakPoint]});
+      end
+      else
+        Throw('|evt.ex.fr.type;type.ref|, {errorCode: -48406, value: pc});
+    end
+    else
+      Throw('|evt.ex.fr.type;type.ref|, {errorCode: -48411, value: fn});
+    return nil;
+  end,
 
   // Search the _proto chain of `frame` for `slot`. If found, add the slot
   // and the _proto steps to `path` (backwards: slot first) and return true.
@@ -447,6 +500,152 @@ DefineGlobalConstant('kNSDTools, {
       end;
       call kNSDSetTrace with (oldTrace);
       return namedVars;
+    end,
+
+  // InstallBreakPoint(fn, pc): stop before the instruction at pc of the
+  // NewtonScript function fn. Returns the breakpoint (a frame; pass it to
+  // RemoveBreakPoint, EnableBreakPoint, ...). Breakpoints only fire while
+  // enabled, see GloballyEnableBreakPoints. A second breakpoint at the same
+  // place is added anyway, with a warning.
+  InstallBreakPoint: func()
+    func(fn, pc)
+    begin
+      local breakPoint;
+      local oldTrace := call kNSDSetTrace with (nil);
+      if call kNSDIsInterpreted with (fn) and HasPath(fn, 'instructions) then
+      begin
+        if IsInstance(pc, 'int) then
+        begin
+          local breakPoints := self:InstallBreakPoints(nil);
+          self:InstallBreakPoints(breakPoints);
+          breakPoint := {instructions: fn.instructions, programCounter: pc};
+          if breakPoints then
+          begin
+            if breakPoints.programCounter then
+            begin
+              local samePlace := func(new, old)
+                HasPath(old, 'instructions) and new.instructions = old.instructions
+                and HasPath(old, 'programCounter) and new.programCounter = old.programCounter
+                and not old.temporary;
+              if ArrayPos(breakPoints.programCounter, breakPoint, 0, samePlace) then
+                Write("WARNING: Breakpoint already exists!\n");
+              AddArraySlot(breakPoints.programCounter, breakPoint);
+            end
+            else
+              breakPoints.programCounter := [breakPoint];
+          end
+          else
+            self:InstallBreakPoints({programCounter: [breakPoint]});
+        end
+        else
+        begin
+          call kNSDSetTrace with (oldTrace);
+          Throw('|evt.ex.fr.type;type.ref|, {errorCode: -48406, value: pc});
+        end;
+      end
+      else
+      begin
+        call kNSDSetTrace with (oldTrace);
+        Throw('|evt.ex.fr.type;type.ref|, {errorCode: -48411, value: fn});
+      end;
+      call kNSDSetTrace with (oldTrace);
+      return breakPoint;
+    end,
+
+  // RemoveBreakPoint(breakPoint): remove one breakpoint.
+  RemoveBreakPoint: func()
+    func(breakPoint)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local breakPoints := self:InstallBreakPoints(nil);
+      self:InstallBreakPoints(breakPoints);
+      if not (breakPoints and breakPoints.programCounter
+              and SetRemove(breakPoints.programCounter, breakPoint)) then
+        Print("No such breakpoint exists");
+      call kNSDSetTrace with (oldTrace);
+      return nil;
+    end,
+
+  // RemoveAllBreakPoints(): remove all breakpoints.
+  RemoveAllBreakPoints: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      self:InstallBreakPoints(nil);
+      call kNSDSetTrace with (oldTrace);
+      return nil;
+    end,
+
+  // GetAllBreakPoints(): {programCounter: [breakpoint, ...]}, or nil.
+  GetAllBreakPoints: func()
+    func()
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local breakPoints := self:InstallBreakPoints(nil);
+      self:InstallBreakPoints(breakPoints);
+      call kNSDSetTrace with (oldTrace);
+      return breakPoints;
+    end,
+
+  // EnableBreakPoint(breakPoint, enableMode): enable the breakpoint if
+  // enableMode is non-nil, disable it if nil (NTK documentation). Returns
+  // true if it was enabled before.
+  // newtc: the package had it backwards (disabled := enableMode <> nil) and
+  // returned the previous `disabled` value; changed to match the
+  // documentation, and the return value to match. (Ref_733: in the package
+  // a plain function, it does not use self.)
+  EnableBreakPoint: func()
+    func(breakPoint, enableMode)
+    begin
+      if ClassOf(breakPoint) = 'frame then
+      begin
+        local wasEnabled := not breakPoint.disabled;
+        breakPoint.disabled := enableMode = nil;
+        return wasEnabled;
+      end;
+      return nil;
+    end,
+
+  // SetBreakPointLabel(breakPoint, label): attach a label (any object);
+  // returns it. (Ref_715: in the package a plain function.)
+  SetBreakPointLabel: func()
+    func(breakPoint, label)
+    begin
+      if ClassOf(breakPoint) = 'frame then
+      begin
+        breakPoint.userLabel := label;
+        return label;
+      end;
+      return nil;
+    end,
+
+  // GetBreakPointLabel(breakPoint): its label, or nil. (Ref_499: in the
+  // package a plain function.)
+  GetBreakPointLabel: func()
+    func(breakPoint)
+      ClassOf(breakPoint) = 'frame and breakPoint.userLabel,
+
+  // GloballyEnableBreakPoints(flag): turn all breakpoints on or off (the
+  // interpreter runs its slow loop while they are on) and return the
+  // previous setting. On a Newton, it also updated the NS Debug Tools app.
+  GloballyEnableBreakPoints: func()
+    func(flag)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local wasEnabled := self:EnableBreakPoints(flag <> nil);
+      // newtc: no root view without a GUI, so no app to update
+      local root := GetRoot();
+      local app := root and root.|NS Debug Tools:PIE|;
+      local isOpen := app and call kNSDIsOpen with (app);
+      if isOpen then
+      begin
+        app:Close();
+        app:Open();
+      end
+      else if app and GetVariable(app, 'SetExtrasIcon) then
+        app:SetExtrasIcon(flag);
+      call kNSDSetTrace with (oldTrace);
+      return wasEnabled;
     end
 });
 
@@ -458,5 +657,8 @@ DefineGlobalConstant('kNSDTools, {
 foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
                  'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,
                  'GetAllTempVars, 'GetNamedVar, 'SetNamedVar, 'GetAllNamedVars,
-                 'GetPathToSlot, 'GetPathWhereSet] do
+                 'GetPathToSlot, 'GetPathWhereSet, 'InstallBreakPoint,
+                 'RemoveBreakPoint, 'RemoveAllBreakPoints, 'GetAllBreakPoints,
+                 'EnableBreakPoint, 'SetBreakPointLabel, 'GetBreakPointLabel,
+                 'GloballyEnableBreakPoints] do
   DefGlobalFn(name, Perform(kNSDTools, name, []));
