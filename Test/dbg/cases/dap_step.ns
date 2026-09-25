@@ -1,0 +1,17 @@
+// DAP (step 5.5): next / stepIn / stepOut are Apple's Step, StepIn,
+// StepOut: one bytecode instruction at a time, stopping with reason
+// "step". Work: 0 GetVar x, 1 PushConstant 1, 2 Push 'Add, 3 Call 2,
+// 4 SetVar y, ... stepIn at the Call stops at PC 0 of Add; stepOut
+// returns to Work after the call. Stepping out of the program itself
+// isn't possible (it returns to C++): newtc says so and continues.
+global Add(a, b)
+  a + b;
+
+global Work(x)
+begin
+  local y := Add(x, 1);
+  y * 2;
+end;
+
+InstallBreakPoint(functions.Work, 0);
+Print(Work(10));

@@ -12,15 +12,15 @@
 -> {"seq":5,"type":"request","command":"scopes","arguments":{"frameId":2}}
 <- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"scopes","body":{"scopes":[{"name":"Arguments","presentationHint":"arguments","variablesReference":1,"expensive":false},{"name":"Locals","presentationHint":"locals","variablesReference":2,"expensive":false}]}}
 -> {"seq":6,"type":"request","command":"variables","arguments":{"variablesReference":1}}
-<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"variables","body":{"variables":[{"name":"items","value":"[1, 2, 3]","type":"array","variablesReference":3,"indexedVariables":3},{"name":"factor","value":"2","type":"int","variablesReference":0}]}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"variables","body":{"variables":[{"name":"items","value":"[1, 2, 3]","type":"array","variablesReference":3,"evaluateName":"items","indexedVariables":3},{"name":"factor","value":"2","type":"int","variablesReference":0,"evaluateName":"factor"}]}}
 -> {"seq":7,"type":"request","command":"variables","arguments":{"variablesReference":2}}
-<- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"variables","body":{"variables":[{"name":"total","value":"12","type":"int","variablesReference":0},{"name":"info","value":"{name: \"tally\", tags: [#<ref>], nested: {#<ref>}}","type":"frame","variablesReference":4},{"name":"item","value":"3","type":"int","variablesReference":0},{"name":"item|iter","value":"nil","type":"nil","variablesReference":0}]}}
+<- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"variables","body":{"variables":[{"name":"total","value":"12","type":"int","variablesReference":0,"evaluateName":"total"},{"name":"info","value":"{name: \"tally\", tags: [#<ref>], nested: {#<ref>}}","type":"frame","variablesReference":4,"evaluateName":"info"},{"name":"item","value":"3","type":"int","variablesReference":0,"evaluateName":"item"},{"name":"item|iter","value":"nil","type":"nil","variablesReference":0}]}}
 -> {"seq":8,"type":"request","command":"variables","arguments":{"variablesReference":3}}
-<- {"seq":11,"type":"response","request_seq":8,"success":true,"command":"variables","body":{"variables":[{"name":"[0]","value":"1","type":"int","variablesReference":0},{"name":"[1]","value":"2","type":"int","variablesReference":0},{"name":"[2]","value":"3","type":"int","variablesReference":0}]}}
+<- {"seq":11,"type":"response","request_seq":8,"success":true,"command":"variables","body":{"variables":[{"name":"[0]","value":"1","type":"int","variablesReference":0,"evaluateName":"items[0]"},{"name":"[1]","value":"2","type":"int","variablesReference":0,"evaluateName":"items[1]"},{"name":"[2]","value":"3","type":"int","variablesReference":0,"evaluateName":"items[2]"}]}}
 -> {"seq":9,"type":"request","command":"variables","arguments":{"variablesReference":3,"start":1,"count":1}}
-<- {"seq":12,"type":"response","request_seq":9,"success":true,"command":"variables","body":{"variables":[{"name":"[1]","value":"2","type":"int","variablesReference":0}]}}
+<- {"seq":12,"type":"response","request_seq":9,"success":true,"command":"variables","body":{"variables":[{"name":"[1]","value":"2","type":"int","variablesReference":0,"evaluateName":"items[1]"}]}}
 -> {"seq":10,"type":"request","command":"variables","arguments":{"variablesReference":4}}
-<- {"seq":13,"type":"response","request_seq":10,"success":true,"command":"variables","body":{"variables":[{"name":"name","value":"\"tally\"","type":"string","variablesReference":0},{"name":"tags","value":"['a, 'b]","type":"array","variablesReference":5,"indexedVariables":2},{"name":"nested","value":"{deep: {#<ref>}}","type":"frame","variablesReference":6}]}}
+<- {"seq":13,"type":"response","request_seq":10,"success":true,"command":"variables","body":{"variables":[{"name":"name","value":"\"tally\"","type":"string","variablesReference":0,"evaluateName":"info.name"},{"name":"tags","value":"['a, 'b]","type":"array","variablesReference":5,"evaluateName":"info.tags","indexedVariables":2},{"name":"nested","value":"{deep: {#<ref>}}","type":"frame","variablesReference":6,"evaluateName":"info.nested"}]}}
 -> {"seq":11,"type":"request","command":"variables","arguments":{"variablesReference":99}}
 <- {"seq":14,"type":"response","request_seq":11,"success":false,"command":"variables","message":"Unknown variablesReference 99"}
 -> {"seq":12,"type":"request","command":"scopes","arguments":{"frameId":7}}
@@ -35,9 +35,9 @@
 -> {"seq":15,"type":"request","command":"scopes","arguments":{"frameId":2}}
 <- {"seq":21,"type":"response","request_seq":15,"success":true,"command":"scopes","body":{"scopes":[{"name":"Arguments","presentationHint":"arguments","variablesReference":1,"expensive":false},{"name":"Locals","presentationHint":"locals","variablesReference":2,"expensive":false},{"name":"Stack","variablesReference":3,"expensive":false}]}}
 -> {"seq":16,"type":"request","command":"variables","arguments":{"variablesReference":1}}
-<- {"seq":22,"type":"response","request_seq":16,"success":true,"command":"variables","body":{"variables":[{"name":"x","value":"5","type":"int","variablesReference":0}]}}
+<- {"seq":22,"type":"response","request_seq":16,"success":true,"command":"variables","body":{"variables":[{"name":"x","value":"5","type":"int","variablesReference":0,"evaluateName":"x"}]}}
 -> {"seq":17,"type":"request","command":"variables","arguments":{"variablesReference":2}}
-<- {"seq":23,"type":"response","request_seq":17,"success":true,"command":"variables","body":{"variables":[{"name":"self","value":"{count: 3, Scaled: {#<ref>}}","type":"frame","variablesReference":4}]}}
+<- {"seq":23,"type":"response","request_seq":17,"success":true,"command":"variables","body":{"variables":[{"name":"self","value":"{count: 3, Scaled: {#<ref>}}","type":"frame","variablesReference":4,"evaluateName":"self"}]}}
 -> {"seq":18,"type":"request","command":"variables","arguments":{"variablesReference":3}}
 <- {"seq":24,"type":"response","request_seq":18,"success":true,"command":"variables","body":{"variables":[{"name":"top","value":"15","type":"int","variablesReference":0}]}}
 -> {"seq":19,"type":"request","command":"continue","arguments":{"threadId":1}}

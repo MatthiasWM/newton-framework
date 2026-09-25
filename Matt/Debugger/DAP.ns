@@ -23,11 +23,16 @@
 //
 // Keep in mind: NewtonScript compares strings with StrEqual, not "="
 // (which compares references). In an array literal, a send needs
-// parentheses: [a, (obj:Method())], else "obj:" reads as the array class. A symbol keeps the spelling it was first
+// parentheses: [a, (obj:Method())], else "obj:" reads as the array class.
+// "and" and "or" have the same precedence (left to right): parenthesize. A symbol keeps the spelling it was first
 // created with; this file is loaded before any user code, so the DAP keys
 // below get their camelCase spelling. The same goes for names in this file:
 // a method called StackFrames would turn the DAP key "stackFrames" into
 // "StackFrames". Don't name anything like a DAP key with other capitals.
+
+// A line feed. "\n" in a NewtonScript string is a CR (the Newton line
+// ending); output for the client ends lines with LF.
+DefineGlobalConstant('kLF, Chr(10));
 
 DefGlobalVar('DAP, {
   launchArgs: nil,    // arguments of the "launch" request
@@ -59,15 +64,22 @@ DefGlobalVar('DAP, {
 
   // -- Receiving
 
-  // The text for an error response.
+  // The text for an error response: the exception's message, or the REPL's
+  // text for its error code and the value it is about ("Undefined
+  // variable: 'x"; the compiler puts its whole message in the value).
   ExceptionText: func(ex)
   begin
-    if ex.message then return ex.message;
-    local text := "Exception " & ex.name;
-    if IsFrame(ex.data) and ex.data.errorCode then
-      text := text & ", error " & ex.data.errorCode
-    else if ex.error then
-      text := text & ", error " & ex.error;
+    if ex.message then
+      return ex.message;
+    local code := if IsFrame(ex.data) then ex.data.errorCode else ex.error;
+    local value := if IsFrame(ex.data) then ex.data.value;
+    if IsString(value) then
+      return value;
+    local text := DAPErrorText(code);
+    if not text then
+      text := "Exception " & ex.name & (if code then ", error " & code else "");
+    if value then
+      text := text & ": " & :ValueText(value);
     text;
   end,
 
@@ -122,12 +134,16 @@ DefGlobalVar('DAP, {
 
   // Called by C++ (PDAPOutTranslator) when the program stops in a break
   // loop. reason: "breakpoint", "step", "exception" (text: the exception),
-  // or "pause" (the program called BreakLoop()).
+  // "pause" (the client asked), or "breakloop" (the program called
+  // BreakLoop(); DAP reason "pause").
   Stopped: func(reason, text)
   begin
     local body := {reason: reason, threadId: 1, allThreadsStopped: true};
-    if StrEqual(reason, "pause") then
+    if StrEqual(reason, "breakloop") then
+    begin
+      body.reason := "pause";
       body.description := "Paused in BreakLoop()";
+    end;
     if text then
       body.text := text;
     handles := [];      // references are valid until the program resumes
@@ -207,10 +223,11 @@ DefGlobalVar('DAP, {
     [stack, frameId - 1];
   end,
 
-  // The arguments and locals of a stack frame, as {args: [[name, value],
-  // ...], locals: [...]}. Names come from DebuggerInfo (-g, -dbg, -dap;
-  // NTK's "Compile for debugging") or, in NOS 1 code, from the argFrame;
-  // otherwise they are arg0, arg1, ..., loc0, ...
+  // The arguments and locals of a stack frame, as {args: [[name, value,
+  // where], ...], locals: [...]}; where is the index for GetVar/SetVar, or
+  // 'find for a variable in the argFrame (FindVar/SetFindVar). Names come
+  // from DebuggerInfo (-g, -dbg, -dap; NTK's "Compile for debugging") or,
+  // in NOS 1 code, from the argFrame; otherwise they are arg0, ..., loc0, ...
   FrameVariables: func(stack, frame)
   begin
     local fn := stack:Function(frame);
@@ -229,8 +246,8 @@ DefGlobalVar('DAP, {
         // a symbol: the name, the value is on the stack; an integer: the
         // index of the name in info, the variable lives in the argFrame
         // (a closure uses it)
-        local pair := if IsSymbol(entry) then [entry, (stack:GetVar(frame, i))]
-                      else [info[entry], (stack:FindVar(frame, info[entry]))];
+        local pair := if IsSymbol(entry) then [entry, (stack:GetVar(frame, i)), i]
+                      else [info[entry], (stack:FindVar(frame, info[entry])), 'find];
         AddArraySlot(if i < numArgs then args else locals, pair);
       end;
     end
@@ -241,7 +258,7 @@ DefGlobalVar('DAP, {
       begin
         if index >= 0 then
           AddArraySlot(if index < numArgs then args else locals,
-                       [name, (stack:FindVar(frame, name))]);
+                       [name, (stack:FindVar(frame, name)), 'find]);
         index := index + 1;
       end;
     end
@@ -250,9 +267,9 @@ DefGlobalVar('DAP, {
       local numVars := if ClassOf(fn) = '_function then numArgs + fn.numArgs div 65536 else numArgs;
       for i := 0 to numVars - 1 do
         if i < numArgs then
-          AddArraySlot(args, [Intern("arg" & i), (stack:GetVar(frame, i))])
+          AddArraySlot(args, [Intern("arg" & i), (stack:GetVar(frame, i)), i])
         else
-          AddArraySlot(locals, [Intern("loc" & (i - numArgs)), (stack:GetVar(frame, i))]);
+          AddArraySlot(locals, [Intern("loc" & (i - numArgs)), (stack:GetVar(frame, i)), i]);
     end;
     {args: args, locals: locals};
   end,
@@ -269,18 +286,103 @@ DefGlobalVar('DAP, {
   end,
 
   // A DAP Variable for one value; frames and arrays can be expanded.
-  MakeVariable: func(name, value)
+  // path: a NewtonScript expression for the value (evaluateName, used by
+  // "Add to Watch" and "Copy as Expression"), or nil.
+  MakeVariable: func(name, value, path)
   begin
     local variable := {name: if IsSymbol(name) then SymbolName(name) else name,
                        value: :ValueText(value), type: :TypeText(value),
                        variablesReference: 0};
+    if path then
+      variable.evaluateName := path;
     if IsFrame(value) or IsArray(value) then
     begin
-      variable.variablesReference := :NewHandle({object: value});
+      variable.variablesReference := :NewHandle({object: value, path: path});
       if IsArray(value) then
         variable.indexedVariables := Length(value);
     end;
     variable;
+  end,
+
+  // True if name (a string) can be written as a variable in NewtonScript.
+  IsIdentifier: func(name)
+  begin
+    if StrLen(name) = 0 then
+      return nil;
+    for i := 0 to StrLen(name) - 1 do
+    begin
+      local c := Ord(name[i]);
+      // "and" and "or" have the same precedence: parenthesize
+      local letter := (c >= 65 and c <= 90) or (c >= 97 and c <= 122) or c = 95;
+      local digit := c >= 48 and c <= 57;
+      if not (letter or (i > 0 and digit)) then
+        return nil;
+    end;
+    true;
+  end,
+
+  // A path to a slot or element: base.slot, base[i]; nil if there is no
+  // base or the slot name isn't an identifier.
+  SubPath: func(base, name)
+  begin
+    if not base then
+      return nil;
+    if IsInteger(name) then
+      return base & "[" & name & "]";
+    if :IsIdentifier(SymbolName(name)) then base & "." & name else nil;
+  end,
+
+  // The value of a NewtonScript expression in a stopped stack frame: it
+  // sees the frame's arguments and locals by name and self's slots, like
+  // code in the function does, and assignments to arguments and locals
+  // change them in the frame. How: the expression becomes a function whose
+  // parameters are the variables; it returns the result and their values
+  // afterwards; DAPCallWithSelf calls it with the frame's receiver as self.
+  EvaluateInFrame: func(expression, frameId)
+  begin
+    local stackAndFrame := :StackAndFrame(frameId);
+    local stack := stackAndFrame[0];
+    local frame := stackAndFrame[1];
+    local frameVars := :FrameVariables(stack, frame);
+    local variables := [];
+    foreach group in [frameVars.args, frameVars.locals] do
+      foreach variable in group do
+        if :IsIdentifier(SymbolName(variable[0])) then
+          AddArraySlot(variables, variable);
+    local params := "";
+    local returned := "";
+    local values := [];
+    foreach variable in variables do
+    begin
+      local name := SymbolName(variable[0]);
+      params := params & (if StrLen(params) > 0 then ", " else "") & name;
+      returned := returned & ", " & name;
+      AddArraySlot(values, variable[1]);
+    end;
+    local source := "func(" & params & ") begin local |dap result| := begin "
+                    & expression & "\n end; [|dap result|" & returned & "] end";
+    local fn := call Compile(source) with ();
+    local results := DAPCallWithSelf(fn, stack:Receiver(frame), values);
+    for i := 0 to Length(variables) - 1 do
+      if results[i + 1] <> values[i] then
+        if variables[i][2] = 'find then
+          stack:SetFindVar(frame, variables[i][0], results[i + 1])
+        else
+          stack:SetVar(frame, variables[i][2], results[i + 1]);
+    results[0];
+  end,
+
+  // After Step(), StepIn(), StepOut(): nil if they resumed the program (it
+  // stops again, reason "step"); a message if they can't step there (e.g.
+  // returning to C++ at the end of a top-level statement): then continue.
+  StepAndRespond: func(request, result)
+  begin
+    if IsString(result) then
+    begin
+      :SendEvent("output", {category: "console", output: result & "; continuing." & kLF});
+      ExitBreakLoop();
+    end;
+    :SendResponse(request, nil);
   end,
 
   // A value as the REPL would print it, on one line and short: nested
@@ -436,7 +538,9 @@ DefGlobalVar('DAPRequests, {
     local result := [];
     if what.items then
       foreach pair in what.items do
-        AddArraySlot(result, :MakeVariable(pair[0], pair[1]))
+        AddArraySlot(result, :MakeVariable(pair[0], pair[1],
+          if IsSymbol(pair[0]) and :IsIdentifier(SymbolName(pair[0])) then SymbolName(pair[0])
+          else if pair[0] = '|self| then "self"))
     else if IsArray(what.object) then
     begin
       local count := Length(what.object);
@@ -444,12 +548,53 @@ DefGlobalVar('DAPRequests, {
       local last := if IsInteger(request.arguments.count) and request.arguments.count > 0
                     then Min(first + request.arguments.count, count) - 1 else count - 1;
       for i := first to last do
-        AddArraySlot(result, :MakeVariable("[" & i & "]", what.object[i]));
+        AddArraySlot(result, :MakeVariable("[" & i & "]", what.object[i], :SubPath(what.path, i)));
     end
     else
       foreach slot, value in what.object do
-        AddArraySlot(result, :MakeVariable(slot, value));
+        AddArraySlot(result, :MakeVariable(slot, value, :SubPath(what.path, slot)));
     :SendResponse(request, {variables: result});
+  end,
+
+  // Stepping is Apple's: Step (over calls), StepIn, StepOut, one bytecode
+  // instruction at a time. StepIn into a native function or BreakLoop
+  // steps over it.
+  next: func(request)
+    :StepAndRespond(request, Step()),
+
+  stepIn: func(request)
+  begin
+    local result := StepIn();
+    if IsString(result) then
+      result := Step();
+    :StepAndRespond(request, result);
+  end,
+
+  stepOut: func(request)
+    :StepAndRespond(request, StepOut()),
+
+  // While the program runs, C++ looks for requests every so often
+  // (DAPPoll); DAPPause() makes it stop there, reason "pause".
+  pause: func(request)
+  begin
+    DAPPause();
+    :SendResponse(request, nil);
+  end,
+
+  // A NewtonScript expression: in a stopped stack frame (frameId) with its
+  // variables, else as a global expression. The Debug Console, watches.
+  evaluate: func(request)
+  begin
+    local args := request.arguments;
+    if not (IsFrame(args) and IsString(args.expression)) then
+      Throw('|evt.ex.msg|, "evaluate: no expression");
+    local value := if IsInteger(args.frameId) then
+                     :EvaluateInFrame(args.expression, args.frameId)
+                   else
+                     call Compile(args.expression) with ();
+    local variable := :MakeVariable("", value, nil);
+    :SendResponse(request, {result: variable.value, type: variable.type,
+                            variablesReference: variable.variablesReference});
   end,
 
   // ExitBreakLoop() only marks the break loop as done (it ends when this

@@ -63,6 +63,7 @@ bool				gFramesBreakPointsEnabled;	// +14 0C105460 - byte
 Ref				gFramesBreakPoints;			// +18 0C105464 - frame, GCRoot
 extern bool		gAccurateStackTrace;			// +1C 0C105468 - SetDebugMode(), in DebugAPI.cc
 BreakLoopReason	gBreakLoopReason = kBreakLoopCalled;	// not in ROM, see Interpreter.h
+DebuggerPollProc	gDebuggerPoll = NULL;						// not in ROM, see Interpreter.h
 
 extern ArrayIndex		gCurrentStackPos;
 
@@ -1190,7 +1191,19 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			{
 				instructionOffset = instrPtr - instrBase;
 				handleBreakPoints();
-				// A hit ran NewtonScript in the break loop: the GC may have
+				// Not in ROM: let a debugger look for requests now and then.
+				static int pollCountdown = kDebuggerPollInterval;
+				if (gDebuggerPoll != NULL && --pollCountdown <= 0)
+				{
+					pollCountdown = kDebuggerPollInterval;
+					if (gDebuggerPoll())
+					{
+						gBreakLoopReason = kBreakLoopPause;
+						DoBlock(GetFrameSlot(gFunctionFrame, SYMA(BreakLoop)), RA(NILREF));
+						gBreakLoopReason = kBreakLoopCalled;
+					}
+				}
+				// A hit (or the poll) ran NewtonScript: the GC may have
 				// moved objects, and the PC may have been changed. Re-derive
 				// everything the outer loop cached.
 				instrBase = (unsigned char *)BinaryData(instructions);
@@ -3383,7 +3396,7 @@ CInterpreter::translateException(Exception * x)
 	}
 	else if (Subexception(x->name, "type.ref"))
 	{
-		arg = (Ref) x->data;
+		arg = *(RefStruct *)x->data;	// was (Ref) x->data: the RefStruct's address, not its Ref
 		SetFrameSlot(fr, SYMA(data), arg);
 	}
 	else

@@ -1,0 +1,21 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+wait stopped
+{"command": "evaluate", "arguments": {"expression": "total", "frameId": 2, "context": "watch"}}
+{"command": "evaluate", "arguments": {"expression": "total * 10 + factor", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "items", "frameId": 2, "context": "repl"}}
+{"command": "variables", "arguments": {"variablesReference": 1}}
+{"command": "evaluate", "arguments": {"expression": "Print(Length(items)); items[1]", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "total := 100", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "noSuchVariable", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "1 +", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "3 + 4", "context": "repl"}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "evaluate", "arguments": {"expression": "count", "frameId": 2, "context": "repl"}}
+{"command": "evaluate", "arguments": {"expression": "self.count * x", "frameId": 2, "context": "repl"}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait terminated
+{"command": "disconnect"}

@@ -1,0 +1,14 @@
+mask /pc \d+/pc N/
+mask /Spin\(\), \d+: [^"]*?\\n/Spin(), N: ...\\n/
+mask /"value":"\d+","type":"int"/"value":"N","type":"int"/
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+{"command": "threads"}
+{"command": "pause", "arguments": {"threadId": 1}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "evaluate", "arguments": {"expression": "n > 0", "frameId": 2, "context": "repl"}}
+{"command": "pause", "arguments": {"threadId": 1}}
+{"command": "disconnect"}

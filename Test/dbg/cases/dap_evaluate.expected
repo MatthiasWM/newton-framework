@@ -1,0 +1,50 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_evaluate.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"configurationDone"}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"configurationDone"}
+<- {"seq":5,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Tally('items=[#<ref>], 'factor=2), 46: Pop\n"}}
+<- {"seq":6,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true,"description":"Paused in BreakLoop()"}}
+-> {"seq":4,"type":"request","command":"evaluate","arguments":{"expression":"total","frameId":2,"context":"watch"}}
+<- {"seq":7,"type":"response","request_seq":4,"success":true,"command":"evaluate","body":{"result":"12","type":"int","variablesReference":0}}
+-> {"seq":5,"type":"request","command":"evaluate","arguments":{"expression":"total * 10 + factor","frameId":2,"context":"repl"}}
+<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"evaluate","body":{"result":"122","type":"int","variablesReference":0}}
+-> {"seq":6,"type":"request","command":"evaluate","arguments":{"expression":"items","frameId":2,"context":"repl"}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"evaluate","body":{"result":"[1, 2, 3]","type":"array","variablesReference":1}}
+-> {"seq":7,"type":"request","command":"variables","arguments":{"variablesReference":1}}
+<- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"variables","body":{"variables":[{"name":"[0]","value":"1","type":"int","variablesReference":0},{"name":"[1]","value":"2","type":"int","variablesReference":0},{"name":"[2]","value":"3","type":"int","variablesReference":0}]}}
+-> {"seq":8,"type":"request","command":"evaluate","arguments":{"expression":"Print(Length(items)); items[1]","frameId":2,"context":"repl"}}
+<- {"seq":11,"type":"event","event":"output","body":{"category":"stdout","output":"3\n"}}
+<- {"seq":12,"type":"response","request_seq":8,"success":true,"command":"evaluate","body":{"result":"2","type":"int","variablesReference":0}}
+-> {"seq":9,"type":"request","command":"evaluate","arguments":{"expression":"total := 100","frameId":2,"context":"repl"}}
+<- {"seq":13,"type":"response","request_seq":9,"success":true,"command":"evaluate","body":{"result":"100","type":"int","variablesReference":0}}
+-> {"seq":10,"type":"request","command":"evaluate","arguments":{"expression":"noSuchVariable","frameId":2,"context":"repl"}}
+<- {"seq":14,"type":"response","request_seq":10,"success":false,"command":"evaluate","message":"Undefined variable: 'noSuchVariable"}
+-> {"seq":11,"type":"request","command":"evaluate","arguments":{"expression":"1 +","frameId":2,"context":"repl"}}
+<- {"seq":15,"type":"response","request_seq":11,"success":false,"command":"evaluate","message":"syntax error -- read end , but wanted '\\'', '(', '-', ':', '[', '{', const, symbol, integer, real, ref-const, begin, func, constant, if, try, local, loop, for, while, repeat, call, foreach, self, inherited, return, break, not, :?"}
+-> {"seq":12,"type":"request","command":"evaluate","arguments":{"expression":"3 + 4","context":"repl"}}
+<- {"seq":16,"type":"response","request_seq":12,"success":true,"command":"evaluate","body":{"result":"7","type":"int","variablesReference":0}}
+-> {"seq":13,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":17,"type":"response","request_seq":13,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":18,"type":"event","event":"output","body":{"category":"stdout","output":"100\n"}}
+<- {"seq":19,"type":"event","event":"output","body":{"category":"stdout","output":"(#<ref>).Scaled('x=5), 7: BranchIfNotNil 14\n"}}
+<- {"seq":20,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true,"description":"Paused in BreakLoop()"}}
+-> {"seq":14,"type":"request","command":"evaluate","arguments":{"expression":"count","frameId":2,"context":"repl"}}
+<- {"seq":21,"type":"response","request_seq":14,"success":true,"command":"evaluate","body":{"result":"3","type":"int","variablesReference":0}}
+-> {"seq":15,"type":"request","command":"evaluate","arguments":{"expression":"self.count * x","frameId":2,"context":"repl"}}
+<- {"seq":22,"type":"response","request_seq":15,"success":true,"command":"evaluate","body":{"result":"15","type":"int","variablesReference":0}}
+-> {"seq":16,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":23,"type":"response","request_seq":16,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":24,"type":"event","event":"output","body":{"category":"stdout","output":"15\n"}}
+<- {"seq":25,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":26,"type":"event","event":"terminated"}
+-> {"seq":17,"type":"request","command":"disconnect"}
+<- {"seq":27,"type":"response","request_seq":17,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

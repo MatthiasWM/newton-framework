@@ -34,6 +34,10 @@ void DAPStartIO(void);
 /** Replace the REP translators (gREPin, gREPout) with the DAP ones. */
 void DAPInstallTranslators(void);
 
+/** While the program runs, look for requests (pause, setBreakpoints, ...)
+    every so often (installs the interpreter's gDebuggerPoll). */
+void DAPSetPolling(bool inPolling);
+
 /** Number of exceptions reported so far (they are sent as "stderr" output);
     newtc uses it for the exit code of the program. */
 int DAPExceptionCount(void);
@@ -43,9 +47,15 @@ int DAPExceptionCount(void);
 //   DAPSend(frame) -> nil; writes the frame as a message, adds "seq"
 //   DAPExit(code) -> doesn't return; flushes and quits newtc
 //   DAPPrintObject(obj) -> what Print(obj) would print, as a string
+//   DAPPause() -> nil; stop the running program at the next poll
+//   DAPCallWithSelf(fn, receiver, args) -> fn's result, called with self = receiver
+//   DAPErrorText(errorCode) -> the REPL's text for the error, or nil
 extern "C" Ref FDAPReceive(RefArg rcvr);
 extern "C" Ref FDAPSend(RefArg rcvr, RefArg inMessage);
 extern "C" Ref FDAPExit(RefArg rcvr, RefArg inCode);
 extern "C" Ref FDAPPrintObject(RefArg rcvr, RefArg inObj);
+extern "C" Ref FDAPPause(RefArg rcvr);
+extern "C" Ref FDAPErrorText(RefArg rcvr, RefArg inCode);
+extern "C" Ref FDAPCallWithSelf(RefArg rcvr, RefArg inFn, RefArg inReceiver, RefArg inArgs);
 
 #endif // MATT_DAP_H

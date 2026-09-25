@@ -1,0 +1,6 @@
+// CurrentException() in an onexception handler: for a "type.ref" exception
+// the data slot is the exception's data frame (errorCode, value, ...).
+// The port put the address of the C++ RefStruct there, as an integer.
+try noSuchVariable onexception |evt.ex| do Print(CurrentException());
+try 1 + 'a onexception |evt.ex| do Print(CurrentException().data.errorCode);
+try Throw('|evt.ex.msg|, "hello") onexception |evt.ex| do Print(CurrentException());

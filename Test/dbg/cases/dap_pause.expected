@@ -1,0 +1,27 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_pause.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"configurationDone"}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"configurationDone"}
+-> {"seq":4,"type":"request","command":"threads"}
+<- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"threads","body":{"threads":[{"id":1,"name":"NewtonScript"}]}}
+-> {"seq":5,"type":"request","command":"pause","arguments":{"threadId":1}}
+<- {"seq":6,"type":"response","request_seq":5,"success":true,"command":"pause"}
+<- {"seq":7,"type":"event","event":"output","body":{"category":"stdout","output":"functions.Spin(), N: ...\n"}}
+<- {"seq":8,"type":"event","event":"stopped","body":{"reason":"pause","threadId":1,"allThreadsStopped":true}}
+-> {"seq":6,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
+<- {"seq":9,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"Spin, pc N","line":0,"column":0},{"id":1,"name":"<program>, pc N","line":0,"column":0}],"totalFrames":2}}
+-> {"seq":7,"type":"request","command":"evaluate","arguments":{"expression":"n > 0","frameId":2,"context":"repl"}}
+<- {"seq":10,"type":"response","request_seq":7,"success":true,"command":"evaluate","body":{"result":"true","type":"boolean","variablesReference":0}}
+-> {"seq":8,"type":"request","command":"pause","arguments":{"threadId":1}}
+<- {"seq":11,"type":"response","request_seq":8,"success":true,"command":"pause"}
+-> {"seq":9,"type":"request","command":"disconnect"}
+<- {"seq":12,"type":"response","request_seq":9,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

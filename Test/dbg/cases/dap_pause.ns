@@ -1,0 +1,12 @@
+// DAP (step 5.5): pause. While the program runs, newtc looks for requests
+// every 1000 instructions (the interpreter's debugger poll); "pause" stops
+// the program there with reason "pause". Where exactly varies, so the
+// test masks the PC and the loop counter.
+global Spin()
+begin
+  local n := 0;
+  loop
+    n := n + 1;
+end;
+
+Spin();

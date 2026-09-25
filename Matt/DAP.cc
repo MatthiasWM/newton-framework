@@ -22,20 +22,64 @@
 #if defined(_WIN32)
 #include <io.h>
 #include <fcntl.h>
+#include <windows.h>
 #define dup _dup
 #define dup2 _dup2
 #define fileno _fileno
+#define read _read
 #else
+#include <sys/select.h>
 #include <unistd.h>
 #endif
 
 namespace {
 
-FILE *gDAPIn = stdin;
+int gDAPInFd = 0;             // stdin
 FILE *gDAPOut = stdout;
 long gDAPSeq = 0;             // "seq" of the last message sent
 bool gDAPInputEnded = false;  // end of stdin: the client is gone
 int gDAPExceptionCount = 0;
+bool gDAPPolling = false;     // look for requests while the program runs
+int gDAPBreakLoopDepth = 0;   // > 0 while stopped in a break loop
+bool gDAPPauseRequested = false;
+
+/*------------------------------------------------------------------------------
+  Input. newtc reads stdin itself (not through a FILE), so that
+  InputWaiting() can tell whether a message is waiting without blocking:
+  data in a FILE's buffer is invisible to select().
+------------------------------------------------------------------------------*/
+
+std::string gInBuffer;        // read, not yet used
+
+// Read more input (blocks). False at end of input.
+bool FillBuffer(void)
+{
+  char buf[4096];
+  long n = read(gDAPInFd, buf, sizeof(buf));
+  if (n <= 0)
+    return false;
+  gInBuffer.append(buf, (size_t)n);
+  return true;
+}
+
+// True if input is waiting (or has ended), without blocking.
+bool InputWaiting(void)
+{
+  if (!gInBuffer.empty())
+    return true;
+#if defined(_WIN32)
+  DWORD available = 0;
+  if (!PeekNamedPipe(GetStdHandle(STD_INPUT_HANDLE), NULL, 0, NULL, &available, NULL))
+    return true;    // not a pipe, or closed: let the reader find out
+  return available > 0;
+#else
+  fd_set fds;
+  FD_ZERO(&fds);
+  FD_SET(gDAPInFd, &fds);
+  struct timeval noWait = { 0, 0 };
+  return select(gDAPInFd + 1, &fds, NULL, NULL, &noWait) > 0;
+#endif
+}
 
 /*------------------------------------------------------------------------------
   Read one message: header lines up to an empty line, then Content-Length
@@ -47,12 +91,12 @@ bool ReadMessage(std::string &outJSON)
 {
   long length = -1;
   for (;;) {
-    std::string line;
-    int ch;
-    while ((ch = getc(gDAPIn)) != EOF && ch != '\n')
-      line += (char)ch;
-    if (ch == EOF)
-      return false;
+    size_t eol;
+    while ((eol = gInBuffer.find('\n')) == std::string::npos)
+      if (!FillBuffer())
+        return false;
+    std::string line = gInBuffer.substr(0, eol);
+    gInBuffer.erase(0, eol + 1);
     if (!line.empty() && line.back() == '\r')
       line.pop_back();
     if (line.empty()) {
@@ -63,9 +107,11 @@ bool ReadMessage(std::string &outJSON)
     if (strncasecmp(line.c_str(), "Content-Length:", 15) == 0)
       length = strtol(line.c_str() + 15, nullptr, 10);
   }
-  outJSON.resize((size_t)length);
-  if (length > 0 && fread(&outJSON[0], 1, (size_t)length, gDAPIn) != (size_t)length)
-    return false;
+  while (gInBuffer.size() < (size_t)length)
+    if (!FillBuffer())
+      return false;
+  outJSON = gInBuffer.substr(0, (size_t)length);
+  gInBuffer.erase(0, (size_t)length);
   return true;
 }
 
@@ -104,7 +150,42 @@ bool ReceiveAndDispatch(void)
   return true;
 }
 
+/*------------------------------------------------------------------------------
+  The interpreter's poll (gDebuggerPoll, Interpreter.h): while the program
+  runs, handle the requests that are waiting. True if one of them was
+  "pause": the interpreter then stops in a break loop.
+------------------------------------------------------------------------------*/
+
+bool DAPPoll(void)
+{
+  static bool inPoll = false;
+  if (!gDAPPolling || gDAPBreakLoopDepth > 0 || inPoll || gDAPInputEnded)
+    return false;
+  inPoll = true;
+  newton_try
+  {
+    while (InputWaiting() && ReceiveAndDispatch())
+      ;
+  }
+  newton_catch_all
+  {
+    fprintf(stderr, "newtc: error handling a DAP request while running\n");
+  }
+  end_try;
+  inPoll = false;
+  bool pause = gDAPPauseRequested;
+  gDAPPauseRequested = false;
+  return pause;
+}
+
 } // namespace
+
+
+void DAPSetPolling(bool inPolling)
+{
+  gDAPPolling = inPolling;
+  gDebuggerPoll = DAPPoll;
+}
 
 
 void DAPStartIO(void)
@@ -131,6 +212,35 @@ int DAPExceptionCount(void)
 /*------------------------------------------------------------------------------
   NewtonScript functions
 ------------------------------------------------------------------------------*/
+
+// DAPCallWithSelf(fn, receiver, args): call fn with self = receiver (for
+// "evaluate": code in a stopped method sees its slots like the method does).
+Ref FDAPCallWithSelf(RefArg rcvr, RefArg inFn, RefArg inReceiver, RefArg inArgs)
+{
+  return DoScript(inReceiver, inFn, inArgs);
+}
+
+
+extern "C" const char * GetFramesErrorString(NewtonErr inErr);
+
+// DAPErrorText(errorCode): the text the REPL shows for an error code, e.g.
+// "Undefined variable" for -48807; nil if there is none.
+Ref FDAPErrorText(RefArg rcvr, RefArg inCode)
+{
+  if (!ISINT(inCode))
+    return NILREF;
+  const char * text = GetFramesErrorString((NewtonErr)RINT(inCode));
+  return text ? MakeStringFromCString(text) : NILREF;
+}
+
+
+Ref FDAPPause(RefArg rcvr)
+{
+  if (gDAPPolling && gDAPBreakLoopDepth == 0)
+    gDAPPauseRequested = true;
+  return NILREF;
+}
+
 
 Ref FDAPReceive(RefArg rcvr)
 {
@@ -342,14 +452,16 @@ PDAPOutTranslator::flush(void)
 void
 PDAPOutTranslator::enterBreakLoop(int inLevel)
 {
-  const char * reason = "pause";      // the program called BreakLoop()
+  const char * reason = "breakloop";  // the program called BreakLoop()
   switch (gBreakLoopReason) {
     case kBreakLoopCalled: break;
     case kBreakLoopBreakPoint: reason = "breakpoint"; break;
     case kBreakLoopStep: reason = "step"; break;
     case kBreakLoopException: reason = "exception"; break;
+    case kBreakLoopPause: reason = "pause"; break;
   }
   gBreakLoopReason = kBreakLoopCalled;
+  ++gDAPBreakLoopDepth;
   std::string text;
   text.swap(*fStopText);
   while (!text.empty() && (text.back() == '\n' || text.back() == ' '))
@@ -370,7 +482,9 @@ PDAPOutTranslator::enterBreakLoop(int inLevel)
 
 void
 PDAPOutTranslator::exitBreakLoop(void)
-{ }
+{
+  --gDAPBreakLoopDepth;
+}
 
 void
 PDAPOutTranslator::stackTrace(void * interpreter)

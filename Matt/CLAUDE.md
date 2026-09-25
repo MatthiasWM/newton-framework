@@ -657,9 +657,50 @@ is unchanged. No threads: the in-translator reads messages synchronously.
       (`functions.Add('a=10, 'b=1), 0: GetVar a`), `nsdt_temps` finds `t`
       by name, `nsdt_breakloop` handles NSDBreakLoopEntry's params in both
       forms ([name, value, ...] with names, [value, ...] without).
-- [ ] 5.5 `next`/`stepIn`/`stepOut` (= Step/StepIn/StepOut, instruction
-      granularity), `evaluate` (like a REPL line), `pause` (atomic flag
-      checked by the slow loop; later).
+- [x] 5.5 Stepping, `evaluate`, `pause`.
+      - `next`/`stepIn`/`stepOut` call Apple's `Step`/`StepIn`/`StepOut`
+        (one bytecode instruction; stops with reason "step"). StepIn into a
+        native function or BreakLoop steps over it. When they can't step
+        (returning to C++ at the end of a top-level statement), newtc says
+        so in the Debug Console and continues.
+      - `evaluate`: with a frameId, `DAP:EvaluateInFrame()` compiles
+        `func(<the frame's args and locals>) begin local |dap result| :=
+        begin <expression> end; [|dap result|, <args and locals>] end` and
+        calls it with the frame's receiver as self (new native
+        `DAPCallWithSelf(fn, receiver, args)` = DoScript), so the expression
+        sees variables by name and self's slots; changed variables are
+        written back (SetVar, or SetFindVar for argFrame variables). Without
+        frameId it is a global expression. Variables now have
+        `evaluateName` (`info.tags`, `items[1]`, `self`) for Add to Watch
+        and Copy as Expression. Error responses have readable texts: new
+        native `DAPErrorText(code)` (the REPL's error strings), e.g.
+        "Undefined variable: 'noSuchVariable".
+      - `pause`: new interpreter hook `gDebuggerPoll` (Interpreter.h, not in
+        ROM): in the slow loop, every 1000 instructions, next to the
+        breakpoint check. In -dap mode (`DAPSetPolling(true)` while the
+        program runs) `DAPPoll()` handles the requests that are waiting
+        (select() on stdin, so newtc now reads stdin into its own buffer),
+        which also makes `setBreakpoints` work while the program runs;
+        `pause` calls the native `DAPPause()`, and the interpreter then
+        enters the break loop there (reason `kBreakLoopPause`). Not while
+        stopped (the break loop reads requests itself) or re-entered.
+        Windows: PeekNamedPipe instead of select() (untested).
+      - A program's own BreakLoop() comes from C++ as reason "breakloop"
+        and goes out as DAP "pause" with description "Paused in
+        BreakLoop()".
+      Fixed on the way: `CurrentException().data` for "type.ref"
+      exceptions was the address of the C++ RefStruct as an integer
+      (`translateException` did `(Ref) x->data`); now the data frame
+      (`{errorCode: -48807, value: 'x}`). Test `exception_data`.
+      NewtonScript: `and` and `or` have the same precedence, evaluated left
+      to right (confirmed by Matt from Apple's table; newtc's parser has
+      PRECEDENCELogOperator for both), so parenthesize mixes. Apple's
+      precedence, highest first, all left to right: `.`; `:` `:?`; `{ }`;
+      unary `-`; `<<` `>>`; `*` `/` `div` `mod`; `+` `-`; `&` `&&`;
+      `exists`; `<` `<=` `>` `>=` `=` `<>`; `not`; `and` `or`; `:=`.
+      "\n" in a string is a CR; DAP.ns uses `kLF` for output.
+      Test client: `mask /regex/replacement/` for values that vary (where a
+      pause stops). Tests: `dap_step`, `dap_evaluate`, `dap_pause`.
 - [ ] 5.6 `-dap-server <port>` (TCP, for debugging newtc itself) and
       `-dap-log <file>` (all messages both ways).
 Symbol spelling: NewtonScript symbols are case-insensitive and keep the

@@ -156,6 +156,9 @@ bool init()
   defGlobalCFunction("DAPSend", (void*)FDAPSend, 1);
   defGlobalCFunction("DAPExit", (void*)FDAPExit, 1);
   defGlobalCFunction("DAPPrintObject", (void*)FDAPPrintObject, 1);
+  defGlobalCFunction("DAPPause", (void*)FDAPPause, 0);
+  defGlobalCFunction("DAPCallWithSelf", (void*)FDAPCallWithSelf, 3);
+  defGlobalCFunction("DAPErrorText", (void*)FDAPErrorText, 1);
 
   return true;
 }
@@ -381,13 +384,16 @@ void handleArgDap()
           ThrowMsg(message.c_str());
         }
         fclose(f);
+        DAPSetPolling(true);    // pause, setBreakpoints, ... while it runs
         handleArgScript(program);
+        DAPSetPolling(false);
       }
       newton_catch_all
       {
         gREPout->exceptionNotify(CurrentException());
       }
       end_try;
+      DAPSetPolling(false);
       if (DAPExceptionCount() > exceptions)
         exitCode = 1;
       RefVar args(MakeArray(1));

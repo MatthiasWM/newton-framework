@@ -371,9 +371,20 @@ enum BreakLoopReason
 	kBreakLoopCalled,
 	kBreakLoopBreakPoint,	// a breakpoint
 	kBreakLoopStep,			// a temporary breakpoint (Step, StepIn, ...)
-	kBreakLoopException		// breakOnThrows; exceptionNotify() comes first
+	kBreakLoopException,		// breakOnThrows; exceptionNotify() comes first
+	kBreakLoopPause			// the debugger asked to stop (gDebuggerPoll)
 };
 extern BreakLoopReason	gBreakLoopReason;
+
+/* Not in ROM: a debugger's poll function. While breakpoints are enabled
+   (slow loop), the interpreter calls it every kDebuggerPollInterval
+   instructions, between two instructions, where it may run NewtonScript
+   (like a breakpoint does) and return true to stop in a break loop there
+   (reason kBreakLoopPause). newtc -dap uses it to handle requests while
+   the program runs (pause, setBreakpoints). */
+typedef bool (*DebuggerPollProc)(void);
+extern DebuggerPollProc	gDebuggerPoll;
+#define kDebuggerPollInterval 1000
 
 
 

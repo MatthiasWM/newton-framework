@@ -14,6 +14,9 @@ A .dap script has one command per line:
       read messages until that event arrives (e.g. `wait terminated`)
   eof
       close newtc's stdin (the client went away)
+  mask /regex/replacement/
+      replace in the whole transcript (for values that change from run to
+      run, like where a pause stops); Python re syntax
   # comment, or an empty line
 
 The transcript has one line per message: `-> {...}` for sent, `<- {...}`
@@ -26,6 +29,7 @@ prints the transcript (for trying things out by hand).
 """
 
 import json
+import re
 import select
 import subprocess
 import sys
@@ -115,6 +119,7 @@ def run_script(newtc, script, cwd, substitutions, extra_args=()):
     proc = subprocess.Popen([str(newtc), *extra_args, "-dap"], cwd=cwd,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     client = Client(proc)
+    masks = []
     try:
         for line in script.splitlines():
             line = line.strip()
@@ -122,7 +127,10 @@ def run_script(newtc, script, cwd, substitutions, extra_args=()):
                 continue
             for key, value in substitutions.items():
                 line = line.replace("$" + key, value)
-            if line.startswith("wait "):
+            if line.startswith("mask "):
+                pattern, replacement = line[6:-1].split("/", 1)
+                masks.append((re.compile(pattern), replacement))
+            elif line.startswith("wait "):
                 client.wait_event(line[5:].strip())
             elif line == "eof":
                 proc.stdin.close()
@@ -136,7 +144,10 @@ def run_script(newtc, script, cwd, substitutions, extra_args=()):
         proc.kill()
         proc.wait()
     stderr = proc.stderr.read().decode("utf-8", "replace")
-    return "\n".join(client.lines) + "\n", stderr, proc.returncode
+    transcript = "\n".join(client.lines) + "\n"
+    for pattern, replacement in masks:
+        transcript = pattern.sub(replacement, transcript)
+    return transcript, stderr, proc.returncode
 
 
 def main():

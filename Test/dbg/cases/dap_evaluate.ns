@@ -1,0 +1,18 @@
+// DAP (step 5.5): evaluate. In a stopped frame (frameId), an expression
+// sees the frame's arguments and locals by name and self's slots, like the
+// function's own code; assigning to a variable changes it in the frame
+// (total := 100 changes what Tally returns). Errors come back as error
+// responses. Without frameId, the expression is global.
+global Tally(items, factor)
+begin
+  local total := 0;
+  foreach item in items do
+    total := total + item * factor;
+  BreakLoop();
+  total;
+end;
+
+counter := {count: 3, Scaled: func(x) x * count + (BreakLoop() or 0)};
+
+Print(Tally([1, 2, 3], 2));
+Print(counter:Scaled(5));
