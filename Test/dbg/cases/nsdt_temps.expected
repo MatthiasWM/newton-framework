@@ -1,0 +1,11 @@
+Entering break loop
+[42, "result: ", 'bottom]
+#2        nil
+"result: "
+#2        nil
+99
+#2        nil
+    !!! Exception: Undefined variable
+#2        nil
+Exiting break loop
+"result: 99 21"

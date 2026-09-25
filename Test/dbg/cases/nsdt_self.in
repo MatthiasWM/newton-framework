@@ -1,0 +1,5 @@
+Print(GetCurrentReceiver(0) = obj);
+Print(GetCurrentImplementor(0) = base);
+Print(GetCurrentReceiver(1) = obj);
+Print(GetCurrentImplementor(1) = obj);
+ExitBreakLoop();

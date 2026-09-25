@@ -52,6 +52,13 @@ DefineGlobalConstant('kNSDParam, func(name)
   and vars.NSDParamFrame.(name));
 
 
+// True if fn was compiled with NTK's "Compile for debugging" option: it has a
+// DebuggerInfo array of class 'dbg1 with the names of its variables.
+// newtc's compiler does not write DebuggerInfo (yet). (Ref_462)
+DefineGlobalConstant('kNSDHasDebugInfo, func(fn)
+  HasPath(fn, 'DebuggerInfo) and IsInstance(fn.DebuggerInfo, 'dbg1));
+
+
 //------------------------------------------------------------------------------
 // The stack object (Ref_531)
 //------------------------------------------------------------------------------
@@ -148,6 +155,121 @@ DefineGlobalConstant('kNSDTools, {
       local pc := stack:ProgramCounter(stack:FindBreakLoop() - 1 - level);
       call kNSDSetTrace with (oldTrace);
       return pc;
+    end,
+
+  // GetCurrentReceiver(level): self of the function at `level`.
+  GetCurrentReceiver: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local receiver := stack:Receiver(stack:FindBreakLoop() - 1 - level);
+      call kNSDSetTrace with (oldTrace);
+      return receiver;
+    end,
+
+  // GetCurrentImplementor(level): where the method at `level` was found in
+  // the receiver's _proto/_parent chain.
+  GetCurrentImplementor: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local implementor := stack:Implementor(stack:FindBreakLoop() - 1 - level);
+      call kNSDSetTrace with (oldTrace);
+      return implementor;
+    end,
+
+  // GetTempVar(level, n): temporary n of the function at `level`, counted
+  // from the top of its part of the stack (0 = pushed last).
+  GetTempVar: func()
+    func(level, n)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local value := stack:temporary(stack:FindBreakLoop() - 1 - level, n);
+      call kNSDSetTrace with (oldTrace);
+      return value;
+    end,
+
+  // SetTempVar(level, n, value): change temporary n; returns value.
+  SetTempVar: func()
+    func(level, n, value)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      stack:SetTemporary(stack:FindBreakLoop() - 1 - level, n, value);
+      call kNSDSetTrace with (oldTrace);
+      return value;
+    end,
+
+  // GetAllTempVars(level): all temporaries of the function at `level`, top
+  // first, followed by the symbol 'bottom.
+  GetAllTempVars: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1 - level;
+      local count := stack:NumTemps(frame);
+      local temps := Array(Max(count + 1, 1), 'bottom);
+      for i := 0 to count - 1 do
+        temps[i] := stack:temporary(frame, i);
+      call kNSDSetTrace with (oldTrace);
+      return temps;
+    end,
+
+  // GetNamedVar(level, name): the variable `name` of the function at `level`.
+  // With DebuggerInfo, the name is looked up there and the variable read by
+  // its index; otherwise it is looked up in the frame's lexical environment
+  // (FindVar), which only NOS 1 code and closures have.
+  GetNamedVar: func()
+    func(level, name)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1 - level;
+      local fn := stack:Function(frame);
+      local value;
+      if call kNSDHasDebugInfo with (fn) then
+      begin
+        local info := fn.DebuggerInfo;
+        local skip := info[0];     // the names start at info[skip + 1]
+        local index := LSearch(info, name, skip + 1, '|=|, nil);
+        if IsInstance(index, 'int) then
+          value := stack:GetVar(frame, index - skip - 1)
+        else
+          value := stack:FindVar(frame, name);
+      end
+      else
+        value := stack:FindVar(frame, name);
+      call kNSDSetTrace with (oldTrace);
+      return value;
+    end,
+
+  // SetNamedVar(level, name, value): change the variable `name`, found like
+  // GetNamedVar does; returns value.
+  SetNamedVar: func()
+    func(level, name, value)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local frame := stack:FindBreakLoop() - 1 - level;
+      local fn := stack:Function(frame);
+      if call kNSDHasDebugInfo with (fn) then
+      begin
+        local info := fn.DebuggerInfo;
+        local skip := info[0];
+        local index := LSearch(info, name, skip + 1, '|=|, nil);
+        if IsInstance(index, 'int) then
+          stack:SetVar(frame, index - skip - 1, value)
+        else
+          stack:SetFindVar(frame, name, value);
+      end
+      else
+        stack:SetFindVar(frame, name, value);
+      call kNSDSetTrace with (oldTrace);
+      return value;
     end
 });
 
@@ -156,5 +278,7 @@ DefineGlobalConstant('kNSDTools, {
 // Install the global functions
 //------------------------------------------------------------------------------
 
-foreach name in ['GetCurrentFunction, 'GetCurrentPC] do
+foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
+                 'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,
+                 'GetAllTempVars, 'GetNamedVar, 'SetNamedVar] do
   DefGlobalFn(name, Perform(kNSDTools, name, []));

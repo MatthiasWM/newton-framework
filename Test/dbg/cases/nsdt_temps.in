@@ -1,0 +1,5 @@
+Print(GetAllTempVars(0));
+Print(GetTempVar(0, 1));
+Print(SetTempVar(0, 0, 99));
+GetNamedVar(0, 't);
+ExitBreakLoop();

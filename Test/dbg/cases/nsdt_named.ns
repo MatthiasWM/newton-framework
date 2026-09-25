@@ -1,0 +1,14 @@
+//! -nos1
+// Step 3.1b: GetNamedVar(level, name) and SetNamedVar(level, name, value).
+// Without DebuggerInfo (newtc's compiler writes none), names are looked up
+// in the frame's lexical environment, which NOS 1 code has: this file is
+// compiled as NOS 1. Unknown names throw "Undefined variable".
+global Calc(a, b)
+begin
+  local sum := a + b;
+  BreakLoop();
+  Print([a, b, sum]);
+  sum * 2;
+end;
+
+Print(Calc(3, 4));

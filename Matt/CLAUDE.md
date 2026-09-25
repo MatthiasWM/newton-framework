@@ -354,8 +354,19 @@ regression checks (MATT.md) still apply when shared code is touched.
         `StackIsAccurate`, and the globals `GetCurrentFunction(level)`,
         `GetCurrentPC(level)`. Test harness: optional `<name>.args` (extra newtc
         arguments). Test: `nsdt_current`. -48800 is "Not in a break loop".
-  - [ ] 3.1b ... the other 25 globals in groups, the disassembler, the
-        replacement BreakLoop, QuickStackTrace/StackTrace.
+  - [x] 3.1b Stack and variable functions: `GetCurrentReceiver`,
+        `GetCurrentImplementor`, `GetTempVar`, `SetTempVar`, `GetAllTempVars`
+        (top first, ends with `'bottom`), `GetNamedVar`, `SetNamedVar`; helper
+        `kNSDHasDebugInfo` (Ref_462). Named variables use NTK's `DebuggerInfo`
+        (class `'dbg1`: `info[0]` = entries to skip, then the variable names in
+        index order) and fall back to `FindVar` (lexical, NOS 1 code and
+        closures only). newtc writes no DebuggerInfo, so for NOS 2 code
+        `GetNamedVar` fails like on a Newton with code not compiled for
+        debugging. Idea for Phases 7/8: have the compiler write DebuggerInfo.
+        Tests: `nsdt_self`, `nsdt_temps`, `nsdt_named`.
+  - [ ] 3.1c ... the remaining 18 globals in groups (`GetAllNamedVars` with
+        `GetPathToSlot`/`GetPathWhereSet`), the disassembler, the replacement
+        BreakLoop, QuickStackTrace/StackTrace.
 - [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
       enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
       shortcuts.

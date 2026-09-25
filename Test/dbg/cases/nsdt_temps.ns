@@ -1,0 +1,17 @@
+// Step 3.1b: GetTempVar(level, n), SetTempVar(level, n, value),
+// GetAllTempVars(level). A breakpoint at pc 10 of Work stops in the middle
+// of its last statement, when "result: " and t (42) are on the stack.
+// Temporaries count from the top: 0 is t, 1 is "result: ". GetAllTempVars
+// ends with 'bottom. Setting temp 0 to 99 changes the result.
+// Work is NOS 2 code without DebuggerInfo, so GetNamedVar can't find its
+// local t by name ("Undefined variable"), as on a real Newton.
+global Work(a)
+begin
+  local t := a * 2;
+  "result: " & t & " " & a;
+end;
+
+NSDInstallBreakPoints({programCounter: [
+  {instructions: functions.Work.instructions, programCounter: 10, temporary: true}]});
+NSDEnableBreakPoints(true);
+Print(Work(21));
