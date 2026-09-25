@@ -1,0 +1,6 @@
+Print(GetCurrentFunction(0) = functions.Inner);
+Print(GetCurrentFunction(1) = functions.Outer);
+Print(GetCurrentPC(0));
+SetDebugMode(true);
+Print(GetCurrentPC(1));
+ExitBreakLoop();

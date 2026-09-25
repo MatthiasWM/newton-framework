@@ -330,8 +330,35 @@ regression checks (MATT.md) still apply when shared code is touched.
 ### Phase 3: NS Debug Tools NewtonScript on top
 - [ ] 3.1 Clean up the decompiled NSDT source into `Matt/Debugger/NSDebugTools.ns`
       (plus Apple's `myFunctions`) and embed it into newtc at build time.
-- [ ] 3.2 `-dbg` flag: load the tools, enable breakpoints, set
-      `breakOnThrows`, install Apple's `myFunctions` shortcuts.
+      Package layout (decompiled): part 0 = disassembler (`MakeDisassembler`,
+      `Disasm`, `DisasmRange`; `Ref_41` is the disassembler proto); parts 1/2 =
+      ARM natives (done in Phase 2); part 3 = library frame `Ref_427` whose
+      "makers" (`GetTempVar: func() func(level, n) ...`) return the 27 global
+      functions as closures with `self` = the library frame (NTK ran them at
+      build time: `Ref_410[i].argFrame._parent` is the library), plus the
+      install script (27 functions from `Ref_381`/`Ref_410`; `StackTraceOld` :=
+      `StackTrace`; `StackTrace` := `QuickStackTrace`; `NSDOriginalBreakLoop`
+      := `BreakLoop`; a NewtonScript `BreakLoop` replacement); part 4 = the
+      about-box app (skip). `Ref_261` in part 0 is NewtonScript compiled to ARM
+      by NTK's native compiler (literals `'DebuggerInfo, 'vars,
+      'becausePeterSaidSo`): `Disasm` refuses functions without debug info.
+      The decompiled `DisasmRange` never disassembles: check its bytecode
+      (decompiler bug?).
+  - [x] 3.1a The embedding mechanism, `-dbg`, and a first slice.
+        `cmake/EmbedNewtonScript.cmake` + `embed_newtonscript()` in
+        CMakeLists.txt (see "Embedding a .ns file" below); `Matt/EmbeddedScript.{h,cc}`
+        (`RunEmbeddedScript()`); `newtc -dbg` runs `gNSDebugToolsScript`.
+        NSDebugTools.ns so far: `kNSDSetTrace` (Ref_414), `kNSDParam`
+        (Ref_573), `kNSDStackProto` (Ref_531), `kNSDTools` with
+        `CurrentStack`, `MakeNSDebugAPI`, `EnableBreakPoints`,
+        `StackIsAccurate`, and the globals `GetCurrentFunction(level)`,
+        `GetCurrentPC(level)`. Test harness: optional `<name>.args` (extra newtc
+        arguments). Test: `nsdt_current`. -48800 is "Not in a break loop".
+  - [ ] 3.1b ... the other 25 globals in groups, the disassembler, the
+        replacement BreakLoop, QuickStackTrace/StackTrace.
+- [ ] 3.2 `-dbg` flag (exists since 3.1a, loads NSDebugTools.ns): also
+      enable breakpoints, set `breakOnThrows`, install Apple's `myFunctions`
+      shortcuts.
 - [ ] 3.3 Verify the Apple API one group per step: `Where`/`QuickStackTrace`;
       `GetCurrentFunction`/`GetCurrentPC`; `InstallBreakPoint`/
       `RemoveBreakPoint`/`GetAllBreakPoints`; `Step`; `StepIn`; `StepOut`;
@@ -419,6 +446,22 @@ regression checks (MATT.md) still apply when shared code is touched.
   (that manifest is older; 13 packages got better since).
 - **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
   30 manifest packages, with the binary from before 1.1 too (pre-existing).
+
+## Embedding a .ns file in newtc
+
+To build a NewtonScript file into newtc (no runtime dependency, and the .ns
+file stays the one to edit):
+1. In CMakeLists.txt: `embed_newtonscript(newtc <path/file.ns> <cName>)`.
+   At build time `cmake/EmbedNewtonScript.cmake` writes
+   `<build>/embedded/<cName>.cc` defining `const EmbeddedScript <cName>`
+   (file name + text as a byte array); it is regenerated when the .ns changes.
+2. In C++: `extern const EmbeddedScript <cName>;` and
+   `RunEmbeddedScript(<cName>)` (Matt/EmbeddedScript.h). It compiles and runs
+   the top-level statements one by one like `-script`; an exception stops it
+   and is reported as `File "file.ns"; Line n` (n may be a line or two after
+   the actual error, as for -script).
+Top-level statements are compiled separately: use global constants/vars (e.g.
+`DefineGlobalConstant`) to share things between them, not locals.
 
 ## How to read the ARM code in NS Debug Tools.pkg
 

@@ -12,6 +12,7 @@
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
 #include "Frames/DebugAPI.h"
+#include "Matt/EmbeddedScript.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -294,6 +295,18 @@ void handleArgS(const std::string &script)
   addGlobalRef(result);
 }
 
+extern const EmbeddedScript gNSDebugToolsScript;   // Matt/Debugger/NSDebugTools.ns
+
+/**
+ \brief Load the NewtonScript debugger tools (Apple's NS Debug Tools).
+ The tools are built into newtc from Matt/Debugger/NSDebugTools.ns.
+ */
+void handleArgDbg()
+{
+  if (!RunEmbeddedScript(gNSDebugToolsScript))
+    throw(std::runtime_error("Can't load the debugger tools."));
+}
+
 /**
  \brief Switch compiler to generate NOS 1.x compatible code which also runs on 2.x.
  */
@@ -574,6 +587,9 @@ the commands in the given order.
   -clear                  Delete all object in the hold
   -pkglist <filename>     Apply following commands to all 'form packages in the file
 
+  Debugging
+  -dbg                    Load the NewtonScript debugger tools (Apple's NS Debug Tools)
+
   Options
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
   -nos2                   Compile for NewtonOS 2.x and 2.1 (default)
@@ -610,6 +626,8 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing script after -s ... ."));
         handleArgS(std::string(argv[argi++]));
+      } else if (cmd == "-dbg") {
+        handleArgDbg();
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {

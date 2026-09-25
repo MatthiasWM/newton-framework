@@ -557,6 +557,25 @@ execute_process(COMMAND ls -asl build/Xcode/Newton.xcodeproj/)
 
 add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
+# Build a NewtonScript source file into a target (see Matt/EmbeddedScript.h):
+# the .ns file becomes a C++ file that defines `const EmbeddedScript <name>`,
+# regenerated whenever the .ns file changes.
+function (embed_newtonscript target nsfile name)
+  set (out "${CMAKE_CURRENT_BINARY_DIR}/embedded/${name}.cc")
+  add_custom_command (
+    OUTPUT "${out}"
+    COMMAND ${CMAKE_COMMAND} -DIN=${nsfile} -DOUT=${out} -DNAME=${name}
+            -P ${CMAKE_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake
+    DEPENDS "${nsfile}" "${CMAKE_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake"
+    COMMENT "Embedding NewtonScript ${nsfile}"
+  )
+  target_sources (${target} PRIVATE "${out}" "${nsfile}")
+  set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
+endfunction ()
+
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
+
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
 # ./build/Xcode/Debug/newtc -script /tmp/newtc_a -debug bc -decompile > /tmp/newtc_c

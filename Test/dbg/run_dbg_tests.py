@@ -8,6 +8,8 @@ Every test case lives in Test/dbg/cases/ and consists of:
   <name>.in        (optional) lines fed to stdin, i.e. the commands typed
                    into the break loop; without it, stdin is empty
   <name>.expected  the expected output (stdout, then stderr if any)
+  <name>.args      (optional) extra newtc arguments, placed before -script,
+                   e.g. -dbg
 
 Output is normalized before comparing: heap references printed as
 `#<hex>` or `#0x<hex>` change from run to run, so any `#` followed by 6 or
@@ -46,9 +48,11 @@ def normalize(text):
 def run_case(newtc, ns):
     inp = ns.with_suffix(".in")
     stdin = inp.read_bytes() if inp.exists() else b""
+    args_file = ns.with_suffix(".args")
+    extra = args_file.read_text().split() if args_file.exists() else []
     try:
         proc = subprocess.run(
-            [str(newtc), "-script", ns.name],
+            [str(newtc), *extra, "-script", ns.name],
             cwd=ns.parent, input=stdin, capture_output=True, timeout=TIMEOUT)
     except subprocess.TimeoutExpired as e:
         out = (e.stdout or b"").decode("utf-8", "replace")

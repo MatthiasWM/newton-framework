@@ -1,0 +1,17 @@
+// Step 3.1a: NS Debug Tools, loaded by -dbg from the NSDebugTools.ns built
+// into newtc. GetCurrentFunction(level) and GetCurrentPC(level) look at the
+// function that called BreakLoop (level 0) and its caller (level 1).
+// GetCurrentPC warns while the PCs may be inexact; SetDebugMode(true) makes
+// them exact (slow interpreter loop) and the warning goes away.
+global Inner(x)
+begin
+  BreakLoop();
+  x + 1;
+end;
+
+global Outer(y)
+begin
+  Inner(y * 2);
+end;
+
+Print(Outer(20));

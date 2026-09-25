@@ -1,0 +1,160 @@
+// NS Debug Tools for newtc
+//
+// The NewtonScript part of Apple's "NS Debug Tools.pkg" 2.2 (1995-1997,
+// shipped with NTK 1.6.4 as "Newton Debug Tools 2.2"), decompiled with newtc
+// and made readable: names instead of arg0/loc0/Ref_NNN, and comments. The
+// logic is Apple's; every change is marked "newtc:". The package-internal
+// Ref_NNN names are kept in the comments to find the original code in
+// `newtc -pkg "NS Debug Tools.pkg" -decompile`.
+//
+// The package's ARM code is replaced by C++ functions (Frames/DebugAPI.cc,
+// registered by installNSDebugToolsNatives() in newtc.cc): the globals
+// NSDInstallBreakPoints, NSDEnableBreakPoints, NSDMakeNSDebugAPI,
+// NSDFindSlotName, NSDRefToHexString, and the methods in the global frame
+// NSDSelfFuncs.
+//
+// This file is built into newtc (CMake: embed_newtonscript) and run by
+// `newtc -dbg`. See Matt/CLAUDE.md, Phase 3.
+//
+// How it is organized (like the package):
+// - Global constants holding helper functions and data.
+// - kNSDStackProto, the "stack object": CurrentStack() clones it and sets
+//   its _proto to NSDSelfFuncs (the native debug API methods). Stack frame 0
+//   is the oldest. FindBreakLoop() finds the newest BreakLoop frame; the
+//   function being debugged at `level` n is at frame FindBreakLoop() - 1 - n.
+// - kNSDTools, the library frame: helper methods, and one "maker" per global
+//   function. A maker returns the function as a closure, so the function's
+//   self is kNSDTools and it can call the helpers. (In the package, NTK had
+//   already run the makers at build time.)
+// - At the end, the code that defines the global functions.
+
+
+//------------------------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------------------------
+
+// Set the global 'trace (NewtonScript function tracing) and return its old
+// value. Every debug tool turns tracing off while it runs. Calling a function
+// presumably makes the interpreter pick up the new setting. (Ref_414)
+DefineGlobalConstant('kNSDSetTrace, func(newTrace)
+begin
+  local oldTrace := GetGlobalVar('trace);
+  DefGlobalVar('trace, newTrace);
+  Apply(func() nil, nil);
+  return oldTrace;
+end);
+
+// The option `name` from the global frame vars.NSDParamFrame, or nil.
+// Used: NoInaccWarning. (Ref_573)
+DefineGlobalConstant('kNSDParam, func(name)
+  HasPath(vars, 'NSDParamFrame)
+  and IsInstance(vars.NSDParamFrame, 'frame)
+  and vars.NSDParamFrame.(name));
+
+
+//------------------------------------------------------------------------------
+// The stack object (Ref_531)
+//------------------------------------------------------------------------------
+
+DefineGlobalConstant('kNSDStackProto, {
+  _proto: nil,        // CurrentStack() sets this to NSDSelfFuncs
+  nsDebugAPI: nil,    // and this to NSDMakeNSDebugAPI()
+
+  // Temporary n of stack frame `frame`, counted from the top: 0 is the value
+  // that frame pushed last.
+  temporary: func(frame, n)
+    self:TempValue(frame, self:NumTemps(frame) - n - 1),
+
+  SetTemporary: func(frame, n, value)
+    self:SetTempValue(frame, self:NumTemps(frame) - n - 1, value),
+
+  // The newest BreakLoop frame on the stack. Throws if there is none.
+  FindBreakLoop: func()
+  begin
+    local frame := self:NumStackFrames() - 1;
+    while 0 < frame do
+      if self:Function(frame) = functions.BreakLoop then
+        return frame
+      else
+        frame := frame - 1;
+    Throw('|evt.ex.fr.intrp|, -48800);
+  end
+});
+
+
+//------------------------------------------------------------------------------
+// The library frame (Ref_427)
+//------------------------------------------------------------------------------
+
+DefineGlobalConstant('kNSDTools, {
+
+  //--- Helpers ---
+
+  // A new stack object for the current interpreter, see kNSDStackProto.
+  CurrentStack: func()
+  begin
+    local stack := Clone(kNSDStackProto);
+    stack._proto := vars.NSDSelfFuncs;
+    stack.nsDebugAPI := self:MakeNSDebugAPI();
+    return stack;
+  end,
+
+  MakeNSDebugAPI: func()
+    NSDMakeNSDebugAPI(),
+
+  EnableBreakPoints: func(enable)
+    NSDEnableBreakPoints(enable),
+
+  // True if the PCs on the stack are exact: SetDebugMode(true) is on, or
+  // breakpoints are enabled (the interpreter then runs its slow loop).
+  StackIsAccurate: func(stack)
+  begin
+    if stack and stack:AccurateStack() then
+      return true;
+    local enabled := self:EnableBreakPoints(nil);   // read the setting...
+    self:EnableBreakPoints(enabled);                // ...and restore it
+    return enabled;
+  end,
+
+  //--- Makers of the global functions ---
+
+  // GetCurrentFunction(level): the function at `level` in the break loop;
+  // 0 is the one that stopped, 1 its caller, and so on.
+  GetCurrentFunction: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local stack := self:CurrentStack();
+      local fn := stack:Function(stack:FindBreakLoop() - 1 - level);
+      call kNSDSetTrace with (oldTrace);
+      return fn;
+    end,
+
+  // GetCurrentPC(level): the PC (the next instruction) of the function at
+  // `level` in the break loop. Warns if the PC may not be exact.
+  GetCurrentPC: func()
+    func(level)
+    begin
+      local oldTrace := call kNSDSetTrace with (nil);
+      local inaccurate := nil;
+      local stack := self:CurrentStack();
+      if not call kNSDParam with ('NoInaccWarning) then
+      begin
+        inaccurate := not self:StackIsAccurate(stack);
+        if inaccurate then
+          Write("WARNING: The PC may not be accurate.\n"
+                "         Enable breakpoints for better information.\n\n");
+      end;
+      local pc := stack:ProgramCounter(stack:FindBreakLoop() - 1 - level);
+      call kNSDSetTrace with (oldTrace);
+      return pc;
+    end
+});
+
+
+//------------------------------------------------------------------------------
+// Install the global functions
+//------------------------------------------------------------------------------
+
+foreach name in ['GetCurrentFunction, 'GetCurrentPC] do
+  DefGlobalFn(name, Perform(kNSDTools, name, []));
