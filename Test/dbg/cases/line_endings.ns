@@ -1,0 +1,5 @@
+// Line endings: break loop input may use LF, CR, or CRLF (the .in file mixes
+// all three), and NewtonScript's "\n" (a CR) is written to stdout as LF.
+Write("one\ntwo\n");
+BreakLoop();
+Write("done\n");

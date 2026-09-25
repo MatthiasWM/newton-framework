@@ -751,6 +751,10 @@ SearchForObjectName(RefArg obj)
 	if (NOTNIL(objName = CheckForObjectName(gFunctionFrame, "functions", obj)))
 		return objName;
 
+	// as in ROM: built-in functions live in their own frame
+	if (NOTNIL(objName = CheckForObjectName(RA(builtinFunctions), "functions", obj)))
+		return objName;
+
 #if defined(hasGlobalConstantFunctions)
 	if (NOTNIL(objName = CheckForObjectName(gConstantsFrame, "constants", obj)))
 		return objName;
@@ -768,7 +772,7 @@ SearchForObjectName(RefArg obj)
 void
 PrintWellKnownObject(Ref obj, int indent)
 {
-	if (IsAggregate(obj))
+	if (!IsAggregate(obj))		// as in ROM: only aggregates (functions, frames...) have names
 		PrintObject(obj, indent);
 	else
 	{
@@ -777,7 +781,7 @@ PrintWellKnownObject(Ref obj, int indent)
 			REPprintf("(%s)", BinaryData(ASCIIString(name)));
 		else
 		{
-			int count = REPprintf("(#%p) ", obj);
+			int count = REPprintf("(#%lX) ", (unsigned long)obj);
 			PrintObject(obj, indent + count);
 		}
 	}

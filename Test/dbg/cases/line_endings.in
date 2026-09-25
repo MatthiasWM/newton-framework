@@ -1,0 +1,3 @@
+Write("lf\n");
+Write("cr\n");Write("crlf\n");
+ExitBreakLoop();

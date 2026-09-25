@@ -1,15 +1,15 @@
 "before"
 Entering break loop
 "level 1"
-#2        nil<CR>
+#2        nil
 Entering break loop
 "level 2"
-#2        nil<CR>
-#2        nil<CR>
+#2        nil
+#2        nil
 Exiting break loop
-#2        nil<CR>
+#2        nil
 "back in level 1"
-#2        nil<CR>
-#2        nil<CR>
+#2        nil
+#2        nil
 Exiting break loop
 "after"

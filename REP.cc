@@ -1357,9 +1357,38 @@ PStdioInTranslator::produceFrame(int inLevel)
 {
 	RefVar	result;
 
-	if (fileRef != NULL
-	&& fgets(fBuf, fBufSize, fileRef) != NULL)
+	if (fileRef == NULL)
+		return result;
+
+	// Not in original (which used fgets): accept LF, CR, and CRLF as line
+	// endings. After a CR we must not wait for a possible LF, because on a
+	// pipe that read would block until the next command arrives. Instead,
+	// fSkipLF drops a leading LF on the next call.
+	size_t	len = 0;
+	int		ch;
+	bool		gotLine = false;
+	while ((ch = getc(fileRef)) != EOF)
 	{
+		if (fSkipLF)
+		{
+			fSkipLF = false;
+			if (ch == '\n')
+				continue;
+		}
+		gotLine = true;
+		if (ch == '\r')
+		{
+			fSkipLF = true;
+			break;
+		}
+		if (ch == '\n')
+			break;
+		if (len < fBufSize - 1)		// overlong lines are truncated
+			fBuf[len++] = ch;
+	}
+	if (gotLine)
+	{
+		fBuf[len] = 0;
 		result = ParseString(MakeStringFromCString(fBuf));
 	}
 	return result;
@@ -1502,10 +1531,50 @@ void
 PStdioOutTranslator::prompt(int inLevel)
 { }
 
+/*------------------------------------------------------------------------------
+	Not in original: NewtonScript uses CR as line ending ("\n" in a
+	NewtonScript string is a CR), the host uses LF. Everything written to the
+	stdio file goes through here and CR and CRLF become LF. fLastWasCR
+	remembers a CR at the end of one call, so a CRLF split across two calls
+	still becomes a single LF.
+------------------------------------------------------------------------------*/
+
+void
+PStdioOutTranslator::write(const char * inText, size_t inLen)
+{
+	for (size_t i = 0; i < inLen; ++i)
+	{
+		char ch = inText[i];
+		if (ch == '\n' && fLastWasCR)
+		{
+			fLastWasCR = false;
+			continue;
+		}
+		fLastWasCR = (ch == '\r');
+		fputc(fLastWasCR ? '\n' : ch, fileRef);
+	}
+}
+
 int
 PStdioOutTranslator::vprint(const char * inFormat, va_list args)
 {
-	return vfprintf(fileRef, inFormat, args);
+	if (fileRef == NULL)
+		return 0;
+	char		buf[256];
+	va_list	argsCopy;
+	va_copy(argsCopy, args);
+	int		len = vsnprintf(buf, sizeof(buf), inFormat, args);
+	if (len >= (int)sizeof(buf))
+	{
+		char * bigBuf = (char *)malloc(len + 1);
+		vsnprintf(bigBuf, len + 1, inFormat, argsCopy);
+		write(bigBuf, len);
+		free(bigBuf);
+	}
+	else if (len > 0)
+		write(buf, len);
+	va_end(argsCopy);
+	return len;
 }
 
 int
@@ -1527,7 +1596,11 @@ int
 PStdioOutTranslator::putc(int inCh)
 {
 	if (fileRef != NULL)
-		return fputc(inCh, fileRef);
+	{
+		char ch = inCh;
+		write(&ch, 1);
+		return inCh;
+	}
 	return 0;
 }
 

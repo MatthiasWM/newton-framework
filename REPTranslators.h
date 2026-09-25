@@ -118,6 +118,7 @@ private:
 	FILE *	fileRef;
 	char *	fBuf;
 	size_t	fBufSize;
+	bool		fSkipLF = false;		// not in original, see produceFrame()
 };
 
 
@@ -251,7 +252,10 @@ public:
     // -- end of protocol
 
 private:
+	void			write(const char * inText, size_t inLen);
+
 	FILE *	fileRef;
+	bool		fLastWasCR = false;	// not in original, see write()
 };
 
 

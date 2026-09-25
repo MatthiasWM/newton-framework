@@ -1,0 +1,12 @@
+// StackTrace() inside a method: the frame is named by its slot in the
+// implementor (#<ref>.Tick), and the receiver is printed.
+obj := {
+  count: 1,
+  Tick: func(n)
+  begin
+    BreakLoop();
+    count := count + n;
+  end
+};
+obj:Tick(5);
+Print(obj.count);

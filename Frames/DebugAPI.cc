@@ -387,7 +387,8 @@ REPStackTrace(void * interpreter)
 					REPprintf("[incomplete stack frame]\n");
 				else
 				{
-					theSlot = FindSlotName(theImpl, theFunc);
+					if (NOTNIL(theImpl))		// as in ROM: a global function has no implementor
+						theSlot = FindSlotName(theImpl, theFunc);
 
 					if (NOTNIL(theSlot))
 					{

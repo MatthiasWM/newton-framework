@@ -1,5 +1,6 @@
-// StackTrace() from a break loop two function calls deep.
-// Known broken (plan step 0.2): every frame prints "Skipping bad stack frame".
+// StackTrace() from a break loop two function calls deep. Frames from the
+// bottom: 0 the script, 1 Outer, 2 Inner (with its arg), 3 BreakLoop,
+// 4 the typed command, 5 StackTrace itself.
 global Inner(x)
 begin
   BreakLoop();

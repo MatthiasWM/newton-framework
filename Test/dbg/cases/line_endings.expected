@@ -1,7 +1,12 @@
-"before"
+one
+two
 Entering break loop
-42
+lf
+#2        nil
+cr
+#2        nil
+crlf
 #2        nil
 #2        nil
 Exiting break loop
-"after"
+done

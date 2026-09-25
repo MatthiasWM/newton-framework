@@ -10,8 +10,8 @@ Every test case lives in Test/dbg/cases/ and consists of:
   <name>.expected  the expected output (stdout, then stderr if any)
 
 Output is normalized before comparing: heap references printed as
-`#<hex>` change from run to run, so any `#` followed by 6 or more hex
-digits becomes `#<ref>`. Short immediates like `#2` (nil) are kept.
+`#<hex>` or `#0x<hex>` change from run to run, so any `#` followed by 6 or
+more hex digits becomes `#<ref>`. Short immediates like `#2` (nil) are kept.
 A lone carriage return (Newton line ending) is shown as `<CR>` plus a
 newline, so the files stay readable and CR vs. LF is still visible.
 
@@ -35,7 +35,7 @@ REPO = HERE.parent.parent
 DEFAULT_NEWTC = REPO / "build" / "VSCode" / "newtc"
 TIMEOUT = 10  # seconds; a break loop waiting for input would otherwise hang
 
-REF_RE = re.compile(r"#[0-9A-F]{6,}")
+REF_RE = re.compile(r"#(0x)?[0-9A-Fa-f]{6,}")
 
 
 def normalize(text):

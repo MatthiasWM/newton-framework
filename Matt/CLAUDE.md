@@ -175,10 +175,30 @@ regression checks (MATT.md) still apply when shared code is touched.
         removed; `-s` does the same. Compiling NewtonScript always runs it,
         so `-script`/`-s` compile *and* run.
       - At end of stdin the break loop spins forever (step 0.3).
-      - The REPL prints each result as `#<ref>  <value>\r`. In a terminal the
-        `\r` makes the next line overwrite it (Phase 4.2).
-- [ ] 0.2 Make `StackTrace()` work in a break loop (fix "Skipping bad stack
-      frame"; understand `SetDebugMode`/accurate stack/`vm->pc`).
+      - The REPL printed each result as `#<ref>  <value>\r`, so in a terminal
+        the next line overwrote it. Fixed (see Conventions).
+- [x] 0.2 `StackTrace()` works in a break loop. Three porting bugs, each
+      checked against the ROM:
+      - `REPStackTrace` (DebugAPI.cc) called `FindSlotName(impl, func)` even
+        when `impl` is nil (any global function). The iterator threw for every
+        frame → "Skipping bad stack frame". ROM skips it for nil.
+      - `PrintWellKnownObject` (ObjectPrinter.cc) had the `IsAggregate` test
+        inverted, so functions were never looked up by name. The fallback
+        format is `(#%lX)` like ROM (was `%p`).
+      - `SearchForObjectName` missed ROM's third search, `builtinFunctions`
+        (the port keeps built-ins apart from the RAM `functions` frame), so
+        `BreakLoop`/`StackTrace` had no names.
+      The last two are also fixed in `ROMData/32bitObjectPrinter.cc` (MessagePad
+      target; syntax-checked only). Tests: `stacktrace`, `stacktrace_method`.
+      About the "Inaccurate stack trace" warning: ROM
+      `TInterpreter::SetFastLoopFlag()` uses the fast loop only when
+      `gAccurateStackTrace` (`SetDebugMode(true)`), tracing,
+      `gFramesBreakPointsEnabled`, and profiling are all off; otherwise it uses
+      `SlowRun`. In our port nothing reads `gAccurateStackTrace`. Our single loop
+      saves the caller's `vm->pc` on every call/send, so every frame below the
+      top is exact. Only the innermost interpreted frame is stale when an
+      exception is thrown inside an instruction (e.g. `breakOnThrows`).
+      See 1.3.
 - [x] 0.3 End of input inside a break loop quits newtc (message on stderr,
       exit code 1) instead of spinning. New virtual `PInTranslator::
       inputEnded()` (default `false`, so the Hammer/Null translators are unchanged);
@@ -193,7 +213,11 @@ regression checks (MATT.md) still apply when shared code is touched.
 - [ ] 1.2 Expose `NSDInstallBreakPoints`/`NSDEnableBreakPoints` as natives.
       Test: a hand-built `{programCounter: [{instructions:, programCounter:,
       temporary:}]}` frame stops at that PC; the temporary one fires once.
-- [ ] 1.3 PCs are exact while paused (`GetCurrentPC` = next instruction).
+- [ ] 1.3 PCs are exact while paused (`GetCurrentPC` = next instruction),
+      including a stop inside an instruction (exception): honour
+      `SetDebugMode(true)` like ROM's slow loop by storing `vm->pc` per
+      instruction while it (or breakpoints) is on. After that the warning
+      only appears when it is actually true.
 
 ### Phase 2: The NS Debug Tools native layer
 - [ ] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
@@ -275,8 +299,12 @@ regression checks (MATT.md) still apply when shared code is touched.
 - **Line endings**: CR (`\r`) is a leftover from classic Mac OS. Input must
   treat CR, LF, and CRLF the same wherever it shows up, because existing
   packages and sources still contain CR. Everything newtc *writes* for general
-  use should use LF (Unix/current macOS). Known offender: the REPL result
-  print (`gREPout->putc(0x0D)` in `REPAcceptLine`, Phase 4.2).
+  use should use LF (Unix/current macOS).
+  Done for the REPL (REP.cc): `PStdioOutTranslator::write()` turns CR and
+  CRLF into LF for everything written to stdout (`Write`, `Print`, results,
+  stack traces); `PStdioInTranslator::produceFrame()` ends a break loop line
+  at LF, CR, or CRLF. Test: `line_endings`. `ObjectPrinter` printing char
+  0x0D as `$\n` is correct NewtonScript and stays.
 
 ## Decisions (2026-09-25)
 
