@@ -12,6 +12,13 @@ project (Newton
 set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
 
+# AddressSanitizer in all Debug builds (all targets): reports use-after-free,
+# out-of-bounds access and similar memory bugs where they happen.
+set (ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${ASAN_FLAGS}")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${ASAN_FLAGS}")
+set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+
 set ( SRCFILES
   newtc.cc
   Dates.cc

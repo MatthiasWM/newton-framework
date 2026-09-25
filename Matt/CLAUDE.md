@@ -244,11 +244,24 @@ regression checks (MATT.md) still apply when shared code is touched.
       still right). `Disasm` is not registered: NSDT brings its own (Phase 3).
       To find PCs for tests: end the script with `functions.Foo;` and run
       `newtc -script x.ns -debug bc -decompile`.
-- [ ] 1.3 PCs are exact while paused (`GetCurrentPC` = next instruction),
-      including a stop inside an instruction (exception): honour
-      `SetDebugMode(true)` like ROM's slow loop by storing `vm->pc` per
-      instruction while it (or breakpoints) is on. After that the warning
-      only appears when it is actually true.
+- [x] 1.3 PCs are exact while paused, also when an instruction throws.
+      ROM: `SlowRun` keeps `instructionOffset` pointing at the next
+      instruction (`+= (opcode & 7) == 7 ? 3 : 1`) before executing it. On an
+      exception, `HandleException` enters the break loop via `DoBlock` →
+      `call()`, which stores `instructionOffset` as the frame's `vm->pc`.
+      Ours: the slow loop does the same; `setFastLoopFlag()` also looks at
+      `gAccurateStackTrace`; `SetDebugMode()` updates the flag at once (not in
+      ROM: there it only takes effect the next time `SetFastLoopFlag()` runs).
+      The "Inaccurate stack trace" warning stays ROM-like: it only looks at
+      SetDebugMode, even when breakpoints make the PCs exact.
+      Test: `pc_exception` (fast loop: stale PC 9; debug mode or breakpoints:
+      PC 25, right after the failing get-path).
+      Fixed on the way: `ForgetDeveloperNotified()` (called by `ExitHandler`
+      after a handled exception) left `gDeveloperNotified` pointing at freed
+      memory when it removed the first item → the next exception with
+      `breakOnThrows` read freed memory (crash). Now walks the links like ROM.
+      Found with AddressSanitizer, which is now on in all Debug builds (see
+      Conventions).
 
 ### Phase 2: The NS Debug Tools native layer
 - [ ] 2.1 `NSDMakeNSDebugAPI` + `NSDSelfFuncs` backed by `CNSDebugAPI`, one
@@ -332,6 +345,21 @@ regression checks (MATT.md) still apply when shared code is touched.
   `if n < 2 then return n` gives wrong values. Looks like the NOS 1 argFrame
   (locals) is shared instead of copied per call. NOS 2 code is correct. It
   still matters: a 2.x ROM also runs NOS 1 packages.
+- **Decompiler output depends on memory layout.** With AddressSanitizer on (Debug
+  builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
+  without ASan (Debug or Release) but fail with it: 11 recurse without end (stack
+  overflow; with a bigger stack they run out of NewtonScript memory instead),
+  `Tymnet-MCI_1.1.pkg` hits `assert(IsSymbol(ref))` in `PrintTag`
+  (Matt/ObjectPrinter.cc:125), and `mobilem1.pkg` throws
+  `evt.ex.fr.type;type.ref.frame`. ASan reports no memory error. Ruled out:
+  ASan's malloc fill, its fake stack, uninitialized locals
+  (`-ftrivial-auto-var-init=zero` changes nothing). Also broken at commit
+  b003eaf, so not caused by the debugger work. Lead:
+  `std::map<Ref, Node> map` in Matt/ObjectPrinter.h:69 is ordered by object
+  address, so the printer (and its cycle handling, "Fix 6") visits objects in
+  a different order when the allocator changes. Other packages: 1909 CLEAN,
+  371 UNRESOLVED, 69 CRASHED with ASan vs. the last manifest's 1906/382/61
+  (that manifest is older; 13 packages got better since).
 - **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of the first
   30 manifest packages, with the binary from before 1.1 too (pre-existing).
 
@@ -390,6 +418,11 @@ is the same as that filler entry, i.e. the ROM is too old).
   actions (plus timers for games). This explains many implementation choices.
   It is *not* a goal for us: memory and battery hardly matter today, so don't
   over-optimize; prefer clarity.
+
+- **Debug builds use AddressSanitizer** (CMakeLists.txt, all targets, via
+  `CMAKE_<LANG>_FLAGS_DEBUG`; UBSan was already on for newtc). A memory bug
+  aborts with a report showing where the memory was allocated, freed, and
+  misused. Release builds have neither.
 
 ## Decisions (2026-09-25)
 
