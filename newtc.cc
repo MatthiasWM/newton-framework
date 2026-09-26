@@ -87,6 +87,8 @@ static Ref makeCFunction(void *fn, int numArgs)
  \param fn C function taking the receiver plus numArgs RefArgs, returning a Ref
  \param numArgs number of NewtonScript arguments
  */
+static Ref FDAPLoadPackage(RefArg rcvr, RefArg inPath, RefArg inMap);
+
 static void defGlobalCFunction(const char *name, void *fn, int numArgs)
 {
   RefVar cFn(makeCFunction(fn, numArgs));
@@ -161,6 +163,7 @@ bool init()
   defGlobalCFunction("DAPCallWithSelf", (void*)FDAPCallWithSelf, 3);
   defGlobalCFunction("DAPErrorText", (void*)FDAPErrorText, 1);
   defGlobalCFunction("DAPCaptureOutput", (void*)FDAPCaptureOutput, 1);
+  defGlobalCFunction("DAPLoadPackage", (void*)FDAPLoadPackage, 2);
 
   // Source lines of functions compiled with -g (see Matt/LineTables.h)
   InstallLineTables();
@@ -265,18 +268,87 @@ void handleArgScript(const std::string &filename)
 }
 
 /**
+ \brief Install a package like a Newton does (-run, and -dap with a package
+ as the program). From the ROM's package installer: if the frame of any part
+ has a DoNotInstall method that returns non-nil, nothing is installed. Then
+ each part of type "form" is installed like the ROM's InstallFormPart: its
+ devInstallScript (NTK: the developer's InstallScript), else its
+ InstallScript, is sent to a new frame {_proto: partFrame, app, InstallScript,
+ RemoveScript} with that frame as the argument (the part frame itself is
+ read-only), and then set to nil. A part of type "auto" gets
+ partFrame:?InstallScript(partFrame) like InstallAutoPart.
+ Not like the ROM: nothing is copied with EnsureInternal (the package is in
+ memory already, and debug maps find functions by their instructions); the
+ form is not opened yet (the ROM adds BuildContext(partFrame.theForm) to the
+ root view), and the "already installed" check needs that root view too.
+ \return false if `package` is no package.
+ */
+bool installPackage(RefArg package)
+{
+  if (!IsFrame(package))
+    return false;
+  RefVar parts(GetFrameSlot(package, MakeSymbol("part")));
+  if (!IsArray(parts))
+    return false;
+  ArrayIndex count = Length(parts);
+  RefVar noArgs(MakeArray(0));
+  for (ArrayIndex i = 0; i < count; ++i) {
+    RefVar partFrame(GetFrameSlot(GetArraySlot(parts, i), MakeSymbol("data")));
+    bool defined;
+    if (IsFrame(partFrame)
+        && NOTNIL(DoMessageIfDefined(partFrame, MakeSymbol("DoNotInstall"), noArgs, &defined))) {
+      REPprintf("The package's DoNotInstall() returned non-nil: not installed.\n");
+      return true;
+    }
+  }
+  for (ArrayIndex i = 0; i < count; ++i) {
+    RefVar part(GetArraySlot(parts, i));
+    RefVar partFrame(GetFrameSlot(part, MakeSymbol("data")));
+    RefVar type(GetFrameSlot(part, MakeSymbol("type")));
+    if (!IsFrame(partFrame) || !IsString(type))
+      continue;
+    std::string typeName = UTF8FromString(type);
+    if (typeName == "form") {
+      RefVar symInstall(MakeSymbol("InstallScript"));
+      RefVar symRemove(MakeSymbol("RemoveScript"));
+      RefVar context(AllocateFrame());
+      SetFrameSlot(context, MakeSymbol("_proto"), partFrame);
+      SetFrameSlot(context, MakeSymbol("app"), GetFrameSlot(partFrame, MakeSymbol("app")));
+      RefVar install(GetFrameSlot(partFrame, MakeSymbol("devInstallScript")));
+      SetFrameSlot(context, symInstall, NOTNIL(install) ? (Ref)install : GetFrameSlot(partFrame, symInstall));
+      RefVar remove(GetFrameSlot(partFrame, MakeSymbol("devRemoveScript")));
+      SetFrameSlot(context, symRemove, NOTNIL(remove) ? (Ref)remove : GetFrameSlot(partFrame, symRemove));
+      RefVar args(MakeArray(1));
+      SetArraySlot(args, 0, context);
+      if (NOTNIL(GetFrameSlot(context, symInstall)))
+        DoMessage(context, symInstall, args);
+      SetFrameSlot(context, symInstall, NILREF);
+    } else if (typeName == "auto") {
+      RefVar args(MakeArray(1));
+      SetArraySlot(args, 0, partFrame);
+      bool defined;
+      DoMessageIfDefined(partFrame, MakeSymbol("InstallScript"), args, &defined);
+    }
+  }
+  return true;
+}
+
+/**
  \brief Run (open) the current object, like tapping an app icon in NewtonOS.
 
  -run takes no argument. It works on the object held in ref# by a previous
  -pkg, -nsof, or -script command, so all three can be run the same way,
- e.g. `newtc -nsof app.nsof -run`. For a 'form package, the idea is to take
- its 'form part and open the main view.
+ e.g. `newtc -nsof app.nsof -run`. For a package, installPackage() runs
+ its install scripts.
 
- \todo Not implemented yet; prints a note and leaves ref# unchanged.
+ \todo Open the form (see installPackage()); run objects from -nsof and
+ -script.
  */
 void handleArgRun()
 {
-  std::cerr << "newtc: -run is not implemented yet, ignored." << std::endl;
+  RefVar ref0 = getGlobalRef(0);
+  if (!installPackage(ref0))
+    std::cerr << "newtc: -run: only packages can be run so far, ignored." << std::endl;
 }
 
 /**
@@ -396,19 +468,27 @@ void handleArgDap(int port = -1)
     RefVar launchArgs(DoMessage(dap, MakeSymbol("WaitForLaunch"), RA(NILREF)));
     if (IsFrame(launchArgs)) {
       std::string program = UTF8FromString(GetFrameSlot(launchArgs, MakeSymbol("program")));
+      // a package was loaded by the launch request (DAPLoadPackage)
+      RefVar package(GetFrameSlot(dap, MakeSymbol("package")));
       int exceptions = DAPExceptionCount();
       newton_try
       {
-        FILE *f = fopen(program.c_str(), "rb");
-        if (f == nullptr) {
-          static std::string message;   // ThrowMsg keeps the pointer
-          message = "Can't open the program \"" + program + "\"";
-          ThrowMsg(message.c_str());
+        if (IsFrame(package)) {
+          DAPSetPolling(true);    // pause, setBreakpoints, ... while it runs
+          installPackage(package);
+          DAPSetPolling(false);
+        } else {
+          FILE *f = fopen(program.c_str(), "rb");
+          if (f == nullptr) {
+            static std::string message;   // ThrowMsg keeps the pointer
+            message = "Can't open the program \"" + program + "\"";
+            ThrowMsg(message.c_str());
+          }
+          fclose(f);
+          DAPSetPolling(true);    // pause, setBreakpoints, ... while it runs
+          handleArgScript(program);
+          DAPSetPolling(false);
         }
-        fclose(f);
-        DAPSetPolling(true);    // pause, setBreakpoints, ... while it runs
-        handleArgScript(program);
-        DAPSetPolling(false);
       }
       newton_catch_all
       {
@@ -588,13 +668,18 @@ void handleArgODecompile(const std::string &filename)
  Its functions (found by the hash of their instructions) get the map's line
  tables, so the debugger shows the decompiled source for them.
  */
-void handleArgNsdbg(const std::string &filename)
+static std::string readDebugMap(const std::string &filename)
 {
-  RefVar ref0 = getGlobalRef(0);
   std::ifstream file(filename);
   if (!file)
     throw(std::runtime_error("Can't read \"" + filename + "\"."));
-  std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+}
+
+void handleArgNsdbg(const std::string &filename)
+{
+  RefVar ref0 = getGlobalRef(0);
+  std::string json = readDebugMap(filename);
   int total = 0, matched = 0;
   newton_try
   {
@@ -607,6 +692,57 @@ void handleArgNsdbg(const std::string &filename)
   end_try;
   std::cerr << "newtc: debug map \"" << filename << "\": " << matched << " of "
             << total << " functions found" << std::endl;
+}
+
+/**
+ \brief DAPLoadPackage(path, mapPath) -> {package, map, found, total}.
+ For a DAP launch with a package as the program: loads the package (it
+ becomes ref0) and its debug map, mapPath or else <path without .pkg>.nsdbg
+ if there is one (map: the file loaded, or nil; found/total: functions of
+ the map found in the package). Throws with a message if a file can't be read.
+ */
+static Ref FDAPLoadPackage(RefArg rcvr, RefArg inPath, RefArg inMap)
+{
+  static std::string message;   // ThrowMsg keeps the pointer
+  std::string path = UTF8FromString(inPath);
+  std::string mapPath = IsString(inMap) ? UTF8FromString(inMap) : std::string();
+  bool mapGiven = !mapPath.empty();
+  std::string json;
+  try {
+    FILE *f = fopen(path.c_str(), "rb");
+    if (f == nullptr)
+      throw(std::runtime_error("Can't open the program \"" + path + "\""));
+    fclose(f);
+    handleArgPkg(path);
+    if (!mapGiven) {
+      mapPath = path;
+      size_t dot = mapPath.rfind('.');
+      size_t slash = mapPath.rfind('/');
+      if (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+        mapPath.erase(dot);
+      mapPath += ".nsdbg";
+      FILE *m = fopen(mapPath.c_str(), "rb");
+      if (m == nullptr)
+        mapPath.clear();
+      else
+        fclose(m);
+    }
+    if (!mapPath.empty())
+      json = readDebugMap(mapPath);
+  } catch (std::exception &e) {
+    message = e.what();
+    ThrowMsg(message.c_str());
+  }
+  RefVar package(getGlobalRef(0));
+  int total = 0, found = 0;
+  if (!mapPath.empty())
+    found = LoadDebugMap(package, json, &total);
+  RefVar result(AllocateFrame());
+  SetFrameSlot(result, MakeSymbol("package"), package);
+  SetFrameSlot(result, MakeSymbol("map"), mapPath.empty() ? NILREF : (Ref)MakeStringFromCString(mapPath.c_str()));
+  SetFrameSlot(result, MakeSymbol("found"), MAKEINT(found));
+  SetFrameSlot(result, MakeSymbol("total"), MAKEINT(total));
+  return result;
 }
 
 /**
@@ -769,8 +905,9 @@ the commands in the given order.
   -script <filename>      Read a source file, compile and run it, and hold the result
   -s <script>             Compile and run the script, and hold the result
   -hello                  Compile a "Hello World" app and hold it
-  -run                    Run (open) the current object from -pkg, -nsof, or -script
-                          (not implemented yet)
+  -run                    Run the current object: a package from -pkg is installed
+                          (DoNotInstall, then its InstallScript); opening its form
+                          and running -nsof or -script objects is not implemented yet
 
   Output Commands
   -opkg <filename>        Write the current object to a package file
@@ -793,7 +930,9 @@ the commands in the given order.
                           following code with variable names (-g)
   -dap                    Be a debug adapter for VS Code: speak the Debug Adapter
                           Protocol on stdin/stdout, run the program given by the
-                          client's "launch" request
+                          client's "launch" request: a .ns file, or a .pkg that is
+                          installed like with -run, with its debug map ("debugMap",
+                          else the .nsdbg next to it)
   -dap-server <port>      Like -dap, but wait for one client on this TCP port
                           (localhost), e.g. VS Code with "debugServer": <port>;
                           for running newtc itself in a debugger
@@ -972,6 +1111,11 @@ int handleArgs(int argc, char **argv)
 
  */
 int main(int argc, char **argv) {
+  // -dap: stdout carries only DAP messages, also while the arguments before
+  // -dap run (VSNewt's "args", e.g. -pkg ... -nsdbg ...)
+  for (int i = 1; i < argc; ++i)
+    if (strcmp(argv[i], "-dap") == 0)
+      DAPStartIO();
   if (!init()) {
     printf("newtc: ERROR: Can't initialize.\n");
     return -1;

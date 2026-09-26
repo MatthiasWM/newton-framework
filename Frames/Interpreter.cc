@@ -1485,8 +1485,9 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 				}
 				else
 				{
+					// not defined: pop the arguments, the result is nil
 					dataStack.top -= b;
-					*(dataStack.top - 1) = NILREF;
+					*(dataStack.top++) = NILREF;
 				}
 				break;
 
@@ -1540,8 +1541,9 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 				}
 				else
 				{
+					// not defined: pop the arguments, the result is nil
 					dataStack.top -= b;
-					*(dataStack.top - 1) = NILREF;
+					*(dataStack.top++) = NILREF;
 				}
 				break;
 

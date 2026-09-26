@@ -983,7 +983,43 @@ in the interpreter (C++), not in NewtonScript.
       Tests: `Test/dbg/test_nsdbg.py` (hello package: -odecompile, -nsdbg,
       then DAP: a breakpoint on a line of the decompiled InstallScript, the
       stop there, `next` to the next line), `Test/nsdbg_check.py`.
-- [ ] 9.2 Later: ROM code (with Einstein), `-run` for form packages.
+- [x] 9.1b Debugging a package from VS Code. Launch "program" can be a
+      package (.pkg): the launch request loads it (new native
+      `DAPLoadPackage(path, mapPath)`; it becomes ref0) with its debug map,
+      the launch attribute "debugMap", else `<program without .pkg>.nsdbg`
+      if there is one; the Debug Console says how many of the map's
+      functions were found (a warning if none: a map of another build). A
+      missing "debugMap" file fails the launch. Breakpoints sent before the
+      launch are set once the package is there (`DAP:NewCode()`). At
+      configurationDone the package is installed (`installPackage()`, also
+      used by `-run` now), from the ROM (package installer and
+      `InstallFormPart`, NewtonScript in ROM at 0x5579C0): any part frame's
+      `DoNotInstall()` returning non-nil cancels; for a "form" part, its
+      devInstallScript (NTK's name for the developer's InstallScript), else
+      its InstallScript, is sent to a new frame {_proto: partFrame, app,
+      InstallScript, RemoveScript} with that frame as argument (package
+      frames are read-only), then set to nil; an "auto" part gets
+      partFrame:?InstallScript(partFrame). Not like the ROM: no
+      EnsureInternal copies (the package is in memory; copies would also
+      lose the map, which finds functions by their instructions object);
+      the form isn't opened (BuildContext(theForm) into the root view) and
+      there is no "already installed" check (both need the root view).
+      A .ns program runs as before. VSNewt: launch attributes "debugMap",
+      "args" (newtc arguments before -dap, e.g. `["-pkg", "lib.pkg"]`),
+      snippet "NewtonScript: Debug a package". newtc now reserves stdout
+      for DAP first thing when -dap is on the command line, so what those
+      arguments print goes to stderr.
+      Fixed on the way: send-if-defined and resend-if-defined (`:?`,
+      `inherited:?`) to an undefined method overwrote the stack entry below
+      the arguments with nil instead of pushing nil as the result (Interpreter.cc):
+      `a:?nothing(a); a` returned nil (the NTK InstallScript wrapper failed
+      with "ObjectPtr of non-pointer"). Test `send_if_defined`.
+      Tests: `Test/dbg/test_nsdbg.py` (the package as the program: map next
+      to it, "debugMap", breakpoints before the launch, a missing map, no
+      map), VSNewt "Debugs a package in its decompiled source", "Passes
+      \"args\" to newtc".
+- [ ] 9.2 Later: ROM code (with Einstein), `-run` opening the form
+      (needs the root view: GetRoot, BuildContext).
 
 ### Later: the rest of the VS Code extension
 - `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.
@@ -1091,12 +1127,9 @@ Decompiler
   shall go all UTF-8.
 
 Open work (not bugs)
-- VSNewt: a launch attribute to load packages with their .nsdbg before
-  the program (newtc arguments before -dap), to debug decompiled packages
-  from VS Code.
 - The newtc in VSNewt's bin/darwin-arm64 is old (no -dap): copy a current
   build there before packaging a VSIX.
-- `-run` (run a loaded 'form package) is not implemented.
+- `-run` installs a package (InstallScript) but doesn't open its form yet.
 - newtc's compiler writes no `DebuggerInfo` (NTK's variable names), so NOS 2
   locals have no names in the debugger (Phases 7/8).
 

@@ -36,6 +36,7 @@ DefineGlobalConstant('kLF, Chr(10));
 
 DefGlobalVar('DAP, {
   launchArgs: nil,    // arguments of the "launch" request
+  package: nil,       // the package, if the program is one (.pkg)
   configured: nil,    // true once "configurationDone" arrived
   running: nil,       // true while the program runs (or is stopped)
   handles: [],        // what each variablesReference (index + 1) stands for
@@ -673,13 +674,35 @@ DefGlobalVar('DAPRequests, {
     :SendEvent("initialized", nil);
   end,
 
+  // "program": a NewtonScript file (.ns) is compiled and run when
+  // configurationDone arrives. A package (.pkg) is loaded now, with its
+  // debug map ("debugMap", else <program without .pkg>.nsdbg if there is
+  // one), so breakpoints in its decompiled source can be set at once; it is
+  // installed (its InstallScript runs) when configurationDone arrives.
   launch: func(request)
   begin
     local args := request.arguments;
     if not (IsFrame(args) and IsString(args.program)) then
-      Throw('|evt.ex.msg|, "launch: \"program\" is missing (the NewtonScript file to run)");
+      Throw('|evt.ex.msg|, "launch: \"program\" is missing (the NewtonScript file or package to run)");
+    local program := args.program;
+    local length := StrLen(program);
+    if length > 4 and StrEqual(SubStr(program, length - 4, 4), ".pkg") then
+    begin
+      local loaded := DAPLoadPackage(program, if IsString(args.debugMap) then args.debugMap);
+      package := loaded.package;
+      local text := if not loaded.map then
+          "No debug map for " & :FileName(program) & ": its functions show as bytecode."
+        else if loaded.found = 0 then
+          "Debug map " & loaded.map & ": none of its " & loaded.total
+            & " functions are in this package (is it for another build of the package?)."
+        else
+          "Debug map " & loaded.map & ": " & loaded.found & " of " & loaded.total & " functions found.";
+      :SendEvent("output", {category: "console", output: text & kLF});
+    end;
     launchArgs := args;
     :SendResponse(request, nil);
+    if package then
+      :NewCode();     // breakpoints set before the package was there
   end,
 
   // Breakpoints in a bytecode listing (source with a sourceReference) are

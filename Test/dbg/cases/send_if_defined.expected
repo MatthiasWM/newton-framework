@@ -1,0 +1,6 @@
+[{x: 1, 
+  Twice: <function, 1 arg, #<ref>>}, 
+ nil, 
+ true, 
+ 42]
+['kept, nil]

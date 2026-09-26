@@ -1,0 +1,19 @@
+// :? and inherited:? to a method that isn't defined: the arguments are
+// popped and the result is nil; nothing else on the stack changes
+// (the interpreter overwrote the value below the arguments)
+DefGlobalFn('Probe, func(a)
+begin
+  a:?nothing(a);
+  a:?nothing();
+  a:?nothing(a, 2, 3);
+  local r := a:?nothing(a);
+  [a, r, a:?nothing(1) = nil, a:?Twice(21)]
+end);
+Print(Probe({x: 1, Twice: func(n) n * 2}));
+DefGlobalVar('child, {_proto: {}, Test: func(v)
+  begin
+    inherited:?nothing(v);
+    inherited:?nothing();
+    [v, inherited:?nothing(v)]
+  end});
+Print(child:Test('kept));

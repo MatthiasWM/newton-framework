@@ -202,3 +202,6 @@ NSFn_NewWeakArray {
 }
 
 Ref FGetRoot(RefArg rcvr);
+
+TView:Constructor() -> TView::SetupForm()
+virtaul call: r1 = vtable,  ld lr, pc ; add     pc, r1, #52

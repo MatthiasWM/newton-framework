@@ -28,7 +28,8 @@
 #include "Frames/Objects.h"
 
 /** Reserve stdout for DAP messages; from now on anything else written to
-    stdout goes to stderr. Call before anything is printed in -dap mode. */
+    stdout goes to stderr. Call before anything is printed in -dap mode;
+    calling it again does nothing. */
 void DAPStartIO(void);
 
 /** -dap-server: wait for one client on TCP port inPort (127.0.0.1 only)

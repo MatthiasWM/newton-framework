@@ -273,6 +273,10 @@ bool DAPStartServer(int inPort)
 
 void DAPStartIO(void)
 {
+  static bool started = false;
+  if (started)
+    return;     // done already (newtc does it first thing when -dap is given)
+  started = true;
   fflush(stdout);
 #if defined(_WIN32)
   _setmode(_fileno(stdin), _O_BINARY);
