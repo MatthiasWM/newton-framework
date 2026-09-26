@@ -680,6 +680,37 @@ else ()
   message (STATUS "newtc: no libedit, plain line input")
 endif ()
 
+# FLTK (experimental, off by default): fetched from GitHub (master) and
+# built as part of this project, as static libraries, and linked into
+# newtc. Code that uses it checks NEWTC_USES_FLTK. With the option off,
+# nothing is fetched.
+option(NEWTC_USES_FLTK "Build newtc with FLTK (fetched from GitHub)" OFF)
+if (NEWTC_USES_FLTK)
+  if (CMAKE_VERSION VERSION_LESS 3.15)
+    message (FATAL_ERROR "NEWTC_USES_FLTK needs CMake 3.15 or later (FLTK)")
+  endif ()
+  include (FetchContent)
+  # only the libraries: no FLUID, tools, tests, examples, or docs
+  set (FLTK_BUILD_SHARED_LIBS OFF)
+  set (FLTK_BUILD_FLUID OFF)
+  set (FLTK_BUILD_FLTK_OPTIONS OFF)
+  set (FLTK_BUILD_TEST OFF)
+  set (FLTK_BUILD_EXAMPLES OFF)
+  set (FLTK_BUILD_FORMS OFF)
+  set (FLTK_BUILD_GL OFF)
+  set (FLTK_BUILD_HTML_DOCS OFF)
+  set (FLTK_BUILD_PDF_DOCS OFF)
+  FetchContent_Declare (fltk
+    GIT_REPOSITORY https://github.com/fltk/fltk.git
+    GIT_TAG master
+    GIT_SHALLOW TRUE
+  )
+  FetchContent_MakeAvailable (fltk)
+  message (STATUS "newtc: with FLTK (${fltk_SOURCE_DIR})")
+  target_compile_definitions (newtc PRIVATE NEWTC_USES_FLTK=1)
+  target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
+endif ()
+
 
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
