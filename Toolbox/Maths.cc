@@ -533,15 +533,16 @@ Fnextafterd(RefArg inRcvr, RefArg a, RefArg b)
 	return MakeReal(nextafter(x,y));
 }
 
-Ref
-Frandomx(RefArg inRcvr, RefArg inArg)
-{
-	double x = CoerceToDouble(inArg);
-	RefVar result(MakeArray(2));
-//	SetArraySlot(result, 0, MakeReal(randomx(&x)));	// in CarbonCore fp.h
-	SetArraySlot(result, 1, MakeReal(x));
-	return result;
-}
+NS_STUB(Frandomx, RefArg inRcvr, RefArg inArg)
+// Ref
+// Frandomx(RefArg inRcvr, RefArg inArg)
+// {
+// 	double x = CoerceToDouble(inArg);
+// 	RefVar result(MakeArray(2));
+// //	SetArraySlot(result, 0, MakeReal(randomx(&x)));	// in CarbonCore fp.h
+// 	SetArraySlot(result, 1, MakeReal(x));
+// 	return result;
+// }
 
 Ref
 Fremainder(RefArg inRcvr, RefArg a, RefArg b)
@@ -857,18 +858,19 @@ NS_STUB(FLessEqualOrGreater, RefArg inRcvr, RefArg a, RefArg b)
 NS_STUB(FLessOrGreater, RefArg inRcvr, RefArg a, RefArg b)
 
 
-Ref
-FUnordered(RefArg inRcvr, RefArg a, RefArg b)
-{
-	if (NOTINT(a) && NOTINT(b))
-	{
-		double x = CoerceToDouble(a);
-		double y = CoerceToDouble(b);
-//		if (relation(x, y) == 3)	// in CarbonCore fp.h
-//			return TRUEREF;
-	}
-	return NILREF;
-}
+NS_STUB(FUnordered, RefArg inRcvr, RefArg a, RefArg b)
+// Ref
+// FUnordered(RefArg inRcvr, RefArg a, RefArg b)
+// {
+// 	if (NOTINT(a) && NOTINT(b))
+// 	{
+// 		double x = CoerceToDouble(a);
+// 		double y = CoerceToDouble(b);
+// //		if (relation(x, y) == 3)	// in CarbonCore fp.h
+// //			return TRUEREF;
+// 	}
+// 	return NILREF;
+// }
 
 
 Ref
@@ -941,19 +943,21 @@ NS_STUB(Ffesetround, RefArg inRcvr, RefArg inRound)
 	Financial
 ----------------------------------------------------------------------------- */
 
-Ref
-Fannuity(RefArg inRcvr, RefArg a, RefArg b)
-{
-	double x = CoerceToDouble(a);
-	double y = CoerceToDouble(b);
-	return NILREF;//MakeReal(annuity(x,y));
-}
+NS_STUB(Fannuity, RefArg inRcvr, RefArg a, RefArg b)
+// Ref
+// Fannuity(RefArg inRcvr, RefArg a, RefArg b)
+// {
+// 	double x = CoerceToDouble(a);
+// 	double y = CoerceToDouble(b);
+// 	return NILREF;//MakeReal(annuity(x,y));
+// }
 
-Ref
-Fcompound(RefArg inRcvr, RefArg a, RefArg b)
-{
-	double x = CoerceToDouble(a);
-	double y = CoerceToDouble(b);
-	return NILREF;//MakeReal(compound(x,y));
-}
+NS_STUB(Fcompound, RefArg inRcvr, RefArg a, RefArg b)
+// Ref
+// Fcompound(RefArg inRcvr, RefArg a, RefArg b)
+// {
+// 	double x = CoerceToDouble(a);
+// 	double y = CoerceToDouble(b);
+// 	return NILREF;//MakeReal(compound(x,y));
+// }
 
