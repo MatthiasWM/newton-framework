@@ -118,6 +118,36 @@ PrintFramesErrorMsg(const char * inStr, RefArg inData)
 	}
 }
 
+/*------------------------------------------------------------------------------
+	After the error text: the compiler's own message, if the exception has
+	one (a string `value`, e.g. "can't close over a for-loop index variable"
+	or "syntax error -- read ..., but wanted ..." for kNSErrSyntaxError),
+	unless the text printed it already (%value.). Not in the ROM, whose REPL
+	printed only "syntax error".
+	Args:		inStr			the error text
+				inData		the exception data frame
+	Return:	--
+------------------------------------------------------------------------------*/
+
+static void
+PrintErrorDetail(const char * inStr, RefArg inData)
+{
+	if (strstr(inStr, "%value.") != NULL)
+		return;
+	RefVar value(GetFrameSlot(inData, SYMA(value)));
+	if (IsString(value))
+	{
+		CDataPtr text(ASCIIString(value));
+		const char * detail = (char *)text;
+		size_t len = strlen(inStr);
+		if (strncmp(detail, inStr, len) == 0)		// "syntax error -- read ..."
+			detail += len;
+		else if (*detail != 0)
+			gREPout->print(": ");
+		gREPout->print("%s", detail);
+	}
+}
+
 #pragma mark -
 
 /*------------------------------------------------------------------------------
@@ -460,6 +490,7 @@ REPExceptionNotify(Exception * inException)
 					gREPout->print(kExceptionBuildErrorStr, (char *)filenameStr, RINT(lineNumber));
           if (str[0] != '-') gREPout->print("%d, ", RefToInt(err));
 					PrintFramesErrorMsg(str, data);
+					PrintErrorDetail(str, data);
 					gREPout->print("\n");
 				}
 			}
@@ -467,6 +498,7 @@ REPExceptionNotify(Exception * inException)
 			{
 				gREPout->print(kExceptionPrefixStr);
 				PrintFramesErrorMsg(str, data);
+				PrintErrorDetail(str, data);
 				gREPout->print("\n");
 			}
 			else

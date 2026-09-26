@@ -1,0 +1,14 @@
+// B16: a closure over a for-loop variable is refused (the ROM compiler has
+// the same rule and message: the loop increments the variable on the stack,
+// IncrVar). The compiler's message is shown after "syntax error". A copy in
+// a local works (closures share the function's locals: they see its last
+// value).
+begin
+  local fs := [];
+  for i := 0 to 2 do begin local k := i; AddArraySlot(fs, func() k) end;
+  Print(call fs[0] with ());
+end;
+begin
+  local fs := [];
+  for i := 0 to 2 do AddArraySlot(fs, func() i);
+end;

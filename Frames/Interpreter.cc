@@ -2840,13 +2840,16 @@ CInterpreter::callCodeBlock(RefArg func, ArrayIndex numArgs, unsigned huh)
 	argFrame = Clone(argFrame);
 	Ref * argSlot = ((FrameObject *)ObjectPtr(argFrame))->slot;
 
-	// copy args from stack into the arg frame
-	Ref * sp = dataStack.top;
+	// move args from the stack into the arg frame: they are popped, a 1.x
+	// function keeps nothing on the stack (ROM TInterpreter::CallCodeBlock;
+	// the port left them there, so return put the result above them and the
+	// caller's own values were lost: recursion and `x + f(y)` were wrong)
 	for (int i = numArgs - 1; i >= 0; i--)
-		argSlot[kArgFrameArgIndex + i] = *--sp;
+		argSlot[kArgFrameArgIndex + i] = *--dataStack.top;
 
-	// set up stack info
-	int stackFrameIndex = STACKINDEX(dataStack);
+	// set up stack info: like a 2.x function's, 3 below where its args were
+	// (return leaves the result there)
+	int stackFrameIndex = (dataStack.top - dataStack.base) - 3;
 	vm->stackFrame = MAKEINT((stackFrameIndex << kStackFrameFlagBits) | ((huh & 0x02) ? 0x02 : kStackFrameNoLocals));
 
 	// set up vm

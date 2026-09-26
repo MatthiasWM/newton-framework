@@ -121,6 +121,7 @@ public:
   void VisitChildren(const std::function<void(Node*)> &fn) override { if (cond_) fn(cond_); VisitChain(body_, fn); VisitChain(elseBody_, fn); }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
+  bool IsAndForm();
 };
 
 class CFOr: public ControlBlock {

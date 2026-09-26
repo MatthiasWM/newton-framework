@@ -510,7 +510,6 @@ Ref FCloseAppleTalk(RefArg rcvr);
 Ref FBackLightStatus(RefArg rcvr);
 Ref FBubbleArraySlot(RefArg rcvr);
 Ref FAppendList(RefArg rcvr);
-Ref ForigPhrase(RefArg rcvr);
 Ref FDeActivatePackage(RefArg rcvr);
 Ref FTestGetParameterString(RefArg rcvr);
 Ref FOpenRemoteControl(RefArg rcvr);
@@ -530,8 +529,6 @@ Ref FNBPLookupCount(RefArg rcvr);
 Ref FStringToNumber(RefArg rcvr);
 Ref FGetInsertionStyle(RefArg rcvr);
 Ref FParaContainsInk(RefArg rcvr);
-Ref FntkDownload(RefArg rcvr);
-Ref FGetSortID(RefArg rcvr);
 Ref FSuffixP(RefArg rcvr);
 Ref DSResolveString(RefArg rcvr);
 Ref FIsProtocolPartInUse(RefArg rcvr);
@@ -590,7 +587,6 @@ Ref FTestReportError(RefArg rcvr);
 Ref FSpellDocEnd(RefArg rcvr);
 Ref FVBOUndoChanges(RefArg rcvr);
 Ref FSetGlobal(RefArg rcvr);
-Ref Freal(RefArg rcvr);
 Ref FValidateWord(RefArg rcvr);
 Ref FGetLetterHilite(RefArg rcvr);
 Ref FAddDeferredAction(RefArg rcvr);
@@ -608,7 +604,6 @@ Ref FSplitInkAt(RefArg rcvr);
 Ref FNumInkWordsInRange(RefArg rcvr);
 Ref FRepeatInfoToText(RefArg rcvr);
 Ref FWordUnitToWordInfo(RefArg rcvr);
-Ref FmodalState(RefArg rcvr);
 Ref FStdioOff(RefArg rcvr);
 Ref FConnEntriesEqual(RefArg rcvr);
 Ref FSpellSkip(RefArg rcvr);
@@ -633,14 +628,12 @@ Ref FViewWorksWithCombCorrector(RefArg rcvr);
 Ref FInsertStyledText(RefArg rcvr);
 Ref FGetIndexChar(RefArg rcvr);
 Ref FConvertDictionaryData(RefArg rcvr);
-Ref Fisa(RefArg rcvr);
 Ref FPidToPkgRef(RefArg rcvr);
 Ref FSmartConcat(RefArg rcvr);
 Ref FAnimateSimpleStroke(RefArg rcvr);
 Ref FDSTime(RefArg rcvr);
 Ref FGetLetterIndex(RefArg rcvr);
 Ref FUnmatchedWords(RefArg rcvr);
-Ref Fstats(RefArg rcvr);
 Ref FStrokeBundleToInkWord(RefArg rcvr);
 Ref FGetLearningData(RefArg rcvr);
 Ref FCompressStrokesToInk(RefArg rcvr);
@@ -669,7 +662,6 @@ Ref FGetFontFamilySym(RefArg rcvr);
 Ref FGetStrokePoint(RefArg rcvr);
 Ref FEntryMove(RefArg rcvr);
 Ref FGetStrokePointsArray(RefArg rcvr);
-Ref FhasVariable(RefArg rcvr);
 Ref FFindShape(RefArg rcvr);
 Ref FActivate1_2EXPackage(RefArg rcvr);
 Ref FCountUnitStrokes(RefArg rcvr);
@@ -687,7 +679,6 @@ Ref FGetViewFlags(RefArg rcvr);
 Ref FGetZoneFromName(RefArg rcvr);
 Ref FRemove1_2EXPackage(RefArg rcvr);
 Ref FGetRandomDictionaryWord(RefArg rcvr);
-Ref Farray(RefArg rcvr);
 Ref FCancelOnlineService(RefArg rcvr);
 Ref FMakeWedge(RefArg rcvr);
 Ref FPackRGB(RefArg rcvr);
@@ -739,7 +730,6 @@ Ref FSetSlot(RefArg rcvr);
 Ref FTextBox(RefArg rcvr);
 Ref FBuildRecConfig(RefArg rcvr);
 Ref FNBPStopLookup(RefArg rcvr);
-Ref Fdebug(RefArg rcvr);
 Ref FGetBitmapInfo(RefArg rcvr);
 Ref FMakeOval(RefArg rcvr);
 Ref FMungeBitmap(RefArg rcvr);
@@ -775,7 +765,6 @@ Ref FDESCreatePasswordKey(RefArg rcvr);
 Ref FGetAllMeetingsUnique(RefArg rcvr);
 Ref FDSPhone(RefArg rcvr);
 Ref FConnectPassthruKeyboard(RefArg rcvr);
-Ref FntkListener(RefArg rcvr);
 Ref FMapPtX(RefArg rcvr);
 Ref FCountLetters(RefArg rcvr);
 Ref FViewAllowsInkWords(RefArg rcvr);
@@ -1249,7 +1238,6 @@ Ref FCloseAppleTalk(RefArg rcvr) { return NILREF; }
 Ref FBackLightStatus(RefArg rcvr) { return NILREF; }
 Ref FBubbleArraySlot(RefArg rcvr) { return NILREF; }
 Ref FAppendList(RefArg rcvr) { return NILREF; }
-Ref ForigPhrase(RefArg rcvr) { return NILREF; }
 Ref FDeActivatePackage(RefArg rcvr) { return NILREF; }
 Ref FTestGetParameterString(RefArg rcvr) { return NILREF; }
 Ref FOpenRemoteControl(RefArg rcvr) { return NILREF; }
@@ -1269,8 +1257,6 @@ Ref FNBPLookupCount(RefArg rcvr) { return NILREF; }
 Ref FStringToNumber(RefArg rcvr) { return NILREF; }
 Ref FGetInsertionStyle(RefArg rcvr) { return NILREF; }
 Ref FParaContainsInk(RefArg rcvr) { return NILREF; }
-Ref FntkDownload(RefArg rcvr) { return NILREF; }
-Ref FGetSortID(RefArg rcvr) { return NILREF; }
 Ref FSuffixP(RefArg rcvr) { return NILREF; }
 Ref DSResolveString(RefArg rcvr) { return NILREF; }
 Ref FIsProtocolPartInUse(RefArg rcvr) { return NILREF; }
@@ -1329,7 +1315,6 @@ Ref FTestReportError(RefArg rcvr) { return NILREF; }
 Ref FSpellDocEnd(RefArg rcvr) { return NILREF; }
 Ref FVBOUndoChanges(RefArg rcvr) { return NILREF; }
 Ref FSetGlobal(RefArg rcvr) { return NILREF; }
-Ref Freal(RefArg rcvr) { return NILREF; }
 Ref FValidateWord(RefArg rcvr) { return NILREF; }
 Ref FGetLetterHilite(RefArg rcvr) { return NILREF; }
 Ref FAddDeferredAction(RefArg rcvr) { return NILREF; }
@@ -1347,7 +1332,6 @@ Ref FSplitInkAt(RefArg rcvr) { return NILREF; }
 Ref FNumInkWordsInRange(RefArg rcvr) { return NILREF; }
 Ref FRepeatInfoToText(RefArg rcvr) { return NILREF; }
 Ref FWordUnitToWordInfo(RefArg rcvr) { return NILREF; }
-Ref FmodalState(RefArg rcvr) { return NILREF; }
 Ref FStdioOff(RefArg rcvr) { return NILREF; }
 Ref FConnEntriesEqual(RefArg rcvr) { return NILREF; }
 Ref FSpellSkip(RefArg rcvr) { return NILREF; }
@@ -1372,14 +1356,12 @@ Ref FViewWorksWithCombCorrector(RefArg rcvr) { return NILREF; }
 Ref FInsertStyledText(RefArg rcvr) { return NILREF; }
 Ref FGetIndexChar(RefArg rcvr) { return NILREF; }
 Ref FConvertDictionaryData(RefArg rcvr) { return NILREF; }
-Ref Fisa(RefArg rcvr) { return NILREF; }
 Ref FPidToPkgRef(RefArg rcvr) { return NILREF; }
 Ref FSmartConcat(RefArg rcvr) { return NILREF; }
 Ref FAnimateSimpleStroke(RefArg rcvr) { return NILREF; }
 Ref FDSTime(RefArg rcvr) { return NILREF; }
 Ref FGetLetterIndex(RefArg rcvr) { return NILREF; }
 Ref FUnmatchedWords(RefArg rcvr) { return NILREF; }
-Ref Fstats(RefArg rcvr) { return NILREF; }
 Ref FStrokeBundleToInkWord(RefArg rcvr) { return NILREF; }
 Ref FGetLearningData(RefArg rcvr) { return NILREF; }
 Ref FCompressStrokesToInk(RefArg rcvr) { return NILREF; }
@@ -1408,7 +1390,6 @@ Ref FGetFontFamilySym(RefArg rcvr) { return NILREF; }
 Ref FGetStrokePoint(RefArg rcvr) { return NILREF; }
 Ref FEntryMove(RefArg rcvr) { return NILREF; }
 Ref FGetStrokePointsArray(RefArg rcvr) { return NILREF; }
-Ref FhasVariable(RefArg rcvr) { return NILREF; }
 Ref FFindShape(RefArg rcvr) { return NILREF; }
 Ref FActivate1_2EXPackage(RefArg rcvr) { return NILREF; }
 Ref FCountUnitStrokes(RefArg rcvr) { return NILREF; }
@@ -1426,7 +1407,6 @@ Ref FGetViewFlags(RefArg rcvr) { return NILREF; }
 Ref FGetZoneFromName(RefArg rcvr) { return NILREF; }
 Ref FRemove1_2EXPackage(RefArg rcvr) { return NILREF; }
 Ref FGetRandomDictionaryWord(RefArg rcvr) { return NILREF; }
-Ref Farray(RefArg rcvr) { return NILREF; }
 Ref FCancelOnlineService(RefArg rcvr) { return NILREF; }
 Ref FMakeWedge(RefArg rcvr) { return NILREF; }
 Ref FPackRGB(RefArg rcvr) { return NILREF; }
@@ -1478,7 +1458,6 @@ Ref FSetSlot(RefArg rcvr) { return NILREF; }
 Ref FTextBox(RefArg rcvr) { return NILREF; }
 Ref FBuildRecConfig(RefArg rcvr) { return NILREF; }
 Ref FNBPStopLookup(RefArg rcvr) { return NILREF; }
-Ref Fdebug(RefArg rcvr) { return NILREF; }
 Ref FGetBitmapInfo(RefArg rcvr) { return NILREF; }
 Ref FMakeOval(RefArg rcvr) { return NILREF; }
 Ref FMungeBitmap(RefArg rcvr) { return NILREF; }
@@ -1514,7 +1493,6 @@ Ref FDESCreatePasswordKey(RefArg rcvr) { return NILREF; }
 Ref FGetAllMeetingsUnique(RefArg rcvr) { return NILREF; }
 Ref FDSPhone(RefArg rcvr) { return NILREF; }
 Ref FConnectPassthruKeyboard(RefArg rcvr) { return NILREF; }
-Ref FntkListener(RefArg rcvr) { return NILREF; }
 Ref FMapPtX(RefArg rcvr) { return NILREF; }
 Ref FCountLetters(RefArg rcvr) { return NILREF; }
 Ref FViewAllowsInkWords(RefArg rcvr) { return NILREF; }

@@ -3115,7 +3115,9 @@ CCompiler::emitVarIncr(RefArg inName)
 	if (func->isLocalVariable(inName) && (b = func->variableIndex(inName)) != -1)
 		emit(kOpcodeIncrVar, b);
 	else
-		syntaxError("can’t close over a for-loop index variable");
+		// found while generating code, after parsing: no "read ..., but
+		// wanted ..." (syntaxError() would add the parser's last state)
+		errorWithValue(kNSErrSyntaxError, MakeStringFromCString("can't close over a for-loop index variable"));
 }
 
 

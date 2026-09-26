@@ -3,7 +3,7 @@
  command: "initialize", 
  arguments: {clientID: "vscode", linesStartAt1: true, pathFormat: "path"}}
 "vscode"
-"{"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"vscode","linesStartAt1":true,"pathFormat":"path"}}"
+"{\"seq\":1,\"type\":\"request\",\"command\":\"initialize\",\"arguments\":{\"clientID\":\"vscode\",\"linesStartAt1\":true,\"pathFormat\":\"path\"}}"
 [0, -7, 3000000000, 2305843009213693951, -2305843009213693952]
 [2.30584e+18, -2.30584e+18, 1.00000e+20, 1.50000, -0.00250000, 1000.00]
 "[2305843009213693951,-2305843009213693952]"
@@ -12,9 +12,9 @@
 "[true,false]"
 19
 $q
-""q\"b\\s/n\nt\t \u00E9 \uD83D\uDE00 \u00E9\uD83D\uDE00""
-""\u00E9\rx""
-"{"a":"sym","b":"x","c":[],"d":{}}"
+"\"q\\\"b\\\\s/n\\nt\\t \\u00E9 \\uD83D\\uDE00 \\u00E9\\uD83D\\uDE00\""
+"\"\\u00E9\\rx\""
+"{\"a\":\"sym\",\"b\":\"x\",\"c\":[],\"d\":{}}"
 nil
 "JSON: expected ',' or ']' at offset 5"
 "JSON: expected ':' at offset 5"

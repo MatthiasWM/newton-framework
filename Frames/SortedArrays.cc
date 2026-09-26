@@ -488,7 +488,7 @@ LSearch(RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest, RefArg inK
 	if (startIndex < 0)
 		ThrowExFramesWithBadValue(kNSErrOutOfBounds, inStart);
 
-	if (IsSymbol(inTest)
+	if (EQ(inTest, SYMA(_3D))	// '=, fast; any other test goes the general way
 	&&  ISNIL(inKey))
 	{
 		Ref *	arrayStart = Slots(inArray);
@@ -881,92 +881,90 @@ FBDelete(RefArg inRcvr, RefArg inArray, RefArg inItem, RefArg inTest, RefArg inK
 
 typedef int (*GOSOP)(int, int);
 
+/*------------------------------------------------------------------------------
+	The ordered set operations (BDifference, BIntersect, BMerge) on two
+	arrays sorted by inTest/inKey. For each pair of current elements, inOpFn
+	(compare result, inUnique) says what to do:
+		0x01	advance in array 1		0x02	advance in array 2
+		0x04	copying its element		0x08	copying its element
+		0x10	and over its duplicates	0x20	and over its duplicates
+	When one array ends, what is left of array 1 (inRest1) and of array 2
+	(inRest2) is copied. inSize: the most elements the result can have.
+	(The port copied and advanced in one step, so an element that was not to
+	be copied was never passed: BDifference hung; counts were divided by
+	sizeof(Ref).)
+------------------------------------------------------------------------------*/
+
 Ref
-GenOrderedSetOp(RefArg inArray1, RefArg inArray2, RefArg inTest, RefArg inKey, int inArg5, GOSOP inOpFn, int inArg7, int inArg8, int inArg9)
+GenOrderedSetOp(RefArg inArray1, RefArg inArray2, RefArg inTest, RefArg inKey, int inUnique, GOSOP inOpFn, int inSize, int inRest1, int inRest2)
 {
-//sp-10
 	if (!IsArray(inArray1))
 		ThrowBadTypeWithFrameData(kNSErrNotAnArray, inArray1);
 	if (!IsArray(inArray2))
 		ThrowBadTypeWithFrameData(kNSErrNotAnArray, inArray2);
 
-	int count, spB4, spB8, spBC, spC0;
-//sp-28
-	CGeneralizedTestFnVar testFn(inTest, inKey, false);	// sp04
-	RefVar theArray(MakeArray(inArg7));
+	CGeneralizedTestFnVar testFn(inTest, inKey, false);
+	RefVar theArray(MakeArray(inSize));
 	LockRef(inArray1);
 	LockRef(inArray2);
 	LockRef(theArray);
-//sp-70
 	unwind_protect
 	{
-//sp-0C
-		Ref * r6 = Slots(inArray1);
-		Ref * r5 = Slots(inArray2);
-		Ref * r4 = Slots(theArray);
-		Ref * sp08 = r6 + Length(inArray1);
-		Ref * sp04 = r5 + Length(inArray2);
-		Ref * sp00 = r4 + inArg7;
-		if (r6 < sp08 && r5 < sp04)
+		Ref * p1 = Slots(inArray1);
+		Ref * p2 = Slots(inArray2);
+		Ref * out = Slots(theArray);
+		Ref * end1 = p1 + Length(inArray1);
+		Ref * end2 = p2 + Length(inArray2);
+		if (p1 < end1 && p2 < end2)
 		{
-//sp-0C
-			RefVar r8(testFn.applyKey(r6));
-			RefVar r7(testFn.applyKey(r5));
-			RefVar spr08;
-			RefVar spr04;
-			int r9 = 0, r10 = 0, spr00 = 0;
-			while (!r9)
+			RefVar key1(testFn.applyKey(p1));
+			RefVar key2(testFn.applyKey(p2));
+			RefVar saved;
+			bool done = false;
+			while (!done)
 			{
-//sp-04
-				spr00 = inOpFn(testFn.applyTest(r8, r7), inArg5);
-				if ((spr00 & 0x01) != 0)
+				int op = inOpFn(testFn.applyTest(key1, key2), inUnique);
+				if ((op & 0x01) != 0)
 				{
-					spr08 = r8;
-					spBC = spr00 & 0x10;
-					spC0 = spr00 & 0x04;
+					saved = key1;
+					bool ended = false;
 					do
 					{
-						if (spC0 != 0)
-							*r4++ = *r6++;
-						if (r6 < sp08)
-							r8 = testFn.applyKey(r6);
+						if ((op & 0x04) != 0)
+							*out++ = *p1;
+						if (++p1 < end1)
+							key1 = testFn.applyKey(p1);
 						else
-							r9 = r10 = 1;
-					} while (spBC != 0 && !r10 && testFn.applyTest(spr08, r8) == 0);
+							done = ended = true;
+					} while ((op & 0x10) != 0 && !ended && testFn.applyTest(saved, key1) == 0);
 				}
-				if ((spr00 & 0x02) != 0)
+				if ((op & 0x02) != 0)
 				{
-					spr08 = r7;
-					spB4 = spr00 & 0x20;
-					spB8 = spr00 & 0x08;
+					saved = key2;
+					bool ended = false;
 					do
 					{
-						if (spB8 != 0)
-							*r4++ = *r5++;
-						if (r5 < sp04)
-							r7 = testFn.applyKey(r5);
+						if ((op & 0x08) != 0)
+							*out++ = *p2;
+						if (++p2 < end2)
+							key2 = testFn.applyKey(p2);
 						else
-							r9 = spr00 = 1;
-					} while (spB4 != 0 && !spr00 && testFn.applyTest(spr04, r7) == 0);
+							done = ended = true;
+					} while ((op & 0x20) != 0 && !ended && testFn.applyTest(saved, key2) == 0);
 				}
 			}
 		}
-		if (inArg8 && r6 < sp08)
+		if (inRest1 && p1 < end1)
 		{
-			count = (sp08 - r6) / sizeof(Ref);
-			memcpy(r4, r6, count * sizeof(Ref));
-			r4 += count;
+			memcpy(out, p1, (end1 - p1) * sizeof(Ref));
+			out += end1 - p1;
 		}
-		if (inArg9 && r5 < sp04)
+		if (inRest2 && p2 < end2)
 		{
-			count = (sp04 - r5) / sizeof(Ref);
-			memcpy(r4, r5, count * sizeof(Ref));
-			r4 += count;
+			memcpy(out, p2, (end2 - p2) * sizeof(Ref));
+			out += end2 - p2;
 		}
-		if (r4 < sp00)
-		{
-			SetLength(theArray, (r4 - Slots(theArray)) / sizeof(Ref));
-		}
+		SetLength(theArray, out - Slots(theArray));
 	}
 	on_unwind
 	{

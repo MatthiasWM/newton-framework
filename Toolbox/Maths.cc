@@ -236,14 +236,27 @@ FAbs(RefArg inRcvr, RefArg inArg)
 	return NILREF;
 }
 
+/*------------------------------------------------------------------------------
+	A whole number as an integer if it fits (kRefValueBits), else as a real.
+	ROM FCeiling and FFloor: MAKEINT for -2^29 .. 2^29-1 (30 bits), else
+	MakeReal. (The port's Floor always made a real, and Ceiling an integer
+	only for 1 and up.)
+------------------------------------------------------------------------------*/
+
+static Ref
+IntegerOrReal(double x)
+{
+	const double kMin = -(double)(1L << (kRefValueBits - 1));
+	const double kMax = (double)((1L << (kRefValueBits - 1)) - 1);
+	if (x >= kMin && x <= kMax)
+		return MAKEINT((long)x);
+	return MakeReal(x);
+}
+
 Ref
 FCeiling(RefArg inRcvr, RefArg inArg)
 {
-	double x = CoerceToDouble(inArg);
-	double ceilx = ceil(x);
-	if (ceilx >= 1.0 && ceilx <= RVALUE(INT32_MAX))
-		return MAKEINT((int)ceilx);
-	return MakeReal(ceilx);
+	return IntegerOrReal(ceil(CoerceToDouble(inArg)));
 }
 
 Ref
@@ -344,8 +357,7 @@ Ffabs(RefArg inRcvr, RefArg inArg)
 Ref
 FFloor(RefArg inRcvr, RefArg inArg)
 {
-	double x = CoerceToDouble(inArg);
-	return MakeReal(floor(x));
+	return IntegerOrReal(floor(CoerceToDouble(inArg)));
 }
 
 Ref

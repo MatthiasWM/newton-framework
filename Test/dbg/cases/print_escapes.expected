@@ -1,0 +1,5 @@
+"a\"b\\c"
+"tab\there\nnext \u00E9\u!"
+a"b\c["x\"y", 
+ {s: "\\"}]
+"ab"

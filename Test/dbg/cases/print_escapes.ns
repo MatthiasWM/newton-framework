@@ -1,0 +1,7 @@
+// B13: Print shows strings as NewtonScript source (escaped); Write prints
+// the plain text
+Print("a\"b\\c");
+Print("tab\there\nnext \u00E9\u!");
+Write("a\"b\\c");
+Print(["x\"y", {s: "\\"}]);
+Print(SubStr(" ", 0, 0) & Stringer([$a, $b]));

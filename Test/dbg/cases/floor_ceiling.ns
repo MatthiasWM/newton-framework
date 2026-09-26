@@ -1,0 +1,3 @@
+// B3: Floor and Ceiling return an integer when the result fits (ROM
+// FFloor/FCeiling), else a real
+Print([Floor(2.5), Floor(-2.5), Floor(7), Ceiling(2.5), Ceiling(-2.5), Ceiling(0.2), Ceiling(-0.2), Floor(1.0e30), Ceiling(1.0e30)]);

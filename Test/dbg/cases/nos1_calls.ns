@@ -1,0 +1,13 @@
+//! -nos1
+// B1: NOS 1 (CodeBlock) calls: recursion, a call inside an expression, 0 and
+// 3 arguments, a method; the same results as NOS 2
+global Keep(n) begin local x := n; if n > 0 then Keep(n - 1); x end;
+global Id(n) n;
+global Sum2(n) Id(n) + Id(n + 1);
+global Deep(n) if n = 0 then 0 else 1 + Deep(n - 1);
+global Fib(n) if n < 2 then n else Fib(n - 1) + Fib(n - 2);
+global Three(a, b, c) [a, b, c];
+global None() 7;
+Print([Keep(3), Sum2(10), 100 + Id(5), Deep(4), Fib(2), Fib(3), Fib(4), Fib(10)]);
+Print([1, Three(2, 3, 4), 5, None(), 6 * None()]);
+Print({o: 1, M: func(x) x + o}:M(10) + 100);

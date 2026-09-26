@@ -1031,15 +1031,27 @@ check it off (with the commit) when fixed, don't delete it. Bugs fixed right
 away are described in the step where they were found (0.2, 1.3, 2.1, 3.1c-e).
 
 Interpreter and runtime
-- [ ] B1 **Recursion is broken in NOS 1 code** (`-nos1`, or a `//! -nos1`
+- [x] B1 **Recursion is broken in NOS 1 code** (`-nos1`, or a `//! -nos1`
   script; no longer the default). A recursive `Fib(n)` returns `n-1`; even
   `if n < 2 then return n` gives wrong values. Looks like the NOS 1 argFrame
   (locals) is shared instead of copied per call. NOS 2 code is correct. It
   still matters: a 2.x ROM also runs NOS 1 packages.
-- [ ] B2 **NOS 1 CodeBlock frames in `CNSDebugAPI::stackStart()`**: its
+  Fixed (2026-09-26): not the argFrame (callCodeBlock clones it), the
+  stack: ROM `TInterpreter::CallCodeBlock` pops the arguments while it
+  moves them into the argFrame and sets stackFrame to 3 below where they
+  were, so return leaves the result there. The port copied them without
+  popping and used the old top, so return put the result above the
+  arguments: every NOS 1 call left its arguments on the caller's stack
+  (`100 + Id(5)` failed, recursion gave wrong values). Tests `nos1_calls`,
+  `debugapi_temps_nos1`.
+- [x] B2 **NOS 1 CodeBlock frames in `CNSDebugAPI::stackStart()`**: its
   `stackFrame` is the stack top at call time (args stay on the stack), yet
   stackStart adds 3 like for NOS 2 functions. Verify against the ROM and a
   test (temps of/above a NOS 1 frame); may be related to B1.
+  Fixed with B1 (2026-09-26): with the ROM's stackFrame, +3 is right for
+  NOS 1 frames too (FunctionStackSize is 0 for them: "Newton 1.x does not
+  stack args"). Test `debugapi_temps_nos1` (a stopped NOS 1 frame has
+  exactly its two pushed temps).
 - [ ] B3 **Stubs**: `Stubs.cc` has many built-ins that just return nil.
   Replaced so far because the debugger needs them: `GetGlobals`, `ArrayPos`,
   `Display`; in 5.3 `Abs`, `Ceiling`, `Floor`, `Signum`, `SubStr` (the real
@@ -1052,13 +1064,33 @@ Interpreter and runtime
   `FhasVariable`, `Fisa`, `FmodalState`, `FntkDownload`, `FntkListener`,
   `ForigPhrase`, `Freal`, `Fstats`, `FGetSortID`): delete them. Also check
   against the ROM: `Floor` returns a real, `Ceiling` an integer (>= 1).
-- [ ] B4 **Sorted array set operations**: `GenOrderedSetOp`
+  First pass done (2026-09-26): the eleven stubs the ROM doesn't know are
+  deleted (nothing referenced them). `Floor` and `Ceiling` follow the ROM
+  (FFloor/FCeiling): an integer if the result fits (the ROM: 30 bits; here
+  kRefValueBits), else a real; the port's Floor always made a real and
+  Ceiling an integer only from 1 up. Test `floor_ceiling`. `Min`/`Max`
+  work. Still open: the tethered-listener spelling, and the other stubs one
+  by one as the GUI work needs them.
+- [x] B4 **Sorted array set operations**: `GenOrderedSetOp`
   (Frames/SortedArrays.cc, behind `BDifference`, `BIntersect`, `BMerge`)
   divides a `Ref*` difference by `sizeof(Ref)`, as `LSearch` did (lines
   ~956-968): copies too few elements, truncates the result.
-- [ ] B5 **`BMerge([...], [...], '|<|, nil, nil)` hangs.**
-- [ ] B6 **`LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil** (the general
-  test path, `CGeneralizedTestFnVar`).
+  Fixed (2026-09-26), with B5: the loop copied and advanced in one step
+  (`*r4++ = *r6++`), and only when the element was to be copied, so an
+  element to skip was never passed (BDifference hung on the first equal
+  pair); the duplicate loop of array 2 compared against an unset value and
+  used the operation code as its end flag. Rewritten from the operation
+  bits (advance / copy / over duplicates, per array), whose tables
+  (GOSOP_Merge, GOSOP_Intersection, GOSOP_Difference) and the uniqueOnly
+  handling match the ROM. Note (ROM behaviour): without uniqueOnly,
+  BIntersect keeps the matching elements of both arrays ([2, 2, 4, 4]).
+  Test `sorted_arrays`.
+- [x] B5 **`BMerge([...], [...], '|<|, nil, nil)` hangs.** (2026-09-26: it
+  returned `[]` by now; fixed with B4.)
+- [x] B6 **`LSearch(["x","y"], "y", 0, '|str=|, nil)` returns nil** (the general
+  test path, `CGeneralizedTestFnVar`). Fixed (2026-09-26): the fast path for
+  a symbol test without a key only knew `'=` and returned "not found" for
+  any other symbol; now only `'=` takes it. Test `sorted_arrays`.
 
 - [ ] B11 **Undefined behaviour when the store is created**: the first run
   with a new HOME (no store in `~/Library` yet) reports
@@ -1073,18 +1105,35 @@ Interpreter and runtime
   result string in some branches. In the ROM it is the `&` conversion
   (strings, numbers, symbols, characters), not the printer. DAP uses its
   own `DAPPrintObject`.
+  2026-09-26: `"" & 1.5 & " " & 1152921504606846975 & " " & $a & " " & 'sym`
+  gives the right string now; check the other callers before closing.
 
-- [ ] B16 **A closure over a `for` loop variable is a syntax error**:
+- [x] B16 **A closure over a `for` loop variable is a syntax error**:
   `for i := 0 to 2 do begin local g := func() i; ... end` gives -48601
   "syntax error" (with a copy, `local k := i; func() k`, it works). Check
   whether the ROM/NTK compiler refuses this on purpose (the loop keeps
   hidden locals i|limit, i|incr) or whether it is a porting bug.
+  Resolved (2026-09-26): on purpose. The ROM compiler has the same check
+  and message ("can't close over a for-loop index variable"): the loop
+  increments its variable with IncrVar, which only works on stack locals.
+  What was wrong: the message never showed. The REPL's error report now
+  prints the compiler's message after the error text (REP.cc
+  PrintErrorDetail; not in the ROM, which printed only "syntax error"),
+  also for parse errors ("syntax error -- read ..., but wanted ..."); this
+  one no longer carries the parser's stale state, and its apostrophe is
+  ASCII (the typographic one cut the message off). Test `for_closure`.
 
-- [ ] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
+- [x] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
   `"a"b\c"` (`SafelyPrintString`, Frames/ObjectPrinter.cc, marked "not
   complete yet"): `"`, `\` and control characters (CR, LF, tab) are not
   escaped, so the output is no valid NewtonScript. Matters for DAP variable
   values (5.4). Check what ROM `SafelyPrintString` does.
+  Fixed (2026-09-26): the ROM doesn't escape either (it only converts to
+  ASCII in chunks of 250), so this is a deliberate difference: `Print` (and
+  so the debugger's values) shows a string as NewtonScript source, escaped
+  like the decompiler writes strings (`\"`, `\\`, `\n` for CR, `\t`,
+  `\uXXXX\u`); new `PrintQuotedString` in Frames/ObjectPrinter.cc. `Write`
+  still prints the plain text. Tests `print_escapes`, `json`.
 
 - [ ] B14 **Integers overflow silently**: integers have 62 bits on a 64-bit
   host (`kRefValueBits`), but arithmetic wraps without notice:
@@ -1110,15 +1159,33 @@ Decompiler
   address, so the printer (and its cycle handling, "Fix 6") visits objects in
   a different order when the allocator changes. Totals with ASan: 1909 CLEAN,
   371 UNRESOLVED, 69 CRASHED.
-- [ ] B8 **Drops statements** (NS Debug Tools.pkg, `Ref_270` = `DisasmRange`):
+- [x] B8 **Drops statements** (NS Debug Tools.pkg, `Ref_270` = `DisasmRange`):
   in `if A then X else if B then Y else begin if C then Z; <more statements>
   end`, the decompiled source ends after `if C then Z`; the bytecode (pc 52-96:
   a second `if` and the call to `Disassemble`) is missing. See
   `newtc -pkg ... -debug bc -decompile`, search for "DisasmRange".
-- [ ] B9 **Loses parentheses** (NS Debug Tools.pkg, `StepIn`): an `if` without
+  Fixed (2026-09-26): the AST was right; CFIfThen::Print printed an else
+  branch that starts with an `if` as `else if` and printed only that first
+  node. The shortcut is now used only when the `if` is the whole branch.
+  300 corpus packages: 816 statement lines are back, none lost (every
+  statement of the old output is in the new one), the outputs still compile
+  as before (71 of the 73 changed ones, both before and after), and the
+  debug maps agree (nsdbg_check, 60 packages: 962/962 functions,
+  4449/4449 lines).
+- [x] B9 **Loses parentheses** (NS Debug Tools.pkg, `StepIn`): an `if` without
   `else` whose condition is `A or B` is printed as `A or B and X`, which means
   `A or (B and X)`. The bytecode (pc 160-207) evaluates `A or B` first, then
   branches.
+  Resolved (2026-09-26): the output was right, `and` and `or` share one
+  precedence and go left to right, so `A or B and X` is `(A or B) and X`
+  (newtc agrees: `true or nil and nil` is nil). But it reads like C, so
+  mixed `and`/`or` are now parenthesized: `(A or B) and X`,
+  `(A and B) or C`; chains of one operator stay as they are.
+  Fixed on the way: NS Debug Tools.pkg didn't decompile any more (a type
+  exception): `IsFunction()` (like the ROM's) only looks at slot 0 of any
+  slotted object, so a literals array whose first element is the plain
+  function class constant counted as a function. The object printer now
+  asks `IsFunctionFrame()` (a frame and IsFunction).
 - [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
   the first 30 manifest packages, with the binary from before 1.1 too.
 - [ ] B12 **ASCII only characters**: make sure that the decompiler outputs only

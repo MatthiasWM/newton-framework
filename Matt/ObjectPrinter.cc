@@ -65,6 +65,17 @@
 #include <sstream>
 #include <cctype>
 
+/**
+ \brief A function object (a frame). The ROM's IsFunction() only looks at the
+ first slot of any slotted object, so an array whose first element is the
+ class value of a plain function (e.g. a literals array holding that
+ constant, as in NS Debug Tools) would count as a function too.
+ */
+static bool IsFunctionFrame(Ref ref)
+{
+  return IsFrame(ref) && IsFunction(ref);
+}
+
 extern bool IsPathExpr(RefArg inObj);
 
 // struct Node { value_t value; std::vector<std::shared_ptr<Node>> children; std::weak_ptr<Node> parent; };
@@ -106,7 +117,7 @@ void ObjectPrinter::PrintBinary(RefArg ref) {
 }
 
 void ObjectPrinter::PrintFunction(RefArg ref, bool isNative) {
-  assert(IsFunction(ref));
+  assert(IsFunctionFrame(ref));
   mDecompile(ref, *this, isNative, debugAST_, debugBC_);
 }
 
@@ -346,7 +357,7 @@ void ObjectPrinter::PrintSExpr(RefArg ref)
     return PrintRefConst(ref);
   else if (IsPathExpr(ref))
     return PrintPathExpr(ref);
-//  else if (IsFunction(ref))   // check before frame
+//  else if (IsFunctionFrame(ref))   // check before frame
 //    return PrintFunction(ref);
   else if (IsArray(ref))
     return PrintSExprArray(ref);
@@ -418,7 +429,7 @@ void ObjectPrinter::PrintArray(RefArg ref) {
  */
 void ObjectPrinter::PrintFrame(RefArg ref) {
   assert(IsFrame(ref));
-  if (optionDecompile_ && IsFunction(ref)) {
+  if (optionDecompile_ && IsFunctionFrame(ref)) {
     Ref theClass = GetArraySlot(ref, 0);
     if (   (theClass == kPlainFuncClass)
         || (EQ(theClass, SYMA(CodeBlock))) )
@@ -693,7 +704,7 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
       for ( ; !iter.done(); iter.next()) {
         refPath_.push_back(iter.tag());
         BuildRefMapBranch(iter.value());
-        if (optionDecompile_ && IsFunction(iter.value())) {
+        if (optionDecompile_ && IsFunctionFrame(iter.value())) {
           BuildRefMapForFunc(iter.value());
         }
         refPath_.pop_back();
@@ -712,7 +723,7 @@ void ObjectPrinter::BuildRefMapBranch(RefArg ref)
 //        } END_FOREACH;
 //      }
       // Functions have components that should nor be printed, and others that must be printed early
-//      if (optionDecompile_ && IsFunction(ref)) {
+//      if (optionDecompile_ && IsFunctionFrame(ref)) {
 //        BuildRefMapForFunc(ref);
 //      }
     } else if (IsBinary(ref)) {
@@ -736,7 +747,7 @@ bool ObjectPrinter::FrameDeclaresFunc(RefArg ref)
     int i, n = Length(ref);
     for (i = 0; i < n; ++i) {
       Ref slot = GetArraySlot(ref, i);
-      if (IsFunction(slot)) {
+      if (IsFunctionFrame(slot)) {
 //        fprintf(stderr, "Function in function found: %s\n", this->RefPath().c_str());
         return true;
       }
@@ -751,7 +762,7 @@ bool ObjectPrinter::FrameDeclaresFunc(RefArg ref)
 
 void ObjectPrinter::BuildRefMapForFunc(RefArg func)
 {
-  assert(IsFunction(func));
+  assert(IsFunctionFrame(func));
 
   /* Debugging helper: print the type of function being processed
   Ref theClass = GetArraySlot(func, 0);
@@ -807,11 +818,11 @@ void ObjectPrinter::BuildRefMapForFunc(RefArg func)
       // however must *not* be declared global constants, or the compiler
       // will not emit the required SetLexScope.
       // TODO: should that be the same for arrays? What about arrays defining a map?
-      if (   ( IsFrame(slot) && !IsFunction(slot) )
+      if (   ( IsFrame(slot) && !IsFunctionFrame(slot) )
           || ( IsArray(slot) && (ClassOf(slot) != MAKEINT(2)) )
           ) map[slot].forceEarlyPrint_ = true;
 #if 1
-      if (IsFunction(slot)) {
+      if (IsFunctionFrame(slot)) {
         argFrame = GetFrameSlot(slot, SYMA(argFrame));
 //        bool isFastFunc = (GetFrameSlot(func, SYMA(class)) == kPlainFuncClass);
 //        if (isFastFunc) {
@@ -883,7 +894,7 @@ bool ObjectPrinter::FindFastFunction(RefArg pkg) {
   Ref part0 = GetArraySlot(part, 0);
   if (!IsFrame(part0)) return false;
   std::function<bool(RefArg)> fn = [&](RefArg ref)->bool {
-    if (IsFunction(ref)) {
+    if (IsFunctionFrame(ref)) {
       if (GetFrameSlot(ref, SYMA(class)) == kPlainFuncClass) {
         //fprintf(stdout, "Fast Function found!\n");
         return true;

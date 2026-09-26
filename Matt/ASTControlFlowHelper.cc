@@ -209,16 +209,30 @@ void CFIfThen::PrintChildren(bool deep) {
   dec.p.Tag(); dec.p.Print("##### <--- If Done");
 }
 
+/**
+ \brief True if this prints as `cond and body` (an if that yields a value
+ and has no else, i.e. nil).
+ */
+bool CFIfThen::IsAndForm()
+{
+  return (provides() == kProvidesOne) && elseBody_ && elseBody_->IsNIL()
+      && !cond_->IsMultiStatement() && !IsChainMultiStatement(body_);
+}
+
 void CFIfThen::Print(uint32_t flags)
 {
-  if ((provides() == kProvidesOne) && elseBody_ && elseBody_->IsNIL()
-      && !cond_->IsMultiStatement() && !IsChainMultiStatement(body_)) {
+  if (IsAndForm()) {
     Precedence pp = dec.precedence;
     bool parentheses = (dec.precedence > kPrecedenceAndOr);
     dec.precedence = kPrecedenceAndOr;
     {
       if (parentheses) dec.p.Printf("(");
+      // `and` and `or` have the same precedence and go left to right, so
+      // `A or B and X` is right; but it reads like C's A or (B and X):
+      // parenthesize an `or` here (B9)
+      if (dynamic_cast<CFOr*>(cond_)) dec.precedence++;
       cond_->Print();
+      dec.precedence = kPrecedenceAndOr;
       dec.p.Print(" and ");
       dec.precedence++;
       body_->Print();
@@ -260,7 +274,7 @@ void CFIfThen::Print(uint32_t flags)
       }
       if (elseBody_) {
         dec.p.Print("else ");
-        if (dynamic_cast<CFIfThen*>(elseBody_)) {
+        if (dynamic_cast<CFIfThen*>(elseBody_) && elseBody_->next == nullptr) {
           // We have an "else if" statement. If we don;t indent it, the source is more readable.
           elseBody_->Print();
         } else {
@@ -302,7 +316,11 @@ void CFOr::Print(uint32_t flags)
   dec.precedence = kPrecedenceAndOr;
   {
     if (parentheses) dec.p.Printf("(");
+    // an `and` on the left: parenthesized for readers (see CFIfThen::Print)
+    CFIfThen *leftIf = dynamic_cast<CFIfThen*>(left_);
+    if (leftIf && leftIf->IsAndForm()) dec.precedence++;
     left_->Print();
+    dec.precedence = kPrecedenceAndOr;
     dec.p.Print(" or ");
     dec.precedence++;
     right_->Print();

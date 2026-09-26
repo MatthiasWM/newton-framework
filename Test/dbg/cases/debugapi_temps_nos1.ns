@@ -1,0 +1,9 @@
+//! -nos1
+// B1/B2: NOS 1 (CodeBlock) functions keep their args in the argFrame, not on
+// the stack (ROM CallCodeBlock pops them). Work is stopped while calling
+// Stop(), the third argument of Three: its temps are the two arguments
+// already pushed, 21 and 42, and Three still gets the right values.
+global Three(a, b, c) [a, b, c];
+global Stop() begin BreakLoop(); 3 end;
+global Work(a) Three(a, a * 2, Stop());
+Print(Work(21));

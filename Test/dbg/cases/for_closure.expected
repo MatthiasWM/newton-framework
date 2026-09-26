@@ -1,0 +1,2 @@
+2
+    File "for_closure.ns"; Line 15 !!! Exception: -48601, syntax error: can't close over a for-loop index variable

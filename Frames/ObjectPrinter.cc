@@ -104,6 +104,7 @@ static bool		StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Pt
 
 extern "C" {
 		void		SafelyPrintString(UniChar * str);
+		void		PrintQuotedString(UniChar * str);
 }
 
 
@@ -437,9 +438,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 
 					} else if (IsSymbol(objClass)) {
 						if (IsSubclass(objClass, SYMA(string))) {
-							REPprintf("\"");
-							SafelyPrintString((UniChar *)BinaryData(obj));
-							REPprintf("\"");
+							PrintQuotedString((UniChar *)BinaryData(obj));
 						} else {
 							REPprintf("MakeBinaryFromHex(\"");
 							const unsigned char * p = (const unsigned char *)BinaryData(obj);
@@ -542,6 +541,49 @@ SafelyPrintString(UniChar * str)
     }
   }
 #endif
+}
+
+
+/*------------------------------------------------------------------------------
+	Print a string as NewtonScript source: in quotes, with \" \\ \n (CR)
+	\t and \uXXXX\u for anything else that isn't printable ASCII, the way
+	the decompiler writes strings (Matt/ObjectPrinter.cc). Not in the ROM:
+	its Print shows the characters as they are ("a"b\c" for "a\"b\\c"),
+	which isn't valid NewtonScript; the debugger shows values with this.
+	Write() still prints the plain text (SafelyPrintString).
+	Args:		str		the string
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+PrintQuotedString(UniChar * str)
+{
+	char	buf[256 + 16];
+	int	bi = 0;
+	buf[bi++] = '"';
+	for ( ; ; ++str) {
+		UniChar c = *str;
+		if (c == 0) {
+			buf[bi++] = '"';
+		} else if (c == '\\' || c == '"') {
+			buf[bi++] = '\\'; buf[bi++] = (char)c;
+		} else if (c >= 32 && c < 127) {
+			buf[bi++] = (char)c;
+		} else if (c == 0x0D) {
+			buf[bi++] = '\\'; buf[bi++] = 'n';
+		} else if (c == '\t') {
+			buf[bi++] = '\\'; buf[bi++] = 't';
+		} else {
+			bi += snprintf(buf + bi, 12, "\\u%04X\\u", c);
+		}
+		if (c == 0 || bi >= 256) {
+			buf[bi] = 0;
+			REPprintf("%s", buf);
+			bi = 0;
+		}
+		if (c == 0)
+			break;
+	}
 }
 
 
