@@ -1,5 +1,18 @@
 
 
+Releasing VSNewt into the world:
+
+- Run Matt/tools/build_vsnewt_newtc.sh in newton-framework to put a fresh
+  newtc into VSNewt.
+- If the built-in function list changed, run python3 scripts/make_grammar.py
+  in VSNewt.
+- Raise version in package.json and add a CHANGELOG entry.
+- Run npm run package, then tag and create a GitHub release with the
+  new VSIX, as this time.
+
+----
+
+
 # 1. Rebuild
 cmake --build build/VSCode --target newtc -j4
 
