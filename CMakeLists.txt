@@ -623,8 +623,14 @@ set_property (TARGET newtc
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1)
 target_compile_definitions(newtc PRIVATE __LP64__=1)
-target_compile_options(newtc PUBLIC -fsanitize=undefined)
-target_link_options(newtc PUBLIC -fsanitize=undefined)
+# UBSan links a runtime library from the toolchain, so a newtc built with it
+# only runs where that library is: the binary bundled with VSNewt is built
+# with -DNEWTC_UBSAN=OFF (Matt/tools/build_vsnewt_newtc.sh).
+option(NEWTC_UBSAN "Build newtc with the undefined behavior sanitizer" ON)
+if (NEWTC_UBSAN)
+  target_compile_options(newtc PUBLIC -fsanitize=undefined)
+  target_link_options(newtc PUBLIC -fsanitize=undefined)
+endif()
 target_include_directories (newtc PRIVATE
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/Frames
