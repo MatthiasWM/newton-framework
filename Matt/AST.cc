@@ -70,6 +70,21 @@ void Node::PrintChildren(bool deep)
 }
 
 /**
+ \brief The lowest pc in this node and its children, or -1: where the code
+ of a statement starts (for the debug map, -odecompile).
+ */
+int Node::FirstPC()
+{
+  int first = pc_;
+  VisitChildren([&first](Node *child) {
+    int pc = child->FirstPC();
+    if (pc >= 0 && (first < 0 || pc < first))
+      first = pc;
+  });
+  return first;
+}
+
+/**
  \brief Print information about this node for debugging.
  To expand this, override this method, call the original, and the just append
  more text by calling dec.p.Print* functions.

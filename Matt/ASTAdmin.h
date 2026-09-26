@@ -65,6 +65,7 @@ public:
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "Consume1"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (in_) fn(in_); }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 1; }
   Node *Input() { return in_; }
@@ -83,6 +84,7 @@ public:
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "Consume2"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (in1_) fn(in1_); if (in2_) fn(in2_); }
   int provides() override { if (Resolved()) return 1; else return kProvidesUnknown; }
   int consumes() override { return 2; }
   Node *Resolve(Pass pass) override;
@@ -101,6 +103,7 @@ public:
   : Bytecode(d, pc, a, b), numIns_(n) { }
   const char *Class() override { return "ConsumeN"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { for (auto in: ins_) if (in) fn(in); }
   int provides() override { if (ins_.empty()) return kProvidesUnknown; else return 1; }
   int consumes() override { return numIns_; }
   Node *Resolve(Pass pass) override;

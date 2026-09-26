@@ -1,0 +1,9 @@
+// Printing a long string (more than one 240-character chunk of the REPL
+// printer, SafelyPrintString). The chunk index was never reset: after the
+// first chunk, the whole buffer was printed again for every character, and
+// past about 1000 characters it overflowed its stack buffer.
+s := "";
+for i := 1 to 30 do
+  s := s & "0123456789" & "abcdefghijklmnopqrstuvwxyz" & "|";
+Print(StrLen(s));
+Print(s);

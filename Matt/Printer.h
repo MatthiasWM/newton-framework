@@ -33,8 +33,13 @@ class Printer {
     bool itemEmpty_ { true };
   };
   std::vector<State> stack_;
+  // debug map: a statement about to be printed records the line its first
+  // token lands on (see MarkNextItem)
+  int pendingMark_ { -1 };
+  std::vector<std::pair<int, int>> *pendingMarks_ { nullptr };
 
   void PrintSeparator();
+  void Write(const std::string &text);   // everything goes out here
 
 public:
   std::ostream &out;
@@ -64,6 +69,12 @@ public:
   void FreshLine();
 
   void PrintDivider(const std::string &text);
+
+  /** The line (1-based) the next character goes to. */
+  int Line() const { return line_ + 1; }
+  /** When the next item starts, append (pc, its line) to marks. */
+  void MarkNextItem(int pc, std::vector<std::pair<int, int>> *marks) {
+    pendingMark_ = pc; pendingMarks_ = marks; }
 };
 
 #endif // MATT_PRINTER

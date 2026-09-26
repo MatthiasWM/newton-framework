@@ -281,6 +281,7 @@ public:
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCSetPath"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (object_) fn(object_); if (path_) fn(path_); if (value_) fn(value_); }
   int provides() override;
   int consumes() override { return 3; }
   Node *Resolve(Pass pass) override;
@@ -299,6 +300,7 @@ public:
   : Bytecode(d, pc, a, b) { }
   const char *Class() override { return "BCSetARef"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (object_) fn(object_); if (index_) fn(index_); if (element_) fn(element_); }
   int provides() override { if (object_ && index_ && element_) return kProvidesOne; else return kProvidesUnknown; }
   int consumes() override { return 3; }
   Node *Object() { return object_; }

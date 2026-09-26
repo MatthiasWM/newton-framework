@@ -12,6 +12,7 @@
 
 #include <tuple>
 #include <cstdint>
+#include <functional>
 
 class Decompiler;
 
@@ -101,6 +102,17 @@ public:
   virtual const char *Class() { return "Node"; }
   virtual void PrintChildren(bool deep);
   virtual void PrintNode(bool deep);
+
+  // ---- debug map (-odecompile): where a statement's code starts
+  /** Call fn with every child of this node, like PrintChildren() prints
+      them (a body that is a chain of statements: every one). */
+  virtual void VisitChildren(const std::function<void(Node*)> &fn) { }
+  /** The lowest pc in this node and its children, or -1. */
+  int FirstPC();
+  /** Call fn with node and the statements chained after it. */
+  static void VisitChain(Node *node, const std::function<void(Node*)> &fn) {
+    for ( ; node; node = node->next) fn(node);
+  }
   
   // ---- setter and getter
   int pc() { return pc_; }

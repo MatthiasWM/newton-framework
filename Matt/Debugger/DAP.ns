@@ -583,7 +583,8 @@ DefGlobalVar('DAP, {
   end,
 
   // Step by source line (kind 'over, '|in|, 'out; C++, StartLineStep) if
-  // the stopped function has a line table and the client didn't ask for
+  // the stopped function has a line table (its own, or one registered from
+  // a .nsdbg) and the client didn't ask for
   // single instructions (granularity "instruction", e.g. VS Code's
   // Disassembly view). Resumes the program and returns true; nil if not.
   LineStep: func(request, kind)
@@ -594,7 +595,7 @@ DefGlobalVar('DAP, {
     local stack := kNSDTools:CurrentStack();
     local frame := stack:FindBreakLoop() - 1;
     local fn := stack:Function(frame);
-    if not (call kNSDIsInterpreted with (fn) and HasSlot(fn, 'lineTable)) then
+    if not (call kNSDIsInterpreted with (fn) and LineOfPC(fn, 0)) then
       return nil;
     StartLineStep(kind, fn, stack:ProgramCounter(frame), frame);
     ExitBreakLoop();

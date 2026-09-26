@@ -537,6 +537,8 @@ SafelyPrintString(UniChar * str)
     if ((bi > 240) || (i == n-1)) {
       buf[bi] = 0;
       REPprintf("%s", buf);
+      bi = 0;		// was missing: the whole buffer was printed again for every
+					// further character, and it overflowed buf[] after ~1000
     }
   }
 #endif

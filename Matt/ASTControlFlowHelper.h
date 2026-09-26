@@ -55,17 +55,19 @@ public:
   int provides() override { return kProvidesOne; }
   bool Resolved() override { return true; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
 class ControlBlock : public Node {
 public:
   int provides_ = kProvidesNone;
-  Node *body_;
+  Node *body_ = nullptr;
 public:
   ControlBlock(Decompiler &d, int pc, int inProvides);
   const char *Class() override { return "ControlBlock"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override = 0;
   int provides() override { return provides_; }
   bool Resolved() override { return true; }
@@ -85,6 +87,7 @@ public:
   CFWhile(Decompiler &d, int pc, int prov, Node *condition, Node *body);
   const char *Class() override { return "CFWhile"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (cond_) fn(cond_); VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -95,6 +98,7 @@ public:
   CFRepeat(Decompiler &d, int pc, int prov, Node *condition, Node *body);
   const char *Class() override { return "CFRepeat"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { VisitChain(body_, fn); if (cond_) fn(cond_); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -114,6 +118,7 @@ public:
   CFIfThen(Decompiler &d, int pc, Node *condition, bool returnsAValue);
   const char *Class() override { return "CFIfThen"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (cond_) fn(cond_); VisitChain(body_, fn); VisitChain(elseBody_, fn); }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
@@ -126,6 +131,7 @@ public:
   CFOr(Decompiler &d, int pc, Node *left, Node *right);
   const char *Class() override { return "CFOr"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (left_) fn(left_); if (right_) fn(right_); }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
 };
@@ -135,6 +141,7 @@ class CFBreak : public Node {
 public:
   CFBreak(Decompiler &d, int origin, int target, Node *input);
   const char *Class() override { return "CFBreak"; }
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (in_) fn(in_); }
   int provides() override { return kProvidesNone; }
   bool Resolved() override { return true; }
   void Print(uint32_t flags = 0) override;
@@ -148,6 +155,8 @@ public:
   CFForLoop(Decompiler &d, int pc, int prov, Node *iter, Node *limit, Node *incr, Node *body);
   const char *Class() override { return "CFForLoop"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override {
+    if (iter_) fn(iter_); if (limit_) fn(limit_); if (incr_) fn(incr_); VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -160,6 +169,7 @@ public:
   CFForEachSlotValueDo(Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body);
   const char *Class() override { return "CFForEachSlotDo"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (object_) fn(object_); VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -180,6 +190,7 @@ public:
   CFForEachSlotValueCollect(Decompiler &d, int pc, int slot, int value, bool deeply, Node *obj, Node *body);
   const char *Class() override { return "CFForEachSlotValueCollect"; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { if (object_) fn(object_); VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -194,6 +205,7 @@ public:
   pattern::Tag tag() const override { return pattern::Tag::ExceptionHandler; }
   void Body(Node *body) { body_ = body; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override { VisitChain(body_, fn); }
   void Print(uint32_t flags = 0) override;
 };
 
@@ -208,6 +220,8 @@ public:
   bool Resolved() override { return true; }
   int provides() override { return provides_; }
   void PrintChildren(bool deep) override;
+  void VisitChildren(const std::function<void(Node*)> &fn) override {
+    VisitChain(body_, fn); for (auto handler: exList_) if (handler) fn(handler); }
   void Print(uint32_t flags) override;
 };
 

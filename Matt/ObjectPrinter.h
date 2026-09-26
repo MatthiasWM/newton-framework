@@ -68,6 +68,13 @@ public:
   };
   std::map<Ref, Node> map;
   std::vector<Ref> refPath_;
+  /** -odecompile: one entry per decompiled function, for the debug map
+      (.nsdbg): its path from debugMapRoot_ (JSON array of slot names and
+      indexes), a hash of its instructions, and its line table (pc, line of
+      the output). */
+  struct DebugMapFunction { std::string path; std::string hash; std::vector<std::pair<int, int>> lines; };
+  std::vector<DebugMapFunction> *debugMap_ { nullptr };
+  RefVar debugMapRoot_;   // the object Decompile() prints (paths start here)
 
   bool FindFastFunction(RefArg pkg);
 

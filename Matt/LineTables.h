@@ -22,6 +22,8 @@
 
 #include "Frames/Objects.h"
 
+#include <string>
+
 /** Start collecting the functions the compiler makes with a line table. */
 void InstallLineTables(void);
 
@@ -54,6 +56,25 @@ Ref CodeForLine(RefArg file, long line);
 enum LineStepKind { kLineStepNone, kLineStepOver, kLineStepIn, kLineStepOut };
 void StartLineStep(LineStepKind kind, RefArg fn, long pc, long depth);
 void CancelLineStep(void);
+
+/** Debug maps (.nsdbg, written by -odecompile) for code whose binary must
+    not change (packages): a hash of a function's instructions, to find it
+    again (FNV-1a, 16 hex digits). */
+std::string InstructionsHash(RefArg fn);
+
+/** The path from root to target as a JSON array of slot names and array
+    indexes ("null" if target isn't reachable, not counting magic pointers). */
+std::string PathToObject(RefArg root, RefArg target);
+
+/** Use table as the line table of fn (and every function with the same
+    instructions) without changing fn (package objects may be read-only). */
+void RegisterLineTable(RefArg fn, RefArg table);
+
+/** Load a debug map (JSON text) for the package (or other object) root:
+    each function is found by the hash of its instructions (if several
+    have the same bytecode, by its path) and gets the map's line table.
+    Returns the number of functions matched; *outTotal: in the map. */
+int LoadDebugMap(RefArg root, const std::string &json, int *outTotal);
 
 // NewtonScript functions, registered in newtc.cc:
 //   LineOfPC(fn, pc) -> [file, line] or nil

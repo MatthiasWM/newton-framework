@@ -17,6 +17,7 @@
 
 #include "Frames/Frames.h"
 #include "Frames/Iterators.h"
+#include "Matt/LineTables.h"
 
 #include <algorithm>
 #include <tuple>
@@ -334,6 +335,7 @@ Decompiler::~Decompiler() { }
 
 void Decompiler::decompile(Ref ref)
 {
+  function_ = ref;
   bool fastFunc = false;
   Ref klass = GetFrameSlot(ref, SYMA(class));
   if (IsSymbol(klass) && SymbolCompare(klass, SYMA(CodeBlock))==0) {
@@ -873,6 +875,7 @@ void Decompiler::printSource(bool isNative)
   // statements, followed by one expression
   for (Node *nd = first_->next; nd; nd = nd->next) {
     p.Item();
+    MarkStatement(nd);
     nd->Print(kPrintSuppressList);
     p.ItemDone();
   }
@@ -898,6 +901,21 @@ void Decompiler::printSource(bool isNative)
   p.EndList();
   p.FreshLine();
   p.Print("end");
+
+  // Debug map: this function's line table, from the statement marks. For
+  // statements that start at the same pc, the last printed (the innermost)
+  // wins.
+  if (p.debugMap_ && !lineMarks_.empty()) {
+    std::map<int, int> byPC;
+    for (auto &mark : lineMarks_)
+      byPC[mark.first] = mark.second;
+    ObjectPrinter::DebugMapFunction entry;
+    entry.path = PathToObject(p.debugMapRoot_, function_);
+    entry.hash = InstructionsHash(function_);
+    for (auto &pcLine : byPC)
+      entry.lines.push_back(pcLine);
+    p.debugMap_->push_back(entry);
+  }
 }
 
 
@@ -948,6 +966,16 @@ void Decompiler::printSource(bool isNative)
  - `numArgs`: 2
  ```
  */
+/**
+ \brief Debug map: the statement about to be printed records the output line
+ it starts on, with the first pc of its code.
+ */
+void Decompiler::MarkStatement(ast::Node *statement)
+{
+  if (p.debugMap_ && statement)
+    p.MarkNextItem(statement->FirstPC(), &lineMarks_);
+}
+
 NewtonErr mDecompile(Ref ref, ObjectPrinter &printer, bool isNative, bool debugAST, bool debugBC)
 {
   Decompiler d(printer);

@@ -45,6 +45,7 @@ void CompoundExpr::Print(uint32_t flags)
   dec.p.DeepList(";");
   for (Node *it = body_; it; it = it->next) {
     dec.p.Item();
+    dec.MarkStatement(it);
     it->Print();
     dec.p.ItemDone();
   }
@@ -72,6 +73,7 @@ namespace {
 void PrintBodyChain(Decompiler &dec, Node *head, uint32_t flags = 0) {
   if (!head) return;
   if (head->next == nullptr) {
+    dec.MarkStatement(head);
     head->PrintOnNewLine(flags);
     return;
   }
@@ -80,6 +82,7 @@ void PrintBodyChain(Decompiler &dec, Node *head, uint32_t flags = 0) {
   if ((flags & kPrintSuppressList) == 0) dec.p.DeepList(";");
   for (Node *it = head; it; it = it->next) {
     dec.p.Item();
+    dec.MarkStatement(it);
     it->Print();
     dec.p.ItemDone();
   }
@@ -244,6 +247,7 @@ void CFIfThen::Print(uint32_t flags)
       dec.p.FreshLine();
       for (Node *it = body_; it; it = it->next) {
         dec.p.Item();
+        dec.MarkStatement(it);
         it->Print();
         dec.p.ItemDone();
       }
@@ -266,6 +270,7 @@ void CFIfThen::Print(uint32_t flags)
           dec.p.DeepList(";");
           for (Node *it = elseBody_; it; it = it->next) {
             dec.p.Item();
+            dec.MarkStatement(it);
             it->Print();
             dec.p.ItemDone();
           }

@@ -940,11 +940,49 @@ in the interpreter (C++), not in NewtonScript.
       "Opens the Disassembly view" (VS Code's own requests).
 
 ### Phase 9: Code without source
-- [ ] 9.1 The decompiler writes a `.nsdbg` next to its output: for each
-      function, keyed by its object path in the package
-      (`part.0.data.theForm.viewClickScript`, ObjectPrinter::RefPath) plus a
-      hash of its instructions, the line table into the decompiled source.
-      Loading a package with its .nsdbg registers the tables.
+- [x] 9.1 Debug maps for decompiled packages. `newtc -pkg P -odecompile
+      x.ns` writes the decompiled source to x.ns and its debug map to
+      x.nsdbg; `newtc -pkg P -nsdbg x.nsdbg ...` loads it (stderr:
+      `newtc: debug map "x.nsdbg": N of M functions found`), and the
+      package's functions then have line tables into x.ns: stack frames,
+      line breakpoints, line stepping, the Disassembly view, all as for
+      code compiled with -g. The package's objects are not changed.
+      - Map format (JSON): `{"format": "nsdbg", "version": 1, "source":
+        <absolute path of x.ns>, "functions": [{"path": ["part", 0, "data",
+        "InstallScript"], "hash": "bef6a6c0b0183fd8", "lines": [pc, line,
+        ...]}]}`. path: slot names and array indexes from the package
+        (PathToObject: depth-first from the root, magic pointers not
+        followed); hash: FNV-1a 64 of the instructions (InstructionsHash).
+      - Writing: the printer (Matt/Printer) counts the lines it writes.
+        `Decompiler::MarkStatement(node)` asks it to note the line where the
+        statement's first token comes out (`MarkNextItem`, resolved in
+        `DoStartItem`, so a pending newline is counted first), at the
+        statement's first pc (`Node::FirstPC()`, through the new
+        `VisitChildren()`, which mirrors `PrintChildren()` in every node
+        type). Marked: top-level statements of a function, compound
+        statements, loop bodies, if/else branches. The decompiled text is
+        unchanged: byte-identical for 300 corpus packages before and after.
+      - Loading (`LoadDebugMap`): collects the package's functions (walk
+        without allocating), matches each map entry by hash (several
+        functions with the same bytecode: by path) and registers the table
+        by `instructions` (`RegisterLineTable`; `TableOf` falls back to the
+        registry, one-entry cache). All line-table users go through TableOf
+        (LineOfPC, CodeForLine, StepCheck); DAP.ns's LineStep now asks
+        `LineOfPC(fn, 0)` instead of looking for a `lineTable` slot.
+      - Checked on the corpus (`Test/nsdbg_check.py --batch ... --limit
+        300`): 8118 of 8119 functions found again (one miss in mb_v27);
+        35477 of 35522 mapped lines are statement lines of the same function
+        when x.ns is recompiled with -g (an independent line table; the
+        bytecode differs between NTK's compiler and ours, the statements
+        don't). The rest are functions the decompiler prints twice (the same
+        text in two places): the map uses the last one.
+      Fixed on the way: `SafelyPrintString` (Frames/ObjectPrinter.cc) didn't
+      reset its chunk index after writing a chunk, so a string longer than
+      240 characters printed the buffer again and again and overflowed it
+      (garbage, then a crash). Test `print_long_string`.
+      Tests: `Test/dbg/test_nsdbg.py` (hello package: -odecompile, -nsdbg,
+      then DAP: a breakpoint on a line of the decompiled InstallScript, the
+      stop there, `next` to the next line), `Test/nsdbg_check.py`.
 - [ ] 9.2 Later: ROM code (with Einstein), `-run` for form packages.
 
 ### Later: the rest of the VS Code extension
@@ -1053,9 +1091,9 @@ Decompiler
   shall go all UTF-8.
 
 Open work (not bugs)
-- `-g` (VSNewt's "Compile ... for debugging" commands pass it): compile with
-  debug information and write the debug map (Phase 8). newtc accepts and
-  ignores it until then.
+- VSNewt: a launch attribute to load packages with their .nsdbg before
+  the program (newtc arguments before -dap), to debug decompiled packages
+  from VS Code.
 - The newtc in VSNewt's bin/darwin-arm64 is old (no -dap): copy a current
   build there before packaging a VSIX.
 - `-run` (run a loaded 'form package) is not implemented.

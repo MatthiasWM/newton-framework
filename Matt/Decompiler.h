@@ -120,6 +120,12 @@ public:
   void solve();
   void generateAST(Ref instructions);
 
+  // Debug map (-odecompile): the function being decompiled, and for each
+  // statement printed, (its first pc, the output line it starts on).
+  RefVar function_;
+  std::vector<std::pair<int, int>> lineMarks_;
+  void MarkStatement(ast::Node *statement);
+
   // Print state:
   Print output { Print::bytecode };
   Precedence precedence { kPrecedenceAssign }; // During printout, store the precedence of the current operation

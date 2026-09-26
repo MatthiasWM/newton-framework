@@ -538,6 +538,78 @@ void handleArgDecompile()
 }
 
 /**
+ \brief Decompile the object in current ref into a file, plus a debug map.
+ Like -decompile, but writes the source to `filename` and, next to it,
+ `<name>.nsdbg`: for each decompiled function its path in the object, a hash
+ of its instructions, and its line table into the source (JSON). Loading
+ the package with -nsdbg lets the debugger show and step through the
+ decompiled source while the package's code stays as it is.
+ */
+void handleArgODecompile(const std::string &filename)
+{
+  RefVar ref0 = getGlobalRef(0);
+  std::vector<ObjectPrinter::DebugMapFunction> functions;
+  {
+    std::ofstream source(filename);
+    if (!source)
+      throw(std::runtime_error("Can't write \"" + filename + "\"."));
+    ObjectPrinter p(source);
+    p.DebugAST(debugAST_);
+    p.DebugBC(debugBC_);
+    p.DebugTrap(debugTrap_);
+    p.debugMap_ = &functions;
+    p.Decompile(ref0);
+  }
+  char resolved[PATH_MAX];
+  std::string sourcePath = realpath(filename.c_str(), resolved) ? resolved : filename;
+  std::string mapPath = filename;
+  size_t dot = mapPath.rfind('.');
+  size_t slash = mapPath.rfind('/');
+  if (dot != std::string::npos && (slash == std::string::npos || dot > slash))
+    mapPath.erase(dot);
+  mapPath += ".nsdbg";
+  std::ofstream map(mapPath);
+  if (!map)
+    throw(std::runtime_error("Can't write \"" + mapPath + "\"."));
+  map << "{\"format\": \"nsdbg\", \"version\": 1,\n \"source\": " << QuoteJSON(sourcePath)
+      << ",\n \"functions\": [";
+  for (size_t i = 0; i < functions.size(); ++i) {
+    auto &fn = functions[i];
+    map << (i ? "," : "") << "\n  {\"path\": " << fn.path << ", \"hash\": \"" << fn.hash << "\", \"lines\": [";
+    for (size_t j = 0; j < fn.lines.size(); ++j)
+      map << (j ? ", " : "") << fn.lines[j].first << ", " << fn.lines[j].second;
+    map << "]}";
+  }
+  map << "\n]}\n";
+}
+
+/**
+ \brief Load a debug map (from -odecompile) for the object in current ref.
+ Its functions (found by the hash of their instructions) get the map's line
+ tables, so the debugger shows the decompiled source for them.
+ */
+void handleArgNsdbg(const std::string &filename)
+{
+  RefVar ref0 = getGlobalRef(0);
+  std::ifstream file(filename);
+  if (!file)
+    throw(std::runtime_error("Can't read \"" + filename + "\"."));
+  std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  int total = 0, matched = 0;
+  newton_try
+  {
+    matched = LoadDebugMap(ref0, json, &total);
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+  }
+  end_try;
+  std::cerr << "newtc: debug map \"" << filename << "\": " << matched << " of "
+            << total << " functions found" << std::endl;
+}
+
+/**
  \brief Write the object in current ref as text to stdout.
  Decompile functions as we encounter them.
  */
@@ -692,6 +764,7 @@ the commands in the given order.
 
   Input Commands
   -pkg <filename>         Load a package file and hold it as a Newton object
+  -nsdbg <filename>       Load a debug map (from -odecompile) for the object held
   -nsof <filename>        Load a Newton streaming object file
   -script <filename>      Read a source file, compile and run it, and hold the result
   -s <script>             Compile and run the script, and hold the result
@@ -705,6 +778,8 @@ the commands in the given order.
   -opdf <filename>        Write the first part as a PDF file if it is a book
   -print                  Print the current object, functions are just frames
   -decompile              Print the object with all functions decompiled
+  -odecompile <filename>  Decompile into a file, and write a debug map next to it
+                          (<name>.nsdbg: decompiled source lines for the functions)
   -stats                  Print some package statistics about the object
   -help                   This help text
 
@@ -816,6 +891,14 @@ int handleArgs(int argc, char **argv)
         handleArgPrint();
       } else if (cmd == "-decompile") {
         handleArgDecompile();
+      } else if (cmd == "-odecompile") {
+        if (argi>=argc)
+          throw(std::runtime_error("-odecompile: file name expected."));
+        handleArgODecompile(argv[argi++]);
+      } else if (cmd == "-nsdbg") {
+        if (argi>=argc)
+          throw(std::runtime_error("-nsdbg: file name expected."));
+        handleArgNsdbg(argv[argi++]);
       } else if (cmd == "-stats") {
         handleArgStats();
       } else if ((cmd == "-help") || (cmd == "-h")) {

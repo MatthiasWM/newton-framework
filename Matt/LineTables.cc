@@ -9,17 +9,23 @@
 
 #include "Frames/Frames.h"
 #include "Frames/Interpreter.h"
+#include "Frames/Iterators.h"
 #include "Frames/Compiler/Compiler.h"
 #include "ROMResources.h"
 
 #include <climits>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 namespace {
 
 Ref gFunctions = NILREF;   // every function compiled with a line table (GC root)
+Ref gRegistered = NILREF;  // [[instructions, table], ...] from debug maps (GC root)
+Ref gCacheInstructions = NILREF;  // the last registry lookup (GC roots)
+Ref gCacheTable = NILREF;
 
 void RememberFunction(RefArg inFunction)
 {
@@ -28,13 +34,31 @@ void RememberFunction(RefArg inFunction)
   gFunctions = functions;
 }
 
-// The line table of fn, or nil.
+// The line table of fn, or nil: its own (compiled with -g), else one
+// registered for its instructions (a debug map, -nsdbg).
 Ref TableOf(RefArg fn)
 {
   if (!IsFrame(fn))
     return NILREF;
   Ref table = GetFrameSlot(fn, MakeSymbol("lineTable"));
-  return (IsArray(table) && Length(table) >= 3) ? table : NILREF;
+  if (IsArray(table) && Length(table) >= 3)
+    return table;
+  if (ISNIL(gRegistered) || Length(gRegistered) == 0)
+    return NILREF;
+  Ref instructions = GetFrameSlot(fn, SYMA(instructions));
+  if (ISNIL(instructions))
+    return NILREF;
+  if (EQ(instructions, gCacheInstructions))
+    return gCacheTable;
+  for (ArrayIndex i = 0, n = Length(gRegistered); i < n; ++i) {
+    Ref pair = GetArraySlot(gRegistered, i);
+    if (EQ(GetArraySlot(pair, 0), instructions)) {
+      gCacheInstructions = instructions;
+      gCacheTable = GetArraySlot(pair, 1);
+      return gCacheTable;
+    }
+  }
+  return NILREF;
 }
 
 long EntryPC(RefArg table, ArrayIndex i)   { return RINT(GetArraySlot(table, 1 + 2 * i)); }
@@ -180,6 +204,10 @@ void InstallLineTables(void)
     gFunctions = MakeArray(0);
     AddGCRoot(&gFunctions);
     AddGCRoot(&gStepInstructions);
+    gRegistered = MakeArray(0);
+    AddGCRoot(&gRegistered);
+    AddGCRoot(&gCacheInstructions);
+    AddGCRoot(&gCacheTable);
   }
   gCompiledFunctionHook = RememberFunction;
 }
@@ -294,4 +322,176 @@ Ref FLineOfPC(RefArg rcvr, RefArg inFn, RefArg inPC)
 Ref FCodeForLine(RefArg rcvr, RefArg inFile, RefArg inLine)
 {
   return ISINT(inLine) ? CodeForLine(inFile, RINT(inLine)) : NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+  Debug maps (.nsdbg) for code whose binary must not change (packages).
+------------------------------------------------------------------------------*/
+
+std::string InstructionsHash(RefArg fn)
+{
+  Ref instructions = IsFrame(fn) ? GetFrameSlot(fn, SYMA(instructions)) : NILREF;
+  if (!IsBinary(instructions))
+    return "";
+  // FNV-1a, 64 bits
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  const unsigned char *bytes = (const unsigned char *)BinaryData(instructions);
+  for (ArrayIndex i = 0, n = Length(instructions); i < n; ++i) {
+    hash ^= bytes[i];
+    hash *= 0x100000001b3ULL;
+  }
+  char text[17];
+  snprintf(text, sizeof(text), "%016llx", (unsigned long long)hash);
+  return text;
+}
+
+
+void RegisterLineTable(RefArg fn, RefArg table)
+{
+  RefVar pair(MakeArray(2));
+  SetArraySlot(pair, 0, GetFrameSlot(fn, SYMA(instructions)));
+  SetArraySlot(pair, 1, table);
+  RefVar registered(gRegistered);
+  AddArraySlot(registered, pair);
+  gRegistered = registered;
+  RememberFunction(fn);   // for CodeForLine
+}
+
+
+namespace {
+
+// Every NewtonScript function reachable from obj (not through magic
+// pointers into the ROM). Allocates nothing on the NewtonScript heap while
+// walking, so the visited set of Refs stays valid.
+void CollectFunctions(Ref obj, std::set<Ref> &visited, std::vector<RefVar> &found)
+{
+  if (ISMAGICPTR(obj) || !ISREALPTR(obj) || !(IsFrame(obj) || IsArray(obj)))
+    return;
+  if (!visited.insert(obj).second)
+    return;
+  if (IsFrame(obj) && !ISNIL(GetFrameSlot(obj, SYMA(instructions)))
+   && IsBinary(GetFrameSlot(obj, SYMA(instructions))))
+    found.push_back(RefVar(obj));
+  RefVar objVar(obj);
+  CObjectIterator iter(objVar, false);
+  for ( ; !iter.done(); iter.next())
+    CollectFunctions(iter.value(), visited, found);
+}
+
+// The path from obj to target (slot names, array indexes), depth first, not
+// through magic pointers. Allocates nothing while walking.
+bool FindPath(Ref obj, Ref target, std::set<Ref> &visited, std::vector<Ref> &path)
+{
+  if (EQ(obj, target))
+    return true;
+  if (ISMAGICPTR(obj) || !ISREALPTR(obj) || !(IsFrame(obj) || IsArray(obj)))
+    return false;
+  if (!visited.insert(obj).second)
+    return false;
+  RefVar objVar(obj);
+  CObjectIterator iter(objVar, false);
+  for ( ; !iter.done(); iter.next()) {
+    path.push_back(iter.tag());
+    if (FindPath(iter.value(), target, visited, path))
+      return true;
+    path.pop_back();
+  }
+  return false;
+}
+
+// Follow a path (JSON array: slot names, array indexes) from root.
+Ref ObjectAtPath(RefArg root, RefArg path)
+{
+  RefVar obj(root);
+  if (!IsArray(path))
+    return NILREF;
+  for (ArrayIndex i = 0, n = Length(path); i < n; ++i) {
+    Ref step = GetArraySlot(path, i);
+    if (ISINT(step) && IsArray(obj) && RINT(step) >= 0 && (ArrayIndex)RINT(step) < Length(obj))
+      obj = GetArraySlot(obj, RINT(step));
+    else if (IsString(step) && IsFrame(obj))
+      obj = GetFrameSlot(obj, MakeSymbol(UTF8FromString(step).c_str()));
+    else
+      return NILREF;
+  }
+  // a binCFunction frame with NewtonScript code: the decompiler printed bcFunc
+  if (IsFrame(obj) && NOTNIL(GetFrameSlot(obj, MakeSymbol("bcFunc"))))
+    obj = GetFrameSlot(obj, MakeSymbol("bcFunc"));
+  return obj;
+}
+
+} // namespace
+
+
+std::string PathToObject(RefArg root, RefArg target)
+{
+  std::set<Ref> visited;
+  std::vector<Ref> path;
+  if (!FindPath(root, target, visited, path))
+    return "null";
+  std::string json = "[";
+  for (size_t i = 0; i < path.size(); ++i) {
+    if (i > 0)
+      json += ",";
+    if (ISINT(path[i]))
+      json += std::to_string(RINT(path[i]));
+    else if (IsSymbol(path[i]))
+      json += QuoteJSON(SymbolName(path[i]));
+    else
+      json += "null";
+  }
+  return json + "]";
+}
+
+
+int LoadDebugMap(RefArg root, const std::string &json, int *outTotal)
+{
+  RefVar map(ParseJSON(json.data(), json.size()));
+  RefVar source(GetFrameSlot(map, MakeSymbol("source")));
+  RefVar entries(GetFrameSlot(map, MakeSymbol("functions")));
+  if (!IsArray(entries))
+    ThrowMsg("not a debug map (no \"functions\")");
+
+  // the functions of the package, by hash
+  std::set<Ref> visited;
+  std::vector<RefVar> functions;
+  CollectFunctions(root, visited, functions);
+  std::map<std::string, std::vector<size_t>> byHash;
+  for (size_t i = 0; i < functions.size(); ++i)
+    byHash[InstructionsHash(functions[i])].push_back(i);
+
+  int matched = 0;
+  ArrayIndex count = Length(entries);
+  for (ArrayIndex e = 0; e < count; ++e) {
+    RefVar entry(GetArraySlot(entries, e));
+    RefVar hash(GetFrameSlot(entry, MakeSymbol("hash")));
+    RefVar lines(GetFrameSlot(entry, MakeSymbol("lines")));
+    if (!IsString(hash) || !IsArray(lines))
+      continue;
+    auto candidates = byHash.find(UTF8FromString(hash));
+    if (candidates == byHash.end())
+      continue;
+    // the same bytecode in several places: the path decides
+    RefVar fn;
+    if (candidates->second.size() == 1)
+      fn = functions[candidates->second[0]];
+    else {
+      RefVar atPath(ObjectAtPath(root, GetFrameSlot(entry, MakeSymbol("path"))));
+      for (size_t index : candidates->second)
+        if (EQ(functions[index], atPath))
+          fn = atPath;
+    }
+    if (ISNIL(fn))
+      continue;
+    RefVar table(AllocateArray(MakeSymbol("lineTable"), 1));
+    SetArraySlot(table, 0, source);
+    for (ArrayIndex i = 0, n = Length(lines); i < n; ++i)
+      AddArraySlot(table, GetArraySlot(lines, i));
+    RegisterLineTable(fn, table);
+    ++matched;
+  }
+  if (outTotal)
+    *outTotal = (int)count;
+  return matched;
 }
