@@ -16,6 +16,7 @@
 #include "Matt/JSON.h"
 #include "Matt/DAP.h"
 #include "Matt/LineTables.h"
+#include "Utilities/Unimplemented.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -499,6 +500,11 @@ void handleArgDap(int port = -1)
       CancelLineStep();   // a step still running when the program ended
       if (DAPExceptionCount() > exceptions)
         exitCode = 1;
+      // -stubs report: in the Debug Console while the session still runs
+      if (GetStubReport() && gStubNotify) {
+        gStubNotify(StubReport().c_str());
+        SetStubReport(false);
+      }
       RefVar args(MakeArray(1));
       SetArraySlot(args, 0, MAKEINT(exitCode));
       DoMessage(dap, MakeSymbol("Finish"), args);
@@ -925,6 +931,11 @@ the commands in the given order.
   -pkglist <filename>     Apply following commands to all 'form packages in the file
 
   Debugging
+  -stubs <mode>           What a call to a built-in function that isn't implemented
+                          yet (a stub) does: log (default: say so once, return nil),
+                          throw (a NewtonScript exception), quiet (return nil);
+                          report: list the stubs called at the end. Several with
+                          commas, e.g. throw,report. Also NEWTC_STUBS=<mode>.
   -dbg                    Debug: load Apple's NS Debug Tools and NSD Shortcuts,
                           enable breakpoints and breakOnThrows, and compile the
                           following code with variable names (-g)
@@ -992,6 +1003,9 @@ int handleArgs(int argc, char **argv)
           throw(std::runtime_error("-dap-log: can't open the file."));
       } else if (cmd == "-g") {
         handleArgG();
+      } else if (cmd == "-stubs") {
+        if (argi >= argc || !SetStubOptions(argv[argi++]))
+          throw(std::runtime_error("-stubs: expected log, throw, quiet, or report."));
       } else if (cmd == "-hello") {
         handleArgHello();
       } else if (cmd == "-nos1") {
@@ -1116,10 +1130,17 @@ int main(int argc, char **argv) {
   for (int i = 1; i < argc; ++i)
     if (strcmp(argv[i], "-dap") == 0)
       DAPStartIO();
+  // Stubs that newtc's own start calls are counted, but not the program's
+  // business: no log (see Utilities/Unimplemented.h)
+  SetStubMode(kStubQuiet);
   if (!init()) {
     printf("newtc: ERROR: Can't initialize.\n");
     return -1;
   }
+  SetStubMode(kStubLog);
+  if (const char * stubs = getenv("NEWTC_STUBS"))
+    if (!SetStubOptions(stubs))
+      fprintf(stderr, "newtc: NEWTC_STUBS: expected log, throw, quiet, or report.\n");
 
   int ret = 0;
   RefVar symRef0 = MakeSymbol("ref0");

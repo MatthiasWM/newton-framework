@@ -1071,6 +1071,9 @@ Interpreter and runtime
   Ceiling an integer only from 1 up. Test `floor_ceiling`. `Min`/`Max`
   work. Still open: the tethered-listener spelling, and the other stubs one
   by one as the GUI work needs them.
+  Strategy (2026-09-26): every stub now says so when called (see
+  Conventions, "Stubs"); `-stubs report` shows which ones real programs
+  call, to choose what to implement next.
 - [x] B4 **Sorted array set operations**: `GenOrderedSetOp`
   (Frames/SortedArrays.cc, behind `BDifference`, `BIntersect`, `BMerge`)
   divides a `Ref*` difference by `sizeof(Ref)`, as `LSearch` did (lines
@@ -1271,6 +1274,26 @@ is the same as that filler entry, i.e. the ROM is too old).
   actions (plus timers for games). This explains many implementation choices.
   It is *not* a goal for us: memory and battery hardly matter today, so don't
   over-optimize; prefer clarity.
+
+- **Stubs** (built-in functions not implemented yet) are written
+  `NS_STUB(FName, RefArg rcvr, ...)` (Utilities/Unimplemented.h): the same
+  function (the ROM's built-in table in ROMData/*/RefData.s finds it by its
+  C name), registered at startup. A call logs once per stub
+  (`newtc: Fsin is not implemented yet (stub in Maths.cc:654), returns
+  nil.`, on stderr; in -dap mode in the Debug Console) and returns nil.
+  `-stubs throw` (or `NEWTC_STUBS=throw`) throws a NewtonScript exception
+  instead (evt.ex.msg), so a test or a debug session fails at the call;
+  `-stubs quiet` says nothing; `-stubs report` lists at the end which stubs
+  were called and how often (e.g. `throw,report`). Stubs called while newtc
+  starts are counted but not logged. `NS_STUB_NIL_OK` is for stubs whose nil
+  is fine for now (never logged or thrown; e.g. GetRoot until there is a
+  root view); `CXX_STUB()` marks a C++ function without a NewtonScript name
+  (logged only). 1043 stubs were converted mechanically (Stubs.cc,
+  NTKStubs.cc, Maths.cc, Power.cc, Dictionaries.cc, Packages.cc,
+  StoreWrapper.cc, DrawImage.cc, ObjectSystem.cc); newtc links 1004 of them.
+  The dbg test harness shows stub places and the total as `<file:line>`
+  and `<total>`. Tests: `stubs_log`, `stubs_throw`, `stubs_report`,
+  `dap_stubs`.
 
 - **Debug builds use AddressSanitizer** (CMakeLists.txt, all targets, via
   `CMAKE_<LANG>_FLAGS_DEBUG`; UBSan was already on for newtc). A memory bug

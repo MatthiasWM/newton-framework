@@ -7,6 +7,7 @@
 */
 
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "ROMResources.h"
 #include "PackageTypes.h"
 #include "PackageParts.h"
@@ -117,9 +118,7 @@ Ref	FGetPkgInfoFromPSSid(RefArg rcvr, RefArg inArg1, RefArg inArg2);
 Ref	FIsValid(RefArg rcvr, RefArg inPkg);
 }
 
-Ref
-FObjectPkgRef(RefArg rcvr, RefArg inPkg)
-{ return NILREF; }
+NS_STUB(FObjectPkgRef, RefArg rcvr, RefArg inPkg)
 
 Ref
 FGetPkgRefInfo(RefArg rcvr, RefArg inPkg)
@@ -142,13 +141,9 @@ FGetPkgRefInfo(RefArg rcvr, RefArg inPkg)
 	return info;
 }
 
-Ref
-FGetPkgInfoFromPSSid(RefArg rcvr, RefArg inArg1, RefArg inArg2)
-{ return NILREF; }
+NS_STUB(FGetPkgInfoFromPSSid, RefArg rcvr, RefArg inArg1, RefArg inArg2)
 
-Ref
-FIsValid(RefArg rcvr, RefArg inPkg)
-{ return NILREF; }
+NS_STUB(FIsValid, RefArg rcvr, RefArg inPkg)
 
 
 

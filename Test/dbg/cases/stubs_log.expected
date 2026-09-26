@@ -1,0 +1,5 @@
+nil
+nil
+
+--- stderr ---
+newtc: Fsin is not implemented yet (stub in <file:line>), returns nil.

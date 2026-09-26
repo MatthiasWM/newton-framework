@@ -1,4 +1,5 @@
 #include "Objects.h"
+#include "Unimplemented.h"
 
 extern "C" {
 Ref FAddDelayedCall(RefArg rcvr);
@@ -222,222 +223,223 @@ Ref FYieldToFork(RefArg rcvr);
 Ref FpkgDownload(RefArg rcvr);
 }
 
-Ref FAddDelayedCall(RefArg rcvr) { return NILREF; }
-Ref FAddDelayedSend(RefArg rcvr) { return NILREF; }
-Ref FAddKeyCommand(RefArg rcvr) { return NILREF; }
-Ref FAddKeyCommands(RefArg rcvr) { return NILREF; }
-Ref FAddStepView(RefArg rcvr) { return NILREF; }
-Ref FAddUndoAction(RefArg rcvr) { return NILREF; }
-Ref FAddUndoCall(RefArg rcvr) { return NILREF; }
-Ref FAddUndoSend(RefArg rcvr) { return NILREF; }
-Ref FAddView(RefArg rcvr) { return NILREF; }
-Ref FArrayToPoints(RefArg rcvr) { return NILREF; }
-Ref FBlockKeyCommand(RefArg rcvr) { return NILREF; }
-Ref FBookAvailable(RefArg rcvr) { return NILREF; }
-Ref FBookRemoved(RefArg rcvr) { return NILREF; }
-Ref FBuildContext(RefArg rcvr) { return NILREF; }
-Ref FBusyBoxControl(RefArg rcvr) { return NILREF; }
-Ref FCalibrateTablet(RefArg rcvr) { return NILREF; }
-Ref FCaretRelativeToVisibleRect(RefArg rcvr) { return NILREF; }
-Ref FCategorizeKeyCommands(RefArg rcvr) { return NILREF; }
-Ref FChangeStylesOfRange(RefArg rcvr) { return NILREF; }
-Ref FChildViewFramesX(RefArg rcvr) { return NILREF; }
-Ref FClearHardKeymap(RefArg rcvr) { return NILREF; }
-Ref FClearPopup(RefArg rcvr) { return NILREF; }
-Ref FClearUndoStacks(RefArg rcvr) { return NILREF; }
-Ref FClipboardCommand(RefArg rcvr) { return NILREF; }
-Ref FCloseX(RefArg rcvr) { return NILREF; }
-Ref FCommandKeyboardConnected(RefArg rcvr) { return NILREF; }
-Ref FCountGesturePoints(RefArg rcvr) { return NILREF; }
-Ref FCurrentExports(RefArg rcvr) { return NILREF; }
-Ref FCurrentImports(RefArg rcvr) { return NILREF; }
-Ref FDV(RefArg rcvr) { return NILREF; }
-Ref FDebug(RefArg rcvr) { return NILREF; }
-Ref FDebugMemoryStats(RefArg rcvr) { return NILREF; }
-Ref FDebugRunUntilIdle(RefArg rcvr) { return NILREF; }
-Ref FDeleteX(RefArg rcvr) { return NILREF; }
-Ref FDirtyBoxX(RefArg rcvr) { return NILREF; }
-Ref FDirtyX(RefArg rcvr) { return NILREF; }
-Ref FDismissPopup(RefArg rcvr) { return NILREF; }
-Ref FDisplaySplashGraphic(RefArg rcvr) { return NILREF; }
-Ref FDoDrawing(RefArg rcvr) { return NILREF; }
-Ref FDoPopup(RefArg rcvr) { return NILREF; }
-Ref FDoScrubEffect(RefArg rcvr) { return NILREF; }
-Ref FDragAndDrop(RefArg rcvr) { return NILREF; }
-Ref FDragAndDropLtd(RefArg rcvr) { return NILREF; }
-Ref FDragX(RefArg rcvr) { return NILREF; }
-Ref FDrawPolygons(RefArg rcvr) { return NILREF; }
-Ref FDrawShape(RefArg rcvr) { return NILREF; }
-Ref FDropHilites(RefArg rcvr) { return NILREF; }
-Ref FEffectX(RefArg rcvr) { return NILREF; }
-Ref FEventPause(RefArg rcvr) { return NILREF; }
-Ref FExitModalDialog(RefArg rcvr) { return NILREF; }
-Ref FExtractData(RefArg rcvr) { return NILREF; }
-Ref FExtractRangeAsRichString(RefArg rcvr) { return NILREF; }
-Ref FExtractTextRange(RefArg rcvr) { return NILREF; }
-Ref FFilterDialog(RefArg rcvr) { return NILREF; }
-Ref FFindKeyCommand(RefArg rcvr) { return NILREF; }
-Ref FFlushImports(RefArg rcvr) { return NILREF; }
-Ref FForkScript(RefArg rcvr) { return NILREF; }
-Ref FFulfillImportTable(RefArg rcvr) { return NILREF; }
-Ref FGatherKeyCommands(RefArg rcvr) { return NILREF; }
-Ref FGestalt(RefArg rcvr) { return NILREF; }
-Ref FGesturePoint(RefArg rcvr) { return NILREF; }
-Ref FGestureType(RefArg rcvr) { return NILREF; }
-Ref FGetAlternates(RefArg rcvr) { return NILREF; }
-Ref FGetCalibration(RefArg rcvr) { return NILREF; }
-Ref FGetCaretBox(RefArg rcvr) { return NILREF; }
-Ref FGetCaretInfo(RefArg rcvr) { return NILREF; }
-Ref FGetClipboard(RefArg rcvr) { return NILREF; }
-Ref FGetClipboardIcon(RefArg rcvr) { return NILREF; }
-Ref FGetDrawBoxX(RefArg rcvr) { return NILREF; }
-Ref FGetFlags(RefArg rcvr) { return NILREF; }
-Ref FGetFrameStuff(RefArg rcvr) { return NILREF; }
-Ref FGetHiliteOffsets(RefArg rcvr) { return NILREF; }
-Ref FGetId(RefArg rcvr) { return NILREF; }
-Ref FGetInkWordInfo(RefArg rcvr) { return NILREF; }
-Ref FGetKeyView(RefArg rcvr) { return NILREF; }
-Ref FGetPackages(RefArg rcvr) { return NILREF; }
-Ref FGetPoint(RefArg rcvr) { return NILREF; }
-Ref FGetPointsArray(RefArg rcvr) { return NILREF; }
-Ref FGetPointsArrayXY(RefArg rcvr) { return NILREF; }
-Ref FGetPolygons(RefArg rcvr) { return NILREF; }
-Ref FGetPopup(RefArg rcvr) { return NILREF; }
-Ref FGetRemoteWriting(RefArg rcvr) { return NILREF; }
-Ref FGetRoot(RefArg rcvr) { return NILREF; }
-Ref FGetScoreArray(RefArg rcvr) { return NILREF; }
-Ref FGetStyleAtOffset(RefArg rcvr) { return NILREF; }
-Ref FGetStylesOfRange(RefArg rcvr) { return NILREF; }
-Ref FGetTextFlags(RefArg rcvr) { return NILREF; }
-Ref FGetTrueModifiers(RefArg rcvr) { return NILREF; }
-Ref FGetUndoState(RefArg rcvr) { return NILREF; }
-Ref FGetUnitDownTime(RefArg rcvr) { return NILREF; }
-Ref FGetUnitEndTime(RefArg rcvr) { return NILREF; }
-Ref FGetUnitStartTime(RefArg rcvr) { return NILREF; }
-Ref FGetUnitUpTime(RefArg rcvr) { return NILREF; }
-Ref FGetView(RefArg rcvr) { return NILREF; }
-Ref FGetWordArray(RefArg rcvr) { return NILREF; }
-Ref FGlobalBoxX(RefArg rcvr) { return NILREF; }
-Ref FGlobalOuterBoxX(RefArg rcvr) { return NILREF; }
-Ref FHandleInkWord(RefArg rcvr) { return NILREF; }
-Ref FHandleInsertItems(RefArg rcvr) { return NILREF; }
-Ref FHandleKeyEvents(RefArg rcvr) { return NILREF; }
-Ref FHandleRawInk(RefArg rcvr) { return NILREF; }
-Ref FHandleUnit(RefArg rcvr) { return NILREF; }
-Ref FHideCaret(RefArg rcvr) { return NILREF; }
-Ref FHideX(RefArg rcvr) { return NILREF; }
-Ref FHiliteOwner(RefArg rcvr) { return NILREF; }
-Ref FHiliteUniqueX(RefArg rcvr) { return NILREF; }
-Ref FHiliteViewChildren(RefArg rcvr) { return NILREF; }
-Ref FHiliteX(RefArg rcvr) { return NILREF; }
-Ref FHiliter(RefArg rcvr) { return NILREF; }
-Ref FHobbleTablet(RefArg rcvr) { return NILREF; }
-Ref FInRepeatedKeyCommand(RefArg rcvr) { return NILREF; }
-Ref FInkOff(RefArg rcvr) { return NILREF; }
-Ref FInkOffUnHobbled(RefArg rcvr) { return NILREF; }
-Ref FInkOn(RefArg rcvr) { return NILREF; }
-Ref FInsertItemsAtCaret(RefArg rcvr) { return NILREF; }
-Ref FInsertTabletSample(RefArg rcvr) { return NILREF; }
-Ref FInsetRect(RefArg rcvr) { return NILREF; }
-Ref FInvertRect(RefArg rcvr) { return NILREF; }
-Ref FIsCommandKeystroke(RefArg rcvr) { return NILREF; }
-Ref FIsKeyDown(RefArg rcvr) { return NILREF; }
-Ref FIsPrimShape(RefArg rcvr) { return NILREF; }
-Ref FIsPtInRect(RefArg rcvr) { return NILREF; }
-Ref FIsTabletCalibrationNeeded(RefArg rcvr) { return NILREF; }
-Ref FJournalReplayALine(RefArg rcvr) { return NILREF; }
-Ref FJournalReplayAStroke(RefArg rcvr) { return NILREF; }
-Ref FJournalReplayBusy(RefArg rcvr) { return NILREF; }
-Ref FJournalReplayStrokes(RefArg rcvr) { return NILREF; }
-Ref FJournalStartRecord(RefArg rcvr) { return NILREF; }
-Ref FJournalStopRecord(RefArg rcvr) { return NILREF; }
-Ref FKeyIn(RefArg rcvr) { return NILREF; }
-Ref FKeyboardConnected(RefArg rcvr) { return NILREF; }
-Ref FLayoutTableX(RefArg rcvr) { return NILREF; }
-Ref FLayoutVerticallyX(RefArg rcvr) { return NILREF; }
-Ref FLoadFontCache(RefArg rcvr) { return NILREF; }
-Ref FLocalBoxX(RefArg rcvr) { return NILREF; }
-Ref FMakeBitmap(RefArg rcvr) { return NILREF; }
-Ref FMakeLine(RefArg rcvr) { return NILREF; }
-Ref FMakeRect(RefArg rcvr) { return NILREF; }
-Ref FMakeShape(RefArg rcvr) { return NILREF; }
-Ref FMakeText(RefArg rcvr) { return NILREF; }
-Ref FMakeTextBox(RefArg rcvr) { return NILREF; }
-Ref FMakeTextLines(RefArg rcvr) { return NILREF; }
-Ref FMatchKeyMessage(RefArg rcvr) { return NILREF; }
-Ref FModalDialog(RefArg rcvr) { return NILREF; }
-Ref FModalRecognitionOff(RefArg rcvr) { return NILREF; }
-Ref FModalRecognitionOn(RefArg rcvr) { return NILREF; }
-Ref FModalState(RefArg rcvr) { return NILREF; }
-Ref FMoveBehindX(RefArg rcvr) { return NILREF; }
-Ref FNTKAlive(RefArg rcvr) { return NILREF; }
-Ref FNTKDownload(RefArg rcvr) { return NILREF; }
-Ref FNTKListener(RefArg rcvr) { return NILREF; }
-Ref FNTKSend(RefArg rcvr) { return NILREF; }
-Ref FNextKeyView(RefArg rcvr) { return NILREF; }
-Ref FOffsetRect(RefArg rcvr) { return NILREF; }
-Ref FOffsetShape(RefArg rcvr) { return NILREF; }
-Ref FOffsetView(RefArg rcvr) { return NILREF; }
-Ref FParentX(RefArg rcvr) { return NILREF; }
-Ref FPenPos(RefArg rcvr) { return NILREF; }
-Ref FPendingImports(RefArg rcvr) { return NILREF; }
-Ref FPickViewKeyDown(RefArg rcvr) { return NILREF; }
-Ref FPointToCharOffset(RefArg rcvr) { return NILREF; }
-Ref FPointToWord(RefArg rcvr) { return NILREF; }
-Ref FPointsToArray(RefArg rcvr) { return NILREF; }
-Ref FPositionCaret(RefArg rcvr) { return NILREF; }
-Ref FPostAndDo(RefArg rcvr) { return NILREF; }
-Ref FPostCommand(RefArg rcvr) { return NILREF; }
-Ref FPostCommandParam(RefArg rcvr) { return NILREF; }
-Ref FPostKeyString(RefArg rcvr) { return NILREF; }
-Ref FPurgeAreaCache(RefArg rcvr) { return NILREF; }
-Ref FRectsOverlap(RefArg rcvr) { return NILREF; }
-Ref FRedoChildrenX(RefArg rcvr) { return NILREF; }
-Ref FRegisterGestalt(RefArg rcvr) { return NILREF; }
-Ref FRegisterOpenKeyboard(RefArg rcvr) { return NILREF; }
-Ref FRelBounds(RefArg rcvr) { return NILREF; }
-Ref FRemoveStepView(RefArg rcvr) { return NILREF; }
-Ref FRemoveView(RefArg rcvr) { return NILREF; }
-Ref FReplaceGestalt(RefArg rcvr) { return NILREF; }
-Ref FRestoreKeyView(RefArg rcvr) { return NILREF; }
-Ref FRevealEffectX(RefArg rcvr) { return NILREF; }
-Ref FSectRect(RefArg rcvr) { return NILREF; }
-Ref FSendKeyMessage(RefArg rcvr) { return NILREF; }
-Ref FSetBounds(RefArg rcvr) { return NILREF; }
-Ref FSetCalibration(RefArg rcvr) { return NILREF; }
-Ref FSetCaretInfo(RefArg rcvr) { return NILREF; }
-Ref FSetClipboard(RefArg rcvr) { return NILREF; }
-Ref FSetHiliteNoUpdateX(RefArg rcvr) { return NILREF; }
-Ref FSetHiliteX(RefArg rcvr) { return NILREF; }
-Ref FSetKeyView(RefArg rcvr) { return NILREF; }
-Ref FSetOriginX(RefArg rcvr) { return NILREF; }
-Ref FSetPopup(RefArg rcvr) { return NILREF; }
-Ref FSetRemoteWriting(RefArg rcvr) { return NILREF; }
-Ref FSetSysAlarm(RefArg rcvr) { return NILREF; }
-Ref FSetupIdleX(RefArg rcvr) { return NILREF; }
-Ref FShapeBounds(RefArg rcvr) { return NILREF; }
-Ref FShowCaret(RefArg rcvr) { return NILREF; }
-Ref FShowX(RefArg rcvr) { return NILREF; }
-Ref FSlideEffectX(RefArg rcvr) { return NILREF; }
-Ref FStartBypassTablet(RefArg rcvr) { return NILREF; }
-Ref FStopBypassTablet(RefArg rcvr) { return NILREF; }
-Ref FStrokeBounds(RefArg rcvr) { return NILREF; }
-Ref FStrokeDone(RefArg rcvr) { return NILREF; }
-Ref FStrokeInPicture(RefArg rcvr) { return NILREF; }
-Ref FSyncChildrenX(RefArg rcvr) { return NILREF; }
-Ref FSyncScrollX(RefArg rcvr) { return NILREF; }
-Ref FSyncViewX(RefArg rcvr) { return NILREF; }
-Ref FTabletBufferEmpty(RefArg rcvr) { return NILREF; }
-Ref FToggleX(RefArg rcvr) { return NILREF; }
-Ref FTopicByName(RefArg rcvr) { return NILREF; }
-Ref FTrackButtonX(RefArg rcvr) { return NILREF; }
-Ref FTrackHiliteX(RefArg rcvr) { return NILREF; }
-Ref FTranslateKey(RefArg rcvr) { return NILREF; }
-Ref FUnionRect(RefArg rcvr) { return NILREF; }
-Ref FUnregisterOpenKeyboard(RefArg rcvr) { return NILREF; }
-Ref FViewAutopsy(RefArg rcvr) { return NILREF; }
-Ref FViewContainsCaretView(RefArg rcvr) { return NILREF; }
-Ref FVisibleBox(RefArg rcvr) { return NILREF; }
-Ref FVoteOnWordUnit(RefArg rcvr) { return NILREF; }
-Ref FYieldToFork(RefArg rcvr) { return NILREF; }
-Ref FpkgDownload(RefArg rcvr) { return NILREF; }
+NS_STUB(FAddDelayedCall, RefArg rcvr)
+NS_STUB(FAddDelayedSend, RefArg rcvr)
+NS_STUB(FAddKeyCommand, RefArg rcvr)
+NS_STUB(FAddKeyCommands, RefArg rcvr)
+NS_STUB(FAddStepView, RefArg rcvr)
+NS_STUB(FAddUndoAction, RefArg rcvr)
+NS_STUB(FAddUndoCall, RefArg rcvr)
+NS_STUB(FAddUndoSend, RefArg rcvr)
+NS_STUB(FAddView, RefArg rcvr)
+NS_STUB(FArrayToPoints, RefArg rcvr)
+NS_STUB(FBlockKeyCommand, RefArg rcvr)
+NS_STUB(FBookAvailable, RefArg rcvr)
+NS_STUB(FBookRemoved, RefArg rcvr)
+NS_STUB(FBuildContext, RefArg rcvr)
+NS_STUB(FBusyBoxControl, RefArg rcvr)
+NS_STUB(FCalibrateTablet, RefArg rcvr)
+NS_STUB(FCaretRelativeToVisibleRect, RefArg rcvr)
+NS_STUB(FCategorizeKeyCommands, RefArg rcvr)
+NS_STUB(FChangeStylesOfRange, RefArg rcvr)
+NS_STUB(FChildViewFramesX, RefArg rcvr)
+NS_STUB(FClearHardKeymap, RefArg rcvr)
+NS_STUB(FClearPopup, RefArg rcvr)
+NS_STUB(FClearUndoStacks, RefArg rcvr)
+NS_STUB(FClipboardCommand, RefArg rcvr)
+NS_STUB(FCloseX, RefArg rcvr)
+NS_STUB(FCommandKeyboardConnected, RefArg rcvr)
+NS_STUB(FCountGesturePoints, RefArg rcvr)
+NS_STUB(FCurrentExports, RefArg rcvr)
+NS_STUB(FCurrentImports, RefArg rcvr)
+NS_STUB(FDV, RefArg rcvr)
+NS_STUB(FDebug, RefArg rcvr)
+NS_STUB(FDebugMemoryStats, RefArg rcvr)
+NS_STUB(FDebugRunUntilIdle, RefArg rcvr)
+NS_STUB(FDeleteX, RefArg rcvr)
+NS_STUB(FDirtyBoxX, RefArg rcvr)
+NS_STUB(FDirtyX, RefArg rcvr)
+NS_STUB(FDismissPopup, RefArg rcvr)
+NS_STUB(FDisplaySplashGraphic, RefArg rcvr)
+NS_STUB(FDoDrawing, RefArg rcvr)
+NS_STUB(FDoPopup, RefArg rcvr)
+NS_STUB(FDoScrubEffect, RefArg rcvr)
+NS_STUB(FDragAndDrop, RefArg rcvr)
+NS_STUB(FDragAndDropLtd, RefArg rcvr)
+NS_STUB(FDragX, RefArg rcvr)
+NS_STUB(FDrawPolygons, RefArg rcvr)
+NS_STUB(FDrawShape, RefArg rcvr)
+NS_STUB(FDropHilites, RefArg rcvr)
+NS_STUB(FEffectX, RefArg rcvr)
+NS_STUB(FEventPause, RefArg rcvr)
+NS_STUB(FExitModalDialog, RefArg rcvr)
+NS_STUB(FExtractData, RefArg rcvr)
+NS_STUB(FExtractRangeAsRichString, RefArg rcvr)
+NS_STUB(FExtractTextRange, RefArg rcvr)
+NS_STUB(FFilterDialog, RefArg rcvr)
+NS_STUB(FFindKeyCommand, RefArg rcvr)
+NS_STUB(FFlushImports, RefArg rcvr)
+NS_STUB(FForkScript, RefArg rcvr)
+NS_STUB(FFulfillImportTable, RefArg rcvr)
+NS_STUB(FGatherKeyCommands, RefArg rcvr)
+NS_STUB(FGestalt, RefArg rcvr)
+NS_STUB(FGesturePoint, RefArg rcvr)
+NS_STUB(FGestureType, RefArg rcvr)
+NS_STUB(FGetAlternates, RefArg rcvr)
+NS_STUB(FGetCalibration, RefArg rcvr)
+NS_STUB(FGetCaretBox, RefArg rcvr)
+NS_STUB(FGetCaretInfo, RefArg rcvr)
+NS_STUB(FGetClipboard, RefArg rcvr)
+NS_STUB(FGetClipboardIcon, RefArg rcvr)
+NS_STUB(FGetDrawBoxX, RefArg rcvr)
+NS_STUB(FGetFlags, RefArg rcvr)
+NS_STUB(FGetFrameStuff, RefArg rcvr)
+NS_STUB(FGetHiliteOffsets, RefArg rcvr)
+NS_STUB(FGetId, RefArg rcvr)
+NS_STUB(FGetInkWordInfo, RefArg rcvr)
+NS_STUB(FGetKeyView, RefArg rcvr)
+NS_STUB(FGetPackages, RefArg rcvr)
+NS_STUB(FGetPoint, RefArg rcvr)
+NS_STUB(FGetPointsArray, RefArg rcvr)
+NS_STUB(FGetPointsArrayXY, RefArg rcvr)
+NS_STUB(FGetPolygons, RefArg rcvr)
+NS_STUB(FGetPopup, RefArg rcvr)
+NS_STUB(FGetRemoteWriting, RefArg rcvr)
+// nil until there is a root view (plan step 9.2); the NS Debug Tools expect it
+NS_STUB_NIL_OK(FGetRoot, RefArg rcvr)
+NS_STUB(FGetScoreArray, RefArg rcvr)
+NS_STUB(FGetStyleAtOffset, RefArg rcvr)
+NS_STUB(FGetStylesOfRange, RefArg rcvr)
+NS_STUB(FGetTextFlags, RefArg rcvr)
+NS_STUB(FGetTrueModifiers, RefArg rcvr)
+NS_STUB(FGetUndoState, RefArg rcvr)
+NS_STUB(FGetUnitDownTime, RefArg rcvr)
+NS_STUB(FGetUnitEndTime, RefArg rcvr)
+NS_STUB(FGetUnitStartTime, RefArg rcvr)
+NS_STUB(FGetUnitUpTime, RefArg rcvr)
+NS_STUB(FGetView, RefArg rcvr)
+NS_STUB(FGetWordArray, RefArg rcvr)
+NS_STUB(FGlobalBoxX, RefArg rcvr)
+NS_STUB(FGlobalOuterBoxX, RefArg rcvr)
+NS_STUB(FHandleInkWord, RefArg rcvr)
+NS_STUB(FHandleInsertItems, RefArg rcvr)
+NS_STUB(FHandleKeyEvents, RefArg rcvr)
+NS_STUB(FHandleRawInk, RefArg rcvr)
+NS_STUB(FHandleUnit, RefArg rcvr)
+NS_STUB(FHideCaret, RefArg rcvr)
+NS_STUB(FHideX, RefArg rcvr)
+NS_STUB(FHiliteOwner, RefArg rcvr)
+NS_STUB(FHiliteUniqueX, RefArg rcvr)
+NS_STUB(FHiliteViewChildren, RefArg rcvr)
+NS_STUB(FHiliteX, RefArg rcvr)
+NS_STUB(FHiliter, RefArg rcvr)
+NS_STUB(FHobbleTablet, RefArg rcvr)
+NS_STUB(FInRepeatedKeyCommand, RefArg rcvr)
+NS_STUB(FInkOff, RefArg rcvr)
+NS_STUB(FInkOffUnHobbled, RefArg rcvr)
+NS_STUB(FInkOn, RefArg rcvr)
+NS_STUB(FInsertItemsAtCaret, RefArg rcvr)
+NS_STUB(FInsertTabletSample, RefArg rcvr)
+NS_STUB(FInsetRect, RefArg rcvr)
+NS_STUB(FInvertRect, RefArg rcvr)
+NS_STUB(FIsCommandKeystroke, RefArg rcvr)
+NS_STUB(FIsKeyDown, RefArg rcvr)
+NS_STUB(FIsPrimShape, RefArg rcvr)
+NS_STUB(FIsPtInRect, RefArg rcvr)
+NS_STUB(FIsTabletCalibrationNeeded, RefArg rcvr)
+NS_STUB(FJournalReplayALine, RefArg rcvr)
+NS_STUB(FJournalReplayAStroke, RefArg rcvr)
+NS_STUB(FJournalReplayBusy, RefArg rcvr)
+NS_STUB(FJournalReplayStrokes, RefArg rcvr)
+NS_STUB(FJournalStartRecord, RefArg rcvr)
+NS_STUB(FJournalStopRecord, RefArg rcvr)
+NS_STUB(FKeyIn, RefArg rcvr)
+NS_STUB(FKeyboardConnected, RefArg rcvr)
+NS_STUB(FLayoutTableX, RefArg rcvr)
+NS_STUB(FLayoutVerticallyX, RefArg rcvr)
+NS_STUB(FLoadFontCache, RefArg rcvr)
+NS_STUB(FLocalBoxX, RefArg rcvr)
+NS_STUB(FMakeBitmap, RefArg rcvr)
+NS_STUB(FMakeLine, RefArg rcvr)
+NS_STUB(FMakeRect, RefArg rcvr)
+NS_STUB(FMakeShape, RefArg rcvr)
+NS_STUB(FMakeText, RefArg rcvr)
+NS_STUB(FMakeTextBox, RefArg rcvr)
+NS_STUB(FMakeTextLines, RefArg rcvr)
+NS_STUB(FMatchKeyMessage, RefArg rcvr)
+NS_STUB(FModalDialog, RefArg rcvr)
+NS_STUB(FModalRecognitionOff, RefArg rcvr)
+NS_STUB(FModalRecognitionOn, RefArg rcvr)
+NS_STUB(FModalState, RefArg rcvr)
+NS_STUB(FMoveBehindX, RefArg rcvr)
+NS_STUB(FNTKAlive, RefArg rcvr)
+NS_STUB(FNTKDownload, RefArg rcvr)
+NS_STUB(FNTKListener, RefArg rcvr)
+NS_STUB(FNTKSend, RefArg rcvr)
+NS_STUB(FNextKeyView, RefArg rcvr)
+NS_STUB(FOffsetRect, RefArg rcvr)
+NS_STUB(FOffsetShape, RefArg rcvr)
+NS_STUB(FOffsetView, RefArg rcvr)
+NS_STUB(FParentX, RefArg rcvr)
+NS_STUB(FPenPos, RefArg rcvr)
+NS_STUB(FPendingImports, RefArg rcvr)
+NS_STUB(FPickViewKeyDown, RefArg rcvr)
+NS_STUB(FPointToCharOffset, RefArg rcvr)
+NS_STUB(FPointToWord, RefArg rcvr)
+NS_STUB(FPointsToArray, RefArg rcvr)
+NS_STUB(FPositionCaret, RefArg rcvr)
+NS_STUB(FPostAndDo, RefArg rcvr)
+NS_STUB(FPostCommand, RefArg rcvr)
+NS_STUB(FPostCommandParam, RefArg rcvr)
+NS_STUB(FPostKeyString, RefArg rcvr)
+NS_STUB(FPurgeAreaCache, RefArg rcvr)
+NS_STUB(FRectsOverlap, RefArg rcvr)
+NS_STUB(FRedoChildrenX, RefArg rcvr)
+NS_STUB(FRegisterGestalt, RefArg rcvr)
+NS_STUB(FRegisterOpenKeyboard, RefArg rcvr)
+NS_STUB(FRelBounds, RefArg rcvr)
+NS_STUB(FRemoveStepView, RefArg rcvr)
+NS_STUB(FRemoveView, RefArg rcvr)
+NS_STUB(FReplaceGestalt, RefArg rcvr)
+NS_STUB(FRestoreKeyView, RefArg rcvr)
+NS_STUB(FRevealEffectX, RefArg rcvr)
+NS_STUB(FSectRect, RefArg rcvr)
+NS_STUB(FSendKeyMessage, RefArg rcvr)
+NS_STUB(FSetBounds, RefArg rcvr)
+NS_STUB(FSetCalibration, RefArg rcvr)
+NS_STUB(FSetCaretInfo, RefArg rcvr)
+NS_STUB(FSetClipboard, RefArg rcvr)
+NS_STUB(FSetHiliteNoUpdateX, RefArg rcvr)
+NS_STUB(FSetHiliteX, RefArg rcvr)
+NS_STUB(FSetKeyView, RefArg rcvr)
+NS_STUB(FSetOriginX, RefArg rcvr)
+NS_STUB(FSetPopup, RefArg rcvr)
+NS_STUB(FSetRemoteWriting, RefArg rcvr)
+NS_STUB(FSetSysAlarm, RefArg rcvr)
+NS_STUB(FSetupIdleX, RefArg rcvr)
+NS_STUB(FShapeBounds, RefArg rcvr)
+NS_STUB(FShowCaret, RefArg rcvr)
+NS_STUB(FShowX, RefArg rcvr)
+NS_STUB(FSlideEffectX, RefArg rcvr)
+NS_STUB(FStartBypassTablet, RefArg rcvr)
+NS_STUB(FStopBypassTablet, RefArg rcvr)
+NS_STUB(FStrokeBounds, RefArg rcvr)
+NS_STUB(FStrokeDone, RefArg rcvr)
+NS_STUB(FStrokeInPicture, RefArg rcvr)
+NS_STUB(FSyncChildrenX, RefArg rcvr)
+NS_STUB(FSyncScrollX, RefArg rcvr)
+NS_STUB(FSyncViewX, RefArg rcvr)
+NS_STUB(FTabletBufferEmpty, RefArg rcvr)
+NS_STUB(FToggleX, RefArg rcvr)
+NS_STUB(FTopicByName, RefArg rcvr)
+NS_STUB(FTrackButtonX, RefArg rcvr)
+NS_STUB(FTrackHiliteX, RefArg rcvr)
+NS_STUB(FTranslateKey, RefArg rcvr)
+NS_STUB(FUnionRect, RefArg rcvr)
+NS_STUB(FUnregisterOpenKeyboard, RefArg rcvr)
+NS_STUB(FViewAutopsy, RefArg rcvr)
+NS_STUB(FViewContainsCaretView, RefArg rcvr)
+NS_STUB(FVisibleBox, RefArg rcvr)
+NS_STUB(FVoteOnWordUnit, RefArg rcvr)
+NS_STUB(FYieldToFork, RefArg rcvr)
+NS_STUB(FpkgDownload, RefArg rcvr)

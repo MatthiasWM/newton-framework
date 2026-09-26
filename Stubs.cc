@@ -1,4 +1,5 @@
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "Globals.h"
 
 #if !defined(forNTK)
@@ -11,46 +12,46 @@ Ref ReadStreamFile(RefArg inRcvr, RefArg inFilename);
 }
 #include "protoProtoEditor.h"
 
-Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj) { return NILREF; }
-Ref FUnDefineGlobalConstant(RefArg inRcvr, RefArg inTag) { return NILREF; }
-Ref FDefPureFn(RefArg inRcvr, RefArg inTag, RefArg inFn) { return NILREF; }
-Ref FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass) { return NILREF; }
-Ref ReadStreamFile(RefArg inRcvr, RefArg inFilename) { return NILREF; }
+NS_STUB(FDefineGlobalConstant, RefArg inRcvr, RefArg inTag, RefArg inObj)
+NS_STUB(FUnDefineGlobalConstant, RefArg inRcvr, RefArg inTag)
+NS_STUB(FDefPureFn, RefArg inRcvr, RefArg inTag, RefArg inFn)
+NS_STUB(FStuffHex, RefArg rcvr, RefArg inHexStr, RefArg inClass)
+NS_STUB(ReadStreamFile, RefArg inRcvr, RefArg inFilename)
 
-Ref Selection(RefArg inRcvr) { return NILREF; }
-Ref SelectionOffset(RefArg inRcvr) { return NILREF; }
-Ref SelectionLength(RefArg inRcvr) { return NILREF; }
-Ref SetSelection(RefArg inRcvr, RefArg inStart, RefArg inLength) { return NILREF; }
-Ref ReplaceSelection(RefArg inRcvr, RefArg inString) { return NILREF; }
-Ref TextString(RefArg inRcvr) { return NILREF; }
-Ref TextLength(RefArg inRcvr) { return NILREF; }
-Ref FindLine(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref LineStart(RefArg inRcvr, RefArg inLine) { return NILREF; }
-Ref NumberOfLines(RefArg inRcvr) { return NILREF; }
-Ref LineTop(RefArg inRcvr, RefArg inLine) { return NILREF; }
-Ref LineBottom(RefArg inRcvr, RefArg inLine) { return NILREF; }
-Ref LineBaseline(RefArg inRcvr, RefArg inLine) { return NILREF; }
-Ref LeftEdge(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref RightEdge(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref PointToOffset(RefArg inRcvr, RefArg inH, RefArg inV) { return NILREF; }
-Ref MapChars(RefArg inRcvr, RefArg inClosure, RefArg inStart, RefArg inLength) { return NILREF; }
-Ref SearchChars(RefArg inRcvr, RefArg inClosure, RefArg inStart, RefArg inLength) { return NILREF; }
-Ref Peek(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref SetKeyHandler(RefArg inRcvr, RefArg inKey, RefArg inSymbol) { return NILREF; }
-Ref GetKeyHandler(RefArg inRcvr, RefArg inKey) { return NILREF; }
-Ref SetMetaBit(RefArg inRcvr) { return NILREF; }
-Ref QuoteCharacter(RefArg inRcvr) { return NILREF; }
-Ref CharacterClass(RefArg inRcvr, RefArg inChar) { return NILREF; }
-Ref SetCharacterClass(RefArg inRcvr, RefArg inChar, RefArg inClass) { return NILREF; }
-Ref TokenStart(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref TokenEnd(RefArg inRcvr, RefArg inOffset) { return NILREF; }
-Ref TellUser(RefArg inRcvr, RefArg inString) { return NILREF; }
-Ref VisibleTop(RefArg inRcvr) { return NILREF; }
-Ref VisibleLeft(RefArg inRcvr) { return NILREF; }
-Ref VisibleHeight(RefArg inRcvr) { return NILREF; }
-Ref VisibleWidth(RefArg inRcvr) { return NILREF; }
-Ref SetVisibleTop(RefArg inRcvr, RefArg inNewTop) { return NILREF; }
-Ref SetVisibleLeft(RefArg inRcvr, RefArg inNewLeft) { return NILREF; }
+NS_STUB(Selection, RefArg inRcvr)
+NS_STUB(SelectionOffset, RefArg inRcvr)
+NS_STUB(SelectionLength, RefArg inRcvr)
+NS_STUB(SetSelection, RefArg inRcvr, RefArg inStart, RefArg inLength)
+NS_STUB(ReplaceSelection, RefArg inRcvr, RefArg inString)
+NS_STUB(TextString, RefArg inRcvr)
+NS_STUB(TextLength, RefArg inRcvr)
+NS_STUB(FindLine, RefArg inRcvr, RefArg inOffset)
+NS_STUB(LineStart, RefArg inRcvr, RefArg inLine)
+NS_STUB(NumberOfLines, RefArg inRcvr)
+NS_STUB(LineTop, RefArg inRcvr, RefArg inLine)
+NS_STUB(LineBottom, RefArg inRcvr, RefArg inLine)
+NS_STUB(LineBaseline, RefArg inRcvr, RefArg inLine)
+NS_STUB(LeftEdge, RefArg inRcvr, RefArg inOffset)
+NS_STUB(RightEdge, RefArg inRcvr, RefArg inOffset)
+NS_STUB(PointToOffset, RefArg inRcvr, RefArg inH, RefArg inV)
+NS_STUB(MapChars, RefArg inRcvr, RefArg inClosure, RefArg inStart, RefArg inLength)
+NS_STUB(SearchChars, RefArg inRcvr, RefArg inClosure, RefArg inStart, RefArg inLength)
+NS_STUB(Peek, RefArg inRcvr, RefArg inOffset)
+NS_STUB(SetKeyHandler, RefArg inRcvr, RefArg inKey, RefArg inSymbol)
+NS_STUB(GetKeyHandler, RefArg inRcvr, RefArg inKey)
+NS_STUB(SetMetaBit, RefArg inRcvr)
+NS_STUB(QuoteCharacter, RefArg inRcvr)
+NS_STUB(CharacterClass, RefArg inRcvr, RefArg inChar)
+NS_STUB(SetCharacterClass, RefArg inRcvr, RefArg inChar, RefArg inClass)
+NS_STUB(TokenStart, RefArg inRcvr, RefArg inOffset)
+NS_STUB(TokenEnd, RefArg inRcvr, RefArg inOffset)
+NS_STUB(TellUser, RefArg inRcvr, RefArg inString)
+NS_STUB(VisibleTop, RefArg inRcvr)
+NS_STUB(VisibleLeft, RefArg inRcvr)
+NS_STUB(VisibleHeight, RefArg inRcvr)
+NS_STUB(VisibleWidth, RefArg inRcvr)
+NS_STUB(SetVisibleTop, RefArg inRcvr, RefArg inNewTop)
+NS_STUB(SetVisibleLeft, RefArg inRcvr, RefArg inNewLeft)
 #endif
 
 extern "C" {
@@ -782,729 +783,729 @@ Ref FBootSucceeded(RefArg rcvr);
 Ref FGetMeetingIcon(RefArg rcvr);
 }
 
-Ref AddBookmark(RefArg rcvr) { return NILREF; }
-Ref AddHistory(RefArg rcvr) { return NILREF; }
-Ref AddInkMarks(RefArg rcvr) { return NILREF; }
-Ref AddToContentArea(RefArg rcvr) { return NILREF; }
-Ref Append(RefArg rcvr) { return NILREF; }
-Ref AuthorData(RefArg rcvr) { return NILREF; }
-Ref BookClosed(RefArg rcvr) { return NILREF; }
-Ref BookTitle(RefArg rcvr) { return NILREF; }
-Ref Bookmarks(RefArg rcvr) { return NILREF; }
-Ref CFDispose(RefArg rcvr) { return NILREF; }
-Ref CFInstantiate(RefArg rcvr) { return NILREF; }
-Ref CFRecord(RefArg rcvr) { return NILREF; }
-Ref CIAbort(RefArg rcvr) { return NILREF; }
-Ref CIAccept(RefArg rcvr) { return NILREF; }
-Ref CIBytesAvailable(RefArg rcvr) { return NILREF; }
-Ref CICaller(RefArg rcvr) { return NILREF; }
-Ref CIConnect(RefArg rcvr) { return NILREF; }
-Ref CIDisconnect(RefArg rcvr) { return NILREF; }
-Ref CIDispose(RefArg rcvr) { return NILREF; }
-Ref CIDisposeLeavingTEndpoint(RefArg rcvr) { return NILREF; }
-Ref CIFlushInput(RefArg rcvr) { return NILREF; }
-Ref CIFlushOutput(RefArg rcvr) { return NILREF; }
-Ref CIFlushPartial(RefArg rcvr) { return NILREF; }
-Ref CIGetOptions(RefArg rcvr) { return NILREF; }
-Ref CIInput(RefArg rcvr) { return NILREF; }
-Ref CIInputAvailable(RefArg rcvr) { return NILREF; }
-Ref CIInstantiate(RefArg rcvr) { return NILREF; }
-Ref CIInstantiateFromEndpoint(RefArg rcvr) { return NILREF; }
-Ref CIJustBind(RefArg rcvr) { return NILREF; }
-Ref CIJustClose(RefArg rcvr) { return NILREF; }
-Ref CIJustConnect(RefArg rcvr) { return NILREF; }
-Ref CIJustDisconnect(RefArg rcvr) { return NILREF; }
-Ref CIJustListen(RefArg rcvr) { return NILREF; }
-Ref CIJustOpen(RefArg rcvr) { return NILREF; }
-Ref CIJustRelease(RefArg rcvr) { return NILREF; }
-Ref CIJustUnBind(RefArg rcvr) { return NILREF; }
-Ref CIListen(RefArg rcvr) { return NILREF; }
-Ref CINewAbort(RefArg rcvr) { return NILREF; }
-Ref CINewAccept(RefArg rcvr) { return NILREF; }
-Ref CINewBind(RefArg rcvr) { return NILREF; }
-Ref CINewConnect(RefArg rcvr) { return NILREF; }
-Ref CINewDisconnect(RefArg rcvr) { return NILREF; }
-Ref CINewDispose(RefArg rcvr) { return NILREF; }
-Ref CINewDisposeLeavingTEndpoint(RefArg rcvr) { return NILREF; }
-Ref CINewDisposeLeavingTool(RefArg rcvr) { return NILREF; }
-Ref CINewFlushInput(RefArg rcvr) { return NILREF; }
-Ref CINewFlushPartial(RefArg rcvr) { return NILREF; }
-Ref CINewInput(RefArg rcvr) { return NILREF; }
-Ref CINewInstantiate(RefArg rcvr) { return NILREF; }
-Ref CINewInstantiateFromEndpoint(RefArg rcvr) { return NILREF; }
-Ref CINewListen(RefArg rcvr) { return NILREF; }
-Ref CINewOption(RefArg rcvr) { return NILREF; }
-Ref CINewOutput(RefArg rcvr) { return NILREF; }
-Ref CINewPartial(RefArg rcvr) { return NILREF; }
-Ref CINewSetInputSpec(RefArg rcvr) { return NILREF; }
-Ref CINewSetState(RefArg rcvr) { return NILREF; }
-Ref CINewState(RefArg rcvr) { return NILREF; }
-Ref CINewUnBind(RefArg rcvr) { return NILREF; }
-Ref CIOutput(RefArg rcvr) { return NILREF; }
-Ref CIOutputDone(RefArg rcvr) { return NILREF; }
-Ref CIOutputFrame(RefArg rcvr) { return NILREF; }
-Ref CIPartial(RefArg rcvr) { return NILREF; }
-Ref CIReadyForOutput(RefArg rcvr) { return NILREF; }
-Ref CIReject(RefArg rcvr) { return NILREF; }
-Ref CIRelease(RefArg rcvr) { return NILREF; }
-Ref CIRequestsPending(RefArg rcvr) { return NILREF; }
-Ref CISNewInstantiate(RefArg rcvr) { return NILREF; }
-Ref CISNewInstantiateFromEndpoint(RefArg rcvr) { return NILREF; }
-Ref CISStreamIn(RefArg rcvr) { return NILREF; }
-Ref CISStreamOut(RefArg rcvr) { return NILREF; }
-Ref CISetInputSpec(RefArg rcvr) { return NILREF; }
-Ref CISetOptions(RefArg rcvr) { return NILREF; }
-Ref CISetSync(RefArg rcvr) { return NILREF; }
-Ref CIStartCCL(RefArg rcvr) { return NILREF; }
-Ref CIState(RefArg rcvr) { return NILREF; }
-Ref CIStopCCL(RefArg rcvr) { return NILREF; }
-Ref CSDispose(RefArg rcvr) { return NILREF; }
-Ref CSGetDefaultConfig(RefArg rcvr) { return NILREF; }
-Ref CSInstantiate(RefArg rcvr) { return NILREF; }
-Ref CSSetDefaultConfig(RefArg rcvr) { return NILREF; }
-Ref CallOnlineServices(RefArg rcvr) { return NILREF; }
-Ref CheezyIntersect(RefArg rcvr) { return NILREF; }
-Ref CheezySubsumption(RefArg rcvr) { return NILREF; }
-Ref CircleDistance(RefArg rcvr) { return NILREF; }
-Ref CleanString(RefArg rcvr) { return NILREF; }
-Ref CommonAncestors(RefArg rcvr) { return NILREF; }
-Ref CompositeClass(RefArg rcvr) { return NILREF; }
-Ref CoordinateToLatitude(RefArg rcvr) { return NILREF; }
-Ref CoordinateToLongitude(RefArg rcvr) { return NILREF; }
-Ref CorrectSelect(RefArg rcvr) { return NILREF; }
-Ref CorrectWord(RefArg rcvr) { return NILREF; }
-Ref CountPages(RefArg rcvr) { return NILREF; }
-Ref CuFind(RefArg rcvr) { return NILREF; }
-Ref CurrentBook(RefArg rcvr) { return NILREF; }
-Ref CurrentKiosk(RefArg rcvr) { return NILREF; }
-Ref CurrentPage(RefArg rcvr) { return NILREF; }
-Ref DisconnectOnlineServices(RefArg rcvr) { return NILREF; }
-Ref DumpDict(RefArg rcvr) { return NILREF; }
-Ref EWBufferStart(RefArg rcvr) { return NILREF; }
-Ref EWConnectToHost(RefArg rcvr) { return NILREF; }
-Ref EWDecodePacket(RefArg rcvr) { return NILREF; }
-Ref EWEscape(RefArg rcvr) { return NILREF; }
-Ref EWFileToFrame(RefArg rcvr) { return NILREF; }
-Ref EWFrameToFile(RefArg rcvr) { return NILREF; }
-Ref EWGetData(RefArg rcvr) { return NILREF; }
-Ref EWGetError(RefArg rcvr) { return NILREF; }
-Ref EWGetMacHeader(RefArg rcvr) { return NILREF; }
-Ref EWInstantiate(RefArg rcvr) { return NILREF; }
-Ref EWOutput(RefArg rcvr) { return NILREF; }
-Ref EWOutputAtom(RefArg rcvr) { return NILREF; }
-Ref EWSend(RefArg rcvr) { return NILREF; }
-Ref EWSetError(RefArg rcvr) { return NILREF; }
-Ref EWUnEscape(RefArg rcvr) { return NILREF; }
-Ref EWUniAtomHandler(RefArg rcvr) { return NILREF; }
-Ref EWUploadFile(RefArg rcvr) { return NILREF; }
-Ref FActivate1XPackage(RefArg rcvr) { return NILREF; }
-Ref FAddCapitalizedEntry(RefArg rcvr) { return NILREF; }
-Ref FAddUnitInfo(RefArg rcvr) { return NILREF; }
-Ref FAddWordInfo(RefArg rcvr) { return NILREF; }
-Ref FAdjustParagraph(RefArg rcvr) { return NILREF; }
-Ref FAutoAdd(RefArg rcvr) { return NILREF; }
-Ref FAutoRemove(RefArg rcvr) { return NILREF; }
-Ref FChildTemplateFromTopic(RefArg rcvr) { return NILREF; }
-Ref FClearCorrectionInfo(RefArg rcvr) { return NILREF; }
-Ref FClearWordInfoFlags(RefArg rcvr) { return NILREF; }
-Ref FClickLetterShapes(RefArg rcvr) { return NILREF; }
-Ref FCloseRemote(RefArg rcvr) { return NILREF; }
-Ref FCollapseTopic(RefArg rcvr) { return NILREF; }
-Ref FConnAbort(RefArg rcvr) { return NILREF; }
-Ref FConnBytesAvailable(RefArg rcvr) { return NILREF; }
-Ref FConnConnect(RefArg rcvr) { return NILREF; }
-Ref FConnDesktopType(RefArg rcvr) { return NILREF; }
-Ref FConnDoConnection(RefArg rcvr) { return NILREF; }
-Ref FConnDoKeyboardPassthrough(RefArg rcvr) { return NILREF; }
-Ref FConnFlushCommandData(RefArg rcvr) { return NILREF; }
-Ref FConnGetCurrentStore(RefArg rcvr) { return NILREF; }
-Ref FConnGetSyncChanges(RefArg rcvr) { return NILREF; }
-Ref FConnInstallProtocolExtension(RefArg rcvr) { return NILREF; }
-Ref FConnInstantiate(RefArg rcvr) { return NILREF; }
-Ref FConnReadBytes(RefArg rcvr) { return NILREF; }
-Ref FConnReadCommand(RefArg rcvr) { return NILREF; }
-Ref FConnReadCommandData(RefArg rcvr) { return NILREF; }
-Ref FConnReadCommandHeader(RefArg rcvr) { return NILREF; }
-Ref FConnRemoveProtocolExtension(RefArg rcvr) { return NILREF; }
-Ref FConnRetryPassword(RefArg rcvr) { return NILREF; }
-Ref FConnSetState(RefArg rcvr) { return NILREF; }
-Ref FConnStop(RefArg rcvr) { return NILREF; }
-Ref FConnWriteBytes(RefArg rcvr) { return NILREF; }
-Ref FConnWriteCommand(RefArg rcvr) { return NILREF; }
-Ref FConnWriteCommandHeader(RefArg rcvr) { return NILREF; }
-Ref FConnectionState(RefArg rcvr) { return NILREF; }
-Ref FCountLetterShapes(RefArg rcvr) { return NILREF; }
-Ref FDeActivate1XPackage(RefArg rcvr) { return NILREF; }
-Ref FDeleteStoreObject(RefArg rcvr) { return NILREF; }
-Ref FDestroyProtocol(RefArg rcvr) { return NILREF; }
-Ref FDispatchProtocol(RefArg rcvr) { return NILREF; }
-Ref FDoEntryLearning(RefArg rcvr) { return NILREF; }
-Ref FDrawExpando(RefArg rcvr) { return NILREF; }
-Ref FDrawLetterShapes(RefArg rcvr) { return NILREF; }
-Ref FExpandTopic(RefArg rcvr) { return NILREF; }
-Ref FExtractRange(RefArg rcvr) { return NILREF; }
-Ref FFindDictionaryFrame(RefArg rcvr) { return NILREF; }
-Ref FFindNewInfo(RefArg rcvr) { return NILREF; }
-Ref FFindWordInfo(RefArg rcvr) { return NILREF; }
-Ref FForLoop(RefArg rcvr) { return NILREF; }
-Ref FGetBinaryCompander(RefArg rcvr) { return NILREF; }
-Ref FGetBinaryCompanderData(RefArg rcvr) { return NILREF; }
-Ref FGetBinaryStore(RefArg rcvr) { return NILREF; }
-Ref FGetBinaryStoredSize(RefArg rcvr) { return NILREF; }
-Ref FGetCapability(RefArg rcvr) { return NILREF; }
-Ref FGetChannelInputGain(RefArg rcvr) { return NILREF; }
-Ref FGetChannelVolume(RefArg rcvr) { return NILREF; }
-Ref FGetHiliteWeight(RefArg rcvr) { return NILREF; }
-Ref FGetSiblingSlot(RefArg rcvr) { return NILREF; }
-Ref FGetStoreCardSlot(RefArg rcvr) { return NILREF; }
-Ref FGetStoreCardType(RefArg rcvr) { return NILREF; }
-Ref FGetStoreObjectSize(RefArg rcvr) { return NILREF; }
-Ref FGetValue(RefArg rcvr) { return NILREF; }
-Ref FGetWordInfo(RefArg rcvr) { return NILREF; }
-Ref FGetWordList(RefArg rcvr) { return NILREF; }
-Ref FHasCapability(RefArg rcvr) { return NILREF; }
-Ref FHasSiblingSlot(RefArg rcvr) { return NILREF; }
-Ref FInsertRange(RefArg rcvr) { return NILREF; }
-Ref FIsCollapsed(RefArg rcvr) { return NILREF; }
-Ref FIsLargeBinary(RefArg rcvr) { return NILREF; }
-Ref FKeyHelpSlipDraw(RefArg rcvr) { return NILREF; }
-Ref FKeyHelpSlipSetup(RefArg rcvr) { return NILREF; }
-Ref FKeyboardInputX(RefArg rcvr) { return NILREF; }
-Ref FLBClearCache(RefArg rcvr) { return NILREF; }
-Ref FListBottom(RefArg rcvr) { return NILREF; }
-Ref FLocalVar(RefArg rcvr) { return NILREF; }
-Ref FMakeDragRef(RefArg rcvr) { return NILREF; }
-Ref FMakeWordInfo(RefArg rcvr) { return NILREF; }
-Ref FMarkerBounds(RefArg rcvr) { return NILREF; }
-Ref FMergeWordInfo(RefArg rcvr) { return NILREF; }
-Ref FMoveWordFirst(RefArg rcvr) { return NILREF; }
-Ref FMungeStyles(RefArg rcvr) { return NILREF; }
-Ref FNewProtocol(RefArg rcvr) { return NILREF; }
-Ref FNewStoreObject(RefArg rcvr) { return NILREF; }
-Ref FNextClassInfo(RefArg rcvr) { return NILREF; }
-Ref FOffsetCorrectionInfo(RefArg rcvr) { return NILREF; }
-Ref FOpenRemote(RefArg rcvr) { return NILREF; }
-Ref FPickViewGetScollerValues(RefArg rcvr) { return NILREF; }
-Ref FPickViewScroll(RefArg rcvr) { return NILREF; }
-Ref FProcessBuiltinCommand(RefArg rcvr) { return NILREF; }
-Ref FProtocolImplementationName(RefArg rcvr) { return NILREF; }
-Ref FProtocolInterfaceName(RefArg rcvr) { return NILREF; }
-Ref FProtocolSignature(RefArg rcvr) { return NILREF; }
-Ref FProtocolVersion(RefArg rcvr) { return NILREF; }
-Ref FReadStoreObject(RefArg rcvr) { return NILREF; }
-Ref FReboot(RefArg rcvr) { return NILREF; }
-Ref FRemove1XPackage(RefArg rcvr) { return NILREF; }
-Ref FRemoveCorrectionInfo(RefArg rcvr) { return NILREF; }
-Ref FRemoveToggledEntries(RefArg rcvr) { return NILREF; }
-Ref FResetLearningDefaults(RefArg rcvr) { return NILREF; }
-Ref FSendCode(RefArg rcvr) { return NILREF; }
-Ref FSetChannelInputGain(RefArg rcvr) { return NILREF; }
-Ref FSetChannelVolume(RefArg rcvr) { return NILREF; }
-Ref FSetHiliteWeight(RefArg rcvr) { return NILREF; }
-Ref FSetStoreObjectSize(RefArg rcvr) { return NILREF; }
-Ref FSetWordInfoFlags(RefArg rcvr) { return NILREF; }
-Ref FSetWordList(RefArg rcvr) { return NILREF; }
-Ref FSetupTetheredListener(RefArg rcvr) { return NILREF; }
-Ref FSetupVisibleChildren(RefArg rcvr) { return NILREF; }
-Ref FSoundClose(RefArg rcvr) { return NILREF; }
-Ref FSoundIsActive(RefArg rcvr) { return NILREF; }
-Ref FSoundIsPaused(RefArg rcvr) { return NILREF; }
-Ref FSoundOpen(RefArg rcvr) { return NILREF; }
-Ref FSoundPause(RefArg rcvr) { return NILREF; }
-Ref FSoundSchedule(RefArg rcvr) { return NILREF; }
-Ref FSoundStart(RefArg rcvr) { return NILREF; }
-Ref FSoundStop(RefArg rcvr) { return NILREF; }
-Ref FStoreAbort(RefArg rcvr) { return NILREF; }
-Ref FStringToFrameMapper(RefArg rcvr) { return NILREF; }
-Ref FSuckPackageFromBinary(RefArg rcvr) { return NILREF; }
-Ref FSuckPackageFromEnpoint(RefArg rcvr) { return NILREF; }
-Ref FSuckPackageOffDeskTop(RefArg rcvr) { return NILREF; }
-Ref FTXChangeRangeRulers(RefArg rcvr) { return NILREF; }
-Ref FTXChangeRangeRuns(RefArg rcvr) { return NILREF; }
-Ref FTXCharToPoint(RefArg rcvr) { return NILREF; }
-Ref FTXClear(RefArg rcvr) { return NILREF; }
-Ref FTXCopy(RefArg rcvr) { return NILREF; }
-Ref FTXCut(RefArg rcvr) { return NILREF; }
-Ref FTXExternalize(RefArg rcvr) { return NILREF; }
-Ref FTXFinderFindString(RefArg rcvr) { return NILREF; }
-Ref FTXFinderGetCountCharacters(RefArg rcvr) { return NILREF; }
-Ref FTXFinderGetRangeText(RefArg rcvr) { return NILREF; }
-Ref FTXGetContinuousRun(RefArg rcvr) { return NILREF; }
-Ref FTXGetCountCharacters(RefArg rcvr) { return NILREF; }
-Ref FTXGetCountPages(RefArg rcvr) { return NILREF; }
-Ref FTXGetHiliteRange(RefArg rcvr) { return NILREF; }
-Ref FTXGetLineRange(RefArg rcvr) { return NILREF; }
-Ref FTXGetParagraphRange(RefArg rcvr) { return NILREF; }
-Ref FTXGetRangeData(RefArg rcvr) { return NILREF; }
-Ref FTXGetScrollValues(RefArg rcvr) { return NILREF; }
-Ref FTXGetTextViewRect(RefArg rcvr) { return NILREF; }
-Ref FTXGetTotalHeight(RefArg rcvr) { return NILREF; }
-Ref FTXGetTotalWidth(RefArg rcvr) { return NILREF; }
-Ref FTXGetWordRange(RefArg rcvr) { return NILREF; }
-Ref FTXHideRuler(RefArg rcvr) { return NILREF; }
-Ref FTXInsertPageBreak(RefArg rcvr) { return NILREF; }
-Ref FTXInternalize(RefArg rcvr) { return NILREF; }
-Ref FTXIsModified(RefArg rcvr) { return NILREF; }
-Ref FTXIsRulerShown(RefArg rcvr) { return NILREF; }
-Ref FTXPaste(RefArg rcvr) { return NILREF; }
-Ref FTXPointToChar(RefArg rcvr) { return NILREF; }
-Ref FTXReplace(RefArg rcvr) { return NILREF; }
-Ref FTXReplaceAll(RefArg rcvr) { return NILREF; }
-Ref FTXScroll(RefArg rcvr) { return NILREF; }
-Ref FTXSetDrawOrigin(RefArg rcvr) { return NILREF; }
-Ref FTXSetGeometry(RefArg rcvr) { return NILREF; }
-Ref FTXSetHiliteRange(RefArg rcvr) { return NILREF; }
-Ref FTXSetReadOnly(RefArg rcvr) { return NILREF; }
-Ref FTXSetStore(RefArg rcvr) { return NILREF; }
-Ref FTXShowRuler(RefArg rcvr) { return NILREF; }
-Ref FTXUpdateRulerInfo(RefArg rcvr) { return NILREF; }
-Ref FTXViewFindString(RefArg rcvr) { return NILREF; }
-Ref FTestWordInfoFlags(RefArg rcvr) { return NILREF; }
-Ref FTopicBottom(RefArg rcvr) { return NILREF; }
-Ref FTopicIndexToView(RefArg rcvr) { return NILREF; }
-Ref FVisibleTopicIndex(RefArg rcvr) { return NILREF; }
-Ref FWriteEntireStoreObject(RefArg rcvr) { return NILREF; }
-Ref FWriteStoreObject(RefArg rcvr) { return NILREF; }
-Ref FastStringLookup(RefArg rcvr) { return NILREF; }
-Ref FavorAction(RefArg rcvr) { return NILREF; }
-Ref FavorObject(RefArg rcvr) { return NILREF; }
-Ref Fdim(RefArg rcvr) { return NILREF; }
-Ref FindContentBySlot(RefArg rcvr) { return NILREF; }
-Ref FindContentByValue(RefArg rcvr) { return NILREF; }
-Ref FindPageByContent(RefArg rcvr) { return NILREF; }
-Ref FindPageBySubject(RefArg rcvr) { return NILREF; }
-Ref FindPageByValue(RefArg rcvr) { return NILREF; }
-Ref FormatVertical(RefArg rcvr) { return NILREF; }
-Ref GenPhoneTypeList(RefArg rcvr) { return NILREF; }
-Ref GeneratePhrases(RefArg rcvr) { return NILREF; }
-Ref GenerateSubstrings(RefArg rcvr) { return NILREF; }
-Ref GetDictItem(RefArg rcvr) { return NILREF; }
-Ref GetRelevantTemplates(RefArg rcvr) { return NILREF; }
-Ref GlueStrings(RefArg rcvr) { return NILREF; }
-Ref GuessAddressee(RefArg rcvr) { return NILREF; }
-Ref HiliteBlock(RefArg rcvr) { return NILREF; }
-Ref History(RefArg rcvr) { return NILREF; }
-Ref IASmartCFLookup(RefArg rcvr) { return NILREF; }
-Ref ISATest(RefArg rcvr) { return NILREF; }
-Ref InkMarks(RefArg rcvr) { return NILREF; }
-Ref LatitudeToCoordinate(RefArg rcvr) { return NILREF; }
-Ref LayoutMeeting(RefArg rcvr) { return NILREF; }
-Ref LexDateLookup(RefArg rcvr) { return NILREF; }
-Ref LexPhoneLookup(RefArg rcvr) { return NILREF; }
-Ref LexTimeLookup(RefArg rcvr) { return NILREF; }
-Ref LongitudeToCoordinate(RefArg rcvr) { return NILREF; }
-Ref MakeLowerCase(RefArg rcvr) { return NILREF; }
-Ref MakePhrasalLexEntry(RefArg rcvr) { return NILREF; }
-Ref MapSymToFrame(RefArg rcvr) { return NILREF; }
-Ref PageContents(RefArg rcvr) { return NILREF; }
-Ref PageScroll(RefArg rcvr) { return NILREF; }
-Ref PageThumbnail(RefArg rcvr) { return NILREF; }
-Ref PathToRoot(RefArg rcvr) { return NILREF; }
-Ref PhoneIndexToValue(RefArg rcvr) { return NILREF; }
-Ref PhoneStringToValue(RefArg rcvr) { return NILREF; }
-Ref PhoneSymToIndex(RefArg rcvr) { return NILREF; }
-Ref PhoneSymToString(RefArg rcvr) { return NILREF; }
-Ref PhraseFilter(RefArg rcvr) { return NILREF; }
-Ref PrefixP(RefArg rcvr) { return NILREF; }
-Ref PrepBook(RefArg rcvr) { return NILREF; }
-Ref PrepRecConfig(RefArg rcvr) { return NILREF; }
-Ref PreviousPage(RefArg rcvr) { return NILREF; }
-Ref ReFlow(RefArg rcvr) { return NILREF; }
-Ref ReadDomainOptions(RefArg rcvr) { return NILREF; }
-Ref ReflowPreflight(RefArg rcvr) { return NILREF; }
-Ref RefreshTopics(RefArg rcvr) { return NILREF; }
-Ref RegisterBookRef(RefArg rcvr) { return NILREF; }
-Ref ScrollToCurrent(RefArg rcvr) { return NILREF; }
-Ref SendAbort(RefArg rcvr) { return NILREF; }
-Ref StartIRSniffing(RefArg rcvr) { return NILREF; }
-Ref StopIRSniffing(RefArg rcvr) { return NILREF; }
-Ref Store1XPackageToVBO(RefArg rcvr) { return NILREF; }
-Ref StoreConvertSoupSortTables(RefArg rcvr) { return NILREF; }
-Ref StorePackageRestore(RefArg rcvr) { return NILREF; }
-Ref StoreSegmentedPackageRestore(RefArg rcvr) { return NILREF; }
-Ref SuffixP(RefArg rcvr) { return NILREF; }
-Ref TableLookup(RefArg rcvr) { return NILREF; }
-Ref TurnToContent(RefArg rcvr) { return NILREF; }
-Ref TurnToPage(RefArg rcvr) { return NILREF; }
-Ref UnionSoupFlush(RefArg rcvr) { return NILREF; }
-Ref UniqueAppendList(RefArg rcvr) { return NILREF; }
-Ref UniqueAppendListGen(RefArg rcvr) { return NILREF; }
-Ref UnmatchedWords(RefArg rcvr) { return NILREF; }
-Ref UnregisterBookRef(RefArg rcvr) { return NILREF; }
-Ref UpdateBookmarks(RefArg rcvr) { return NILREF; }
-Ref UseTrainingDataForRecognition(RefArg rcvr) { return NILREF; }
-Ref WhereIsBook(RefArg rcvr) { return NILREF; }
-Ref ZapCancel(RefArg rcvr) { return NILREF; }
-Ref ZapReceive(RefArg rcvr) { return NILREF; }
-Ref ZapSend(RefArg rcvr) { return NILREF; }
-Ref ZoomView(RefArg rcvr) { return NILREF; }
+NS_STUB(AddBookmark, RefArg rcvr)
+NS_STUB(AddHistory, RefArg rcvr)
+NS_STUB(AddInkMarks, RefArg rcvr)
+NS_STUB(AddToContentArea, RefArg rcvr)
+NS_STUB(Append, RefArg rcvr)
+NS_STUB(AuthorData, RefArg rcvr)
+NS_STUB(BookClosed, RefArg rcvr)
+NS_STUB(BookTitle, RefArg rcvr)
+NS_STUB(Bookmarks, RefArg rcvr)
+NS_STUB(CFDispose, RefArg rcvr)
+NS_STUB(CFInstantiate, RefArg rcvr)
+NS_STUB(CFRecord, RefArg rcvr)
+NS_STUB(CIAbort, RefArg rcvr)
+NS_STUB(CIAccept, RefArg rcvr)
+NS_STUB(CIBytesAvailable, RefArg rcvr)
+NS_STUB(CICaller, RefArg rcvr)
+NS_STUB(CIConnect, RefArg rcvr)
+NS_STUB(CIDisconnect, RefArg rcvr)
+NS_STUB(CIDispose, RefArg rcvr)
+NS_STUB(CIDisposeLeavingTEndpoint, RefArg rcvr)
+NS_STUB(CIFlushInput, RefArg rcvr)
+NS_STUB(CIFlushOutput, RefArg rcvr)
+NS_STUB(CIFlushPartial, RefArg rcvr)
+NS_STUB(CIGetOptions, RefArg rcvr)
+NS_STUB(CIInput, RefArg rcvr)
+NS_STUB(CIInputAvailable, RefArg rcvr)
+NS_STUB(CIInstantiate, RefArg rcvr)
+NS_STUB(CIInstantiateFromEndpoint, RefArg rcvr)
+NS_STUB(CIJustBind, RefArg rcvr)
+NS_STUB(CIJustClose, RefArg rcvr)
+NS_STUB(CIJustConnect, RefArg rcvr)
+NS_STUB(CIJustDisconnect, RefArg rcvr)
+NS_STUB(CIJustListen, RefArg rcvr)
+NS_STUB(CIJustOpen, RefArg rcvr)
+NS_STUB(CIJustRelease, RefArg rcvr)
+NS_STUB(CIJustUnBind, RefArg rcvr)
+NS_STUB(CIListen, RefArg rcvr)
+NS_STUB(CINewAbort, RefArg rcvr)
+NS_STUB(CINewAccept, RefArg rcvr)
+NS_STUB(CINewBind, RefArg rcvr)
+NS_STUB(CINewConnect, RefArg rcvr)
+NS_STUB(CINewDisconnect, RefArg rcvr)
+NS_STUB(CINewDispose, RefArg rcvr)
+NS_STUB(CINewDisposeLeavingTEndpoint, RefArg rcvr)
+NS_STUB(CINewDisposeLeavingTool, RefArg rcvr)
+NS_STUB(CINewFlushInput, RefArg rcvr)
+NS_STUB(CINewFlushPartial, RefArg rcvr)
+NS_STUB(CINewInput, RefArg rcvr)
+NS_STUB(CINewInstantiate, RefArg rcvr)
+NS_STUB(CINewInstantiateFromEndpoint, RefArg rcvr)
+NS_STUB(CINewListen, RefArg rcvr)
+NS_STUB(CINewOption, RefArg rcvr)
+NS_STUB(CINewOutput, RefArg rcvr)
+NS_STUB(CINewPartial, RefArg rcvr)
+NS_STUB(CINewSetInputSpec, RefArg rcvr)
+NS_STUB(CINewSetState, RefArg rcvr)
+NS_STUB(CINewState, RefArg rcvr)
+NS_STUB(CINewUnBind, RefArg rcvr)
+NS_STUB(CIOutput, RefArg rcvr)
+NS_STUB(CIOutputDone, RefArg rcvr)
+NS_STUB(CIOutputFrame, RefArg rcvr)
+NS_STUB(CIPartial, RefArg rcvr)
+NS_STUB(CIReadyForOutput, RefArg rcvr)
+NS_STUB(CIReject, RefArg rcvr)
+NS_STUB(CIRelease, RefArg rcvr)
+NS_STUB(CIRequestsPending, RefArg rcvr)
+NS_STUB(CISNewInstantiate, RefArg rcvr)
+NS_STUB(CISNewInstantiateFromEndpoint, RefArg rcvr)
+NS_STUB(CISStreamIn, RefArg rcvr)
+NS_STUB(CISStreamOut, RefArg rcvr)
+NS_STUB(CISetInputSpec, RefArg rcvr)
+NS_STUB(CISetOptions, RefArg rcvr)
+NS_STUB(CISetSync, RefArg rcvr)
+NS_STUB(CIStartCCL, RefArg rcvr)
+NS_STUB(CIState, RefArg rcvr)
+NS_STUB(CIStopCCL, RefArg rcvr)
+NS_STUB(CSDispose, RefArg rcvr)
+NS_STUB(CSGetDefaultConfig, RefArg rcvr)
+NS_STUB(CSInstantiate, RefArg rcvr)
+NS_STUB(CSSetDefaultConfig, RefArg rcvr)
+NS_STUB(CallOnlineServices, RefArg rcvr)
+NS_STUB(CheezyIntersect, RefArg rcvr)
+NS_STUB(CheezySubsumption, RefArg rcvr)
+NS_STUB(CircleDistance, RefArg rcvr)
+NS_STUB(CleanString, RefArg rcvr)
+NS_STUB(CommonAncestors, RefArg rcvr)
+NS_STUB(CompositeClass, RefArg rcvr)
+NS_STUB(CoordinateToLatitude, RefArg rcvr)
+NS_STUB(CoordinateToLongitude, RefArg rcvr)
+NS_STUB(CorrectSelect, RefArg rcvr)
+NS_STUB(CorrectWord, RefArg rcvr)
+NS_STUB(CountPages, RefArg rcvr)
+NS_STUB(CuFind, RefArg rcvr)
+NS_STUB(CurrentBook, RefArg rcvr)
+NS_STUB(CurrentKiosk, RefArg rcvr)
+NS_STUB(CurrentPage, RefArg rcvr)
+NS_STUB(DisconnectOnlineServices, RefArg rcvr)
+NS_STUB(DumpDict, RefArg rcvr)
+NS_STUB(EWBufferStart, RefArg rcvr)
+NS_STUB(EWConnectToHost, RefArg rcvr)
+NS_STUB(EWDecodePacket, RefArg rcvr)
+NS_STUB(EWEscape, RefArg rcvr)
+NS_STUB(EWFileToFrame, RefArg rcvr)
+NS_STUB(EWFrameToFile, RefArg rcvr)
+NS_STUB(EWGetData, RefArg rcvr)
+NS_STUB(EWGetError, RefArg rcvr)
+NS_STUB(EWGetMacHeader, RefArg rcvr)
+NS_STUB(EWInstantiate, RefArg rcvr)
+NS_STUB(EWOutput, RefArg rcvr)
+NS_STUB(EWOutputAtom, RefArg rcvr)
+NS_STUB(EWSend, RefArg rcvr)
+NS_STUB(EWSetError, RefArg rcvr)
+NS_STUB(EWUnEscape, RefArg rcvr)
+NS_STUB(EWUniAtomHandler, RefArg rcvr)
+NS_STUB(EWUploadFile, RefArg rcvr)
+NS_STUB(FActivate1XPackage, RefArg rcvr)
+NS_STUB(FAddCapitalizedEntry, RefArg rcvr)
+NS_STUB(FAddUnitInfo, RefArg rcvr)
+NS_STUB(FAddWordInfo, RefArg rcvr)
+NS_STUB(FAdjustParagraph, RefArg rcvr)
+NS_STUB(FAutoAdd, RefArg rcvr)
+NS_STUB(FAutoRemove, RefArg rcvr)
+NS_STUB(FChildTemplateFromTopic, RefArg rcvr)
+NS_STUB(FClearCorrectionInfo, RefArg rcvr)
+NS_STUB(FClearWordInfoFlags, RefArg rcvr)
+NS_STUB(FClickLetterShapes, RefArg rcvr)
+NS_STUB(FCloseRemote, RefArg rcvr)
+NS_STUB(FCollapseTopic, RefArg rcvr)
+NS_STUB(FConnAbort, RefArg rcvr)
+NS_STUB(FConnBytesAvailable, RefArg rcvr)
+NS_STUB(FConnConnect, RefArg rcvr)
+NS_STUB(FConnDesktopType, RefArg rcvr)
+NS_STUB(FConnDoConnection, RefArg rcvr)
+NS_STUB(FConnDoKeyboardPassthrough, RefArg rcvr)
+NS_STUB(FConnFlushCommandData, RefArg rcvr)
+NS_STUB(FConnGetCurrentStore, RefArg rcvr)
+NS_STUB(FConnGetSyncChanges, RefArg rcvr)
+NS_STUB(FConnInstallProtocolExtension, RefArg rcvr)
+NS_STUB(FConnInstantiate, RefArg rcvr)
+NS_STUB(FConnReadBytes, RefArg rcvr)
+NS_STUB(FConnReadCommand, RefArg rcvr)
+NS_STUB(FConnReadCommandData, RefArg rcvr)
+NS_STUB(FConnReadCommandHeader, RefArg rcvr)
+NS_STUB(FConnRemoveProtocolExtension, RefArg rcvr)
+NS_STUB(FConnRetryPassword, RefArg rcvr)
+NS_STUB(FConnSetState, RefArg rcvr)
+NS_STUB(FConnStop, RefArg rcvr)
+NS_STUB(FConnWriteBytes, RefArg rcvr)
+NS_STUB(FConnWriteCommand, RefArg rcvr)
+NS_STUB(FConnWriteCommandHeader, RefArg rcvr)
+NS_STUB(FConnectionState, RefArg rcvr)
+NS_STUB(FCountLetterShapes, RefArg rcvr)
+NS_STUB(FDeActivate1XPackage, RefArg rcvr)
+NS_STUB(FDeleteStoreObject, RefArg rcvr)
+NS_STUB(FDestroyProtocol, RefArg rcvr)
+NS_STUB(FDispatchProtocol, RefArg rcvr)
+NS_STUB(FDoEntryLearning, RefArg rcvr)
+NS_STUB(FDrawExpando, RefArg rcvr)
+NS_STUB(FDrawLetterShapes, RefArg rcvr)
+NS_STUB(FExpandTopic, RefArg rcvr)
+NS_STUB(FExtractRange, RefArg rcvr)
+NS_STUB(FFindDictionaryFrame, RefArg rcvr)
+NS_STUB(FFindNewInfo, RefArg rcvr)
+NS_STUB(FFindWordInfo, RefArg rcvr)
+NS_STUB(FForLoop, RefArg rcvr)
+NS_STUB(FGetBinaryCompander, RefArg rcvr)
+NS_STUB(FGetBinaryCompanderData, RefArg rcvr)
+NS_STUB(FGetBinaryStore, RefArg rcvr)
+NS_STUB(FGetBinaryStoredSize, RefArg rcvr)
+NS_STUB(FGetCapability, RefArg rcvr)
+NS_STUB(FGetChannelInputGain, RefArg rcvr)
+NS_STUB(FGetChannelVolume, RefArg rcvr)
+NS_STUB(FGetHiliteWeight, RefArg rcvr)
+NS_STUB(FGetSiblingSlot, RefArg rcvr)
+NS_STUB(FGetStoreCardSlot, RefArg rcvr)
+NS_STUB(FGetStoreCardType, RefArg rcvr)
+NS_STUB(FGetStoreObjectSize, RefArg rcvr)
+NS_STUB(FGetValue, RefArg rcvr)
+NS_STUB(FGetWordInfo, RefArg rcvr)
+NS_STUB(FGetWordList, RefArg rcvr)
+NS_STUB(FHasCapability, RefArg rcvr)
+NS_STUB(FHasSiblingSlot, RefArg rcvr)
+NS_STUB(FInsertRange, RefArg rcvr)
+NS_STUB(FIsCollapsed, RefArg rcvr)
+NS_STUB(FIsLargeBinary, RefArg rcvr)
+NS_STUB(FKeyHelpSlipDraw, RefArg rcvr)
+NS_STUB(FKeyHelpSlipSetup, RefArg rcvr)
+NS_STUB(FKeyboardInputX, RefArg rcvr)
+NS_STUB(FLBClearCache, RefArg rcvr)
+NS_STUB(FListBottom, RefArg rcvr)
+NS_STUB(FLocalVar, RefArg rcvr)
+NS_STUB(FMakeDragRef, RefArg rcvr)
+NS_STUB(FMakeWordInfo, RefArg rcvr)
+NS_STUB(FMarkerBounds, RefArg rcvr)
+NS_STUB(FMergeWordInfo, RefArg rcvr)
+NS_STUB(FMoveWordFirst, RefArg rcvr)
+NS_STUB(FMungeStyles, RefArg rcvr)
+NS_STUB(FNewProtocol, RefArg rcvr)
+NS_STUB(FNewStoreObject, RefArg rcvr)
+NS_STUB(FNextClassInfo, RefArg rcvr)
+NS_STUB(FOffsetCorrectionInfo, RefArg rcvr)
+NS_STUB(FOpenRemote, RefArg rcvr)
+NS_STUB(FPickViewGetScollerValues, RefArg rcvr)
+NS_STUB(FPickViewScroll, RefArg rcvr)
+NS_STUB(FProcessBuiltinCommand, RefArg rcvr)
+NS_STUB(FProtocolImplementationName, RefArg rcvr)
+NS_STUB(FProtocolInterfaceName, RefArg rcvr)
+NS_STUB(FProtocolSignature, RefArg rcvr)
+NS_STUB(FProtocolVersion, RefArg rcvr)
+NS_STUB(FReadStoreObject, RefArg rcvr)
+NS_STUB(FReboot, RefArg rcvr)
+NS_STUB(FRemove1XPackage, RefArg rcvr)
+NS_STUB(FRemoveCorrectionInfo, RefArg rcvr)
+NS_STUB(FRemoveToggledEntries, RefArg rcvr)
+NS_STUB(FResetLearningDefaults, RefArg rcvr)
+NS_STUB(FSendCode, RefArg rcvr)
+NS_STUB(FSetChannelInputGain, RefArg rcvr)
+NS_STUB(FSetChannelVolume, RefArg rcvr)
+NS_STUB(FSetHiliteWeight, RefArg rcvr)
+NS_STUB(FSetStoreObjectSize, RefArg rcvr)
+NS_STUB(FSetWordInfoFlags, RefArg rcvr)
+NS_STUB(FSetWordList, RefArg rcvr)
+NS_STUB(FSetupTetheredListener, RefArg rcvr)
+NS_STUB(FSetupVisibleChildren, RefArg rcvr)
+NS_STUB(FSoundClose, RefArg rcvr)
+NS_STUB(FSoundIsActive, RefArg rcvr)
+NS_STUB(FSoundIsPaused, RefArg rcvr)
+NS_STUB(FSoundOpen, RefArg rcvr)
+NS_STUB(FSoundPause, RefArg rcvr)
+NS_STUB(FSoundSchedule, RefArg rcvr)
+NS_STUB(FSoundStart, RefArg rcvr)
+NS_STUB(FSoundStop, RefArg rcvr)
+NS_STUB(FStoreAbort, RefArg rcvr)
+NS_STUB(FStringToFrameMapper, RefArg rcvr)
+NS_STUB(FSuckPackageFromBinary, RefArg rcvr)
+NS_STUB(FSuckPackageFromEnpoint, RefArg rcvr)
+NS_STUB(FSuckPackageOffDeskTop, RefArg rcvr)
+NS_STUB(FTXChangeRangeRulers, RefArg rcvr)
+NS_STUB(FTXChangeRangeRuns, RefArg rcvr)
+NS_STUB(FTXCharToPoint, RefArg rcvr)
+NS_STUB(FTXClear, RefArg rcvr)
+NS_STUB(FTXCopy, RefArg rcvr)
+NS_STUB(FTXCut, RefArg rcvr)
+NS_STUB(FTXExternalize, RefArg rcvr)
+NS_STUB(FTXFinderFindString, RefArg rcvr)
+NS_STUB(FTXFinderGetCountCharacters, RefArg rcvr)
+NS_STUB(FTXFinderGetRangeText, RefArg rcvr)
+NS_STUB(FTXGetContinuousRun, RefArg rcvr)
+NS_STUB(FTXGetCountCharacters, RefArg rcvr)
+NS_STUB(FTXGetCountPages, RefArg rcvr)
+NS_STUB(FTXGetHiliteRange, RefArg rcvr)
+NS_STUB(FTXGetLineRange, RefArg rcvr)
+NS_STUB(FTXGetParagraphRange, RefArg rcvr)
+NS_STUB(FTXGetRangeData, RefArg rcvr)
+NS_STUB(FTXGetScrollValues, RefArg rcvr)
+NS_STUB(FTXGetTextViewRect, RefArg rcvr)
+NS_STUB(FTXGetTotalHeight, RefArg rcvr)
+NS_STUB(FTXGetTotalWidth, RefArg rcvr)
+NS_STUB(FTXGetWordRange, RefArg rcvr)
+NS_STUB(FTXHideRuler, RefArg rcvr)
+NS_STUB(FTXInsertPageBreak, RefArg rcvr)
+NS_STUB(FTXInternalize, RefArg rcvr)
+NS_STUB(FTXIsModified, RefArg rcvr)
+NS_STUB(FTXIsRulerShown, RefArg rcvr)
+NS_STUB(FTXPaste, RefArg rcvr)
+NS_STUB(FTXPointToChar, RefArg rcvr)
+NS_STUB(FTXReplace, RefArg rcvr)
+NS_STUB(FTXReplaceAll, RefArg rcvr)
+NS_STUB(FTXScroll, RefArg rcvr)
+NS_STUB(FTXSetDrawOrigin, RefArg rcvr)
+NS_STUB(FTXSetGeometry, RefArg rcvr)
+NS_STUB(FTXSetHiliteRange, RefArg rcvr)
+NS_STUB(FTXSetReadOnly, RefArg rcvr)
+NS_STUB(FTXSetStore, RefArg rcvr)
+NS_STUB(FTXShowRuler, RefArg rcvr)
+NS_STUB(FTXUpdateRulerInfo, RefArg rcvr)
+NS_STUB(FTXViewFindString, RefArg rcvr)
+NS_STUB(FTestWordInfoFlags, RefArg rcvr)
+NS_STUB(FTopicBottom, RefArg rcvr)
+NS_STUB(FTopicIndexToView, RefArg rcvr)
+NS_STUB(FVisibleTopicIndex, RefArg rcvr)
+NS_STUB(FWriteEntireStoreObject, RefArg rcvr)
+NS_STUB(FWriteStoreObject, RefArg rcvr)
+NS_STUB(FastStringLookup, RefArg rcvr)
+NS_STUB(FavorAction, RefArg rcvr)
+NS_STUB(FavorObject, RefArg rcvr)
+NS_STUB(Fdim, RefArg rcvr)
+NS_STUB(FindContentBySlot, RefArg rcvr)
+NS_STUB(FindContentByValue, RefArg rcvr)
+NS_STUB(FindPageByContent, RefArg rcvr)
+NS_STUB(FindPageBySubject, RefArg rcvr)
+NS_STUB(FindPageByValue, RefArg rcvr)
+NS_STUB(FormatVertical, RefArg rcvr)
+NS_STUB(GenPhoneTypeList, RefArg rcvr)
+NS_STUB(GeneratePhrases, RefArg rcvr)
+NS_STUB(GenerateSubstrings, RefArg rcvr)
+NS_STUB(GetDictItem, RefArg rcvr)
+NS_STUB(GetRelevantTemplates, RefArg rcvr)
+NS_STUB(GlueStrings, RefArg rcvr)
+NS_STUB(GuessAddressee, RefArg rcvr)
+NS_STUB(HiliteBlock, RefArg rcvr)
+NS_STUB(History, RefArg rcvr)
+NS_STUB(IASmartCFLookup, RefArg rcvr)
+NS_STUB(ISATest, RefArg rcvr)
+NS_STUB(InkMarks, RefArg rcvr)
+NS_STUB(LatitudeToCoordinate, RefArg rcvr)
+NS_STUB(LayoutMeeting, RefArg rcvr)
+NS_STUB(LexDateLookup, RefArg rcvr)
+NS_STUB(LexPhoneLookup, RefArg rcvr)
+NS_STUB(LexTimeLookup, RefArg rcvr)
+NS_STUB(LongitudeToCoordinate, RefArg rcvr)
+NS_STUB(MakeLowerCase, RefArg rcvr)
+NS_STUB(MakePhrasalLexEntry, RefArg rcvr)
+NS_STUB(MapSymToFrame, RefArg rcvr)
+NS_STUB(PageContents, RefArg rcvr)
+NS_STUB(PageScroll, RefArg rcvr)
+NS_STUB(PageThumbnail, RefArg rcvr)
+NS_STUB(PathToRoot, RefArg rcvr)
+NS_STUB(PhoneIndexToValue, RefArg rcvr)
+NS_STUB(PhoneStringToValue, RefArg rcvr)
+NS_STUB(PhoneSymToIndex, RefArg rcvr)
+NS_STUB(PhoneSymToString, RefArg rcvr)
+NS_STUB(PhraseFilter, RefArg rcvr)
+NS_STUB(PrefixP, RefArg rcvr)
+NS_STUB(PrepBook, RefArg rcvr)
+NS_STUB(PrepRecConfig, RefArg rcvr)
+NS_STUB(PreviousPage, RefArg rcvr)
+NS_STUB(ReFlow, RefArg rcvr)
+NS_STUB(ReadDomainOptions, RefArg rcvr)
+NS_STUB(ReflowPreflight, RefArg rcvr)
+NS_STUB(RefreshTopics, RefArg rcvr)
+NS_STUB(RegisterBookRef, RefArg rcvr)
+NS_STUB(ScrollToCurrent, RefArg rcvr)
+NS_STUB(SendAbort, RefArg rcvr)
+NS_STUB(StartIRSniffing, RefArg rcvr)
+NS_STUB(StopIRSniffing, RefArg rcvr)
+NS_STUB(Store1XPackageToVBO, RefArg rcvr)
+NS_STUB(StoreConvertSoupSortTables, RefArg rcvr)
+NS_STUB(StorePackageRestore, RefArg rcvr)
+NS_STUB(StoreSegmentedPackageRestore, RefArg rcvr)
+NS_STUB(SuffixP, RefArg rcvr)
+NS_STUB(TableLookup, RefArg rcvr)
+NS_STUB(TurnToContent, RefArg rcvr)
+NS_STUB(TurnToPage, RefArg rcvr)
+NS_STUB(UnionSoupFlush, RefArg rcvr)
+NS_STUB(UniqueAppendList, RefArg rcvr)
+NS_STUB(UniqueAppendListGen, RefArg rcvr)
+NS_STUB(UnmatchedWords, RefArg rcvr)
+NS_STUB(UnregisterBookRef, RefArg rcvr)
+NS_STUB(UpdateBookmarks, RefArg rcvr)
+NS_STUB(UseTrainingDataForRecognition, RefArg rcvr)
+NS_STUB(WhereIsBook, RefArg rcvr)
+NS_STUB(ZapCancel, RefArg rcvr)
+NS_STUB(ZapReceive, RefArg rcvr)
+NS_STUB(ZapSend, RefArg rcvr)
+NS_STUB(ZoomView, RefArg rcvr)
 
-Ref FRecognizeInkWord(RefArg rcvr) { return NILREF; }
-Ref FntpTetheredListener(RefArg rcvr) { return NILREF; }
-Ref FSubstituteChars(RefArg rcvr) { return NILREF; }
-Ref FMatchedChar(RefArg rcvr) { return NILREF; }
-Ref FPathToRoot(RefArg rcvr) { return NILREF; }
-Ref FCircleDistance(RefArg rcvr) { return NILREF; }
-Ref FInTryString(RefArg rcvr) { return NILREF; }
-Ref FGetTrainingData(RefArg rcvr) { return NILREF; }
-Ref FSetLearningData(RefArg rcvr) { return NILREF; }
-Ref FNewByName(RefArg rcvr) { return NILREF; }
-Ref FRecognize(RefArg rcvr) { return NILREF; }
-Ref FGetCardTypes(RefArg rcvr) { return NILREF; }
-Ref FUniqueAppend(RefArg rcvr) { return NILREF; }
-Ref FGetTone(RefArg rcvr) { return NILREF; }
-Ref FLoadOnlinePackage(RefArg rcvr) { return NILREF; }
-Ref FGetZoneList(RefArg rcvr) { return NILREF; }
-Ref FIsMockEntry(RefArg rcvr) { return NILREF; }
-Ref FOtherViewInUse(RefArg rcvr) { return NILREF; }
-Ref FExtractRichStringFromParaSlots(RefArg rcvr) { return NILREF; }
-Ref FPidToPackageLite(RefArg rcvr) { return NILREF; }
-Ref FSetRamParaData(RefArg rcvr) { return NILREF; }
-Ref FComputeParagraphHeight(RefArg rcvr) { return NILREF; }
-Ref FAddHist(RefArg rcvr) { return NILREF; }
-Ref FWRecIsBeingUsed(RefArg rcvr) { return NILREF; }
-Ref FDumpDict(RefArg rcvr) { return NILREF; }
-Ref FHaveZones(RefArg rcvr) { return NILREF; }
-Ref DSTagString(RefArg rcvr) { return NILREF; }
-Ref FPolyContainsInk(RefArg rcvr) { return NILREF; }
-Ref DSFilterStringsAux(RefArg rcvr) { return NILREF; }
-Ref FDSDate(RefArg rcvr) { return NILREF; }
-Ref FGetHiliteIndex(RefArg rcvr) { return NILREF; }
-Ref FGuessAddressee(RefArg rcvr) { return NILREF; }
-Ref FActivateTestAgent(RefArg rcvr) { return NILREF; }
-Ref FFinishRecognizing(RefArg rcvr) { return NILREF; }
-Ref FReadDomainOptions(RefArg rcvr) { return NILREF; }
-Ref FFrameDirty(RefArg rcvr) { return NILREF; }
-Ref FAppleTalkOpenCount(RefArg rcvr) { return NILREF; }
-Ref FDrawStringShapes(RefArg rcvr) { return NILREF; }
-Ref FGetFontFamilyNum(RefArg rcvr) { return NILREF; }
-Ref FUnmountCard(RefArg rcvr) { return NILREF; }
-Ref FTestMDropConnection(RefArg rcvr) { return NILREF; }
-Ref FUnblockStrokes(RefArg rcvr) { return NILREF; }
-Ref FBackLight(RefArg rcvr) { return NILREF; }
-Ref FMakeRegion(RefArg rcvr) { return NILREF; }
-Ref FMergeInk(RefArg rcvr) { return NILREF; }
-Ref FStartIRSniffing(RefArg rcvr) { return NILREF; }
-Ref FStripInk(RefArg rcvr) { return NILREF; }
-Ref FEntryCopy(RefArg rcvr) { return NILREF; }
-Ref FSmartStop(RefArg rcvr) { return NILREF; }
-Ref FGetFontFace(RefArg rcvr) { return NILREF; }
-Ref FCollect(RefArg rcvr) { return NILREF; }
-Ref FSendOnline(RefArg rcvr) { return NILREF; }
-Ref FQuickLookDone(RefArg rcvr) { return NILREF; }
-Ref FTestReadTextFile(RefArg rcvr) { return NILREF; }
-Ref Fmax(RefArg rcvr) { return NILREF; }
-Ref FNextMeeting(RefArg rcvr) { return NILREF; }
-Ref FGetHilitedTextItems(RefArg rcvr) { return NILREF; }
-Ref FReFlow(RefArg rcvr) { return NILREF; }
-Ref FStringAnnotate(RefArg rcvr) { return NILREF; }
-Ref FGetStroke(RefArg rcvr) { return NILREF; }
-Ref FMashLists(RefArg rcvr) { return NILREF; }
-Ref FStringShorten(RefArg rcvr) { return NILREF; }
-Ref DSScanForWackyName(RefArg rcvr) { return NILREF; }
-Ref FGetDictItem(RefArg rcvr) { return NILREF; }
-Ref FGetDefaultFont(RefArg rcvr) { return NILREF; }
-Ref FScanPrevWordEnd(RefArg rcvr) { return NILREF; }
-Ref FStrExactCompare(RefArg rcvr) { return NILREF; }
-Ref FMapSymToFrame(RefArg rcvr) { return NILREF; }
-Ref FPSSidToPkgRef(RefArg rcvr) { return NILREF; }
-Ref FSetFontFamily(RefArg rcvr) { return NILREF; }
-Ref FStringToFrame(RefArg rcvr) { return NILREF; }
-Ref FTestWillCallExit(RefArg rcvr) { return NILREF; }
-Ref FLookupCompletions(RefArg rcvr) { return NILREF; }
-Ref FCompressStrokes(RefArg rcvr) { return NILREF; }
-Ref FInitSerialDebugging(RefArg rcvr) { return NILREF; }
-Ref FRestorePatchPackage(RefArg rcvr) { return NILREF; }
-Ref FGetDictionaryData(RefArg rcvr) { return NILREF; }
-Ref FGetMatchedEntries(RefArg rcvr) { return NILREF; }
-Ref FGetChar(RefArg rcvr) { return NILREF; }
-Ref FGetVBOCompander(RefArg rcvr) { return NILREF; }
-Ref FOpenAppleTalk(RefArg rcvr) { return NILREF; }
-Ref FRemoveAutoAdd(RefArg rcvr) { return NILREF; }
-Ref FSendRemoteControlCode(RefArg rcvr) { return NILREF; }
-Ref FGetInkAt(RefArg rcvr) { return NILREF; }
-Ref FCompositeClass(RefArg rcvr) { return NILREF; }
-Ref FBackupPatchPackage(RefArg rcvr) { return NILREF; }
-Ref FPhoneIndexToValue(RefArg rcvr) { return NILREF; }
-Ref FMakeLexEntry(RefArg rcvr) { return NILREF; }
-Ref FNextInkIndex(RefArg rcvr) { return NILREF; }
-Ref FStdioOn(RefArg rcvr) { return NILREF; }
-Ref FConvertFromMP(RefArg rcvr) { return NILREF; }
-Ref FStrWidth(RefArg rcvr) { return NILREF; }
-Ref FSpellDocBegin(RefArg rcvr) { return NILREF; }
-Ref FFontLeading(RefArg rcvr) { return NILREF; }
-Ref FDisposeTrainingData(RefArg rcvr) { return NILREF; }
-Ref FCloseAppleTalk(RefArg rcvr) { return NILREF; }
-Ref FBackLightStatus(RefArg rcvr) { return NILREF; }
-Ref FBubbleArraySlot(RefArg rcvr) { return NILREF; }
-Ref FAppendList(RefArg rcvr) { return NILREF; }
-Ref FDeActivatePackage(RefArg rcvr) { return NILREF; }
-Ref FTestGetParameterString(RefArg rcvr) { return NILREF; }
-Ref FOpenRemoteControl(RefArg rcvr) { return NILREF; }
-Ref FNewMockEntry(RefArg rcvr) { return NILREF; }
-Ref FSetFontParms(RefArg rcvr) { return NILREF; }
-Ref FSmartCFQuery(RefArg rcvr) { return NILREF; }
-Ref FTestMSetParameterString(RefArg rcvr) { return NILREF; }
-Ref FLookupWord(RefArg rcvr) { return NILREF; }
-Ref FDrawDateLabels(RefArg rcvr) { return NILREF; }
-Ref FScanWordEnd(RefArg rcvr) { return NILREF; }
-Ref FGetViewID(RefArg rcvr) { return NILREF; }
-Ref FCloseRemoteControl(RefArg rcvr) { return NILREF; }
-Ref FRecognizePoly(RefArg rcvr) { return NILREF; }
-Ref FDrawLetterScript(RefArg rcvr) { return NILREF; }
-Ref FGetVBOStoredSize(RefArg rcvr) { return NILREF; }
-Ref FNBPLookupCount(RefArg rcvr) { return NILREF; }
-Ref FStringToNumber(RefArg rcvr) { return NILREF; }
-Ref FGetInsertionStyle(RefArg rcvr) { return NILREF; }
-Ref FParaContainsInk(RefArg rcvr) { return NILREF; }
-Ref FSuffixP(RefArg rcvr) { return NILREF; }
-Ref DSResolveString(RefArg rcvr) { return NILREF; }
-Ref FIsProtocolPartInUse(RefArg rcvr) { return NILREF; }
-Ref FCalcInkBounds(RefArg rcvr) { return NILREF; }
-Ref FMoveCorrectionInfo(RefArg rcvr) { return NILREF; }
-Ref FGetLetterWeights(RefArg rcvr) { return NILREF; }
-Ref FPowerOffRingiSho(RefArg rcvr) { return NILREF; }
-Ref FGetFontSize(RefArg rcvr) { return NILREF; }
-Ref FGetMyZone(RefArg rcvr) { return NILREF; }
-Ref FDeActivate1_2EXPackage(RefArg rcvr) { return NILREF; }
-Ref FRecognizeTextInStyles(RefArg rcvr) { return NILREF; }
-Ref FPhoneSymToString(RefArg rcvr) { return NILREF; }
-Ref FDrawMeetingGrid(RefArg rcvr) { return NILREF; }
+NS_STUB(FRecognizeInkWord, RefArg rcvr)
+NS_STUB(FntpTetheredListener, RefArg rcvr)
+NS_STUB(FSubstituteChars, RefArg rcvr)
+NS_STUB(FMatchedChar, RefArg rcvr)
+NS_STUB(FPathToRoot, RefArg rcvr)
+NS_STUB(FCircleDistance, RefArg rcvr)
+NS_STUB(FInTryString, RefArg rcvr)
+NS_STUB(FGetTrainingData, RefArg rcvr)
+NS_STUB(FSetLearningData, RefArg rcvr)
+NS_STUB(FNewByName, RefArg rcvr)
+NS_STUB(FRecognize, RefArg rcvr)
+NS_STUB(FGetCardTypes, RefArg rcvr)
+NS_STUB(FUniqueAppend, RefArg rcvr)
+NS_STUB(FGetTone, RefArg rcvr)
+NS_STUB(FLoadOnlinePackage, RefArg rcvr)
+NS_STUB(FGetZoneList, RefArg rcvr)
+NS_STUB(FIsMockEntry, RefArg rcvr)
+NS_STUB(FOtherViewInUse, RefArg rcvr)
+NS_STUB(FExtractRichStringFromParaSlots, RefArg rcvr)
+NS_STUB(FPidToPackageLite, RefArg rcvr)
+NS_STUB(FSetRamParaData, RefArg rcvr)
+NS_STUB(FComputeParagraphHeight, RefArg rcvr)
+NS_STUB(FAddHist, RefArg rcvr)
+NS_STUB(FWRecIsBeingUsed, RefArg rcvr)
+NS_STUB(FDumpDict, RefArg rcvr)
+NS_STUB(FHaveZones, RefArg rcvr)
+NS_STUB(DSTagString, RefArg rcvr)
+NS_STUB(FPolyContainsInk, RefArg rcvr)
+NS_STUB(DSFilterStringsAux, RefArg rcvr)
+NS_STUB(FDSDate, RefArg rcvr)
+NS_STUB(FGetHiliteIndex, RefArg rcvr)
+NS_STUB(FGuessAddressee, RefArg rcvr)
+NS_STUB(FActivateTestAgent, RefArg rcvr)
+NS_STUB(FFinishRecognizing, RefArg rcvr)
+NS_STUB(FReadDomainOptions, RefArg rcvr)
+NS_STUB(FFrameDirty, RefArg rcvr)
+NS_STUB(FAppleTalkOpenCount, RefArg rcvr)
+NS_STUB(FDrawStringShapes, RefArg rcvr)
+NS_STUB(FGetFontFamilyNum, RefArg rcvr)
+NS_STUB(FUnmountCard, RefArg rcvr)
+NS_STUB(FTestMDropConnection, RefArg rcvr)
+NS_STUB(FUnblockStrokes, RefArg rcvr)
+NS_STUB(FBackLight, RefArg rcvr)
+NS_STUB(FMakeRegion, RefArg rcvr)
+NS_STUB(FMergeInk, RefArg rcvr)
+NS_STUB(FStartIRSniffing, RefArg rcvr)
+NS_STUB(FStripInk, RefArg rcvr)
+NS_STUB(FEntryCopy, RefArg rcvr)
+NS_STUB(FSmartStop, RefArg rcvr)
+NS_STUB(FGetFontFace, RefArg rcvr)
+NS_STUB(FCollect, RefArg rcvr)
+NS_STUB(FSendOnline, RefArg rcvr)
+NS_STUB(FQuickLookDone, RefArg rcvr)
+NS_STUB(FTestReadTextFile, RefArg rcvr)
+NS_STUB(Fmax, RefArg rcvr)
+NS_STUB(FNextMeeting, RefArg rcvr)
+NS_STUB(FGetHilitedTextItems, RefArg rcvr)
+NS_STUB(FReFlow, RefArg rcvr)
+NS_STUB(FStringAnnotate, RefArg rcvr)
+NS_STUB(FGetStroke, RefArg rcvr)
+NS_STUB(FMashLists, RefArg rcvr)
+NS_STUB(FStringShorten, RefArg rcvr)
+NS_STUB(DSScanForWackyName, RefArg rcvr)
+NS_STUB(FGetDictItem, RefArg rcvr)
+NS_STUB(FGetDefaultFont, RefArg rcvr)
+NS_STUB(FScanPrevWordEnd, RefArg rcvr)
+NS_STUB(FStrExactCompare, RefArg rcvr)
+NS_STUB(FMapSymToFrame, RefArg rcvr)
+NS_STUB(FPSSidToPkgRef, RefArg rcvr)
+NS_STUB(FSetFontFamily, RefArg rcvr)
+NS_STUB(FStringToFrame, RefArg rcvr)
+NS_STUB(FTestWillCallExit, RefArg rcvr)
+NS_STUB(FLookupCompletions, RefArg rcvr)
+NS_STUB(FCompressStrokes, RefArg rcvr)
+NS_STUB(FInitSerialDebugging, RefArg rcvr)
+NS_STUB(FRestorePatchPackage, RefArg rcvr)
+NS_STUB(FGetDictionaryData, RefArg rcvr)
+NS_STUB(FGetMatchedEntries, RefArg rcvr)
+NS_STUB(FGetChar, RefArg rcvr)
+NS_STUB(FGetVBOCompander, RefArg rcvr)
+NS_STUB(FOpenAppleTalk, RefArg rcvr)
+NS_STUB(FRemoveAutoAdd, RefArg rcvr)
+NS_STUB(FSendRemoteControlCode, RefArg rcvr)
+NS_STUB(FGetInkAt, RefArg rcvr)
+NS_STUB(FCompositeClass, RefArg rcvr)
+NS_STUB(FBackupPatchPackage, RefArg rcvr)
+NS_STUB(FPhoneIndexToValue, RefArg rcvr)
+NS_STUB(FMakeLexEntry, RefArg rcvr)
+NS_STUB(FNextInkIndex, RefArg rcvr)
+NS_STUB(FStdioOn, RefArg rcvr)
+NS_STUB(FConvertFromMP, RefArg rcvr)
+NS_STUB(FStrWidth, RefArg rcvr)
+NS_STUB(FSpellDocBegin, RefArg rcvr)
+NS_STUB(FFontLeading, RefArg rcvr)
+NS_STUB(FDisposeTrainingData, RefArg rcvr)
+NS_STUB(FCloseAppleTalk, RefArg rcvr)
+NS_STUB(FBackLightStatus, RefArg rcvr)
+NS_STUB(FBubbleArraySlot, RefArg rcvr)
+NS_STUB(FAppendList, RefArg rcvr)
+NS_STUB(FDeActivatePackage, RefArg rcvr)
+NS_STUB(FTestGetParameterString, RefArg rcvr)
+NS_STUB(FOpenRemoteControl, RefArg rcvr)
+NS_STUB(FNewMockEntry, RefArg rcvr)
+NS_STUB(FSetFontParms, RefArg rcvr)
+NS_STUB(FSmartCFQuery, RefArg rcvr)
+NS_STUB(FTestMSetParameterString, RefArg rcvr)
+NS_STUB(FLookupWord, RefArg rcvr)
+NS_STUB(FDrawDateLabels, RefArg rcvr)
+NS_STUB(FScanWordEnd, RefArg rcvr)
+NS_STUB(FGetViewID, RefArg rcvr)
+NS_STUB(FCloseRemoteControl, RefArg rcvr)
+NS_STUB(FRecognizePoly, RefArg rcvr)
+NS_STUB(FDrawLetterScript, RefArg rcvr)
+NS_STUB(FGetVBOStoredSize, RefArg rcvr)
+NS_STUB(FNBPLookupCount, RefArg rcvr)
+NS_STUB(FStringToNumber, RefArg rcvr)
+NS_STUB(FGetInsertionStyle, RefArg rcvr)
+NS_STUB(FParaContainsInk, RefArg rcvr)
+NS_STUB(FSuffixP, RefArg rcvr)
+NS_STUB(DSResolveString, RefArg rcvr)
+NS_STUB(FIsProtocolPartInUse, RefArg rcvr)
+NS_STUB(FCalcInkBounds, RefArg rcvr)
+NS_STUB(FMoveCorrectionInfo, RefArg rcvr)
+NS_STUB(FGetLetterWeights, RefArg rcvr)
+NS_STUB(FPowerOffRingiSho, RefArg rcvr)
+NS_STUB(FGetFontSize, RefArg rcvr)
+NS_STUB(FGetMyZone, RefArg rcvr)
+NS_STUB(FDeActivate1_2EXPackage, RefArg rcvr)
+NS_STUB(FRecognizeTextInStyles, RefArg rcvr)
+NS_STUB(FPhoneSymToString, RefArg rcvr)
+NS_STUB(FDrawMeetingGrid, RefArg rcvr)
 Ref FGetGlobals(RefArg rcvr) { return gVarFrame; }	// as in ROM: the global variables frame
-Ref FGetNames(RefArg rcvr) { return NILREF; }
-Ref FlocalVar(RefArg rcvr) { return NILREF; }
-Ref FFontDescent(RefArg rcvr) { return NILREF; }
-Ref FhasSiblingSlot(RefArg rcvr) { return NILREF; }
-Ref FBlockStrokes(RefArg rcvr) { return NILREF; }
-Ref FUnorderedLessOrEqual(RefArg rcvr) { return NILREF; }
-Ref FAddDelayedAction(RefArg rcvr) { return NILREF; }
-Ref FScanWordStart(RefArg rcvr) { return NILREF; }
-Ref FViewAllowsInk(RefArg rcvr) { return NILREF; }
-Ref FStyleArrayContainsInk(RefArg rcvr) { return NILREF; }
-Ref FStrTruncate(RefArg rcvr) { return NILREF; }
-Ref FNBPStartLookup(RefArg rcvr) { return NILREF; }
-Ref FDecodeRichString(RefArg rcvr) { return NILREF; }
-Ref FGetBlue(RefArg rcvr) { return NILREF; }
-Ref FClassInfoRegistrySeed(RefArg rcvr) { return NILREF; }
-Ref FGetExportTableClients(RefArg rcvr) { return NILREF; }
-Ref FIsEqualTone(RefArg rcvr) { return NILREF; }
-Ref FGetCardSlotStores(RefArg rcvr) { return NILREF; }
-Ref FUnionPoint(RefArg rcvr) { return NILREF; }
-Ref FPidToPackage(RefArg rcvr) { return NILREF; }
-Ref Fand(RefArg rcvr) { return NILREF; }
-Ref FFavorObject(RefArg rcvr) { return NILREF; }
-Ref FEntryReplace(RefArg rcvr) { return NILREF; }
-Ref FGetRelevantTemplates(RefArg rcvr) { return NILREF; }
-Ref FEntryReplaceWithModTime(RefArg rcvr) { return NILREF; }
-Ref FLayoutMeeting(RefArg rcvr) { return NILREF; }
-Ref FNBPStart(RefArg rcvr) { return NILREF; }
-Ref FStrFontWidth(RefArg rcvr) { return NILREF; }
-Ref DSPrevSubStr(RefArg rcvr) { return NILREF; }
-Ref FCallOnlineService(RefArg rcvr) { return NILREF; }
-Ref DSFindPossibleLocation(RefArg rcvr) { return NILREF; }
-Ref FMakeInk(RefArg rcvr) { return NILREF; }
-Ref FGetDynamicValue(RefArg rcvr) { return NILREF; }
-Ref FCorrectSelect(RefArg rcvr) { return NILREF; }
-Ref FGetVar(RefArg rcvr) { return NILREF; }
-Ref FMergeStrokes(RefArg rcvr) { return NILREF; }
-Ref DSConstructSubjectLine(RefArg rcvr) { return NILREF; }
-Ref FStrokesAfterUnit(RefArg rcvr) { return NILREF; }
-Ref FTestMStartTestFrame(RefArg rcvr) { return NILREF; }
-Ref FntpDownloadPackage(RefArg rcvr) { return NILREF; }
-Ref FTestReportError(RefArg rcvr) { return NILREF; }
-Ref FSpellDocEnd(RefArg rcvr) { return NILREF; }
-Ref FVBOUndoChanges(RefArg rcvr) { return NILREF; }
-Ref FSetGlobal(RefArg rcvr) { return NILREF; }
-Ref FValidateWord(RefArg rcvr) { return NILREF; }
-Ref FGetLetterHilite(RefArg rcvr) { return NILREF; }
-Ref FAddDeferredAction(RefArg rcvr) { return NILREF; }
-Ref FStripRecognitionWordDiacritsOK(RefArg rcvr) { return NILREF; }
-Ref FTestReportMessage(RefArg rcvr) { return NILREF; }
-Ref FGetVBOCompanderData(RefArg rcvr) { return NILREF; }
-Ref FFastStrLookup(RefArg rcvr) { return NILREF; }
-Ref FRecognizePara(RefArg rcvr) { return NILREF; }
-Ref FGetGreen(RefArg rcvr) { return NILREF; }
-Ref FSetHiliteIndex(RefArg rcvr) { return NILREF; }
-Ref For(RefArg rcvr) { return NILREF; }
-Ref FInkConvert(RefArg rcvr) { return NILREF; }
-Ref FPSSidToPid(RefArg rcvr) { return NILREF; }
-Ref FSplitInkAt(RefArg rcvr) { return NILREF; }
-Ref FNumInkWordsInRange(RefArg rcvr) { return NILREF; }
-Ref FRepeatInfoToText(RefArg rcvr) { return NILREF; }
-Ref FWordUnitToWordInfo(RefArg rcvr) { return NILREF; }
-Ref FStdioOff(RefArg rcvr) { return NILREF; }
-Ref FConnEntriesEqual(RefArg rcvr) { return NILREF; }
-Ref FSpellSkip(RefArg rcvr) { return NILREF; }
-Ref FScanNextWord(RefArg rcvr) { return NILREF; }
-Ref FStringFormat(RefArg rcvr) { return NILREF; }
-Ref FTextBounds(RefArg rcvr) { return NILREF; }
-Ref FScaleShape(RefArg rcvr) { return NILREF; }
-Ref FSetFontFace(RefArg rcvr) { return NILREF; }
-Ref FMakeRichString(RefArg rcvr) { return NILREF; }
-Ref FExpandInk(RefArg rcvr) { return NILREF; }
-Ref FSendAbort(RefArg rcvr) { return NILREF; }
-Ref FReflowPreflight(RefArg rcvr) { return NILREF; }
-Ref FGetVBOStore(RefArg rcvr) { return NILREF; }
-Ref FMapPtY(RefArg rcvr) { return NILREF; }
-Ref FActivatePackage(RefArg rcvr) { return NILREF; }
-Ref FClearTryString(RefArg rcvr) { return NILREF; }
-Ref FFlushStrokes(RefArg rcvr) { return NILREF; }
-Ref FStripRecognitionWord(RefArg rcvr) { return NILREF; }
-Ref FTestReadDataFile(RefArg rcvr) { return NILREF; }
-Ref DSAddLexiconFrame(RefArg rcvr) { return NILREF; }
-Ref FViewWorksWithCombCorrector(RefArg rcvr) { return NILREF; }
-Ref FInsertStyledText(RefArg rcvr) { return NILREF; }
-Ref FGetIndexChar(RefArg rcvr) { return NILREF; }
-Ref FConvertDictionaryData(RefArg rcvr) { return NILREF; }
-Ref FPidToPkgRef(RefArg rcvr) { return NILREF; }
-Ref FSmartConcat(RefArg rcvr) { return NILREF; }
-Ref FAnimateSimpleStroke(RefArg rcvr) { return NILREF; }
-Ref FDSTime(RefArg rcvr) { return NILREF; }
-Ref FGetLetterIndex(RefArg rcvr) { return NILREF; }
-Ref FUnmatchedWords(RefArg rcvr) { return NILREF; }
-Ref FStrokeBundleToInkWord(RefArg rcvr) { return NILREF; }
-Ref FGetLearningData(RefArg rcvr) { return NILREF; }
-Ref FCompressStrokesToInk(RefArg rcvr) { return NILREF; }
-Ref DSFindPossibleName(RefArg rcvr) { return NILREF; }
-Ref DSFindPossiblePhone(RefArg rcvr) { return NILREF; }
-Ref FGetSelectionStack(RefArg rcvr) { return NILREF; }
-Ref FSetDictionaryData(RefArg rcvr) { return NILREF; }
-Ref FDrawOriginal(RefArg rcvr) { return NILREF; }
-Ref FSetChar(RefArg rcvr) { return NILREF; }
-Ref FStopIRSniffing(RefArg rcvr) { return NILREF; }
-Ref FMapCursor(RefArg rcvr) { return NILREF; }
-Ref FConvertForMP(RefArg rcvr) { return NILREF; }
-Ref FPhoneSymToIndex(RefArg rcvr) { return NILREF; }
-Ref FSmartStart(RefArg rcvr) { return NILREF; }
-Ref FTestMStartTestCase(RefArg rcvr) { return NILREF; }
-Ref FGetRamParaData(RefArg rcvr) { return NILREF; }
-Ref FSpellCheck(RefArg rcvr) { return NILREF; }
-Ref FMakePict(RefArg rcvr) { return NILREF; }
-Ref FUseTrainingDataForRecognition(RefArg rcvr) { return NILREF; }
-Ref FMakeStrokeBundle(RefArg rcvr) { return NILREF; }
-Ref FExpandUnit(RefArg rcvr) { return NILREF; }
-Ref FStrCompare(RefArg rcvr) { return NILREF; }
-Ref FGenPhoneTypes(RefArg rcvr) { return NILREF; }
-Ref FTieViews(RefArg rcvr) { return NILREF; }
-Ref FGetFontFamilySym(RefArg rcvr) { return NILREF; }
-Ref FGetStrokePoint(RefArg rcvr) { return NILREF; }
-Ref FEntryMove(RefArg rcvr) { return NILREF; }
-Ref FGetStrokePointsArray(RefArg rcvr) { return NILREF; }
-Ref FFindShape(RefArg rcvr) { return NILREF; }
-Ref FActivate1_2EXPackage(RefArg rcvr) { return NILREF; }
-Ref FCountUnitStrokes(RefArg rcvr) { return NILREF; }
-Ref FMakeRoundRect(RefArg rcvr) { return NILREF; }
-Ref FCoordinateToLongitude(RefArg rcvr) { return NILREF; }
-Ref FLongitudeToCoordinate(RefArg rcvr) { return NILREF; }
-Ref FPictToShape(RefArg rcvr) { return NILREF; }
-Ref FReBoot(RefArg rcvr) { return NILREF; }
-Ref FStringFilter(RefArg rcvr) { return NILREF; }
-Ref FSubsume(RefArg rcvr) { return NILREF; }
-Ref FRosettaExtension(RefArg rcvr) { return NILREF; }
-Ref FCountPoints(RefArg rcvr) { return NILREF; }
-Ref FAddDictionary(RefArg rcvr) { return NILREF; }
-Ref FGetViewFlags(RefArg rcvr) { return NILREF; }
-Ref FGetZoneFromName(RefArg rcvr) { return NILREF; }
-Ref FRemove1_2EXPackage(RefArg rcvr) { return NILREF; }
-Ref FGetRandomDictionaryWord(RefArg rcvr) { return NILREF; }
-Ref FCancelOnlineService(RefArg rcvr) { return NILREF; }
-Ref FMakeWedge(RefArg rcvr) { return NILREF; }
-Ref FPackRGB(RefArg rcvr) { return NILREF; }
-Ref FMakeCompactFont(RefArg rcvr) { return NILREF; }
-Ref FFavorAction(RefArg rcvr) { return NILREF; }
-Ref FNBPGetLookupNames(RefArg rcvr) { return NILREF; }
-Ref FGenSubStrings(RefArg rcvr) { return NILREF; }
-Ref FSetLetterWeights(RefArg rcvr) { return NILREF; }
-Ref FSetFontSize(RefArg rcvr) { return NILREF; }
-Ref FPositionToTime(RefArg rcvr) { return NILREF; }
-Ref FTimeToPosition(RefArg rcvr) { return NILREF; }
-Ref FTestMGetReportMsg(RefArg rcvr) { return NILREF; }
-Ref FDeactivateTestAgent(RefArg rcvr) { return NILREF; }
-Ref FSetTimeHardware(RefArg rcvr) { return NILREF; }
-Ref FFontHeight(RefArg rcvr) { return NILREF; }
-Ref FGenPhrases(RefArg rcvr) { return NILREF; }
-Ref FNBPGetCount(RefArg rcvr) { return NILREF; }
-Ref FResetLetterDefaults(RefArg rcvr) { return NILREF; }
-Ref FClearVBOCache(RefArg rcvr) { return NILREF; }
-Ref FNBPGetNames(RefArg rcvr) { return NILREF; }
-Ref FConnBuildStoreFrame(RefArg rcvr) { return NILREF; }
-Ref FGetRed(RefArg rcvr) { return NILREF; }
-Ref FGetOnlineEndpoint(RefArg rcvr) { return NILREF; }
-Ref FCalcBundleBounds(RefArg rcvr) { return NILREF; }
-Ref FTryStringLength(RefArg rcvr) { return NILREF; }
-Ref FgetSiblingSlot(RefArg rcvr) { return NILREF; }
-Ref FIntersect(RefArg rcvr) { return NILREF; }
-Ref FHist(RefArg rcvr) { return NILREF; }
-Ref FforLoop(RefArg rcvr) { return NILREF; }
-Ref FGetStrokeBounds(RefArg rcvr) { return NILREF; }
-Ref FSetInkerPenSize(RefArg rcvr) { return NILREF; }
-Ref FTestExit(RefArg rcvr) { return NILREF; }
-Ref FRecSettingsChanged(RefArg rcvr) { return NILREF; }
-Ref FGetAllMeetings(RefArg rcvr) { return NILREF; }
-Ref FIsInkChar(RefArg rcvr) { return NILREF; }
-Ref FStripDiacriticals(RefArg rcvr) { return NILREF; }
-Ref FGetEditArray(RefArg rcvr) { return NILREF; }
-Ref FCoordinateToLatitude(RefArg rcvr) { return NILREF; }
-Ref FLatitudeToCoordinate(RefArg rcvr) { return NILREF; }
-Ref FMapRect(RefArg rcvr) { return NILREF; }
-Ref FFontAscent(RefArg rcvr) { return NILREF; }
-Ref FWeekNumber(RefArg rcvr) { return NILREF; }
-Ref FGetMeetingTypeInfo(RefArg rcvr) { return NILREF; }
-Ref FGetNextMeetingTime(RefArg rcvr) { return NILREF; }
-Ref FGetCorrectionWordInfo(RefArg rcvr) { return NILREF; }
-Ref FTestGetParameterArray(RefArg rcvr) { return NILREF; }
-Ref FCorrectWord(RefArg rcvr) { return NILREF; }
-Ref FSetSlot(RefArg rcvr) { return NILREF; }
-Ref FTextBox(RefArg rcvr) { return NILREF; }
-Ref FBuildRecConfig(RefArg rcvr) { return NILREF; }
-Ref FNBPStopLookup(RefArg rcvr) { return NILREF; }
-Ref FGetBitmapInfo(RefArg rcvr) { return NILREF; }
-Ref FMakeOval(RefArg rcvr) { return NILREF; }
-Ref FMungeBitmap(RefArg rcvr) { return NILREF; }
-Ref FSetOnlineDisconnect(RefArg rcvr) { return NILREF; }
-Ref FClickLetterScript(RefArg rcvr) { return NILREF; }
-Ref FGetRangeText(RefArg rcvr) { return NILREF; }
-Ref FSpellCorrect(RefArg rcvr) { return NILREF; }
-Ref FSetPath(RefArg rcvr) { return NILREF; }
-Ref FCommonAncestors(RefArg rcvr) { return NILREF; }
-Ref FSetLetterHilite(RefArg rcvr) { return NILREF; }
-Ref FLower(RefArg rcvr) { return NILREF; }
-Ref FStrAssoc(RefArg rcvr) { return NILREF; }
-Ref FAddAutoAdd(RefArg rcvr) { return NILREF; }
-Ref FCountStrokes(RefArg rcvr) { return NILREF; }
-Ref FAddInk(RefArg rcvr) { return NILREF; }
-Ref FObjectPid(RefArg rcvr) { return NILREF; }
-Ref FGetShapeInfo(RefArg rcvr) { return NILREF; }
-Ref FMungeShape(RefArg rcvr) { return NILREF; }
-Ref FGetDictionary(RefArg rcvr) { return NILREF; }
-Ref Fmin(RefArg rcvr) { return NILREF; }
-Ref FMakePolygon(RefArg rcvr) { return NILREF; }
-Ref FPrevMeeting(RefArg rcvr) { return NILREF; }
-Ref FTriggerWordRecognition(RefArg rcvr) { return NILREF; }
-Ref FMeasuredNumberStr(RefArg rcvr) { return NILREF; }
-Ref FAddTryString(RefArg rcvr) { return NILREF; }
-Ref FNBPStop(RefArg rcvr) { return NILREF; }
-Ref FPhoneStringToValue(RefArg rcvr) { return NILREF; }
-Ref FClassInfoRegistryNext(RefArg rcvr) { return NILREF; }
-Ref FRunInitScripts(RefArg rcvr) { return NILREF; }
-Ref FTestFlushReportQueue(RefArg rcvr) { return NILREF; }
-Ref FAppend(RefArg rcvr) { return NILREF; }
-Ref FDESCreatePasswordKey(RefArg rcvr) { return NILREF; }
-Ref FGetAllMeetingsUnique(RefArg rcvr) { return NILREF; }
-Ref FDSPhone(RefArg rcvr) { return NILREF; }
-Ref FConnectPassthruKeyboard(RefArg rcvr) { return NILREF; }
-Ref FMapPtX(RefArg rcvr) { return NILREF; }
-Ref FCountLetters(RefArg rcvr) { return NILREF; }
-Ref FViewAllowsInkWords(RefArg rcvr) { return NILREF; }
-Ref FPreInitSerialDebugging(RefArg rcvr) { return NILREF; }
-Ref FPointsArrayToStroke(RefArg rcvr) { return NILREF; }
-Ref FClassInfoByName(RefArg rcvr) { return NILREF; }
-Ref FDisconnectOnlineService(RefArg rcvr) { return NILREF; }
-Ref FTranslate(RefArg rcvr) { return NILREF; }
-Ref FDoCursiveTraining(RefArg rcvr) { return NILREF; }
-Ref FPrefixP(RefArg rcvr) { return NILREF; }
-Ref FUseWRec(RefArg rcvr) { return NILREF; }
-Ref FReadCursiveOptions(RefArg rcvr) { return NILREF; }
-Ref DSFilterStrings(RefArg rcvr) { return NILREF; }
-Ref FBootSucceeded(RefArg rcvr) { return NILREF; }
-Ref FGetMeetingIcon(RefArg rcvr) { return NILREF; }
+NS_STUB(FGetNames, RefArg rcvr)
+NS_STUB(FlocalVar, RefArg rcvr)
+NS_STUB(FFontDescent, RefArg rcvr)
+NS_STUB(FhasSiblingSlot, RefArg rcvr)
+NS_STUB(FBlockStrokes, RefArg rcvr)
+NS_STUB(FUnorderedLessOrEqual, RefArg rcvr)
+NS_STUB(FAddDelayedAction, RefArg rcvr)
+NS_STUB(FScanWordStart, RefArg rcvr)
+NS_STUB(FViewAllowsInk, RefArg rcvr)
+NS_STUB(FStyleArrayContainsInk, RefArg rcvr)
+NS_STUB(FStrTruncate, RefArg rcvr)
+NS_STUB(FNBPStartLookup, RefArg rcvr)
+NS_STUB(FDecodeRichString, RefArg rcvr)
+NS_STUB(FGetBlue, RefArg rcvr)
+NS_STUB(FClassInfoRegistrySeed, RefArg rcvr)
+NS_STUB(FGetExportTableClients, RefArg rcvr)
+NS_STUB(FIsEqualTone, RefArg rcvr)
+NS_STUB(FGetCardSlotStores, RefArg rcvr)
+NS_STUB(FUnionPoint, RefArg rcvr)
+NS_STUB(FPidToPackage, RefArg rcvr)
+NS_STUB(Fand, RefArg rcvr)
+NS_STUB(FFavorObject, RefArg rcvr)
+NS_STUB(FEntryReplace, RefArg rcvr)
+NS_STUB(FGetRelevantTemplates, RefArg rcvr)
+NS_STUB(FEntryReplaceWithModTime, RefArg rcvr)
+NS_STUB(FLayoutMeeting, RefArg rcvr)
+NS_STUB(FNBPStart, RefArg rcvr)
+NS_STUB(FStrFontWidth, RefArg rcvr)
+NS_STUB(DSPrevSubStr, RefArg rcvr)
+NS_STUB(FCallOnlineService, RefArg rcvr)
+NS_STUB(DSFindPossibleLocation, RefArg rcvr)
+NS_STUB(FMakeInk, RefArg rcvr)
+NS_STUB(FGetDynamicValue, RefArg rcvr)
+NS_STUB(FCorrectSelect, RefArg rcvr)
+NS_STUB(FGetVar, RefArg rcvr)
+NS_STUB(FMergeStrokes, RefArg rcvr)
+NS_STUB(DSConstructSubjectLine, RefArg rcvr)
+NS_STUB(FStrokesAfterUnit, RefArg rcvr)
+NS_STUB(FTestMStartTestFrame, RefArg rcvr)
+NS_STUB(FntpDownloadPackage, RefArg rcvr)
+NS_STUB(FTestReportError, RefArg rcvr)
+NS_STUB(FSpellDocEnd, RefArg rcvr)
+NS_STUB(FVBOUndoChanges, RefArg rcvr)
+NS_STUB(FSetGlobal, RefArg rcvr)
+NS_STUB(FValidateWord, RefArg rcvr)
+NS_STUB(FGetLetterHilite, RefArg rcvr)
+NS_STUB(FAddDeferredAction, RefArg rcvr)
+NS_STUB(FStripRecognitionWordDiacritsOK, RefArg rcvr)
+NS_STUB(FTestReportMessage, RefArg rcvr)
+NS_STUB(FGetVBOCompanderData, RefArg rcvr)
+NS_STUB(FFastStrLookup, RefArg rcvr)
+NS_STUB(FRecognizePara, RefArg rcvr)
+NS_STUB(FGetGreen, RefArg rcvr)
+NS_STUB(FSetHiliteIndex, RefArg rcvr)
+NS_STUB(For, RefArg rcvr)
+NS_STUB(FInkConvert, RefArg rcvr)
+NS_STUB(FPSSidToPid, RefArg rcvr)
+NS_STUB(FSplitInkAt, RefArg rcvr)
+NS_STUB(FNumInkWordsInRange, RefArg rcvr)
+NS_STUB(FRepeatInfoToText, RefArg rcvr)
+NS_STUB(FWordUnitToWordInfo, RefArg rcvr)
+NS_STUB(FStdioOff, RefArg rcvr)
+NS_STUB(FConnEntriesEqual, RefArg rcvr)
+NS_STUB(FSpellSkip, RefArg rcvr)
+NS_STUB(FScanNextWord, RefArg rcvr)
+NS_STUB(FStringFormat, RefArg rcvr)
+NS_STUB(FTextBounds, RefArg rcvr)
+NS_STUB(FScaleShape, RefArg rcvr)
+NS_STUB(FSetFontFace, RefArg rcvr)
+NS_STUB(FMakeRichString, RefArg rcvr)
+NS_STUB(FExpandInk, RefArg rcvr)
+NS_STUB(FSendAbort, RefArg rcvr)
+NS_STUB(FReflowPreflight, RefArg rcvr)
+NS_STUB(FGetVBOStore, RefArg rcvr)
+NS_STUB(FMapPtY, RefArg rcvr)
+NS_STUB(FActivatePackage, RefArg rcvr)
+NS_STUB(FClearTryString, RefArg rcvr)
+NS_STUB(FFlushStrokes, RefArg rcvr)
+NS_STUB(FStripRecognitionWord, RefArg rcvr)
+NS_STUB(FTestReadDataFile, RefArg rcvr)
+NS_STUB(DSAddLexiconFrame, RefArg rcvr)
+NS_STUB(FViewWorksWithCombCorrector, RefArg rcvr)
+NS_STUB(FInsertStyledText, RefArg rcvr)
+NS_STUB(FGetIndexChar, RefArg rcvr)
+NS_STUB(FConvertDictionaryData, RefArg rcvr)
+NS_STUB(FPidToPkgRef, RefArg rcvr)
+NS_STUB(FSmartConcat, RefArg rcvr)
+NS_STUB(FAnimateSimpleStroke, RefArg rcvr)
+NS_STUB(FDSTime, RefArg rcvr)
+NS_STUB(FGetLetterIndex, RefArg rcvr)
+NS_STUB(FUnmatchedWords, RefArg rcvr)
+NS_STUB(FStrokeBundleToInkWord, RefArg rcvr)
+NS_STUB(FGetLearningData, RefArg rcvr)
+NS_STUB(FCompressStrokesToInk, RefArg rcvr)
+NS_STUB(DSFindPossibleName, RefArg rcvr)
+NS_STUB(DSFindPossiblePhone, RefArg rcvr)
+NS_STUB(FGetSelectionStack, RefArg rcvr)
+NS_STUB(FSetDictionaryData, RefArg rcvr)
+NS_STUB(FDrawOriginal, RefArg rcvr)
+NS_STUB(FSetChar, RefArg rcvr)
+NS_STUB(FStopIRSniffing, RefArg rcvr)
+NS_STUB(FMapCursor, RefArg rcvr)
+NS_STUB(FConvertForMP, RefArg rcvr)
+NS_STUB(FPhoneSymToIndex, RefArg rcvr)
+NS_STUB(FSmartStart, RefArg rcvr)
+NS_STUB(FTestMStartTestCase, RefArg rcvr)
+NS_STUB(FGetRamParaData, RefArg rcvr)
+NS_STUB(FSpellCheck, RefArg rcvr)
+NS_STUB(FMakePict, RefArg rcvr)
+NS_STUB(FUseTrainingDataForRecognition, RefArg rcvr)
+NS_STUB(FMakeStrokeBundle, RefArg rcvr)
+NS_STUB(FExpandUnit, RefArg rcvr)
+NS_STUB(FStrCompare, RefArg rcvr)
+NS_STUB(FGenPhoneTypes, RefArg rcvr)
+NS_STUB(FTieViews, RefArg rcvr)
+NS_STUB(FGetFontFamilySym, RefArg rcvr)
+NS_STUB(FGetStrokePoint, RefArg rcvr)
+NS_STUB(FEntryMove, RefArg rcvr)
+NS_STUB(FGetStrokePointsArray, RefArg rcvr)
+NS_STUB(FFindShape, RefArg rcvr)
+NS_STUB(FActivate1_2EXPackage, RefArg rcvr)
+NS_STUB(FCountUnitStrokes, RefArg rcvr)
+NS_STUB(FMakeRoundRect, RefArg rcvr)
+NS_STUB(FCoordinateToLongitude, RefArg rcvr)
+NS_STUB(FLongitudeToCoordinate, RefArg rcvr)
+NS_STUB(FPictToShape, RefArg rcvr)
+NS_STUB(FReBoot, RefArg rcvr)
+NS_STUB(FStringFilter, RefArg rcvr)
+NS_STUB(FSubsume, RefArg rcvr)
+NS_STUB(FRosettaExtension, RefArg rcvr)
+NS_STUB(FCountPoints, RefArg rcvr)
+NS_STUB(FAddDictionary, RefArg rcvr)
+NS_STUB(FGetViewFlags, RefArg rcvr)
+NS_STUB(FGetZoneFromName, RefArg rcvr)
+NS_STUB(FRemove1_2EXPackage, RefArg rcvr)
+NS_STUB(FGetRandomDictionaryWord, RefArg rcvr)
+NS_STUB(FCancelOnlineService, RefArg rcvr)
+NS_STUB(FMakeWedge, RefArg rcvr)
+NS_STUB(FPackRGB, RefArg rcvr)
+NS_STUB(FMakeCompactFont, RefArg rcvr)
+NS_STUB(FFavorAction, RefArg rcvr)
+NS_STUB(FNBPGetLookupNames, RefArg rcvr)
+NS_STUB(FGenSubStrings, RefArg rcvr)
+NS_STUB(FSetLetterWeights, RefArg rcvr)
+NS_STUB(FSetFontSize, RefArg rcvr)
+NS_STUB(FPositionToTime, RefArg rcvr)
+NS_STUB(FTimeToPosition, RefArg rcvr)
+NS_STUB(FTestMGetReportMsg, RefArg rcvr)
+NS_STUB(FDeactivateTestAgent, RefArg rcvr)
+NS_STUB(FSetTimeHardware, RefArg rcvr)
+NS_STUB(FFontHeight, RefArg rcvr)
+NS_STUB(FGenPhrases, RefArg rcvr)
+NS_STUB(FNBPGetCount, RefArg rcvr)
+NS_STUB(FResetLetterDefaults, RefArg rcvr)
+NS_STUB(FClearVBOCache, RefArg rcvr)
+NS_STUB(FNBPGetNames, RefArg rcvr)
+NS_STUB(FConnBuildStoreFrame, RefArg rcvr)
+NS_STUB(FGetRed, RefArg rcvr)
+NS_STUB(FGetOnlineEndpoint, RefArg rcvr)
+NS_STUB(FCalcBundleBounds, RefArg rcvr)
+NS_STUB(FTryStringLength, RefArg rcvr)
+NS_STUB(FgetSiblingSlot, RefArg rcvr)
+NS_STUB(FIntersect, RefArg rcvr)
+NS_STUB(FHist, RefArg rcvr)
+NS_STUB(FforLoop, RefArg rcvr)
+NS_STUB(FGetStrokeBounds, RefArg rcvr)
+NS_STUB(FSetInkerPenSize, RefArg rcvr)
+NS_STUB(FTestExit, RefArg rcvr)
+NS_STUB(FRecSettingsChanged, RefArg rcvr)
+NS_STUB(FGetAllMeetings, RefArg rcvr)
+NS_STUB(FIsInkChar, RefArg rcvr)
+NS_STUB(FStripDiacriticals, RefArg rcvr)
+NS_STUB(FGetEditArray, RefArg rcvr)
+NS_STUB(FCoordinateToLatitude, RefArg rcvr)
+NS_STUB(FLatitudeToCoordinate, RefArg rcvr)
+NS_STUB(FMapRect, RefArg rcvr)
+NS_STUB(FFontAscent, RefArg rcvr)
+NS_STUB(FWeekNumber, RefArg rcvr)
+NS_STUB(FGetMeetingTypeInfo, RefArg rcvr)
+NS_STUB(FGetNextMeetingTime, RefArg rcvr)
+NS_STUB(FGetCorrectionWordInfo, RefArg rcvr)
+NS_STUB(FTestGetParameterArray, RefArg rcvr)
+NS_STUB(FCorrectWord, RefArg rcvr)
+NS_STUB(FSetSlot, RefArg rcvr)
+NS_STUB(FTextBox, RefArg rcvr)
+NS_STUB(FBuildRecConfig, RefArg rcvr)
+NS_STUB(FNBPStopLookup, RefArg rcvr)
+NS_STUB(FGetBitmapInfo, RefArg rcvr)
+NS_STUB(FMakeOval, RefArg rcvr)
+NS_STUB(FMungeBitmap, RefArg rcvr)
+NS_STUB(FSetOnlineDisconnect, RefArg rcvr)
+NS_STUB(FClickLetterScript, RefArg rcvr)
+NS_STUB(FGetRangeText, RefArg rcvr)
+NS_STUB(FSpellCorrect, RefArg rcvr)
+NS_STUB(FSetPath, RefArg rcvr)
+NS_STUB(FCommonAncestors, RefArg rcvr)
+NS_STUB(FSetLetterHilite, RefArg rcvr)
+NS_STUB(FLower, RefArg rcvr)
+NS_STUB(FStrAssoc, RefArg rcvr)
+NS_STUB(FAddAutoAdd, RefArg rcvr)
+NS_STUB(FCountStrokes, RefArg rcvr)
+NS_STUB(FAddInk, RefArg rcvr)
+NS_STUB(FObjectPid, RefArg rcvr)
+NS_STUB(FGetShapeInfo, RefArg rcvr)
+NS_STUB(FMungeShape, RefArg rcvr)
+NS_STUB(FGetDictionary, RefArg rcvr)
+NS_STUB(Fmin, RefArg rcvr)
+NS_STUB(FMakePolygon, RefArg rcvr)
+NS_STUB(FPrevMeeting, RefArg rcvr)
+NS_STUB(FTriggerWordRecognition, RefArg rcvr)
+NS_STUB(FMeasuredNumberStr, RefArg rcvr)
+NS_STUB(FAddTryString, RefArg rcvr)
+NS_STUB(FNBPStop, RefArg rcvr)
+NS_STUB(FPhoneStringToValue, RefArg rcvr)
+NS_STUB(FClassInfoRegistryNext, RefArg rcvr)
+NS_STUB(FRunInitScripts, RefArg rcvr)
+NS_STUB(FTestFlushReportQueue, RefArg rcvr)
+NS_STUB(FAppend, RefArg rcvr)
+NS_STUB(FDESCreatePasswordKey, RefArg rcvr)
+NS_STUB(FGetAllMeetingsUnique, RefArg rcvr)
+NS_STUB(FDSPhone, RefArg rcvr)
+NS_STUB(FConnectPassthruKeyboard, RefArg rcvr)
+NS_STUB(FMapPtX, RefArg rcvr)
+NS_STUB(FCountLetters, RefArg rcvr)
+NS_STUB(FViewAllowsInkWords, RefArg rcvr)
+NS_STUB(FPreInitSerialDebugging, RefArg rcvr)
+NS_STUB(FPointsArrayToStroke, RefArg rcvr)
+NS_STUB(FClassInfoByName, RefArg rcvr)
+NS_STUB(FDisconnectOnlineService, RefArg rcvr)
+NS_STUB(FTranslate, RefArg rcvr)
+NS_STUB(FDoCursiveTraining, RefArg rcvr)
+NS_STUB(FPrefixP, RefArg rcvr)
+NS_STUB(FUseWRec, RefArg rcvr)
+NS_STUB(FReadCursiveOptions, RefArg rcvr)
+NS_STUB(DSFilterStrings, RefArg rcvr)
+NS_STUB(FBootSucceeded, RefArg rcvr)
+NS_STUB(FGetMeetingIcon, RefArg rcvr)

@@ -1,0 +1,6 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "configurationDone"}
+wait terminated
+{"command": "disconnect"}

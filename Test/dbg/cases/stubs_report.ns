@@ -1,0 +1,6 @@
+// -stubs quiet,report: no log, and at the end which stubs were called and
+// how often (the numbers depend on newtc's own start too, so the harness
+// masks the total).
+Print(sin(1));
+Print(sin(2));
+Print(BatteryLevel(0));

@@ -7,6 +7,7 @@
 */
 
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "Power.h"
 #include "RSSymbols.h"
 #include "EventHandler.h"
@@ -252,31 +253,17 @@ FBatteryStatus(RefArg rcvr, RefArg inBatterySelector)
 	return status;
 }
 
-Ref
-FBatteryRawStatus(RefArg rcvr, RefArg inBatterySelector)
-{ return NILREF; }
+NS_STUB(FBatteryRawStatus, RefArg rcvr, RefArg inBatterySelector)
 
-Ref
-FBatteryLevel(RefArg rcvr, RefArg inBatterySelector)
-{ return NILREF; }
+NS_STUB(FBatteryLevel, RefArg rcvr, RefArg inBatterySelector)
 
-Ref
-FSetBatteryType(RefArg rcvr, RefArg inBatterySelector, RefArg inType)
-{ return NILREF; }
+NS_STUB(FSetBatteryType, RefArg rcvr, RefArg inBatterySelector, RefArg inType)
 
-Ref
-FCheckCardBattery(RefArg rcvr)
-{ return NILREF; }
+NS_STUB(FCheckCardBattery, RefArg rcvr)
 
-Ref
-FEnablePowerStats(RefArg rcvr, RefArg inBatterySelector)
-{ return NILREF; }
+NS_STUB(FEnablePowerStats, RefArg rcvr, RefArg inBatterySelector)
 
-Ref
-FGetPowerStats(RefArg rcvr)
-{ return NILREF; }
+NS_STUB(FGetPowerStats, RefArg rcvr)
 
-Ref
-FResetPowerStats(RefArg rcvr)
-{ return NILREF; }
+NS_STUB(FResetPowerStats, RefArg rcvr)
 

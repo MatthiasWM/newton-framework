@@ -7,6 +7,7 @@
 */
 
 #include "RootView.h"
+#include "Unimplemented.h"
 
 #ifdef __APPLE__
 
@@ -105,8 +106,8 @@ ULong		GetTicks(void) {
 	return now.convertTo(kMilliseconds)/20;
 }
 
-extern "C" Ref FAddDeferredSend(RefArg inRcvr, RefArg inTarget, RefArg inMsg, RefArg inArg) { return NILREF; }
-extern "C" Ref FAddDeferredCall(RefArg inRcvr, RefArg inMsg, RefArg inArg) { return NILREF; }
+extern "C" { NS_STUB(FAddDeferredSend, RefArg inRcvr, RefArg inTarget, RefArg inMsg, RefArg inArg) }
+extern "C" { NS_STUB(FAddDeferredCall, RefArg inRcvr, RefArg inMsg, RefArg inArg) }
 
 // RefStack allocates a new stack, but we don’t want the whole VM system
 extern "C" NewtonErr	NewStack(ObjectId inDomainId, size_t inMaxSize, ObjectId inOwnerId, VAddr * outTopOfStack, VAddr * outBottomOfStack)
@@ -143,9 +144,7 @@ Ref	FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref	FRefreshViews(RefArg inRcvr);
 }
 
-Ref
-FOpenX(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FOpenX, RefArg inRcvr)
 
 Ref
 FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue)

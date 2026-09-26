@@ -7,6 +7,7 @@
 
 #include "Matt/DAP.h"
 #include "Matt/JSON.h"
+#include "Utilities/Unimplemented.h"
 #include "Matt/LineTables.h"
 
 #include "Frames/Frames.h"
@@ -719,6 +720,16 @@ PDAPInTranslator::inputEnded(void)
 { return gDAPInputEnded; }
 
 
+// Stub notices (Utilities/Unimplemented.h) go to the Debug Console, after
+// what the program printed so far.
+static void DAPStubNotice(const char * inText)
+{
+  if (gDAPOutTranslator)
+    gDAPOutTranslator->flush();
+  SendMessage(std::string("{\"type\":\"event\",\"event\":\"output\",\"body\":{\"category\":\"console\",\"output\":")
+              + QuoteJSON(inText) + "}}");
+}
+
 void DAPInstallTranslators(void)
 {
   PDAPOutTranslator::classInfo()->registerProtocol();
@@ -727,6 +738,7 @@ void DAPInstallTranslators(void)
   gDAPOutTranslator = (PDAPOutTranslator *)MakeByName("POutTranslator", "PDAPOutTranslator");
   gREPout = gDAPOutTranslator;
   gREPin = (PInTranslator *)MakeByName("PInTranslator", "PDAPInTranslator");
+  gStubNotify = DAPStubNotice;
 }
 
 

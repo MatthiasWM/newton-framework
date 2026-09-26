@@ -7,6 +7,7 @@
 */
 
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "Maths.h"
 #include "RichStrings.h"
 #include "RSSymbols.h"
@@ -650,58 +651,32 @@ FSignum(RefArg inRcvr, RefArg inArg)
 	Trigonometry.
 ------------------------------------------------------------------------------*/
 
-Ref
-Fsin(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fsin, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fsinh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fsinh, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fcos(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fcos, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fcosh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fcosh, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ftan(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ftan, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ftanh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ftanh, RefArg inRcvr, RefArg inArg)
 
 
-Ref
-Fasin(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fasin, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fasinh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fasinh, RefArg inRcvr, RefArg inArg)
 
-Ref
-Facos(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Facos, RefArg inRcvr, RefArg inArg)
 
-Ref
-Facosh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Facosh, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fatan(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fatan, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fatan2(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(Fatan2, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-Fatanh(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fatanh, RefArg inRcvr, RefArg inArg)
 
 
 #pragma mark -
@@ -877,13 +852,9 @@ FGreaterOrEqual(RefArg inRcvr, RefArg a, RefArg b)
 }
 
 
-Ref
-FLessEqualOrGreater(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FLessEqualOrGreater, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-FLessOrGreater(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FLessOrGreater, RefArg inRcvr, RefArg a, RefArg b)
 
 
 Ref
@@ -927,21 +898,13 @@ FUnorderedLessOrGreater(RefArg inRcvr, RefArg a, RefArg b)
 }
 
 
-Ref
-FUnorderedGreaterOrEqual(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FUnorderedGreaterOrEqual, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-FUnorderedOrEqual(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FUnorderedOrEqual, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-FUnorderedOrGreater(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FUnorderedOrGreater, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-FUnorderedOrLess(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(FUnorderedOrLess, RefArg inRcvr, RefArg a, RefArg b)
 
 
 #pragma mark -
@@ -949,50 +912,28 @@ FUnorderedOrLess(RefArg inRcvr, RefArg a, RefArg b)
 	Floating Point Environment
 ----------------------------------------------------------------------------- */
 
-Ref
-Ffeclearexcept(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffeclearexcept, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ffegetenv(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(Ffegetenv, RefArg inRcvr)
 
-Ref
-Ffegetexcept(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffegetexcept, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ffeholdexcept(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffeholdexcept, RefArg inRcvr, RefArg inArg)
 
-Ref
-Fferaiseexcept(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Fferaiseexcept, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ffesetenv(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffesetenv, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ffesetexcept(RefArg inRcvr, RefArg a, RefArg b)
-{ return NILREF; }
+NS_STUB(Ffesetexcept, RefArg inRcvr, RefArg a, RefArg b)
 
-Ref
-Ffetestexcept(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffetestexcept, RefArg inRcvr, RefArg inArg)
 
-Ref
-Ffeupdateenv(RefArg inRcvr, RefArg inArg)
-{ return NILREF; }
+NS_STUB(Ffeupdateenv, RefArg inRcvr, RefArg inArg)
 
 
-Ref
-Ffegetround(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(Ffegetround, RefArg inRcvr)
 
-Ref
-Ffesetround(RefArg inRcvr, RefArg inRound)
-{ return NILREF; }
+NS_STUB(Ffesetround, RefArg inRcvr, RefArg inRound)
 
 
 #pragma mark -

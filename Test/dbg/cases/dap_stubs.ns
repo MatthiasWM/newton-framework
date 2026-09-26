@@ -1,0 +1,4 @@
+// newtc -stubs report -dap: a stub's notice and the report go to the Debug
+// Console (output events, category "console"), the report before "exited".
+Print(sin(1));
+Print(sin(2));

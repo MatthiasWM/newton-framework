@@ -26,6 +26,7 @@
 */
 
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "Globals.h"
 #include "Funcs.h"
 #include "Dictionaries.h"
@@ -1967,31 +1968,17 @@ FAirusChangeAttribute(RefArg inRcvr, RefArg inWord, RefArg inAttribute)
 
 #pragma mark -
 
-Ref
-FAirusIteratorMake(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FAirusIteratorMake, RefArg inRcvr)
 
-Ref
-FAirusIteratorClone(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FAirusIteratorClone, RefArg inRcvr)
 
-Ref
-FAirusIteratorDispose(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FAirusIteratorDispose, RefArg inRcvr)
 
-Ref
-FAirusIteratorReset(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
-{ return NILREF; }
+NS_STUB(FAirusIteratorReset, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
 
-Ref
-FAirusIteratorThisWord(RefArg inRcvr, RefArg inEntry)
-{ return NILREF; }
+NS_STUB(FAirusIteratorThisWord, RefArg inRcvr, RefArg inEntry)
 
-Ref
-FAirusIteratorNextWord(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FAirusIteratorNextWord, RefArg inRcvr)
 
-Ref
-FAirusIteratorPreviousWord(RefArg inRcvr)
-{ return NILREF; }
+NS_STUB(FAirusIteratorPreviousWord, RefArg inRcvr)
 

@@ -1,0 +1,4 @@
+// A call to a built-in that isn't implemented yet (a stub, NS_STUB in
+// Utilities/Unimplemented.h) says so once, on stderr, and returns nil.
+Print(sin(1));
+Print(sin(2));

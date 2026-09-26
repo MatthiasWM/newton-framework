@@ -176,6 +176,7 @@ set ( SRCFILES
   Testing/TestAgent.cc
   Toolbox/Maths.cc
   Utilities/DataStuffing.cc
+  Utilities/Unimplemented.cc
   Utilities/UStringUtils.c
   Utilities/Unicode.cc
   UtilityClasses/DynamicArray.cc
@@ -301,6 +302,7 @@ set ( HEADERFILES
   Testing/TestAgent.h
   Toolbox/Maths.h
   Utilities/DataStuffing.h
+  Utilities/Unimplemented.h
   Utilities/UStringUtils.h
   Utilities/Unicode.h
   UtilityClasses/DynamicArray.h
@@ -939,6 +941,7 @@ set ( MP_SRC_FILES
   Recognition/ClickRecognizer.cc
   UtilityClasses/TaskSafeRingBuffer.cc
   Utilities/DataStuffing.cc
+  Utilities/Unimplemented.cc
   Frames/DebugAPI.cc
   Views/DataView.cc
 )
@@ -1093,6 +1096,7 @@ set ( MP_HEADER_FILES
   UtilityClasses/BufferSegment.h
   NewtonExceptions.h
   Utilities/DataStuffing.h
+  Utilities/Unimplemented.h
   Utilities/UnicodePrivate.h
   Utilities/Unicode.h
   Utilities/Sorting.h

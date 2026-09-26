@@ -7,6 +7,7 @@
 */
 
 #include "Objects.h"
+#include "Unimplemented.h"
 #include "Arrays.h"
 #include "ROMResources.h"
 #include "UStringUtils.h"
@@ -636,13 +637,13 @@ StoreTotalSize(RefArg inRcvr)
 }
 
 
-Ref	StoreNewVBO(RefArg inRcvr, RefArg inArg2) { return NILREF; }
-Ref	StoreNewCompressedVBO(RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4) { return NILREF; }
-Ref	StoreReadObject(RefArg inRcvr, RefArg inArg2, RefArg inArg3) { return NILREF; }
-Ref	StoreWriteObject(RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4) { return NILREF; }
-Ref	StoreWriteWholeObject(RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4) { return NILREF; }
-Ref	StoreRestorePackage(RefArg inRcvr) { return NILREF; }
-Ref	StoreRestoreSegmentedPackage(RefArg inRcvr, RefArg inArg2) { return NILREF; }
+NS_STUB(StoreNewVBO, RefArg inRcvr, RefArg inArg2)
+NS_STUB(StoreNewCompressedVBO, RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4)
+NS_STUB(StoreReadObject, RefArg inRcvr, RefArg inArg2, RefArg inArg3)
+NS_STUB(StoreWriteObject, RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4)
+NS_STUB(StoreWriteWholeObject, RefArg inRcvr, RefArg inArg2, RefArg inArg3, RefArg inArg4)
+NS_STUB(StoreRestorePackage, RefArg inRcvr)
+NS_STUB(StoreRestoreSegmentedPackage, RefArg inRcvr, RefArg inArg2)
 
 
 #pragma mark -

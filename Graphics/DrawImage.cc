@@ -9,6 +9,7 @@
 #ifdef __APPLE__
 
 #include "Quartz.h"
+#include "Unimplemented.h"
 #include "Objects.h"
 #include "QDPatterns.h"
 #include "Geometry.h"
@@ -743,10 +744,10 @@ FCopyBits(RefArg inRcvr, RefArg inImage, RefArg inX, RefArg inY, RefArg inTransf
 }
 
 
-Ref		FDrawXBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3) { return NILREF; }
-Ref		FGrayShrink(RefArg inRcvr, RefArg inArg1, RefArg inArg2) { return NILREF; }
-Ref		FDrawIntoBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3) { return NILREF; }
-Ref		FViewIntoBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3) { return NILREF; }
+NS_STUB(FDrawXBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
+NS_STUB(FGrayShrink, RefArg inRcvr, RefArg inArg1, RefArg inArg2)
+NS_STUB(FDrawIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
+NS_STUB(FViewIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
 
 bool
 HitShape(RefArg inShape, Point inPt, RefArg ioPath)

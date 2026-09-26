@@ -1,0 +1,7 @@
+// -stubs throw: a stub throws a NewtonScript exception (evt.ex.msg) with
+// its name, so the program fails where it calls it.
+try
+  Print(sin(1))
+onexception |evt.ex.msg| do
+  Print(CurrentException().message);
+Print(sin(2));

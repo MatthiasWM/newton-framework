@@ -23,6 +23,9 @@ Output is normalized before comparing: heap references printed as
 more hex digits becomes `#<ref>`. Short immediates like `#2` (nil) are kept.
 A lone carriage return (Newton line ending) is shown as `<CR>` plus a
 newline, so the files stay readable and CR vs. LF is still visible.
+Where a stub is defined (`Maths.cc:654`) and how many stubs there are
+(`3 of 1004 stubs called`) change as stubs get implemented: they become
+`<file:line>` and `<total>`.
 
 Usage:
   Test/dbg/run_dbg_tests.py                 run all cases
@@ -48,10 +51,14 @@ DEFAULT_NEWTC = REPO / "build" / "VSCode" / "newtc"
 TIMEOUT = 10  # seconds; a break loop waiting for input would otherwise hang
 
 REF_RE = re.compile(r"#(0x)?[0-9A-Fa-f]{6,}")
+STUB_PLACE_RE = re.compile(r"\b[\w.]+\.cc?:\d+")
+STUB_TOTAL_RE = re.compile(r"(\d+) of \d+ stubs called")
 
 
 def normalize(text):
     text = text.replace("\r\n", "\n").replace("\r", "<CR>\n")
+    text = STUB_TOTAL_RE.sub(r"\1 of <total> stubs called", text)
+    text = STUB_PLACE_RE.sub("<file:line>", text)
     return REF_RE.sub("#<ref>", text)
 
 
