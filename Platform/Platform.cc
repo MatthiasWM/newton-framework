@@ -249,7 +249,7 @@ CMacPlatform::interruptHandler(void)
 void
 CMacPlatform::timerInterruptHandler(void)
 {
-	// not what Voyager uses this for, but…
+	// not what Voyager uses this for, but...
 	// signal semaphore
 /*
 	if (isPaused)

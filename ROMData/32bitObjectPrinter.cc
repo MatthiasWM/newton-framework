@@ -150,7 +150,7 @@ IsROMFunction(Ref r)
 		 || EQROMRef(theClass, SYMA(binCFunction)))
 			isFunction = true;
 	}
-	return isFunction;	
+	return isFunction;
 }
 
 bool
@@ -311,7 +311,7 @@ PrintROMObject(Ref obj, int indent, int depth)
 								// and therefore this frame needs multi-line output
 								for (i = 0, p = slotPtr; i < numOfSlots && !isAggr; ++i, ++p) {
 									if (printLength >= 0 && i >= printLength)
-										// don’t exceed number-of-slots-to-print preference
+										// don't exceed number-of-slots-to-print preference
 										break;
 									isAggr = IsAggregate(FixPointerRef(CANONICAL_LONG(*p)));
 								}
@@ -319,7 +319,7 @@ PrintROMObject(Ref obj, int indent, int depth)
 								depth++;
 								for (i = 0, p = slotPtr; i < numOfSlots; ++i, ++p) {
 									if (printLength >= 0 && i >= printLength) {
-										// don’t exceed number-of-slots-to-print preference
+										// don't exceed number-of-slots-to-print preference
 										REPprintf("...");
 										break;
 									}
@@ -364,13 +364,13 @@ PrintROMObject(Ref obj, int indent, int depth)
 						numOfSlots = ROMLength(obj);
 						Ref32 * p, * slotPtr = ((FrameObject32 *)(obj-1))->slot;
 						if (EQROMRef(objClass, SYMA(pathExpr))) {
-						// it’s a path expression
+						// it's a path expression
 							bool	hasSymbol = true;
 							for (i = 0, p = slotPtr; i < numOfSlots && hasSymbol; ++i, ++p) {
 								hasSymbol = IsROMSymbol(FixPointerRef(CANONICAL_LONG(*p)));
 							}
 							if (hasSymbol) {
-							// it’s all symbols so print in dotted form
+							// it's all symbols so print in dotted form
 								for (i = 0, p = slotPtr; i < numOfSlots; ++i, ++p) {
 									PrintROMObject(FixPointerRef(CANONICAL_LONG(*p)), indent, depth + 1);
 									if (i < numOfSlots - 1)
@@ -450,7 +450,7 @@ PrintROMObject(Ref obj, int indent, int depth)
 						for (unsigned char * p = s; (ch = *p) != kEndOfString; p++)
 						{
 							if (((sType[ch] & (isUppercase|isLowercase|isDigit)) != 0) || ch == '_')
-								/* it’s good */;
+								/* it's good */;
 							else
 							{
 								isWeird = true;
@@ -502,7 +502,7 @@ PrintROMObject(Ref obj, int indent, int depth)
 						REPprintf("|");
 					}
 					else
-						// it’s a simple symbol
+						// it's a simple symbol
 						REPprintf("'%s", s);
 				}
 
@@ -643,7 +643,7 @@ Stringer(RefArg obj)
 	{
 		StringerStringObject(GetArraySlotRef(obj, i), strPtr, &textSize, inkPtr, &inkSize);
 		strPtr += textSize;
-		inkPtr += inkSize;		
+		inkPtr += inkSize;
 	}
 	if (inkLength > 0)
 	{
@@ -677,7 +677,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			*(UniChar *)outText = RCHAR(obj);
-		return true;		
+		return true;
 	}
 
 	else if (ISINT(obj))
@@ -688,7 +688,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			ConvertToUnicode(str, (UniChar *)outText, strLen);
-		return true;		
+		return true;
 	}
 
 	else if (IsReal(obj))
@@ -711,7 +711,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			ConvertToUnicode(strPtr, (UniChar *)outText, strLen);
-		return true;		
+		return true;
 	}
 
 	else if (IsSymbol(obj))

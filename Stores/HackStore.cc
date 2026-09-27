@@ -26,8 +26,8 @@ extern char *				gLZSharedBuffer;
 /*------------------------------------------------------------------------------
 	C H a c k S t o r e
 	Not a persistent store at all.
-	Objects are malloc’d and their pointers inserted into a fixed-size array.
-	The index into the array is an object’s id.
+	Objects are malloc'd and their pointers inserted into a fixed-size array.
+	The index into the array is an object's id.
 ------------------------------------------------------------------------------*/
 #define kMaxObjectsInStore 32768
 
@@ -983,7 +983,7 @@ REPprintf("Decompress: %s\n", companderName);
 	else if ((delta = strlen(companderName) - 17) > 0
 		  &&  strcmp(companderName + delta, "StoreDecompressor") == 0)
 	{
-	//	we’re expecting
+	//	we're expecting
 	//		CSimpleStoreDecompressor
 	//		CSimpleRelocStoreDecompressor
 	//		CZippyStoreDecompressor

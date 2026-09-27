@@ -22,7 +22,7 @@ CBufferSegment::CBufferSegment()
 	fLoBound = fHiBound = NULL;
 	fBufPtr = NULL;
 	fSharedBufIsInitialized = false;
-//	fSharedBuf = 0;		// don’t think they really mean this
+//	fSharedBuf = 0;		// don't think they really mean this
 }
 
 

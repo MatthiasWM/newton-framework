@@ -109,7 +109,7 @@ ULong		GetTicks(void) {
 extern "C" { NS_STUB(FAddDeferredSend, RefArg inRcvr, RefArg inTarget, RefArg inMsg, RefArg inArg) }
 extern "C" { NS_STUB(FAddDeferredCall, RefArg inRcvr, RefArg inMsg, RefArg inArg) }
 
-// RefStack allocates a new stack, but we don’t want the whole VM system
+// RefStack allocates a new stack, but we don't want the whole VM system
 extern "C" NewtonErr	NewStack(ObjectId inDomainId, size_t inMaxSize, ObjectId inOwnerId, VAddr * outTopOfStack, VAddr * outBottomOfStack)
 {
 	if (inMaxSize == 64*KByte)
@@ -119,7 +119,7 @@ extern "C" NewtonErr	NewStack(ObjectId inDomainId, size_t inMaxSize, ObjectId in
 	return noErr;
 }
 
-// RefStack frees its stack, but we don’t want the whole VM system
+// RefStack frees its stack, but we don't want the whole VM system
 extern "C" NewtonErr	FreePagedMem(VAddr inAddressInArea)
 {
 	free((void *)inAddressInArea);
@@ -223,7 +223,7 @@ InitObjectSystem(void)
 		InitDarkStar(RA(gFunctionFrame), RA(NILREF));
 
 	// CNotebook::init()
-	// stub up the root view -- can’t gRootView->init(SYS_rootProto, NULL) w/o bringing in a world of stuff we don’t really want
+	// stub up the root view -- can't gRootView->init(SYS_rootProto, NULL) w/o bringing in a world of stuff we don't really want
 		gRootView = (CRootView *)calloc(0xA0, 1);
 		gRootView->fContext.h = AllocateRefHandle(AllocateFrame());
 		gRootView->fContext.h->stackPos = 0;

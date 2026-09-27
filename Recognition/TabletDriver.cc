@@ -378,7 +378,7 @@ CResistiveTablet::convertSample(void)
 			pt.x = fBounds.right - pt.x;
 		if (orientation == 1 || orientation == 2)	// landscape or flipped portrait
 			pt.y = fBounds.bottom - pt.y;
-		// ensure pt doesn’t exceed bounds
+		// ensure pt doesn't exceed bounds
 		if (pt.x < fBounds.left)
 			pt.x = fBounds.left;
 		else if (pt.x > fBounds.right)

@@ -142,7 +142,7 @@ wordcmp(const char * s1, const char * s2)
 /*------------------------------------------------------------------------------
 	Reserved word lookup, using binary search.
 	Args:		inWord		word scanned from input stream
-								ASCII because it’s a symbol.
+								ASCII because it's a symbol.
 	Return:	token number
 				TOKENbad => word is not reserved
 ------------------------------------------------------------------------------*/
@@ -318,14 +318,14 @@ Lexical grammar, from http://manuals.info.apple.com/en_US/NewtonScriptProgramLan
 	character-sequence:
 		[ { string-character | escape-sequence } ]* [ truncated-escape ]
 	string-character:
-		<tab or any ASCII character with code 32–127 except ‘"’ or ‘\’>
+		<tab or any ASCII character with code 32–127 except ‘"' or ‘\'>
 	escape-sequence:
 		{ \ {"|\|n|t} | \ u [ hex-digit hex-digit hex-digit hex-digit ]* \ u }
 	￼truncated-escape:
 		\ u [ hex-digit hex-digit hex-digit hex-digit ]*
 	symbol:
 		{ { alpha | _ } [ { alpha | digit | _ } ]* |
-		  ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+		  ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
 	symbol-character:
 		<any ASCII character with code 32–127 except '|' or '\'>
 	integer:
@@ -354,18 +354,18 @@ Real life
 There are differences between this language definition and the language accepted by the compiler in NewtonToolkit 1.0 for Macintosh.
 These differences are considered either bugs or extensions, as follows:
 Extensions
-	• The compiler accepts the 8-bit extended Macintosh character set in strings, and translates characters with codes >= 128 into the equivalent Unicode characters.
+	* The compiler accepts the 8-bit extended Macintosh character set in strings, and translates characters with codes >= 128 into the equivalent Unicode characters.
 	  Such characters may have different translations, or may not be accepted at all, by other NewtonScript implementations.
-	• The compiler accepts return characters in strings.
+	* The compiler accepts return characters in strings.
 	  This is arguably a bug, since it makes it hard to figure out that you've accidentally omitted the final quote of a string;
 	  however, in honor of existing code, we call it an extension.
-	• The compiler accepts the syntax "#[ hex-digit ]+" for translating internal reference numbers into object references.
+	* The compiler accepts the syntax "#[ hex-digit ]+" for translating internal reference numbers into object references.
 	  This is an extension for debugging purposes that is inherently unsafe, and not part of the formal NewtonScript definition.
-	• The compiler does not allow the use of global variable declarations; they are anti-social when used in the Newton environment.
+	* The compiler does not allow the use of global variable declarations; they are anti-social when used in the Newton environment.
 Bugs
-x	• The compiler allows the use of \u escape sequences in symbols when surrounded by vertical bars (|).
+x	* The compiler allows the use of \u escape sequences in symbols when surrounded by vertical bars (|).
 	  This is in poor taste and can result in indeterminate behavior.
-	• The compiler accepts any character after a backslash (\) in a string, xsymbol,x or character literal.
+	* The compiler accepts any character after a backslash (\) in a string, xsymbol,x or character literal.
 	  This behavior should not be relied on, in case future special escape characters are introduced.
 
 ------------------------------------------------------------------------------*/
@@ -397,7 +397,7 @@ CCompiler::consumeChar(void)
 
 
 /*------------------------------------------------------------------------------
-	Peek at the next token from the input stream -- don’t update theToken.
+	Peek at the next token from the input stream -- don't update theToken.
 	Args:		--
 	Return:	token number
 ------------------------------------------------------------------------------*/
@@ -511,7 +511,7 @@ CCompiler::consumeToken(void)
 		}
 
 //	symbol:
-//		{ <as above> | ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+//		{ <as above> | ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
 //	symbol-character:
 //		<any ASCII character with code 32–127 except '|' or '\'>
 		case '|':
@@ -520,7 +520,7 @@ CCompiler::consumeToken(void)
 			if (tokenStr == NULL)
 				return makeToken(EOF);
 			ConvertFromUnicode(tokenStr, str, sizeof(str), kASCIIEncoding);
-			// MUST free the string alloc’d by getCharsUntil()
+			// MUST free the string alloc'd by getCharsUntil()
 			free(tokenStr);
 			return makeSymbolToken(str);
 		}
@@ -554,7 +554,7 @@ CCompiler::consumeToken(void)
 			if (tokenStr == NULL)
 				return makeToken(EOF);
 			int tokenId = makeStringToken(tokenStr, length);
-			// MUST free the string alloc’d by getCharsUntil()
+			// MUST free the string alloc'd by getCharsUntil()
 			free(tokenStr);
 			return tokenId;
 		}
@@ -647,7 +647,7 @@ CCompiler::consumeToken(void)
 				return makeToken(TOKENRShift);
 			}
 			return makeToken('>');
-		
+
 		case '=':
 			consumeChar();
 			return makeToken(TOKENEQL);
@@ -711,14 +711,14 @@ CCompiler::consumeToken(void)
 	from the input stream.
 
 	symbol:
-		{ { alpha | _ } [ { alpha | digit | _ } ]* | ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+		{ { alpha | _ } [ { alpha | digit | _ } ]* | ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
 	symbol-character:
 		<any ASCII character with code 32–127 except '|' or '\'>
 
 	character-sequence:
 		[ { string-character | escape-sequence } ]* [ truncated-escape ]
 	string-character:
-		<tab or any ASCII character with code 32–127 except ‘"’ or ‘\’>
+		<tab or any ASCII character with code 32–127 except ‘"' or ‘\'>
 	escape-sequence:
 		{ \ {"|\|n|t} | \ u [ hex-digit hex-digit hex-digit hex-digit ]* \ u }
 	￼truncated-escape:
@@ -750,7 +750,7 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 			// grow the UniChar text buffer in 64-char chunks
 			bufLen += 64 * sizeof(UniChar);
 			buf = (UniChar *)realloc(buf, bufLen);
-			ASSERTMSG(buf != NULL, "Compiler can’t get buffer space");
+			ASSERTMSG(buf != NULL, "Compiler can't get buffer space");
 		}
 
 		if (theChar == (UniChar)EOF)
@@ -769,10 +769,10 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 				if (theChar == 'u' || theChar == 'U')
 				{
 					if (hexIndex < 0)
-						// it’s the \u prefix
+						// it's the \u prefix
 						hexIndex = 0;
 					else if (hexIndex == 0)
-						// it’s the \u suffix
+						// it's the \u suffix
 						hexIndex = -1;
 					else
 					{
@@ -797,7 +797,7 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 			else
 			{
 //	symbol:
-//		{  ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+//		{  ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
 				if (theChar == '|' || theChar == '\\')
 					buf[index++] = theChar;
 				else
@@ -926,14 +926,14 @@ CCompiler::getNumber(void)
 		str[0] = '0'; i = 1;
 		if (theChar == 'x' || theChar == 'X')
 		{
-		// it’s a hex integer
+		// it's a hex integer
 			consumeChar();
 			return getHexNumber();
 		}
-		// OK, it’s not hex
+		// OK, it's not hex
 	}
 
-	// it’s a decimal integer
+	// it's a decimal integer
 	while (theChar != (UniChar)EOF)
 	{
 		if (IsDigit(theChar))
@@ -946,7 +946,7 @@ CCompiler::getNumber(void)
 		}
 		else if (theChar == '.')
 		{
-		// actually it’s real!
+		// actually it's real!
 			str[i++] = '.';
 			consumeChar();
 			while (theChar != (UniChar)EOF)
@@ -992,14 +992,14 @@ CCompiler::getNumber(void)
 					}
 				}
 				else
-				//	that’s the end of the real
+				//	that's the end of the real
 					break;
 			}
 			str[i] = 0;
 			return makeRealToken(strtod(str, NULL));
 		}
 		else
-		//	that’s the end of the integer
+		//	that's the end of the integer
 			break;
 	}
 	str[i] = 0;

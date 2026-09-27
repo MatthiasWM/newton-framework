@@ -221,7 +221,7 @@ InitDSDictionary(RefArg inRcvr, RefArg inOptions)
 
 	gLastLookupString = NILREF;
 	AddGCRoot(&gLastLookupString);
-	
+
 	return TRUEREF;
 }
 
@@ -332,7 +332,7 @@ IPhraseGenerator(RefArg inStr)
 	gPhrasalGlobals->words = FSplitString(RA(NILREF), inStr);
 
 	ArrayIndex i, j, count = Length(gPhrasalGlobals->words);	// r7, r6, r5
-	// we’re limited to 15 words
+	// we're limited to 15 words
 	if (count > 15)
 		count = 15;
 
@@ -562,7 +562,7 @@ FastStringLookup(RefArg inRcvr, RefArg inStr)
 /*------------------------------------------------------------------------------
 	This is The Big One. 14 pages!
 	Major change from the original: strings are now Unicode, not ASCII
-	so we aren’t constantly converting from one to the other.
+	so we aren't constantly converting from one to the other.
 	Args:		inTrie
 				inStr
 				ioState
@@ -598,7 +598,7 @@ MatchString(CDictionary * inTrie, UniChar * inStr, RefArg ioState)
 	if (NOTNIL(dynaTag))
 		return dynaTag;
 
-	// okay, at this point the passed trie and dyna trie didn’t recognise anything
+	// okay, at this point the passed trie and dyna trie didn't recognise anything
 	RefVar objFrame;		// sp0C
 	RefVar lexDateFrame;	// r9
 //sp-08
@@ -640,14 +640,14 @@ MatchString(CDictionary * inTrie, UniChar * inStr, RefArg ioState)
 		dateException = FFindStringInArray(RA(NILREF), RA(DSExceptions), theStr);
 		if (NOTNIL(dateException))
 		{
-			//... no, it’s a girl’s name...
+			//... no, it's a girl's name...
 			int exceptIndex = RVALUE(dateException);
 			RefVar except(GetFrameSlot(ioState, SYMA(exception)));
 //sp-04
 			if (ISNIL(GetArraySlot(except, exceptIndex)))
 				SetArraySlot(except, exceptIndex, MAKEINT(0));
 			else
-				// we’ve already seen this
+				// we've already seen this
 				dateException = NILREF;
 		}
 	}
@@ -921,7 +921,7 @@ DSTagString(RefArg inRcvr, RefArg inNames, RefArg inStr, RefArg ioState)
 	Args:		inNameFrame
 				inArg2
 	Return:	array of 'person tag
-				NILREF => not a person’s name
+				NILREF => not a person's name
 ------------------------------------------------------------------------------*/
 extern Ref* RSSTRspace;
 
@@ -971,11 +971,11 @@ StringToFrameMapper(RefArg inStr)
 	RefVar words(FSplitString(RA(NILREF), inStr));
 	ArrayIndex numOfWords = Length(words);
 
-	// any more than 4 words and it’s unlikely to be a name
+	// any more than 4 words and it's unlikely to be a name
 	if (numOfWords > 4)
 		return NILREF;
 
-	// any one-letter words, it’s unlikely to be a name
+	// any one-letter words, it's unlikely to be a name
 	for (ArrayIndex i = 0; i < numOfWords; ++i)
 	{
 		if (RINT(FStrLen(RA(NILREF), GetArraySlot(words, i))) == 1)
@@ -995,7 +995,7 @@ StringToFrameMapper(RefArg inStr)
 	if (Length(names) > 0)
 		return names;
 
-	// didn’t find anything
+	// didn't find anything
 	return NILREF;
 }
 
@@ -1090,7 +1090,7 @@ member_p(RefArg inList, RefArg inItem)
 
 /*------------------------------------------------------------------------------
 	Append an object to an array.
-	Create the array if it doesn’t already exist.
+	Create the array if it doesn't already exist.
 	Args:		inRcvr stripped
 				ioArray
 				inValue
@@ -1260,7 +1260,7 @@ RecordHistory(RefArg inItem)
 #pragma mark -
 /*------------------------------------------------------------------------------
 	S t r i n g   M a n i p u l a t i o n
-	We don’t use ASCII strings.
+	We don't use ASCII strings.
 ------------------------------------------------------------------------------*/
 #if 0
 /*------------------------------------------------------------------------------
@@ -1580,7 +1580,7 @@ RemoveTrailingPunct(RefArg inStr)	// RefArg inRcvr stripped
 			charStr = MakeString(c);
 			if (ISNIL(FFindStringInArray(RA(NILREF), RA(salutationSuffix), charStr)))	// @249
 			{
-				// this char isn’t trailing punct: string is valid up to and including this point
+				// this char isn't trailing punct: string is valid up to and including this point
 				index = i;
 				break;
 			}
@@ -1612,7 +1612,7 @@ MapSymToFrame(RefArg inSym)	// RefArg inRcvr stripped
 
 
 /*------------------------------------------------------------------------------
-	Add all the words in a template’s lexicon to the dynaTrie.
+	Add all the words in a template's lexicon to the dynaTrie.
 	Args:		inRcvr stripped
 				inTemplate			frame
 	Return:	TRUEREF => success
@@ -1646,7 +1646,7 @@ MakePhrasalLexEntry(RefArg inTemplate)
 
 
 /*------------------------------------------------------------------------------
-	Remove all the words in a template’s lexicon from the dynaTrie.
+	Remove all the words in a template's lexicon from the dynaTrie.
 	Args:		inRcvr stripped
 				inTemplate			frame
 	Return:	TRUEREF => success
@@ -1689,7 +1689,7 @@ RemovePhrasalLexEntry(RefArg inTemplate)
 		gDynaDeleteSym = NILREF;
 		gDynaDeleteFrame = NILREF;
 		return TRUEREF;
-		
+
 	}
 	gDynaDeleteSym = NILREF;
 	gDynaDeleteFrame = NILREF;
@@ -1817,7 +1817,7 @@ FParseUtter(RefArg inRcvr, RefArg inString)
 	FSetValue(assistant, entryLine, SYMA(text), inString);
 	gRootView->update();
 
-	// can’t do anything until ink is recognised
+	// can't do anything until ink is recognised
 	if (IsRichString(inString))
 	{
 		DoMessage(assistant, SYMA(DeferredRec), RA(NILREF));
@@ -1945,12 +1945,12 @@ FParseUtter(RefArg inRcvr, RefArg inString)
 		SetFrameSlot(taskFrame, SYMA(origPhrase), FOrigPhrase(RA(NILREF)));
 		SetFrameSlot(taskFrame, SYMA(entries), GetArraySlot(interpretation, 3));
 		FillPreconditions(taskFrame);
-// can’t PostParse yet b/c this needs apps and the view system
+// can't PostParse yet b/c this needs apps and the view system
 //		DoMessage(taskFrame, SYMA(PostParse), RA(NILREF));
 		return taskFrame;
 	}
 
-	// it didn’t work out
+	// it didn't work out
 	DoMessage(assistant, SYMA(Duh), MakeArray(1));
 	return NILREF;
 #endif
@@ -1968,7 +1968,7 @@ FParseUtter(RefArg inRcvr, RefArg inString)
 Ref
 IAInputErrors(RefArg inRcvr, RefArg inAssistant)
 {
-	// the assistant must have the string -- we’ll read it from there later
+	// the assistant must have the string -- we'll read it from there later
 	RefVar str(GetFrameSlot(inAssistant, SYMA(matchString)));
 	if (ISNIL(str))
 		return NILREF;
@@ -1993,7 +1993,7 @@ IAInputErrors(RefArg inRcvr, RefArg inAssistant)
 	if (isWS)
 		return NILREF;
 
-	// we can’t cope with more than 15 words
+	// we can't cope with more than 15 words
 	if (Length(FSplitString(RA(NILREF), str)) > 15)
 		return NILREF;
 

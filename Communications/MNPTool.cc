@@ -120,7 +120,7 @@ CMNPTool::handleRequest(CUMsgToken& inMsgToken, ULong inMsgType)
 
 	else
 	{
-//		if (f4C == 1)	// that’s what the code says..?
+//		if (f4C == 1)	// that's what the code says..?
 //			handleTickTimer();
 //		else if (f4C == 2)
 //			handleXmitAbortTimer();
@@ -296,7 +296,7 @@ CMNPTool::connectPreflight(void)
 		fState |= 0x80000000;
 
 		getFramingCtl(&fCCB->framing);
-		framingOpt.fDoHeader = true;		// but why set these? they’re the defaults anyway
+		framingOpt.fDoHeader = true;		// but why set these? they're the defaults anyway
 		framingOpt.fDoPutFCS = true;
 		framingOpt.fDoGetFCS = true;
 		framingOpt.fEscapeChar = chDLE;
@@ -741,7 +741,7 @@ CMNPTool::xmitLD(void)
 	frameData[6] = 1;	// length
 	frameData[7] = fCCB->fDisconnectUserCode;
 
-//	xmitBuf->hide(10-(8), kSeekFromEnd);	// original doesn’t -- why not?
+//	xmitBuf->hide(10-(8), kSeekFromEnd);	// original doesn't -- why not?
 	xmitPostRequest(xmitBuf, true);
 	setXmitAbortTimer();
 
@@ -865,14 +865,14 @@ CMNPTool::xmitBufferLT(void)
 			else
 			{
 				fCCB->fMNPStats.fWriteFlushCount++;
-//				fCCB->f20->vf2C(0);	// don’t know what the object is
+//				fCCB->f20->vf2C(0);	// don't know what the object is
 				break;
 			}
 		}
 		else
 		{
 			fCCB->fMNPStats.fWriteBytesIn++;
-//			fCCB->f20->vf28(ch);		// don’t know what the object is
+//			fCCB->f20->vf28(ch);		// don't know what the object is
 			if ((fState & kToolStateWantAbort) != 0)
 				break;
 		}
@@ -1277,7 +1277,7 @@ CMNPTool::paramNegotiation(bool inArg)
 			// ignore this param
 			fCCB->fRcvdFrame.seek(codeLen, kSeekFromHere);
 			if (!inArg)
-				// connecting entity is trying to negotiate a param we don’t support
+				// connecting entity is trying to negotiate a param we don't support
 				isOK = false;
 			break;
 		}
@@ -1633,7 +1633,7 @@ CMNPTool::rcvLA(void)
 				startAbort(kMNPErrNotConnected);
 			}
 		}
-		
+
 		fCCB->f00 |= 0x10;
 	}
 }
@@ -1656,7 +1656,7 @@ CMNPTool::processLA(void)
 
 /* -----------------------------------------------------------------------------
 	Receive LN (Link Attention) frame.
-	We don’t do Link Attention.
+	We don't do Link Attention.
 	Args:		--
 	Return:	--
 ----------------------------------------------------------------------------- */
@@ -1668,7 +1668,7 @@ CMNPTool::rcvLN(void)
 
 /* -----------------------------------------------------------------------------
 	Receive LNA (Link Attention Acknowledge) frame.
-	We don’t do Link Attention.
+	We don't do Link Attention.
 	Args:		--
 	Return:	--
 ----------------------------------------------------------------------------- */

@@ -18,7 +18,7 @@
 The ROM has:
 003af000	gROMMagicPointerTable	(C array of Refs to MPxxxx, preceded by count)
 003afda8	gROMSoupData
--- symbol objects (lots of ’em)
+-- symbol objects (lots of 'em)
 003afdc4	SYMcfunction
 003afde0	SYM_2B
 003afdf4	SYM_2D
@@ -1205,7 +1205,7 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	FILE * fp = fopen(gImageFilename, "r");
 	if (fp == NULL)
-		ExitWithMessage("can’t open ROM image file “%s”", gImageFilename);
+		ExitWithMessage("can't open ROM image file “%s”", gImageFilename);
 
 /*== read ROM image into memory ==*/
 	size_t ROMsize;
@@ -1218,7 +1218,7 @@ main(int argc, const char * argv[])
 
 /*== export ROM extensions ==*/
 #if forROMExtensions
-	RExHeader * rex = (RExHeader *)(ROMdata + 0x0071FC4C);	// it’s at a well-known address in the ROM image
+	RExHeader * rex = (RExHeader *)(ROMdata + 0x0071FC4C);	// it's at a well-known address in the ROM image
 
 #if defined(hasByteSwapping)
 	// byte-swap the directory
@@ -1305,7 +1305,7 @@ main(int argc, const char * argv[])
 		ArrayIndex	numOfPointers;
 		Ref32			magicPointer[];
 	};
-	MagicPointerTable * mp = (MagicPointerTable *)(ROMdata + 0x003AF000);	// it’s at a well-known address in the ROM image
+	MagicPointerTable * mp = (MagicPointerTable *)(ROMdata + 0x003AF000);	// it's at a well-known address in the ROM image
 	ArrayIndex count = CANONICAL_LONG(mp->numOfPointers);
 
 /*-- define the table --*/
@@ -1325,7 +1325,7 @@ main(int argc, const char * argv[])
 		sprintf(rsName, "MP%04d", i);
 		rRef = FixPointerRef(CANONICAL_LONG(*mpp));
 		rsValue = PrintROMObject(fp_mp, rsName, NILREF, rRef, true, false);
-		// there are a couple of weird immediates in the magic pointer table that don’t get printed by PrintROMObject
+		// there are a couple of weird immediates in the magic pointer table that don't get printed by PrintROMObject
 		filePos = ftell(fp_mp);
 		if (filePos == prevPos) {
 			fprintf(fp_mp, "%s:	Ref		%s\n", rsName, rsValue);
@@ -1341,7 +1341,7 @@ main(int argc, const char * argv[])
 /*== read object pointers and names ==*/
 	fp = fopen(gSourceFilename, "r");
 	if (fp == NULL)
-		ExitWithMessage("can’t open source file “%s”", gSourceFilename);
+		ExitWithMessage("can't open source file “%s”", gSourceFilename);
 
 /*-- PASS 1: build header file, locate symbol table array object --*/
 	FILE * fp_h = fopen("../Frames/RSData.h", "w");
@@ -1416,7 +1416,7 @@ main(int argc, const char * argv[])
 		}
 	}
 
-/*-- symbols that don’t appear in the original symbol table but that we’d rather not MakeSymbol() --*/
+/*-- symbols that don't appear in the original symbol table but that we'd rather not MakeSymbol() --*/
 	const char * extraSym[] = { "compilerCompatibility", "closed", "DebugHashToName", "dbg1", 0 };
 	for (const char ** symp = extraSym; *symp != 0; ++symp ) {
 		const char * sym = *symp;

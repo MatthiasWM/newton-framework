@@ -107,7 +107,7 @@ NewtonPackage::~NewtonPackage()
 		free(relocationData);
 	if (pkgPartData != NULL && pkgPartData != &part0Data)
 		free(pkgPartData);
-	// don’t free individual part data -- it is persistent
+	// don't free individual part data -- it is persistent
 	// if client wants to free it they must keep a reference to it before the NewtonPackage is destroyed
 	// close the file
 	if (pkgFile)
@@ -198,7 +198,7 @@ NewtonPackage::directory(void)
 		}
 #endif
 
-		//	if it’s a "package1" with relocation info then read that relocation info
+		//	if it's a "package1" with relocation info then read that relocation info
 		if ((pkgDir->signature[kPackageMagicLen] == '1') && FLAGTEST(pkgDir->flags, kRelocationFlag)) {
 			if (pkgMem != NULL) {
 				memcpy(&pkgRelo, (char *)pkgMem + pkgDir->directorySize, sizeof(RelocationHeader));
@@ -387,7 +387,7 @@ NewtonPackage::partRef(ArrayIndex inPartNo)
 	CopyRef(CANONICAL_LONG(REF(partOffset)), partData, partOffset, dstPtr, map);
 	UpdateRef(newRoot->slot, map);	// Ref offsets -> addresses
 
-	// don’t need the 32-bit part data any more
+	// don't need the 32-bit part data any more
 	free(partData);
 	// but we will need to free the 64-bit part data at some point
 	pkgAllocation->data = part64Data;
@@ -571,7 +571,7 @@ ScanRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ScanRefMap & io
 		refSize += ScanRef(obj->objClass, inPartAddr, inPartOffset, ioMap);
 
 		ArrayIndex objSize = CANONICAL_SIZE(obj->size);
-		//	if it’s a frame / array, step through each slot / element adding those
+		//	if it's a frame / array, step through each slot / element adding those
 		if ((obj->flags & kObjSlotted) != 0) {
 			Ref32 * refPtr = obj->slot;
 			for (ArrayIndex count = (objSize - sizeof(ArrayObject32)) / sizeof(Ref32); count > 0; --count, ++refPtr) {
@@ -582,14 +582,14 @@ ScanRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ScanRefMap & io
 		}
 		return MEMALIGN(refSize);
 	}
-	// else it’s an immediate
+	// else it's an immediate
 	return 0;
 }
 
 
 /* -----------------------------------------------------------------------------
 	Pass 2: copy 32-bit package source -> 64-bit platform Refs
-			  adjust byte-order while we’re at it
+			  adjust byte-order while we're at it
 	Args:		inRef			Refs are offsets from inPartAddr and in big-endian byte-order
 				inPartAddr
 				inPartOffset
@@ -689,7 +689,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 					UShort formatId, unicodeTableSize;
 					*table = formatId = BYTE_SWAP_SHORT(*table), ++table;
 					if (formatId == 0) {
-						// it’s 8-bit to UniCode
+						// it's 8-bit to UniCode
 						*table = unicodeTableSize = BYTE_SWAP_SHORT(*table), ++table;
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// revision
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// tableInfo
@@ -697,7 +697,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 							*table = BYTE_SWAP_SHORT(*table);
 						}
 					} else if (formatId == 4) {
-						// it’s UniCode to 8-bit
+						// it's UniCode to 8-bit
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// revision
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// tableInfo
 						*table = unicodeTableSize = BYTE_SWAP_SHORT(*table), ++table;
@@ -737,7 +737,7 @@ UpdateRef(Ref * inRefPtr, RefMap & inMap)
 			// for frames, class is actually the map which needs fixing too; non-pointer refs may need byte-swapping anyway so we always need to do this
 			UpdateRef(&obj->objClass, inMap);
 
-			//	if it’s a frame / array, step through each slot / element fixing those
+			//	if it's a frame / array, step through each slot / element fixing those
 			if ((obj->flags & kObjSlotted)) {
 				Ref * refPtr = obj->slot;
 				for (ArrayIndex count = ARRAYLENGTH(obj); count > 0; --count, ++refPtr) {
@@ -800,7 +800,7 @@ FixUpRef(Ref * inRefPtr, char * inBaseAddr)
 			// for frames, class is actually the map which needs fixing too; non-pointer refs may need byte-swapping anyway so we always need to do this
 			FixUpRef(&obj->objClass, inBaseAddr);
 
-			//	if it’s a frame / array, step through each slot / element fixing those
+			//	if it's a frame / array, step through each slot / element fixing those
 			if ((obj->flags & kObjSlotted)) {
 				Ref * refPtr = obj->slot;
 				for (ArrayIndex count = (objSize - sizeof(ArrayObject)) / sizeof(Ref); count > 0; --count, ++refPtr) {
@@ -835,7 +835,7 @@ FixUpRef(Ref * inRefPtr, char * inBaseAddr)
 
 					*table = formatId = BYTE_SWAP_SHORT(*table), ++table;
 					if (formatId == 0) {
-						// it’s 8-bit to UniCode
+						// it's 8-bit to UniCode
 						*table = unicodeTableSize = BYTE_SWAP_SHORT(*table), ++table;
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// revision
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// tableInfo
@@ -843,7 +843,7 @@ FixUpRef(Ref * inRefPtr, char * inBaseAddr)
 							*table = BYTE_SWAP_SHORT(*table);
 						}
 					} else if (formatId == 4) {
-						// it’s UniCode to 8-bit
+						// it's UniCode to 8-bit
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// revision
 						*table = BYTE_SWAP_SHORT(*table), ++table;		// tableInfo
 						*table = unicodeTableSize = BYTE_SWAP_SHORT(*table), ++table;

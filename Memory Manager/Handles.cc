@@ -199,7 +199,7 @@ FreeHandle(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Get a handle’s size.
+	Get a handle's size.
 	Args:		inH			the handle in question
 	Return:	its size
 ------------------------------------------------------------------------------*/
@@ -248,7 +248,7 @@ GetHandleSize(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Set a handle’s size.
+	Set a handle's size.
 	Args:		inH			the handle in question
 				inSize		its new size
 	Return:	error code
@@ -304,7 +304,7 @@ SetHandleSize(Handle inH, size_t inSize)
 			if (size <= inSize)
 				gHandlesUsed += (inSize - size);
 			else
-				gHandlesUsed -= (size - inSize); 
+				gHandlesUsed -= (size - inSize);
 		}
 
 		if ((gNewtConfig & 0x40) != 0 && (err = CheckHeap(NULL, &whereSmashed)) != noErr)
@@ -321,7 +321,7 @@ SetHandleSize(Handle inH, size_t inSize)
 
 
 /*------------------------------------------------------------------------------
-	Get a handle’s owner. (It’s the same as for a pointer.)
+	Get a handle's owner. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 	Return:	its owner
 ------------------------------------------------------------------------------*/
@@ -334,7 +334,7 @@ GetHandleOwner(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Set a handle’s owner. (It’s the same as for a pointer.)
+	Set a handle's owner. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 				inOwner		its owner
 	Return:	--
@@ -349,7 +349,7 @@ SetHandleOwner(Handle inH, ObjectId inOwner)
 
 
 /*------------------------------------------------------------------------------
-	Get a handle’s name. (It’s the same as for a pointer.)
+	Get a handle's name. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 	Return:	its name
 ------------------------------------------------------------------------------*/
@@ -362,7 +362,7 @@ GetHandleName(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Set a handle’s name. (It’s the same as for a pointer.)
+	Set a handle's name. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 				inName		its name
 	Return:	--
@@ -377,7 +377,7 @@ SetHandleName(Handle inH, ULong name)
 
 
 /*------------------------------------------------------------------------------
-	Get a handle’s type. (It’s the same as for a pointer.)
+	Get a handle's type. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 	Return:	its type
 ------------------------------------------------------------------------------*/
@@ -390,7 +390,7 @@ GetHandleType(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Set a handle’s type. (It’s the same as for a pointer.)
+	Set a handle's type. (It's the same as for a pointer.)
 	Args:		inH			the handle in question
 				inType		its type
 	Return:	--
@@ -419,8 +419,8 @@ HandleToHeap(Handle inH)
 
 
 /*------------------------------------------------------------------------------
-	Lock a handle so it won’t move in memory.
-	We can use its pointer while it’s locked.
+	Lock a handle so it won't move in memory.
+	We can use its pointer while it's locked.
 	Args:		inH			the handle in question
 	Return:	a pointer
 ------------------------------------------------------------------------------*/
@@ -606,7 +606,7 @@ NewFakeHandle(void * inAddr, size_t inSize)
 /*------------------------------------------------------------------------------
 	Determine whether a handle is genuine or fake.
 	Args:		inH			the handle in question
-	Return:	true => it’s a fake
+	Return:	true => it's a fake
 ------------------------------------------------------------------------------*/
 
 bool

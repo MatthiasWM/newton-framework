@@ -74,7 +74,7 @@
 #define TOKENbreak 295
 #define TOKENexists 305
 
-// these don’t look very lexical to me
+// these don't look very lexical to me
 #define TOKENOptionalExpr 257
 #define TOKENgFunction 268
 #define TOKENBuildArray 275

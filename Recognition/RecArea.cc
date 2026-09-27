@@ -76,7 +76,7 @@ size_t
 CRecArea::sizeInBytes(void)
 {
 	size_t thisSize = fATypes->sizeInBytes() + fGTypes->sizeInBytes();
-	thisSize += (sizeof(CRecArea) - sizeof(CRecObject));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CRecArea) - sizeof(CRecObject));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CRecObject::sizeInBytes() + thisSize;
 }
 

@@ -24,7 +24,7 @@ extern bool		OnlyStrokeWritten(CStrokeUnit * inStroke);
 ----------------------------------------------------------------------------- */
 #define kDegreesToRadians 0.0174532925
 
-float displayAngle[25] = 
+float displayAngle[25] =
 {
 	0.00, 15.0, 30.0, 45.0, 60.0, 75.0,
 	90.0, 105.0, 120.0, 135.0, 150.0, 165.0,
@@ -236,7 +236,7 @@ GetAvgLength(CGeneralShapeUnit * inShape)
 			if ((shp = inShape->getGeneralShape()) != NULL  &&  (count = shp->count()) > 1)
 			{
 				float totalLen = 0.0;
-				point * pt = (point *)shp->getEntry(0);	// this ain’t right... curve?
+				point * pt = (point *)shp->getEntry(0);	// this ain't right... curve?
 				for (ArrayIndex i = 1; i < count; ++i)
 				{
 					point * thisPt = pt;
@@ -440,7 +440,7 @@ CGeneralShapeUnit::sizeInBytes(void)
 		thisSize += GetPtrSize((Ptr)f40);
 	}
 
-	thisSize += (sizeof(CGeneralShapeUnit) - sizeof(CSIUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CGeneralShapeUnit) - sizeof(CSIUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CSIUnit::sizeInBytes() + thisSize;
 }
 

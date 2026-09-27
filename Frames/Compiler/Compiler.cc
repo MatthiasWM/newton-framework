@@ -3,7 +3,7 @@
 
 	Contains:	The NewtonScript compiler.
 					The compiler uses yacc to generate the parser,
-					but we need to tweak its output (y.tab.c) so…
+					but we need to tweak its output (y.tab.c) so...
 					if NewtonScript.y is changed
 						enable it and rebuild
 						move y.tab.c from Derived Sources to Frames
@@ -98,7 +98,7 @@ extern short yyrindex[];
 extern short yygindex[];
 extern short yytable[];
 extern short yycheck[];
-extern char *yyname[];	// should be only for YYDEBUG, but we use ’em for reporting syntax errors
+extern char *yyname[];	// should be only for YYDEBUG, but we use 'em for reporting syntax errors
 #if YYDEBUG
 extern char *yyrule[];
 #endif
@@ -370,7 +370,7 @@ CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions)
 CCompiler::~CCompiler()
 {
 	UnlockRef(yaccStack);
-	// shouldn’t we free(sStack)?
+	// shouldn't we free(sStack)?
 	free(lStack);	// not in ROM
 }
 
@@ -437,9 +437,9 @@ CCompiler::compile(void)
 	func = NULL;
 	funcDepthPtr = NULL;
 
-	// build the AST…
+	// build the AST...
 	int		err = parser();	// returns “there is an error” rather than a NewtonErr code
-	// …with a root node
+	// ...with a root node
 	RefVar	graph(AllocatePT1(TOKENbegin, yyval));
 
 	// nil out parser refs for GC
@@ -525,18 +525,18 @@ CCompiler::compile(void)
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[’ [ symbol : ] [ object [ , object ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
 	frame:
-		‘{’ [ frame-slot [ , frame-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
 	frame-slot:
 		symbol : object
 
 	constructor:
 		{ array-constructor | frame-constructor | function-constructor }
 	array-constructor:
-		‘[’ [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
 	frame-constructor:
-		‘{’ [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
 	frame-constructor-slot:
 		symbol : expression
 	function-constructor:
@@ -553,7 +553,7 @@ CCompiler::compile(void)
 	frame-accessor:
 		expression . { symbol | ( expression ) }
 	array-accessor:
-		expression ‘[’ expression ‘]’
+		expression ‘[' expression ‘]'
 
 	assignment:
 		lvalue := expression
@@ -756,7 +756,7 @@ yyreduce:
 	// for an empty rule)
 	yyline = (yym > 0) ? yylsp[1-yym] : theToken.location.lineNumber;
 
-//•••••• PASTE SWITCH FROM y.tab.c : yyparse HERE
+//****** PASTE SWITCH FROM y.tab.c : yyparse HERE
     switch (yyn)
     {
 case 1:
@@ -890,14 +890,14 @@ case 60:
 					{	yyval = AllocatePT2(TOKENglobal, yyvsp[-2], yyvsp[0]); }
 break;
 case 61:
-					{	/* CHECK THIS… */
+					{	/* CHECK THIS... */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(TOKENconst, yyvsp[-4]));
 						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
 						yyval = AllocatePT2(TOKENcall, SYMA(DefGlobalFn), fn); }
 break;
 case 62:
-					{	/* …AND THIS */
+					{	/* ...AND THIS */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(TOKENconst, yyvsp[-4]));
 						SetArraySlot(fn, 1, AllocatePT5(TOKENfunc, GetArraySlot(yyvsp[-2], 0), withLine(yyvsp[0], yylsp[0]), RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
@@ -1277,7 +1277,7 @@ case 150:
 						SetFrameSlot(yyval, yyvsp[-2], yyvsp[0]); }
 break;
     }
-//•••••• END OF SWITCH FROM yyparse
+//****** END OF SWITCH FROM yyparse
 
 	yyssp -= yym;
 	yystate = *yyssp;
@@ -1349,7 +1349,7 @@ yyaccept:
 	yygrowstack() in file y.tab.c. It has been tweaked a bit to cope with
 	our own parser stack (of Refs).
 	Args:		--
-	Return:	true => stack overflowed - can’t allocate any more
+	Return:	true => stack overflowed - can't allocate any more
 ------------------------------------------------------------------------------*/
 
 bool
@@ -1496,7 +1496,7 @@ int	DeclarationWalkerTrampoline(void * inContext, RefArg inGraph, int inNodeType
 
 
 /*------------------------------------------------------------------------------
-	Walk the nodes…
+	Walk the nodes...
 	for declarations, closures, assignments, code, etc.
 	Args:		inGraph
 				inContext	compiler context
@@ -2229,7 +2229,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 				walkForCode(p2, false);
 			if (ISNIL(p3))
 			{
-			//	there’s no ELSE clause
+			//	there's no ELSE clause
 				if (inFinalNode)
 				{
 					backpatch(elseBranch, kOpcodeBranchIfFalse, curPC());
@@ -2669,7 +2669,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, bool inArg3)
 
 	if (tokenType == TOKENsymbol)
 	{
-	//	it’s a simple variable name
+	//	it's a simple variable name
 		RefVar	varName(GetArraySlot(inLHS, 1));
 		if (func->isConstant(varName))
 			errorWithValue(kNSErrBadAssign, varName);
@@ -2683,7 +2683,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, bool inArg3)
 
 	else if (tokenType == '.')
 	{
-	//	it’s a slot accessor
+	//	it's a slot accessor
 		int		throwIfNilObject = true;
 		RefVar	pathExpr(walkForPath(inLHS, &throwIfNilObject));
 		if (NOTNIL(pathExpr))
@@ -2696,7 +2696,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, bool inArg3)
 
 	else if (tokenType == '[')
 	{
-	//	it’s an array accessor
+	//	it's an array accessor
 		walkForCode(GetArraySlot(inLHS, 1), false);	// array object
 		walkForCode(GetArraySlot(inLHS, 2), false);	// index
 		walkForCode(inRHS, false);							// element

@@ -613,9 +613,9 @@ StreamSymbol(FILE * inFile, const char * inSym)
 /*------------------------------------------------------------------------------
 	Stream a binary object.
 	Args:		inFile		the file to write
-				inClass		the object’s class
-				inData		the object’s data
-				inSize		the object’s size
+				inClass		the object's class
+				inData		the object's data
+				inSize		the object's size
 	Return:  --
 ------------------------------------------------------------------------------*/
 
@@ -631,7 +631,7 @@ StreamBinary(FILE * inFile, const char * inClass, unsigned char * inData, size_t
 
 /*------------------------------------------------------------------------------
 	Stream the relocation table.
-	Ensure it’s in ascending address order.
+	Ensure it's in ascending address order.
 	Args:		inFile		the file to write
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -713,7 +713,7 @@ EmitNCMFrameFile(CSymbol * inFunctions)
 	unsigned char *	image;
 	FILE *	f = fopen(gOutputFilename, "w");
 	if (f == NULL)
-		ExitWithMessage("can’t open output file “%s” for write", gOutputFilename);
+		ExitWithMessage("can't open output file “%s” for write", gOutputFilename);
 
 	fputc(kNSOFVersion, f);
 
@@ -734,11 +734,11 @@ EmitNCMFrameFile(CSymbol * inFunctions)
 	StreamSymbol(f, "ARM610");						// CPUType
 
 	if (fseek(gImageFile, sizeof(AIFHeader), SEEK_SET) != 0)
-		ExitWithMessage("can’t seek to read-only data in file “%s”", gImageFilename);
+		ExitWithMessage("can't seek to read-only data in file “%s”", gImageFilename);
 	if ((image = (unsigned char *) malloc(gImageHeader.roSize + 8)) == NULL)
-		ExitWithMessage("can’t allocate %ld bytes for the RO image data", gImageHeader.roSize);
+		ExitWithMessage("can't allocate %ld bytes for the RO image data", gImageHeader.roSize);
 	if (fread(image, gImageHeader.roSize, 1, gImageFile) != 1)
-		ExitWithMessage("can’t read %ld bytes of RO image data from file “%s”", gImageHeader.roSize, gImageFilename);
+		ExitWithMessage("can't read %ld bytes of RO image data from file “%s”", gImageHeader.roSize, gImageFilename);
 
 	StreamBinary(f, "code", image, gImageHeader.roSize);		// code
 	free(image);
@@ -768,7 +768,7 @@ EmitNCMFrameFile(CSymbol * inFunctions)
 
 /*------------------------------------------------------------------------------
 	Fill the symbol table.
-	Args:		
+	Args:
 	Return:  true if error
 ------------------------------------------------------------------------------*/
 
@@ -790,7 +790,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL)
-			ExitWithMessage("can’t open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file “%s”", expFilename);
 
 		while (!feof(expFile))
 		{
@@ -917,21 +917,21 @@ FindProcOffsets(const char * inFilename, FILE * inFile, const ItemSection & inIt
 		ExitWithMessage("symbol table size = %ld too long (debug size = %ld) in file “%s”", symbolTableSize, *ioDebugSize, inFilename);
 	symbolTable = (AIFSymbol *) malloc(symbolTableSize + 8);
 	if (symbolTable == NULL)
-		ExitWithMessage("can’t allocate %ld bytes for the symbol table", symbolTableSize);
+		ExitWithMessage("can't allocate %ld bytes for the symbol table", symbolTableSize);
 	if (fread(symbolTable, sizeof(AIFSymbol), inItem.numOfSyms, inFile) != inItem.numOfSyms)
-		ExitWithMessage("can’t read %ld bytes for symbol table from file “%s”", symbolTableSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for symbol table from file “%s”", symbolTableSize, inFilename);
 	*ioDebugSize -= symbolTableSize;
 
 	if (fread(&stringTableSize, sizeof(size_t), 1, inFile) != 1)
-		ExitWithMessage("can’t read %ld bytes for string table length from file “%s”", sizeof(size_t), inFilename);
+		ExitWithMessage("can't read %ld bytes for string table length from file “%s”", sizeof(size_t), inFilename);
 	if (stringTableSize != *ioDebugSize)
 		ExitWithMessage("unexpected string table size = %ld in file “%s”", stringTableSize, inFilename);
 
 	stringTable = (char *) malloc(stringTableSize + 8);
 	if (stringTable == NULL)
-		ExitWithMessage("can’t allocate %ld bytes for the string table", stringTableSize);
+		ExitWithMessage("can't allocate %ld bytes for the string table", stringTableSize);
 	if (fread(stringTable + sizeof(long), stringTableSize - sizeof(long), 1, inFile) != 1)
-		ExitWithMessage("can’t read %ld bytes for string table from file “%s”", stringTableSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for string table from file “%s”", stringTableSize, inFilename);
 	*ioDebugSize -= stringTableSize;
 
 	for (AIFSymbol * sym = symbolTable ; sym < (AIFSymbol *)((char*)symbolTable + symbolTableSize); sym++)
@@ -983,9 +983,9 @@ FindSourceProcs(const char * inFilename, FILE * inFile, const ItemSection & inIt
 	dataSize = inItem.debugSize - inItem.size;
 	symbolData = (char *) malloc(dataSize);
 	if (symbolData == NULL)
-		ExitWithMessage("can’t allocate %ld bytes for the symbol data", dataSize);
+		ExitWithMessage("can't allocate %ld bytes for the symbol data", dataSize);
 	if (fread(symbolData, dataSize, 1, inFile) != 1)
-		ExitWithMessage("can’t read %ld bytes for symbol data from file “%s”", dataSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for symbol data from file “%s”", dataSize, inFilename);
 	*ioDebugSize -= dataSize;
 
 	symbolDataEnd = symbolData + dataSize;
@@ -1028,14 +1028,14 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 	int	numOfSourceLevelSections;
 
 	if (fseek(inFile, inCodeSize, SEEK_SET) != 0)
-		ExitWithMessage("can’t seek to debug info in file “%s”", inFilename);
+		ExitWithMessage("can't seek to debug info in file “%s”", inFilename);
 	numOfLowLevelSections = 0;
 	numOfSourceLevelSections = 0;
 	while (inDebugSize != 0)
 	{
 		unsigned long  itemSize = sizeof(ItemSection);
 		if (fread(&item, itemSize, 1, inFile) != 1)
-			ExitWithMessage("can’t read %ld bytes for section item header from file “%s”", itemSize, inFilename);
+			ExitWithMessage("can't read %ld bytes for section item header from file “%s”", itemSize, inFilename);
 		inDebugSize -= itemSize;
 		if (item.size > inDebugSize)
 			ExitWithMessage("item length %ld exceeds remaining debug size %ld", item.size, inDebugSize);
@@ -1055,7 +1055,7 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 			memcpy(symbol, item.name, 3);
 			itemSize = item.size - sizeof(ItemSection);
 			if (fread(&symbol[3], 1, itemSize, inFile) != itemSize)
-				ExitWithMessage("can’t read %ld bytes for section name from file “%s”", itemSize, inFilename);
+				ExitWithMessage("can't read %ld bytes for section name from file “%s”", itemSize, inFilename);
 			inDebugSize -= itemSize;
 			Progress("searching for symbolic function definitions within file “%s”", inFilename);
 			if (ArgCountsNotDefined(inFunctions, false))
@@ -1067,13 +1067,13 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 			{
 				itemSize = item.size - item.debugSize;
 				if (fseek(inFile, itemSize, SEEK_CUR) != 0)
-					ExitWithMessage("can’t seek over source-level debug data");
+					ExitWithMessage("can't seek over source-level debug data");
 				inDebugSize -= itemSize;
 			}
 		}
 	}
 	if (ArgCountsNotDefined(inFunctions, true))
-		ExitWithMessage("couldn’t locate function argument counts for all functions");
+		ExitWithMessage("couldn't locate function argument counts for all functions");
 }
 
 
@@ -1096,16 +1096,16 @@ GetAIFRelocs(const char * inFilename, FILE * inFile)
 	if (gImageHeader.selfRelocCode != 0)
 	{
 		if (fseek(inFile, gImageHeader.selfRelocCode, SEEK_SET) != 0)
-			ExitWithMessage("can’t seek to AIF relocations table in file “%s”", inFilename);
+			ExitWithMessage("can't seek to AIF relocations table in file “%s”", inFilename);
 		if (fread(&numOfRelocTableEntries, sizeof(numOfRelocTableEntries), 1, gImageFile) != 1)
-			ExitWithMessage("can’t read relocations count from file “%s”", inFilename);
+			ExitWithMessage("can't read relocations count from file “%s”", inFilename);
 		if (numOfRelocTableEntries > 0)
 		{
 			size_t	relocTableSize = numOfRelocTableEntries * sizeof(unsigned long);
 			if ((gRelocs = (unsigned long *) malloc(relocTableSize)) == NULL)
-				ExitWithMessage("can’t allocate %ld bytes for relocations table", relocTableSize);
+				ExitWithMessage("can't allocate %ld bytes for relocations table", relocTableSize);
 			if (fread(gRelocs, relocTableSize, 1, gImageFile) != 1)
-				ExitWithMessage("can’t read AIF relocations table from file “%s”", inFilename);
+				ExitWithMessage("can't read AIF relocations table from file “%s”", inFilename);
 			unsigned long  numOfCodeRelocs = numOfRelocTableEntries;
 			for (i = 0; i < numOfRelocTableEntries; i++)
 			{
@@ -1272,9 +1272,9 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	gImageFile = fopen(gImageFilename, "r");
 	if (gImageFile == NULL)
-		ExitWithMessage("can’t open file “%s”", gImageFilename);
+		ExitWithMessage("can't open file “%s”", gImageFilename);
 	if (fread(&gImageHeader, sizeof(AIFHeader), 1, gImageFile) != 1)
-		ExitWithMessage("can’t read %ld bytes for aif_header from file “%s”", sizeof(AIFHeader), gImageFilename);
+		ExitWithMessage("can't read %ld bytes for aif_header from file “%s”", sizeof(AIFHeader), gImageFilename);
 	if (gImageHeader.exitCode != 0xEF000011)
 		ExitWithMessage("file “%s” does not seem to be in AIF format", gImageFilename);
 

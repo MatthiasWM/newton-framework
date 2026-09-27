@@ -399,7 +399,7 @@ GetSlope(FPoint * inPt1, FPoint * inPt2)
 }
 
 
-// use this instead -- it’s better named
+// use this instead -- it's better named
 float
 PtsToAngle(FPoint * inPt1, FPoint * inPt2)
 {
@@ -520,7 +520,7 @@ PtsToAngleR(FPoint * inPt1, FPoint * inPt2)
 #if defined(correct)
 	if (dx == 0)
 	{
-		// it’s a vertical line segment
+		// it's a vertical line segment
 		if (dy != 0)
 		{
 			if (dy > 0)

@@ -73,9 +73,9 @@ void
 CChunk::append(Ptr inRsrc, short, short, int)
 {
 	// for appending resources
-	// we don’t use resources in OS X
-//	"couldn’t get resource type = 0x%8X in “%s”"
-//	"couldn’t get size of resource in “%s”"
+	// we don't use resources in OS X
+//	"couldn't get resource type = 0x%8X in “%s”"
+//	"couldn't get size of resource in “%s”"
 }
 
 void

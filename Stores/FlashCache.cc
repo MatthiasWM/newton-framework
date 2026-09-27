@@ -2,7 +2,7 @@
 	File:		FlashCache.cc
 
 	Contains:	Flash store lookup cache implementation.
-	
+
 	Written by:	Newton Research Group, 2010.
 */
 
@@ -112,7 +112,7 @@ CFlashStoreLookupCache::add(PSSId inObjectId, ZAddr inDirAddr, int inState)
 			return;
 		}
 	}
-	// didn’t find an existing entry -- use next sequential entry
+	// didn't find an existing entry -- use next sequential entry
 	entry = fCache + (cacheIndex & ~fSetSize) + fIndex;
 	entry->fId = inObjectId;
 	entry->fDirEntryAddr = inDirAddr;

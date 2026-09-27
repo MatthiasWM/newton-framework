@@ -34,7 +34,7 @@ The Newton.exp file (Toolkit.exp for the NTK framework) defines native functions
 
 ###Virtual Memory
 Some MMU functions have been implemented as an aid to understanding Newton memory management,
-but there is of course no actual page faulting which leads to some memory management issues (stacks don’t grow, VBOs aren’t loaded when needed, etc).
+but there is of course no actual page faulting which leads to some memory management issues (stacks don't grow, VBOs aren't loaded when needed, etc).
 
 ###Memory Allocation
 The original OS mixes NewPtr, malloc and free (and sometimes calls the wrong function to free that memory).
@@ -43,7 +43,7 @@ Memory is actually allocated by malloc/free (see FakePointers.cc) or new/delete.
 
 ###Stores
 A flash store has been implemented.
-This is used for VBOs as well as soup storage. It uses a mmap’d file so is persistent.
+This is used for VBOs as well as soup storage. It uses a mmap'd file so is persistent.
 It would be interesting to know whether the implementation is faithful enough to read a real Newton store image.
 
 ###Recognisers

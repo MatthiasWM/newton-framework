@@ -137,7 +137,7 @@ SWIDone:									; 003AD750
 		LDREQ	R1, [&003ADEA8]	; gAtomicFIQNestCount
 		LDREQ	R1, [R1]
 		CMPEQ	R1, #0
-		BGT	NoSwap2				; if in nested interrupt, don’t swap!
+		BGT	NoSwap2				; if in nested interrupt, don't swap!
 		MSR	CPSR, #&93			; not nested so re-enable FIQ (but not IRQ)
 		NOP
 		NOP
@@ -187,14 +187,14 @@ SWIDone:									; 003AD750
 		LDMIA	SP!, {R0}
 1:		LDR	R1, [&003ADEB8]		; gCurrentTask
 		LDR	R1, [R1]
-		CMP	R0, R1					; if task hasn’t changed, don’t do task swap
+		CMP	R0, R1					; if task hasn't changed, don't do task swap
 		BEQ	NoSwap
 
 		LDR	R2, [&003ADEB8]
 		STR	R0, [R2]					; update gCurrentTask
 		CMP	R1, #&00000000
 		ADDEQ	SP, SP, #&00000020 (32)
-		BEQ	SwapIn					; if no previous task, don’t swap it out
+		BEQ	SwapIn					; if no previous task, don't swap it out
 
 SwapOut:
 		LDMIA	SP!, {R2-R3, R10-R12, LK}
@@ -469,7 +469,7 @@ L003ADB94:
 		LDMIA	SP!, {R0-R2}				; restore working registers
 		MOVS	PC, LK						; return to task!
 
-;	••••••••
+;	********
 
 ;	case kGenericSWI:
 L003ADBB4:
@@ -583,7 +583,7 @@ L44:	ADD	R1, R0, #&10
 003ADCFC 1AFFFFFC .... | BNE      &003ADCF4
 003ADD00 E8BD0003 .... | LDMIA    SP!, {R0-R1}
 003ADD04 EE070F17 .... | ???      ???
-003ADD08 E1A00000 .... | NOP      
+003ADD08 E1A00000 .... | NOP
 003ADD0C EAFFFE8F .... | B        SWIDone
 
 ;	case 10
@@ -594,7 +594,7 @@ L44:	ADD	R1, R0, #&10
 ;	case 12
 003ADD1C E8BD0003 .... | LDMIA    SP!, {R0-R1}
 003ADD20 E92D0003 .-.. | STMDB    SP!, {R0-R1}
-003ADD24 E1A00000 .... | NOP      
+003ADD24 E1A00000 .... | NOP
 003ADD28 E59F1168 ...h | LDR      R1, [&003ADE98]
 003ADD2C E58100B0 .... | STR      R0, [R1, #&000000B0]
 003ADD30 E8BD0003 .... | LDMIA    SP!, {R0-R1}

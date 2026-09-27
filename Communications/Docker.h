@@ -21,7 +21,7 @@
 
 /*------------------------------------------------------------------------------
 	The dock dynamic array.
-	Well, every other sub-system has its own implementation, why shouldn’t we?
+	Well, every other sub-system has its own implementation, why shouldn't we?
 	This one is used for recording protocol extension ids.
 ------------------------------------------------------------------------------*/
 

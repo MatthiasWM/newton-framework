@@ -246,7 +246,7 @@ private:
 	bool				f58 { false };
 	UShort *			fBlockMap { nullptr };			//+5C
 	ArrayIndex		fNumOfBlocks { 0 };		//+60
-	ULong				f64 { 0 };	// possibly UShort: it’s an entry in the fBlockMap
+	ULong				f64 { 0 };	// possibly UShort: it's an entry in the fBlockMap
 //	CULockingSemaphore *	fSemaphore;	//+68
 //size+6C
 };

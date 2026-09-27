@@ -14,7 +14,7 @@ bool		gSCPDevicePackageBusy = false;		// 0C100B64
 /* -----------------------------------------------------------------------------
 	C C M W o r l d
 	The Communications Manager World listens for the insertion of a device
-	on the interconnect port (that’ll be serial/AppleTalk or keyboard) or
+	on the interconnect port (that'll be serial/AppleTalk or keyboard) or
 	on a PC card, and starts the comm service associated with that device.
 ----------------------------------------------------------------------------- */
 #define gCommWorld static_cast<CCMWorld*>(GetGlobals())
@@ -45,7 +45,7 @@ CCMWorld::mainConstructor(void)
 		XFAIL(err = f70.init(kCommManagerId))
 
 		CCMSystemEventHandler * evtHandler = new CCMSystemEventHandler;
-		XFAILIF(evtHandler == NULL, err = kOSErrNoMemory;)	// original doesn’t FAIL
+		XFAILIF(evtHandler == NULL, err = kOSErrNoMemory;)	// original doesn't FAIL
 		XFAIL(err = evtHandler->init(kSysEvent_PowerOn))
 		XFAIL(err = evtHandler->init(kSysEvent_PowerOff))
 		err = evtHandler->init(kSysEvent_AppAlive);
@@ -128,7 +128,7 @@ CCMWorld::SCPLoad(ULong inWaitPeriod, ULong inNumOfTries, ULong inFilter, CUMsgT
 	{
 		XFAILIF(fD8 != NULL, err = kCMErrSCPLoadInProgress;)
 #if defined(correct)
-		// we’re not interested in the Serial Comms Protocol right now
+		// we're not interested in the Serial Comms Protocol right now
 
 		CSCPLoader sp00;	// CAppWorld, size+9C
 		XFAIL(err = sp00.init('scpl', true, kSpawnedTaskStackSize))

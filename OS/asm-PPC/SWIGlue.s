@@ -414,7 +414,7 @@ _PortSendSWI:
 ;	Receive a message at a port.
 ;	Args:		r3	inId					port id
 ;				r4	inMsgId				message id
-;				r5	inMsgFilter			types of message we’re interested in
+;				r5	inMsgFilter			types of message we're interested in
 ;				r6	inFlags				flags
 ;				r7	outSenderMsgId		sender info - sent message id
 ;				r8	outReplyMemId		- sent reply id
@@ -460,7 +460,7 @@ _PortReceiveSWI:
 ;	Reset the message filter on a port.
 ;	Args:		r3	inId					port id
 ;				r4	inMsgId				message id
-;				r5	inMsgFilter			types of message we’re interested in
+;				r5	inMsgFilter			types of message we're interested in
 ;	Return:	r3							error code
 
 _PortResetFilterSWI:
@@ -646,7 +646,7 @@ _SMemMsgSetMsgAvailPortSWI:
 
 ;	NewtonErr SMemMsgGetSenderTaskIdSWI(ObjectId inId, ObjectId * outSenderTaskId)
 ;
-;	Get message sender’s task id.
+;	Get message sender's task id.
 ;	Args:		r3	inId
 ;				r4	outSenderTaskId
 ;	Return	r3	error code
@@ -788,7 +788,7 @@ _MonitorDispatchSWI:
 ;
 ;	Initialize a task as a monitor.
 ;	Args:		r3	inContext			instance of task in which to run
-;				r4	inSelector		
+;				r4	inSelector
 ;				r5	inData
 ;				r6	inProc
 ;	Return:	r3	error code
@@ -816,7 +816,7 @@ _MonitorEntryGlue:
 		lwz	r0, 8(r1)
 		lmw	r29, -12(r1)
 		mtlr	r0
-; fall thru to exit glue…
+; fall thru to exit glue...
 
 
 ;	NewtonErr MonitorExitSWI(long inMonitorResult, void * inContinuationPC)

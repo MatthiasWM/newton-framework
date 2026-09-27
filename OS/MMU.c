@@ -118,7 +118,7 @@ InitPageTable(void)
 /*------------------------------------------------------------------------------
 	Initialize the table of MMU level 2 descriptor permission bits
 	to R/W only in supervisor mode.
-	Dunno why gLevel2PermissionBits can’t be const data.
+	Dunno why gLevel2PermissionBits can't be const data.
 	Args:		--
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -153,7 +153,7 @@ LoadFromPhysAddress(PAddr inAddr)
 void
 StoreToPhysAddress(PAddr inAddr, ULong inData)
 {
-// inAddr is a physical Newton address: don’t use it, bad things will happen
+// inAddr is a physical Newton address: don't use it, bad things will happen
 #if defined(correct)
 	*(ULong*)inAddr = inData;
 #endif
@@ -162,7 +162,7 @@ StoreToPhysAddress(PAddr inAddr, ULong inData)
 #pragma mark -
 
 /*------------------------------------------------------------------------------
-	Initialize the MMU’s Level One Descriptor table.
+	Initialize the MMU's Level One Descriptor table.
 	Args:		true, false, descriptorDefs, persistenGlobals
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -176,7 +176,7 @@ InitTheMMUTables(bool inAll, bool inMMUOn, PAddr inPrimaryDef, SGlobalsThatLiveA
 
 
 /*------------------------------------------------------------------------------
-	Make the MMU’s Level One Descriptor table.
+	Make the MMU's Level One Descriptor table.
 	Map kSectionSize (MByte) blocks virtual -> physical addresses.
 	Args:		inPrimaryDef		definition of Level One Descriptor table
 				ioDescriptors		physical address of Level One Descriptor table
@@ -985,7 +985,7 @@ RemoveSubPgPerm(VAddr inVAddr)
 				inPhysAddr		physical address to map that page to
 				inDomain
 				inPerm
-				inCacheable		
+				inCacheable
 	Return:  error code
 ------------------------------------------------------------------------------*/
 
@@ -1012,7 +1012,7 @@ AddNewSecPNJT(VAddr inVAddr, PAddr inPhysAddr, ULong inDomain, Perm inPerm, bool
 	Add a physical address mapping.
 	Args:		inVAddr			virtual page address
 				inPhysAddr		physical address to map that page to
-				inCacheable		
+				inCacheable
 	Return:  error code
 ------------------------------------------------------------------------------*/
 
@@ -1165,9 +1165,9 @@ RemovePgP(VAddr inVAddr)
 /*------------------------------------------------------------------------------
 	Add a physical address and permissions mapping.
 	Args:		inVAddr			virtual page address
-				inPerm			
+				inPerm
 				inPhysAddr		physical address to map that page to
-				inCacheable		
+				inCacheable
 	Return:  error code
 ------------------------------------------------------------------------------*/
 
@@ -1198,9 +1198,9 @@ AddPgPAndPerm(VAddr inVAddr, ULong inPerm, PAddr inPhysAddr, bool inCacheable)
 	Descriptor table.
 	Args:		inDescriptors
 				inVAddr			virtual page address
-				inPerm			
+				inPerm
 				inPhysAddr		physical address to map that page to
-				inCacheable		
+				inCacheable
 	Return:  error code
 ------------------------------------------------------------------------------*/
 
@@ -1210,7 +1210,7 @@ AddPgPAndPermWithPageTable(PAddr inDescriptors, VAddr inVAddr, ULong inPerm, PAd
 	PAddr		descriptorPtr;
 	ULong		level1Descriptor;
 
-//	EnterFIQAtomic();		// no need because interrupts aren’t enabled yet
+//	EnterFIQAtomic();		// no need because interrupts aren't enabled yet
 	CleanPageInDCache(inVAddr);
 	descriptorPtr = inDescriptors + (inVAddr / kSectionSize) * sizeof(MMUDescriptor);
 	level1Descriptor = LoadFromPhysAddress(descriptorPtr);

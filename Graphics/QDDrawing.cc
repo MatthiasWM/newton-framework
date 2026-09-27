@@ -543,7 +543,7 @@ PixelMapBits(const NativePixelMap * inPixmap)
 	ULong storage = inPixmap->pixMapFlags & kPixMapStorage;
 	if (storage == kPixMapPtr) {
 		return (Ptr)inPixmap->baseAddr;
-	// shouldn’t really be anything else
+	// shouldn't really be anything else
 	} else if (storage == kPixMapOffset) {
 		return (Ptr)inPixmap + (unsigned long)inPixmap->baseAddr;
 	}
@@ -684,7 +684,7 @@ MakeSimpleStyle(RefArg inFamily, long inSize, long inFace)
 	sp.f0C = 0;
 	sp.f10 = 0;
 	sp.f14 = 0;
-	
+
 	if (pat)
 		DisposePattern(pat);
 }
@@ -753,7 +753,7 @@ MakeGrayPattern(RefArg inPat)
 
 
 /*------------------------------------------------------------------------------
-	Set the pattern for drawing a view’s frame.
+	Set the pattern for drawing a view's frame.
 	Used only by View.cc.
 	Args:		inPatNo
 	Return:	true	if a standard pattern was set
@@ -899,7 +899,7 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 		{
 			if (*ioTakeOwnership)
 				CGColorRelease(*ioPat);
-			if ((patNo & 0x10000000) != 0)	// it’s not actually an index but an RGB value
+			if ((patNo & 0x10000000) != 0)	// it's not actually an index but an RGB value
 			{
 				ULong	r;
 				ULong	g;
@@ -1016,7 +1016,7 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 			gotPattern = true;
 		}
 	}
-	
+
 	return gotPattern;
 }
 

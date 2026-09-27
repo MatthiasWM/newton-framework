@@ -261,7 +261,7 @@ ParseInput(const char * inFilename)
 {
 	FILE * fd = fopen(inFilename, "r");	//-$2EDC
 	if (fd == 0) {
-		FatalError("Couldn’t open input file", "");	//-$2ED8 -$2EDA
+		FatalError("Couldn't open input file", "");	//-$2ED8 -$2EDA
 	}
 
 	while ((ch = getc(fd)) != EOF) {
@@ -511,7 +511,7 @@ main(int argc, const char * argv[])
 			inputFilename = argp;
 		} else {
 			char buf[256];
-			sprintf(buf, "already have an input file (%s)--what’s output", inputFilename);	//-$2CDC
+			sprintf(buf, "already have an input file (%s)--what's output", inputFilename);	//-$2CDC
 			Usage(buf, argp);
 		}
 	}
@@ -543,7 +543,7 @@ main(int argc, const char * argv[])
 
 	FILE * fd = fopen(outputFilename, "w");	//-$2CAC
 	if (fd == 0) {
-		FatalError("Couldn’t open output file for writing", "");	//-$2CA8 -$2CAA
+		FatalError("Couldn't open output file for writing", "");	//-$2CA8 -$2CAA
 	}
 
 	if (isStreamFormat) {
@@ -563,8 +563,8 @@ main(int argc, const char * argv[])
 }
 
 
-"Couldn’t open output file for writing"
-"Couldn’t write output file"
+"Couldn't open output file for writing"
+"Couldn't write output file"
 ".part"
 
 "Bug! Header offset not zero"

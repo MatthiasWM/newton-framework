@@ -59,7 +59,7 @@ CBufferList::init(bool inDeleteSegments)
 		XFAILIF(fList == NULL, err = MemError();)
 		fIter = new CListIterator(fList);
 		XFAILIF(fIter == NULL, err = MemError();)
-		resetMark();	// original doesn’t do this
+		resetMark();	// original doesn't do this
 	}
 	XENDTRY;
 

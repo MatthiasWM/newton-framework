@@ -79,7 +79,7 @@ class CPkBeginLoadEvent : public CPkBaseEvent
 public:
 			CPkBeginLoadEvent(SourceType inType, const PartSource & inSource, ObjectId inArg3, ObjectId inArg4, bool inArg5);
 
-	ObjectId		f10;				// they’re port ids
+	ObjectId		f10;				// they're port ids
 	ObjectId		f14;
 	SourceType	fSrcType;		//+18
 	PartSource	fSrc;				//+20
@@ -163,7 +163,7 @@ public:
 
 	RemoveObjPtr	f10;		// +10
 	bool				f14;		// +14
-	
+
 };
 
 

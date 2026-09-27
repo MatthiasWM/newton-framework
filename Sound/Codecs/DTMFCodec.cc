@@ -213,7 +213,7 @@ CDTMFCodec::produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, Cod
 
 		switch (CANONICAL_SHORT(fComprData->synthType))
 		{
-		case 0:	
+		case 0:
 		// basic synthesis -- 1-12 pure sine wave tones
 			for (index = 0; index < numOfSamples; index++)
 			{
@@ -367,7 +367,7 @@ CDTMFCodec::produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, Cod
 					if (phase > k2Pi)
 						phase -= k2Pi;
 					fPhase[i+1] = phase;
-					
+
 					phase = fPhase[i+2] + fPhaseFactor[i+2];
 					if (phase > k2Pi)
 						phase -= k2Pi;
@@ -714,7 +714,7 @@ CDTMFCodec::produce(void * outBuf, size_t * ioBufSize, size_t * outDataSize, Cod
 }
 
 
-// can’t encode DTMF!
+// can't encode DTMF!
 NewtonErr
 CDTMFCodec::consume(const void * inBuf, size_t * ioBufSize, size_t * outDataSize, const CodecBlock * inParms)
 {

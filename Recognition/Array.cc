@@ -70,7 +70,7 @@ CArray::sizeInBytes(void)
 	size_t thisSize = 0;
 	if (fMem)
 		thisSize = GetPtrSize(fMem);
-	thisSize += (sizeof(CArray) - sizeof(CRecObject));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CArray) - sizeof(CRecObject));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CRecObject::sizeInBytes() + thisSize;
 }
 
@@ -203,9 +203,9 @@ CArray::reuse(ArrayIndex index)
 void
 CArray::compact(void)
 {
-// the original uses Handles so it doesn’t matter that memory moves after compact()
+// the original uses Handles so it doesn't matter that memory moves after compact()
 // --but it matters now!
-// so we won’t bother until we can work out the consequences of each call
+// so we won't bother until we can work out the consequences of each call
 /*
 	if (fFree != 0)
 	{

@@ -88,7 +88,7 @@ IsInkWord(RefArg inObj)
 
 /*------------------------------------------------------------------------------
 	Adjust Rect bounds for thickness of ink pen.
-	Don’t really know where best to put this.
+	Don't really know where best to put this.
 #include "Objects.h"
 #include "Preference.h"
 #include "RSSymbols.h"
@@ -146,7 +146,7 @@ SplitInkAt(RefArg inPoly, long inX, long inSlop)
 					int strokeLeft = strok->fBBox.left + 0.5;
 					int strokeRight = strok->fBBox.right + 0.5;
 					if (strokeLeft < slopRight && strokeRight > slopLeft)
-						// stroke is entirely within the slop -- don’t know how to assign it
+						// stroke is entirely within the slop -- don't know how to assign it
 						break;
 					strok->clone();
 					if (inX > (strokeLeft + strokeRight)/2)
@@ -205,7 +205,7 @@ MergeInk(RefArg inPoly1, RefArg inPoly2)
 			InkBounds(ink1Strokes, &ink1Bounds);
 			InkBounds(ink2Strokes, &ink2Bounds);
 			OffsetStrokes(ink2Strokes, ink1Bounds.right - ink2Bounds.left, 0.0);
-			
+
 			CRecStroke ** p = mergedStrokes;
 			CRecStroke ** iter, * strok;
 			for (iter = ink1Strokes; (strok = *iter) != NULL; iter++, p++)

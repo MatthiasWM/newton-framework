@@ -27,7 +27,7 @@ extern CROMDomainManager1K * gROMStoreDomainManager;
 extern size_t	InternalStoreInfo(int inSelector);
 
 
-// don’t know the official initial values - we’ve picked something reasonable-looking
+// don't know the official initial values - we've picked something reasonable-looking
 size_t			g0C100DD4 = 0;
 size_t			gInternalBlockSize = 16*KByte;		// 0C100DD8
 size_t			gMutableBlockSize = 16*KByte;			// 0C100DDC
@@ -496,7 +496,7 @@ CFlashStore::needsFormat(bool * outNeedsFormat)
 				&&  block->readObjectAt(block->rootDirAddr(), &obj) == noErr
 				&&  obj.id != kRootDirId)
 				{
-					// block’s directory is bogus
+					// block's directory is bogus
 					isFormatReqd = true;
 					break;
 				}
@@ -524,7 +524,7 @@ CFlashStore::format(void)
 
 	XTRY
 	{
-		// can’t format if the store is write-protected
+		// can't format if the store is write-protected
 		bool isRO;
 		isReadOnly(&isRO);
 		XFAILIF(isRO, err = kStoreErrWriteProtected;)
@@ -556,7 +556,7 @@ CFlashStore::format(void)
 							err = msg.f0C;
 					}
 					newton_catch_all
-					{ }	// should return appropriate error here; original wouldn’t work anyway
+					{ }	// should return appropriate error here; original wouldn't work anyway
 					end_try;
 				}
 				else
@@ -594,7 +594,7 @@ CFlashStore::format(void)
 			{
 				XFAIL(err = basicRead(logEntryAddr, &logEntry, sizeof(SReservedBlockLogEntry)))
 				if ((logEntry.f28 & 0x01) != 0)
-					zapIt = false;	// it’s reserved
+					zapIt = false;	// it's reserved
 			}
 			if (zapIt)
 				XFAIL(zapLogEntry(logEntryAddr))
@@ -637,7 +637,7 @@ CFlashStore::format(void)
 		XFAIL(err = blockForAddr(BLOCK(1))->writeRootDirectory(NULL))
 		XFAIL(err = mount())
 
-		// create store’s root object
+		// create store's root object
 		CStoreObjRef obj(fVirginBits, this);
 		add(obj);
 		err = blockForAddr(BLOCK(0))->addObject(kRootId, fIsSRAM ? 4 : 11, 0, obj, false, false);
@@ -663,7 +663,7 @@ CFlashStore::format(void)
 
 
 /*------------------------------------------------------------------------------
-	Return the PSSId of the store’s root object.
+	Return the PSSId of the store's root object.
 	Args:		outRootId
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -692,7 +692,7 @@ CFlashStore::newObject(PSSId * outObjectId, size_t inSize)
 
 /*------------------------------------------------------------------------------
 	Erase an object from the store.
-	We don’t need to do anything special.
+	We don't need to do anything special.
 	Args:		inObjectId
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -737,7 +737,7 @@ CFlashStore::deleteObject(PSSId inObjectId)
 				if (obj2.fObj.x2 == 2)
 				{
 					fTracker->lock();
-//					XFAIL(err = obj2.dlete())	sic -- but don’t we want to fTracker->unlock()?
+//					XFAIL(err = obj2.dlete())	sic -- but don't we want to fTracker->unlock()?
 					if ((err = obj2.dlete()) == noErr)
 						fTracker->remove(inObjectId);
 					fTracker->unlock();
@@ -1250,7 +1250,7 @@ EXIT_FUNC
 
 
 /*------------------------------------------------------------------------------
-	Determine the store’s usable and used sizes.
+	Determine the store's usable and used sizes.
 	Args:		outTotalSize
 				outUsedSize
 	Return:	error code
@@ -1396,7 +1396,7 @@ CFlashStore::idle(bool * outArg1, bool * outArg2)
 
 
 /*------------------------------------------------------------------------------
-	This doesn’t appear to be used.
+	This doesn't appear to be used.
 	Args:		inObjectId
 				outNextObjectId
 	Return:	error code
@@ -1544,7 +1544,7 @@ CFlashStore::isROM(void)
 
 #pragma mark Power management
 /*------------------------------------------------------------------------------
-	We don’t manage power.
+	We don't manage power.
 ------------------------------------------------------------------------------*/
 
 NewtonErr
@@ -1603,15 +1603,15 @@ CFlashStore::startTransactionAgainst(PSSId inObjectId)
 				case 6:
 				case 13:
 					XFAIL(err = obj1.findSuperceeded(obj0))
-					XFAIL(err = obj1.setSeparateTransaction())	// original doesn’t XFAIL
-					XFAIL(err = obj0.setSeparateTransaction())	// original doesn’t XFAIL
+					XFAIL(err = obj1.setSeparateTransaction())	// original doesn't XFAIL
+					XFAIL(err = obj0.setSeparateTransaction())	// original doesn't XFAIL
 					break;
 
 				case 4:
 				case 11:
 					XFAIL(err = obj1.setState(fIsSRAM ? 5 : 12))
-					XFAIL(err = obj1.clone(fIsSRAM ? 6 : 13, obj0, true))	// original doesn’t XFAIL
-					XFAIL(err = obj1.setSeparateTransaction())	// original doesn’t XFAIL
+					XFAIL(err = obj1.clone(fIsSRAM ? 6 : 13, obj0, true))	// original doesn't XFAIL
+					XFAIL(err = obj1.setSeparateTransaction())	// original doesn't XFAIL
 					fCache->change(obj0);
 					break;
 				}
@@ -1957,7 +1957,7 @@ EXIT_FUNC
 
 #pragma mark XIP
 /*------------------------------------------------------------------------------
-	We don’t execute in place.
+	We don't execute in place.
 ------------------------------------------------------------------------------*/
 
 NewtonErr
@@ -1984,7 +1984,7 @@ CFlashStore::getXIPObjectInfo(PSSId inObjectId, unsigned long * outArg2, unsigne
 
 
 /*------------------------------------------------------------------------------
-	Determine the store’s capacity.
+	Determine the store's capacity.
 	Note that when flash is written to we actually copy to another block,
 	so one block must always be reserved.
 	Args:		--
@@ -2017,7 +2017,7 @@ CFlashStore::avail(void)
 
 	if (storeAvail < storeSlop() && fIsSRAM)
 	{
-		// we’re at a critically low level -- GC and try again
+		// we're at a critically low level -- GC and try again
 		// (can only GC SRAM because of the writes involved)
 		gc();
 		storeAvail = 0;
@@ -2239,7 +2239,7 @@ CFlashStore::nextLogEntry(ZAddr inAddr, ZAddr * outAddr, ULong inType, void * in
 	// iterate over blocks
 	for ( ; ; )
 	{
-		// iterate over log entries within the block -- we’re searching for the next log entry signature
+		// iterate over log entries within the block -- we're searching for the next log entry signature
 		for ( ; (addr & fBlockSizeMask) < (fBlockSize - sizeof(SFlashLogEntry)); addr += 4)
 		{
 			SFlashLogEntry logEntry;
@@ -2287,7 +2287,7 @@ ENTER_FUNC
 	for ( ; ; )
 	{
 PRINTF(("looking for chunk size=%lu at addr=%08X:\n", inSize,addr));
-		addr = findPhysWritable(addr, (addr + fBlockSizeMask) & ~fBlockSizeMask, inSize);	// if addr == 0 you’re in big trouble here
+		addr = findPhysWritable(addr, (addr + fBlockSizeMask) & ~fBlockSizeMask, inSize);	// if addr == 0 you're in big trouble here
 PRINTF((" -> addr=%08X)\n", addr));
 		XFAILIF(addr == 0, err = kStoreErrBlockFull;)
 		ioLogEntry->fPhysSig = (addr ^ 'dyer');
@@ -2301,7 +2301,7 @@ PRINTF((" -> addr=%08X)\n", addr));
 		// write most of it; but not fPhysSig yet
 		err = basicWrite(addr+4, (char *)ioLogEntry+4, inSize-4);
 		if (err == noErr)
-			// that was OK, chances are good we’ll totally succeed so now write fPhysSig
+			// that was OK, chances are good we'll totally succeed so now write fPhysSig
 			err = basicWrite(addr, ioLogEntry, 4);
 		if (err == kStoreErrWriteError)
 			XFAIL(err = zapLogEntry(addr))
@@ -2365,7 +2365,7 @@ CFlashStore::findPhysWritable(ZAddr inStartAddr, ZAddr inEndAddr, size_t inLen)
 
 #pragma mark More power management
 /*------------------------------------------------------------------------------
-	We don’t manage power.
+	We don't manage power.
 ------------------------------------------------------------------------------*/
 
 NewtonErr
@@ -2999,9 +2999,9 @@ CFlashStore::doAbort(bool inArg)
 
 /* -----------------------------------------------------------------------------
 	Add an object to the store.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inState				its state
-				inSize				object’s size
+				inSize				object's size
 				inObj					ref to store object
 				inArg4
 				inArg5				true => pad objects to fill the block -- for stress testing?
@@ -3035,7 +3035,7 @@ ENTER_FUNC
 				XFAIL(err)
 			}
 
-			// caller didn’t supply an id, create one
+			// caller didn't supply an id, create one
 			if (doChooseId)
 				inObjectId = fWorkingBlock->nextPSSId();
 
@@ -3073,9 +3073,9 @@ EXIT_FUNC
 
 /* -----------------------------------------------------------------------------
 	Choose a block that will accommodate the given-sized object.
-	Args:		inMinSize		size we’re looking for
-				inAddr			address we’d like => block we should use
-									kIllegalZAddr => we don’t care which block
+	Args:		inMinSize		size we're looking for
+				inAddr			address we'd like => block we should use
+									kIllegalZAddr => we don't care which block
 	Return:	error code
 ----------------------------------------------------------------------------- */
 
@@ -3288,7 +3288,7 @@ CFlashStore::add(CStoreObjRef & inObj)
 	The original always does:
 		obj.fStore->remove(&obj);
 	to remove an object reference.
-	We use the object’s store in this function to make the call simpler:
+	We use the object's store in this function to make the call simpler:
 		remove(obj);
 	Args:		inObj
 	Return:	--
@@ -3539,7 +3539,7 @@ DumpHex(inBuf, inLen);
 			else
 			{
 				err = fFlash->write(inAddr, inLen, (char *)inBuf);
-				// can’t trust the old flash -- check the write worked
+				// can't trust the old flash -- check the write worked
 				if (err == noErr
 				&&  memcmp(fStoreAddr + inAddr, inBuf, inLen) != 0)
 					err = kFlashErrWriteFailed;
@@ -3665,7 +3665,7 @@ CFlashStore::isRangeVirgin(ZAddr inAddr, size_t inLen)
 	char * p = fStoreAddr + translate(inAddr);
 	for ( ; inLen > 0; inLen--)
 	{
-		if (*p++ != kVirginBits)	// wouldn’t this be better as fVirginBits?
+		if (*p++ != kVirginBits)	// wouldn't this be better as fVirginBits?
 			return false;
 	}
 	return true;

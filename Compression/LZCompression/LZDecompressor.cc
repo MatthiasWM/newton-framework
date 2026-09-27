@@ -2,7 +2,7 @@
 	File:		LZDecompressor.cc
 
 	Contains:	LZ decompression class.
-	
+
 	Written by:	Newton Research Group, 2006.
 					With a little help from Philz, and a disassembly of the DILs.
 */
@@ -166,7 +166,7 @@ CLZDecompressor::decompressChunk(size_t * outSize, void * inDstBuf, size_t inDst
 			if (fDataSize > 0)
 				decompressBlock(&doneSize, dstPtr, dstLen, srcPtr, srcLen);
 		if (fSrcUsed > fDataSize)
-			fSrcUsed = fDataSize;	// ensure we didn’t claim to read more bytes than were available
+			fSrcUsed = fDataSize;	// ensure we didn't claim to read more bytes than were available
 		fDataSize -= fSrcUsed;
 		totalSize += doneSize;
 		dstPtr += doneSize;
@@ -211,7 +211,7 @@ CLZDecompressor::decompressBlock(size_t * outSize, void * inDstBuf, size_t inDst
 	}
 	else
 	{
-		fBitStack.setReadBuffer(srcPtr, inSrcLen - sizeof(uint32_t));	// original doesn’t bother reducing length by size of length prefix
+		fBitStack.setReadBuffer(srcPtr, inSrcLen - sizeof(uint32_t));	// original doesn't bother reducing length by size of length prefix
 		fBinaryFlag = true;	// never used
 		while (srcPtr <= srcEndPtr
 			&& totalSize < kSubPageSize
@@ -222,7 +222,7 @@ CLZDecompressor::decompressBlock(size_t * outSize, void * inDstBuf, size_t inDst
 			if (copyLength > 0)
 			{
 				// copy previously decompressed bytes
-				if (totalSize + copyLength <= kSubPageSize)	// sanity check - don’t exceed block buffer
+				if (totalSize + copyLength <= kSubPageSize)	// sanity check - don't exceed block buffer
 				{
 					totalSize += copyLength;
 					unsigned char * copyPtr = dstPtr - copyOffset;

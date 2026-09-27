@@ -32,7 +32,7 @@ __ZN18CMainDisplayDriver9classInfoEv:
 		BRAZ		__ZN18CMainDisplayDriver4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18CMainDisplayDriver7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

@@ -269,7 +269,7 @@ FrameHasPath(RefArg context, RefArg path)
 	Args:		context	a frame
 				tag		a slot symbol
 	Return:	long		index
-							-1 => slot doesn’t exist
+							-1 => slot doesn't exist
 	Throw:	BadType	if context is not a frame
 ----------------------------------------------------------------------*/
 
@@ -290,7 +290,7 @@ FrameSlotPosition(Ref context, Ref tag)
 				length	number of slots in the map
 				slot		a slot symbol
 	Return:	long		index
-							-1 => slot doesn’t exist
+							-1 => slot doesn't exist
 ----------------------------------------------------------------------*/
 
 static ArrayIndex
@@ -348,7 +348,7 @@ FindOffsetCacheClear(void)
 				tag		a slot symbol
 				outMap	pointer to map Ref in which slot actually exists
 	Return:	long		index
-							outMap == NILREF => slot doesn’t exist
+							outMap == NILREF => slot doesn't exist
 ----------------------------------------------------------------------*/
 
 static ArrayIndex
@@ -422,7 +422,7 @@ FindOffset1(Ref inMap, Ref tag, Ref * outMap)
 	Args:		fr			a frame map
 				tag		a slot symbol
 	Return:	long		index
-							-1 => slot doesn’t exist
+							-1 => slot doesn't exist
 	Throw:	BadType	if tag is not a symbol
 ----------------------------------------------------------------------*/
 
@@ -460,7 +460,7 @@ FindOffset(Ref map, Ref tag)
 
 	if ((tag == SYMA(_proto) || UnsafeSymbolEqual(tag, SYMA(_proto), k_protoHash))
 	&&  (((FrameMapObject *)ObjectPtr(map))->objClass & kMapProto) == 0)
-		;	// we’re looking for a _proto slot but there’s no proto chain
+		;	// we're looking for a _proto slot but there's no proto chain
 	else
 	{
 		Ref	implMap;
@@ -519,7 +519,7 @@ static bool
 SlowFrameHasSlot(Ref rcvr, Ref tag)
 {
 	bool	hasSlot = false;
-	
+
 	LockRef(tag);
 	unwind_protect
 	{
@@ -656,7 +656,7 @@ UnsafeGetFrameSlot(Ref rcvr, Ref slot, bool * exists)
 		*exists = NOTNIL(result);
 		return result;
 	}
-	
+
 	FrameObject * fr = (FrameObject *)ObjectPtr(rcvr);
 	ArrayIndex offset = FindOffset(fr->map, slot);
 	if (offset == kIndexNotFound)
@@ -774,7 +774,7 @@ GetFrameMapTags(Ref inFrame, SortedMapTag * outTags, bool inSort)
 
 
 /*----------------------------------------------------------------------
-	Sort the given frame’s map.
+	Sort the given frame's map.
 	Since nothing grows within this function, Refs may safely be used.
 	Args:		context	a frame
 				index		a slot index
@@ -787,7 +787,7 @@ ConvertToSortedMap(Ref context, ArrayIndex index)
 	Ref			map = ((FrameObject *)ObjectPtr(context))->map;
 	ArrayIndex	mapLen = Length(map);
 	ArrayIndex	frOffset = Length(context) - mapLen;
-	// iterate over map; 
+	// iterate over map;
 	// slot 0 is supermap so start at 1
 	// inner loop goes further so stop 1 short
 	for (ArrayIndex index1 = 1; index1 < mapLen - 1; index1++)
@@ -1003,7 +1003,7 @@ RemoveSlot(RefArg ioContext, RefArg tag)
 		FrameMapObject *	frMapPtr = (FrameMapObject *)ObjectPtr(implMap);
 		if (Length(implMap) == 2)
 		{
-			// we’re removing the only slot in the frame
+			// we're removing the only slot in the frame
 			// (2 => single tag + supermap ref), so unlink the framemap altogether
 			if (EQ(implMap, frMap))
 			{
@@ -1031,7 +1031,7 @@ RemoveSlot(RefArg ioContext, RefArg tag)
 					mapPtr->supermap = frMapPtr->supermap;
 					if (SymbolCompare(tag, SYMA(_proto)) == 0)
 					{
-					// we’re removing the _proto slot so clear the flag
+					// we're removing the _proto slot so clear the flag
 						mapPtr->objClass &= ~kMapProto;
 					}
 					wasMapUnlinked = true;
@@ -1049,7 +1049,7 @@ RemoveSlot(RefArg ioContext, RefArg tag)
 			RefVar	newMap = ShrinkSharedMap(frMap, implMap, index);
 			if (SymbolCompare(tag, SYMA(_proto)) != 0 && (ObjectFlags(newMap) & kObjReadOnly) == 0)
 			{
-				// we weren’t removing the _proto slot so copy kMapProto flag from original map
+				// we weren't removing the _proto slot so copy kMapProto flag from original map
 				((FrameMapObject *)ObjectPtr(newMap))->objClass |= (((FrameMapObject *)ObjectPtr(frMap))->objClass & kMapProto);
 			}
 			((FrameObject *)ObjectPtr(ioContext))->map = newMap;
@@ -1062,7 +1062,7 @@ RemoveSlot(RefArg ioContext, RefArg tag)
 			ShrinkArray(frMap, 1 + index - superSize);
 			if (SymbolCompare(tag, SYMA(_proto)) == 0)
 			{
-			// we’re removing the _proto slot so clear the flag
+			// we're removing the _proto slot so clear the flag
 				frMapPtr->objClass &= ~kMapProto;
 			}
 		}
@@ -1196,7 +1196,7 @@ SetFrameSlot(RefArg context, RefArg tag, RefArg value)
 	ArrayIndex i = FindOffset(fr->map, tag);
 	if (i == kIndexNotFound)
 	{
-		// slot doesn’t exist in frame, so add it
+		// slot doesn't exist in frame, so add it
 		i = AddSlot(context, tag);
 		// context may have moved, so update pointer
 		fr = (FrameObject *)ObjectPtr(context);

@@ -143,7 +143,7 @@ CClickEventUnit::iClickEventUnit(CRecDomain * inDomain, ULong inArg2, CArray * i
 size_t
 CClickEventUnit::sizeInBytes(void)
 {
-	size_t thisSize = (sizeof(CClickEventUnit) - sizeof(CSIUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	size_t thisSize = (sizeof(CClickEventUnit) - sizeof(CSIUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CSIUnit::sizeInBytes() + thisSize;
 }
 

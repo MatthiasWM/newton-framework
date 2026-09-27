@@ -101,7 +101,7 @@
 /* ----------------------------------------------------------------
 	D A T A
 
-	gCPUmode is a boolean indicating that we’re in the SWI.
+	gCPUmode is a boolean indicating that we're in the SWI.
 	(This was originally in the ARM CPSR.)
 	We could probably do with IRQ|FIQ enable flags too.
 	We only use user and supervisor modes here.
@@ -185,7 +185,7 @@ Done:
 // disable IRQ | FIQ
 		movl		$(svc_32+IRQdisable+FIQdisable), _gCPSR(%rip)
 
-// if in nested interrupt, don’t swap task
+// if in nested interrupt, don't swap task
 		cmpl		$0, _gAtomicFIQNestCountFast(%rip)
 		jne		NoSwap
 		cmpl		$0, _gAtomicIRQNestCountFast(%rip)
@@ -219,13 +219,13 @@ Done:
 		addq		$8, %rsp
 2:
 		popq		%r11
-		cmpq		%r11, _gCurrentTask(%rip)	# if task hasn’t changed, don’t do task swap
+		cmpq		%r11, _gCurrentTask(%rip)	# if task hasn't changed, don't do task swap
 		je			NoSwap
 
 		xchgq		%r11, _gCurrentTask(%rip)	# update gCurrentTask
 
 		cmpq		$0, %r11
-		je			SwapIn				# if no prev task, don’t swap it out
+		je			SwapIn				# if no prev task, don't swap it out
 
 // r11 = prev task
 // gCurrentTask = new scheduled task
@@ -239,7 +239,7 @@ SwapOut:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrbx(%rbp), %rax			# save all registers
 		movq		%rax, taskrbx(%r11)
@@ -276,7 +276,7 @@ SwapOut:
 		movl		%ecx, _gCPSR(%rip)		# re-enable interrupts --> fire pending interrupt
 
 		movq		frlk(%rbp), %rax
-		movq		%rax, taskrip(%r11)		# save task’s PC when calling here, ie its LK
+		movq		%rax, taskrip(%r11)		# save task's PC when calling here, ie its LK
 		jmp		SwapIn
 
 //	gCopyDone == YES
@@ -286,7 +286,7 @@ SwapOut:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		taskrip(%r11), %rax
 		movq		%rax, frlk(%rbp)			# restore saved PC in LK for return
@@ -449,7 +449,7 @@ LowLevelCopyEngine:
 	void
 	LowLevelCopyEngineLong(char * inTo, char * inFrom, size_t inSize)
 
-	Copy memory, long-at-a-time. (That’s 32-bits-at-a-time.)
+	Copy memory, long-at-a-time. (That's 32-bits-at-a-time.)
 	Args:		 %rdi		inTo
 				 %rsi		inFrom
 				 %rcx		inSize
@@ -506,7 +506,7 @@ DoPortSend:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrbx(%rbp), %rax			# save all registers
 		movq		%rax, taskrbx(%r11)
@@ -576,7 +576,7 @@ Received:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrbx(%rbp), %rax			# save all registers
 		movq		%rax, taskrbx(%r11)
@@ -620,7 +620,7 @@ Received:
 
 
 /*  3 -------------------------------------------------------------
-	don’t think this is used
+	don't think this is used
 ---------------------------------------------------------------- */
 DoEnterAtomic:
 // disable FIQ|IRQ
@@ -636,7 +636,7 @@ DoEnterAtomic:
 
 
 /*  4 -------------------------------------------------------------
-	don’t think this is used
+	don't think this is used
 ---------------------------------------------------------------- */
 DoExitAtomic:
 		decl		_gAtomicNestCount(%rip)
@@ -683,7 +683,7 @@ DoGeneric:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrbx(%rbp), %rax			# save all registers
 		movq		%rax, taskrbx(%r11)
@@ -726,35 +726,35 @@ DoGeneric:
 
 
 /*  6 -------------------------------------------------------------
-	don’t think this is reachable
+	don't think this is reachable
 ---------------------------------------------------------------- */
 DoGenerateMessageIRQ:
 		jmp		Done
 
 
 /*  7 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoPurgeMMUTLBEntry:
 		jmp		Done
 
 
 /*  8 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoFlushMMU:
 		jmp		Done
 
 
 /*  9 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoFlushCache:
 		jmp		Done
 
 
 /* 10 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoGetCPUVersion:
 		movl		$0, %eax
@@ -787,7 +787,7 @@ DoSemOp:
 		movq		%rcx, taskPSR(%r11)
 
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrbx(%rbp), %rax			# save all registers
 		movq		%rax, taskrbx(%r11)
@@ -830,7 +830,7 @@ DoSemOp:
 
 
 /* 12 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoSetDomainRegister:
 		jmp		Done
@@ -1004,14 +1004,14 @@ DoSMemMsgMsgDone:
 
 
 /* 24 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoTurnOffCache:
 		jmp		Done
 
 
 /* 25 -------------------------------------------------------------
-	don’t know what to do here
+	don't know what to do here
 ---------------------------------------------------------------- */
 DoTurnOnCache:
 		jmp		Done
@@ -1040,7 +1040,7 @@ DoMonitorDispatch:
 
 		movl		_gCPSR(%rip), %ecx
 		movl		$(svc_32+IRQdisable+FIQdisable), %eax
-		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we’re saving registers
+		xchgl		%eax, _gCPSR(%rip)		# disable interrupts while we're saving registers
 
 		movq		frrdi(%rbp), %rax			# save registers rbx, rcx, rdx, rsi, rdi, rbp, rsp, rip
 		movq		%rax, taskarg1(%r11)
@@ -1112,7 +1112,7 @@ DoMonitorThrow:
 
 
 /* 30 -------------------------------------------------------------
-	don’t think this is used
+	don't think this is used
 ---------------------------------------------------------------- */
 DoEnterFIQAtomic:
 // disable FIQ | IRQ
@@ -1127,7 +1127,7 @@ DoEnterFIQAtomic:
 
 
 /* 31 -------------------------------------------------------------
-	don’t think this is used
+	don't think this is used
 ---------------------------------------------------------------- */
 DoExitFIQAtomic:
 		decl		_gAtomicFIQNestCount(%rip)

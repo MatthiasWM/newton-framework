@@ -3,7 +3,7 @@
 
 	Contains:	The NewtonScript compiler.
 					The compiler uses yacc to generate the parser,
-					but we need to tweak its output (y.tab.c) so…
+					but we need to tweak its output (y.tab.c) so...
 					if NewtonScript.y is changed
 						enable it and rebuild
 						move y.tab.c from Derived Sources to Frames
@@ -96,7 +96,7 @@ extern short yyrindex[];
 extern short yygindex[];
 extern short yytable[];
 extern short yycheck[];
-extern char *yyname[];	// should be only for YYDEBUG, but we use ’em for reporting syntax errors
+extern char *yyname[];	// should be only for YYDEBUG, but we use 'em for reporting syntax errors
 #if YYDEBUG
 extern char *yyrule[];
 #endif
@@ -583,7 +583,7 @@ yyreduce:
 	yym = yylen[yyn];
 	yyval = yyvsp[1-yym];
 
-//•••••• PASTE SWITCH FROM y.tab.c : yyparse HERE
+//****** PASTE SWITCH FROM y.tab.c : yyparse HERE
     switch (yyn)
     {
 case 1:
@@ -723,14 +723,14 @@ case 60:
 					{	yyval = AllocatePT2(kTokenGlobal, yyvsp[-2], yyvsp[0]); }
 break;
 case 61:
-					{	/* 1251 - CHECK THIS… */
+					{	/* 1251 - CHECK THIS... */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(kTokenConst, yyvsp[-4]));
 						SetArraySlot(fn, 1, AllocatePT5(kTokenFunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
 						yyval = AllocatePT2(kTokenCall, SYMA(DefGlobalFn), fn); }
 break;
 case 62:
-					{	/* …AND THIS */
+					{	/* ...AND THIS */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(kTokenConst, yyvsp[-4]));
 						SetArraySlot(fn, 1, AllocatePT5(kTokenFunc, GetArraySlot(yyvsp[-2], 0), yyvsp[0], RA(NILREF), GetArraySlot(yyvsp[-2], 1), RA(NILREF)));
@@ -1133,7 +1133,7 @@ case 150:
 						SetFrameSlot(yyval, yyvsp[-2], yyvsp[0]); }
 break;
     }
-//•••••• END OF SWITCH FROM yyparse
+//****** END OF SWITCH FROM yyparse
 
 	yyssp -= yym;
 	yystate = *yyssp;
@@ -1201,7 +1201,7 @@ yyaccept:
 	yygrowstack() in file y.tab.c. It has been tweaked a bit to cope with
 	our own parser stack (of Refs).
 	Args:		--
-	Return:	YES => stack overflowed - can’t allocate any more
+	Return:	YES => stack overflowed - can't allocate any more
 ------------------------------------------------------------------------------*/
 
 BOOL
@@ -1681,7 +1681,7 @@ CCompiler::getNumber(UniChar inCh)
 		ch = stream->getch();
 		if (ch == 'x' || ch == 'X')
 		{
-		// it’s a hex integer
+		// it's a hex integer
 			str[0] = '0';
 			str[1] = 'x';
 			i = 2;
@@ -1708,12 +1708,12 @@ CCompiler::getNumber(UniChar inCh)
 		}
 		else
 		{
-		// OK, it’s not hex
+		// OK, it's not hex
 			stream->ungetch(ch);
 		}
 	}
 
-	// it’s a decimal integer
+	// it's a decimal integer
 	str[0] = inCh;
 	i = 1;
 	while ((ch = stream->getch()) != (UniChar)EOF)
@@ -1727,7 +1727,7 @@ CCompiler::getNumber(UniChar inCh)
 		}
 		else if (ch == '.')
 		{
-		// actually it’s real!
+		// actually it's real!
 			str[i++] = '.';
 			while ((ch = stream->getch()) != (UniChar)EOF)
 			{
@@ -1778,7 +1778,7 @@ CCompiler::getNumber(UniChar inCh)
 			return kTokenReal;
 		}
 		else
-		//	that’s the end of the number
+		//	that's the end of the number
 			break;
 	}
 	stream->ungetch(ch);
@@ -1794,7 +1794,7 @@ CCompiler::getNumber(UniChar inCh)
 /*------------------------------------------------------------------------------
 	Reserved word lookup.
 	Args:		inWord		word scanned from input stream
-								ASCII because it’s a symbol.
+								ASCII because it's a symbol.
 	Return:	token number
 ------------------------------------------------------------------------------*/
 
@@ -1883,7 +1883,7 @@ int	DeclarationWalkerTrampoline(void * inContext, RefArg inGraph, int inNodeType
 
 
 /*------------------------------------------------------------------------------
-	Walk the nodes…
+	Walk the nodes...
 	for declarations, closures, assignments, code, etc.
 	Args:		inGraph
 				inContext	compiler context
@@ -2271,15 +2271,15 @@ CCompiler::closureWalker(RefArg inGraph, int inNodeType, RefArg inP1, RefArg inP
 			func->noteMsgEnvReference(1);
 		break;
 	}
-	
+
 	return 1;
 }
 
 
 /*------------------------------------------------------------------------------
 	Walk the graph and generate code!
-	Args:		inGraph			
-				inFinalNode		
+	Args:		inGraph
+				inFinalNode
 	Return:	BOOL?
 ------------------------------------------------------------------------------*/
 
@@ -2666,7 +2666,7 @@ CCompiler::walkForCode(RefArg inGraph, BOOL inFinalNode)
 				walkForCode(p2, NO);
 			if (ISNIL(p3))
 			{
-			//	there’s no ELSE clause
+			//	there's no ELSE clause
 				if (inFinalNode)
 				{
 					backpatch(elseBranch, kOpcodeBranchIfFalse, curPC());
@@ -3122,7 +3122,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, BOOL inArg3)
 	int	tokenType = RINT(GetArraySlot(inLHS, 0));
 	if (tokenType == kTokenSymbol)
 	{
-	//	it’s a simple variable name
+	//	it's a simple variable name
 		RefVar	varName(GetArraySlot(inLHS, 1));
 		if (func->isConstant(varName))
 			errorWithValue(kNSErrBadAssign, varName);
@@ -3136,7 +3136,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, BOOL inArg3)
 
 	else if (tokenType == '.')
 	{
-	//	it’s a slot accessor
+	//	it's a slot accessor
 //57
 		int		throwIfNilObject = YES;
 		RefVar	pathExpr(walkForPath(inLHS, &throwIfNilObject));
@@ -3150,7 +3150,7 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, BOOL inArg3)
 
 	else if (tokenType == '[')
 	{
-	//	it’s an array accessor
+	//	it's an array accessor
 //92
 		walkForCode(GetArraySlot(inLHS, 1), NO);	// array object
 		walkForCode(GetArraySlot(inLHS, 2), NO);	// index
@@ -3164,8 +3164,8 @@ CCompiler::walkAssignment(RefArg inLHS, RefArg inRHS, BOOL inArg3)
 
 /*------------------------------------------------------------------------------
 	Walk the graph for a path expression.
-	Args:		inGraph					
-				ioThrowIfNilObject	
+	Args:		inGraph
+				ioThrowIfNilObject
 	Return:	path expression
 ------------------------------------------------------------------------------*/
 
@@ -3233,7 +3233,7 @@ CCompiler::walkForPath(RefArg inGraph, int * ioThrowIfNilObject)
 
 /*------------------------------------------------------------------------------
 	Walk the graph for stringer items.
-	Args:		inGraph		
+	Args:		inGraph
 	Return:	number of items walked over
 ------------------------------------------------------------------------------*/
 

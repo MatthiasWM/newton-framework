@@ -66,7 +66,7 @@ InitializeStoreDecompressors(void)
 
 #if 0
 	// XIP store compander
-// we don’t have these yet
+// we don't have these yet
 	CXIPPackageStore::classInfo()->registerProtocol();
 	CXIPStoreCompander::classInfo()->registerProtocol();
 #endif

@@ -225,7 +225,7 @@ CPackageStore::make(void)
 
 /* -----------------------------------------------------------------------------
 	Destroy the package store.
-	Nothing to do -- it’s read-only.
+	Nothing to do -- it's read-only.
 	Args:		--
 	Return	--
 ----------------------------------------------------------------------------- */
@@ -258,7 +258,7 @@ CPackageStore::init(void * inStoreData, size_t inStoreSize, ULong inArg3, ArrayI
 
 /* -----------------------------------------------------------------------------
 	Does this store require formatting?.
-	Never -- it’s read-only.
+	Never -- it's read-only.
 	Args:		outNeedsFormat
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -273,7 +273,7 @@ CPackageStore::needsFormat(bool * outNeedsFormat)
 
 /* -----------------------------------------------------------------------------
 	Format the package store.
-	Cannot be done -- it’s read-only.
+	Cannot be done -- it's read-only.
 	Args:		--
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -287,7 +287,7 @@ CPackageStore::format(void)
 
 /* -----------------------------------------------------------------------------
 	Check the integrity of the store.
-	What can possibly go wrong -- it’s read-only.
+	What can possibly go wrong -- it's read-only.
 	Args:		inArg1
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -301,7 +301,7 @@ CPackageStore::checkIntegrity(ULong * inArg1)
 
 #pragma mark Store info
 /* -----------------------------------------------------------------------------
-	Return the store’s root object id.
+	Return the store's root object id.
 	Args:		outRootId
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -362,7 +362,7 @@ CPackageStore::isReadOnly(bool * outIsReadOnly)
 	Is this store in ROM?
 	Well, yes, kinda.
 	Args:		--
-	Return	true => it’s in ROM
+	Return	true => it's in ROM
 ----------------------------------------------------------------------------- */
 
 bool
@@ -418,7 +418,7 @@ CPackageStore::isLocked(void)
 
 #pragma mark MuxStore
 /* -----------------------------------------------------------------------------
-	Set the store’s buddy.
+	Set the store's buddy.
 	Args:		inStore
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -576,7 +576,7 @@ CPackageStore::address(PSSId inObjectId)
 
 /* -----------------------------------------------------------------------------
 	Read an object in the store.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inStartOffset		offset into object
 				outBuffer			buffer to receive object data
 				inLength				size of object to read -- may not be whole object
@@ -607,7 +607,7 @@ CPackageStore::read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, si
 
 /* -----------------------------------------------------------------------------
 	Write an object to the store.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inStartOffset		offset into buffer for object data
 				inBuffer				object data
 				inLength				size of object data
@@ -794,7 +794,7 @@ CPackageStorePartHandler::install(const PartId & inPartId, SourceType inType, Pa
 		XFAILNOT(store = (CStore *)MakeByName("CStore", "CPackageStore"), err = kOSErrNoMemory;)
 		XFAILIF(IsStream(inType), err = kOSErrBadPackage;)						// v
 		// init the store with package data
-		XFAIL(err = store->init(getSourcePtr(), info->size, 0, 0, 0, 0))	// on failure, shouldn’t we be destroying the store?
+		XFAIL(err = store->init(getSourcePtr(), info->size, 0, 0, 0, 0))	// on failure, shouldn't we be destroying the store?
 
 		newton_try
 		{
@@ -838,7 +838,7 @@ CPackageStorePartHandler::remove(const PartId & inPartId, PartType inType, Remov
 			break;
 	}
 	if (i == count)
-		// we looked at every package store but we didn’t find the one we’re after
+		// we looked at every package store but we didn't find the one we're after
 		return -10400;
 
 	// remove store from global array

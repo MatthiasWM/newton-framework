@@ -68,8 +68,8 @@ CRelocateScanner::scanRef(Ref32 * ioRefPtr)
 	C R e n u m b e r I m p o r t s S c a n n e r
 	Used by RenumberImports to, erm, renumber imports.
 ----------------------------------------------------------------------------- */
-int g12F6;	// don’t really know
-int g0CD8;	// don’t really know
+int g12F6;	// don't really know
+int g0CD8;	// don't really know
 
 // see also MagicPointers.cc
 #define kMPTableShift	12
@@ -409,10 +409,10 @@ ProcessImports(CFramesPartAccessor & inPart, PartRef inTable)
 	Redirect exported UnitReferences.
 	See “Q&A Newton 2.x”
 
-	A part’s _ExportTable slot contains an array of UnitReference frames, eg:
-	 _ExportTable: [{name: '|Inet Protos:NIE|, 
-                 major: 1, 
-                 minor: 0, 
+	A part's _ExportTable slot contains an array of UnitReference frames, eg:
+	 _ExportTable: [{name: '|Inet Protos:NIE|,
+                 major: 1,
+                 minor: 0,
                  objects: [{DoEvent: <nativefunction, 2 args, #0287BC4D>, ...},...] }
 					  //possibly more exported frames
 					  ]
@@ -738,7 +738,7 @@ CFramesPartAccessor::scanRefs(RefScanner & inScanner, Ref32 inRef)
 		}
 //+00DA
 		if (ALIGN(obj->size, fAlignment) == 0) {
-			FatalError("package file corrupted");	// can’t have zero-size objects
+			FatalError("package file corrupted");	// can't have zero-size objects
 		}
 	}
 }
@@ -814,7 +814,7 @@ CFramesPartAccessor::doRedirection(void)
 		}
 //+013C
 		if (ALIGN(obj->size, fAlignment) == 0) {
-			FatalError("package file corrupted");	// can’t have zero-size objects
+			FatalError("package file corrupted");	// can't have zero-size objects
 		}
 	}
 //+017C

@@ -32,7 +32,7 @@ __ZN16CMuxStoreMonitor9classInfoEv:
 		BRAZ		__ZN16CMuxStoreMonitor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN16CMuxStoreMonitor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		BRAZ		6f				// branch to bail-out function (that returns nil now)

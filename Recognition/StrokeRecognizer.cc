@@ -164,7 +164,7 @@ CStrokeUnit::sizeInBytes(void)
 	if (list)
 		list->release();
 	thisSize += fStroke->sizeInBytes();
-	thisSize += (sizeof(CStrokeUnit) - sizeof(CSIUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CStrokeUnit) - sizeof(CSIUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CSIUnit::sizeInBytes() + thisSize;
 }
 

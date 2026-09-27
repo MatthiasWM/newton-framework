@@ -325,7 +325,7 @@ CFramedAsyncSerTool::fillOutputBuffer(void)
 					{
 						if (f4D4.getNextByte(&ch) != 0)
 						{
-							if (f274 != 0)		// •• NOT RIGHT ••
+							if (f274 != 0)		// ** NOT RIGHT **
 								XFAILIF(status = f4D4.copyIn(f270, sp04), f4B4 = 8; if (status == 5) status = kSerErrInternalError;)
 							else if (f278)
 								f4B4 = 3;
@@ -833,7 +833,7 @@ CMNP::openAlloc(void)
 	{
 		XFAIL((fCCB = new CMNP_CCB) == nil)
 		XFAIL(err = fCCB->init())
-		
+
 	// INCOMPLETE
 	}
 	XENDTRY;
@@ -1381,7 +1381,7 @@ CMNP::rcvLA(void)
 				startAbort(kMNPErrNotConnected);
 			}
 		}
-		
+
 		fCCB->f00 |= 0x01;
 	}
 }
@@ -1427,7 +1427,7 @@ CMNP::initFrameBufs(void)
 		// set up LT (data) frame headers
 		for (int i = 0; i < 8; i++)
 		{
-			fCCB->fC4[i].fBuf[0] = 2;	// i * 31 * 8 doesn’t look right for this; is decl wrong?
+			fCCB->fC4[i].fBuf[0] = 2;	// i * 31 * 8 doesn't look right for this; is decl wrong?
 			fCCB->fC4[i].fBuf[1] = 4;
 		}
 		fCCB->fC58 = 2;
@@ -1487,10 +1487,10 @@ CMNP::putComplete(NewtonErr inStatus, size_t inPutCount)
 
 /*
 	MNP CDIL
-	fd -> CCircleBuf[512] -> MNP processing -> CBufferList[?] -> 
+	fd -> CCircleBuf[512] -> MNP processing -> CBufferList[?] ->
 
 	TCP/IP CDIL
-	fd -> CBufferList[?] -> 
+	fd -> CBufferList[?] ->
 
 
 	CDIL read thread
@@ -1508,7 +1508,7 @@ CMNP::putComplete(NewtonErr inStatus, size_t inPutCount)
 			write to fd
 			set isBusy
 	<-
-	
+
 	CDIL write
 	create CBufferSegment from buf, queue the data in CBufferList
 	if not isBusy
@@ -1521,9 +1521,9 @@ CMNP::putComplete(NewtonErr inStatus, size_t inPutCount)
 		instantiate a CBufferSegment with the data
 		put that into a PB -- possibly adding the segment to a CBufferList
 		pass it to the tool -- write thread
-TCP/IP	if fd is ready 
+TCP/IP	if fd is ready
 MNP		copy data out, 256 bytes max, frame it up and write it out
-			•• where is write buffer limited to 256 chars? ••
+			** where is write buffer limited to 256 chars? **
 			when client buffer is empty notify CDIL
 		release PB and its buffers
 */

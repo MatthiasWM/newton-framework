@@ -47,18 +47,18 @@
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[’ [ symbol : ] [ object [ , object ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
 	frame:
-		‘{’ [ frame-slot [ , frame-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
 	frame-slot:
 		symbol : object
 
 	constructor:
 		{ array-constructor | frame-constructor | function-constructor }
 	array-constructor:
-		‘[’ [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
 	frame-constructor:
-		‘{’ [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
 	frame-constructor-slot:
 		symbol : expression
 	function-constructor:
@@ -75,7 +75,7 @@
 	frame-accessor:
 		expression . { symbol | ( expression ) }
 	array-accessor:
-		expression ‘[’ expression ‘]’
+		expression ‘[' expression ‘]'
 
 	assignment:
 		lvalue := expression
@@ -206,7 +206,7 @@ CCompiler::parse(void)
 
 		case TOKENglobal:
 		case TOKENfunc:
-			parseGlobalDecl(); break;	// we shouldn’t allow globals
+			parseGlobalDecl(); break;	// we shouldn't allow globals
 
 		default:
 			ast = parseExpression(); if (ast == NULL) isEOF = true; break;
@@ -348,7 +348,7 @@ MessageArgs:
 	not					->		<unary>
 	and or				->
 	:=						<-
-	
+
 */
 #define PRECEDENCEFrameAccessor	130
 #define PRECEDENCEMessageSend		120
@@ -602,7 +602,7 @@ DoBinaryOp:
 		}
 	}
 	ENDTRY;
-	
+
 	return NULL;
 }
 
@@ -775,14 +775,14 @@ CCompiler::parseExpressionSequence(int inUntilToken)
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[’ [ symbol : ] [ object [ , object ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
 	frame:
-		‘{’ [ frame-slot [ , frame-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
 	frame-slot:
 		symbol : object
 
 	simple-literal is trivially reduced to "return new ConstExprAST(theToken);"
-	in the look-ahead function so we don’t see it here
+	in the look-ahead function so we don't see it here
 	we only see '
 ----------------------------------------------------------------------------- */
 ExprAST *
@@ -858,7 +858,7 @@ CCompiler::parseObjectExpr(void)
 				}
 				else
 				{
-					elements.push_back(new SymbolAST(className));		// it wasn’t actually a class name
+					elements.push_back(new SymbolAST(className));		// it wasn't actually a class name
 					className.clear();
 					if (theToken.id == ',')
 						consumeToken();	// ,
@@ -931,7 +931,7 @@ CCompiler::parseObjectExpr(void)
 #pragma mark constructors
 /* -----------------------------------------------------------------------------
 	array-constructor:
-		‘[’ [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]’
+		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
 ----------------------------------------------------------------------------- */
 ExprAST *
 CCompiler::parseArrayConstructor(void)
@@ -955,7 +955,7 @@ CCompiler::parseArrayConstructor(void)
 				consumeToken();	// :
 			}
 			else
-				className.clear();	// wasn’t a class name after all
+				className.clear();	// wasn't a class name after all
 		}
 
 		if (theToken.id != ']')
@@ -986,7 +986,7 @@ CCompiler::parseArrayConstructor(void)
 
 /* -----------------------------------------------------------------------------
 	frame-constructor:
-		‘{’ [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}’
+		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
 	frame-constructor-slot:
 		symbol : expression
 ----------------------------------------------------------------------------- */

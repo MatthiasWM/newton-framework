@@ -15,7 +15,7 @@
 
 /* -----------------------------------------------------------------------------
 	M e m o r y   M a p
-	Although we don’t actually have a ROM, we do have immutable resources:
+	Although we don't actually have a ROM, we do have immutable resources:
 	symbols, for example.
 ----------------------------------------------------------------------------- */
 #if defined(forMessagePad)

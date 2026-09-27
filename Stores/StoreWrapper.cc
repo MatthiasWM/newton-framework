@@ -434,7 +434,7 @@ StoreCheckUnion(RefArg inRcvr)
 				if (EQ(store, inRcvr))
 					theIndex = i;
 			}
-			// shouldn’t we check that theIndex != kIndexNotFound?
+			// shouldn't we check that theIndex != kIndexNotFound?
 //			indexes[theIndex].search(1, NULL, NULL, CheckUnionStopFn, &storeWrapper, NULL, NULL);
 		}
 		cleanup
@@ -443,7 +443,7 @@ StoreCheckUnion(RefArg inRcvr)
 		}
 		end_try;
 		delete[] indexes;
-		return badSoups;	// @541:StoreMounted() expects an array of ‘incompatible’ soups
+		return badSoups;	// @541:StoreMounted() expects an array of ‘incompatible' soups
 	}
 	return NILREF;
 }
@@ -519,8 +519,8 @@ StoreGetSoup(RefArg inRcvr, RefArg inName)
 	RefVar theSoup(FindSoupInCache(soups, inName));
 	if (ISNIL(theSoup))
 	{
-		// it’s not there; look for the persistent soup object on store
-		// we’ll need to find it with a CSoupIndex
+		// it's not there; look for the persistent soup object on store
+		// we'll need to find it with a CSoupIndex
 		CStoreWrapper * storeWrapper = (CStoreWrapper *)GetFrameSlot(inRcvr, SYMA(store));
 		CSoupIndex	soupIndex;
 		soupIndex.init(storeWrapper, RINDEX(GetFrameSlot(proto, SYMA(nameIndex))), StoreGetDirSortTable(inRcvr));
@@ -545,7 +545,7 @@ StoreGetSoup(RefArg inRcvr, RefArg inName)
 			SetFrameSlot(theSoup, SYMA(_proto), soupObj);
 			SetFrameSlot(theSoup, SYMA(TStore), (Ref)storeWrapper);
 			SetFrameSlot(theSoup, SYMA(storeObj), inRcvr);
-			// use the name key as the soup’s name
+			// use the name key as the soup's name
 			RefVar keyObj(SKeyToKey(nameKey, SYMA(string), NULL));
 			SetClass(keyObj, SYMA(string_2Enohint));
 			SetFrameSlot(theSoup, SYMA(theName), keyObj);
@@ -913,8 +913,8 @@ CStoreWrapper::addMap(SortedMapTag * inMap, bool inSoupEntry, ArrayIndex * ioNum
 	{
 		Ref	tag = inMap->ref;
 		ULong	symHash = SymbolHash(tag);
-		if (!(symHash == k_protoHash && SymbolCompare(tag, SYMA(_proto)) == 0)									// don’t add _proto slot
-		&&  (!inSoupEntry || !((symHash == k_uniqueIdHash && SymbolCompare(tag, SYMA(_uniqueId)) == 0)	// don’t add soup entry slots
+		if (!(symHash == k_protoHash && SymbolCompare(tag, SYMA(_proto)) == 0)									// don't add _proto slot
+		&&  (!inSoupEntry || !((symHash == k_uniqueIdHash && SymbolCompare(tag, SYMA(_uniqueId)) == 0)	// don't add soup entry slots
 									|| (symHash == k_modTimeHash && SymbolCompare(tag, SYMA(_modTime)) == 0))))
 		{
 			totalHash = (totalHash ^ symHash) >> *ioNumOfTags;	// should be ROR

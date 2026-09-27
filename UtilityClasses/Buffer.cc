@@ -1046,7 +1046,7 @@ CShadowRingBuffer::updateGetVector(long inLength)
 void
 CShadowRingBuffer::computePutVectors(UByte *& outBuf1, size_t & outBuf1Len, UByte *& outBuf2, size_t & outBuf2Len)
 {
-	// outBufs aren’t actually used, but we do need to know if they’re non-NULL
+	// outBufs aren't actually used, but we do need to know if they're non-NULL
 	long breakIndex = (fRdIndex == 0) ? fBufSize - 1 : fRdIndex - 1;
 
 	if (fWrIndex == fRdIndex)
@@ -1098,7 +1098,7 @@ CShadowRingBuffer::computePutVectors(UByte *& outBuf1, size_t & outBuf1Len, UByt
 void
 CShadowRingBuffer::computeGetVectors(UByte *& outBuf1, size_t & outBuf1Len, UByte *& outBuf2, size_t & outBuf2Len)
 {
-	// outBufs aren’t actually used, but we do need to know if they’re non-NULL
+	// outBufs aren't actually used, but we do need to know if they're non-NULL
 	long breakIndex = (fRdIndex == 0) ? fBufSize - 1 : fRdIndex - 1;
 
 	if (fWrIndex == fRdIndex)

@@ -182,12 +182,12 @@ CWordHintsHandler::findHintWord(UniChar *& inStr, ArrayIndex & outWordLen, Array
 	for (s = inStr ; ioStrLen > 0 && !IsDelimiter(*s); s++, ioStrLen--)
 		;
 
-	// words shorter than three letters are no good for hints…
+	// words shorter than three letters are no good for hints...
 	outWordLen = s - inStr;
 	if (outWordLen > 2)
 		return true;
 
-	// …so try the next word
+	// ...so try the next word
 	inStr += outWordLen;
 	return findHintWord(inStr, outWordLen, ioStrLen);
 }
@@ -244,7 +244,7 @@ TestObjHints(char * inHints, ArrayIndex inNumOfWords, CStoreWrapper * inStoreWra
 		return 1;
 
 	//sp-40
-	uint8_t sp[64];	// can’t have more than 64 word hints, then
+	uint8_t sp[64];	// can't have more than 64 word hints, then
 	for (ArrayIndex i = 0; i < inNumOfWords; ++i)
 		sp[i] = 0;
 
@@ -371,12 +371,12 @@ CObjTextDecompressor::decompress(CStoreWrapper * inStoreWrapper, PSSId inObjId, 
 
 /* -----------------------------------------------------------------------------
 	Decompress a PSS object into a Unicode text buffer.
-	If the text won’t fit in our buffers, we need to allocate extra.
+	If the text won't fit in our buffers, we need to allocate extra.
 	Args:		inStoreWrapper
 				inObjId			id of text object
 				ioSize			size required
 	Return:	pointer to text buffer
-				It is the caller’s responsibility to FreePtr() this --
+				It is the caller's responsibility to FreePtr() this --
 				see WithPermObjectTextDo().
 ----------------------------------------------------------------------------- */
 

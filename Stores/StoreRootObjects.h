@@ -14,7 +14,7 @@
 /* -----------------------------------------------------------------------------
 	P a c k a g e R o o t
 	A store has a root object (accessed via CStore::getRootId()) that defines
-	the store’s capabilities.
+	the store's capabilities.
 ----------------------------------------------------------------------------- */
 
 class PackageRoot

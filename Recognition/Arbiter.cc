@@ -267,7 +267,7 @@ CArbiter::make(CController * inController)
 	{
 		arbiter = new CArbiter;
 		XFAIL(arbiter == NULL)
-		XFAILIF(arbiter->iArbiter(inController) != noErr, delete arbiter; arbiter = NULL;)	// original doesn’t bother
+		XFAILIF(arbiter->iArbiter(inController) != noErr, delete arbiter; arbiter = NULL;)	// original doesn't bother
 		inController->registerArbiter(arbiter);
 	}
 	XENDTRY;
@@ -682,7 +682,7 @@ CArbiter::doArbitration(void)
 								if (!unit->testFlags(0x40000000)  &&  IsOfType(unit->getType(), 'CLIK'))
 									fController->markUnits(unit, 0x40400000);
 							}
-							
+
 							matchPtr2 = (BestMatch *)f0C->getIterator(&iter2);
 							for (ArrayIndex j = 0; j < iter2.count(); matchPtr2 = (BestMatch *)iter2.getNext(), j++)
 							{

@@ -342,7 +342,7 @@ StrokeUpdate(FRect * ioBounds)
 		}
 	}
 	gStrokeQSemaphore->release();
-	
+
 	for (ArrayIndex i = 0; i < numOfGoodStrokes; ++i)
 	{
 		buf[i]->draw();
@@ -374,7 +374,7 @@ StrokeReInit(void)
 	gStrokeQ.buf[0] = CSStroke::make(0);
 	gStrokeQ.rdIndex = 0;
 	gStrokeQ.wrIndex = 0;
-	gStrokeValid = true;		// original doesn’t do this -- but surely it’s essential?!
+	gStrokeValid = true;		// original doesn't do this -- but surely it's essential?!
 
 	TabInit();
 	if (useStylus)
@@ -497,7 +497,7 @@ StrokeNext(void)
 		ArrayIndex i = gStrokeQ.wrIndex;
 		if (++i >= kStrokeQSize)
 			i -= kStrokeQSize;
-		// if there’s already a stroke there then the queue is full
+		// if there's already a stroke there then the queue is full
 		XFAIL((stroke = gStrokeQ.buf[i]) != NULL)
 		// create a new stroke
 		XFAIL((stroke = CSStroke::make(0)) == NULL)
@@ -724,7 +724,7 @@ CheckHiliteState(CRecStroke * inStroke, StrokeHiliteState * inPrevState, StrokeH
 			}
 		}
 	}
-	
+
 	if (outNewState->x13 == 3)
 	{
 		inStroke->setTapEvent(1);
@@ -753,7 +753,7 @@ SetUpDistances(void)
 #pragma mark - CSStroke
 /* -----------------------------------------------------------------------------
 	C S S t r o k e
-	Don’t really know why this is needed -- the extra data members aren’t used.
+	Don't really know why this is needed -- the extra data members aren't used.
 ----------------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
@@ -801,6 +801,6 @@ CSStroke::addPoint(TabPt * inPt)
 	}
 	XENDTRY;
 	return err;
-	
+
 }
 

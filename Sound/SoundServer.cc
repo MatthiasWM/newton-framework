@@ -947,7 +947,7 @@ CSoundServerHandler::eventHandlerProc(CUMsgToken * inToken, size_t * inSize, CEv
 	{
 		NewtonErr			err;
 		CUSoundNodeReply	reply;
-		size_t				replySize = sizeof(CUSoundReply);	// we usually don’t reply with the extra node info
+		size_t				replySize = sizeof(CUSoundReply);	// we usually don't reply with the extra node info
 		reply.fChannel = request->fChannel;
 
 		switch (request->fSelector)

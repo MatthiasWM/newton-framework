@@ -32,7 +32,7 @@ __ZN19PHammerInTranslator9classInfoEv:
 		BRAZ		__ZN19PHammerInTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN19PHammerInTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -76,7 +76,7 @@ __ZN20PHammerOutTranslator9classInfoEv:
 		BRAZ		__ZN20PHammerOutTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN20PHammerOutTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -128,7 +128,7 @@ __ZN17PNullInTranslator9classInfoEv:
 		BRAZ		__ZN17PNullInTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN17PNullInTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -172,7 +172,7 @@ __ZN18PNullOutTranslator9classInfoEv:
 		BRAZ		__ZN18PNullOutTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18PNullOutTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -224,7 +224,7 @@ __ZN18PStdioInTranslator9classInfoEv:
 		BRAZ		__ZN18PStdioInTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18PStdioInTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -268,7 +268,7 @@ __ZN19PStdioOutTranslator9classInfoEv:
 		BRAZ		__ZN19PStdioOutTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN19PStdioOutTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -321,7 +321,7 @@ __ZN19PSerialInTranslator9classInfoEv:
 		BRAZ		__ZN19PSerialInTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN19PSerialInTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -365,7 +365,7 @@ __ZN20PSerialOutTranslator9classInfoEv:
 		BRAZ		__ZN20PSerialOutTranslator4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN20PSerialOutTranslator7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

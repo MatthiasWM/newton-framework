@@ -94,14 +94,14 @@ ExtendVMHeap(Heap inHeap, Size inSize)
 							heap->prevMaxExtent = heap->maxExtent;
 						else
 						{
-						//	unlock didn’t work
+						//	unlock didn't work
 							heap->maxExtent = heap->extent;
 							return false;
 						}
 					}
 					else
 					{
-					//	lock didn’t work; restore prev heap limits
+					//	lock didn't work; restore prev heap limits
 						SetHeapLimits(heap->start, heap->start + heap->prevMaxExtent);
 						heap->maxExtent = heap->extent;
 						return false;
@@ -109,7 +109,7 @@ ExtendVMHeap(Heap inHeap, Size inSize)
 				}
 			}
 		}
-		// heap isn’t VM backed, or we set up VM backing okay
+		// heap isn't VM backed, or we set up VM backing okay
 		// move end block
 		Block *	blockPtr = (Block *)heap->end - 1;
 		*(Block *)((Ptr) blockPtr + extendSize) = *blockPtr;
@@ -197,7 +197,7 @@ ShrinkSkiaHeapLeaving(Heap inHeap, Size inLeavingAmount)
 	Compact a heap.
 	Shuffle blocks down to maximise free space.
 	Args:		inHeap				the heap
-				inBlock				
+				inBlock
 	Return:	pointer to free space
 ------------------------------------------------------------------------------*/
 
@@ -268,15 +268,15 @@ NewBlock(Size inSize)
 		freeBlock = SearchFreeList(blockSize);
 		if ((freeBlock == NULL || freeBlock->free.size < blockSize)
 		 && ExtendVMHeap(heap, blockSize) == false)
-			return NULL;		// can’t find a block of the required size, and can’t extend the heap
+			return NULL;		// can't find a block of the required size, and can't extend the heap
 	}
 
 	if ((blockDelta = theBlock->free.size - blockSize) > (int) sizeof(Block))
-		// there’s room for another block too
+		// there's room for another block too
 		MoveFreeBlock(theBlock, blockSize);
 	else
 	{
-		// there’s not enough room; waste the excess space
+		// there's not enough room; waste the excess space
 		delta = (delta + blockDelta) & 0xFF;
 		blockSize = theBlock->free.size;
 		RemoveFreeBlock(theBlock);
@@ -325,7 +325,7 @@ SetBlockSize(Ptr inPtr, Size inSize)
 
 	if (sizeDiff == 0)
 	{
-		// block size hasn’t changed, but deltas might have
+		// block size hasn't changed, but deltas might have
 		heap->x68 -= (blockPtr->inuse.delta - extraBytesToAlign);
 		heap->x6C -= TRUNC(blockPtr->inuse.delta, 4);
 		blockPtr->inuse.delta = extraBytesToAlign;
@@ -411,7 +411,7 @@ L66:
 					// keep that mysterious x48 updated
 					if (heap->x48 == blockPtr)
 						heap->x48 = prevFreeBlock;
-					
+
 					nextFreeBlock = prevFreeBlock + prevFreeSize;
 					if ((VAddr) nextFreeBlock < heap->end)
 					{
@@ -428,7 +428,7 @@ L66:
 					theBlock = blockPtr;
 					//sp+04
 				}
-				// fall thru…
+				// fall thru...
 
 			case 1:	// next block is free; claim it
 //149
@@ -470,9 +470,9 @@ L66:
 					heap->x68 += extraBytesToAlign;
 					heap->x6C += TRUNC(extraBytesToAlign, 4);
 				}
-				// fall thru…
+				// fall thru...
 
-			case 5:	// no worries, there’s room within this block
+			case 5:	// no worries, there's room within this block
 //211
 				blockPtr->inuse.size = alignedSize;
 //213
@@ -485,7 +485,7 @@ L66:
 				return (Ptr) (blockPtr + 1);
 				break;
 
-			case 4:	// can’t extend this block, but room elsewhere in the heap
+			case 4:	// can't extend this block, but room elsewhere in the heap
 //229
 				// create new block
 				blockPtr = NewBlock(inSize);
@@ -528,7 +528,7 @@ L66:
 						r9 = true;
 					else
 					{
-						// can’t do it; 
+						// can't do it;
 						theBlock->inuse.busy -= 2;
 						if (heap->x54)
 							heap->x54();
@@ -561,7 +561,7 @@ LockedBlock(Block * inStart, Block * inEnd)
 {
 	Block *	block;
 
-	if ((inStart->flags & 0x80) == 0)			// it’s free
+	if ((inStart->flags & 0x80) == 0)			// it's free
 		block = (Block *)((Ptr) inStart + inStart->free.size);
 	else
 		block = (Block *)((Ptr) inStart + inStart->inuse.size);
@@ -569,11 +569,11 @@ LockedBlock(Block * inStart, Block * inEnd)
 	 while (block < inEnd)
 	{
 		if ((block->flags & 0x80) == 0)
-			block = (Block *)((Ptr) block + block->free.size);	// it’s free
+			block = (Block *)((Ptr) block + block->free.size);	// it's free
 		else if (block->inuse.busy == 0)
-			block = (Block *)((Ptr) block + block->inuse.size);	// it’s used but not locked
+			block = (Block *)((Ptr) block + block->inuse.size);	// it's used but not locked
 		else
-			return block;								// it’s busy|locked; return its address
+			return block;								// it's busy|locked; return its address
 	}
 
 	return NULL;
@@ -585,9 +585,9 @@ LockedBlock(Block * inStart, Block * inEnd)
 	Args:		ioBlock			block to adjust; may move!
 				inDiff			extra size required for the block
 				inSize			total size required for the heap
-	Return:	status code		0 => can’t be done
+	Return:	status code		0 => can't be done
 									1 => next block is free and large enough
-									2 => 
+									2 =>
 									3 => prev block is free and large enough
 									4 => have to realloc block
 									5 => room within the block delta
@@ -604,7 +604,7 @@ TrySetSize(Block ** ioBlock, Size inDiff, Size inSize)
 	if (heap->freeListTail >= nextBlock
 	&& (nextBlock->flags & 0x80) == 0
 	&&  nextBlock->free.size >= inDiff)
-		// there’s room after thisBlock
+		// there's room after thisBlock
 		return 1;
 
 	if ((VAddr) nextBlock < heap->end
@@ -616,17 +616,17 @@ TrySetSize(Block ** ioBlock, Size inDiff, Size inSize)
 		Size		freeSize = 0;
 		for (block = nextBlock; (VAddr) block < heap->end; )
 		{
-			if ((block->flags & 0x80) == 0)	// it’s free
+			if ((block->flags & 0x80) == 0)	// it's free
 			{
 				blockSize = block->free.size;
 				freeSize += blockSize;
 			}
-			else if (block->inuse.busy == 0)	// it’s in use but not locked
+			else if (block->inuse.busy == 0)	// it's in use but not locked
 			{
 				blockSize = block->inuse.size;
 				usedSize += blockSize;
 			}
-			else	// it’s locked
+			else	// it's locked
 				break;
 			block = (Block *)((Ptr) block + blockSize);	// move on to next block
 			if (usedSize + freeSize >= inDiff)
@@ -647,7 +647,7 @@ TrySetSize(Block ** ioBlock, Size inDiff, Size inSize)
 //64
 	if (heap->x48 != 0
 	&&  heap->x48->free.size >= inSize)
-		// there’s room in the x48 block
+		// there's room in the x48 block
 		return 4;
 //73
 	Size		r1 = 0;
@@ -706,7 +706,7 @@ TrySetSize(Block ** ioBlock, Size inDiff, Size inSize)
 
 
 /*------------------------------------------------------------------------------
-	Make blocks jump out of the way. Reallocate ’em elsewhere in the heap.
+	Make blocks jump out of the way. Reallocate 'em elsewhere in the heap.
 	Args:		inBlock			first block to make jump
 				inLimit			block beyond last jumper
 	Return:	--
@@ -718,7 +718,7 @@ JumpBlock(Block * inBlock, Block * inLimit)
 	SHeap *	heap = (SHeap *)GetCurrentHeap();	// r8
 
 	Block *	block = inBlock;	// r6
-	// we MUST have an inuse block, so skip this one if it’s free
+	// we MUST have an inuse block, so skip this one if it's free
 	if ((block->flags & 0x80) == 0)
 		block = (Block *)((Ptr) block + block->free.size);
 
@@ -750,7 +750,7 @@ JumpBlock(Block * inBlock, Block * inLimit)
 		// if next block is free, skip over it
 		nextBlock = (Block *)((Ptr) block + blockSize);
 		if ((VAddr) nextBlock < heap->end
-		&&  (nextBlock->flags & 0x80) == 0)	// it’s free
+		&&  (nextBlock->flags & 0x80) == 0)	// it's free
 			blockSize += nextBlock->free.size;
 
 		// kill the original block
@@ -785,7 +785,7 @@ FindSmallestSlide(Ptr * arg1, Size arg2, Size arg3)
 	{
 //193
 	}
-	
+
 	return NULL;
 }
 
@@ -882,7 +882,7 @@ SlideBlocksDown(Block * inBlock, Block * inLimit)
 		// update pointers to skip the moved block
 		nextBlock = (Block *)((Ptr) nextBlock + nextBlockSize);
 		thisBlock = (Block *)((Ptr) thisBlock + nextBlockSize);
-		// what we’re doing is moving the free hole up; so thisBlock is still free, update its size and free chain pointers
+		// what we're doing is moving the free hole up; so thisBlock is still free, update its size and free chain pointers
 		thisBlock->free.size = freeSize;
 		if (nextBlock == nextFreeBlock)
 		{
@@ -935,7 +935,7 @@ SearchFreeList(Size inSize)
 
 
 /*------------------------------------------------------------------------------
-	Set a free block’s prev/next free pointers.
+	Set a free block's prev/next free pointers.
 	Args:		ioBlock			the block to update
 				inPrevBlock
 				inNextBlock
@@ -1406,7 +1406,7 @@ ReportSmashedHeap(const char * inDoingWhat, NewtonErr inErr, void * inWhere)
 #if defined(correct)
 	char report[200];
 	sprintf(report,
-	// that’s really all it does -- maybe destined for DebugStr() in debug build only?
+	// that's really all it does -- maybe destined for DebugStr() in debug build only?
 #else
 	printf(
 #endif
@@ -1425,7 +1425,7 @@ ReportMemMgrTrap(ULong inName)
 #if defined(correct)
 	char report[200];
 	sprintf(report,
-	// that’s really all it does -- maybe destined for DebugStr() in debug build only?
+	// that's really all it does -- maybe destined for DebugStr() in debug build only?
 #else
 	printf(
 #endif
@@ -1436,7 +1436,7 @@ ReportMemMgrTrap(ULong inName)
 ULong
 HashCallChain(void)
 {
-//	we don’t hash the function call chain - it would rely on compiler idiom & assembler
+//	we don't hash the function call chain - it would rely on compiler idiom & assembler
 	return 0;
 }
 

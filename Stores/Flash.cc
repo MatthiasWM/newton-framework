@@ -286,7 +286,7 @@ CNewInternalFlash::internalInit(CMemoryAllocator * inAllocator, eInitHWOption in
 				fRange[i]->fRangeAddr -= fBlockSize;
 		}
 		fNumOfBlocks = fStoreSize / fBlockSize;
-//		gGlobalsThatLiveAcrossReboot.fReserved[16] = (f58 != 0);						// this doesn’t look right
+//		gGlobalsThatLiveAcrossReboot.fReserved[16] = (f58 != 0);						// this doesn't look right
 //		gGlobalsThatLiveAcrossReboot.fReserved[15] = fStoreSize - fBlockSize;
 
 		gInternalFlash = this;
@@ -345,7 +345,7 @@ CNewInternalFlash::flashAllowedLocations(bool * outBank1, bool * outBank2)
 {
 	NewtonErr err = noErr;
 
-	// let ’em have both barrels
+	// let 'em have both barrels
 	*outBank1 = true;
 	*outBank2 = true;
 
@@ -413,7 +413,7 @@ CNewInternalFlash::configureFlashBank(VAddr& ioBankAddr, VAddr& inROAddr, VAddr&
 	NewtonErr err;
 
 	if (f54)
-		// we’re using the MMU -- map the address
+		// we're using the MMU -- map the address
 		AddNewSecPNJT(kFlashBank1RWAddress, kFlashBank1PhysAddress, 0, kReadWrite, false);
 
 	fBCR->configureFlashBankDataSize(kMemoryLane32Bit);
@@ -452,7 +452,7 @@ CNewInternalFlash::configureIOBank(VAddr& ioBankAddr, VAddr& inROAddr, VAddr& in
 	NewtonErr err;
 
 	if (f54)
-		// we’re using the MMU -- map the address
+		// we're using the MMU -- map the address
 		AddNewSecPNJT(inRWAddr, kFlashBank2PhysAddress, 0, kReadWrite, false);
 
 	XTRY
@@ -507,7 +507,7 @@ CNewInternalFlash::alignAndMapVMRange(VAddr& ioAddr, PAddr inPhysAddr, size_t in
 	ioAddr += alignedSize;
 	if (f54)
 	{
-		// we’re using the MMU -- map all sections in the range
+		// we're using the MMU -- map all sections in the range
 		for ( ; addr < ioAddr; addr += kSectionSize, inPhysAddr += kSectionSize)
 		{
 			AddNewSecPNJT(addr, inPhysAddr, 0, inPerm, inCacheable);
@@ -619,7 +619,7 @@ CNewInternalFlash::checkFor4LaneFlash(VAddr inAddr, SFlashChipInformation& outIn
 		outDriver = lane1Driver;
 		return true;
 	}
-	
+
 	return true;//false;
 }
 
@@ -809,8 +809,8 @@ CNewInternalFlash::gatherBlockMappingInfo(ULong & ioArg1, ULong & ioArg2, ULong 
 				ArrayIndex blockIndex = blockInfo.index;
 				if (blockIndex < lastBlock)
 				{
-					// it’s a valid block
-					// ensure it hasn’t already been mapped
+					// it's a valid block
+					// ensure it hasn't already been mapped
 					XFAILNOT(fBlockMap[blockIndex] == kNoBlockIndex, err = kStoreErrNeedsFormat;)
 					// record its physical index
 					fBlockMap[blockIndex] = i;
@@ -846,7 +846,7 @@ CNewInternalFlash::gatherBlockMappingInfo(ULong & ioArg1, ULong & ioArg2, ULong 
 		{
 			if (fBlockMap[i] == kNoBlockIndex)
 			{
-				// there’s an unmapped block
+				// there's an unmapped block
 				XFAILNOT(ioArg4 == kNoBlockIndex, err = kStoreErrNeedsFormat;)
 				ioArg4 = 0;
 			}
@@ -1053,7 +1053,7 @@ CNewInternalFlash::isVirgin(ZAddr inAddr, size_t inLength)
 
 		if (blockOffset == 0)
 		{
-			// don’t look at the first word in the block
+			// don't look at the first word in the block
 			blockOffset = 4;
 			blockLen -= 4;
 		}

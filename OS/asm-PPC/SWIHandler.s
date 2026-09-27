@@ -103,7 +103,7 @@ Done:
 
 ; disable IRQ | FIQ
 
-; if in nested interrupt, don’t swap task
+; if in nested interrupt, don't swap task
 		lis	r30, ha16(_gAtomicFIQNestCountFast)
 		lwz	r31, lo16(_gAtomicFIQNestCountFast)(r30)
 		cmpwi	cr7, r31, 0
@@ -147,13 +147,13 @@ Done:
 2:
 		addis	r3, 0, ha16(_gCurrentTask)
 		lwz	r30, lo16(_gCurrentTask)(r3)	; r30 = current task
-		cmpw	cr7, r31, r30			; if task hasn’t changed, don’t do task swap
+		cmpw	cr7, r31, r30			; if task hasn't changed, don't do task swap
 		beq+	cr7, NoSwap
 
 		stw	r31, lo16(_gCurrentTask)(r3)	; update gCurrentTask
 
 		cmpwi	cr7, r30, 0
-		beq-	cr7, SwapIn			; if no prev task, don’t swap it out
+		beq-	cr7, SwapIn			; if no prev task, don't swap it out
 
 ; r30 = prev task
 ; r31 = new scheduled task
@@ -177,7 +177,7 @@ SwapOut:
 
 		mflr	r31
 		stw	r31, tasklk(r30)
-		stw	r31, taskpc(r30)		; save task’s PC when calling here, ie its LK
+		stw	r31, taskpc(r30)		; save task's PC when calling here, ie its LK
 		b		SwapIn
 
 ;	gCopyDone == YES
@@ -496,22 +496,22 @@ DoGenerateMessageIRQ:
 
 ;--7----------------------------------------------------------------------------
 DoPurgeMMUTLBEntry:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;--8----------------------------------------------------------------------------
 DoFlushMMU:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;--9----------------------------------------------------------------------------
 DoFlushCache:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;-10----------------------------------------------------------------------------
 DoGetCPUVersion:
-; don’t know what to do here
+; don't know what to do here
 		li		r3, 0
 		b		Done
 
@@ -550,7 +550,7 @@ DoSemOp:
 
 ;-12----------------------------------------------------------------------------
 DoSetDomainRegister:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;-13----------------------------------------------------------------------------
@@ -585,7 +585,7 @@ DoSMemCopyToShared:
 		lis	r30, ha16(_gCurrentTask)
 		lwz	r30, lo16(_gCurrentTask)(r30)
 		mflr	r31
-		stw	r31, taskpc(r30)			; save LK, we’re going to change it
+		stw	r31, taskpc(r30)			; save LK, we're going to change it
 
 		mflr	r31
 		stw	r31, frlk(r1)
@@ -740,12 +740,12 @@ DoSMemMsgMsgDone:
 
 ;-24----------------------------------------------------------------------------
 DoTurnOffCache:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;-25----------------------------------------------------------------------------
 DoTurnOnCache:
-; don’t know what to do here
+; don't know what to do here
 		b		Done
 
 ;-26----------------------------------------------------------------------------

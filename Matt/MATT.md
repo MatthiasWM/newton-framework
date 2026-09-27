@@ -108,7 +108,7 @@ Disasm
 Step, StepIn, StepOut, RunUntil
 
 The stepping functions create temporary break points, which are removed as
-soon as they’re used.
+soon as they're used.
 
 gFramesBreakPoints
 

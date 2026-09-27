@@ -172,7 +172,7 @@ CLexer::consumeToken(void)
 			consumeChar();
 		}
 		if (theChar == '0') {
-			// might be 0x hex number -- if not doesn’t matter, it won’t affect the value
+			// might be 0x hex number -- if not doesn't matter, it won't affect the value
 			consumeChar();
 			if (theChar == 'x') {
 				isHex = true;
@@ -273,7 +273,7 @@ CLexer::consumeToken(void)
 			} else if (theChar == '/' || theChar == '>') {
 				// end of line/string
 				if (ODD(dataLen)) {
-					Warning(fPosition, "hex group doesn’t end at a byte boundary");
+					Warning(fPosition, "hex group doesn't end at a byte boundary");
 				}
 				if (theChar == '/') {
 					eatWhitespace();
@@ -335,10 +335,10 @@ CLexer::eatWhitespace(void)
 			// could be a comment
 			consumeChar();
 			if (theChar == '/') {
-				// it’s a comment like this -- look for end of line
+				// it's a comment like this -- look for end of line
 				do { consumeChar(); } while (theChar != 0x0A && theChar != 0x0D && theChar != EOF);
 			} else if (theChar == '*') {
-				/* it’s a comment like this -- look for closing */
+				/* it's a comment like this -- look for closing */
 				do {
 					consumeChar();
 					if (theChar == '*') {

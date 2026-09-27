@@ -71,16 +71,16 @@ _LowLevelGetCPUType:
 		EOR	R1, R1, #&44000000
 		EOR	R1, R1, #&00010000
 		EORS	R1, R1, #&0000A100
-		MOVEQ	R0, #&03					; if CPU = D-1-A10 (StrongARM 1010 in MP2000) it’s 3
+		MOVEQ	R0, #&03					; if CPU = D-1-A10 (StrongARM 1010 in MP2000) it's 3
 
 		MRC	Internal, R1, CR0
 		BIC	R1, R1, #&0F
 		EOR	R1, R1, #&41000000
 		EOR	R1, R1, #&00040000
 		EORS	R1, R1, #&00007100
-		MOVEQ	R0, #&02					; if CPU = A-4-710 (ARM710 in eMate) it’s 2
+		MOVEQ	R0, #&02					; if CPU = A-4-710 (ARM710 in eMate) it's 2
 
-		MOV	PC, LK					; default should be ARM610 in MP130; it’s 1
+		MOV	PC, LK					; default should be ARM610 in MP130; it's 1
 
 
 ;	ULong LowLevelProcRevLevel(void)
@@ -97,7 +97,7 @@ _LowLevelProcRevLevel:
 		EOR	R0, R0, #&00040000
 		EORS	R0, R0, #&00007100
 		CMPNE R1, #2
-		MOVGE R0, #1					; if CPU = A-4-710 or rev >= 2 it’s 1
+		MOVGE R0, #1					; if CPU = A-4-710 or rev >= 2 it's 1
 		MOVLT	R0, #0
 		MOV	PC, LK
 
@@ -234,7 +234,7 @@ _GenericSWI:
 ;	Return:	R0				error code
 
 _GenericWithReturnSWI:
-		SWI	5						; shouldn’t we do a user-mode check as above?
+		SWI	5						; shouldn't we do a user-mode check as above?
 		STMDB	SP!, {R0}			; save return code
 		LDR	R0, [SP, #&04]
 		CMP	R0, #&00000000		; if outp1 != NULL
@@ -387,7 +387,7 @@ _PortSendSWI:
 ;	Receive a message at a port.
 ;	Args:		R0	inId					port id
 ;				R1	inMsgId				message id
-;				R2	inMsgFilter			types of message we’re interested in
+;				R2	inMsgFilter			types of message we're interested in
 ;				R3	inFlags				flags
 ;				SP+00	outSenderMsgId		sender info - sent message id
 ;				SP+04	outReplyMemId		- sent reply id
@@ -419,7 +419,7 @@ _PortReceiveSWI:
 ;	Reset the message filter on a port.
 ;	Args:		R0	inId					port id
 ;				R1	inMsgId				message id
-;				R2	inMsgFilter			types of message we’re interested in
+;				R2	inMsgFilter			types of message we're interested in
 ;	Return:	R0							error code
 
 _PortResetFilterSWI:
@@ -589,7 +589,7 @@ _SMemMsgSetMsgAvailPortSWI:
 
 ;	NewtonErr SMemMsgGetSenderTaskIdSWI(ObjectId inId, ObjectId * outSenderTaskId)
 ;
-;	Get message sender’s task id.
+;	Get message sender's task id.
 ;	Args:		R0	inId
 ;				R1	outSenderTaskId
 ;	Return	R0	error code

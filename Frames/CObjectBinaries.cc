@@ -32,7 +32,7 @@ void			CObjectBinaryUpdate(void * inData);
 /*------------------------------------------------------------------------------
 	D a t a
 	C O b j e c t   P r o c s
-	Don’t know if this is the right kind of initialization.
+	Don't know if this is the right kind of initialization.
 ------------------------------------------------------------------------------*/
 
 const IndirectBinaryProcs  gCObjectBinaryProcs

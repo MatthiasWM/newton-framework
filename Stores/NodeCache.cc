@@ -78,14 +78,14 @@ CNodeCache::rememberNode(CSoupIndex * index, PSSId inId, size_t inSize, bool inD
 	{
 		if (p->id == 0)
 		{
-			// this one’s free
+			// this one's free
 			aNodeToRemember = p;
 			isPoolModified = false;
 			break;
 		}
 		if (!p->isInUse && p->lru < highestLRU)
 		{
-			// this one’s inactive and the least recently used
+			// this one's inactive and the least recently used
 			highestLRU = p->lru;
 			aNodeToRemember = p;
 		}
@@ -99,7 +99,7 @@ CNodeCache::rememberNode(CSoupIndex * index, PSSId inId, size_t inSize, bool inD
 	}
 	else
 	{
-		// didn’t find anything; increase the size of the pool
+		// didn't find anything; increase the size of the pool
 		fPool = (NodeRef *)ReallocPtr((Ptr)fPool, (fNumOfEntries+1) * sizeof(NodeRef));
 		if (MemError())
 			OutOfMemory();
@@ -221,7 +221,7 @@ CNodeCache::reuse(CSoupIndex * index)
 	{
 		if (p->index == index)
 			p->isInUse = true;
-			// don’t break
+			// don't break
 	}
 }
 
@@ -237,7 +237,7 @@ CNodeCache::abort(CSoupIndex * index)
 			p->isInUse = false;
 			p->id = 0;
 			p->isDirty = false;
-			// don’t break
+			// don't break
 		}
 	}
 	fModCount++;

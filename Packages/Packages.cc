@@ -2,7 +2,7 @@
 	File:		Packages.cc
 
 	Contains:	Package loaders etc.
-	
+
 	Written by:	Newton Research Group.
 */
 
@@ -358,7 +358,7 @@ StoreSuckPackageFromEndpoint(RefArg rcvr, RefArg inEndpoint, RefArg inParms)
 {
 	NewtonErr err = noErr;
 	RefVar pkg;
-#if 0 /* endpoints don’t work yet */
+#if 0 /* endpoints don't work yet */
 	CEndpoint * ep = GetClientEndpoint(inEndpoint);
 	if (ep)
 	{
@@ -377,7 +377,7 @@ StoreSuckPackageFromEndpoint(RefArg rcvr, RefArg inEndpoint, RefArg inParms)
 #endif
 	if (err)
 		ThrowErr(exFrames, err);
-	
+
 	return pkg;
 }
 

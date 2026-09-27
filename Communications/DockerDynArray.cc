@@ -77,7 +77,7 @@ CDockerDynArray::add(ULong inId)
 	Add an id to our list.
 	Try to reuse a zero entry (one that has been unregistered).
 	Args:		inId
-				index		-> index of id’s entry
+				index		-> index of id's entry
 	Return:	error code
 ------------------------------------------------------------------------------- */
 

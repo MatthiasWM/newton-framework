@@ -32,7 +32,7 @@ __ZN18CZippyDecompressor9classInfoEv:
 		BRAZ		__ZN18CZippyDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18CZippyDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -74,7 +74,7 @@ __ZN13CLZCompressor9classInfoEv:
 		BRAZ		__ZN13CLZCompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN13CLZCompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -117,7 +117,7 @@ __ZN15CLZDecompressor9classInfoEv:
 		BRAZ		__ZN15CLZDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN15CLZDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -159,7 +159,7 @@ __ZN18CUnicodeCompressor9classInfoEv:
 		BRAZ		__ZN18CUnicodeCompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18CUnicodeCompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -203,7 +203,7 @@ __ZN20CUnicodeDecompressor9classInfoEv:
 		BRAZ		__ZN20CUnicodeDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN20CUnicodeDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -246,7 +246,7 @@ __ZN18CPixelMapCompander9classInfoEv:
 		BRAZ		__ZN18CPixelMapCompander4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN18CPixelMapCompander7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -294,7 +294,7 @@ __ZN22CStoreCompanderWrapper9classInfoEv:
 		BRAZ		__ZN22CStoreCompanderWrapper4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN22CStoreCompanderWrapper7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -340,7 +340,7 @@ __ZN24CSimpleStoreDecompressor9classInfoEv:
 		BRAZ		__ZN24CSimpleStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN24CSimpleStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -382,7 +382,7 @@ __ZN29CSimpleRelocStoreDecompressor9classInfoEv:
 		BRAZ		__ZN29CSimpleRelocStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN29CSimpleRelocStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -424,7 +424,7 @@ __ZN21CSimpleStoreCompander9classInfoEv:
 		BRAZ		__ZN21CSimpleStoreCompander4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN21CSimpleStoreCompander7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -470,7 +470,7 @@ __ZN23CZippyStoreDecompressor9classInfoEv:
 		BRAZ		__ZN23CZippyStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN23CZippyStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -512,7 +512,7 @@ __ZN28CZippyRelocStoreDecompressor9classInfoEv:
 		BRAZ		__ZN28CZippyRelocStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN28CZippyRelocStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -554,7 +554,7 @@ __ZN20CLZStoreDecompressor9classInfoEv:
 		BRAZ		__ZN20CLZStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN20CLZStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -596,7 +596,7 @@ __ZN25CLZRelocStoreDecompressor9classInfoEv:
 		BRAZ		__ZN25CLZRelocStoreDecompressor4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN25CLZRelocStoreDecompressor7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -638,7 +638,7 @@ __ZN17CLZStoreCompander9classInfoEv:
 		BRAZ		__ZN17CLZStoreCompander4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN17CLZStoreCompander7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

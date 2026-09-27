@@ -92,7 +92,7 @@
 /* ----------------------------------------------------------------
 	D A T A
 
-	gCPUmode is a boolean indicating that we’re in the SWI
+	gCPUmode is a boolean indicating that we're in the SWI
 	We could probably do with IRQ|FIQ enable flags too.
 ---------------------------------------------------------------- */
 		.globl	_gCPUmode
@@ -181,7 +181,7 @@ Done:
 
 // disable IRQ | FIQ
 
-// if in nested interrupt, don’t swap task
+// if in nested interrupt, don't swap task
 		cmpl		$0, _gAtomicFIQNestCountFast
 		jne		NoSwap
 		cmpl		$0, _gAtomicIRQNestCountFast
@@ -212,13 +212,13 @@ Done:
 		addl		$12, %esp
 2:
 		popl		%edx
-		cmpl		%edx, _gCurrentTask	# if task hasn’t changed, don’t do task swap
+		cmpl		%edx, _gCurrentTask	# if task hasn't changed, don't do task swap
 		je			NoSwap
 
 		xchgl		%edx, _gCurrentTask	# update gCurrentTask
 
 		cmpl		$0, %edx
-		je			SwapIn				# if no prev task, don’t swap it out
+		je			SwapIn				# if no prev task, don't swap it out
 
 // edx = prev task
 // gCurrentTask = new scheduled task
@@ -245,7 +245,7 @@ SwapOut:
 											# restore IRQ | FIQ
 
 		movl		frlk(%ebp), %eax
-		movl		%eax, taskeip(%edx)		# save task’s PC when calling here, ie its LK
+		movl		%eax, taskeip(%edx)		# save task's PC when calling here, ie its LK
 		jmp		SwapIn
 
 //	gCopyDone == YES
@@ -582,22 +582,22 @@ DoGenerateMessageIRQ:
 
 /*  7 ---------------------------------------------------------- */
 DoPurgeMMUTLBEntry:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /*  8 ---------------------------------------------------------- */
 DoFlushMMU:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /*  9 ---------------------------------------------------------- */
 DoFlushCache:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /* 10 ---------------------------------------------------------- */
 DoGetCPUVersion:
-// don’t know what to do here
+// don't know what to do here
 		movl		$0, %eax
 		jmp		Done
 
@@ -643,7 +643,7 @@ DoSemOp:
 
 /* 12 ---------------------------------------------------------- */
 DoSetDomainRegister:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /* 13 ---------------------------------------------------------- */
@@ -810,12 +810,12 @@ DoSMemMsgMsgDone:
 
 /* 24 ---------------------------------------------------------- */
 DoTurnOffCache:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /* 25 ---------------------------------------------------------- */
 DoTurnOnCache:
-// don’t know what to do here
+// don't know what to do here
 		jmp		Done
 
 /* 26 ---------------------------------------------------------- */

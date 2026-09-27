@@ -337,7 +337,7 @@ CPixelObj::init(RefArg inBitmap)
 	if (IsInstance(inBitmap, SYMA(picture)))
 		ThrowErr(exGraf, -8803);
 
-	// get a ref to the bitmap, whatever slot it’s in
+	// get a ref to the bitmap, whatever slot it's in
 	if (IsFrame(inBitmap)) {
 		if (IsInstance(inBitmap, SYMA(bitmap))) {
 			RefVar colorData(GetFrameSlot(inBitmap, SYMA(colorData)));
@@ -363,7 +363,7 @@ CPixelObj::init(RefArg inBitmap)
 	}
 
 #if 0
-	// we don’t mask by drawing with srcBic transferMode any more
+	// we don't mask by drawing with srcBic transferMode any more
 	RefVar	theMask = GetFrameSlot(inBitmap, SYMA(mask));
 	if (NOTNIL(theMask)) {
 		CDataPtr  maskData(theMask);
@@ -484,7 +484,7 @@ CPixelObj::pixMapToPixMap(const PixelMap * inPixmap)
 	fPixPtr->rowBytes = CANONICAL_SHORT(inPixmap->rowBytes);
 	fPixPtr->reserved1 = 0;
 	if (inPixmap->reserved1 == 0x11EB) {
-		// it’s already been swapped
+		// it's already been swapped
 		fPixPtr->bounds.top = inPixmap->bounds.top;
 		fPixPtr->bounds.left = inPixmap->bounds.left;
 		fPixPtr->bounds.bottom = inPixmap->bounds.bottom;
@@ -517,12 +517,12 @@ printf("PixelMapBits() using baseAddr as Ptr!\n");
 NativePixelMap *
 CPixelObj::framBitmapToPixMap(const FramBitmap * inBitmap)
 {
-	// ALWAYS point to the data -- ignore the bitmap’s baseAddr
+	// ALWAYS point to the data -- ignore the bitmap's baseAddr
 	fPixPtr->baseAddr = (Ptr)inBitmap->data;
 
 	fPixPtr->rowBytes = CANONICAL_SHORT(inBitmap->rowBytes);
 	if (inBitmap->reserved1 == 0x11EB) {
-		// it’s already been swapped
+		// it's already been swapped
 		fPixPtr->bounds.top = inBitmap->bounds.top;
 		fPixPtr->bounds.left = inBitmap->bounds.left;
 		fPixPtr->bounds.bottom = inBitmap->bounds.bottom;
@@ -547,12 +547,12 @@ CPixelObj::framBitmapToPixMap(const FramBitmap * inBitmap)
 NativePixelMap *
 CPixelObj::framMaskToPixMap(const FramBitmap * inBitmap)
 {
-	// ALWAYS point to the data -- ignore the bitmap’s baseAddr
+	// ALWAYS point to the data -- ignore the bitmap's baseAddr
 	fMask.baseAddr = (Ptr)inBitmap->data;
 
 	fMask.rowBytes = CANONICAL_SHORT(inBitmap->rowBytes);
 	if (inBitmap->reserved1 == 0x11EB) {
-		// it’s already been swapped
+		// it's already been swapped
 		fMask.bounds.top = inBitmap->bounds.top;
 		fMask.bounds.left = inBitmap->bounds.left;
 		fMask.bounds.bottom = inBitmap->bounds.bottom;
@@ -734,7 +734,7 @@ FCopyBits(RefArg inRcvr, RefArg inImage, RefArg inX, RefArg inY, RefArg inTransf
 	bounds.top = RINT(inY);
 	ToGlobalCoordinates(inRcvr, &bounds.left, &bounds.top, NULL, NULL);
 
-	// make the frame empty - Justify will use the image’s bounds
+	// make the frame empty - Justify will use the image's bounds
 	bounds.right = bounds.left;
 	bounds.bottom = bounds.top;
 

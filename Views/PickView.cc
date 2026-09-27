@@ -99,7 +99,7 @@ CPickView::init(RefArg inContext, CView * inView)
 
 /* -----------------------------------------------------------------------------
 	Destructor.
-	Free malloc’d lists.
+	Free malloc'd lists.
 	Args:		--
 	Return:	--
 ----------------------------------------------------------------------------- */
@@ -125,7 +125,7 @@ CPickView::~CPickView()
 
 /* -----------------------------------------------------------------------------
 	Handle an event.
-	We’re only interested in clicks which we package up into an aePickItem event
+	We're only interested in clicks which we package up into an aePickItem event
 	and send to ourself.
 	Args:		inCmd		the event
 	Return:	true => we handled it
@@ -228,7 +228,7 @@ CPickView::realDraw(Rect& inRect)
 		int baseline = fTopMargin + (itemTop + itemBottom - (f44.ascent + f44.descent))/2 - 1;	//r9
 		int markBaseline = 0;	//r7
 		if (IsString(displayItem)) {
-			// it’s plain text, possibly with an icon
+			// it's plain text, possibly with an icon
 			//sp-04
 			FPoint txLoc;
 			txLoc.x = viewBounds.left + fLeftMargin;
@@ -270,7 +270,7 @@ CPickView::realDraw(Rect& inRect)
 			}
 			markBaseline = baseline;
 		} else if (IsSymbol(displayItem)) {
-			// it’s a separator
+			// it's a separator
 			CGContextSaveGState(quartz);
 			if (EQ(displayItem, SYMA(pickSeparator))) {
 				//PatHandle savedPat = GetFgPattern();
@@ -286,7 +286,7 @@ CPickView::realDraw(Rect& inRect)
 				// PenState savedPen; GetPenState(&savedPen);
 				//SetFgPattern(GetStdPattern(blackPat));
 //				PenSize(1,2);
-//				MoveTo(viewBounds.left+1, itemTop);	// original doesn’t add 1
+//				MoveTo(viewBounds.left+1, itemTop);	// original doesn't add 1
 //				LineTo(viewBounds.right-1, itemTop);
 				Point pt1 = {(short)(viewBounds.left+1), (short)itemTop};
 				Point pt2 = {(short)(viewBounds.right-1), (short)itemTop};
@@ -297,7 +297,7 @@ CPickView::realDraw(Rect& inRect)
 			}
 			CGContextRestoreGState(quartz);
 		} else if (IsFrame(displayItem)) {
-			// it’s a graphic of some kind
+			// it's a graphic of some kind
 			//sp-08
 			Rect iconRect;
 			iconRect.left = viewBounds.left + fLeftMargin;
@@ -387,7 +387,7 @@ CPickView::realDraw(Rect& inRect)
 
 /* -----------------------------------------------------------------------------
 	Hide the picker.
-	If it’s being dismissed, call its pickCancelledScript.
+	If it's being dismissed, call its pickCancelledScript.
 	Args:		--
 	Return:	--
 ----------------------------------------------------------------------------- */
@@ -634,7 +634,7 @@ CPickView::trackStroke(CStroke * inStroke, PickStuff * outPicked)
 {
 	inStroke->inkOff(true);
 	gRootView->update();
-	// don’t show the busy box while tracking
+	// don't show the busy box while tracking
 	BusyBoxSend(53);
 	Point pt = inStroke->firstPoint();
 	pickableItem(pt, outPicked);
@@ -648,7 +648,7 @@ CPickView::trackStroke(CStroke * inStroke, PickStuff * outPicked)
 		if (currentPick.index == outPicked->index
 		&&  currentPick.gridX == outPicked->gridX
 		&&  currentPick.gridY == outPicked->gridY) {
-			// selection hasn’t changed
+			// selection hasn't changed
 			Wait(1);	// could probably wait longer
 		} else {
 			if (outPicked->index != kIndexNotFound) {
@@ -1150,7 +1150,7 @@ CPickView::handleKeyDown(UniChar inChar, ULong inKeyFlags)
 				dirty();
 				gRootView->update();
 			}
-			
+
 			RefVar cmd(MakeCommand(aePickItem, this, (OpaqueRef)fPicked.index));
 			RefVar cmdParm(ToObject(SYMA(string), (const char *)&fPicked, sizeof(fPicked)));
 			CommandSetFrameParameter(cmd, cmdParm);
@@ -1325,8 +1325,8 @@ CPickView::getKeyCommandModifierWidth(ArrayIndex index)
 /* -----------------------------------------------------------------------------
 	Return an array showing by how much the list overflows the view bounds.
 	Args:		--
-	Return:	array object	0:	negative => what’s scrolled off the top
-									1:	positive => what’s scrolled off the bottom
+	Return:	array object	0:	negative => what's scrolled off the top
+									1:	positive => what's scrolled off the bottom
 ----------------------------------------------------------------------------- */
 
 Ref
@@ -1357,7 +1357,7 @@ CPickView::scroll(RefArg inDirection, bool inUpdate)
 	if (EQ(inDirection, SYMA(up))) {
 		origin.v += viewHeight;
 		if (origin.v > 0) {
-			// can’t scroll any more
+			// can't scroll any more
 			origin.v = 0;
 		} else {
 			// we are scrolled down -- origin is negative
@@ -1378,7 +1378,7 @@ CPickView::scroll(RefArg inDirection, bool inUpdate)
 		origin.v -= viewHeight;
 		int scrollLimit = viewHeight - listHeight;	// scrollLimit is negative
 		if (scrollLimit >= origin.v) {
-			// can’t scroll any more
+			// can't scroll any more
 			origin.v = scrollLimit;
 		} else {
 			// we are scrolled up -- origin is positive
@@ -1525,7 +1525,7 @@ CPickView::setupForm(void)
 		int itemHt;	// r10? some confusion here
 
 		if (IsString(item)) {
-			// it’s plain text, possibly with an icon
+			// it's plain text, possibly with an icon
 			//sp-50
 			//sp48 = sp98/g00377388 zeroRect?
 			TextBoundsInfo txBounds;	//sp2C
@@ -1568,7 +1568,7 @@ CPickView::setupForm(void)
 			}
 
 		} else if (IsSymbol(item)) {
-			// it’s a separator
+			// it's a separator
 			if (EQ(item, SYMA(pickSeparator)) || EQ(item, SYMA(pickSolidSeparator))) {
 				itemWd = 0;
 				itemHt = kPickSeparatorHeight;
@@ -1577,7 +1577,7 @@ CPickView::setupForm(void)
 			}
 
 		} else if (IsFrame(item)) {
-			// it’s a graphic of some kind
+			// it's a graphic of some kind
 			if (FrameHasSlot(item, SYMA(bits)) || FrameHasSlot(item, SYMA(colorData)) || FrameHasSlot(item, SYMA(picture))) {
 				Rect pictBounds;
 				if (!FromObject(GetFrameSlot(item, SYMA(bounds)), &pictBounds)) {
@@ -1676,7 +1676,7 @@ CPickView::setupForm(void)
 		// we need scrollers
 		RefVar scrollers(GetProtoVariable(fContext, SYMA(scrollers)));
 		if (NOTNIL(scrollers)) {
-			// we got ’em
+			// we got 'em
 			SetFrameSlot(scrollers, SYMA(viewFlags), MAKEINT(vVisible|vReadOnly));
 			// increase margin to allow for arrows
 			fRightMargin += 19;

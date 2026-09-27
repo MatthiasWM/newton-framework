@@ -156,15 +156,15 @@ PrintObjectAux(Ref obj, int indent, int depth)
 /*-- character --*/
 				UniChar	ch = RCHAR(obj);
 				if (ch > 0xFF) {
-					// it’s a Unicode char
+					// it's a Unicode char
 					REPprintf("$\\u%04X", ch);
 				} else if (ch >= 0x20 && ch <= 0x7F) {
-					// it’s a printable ASCII char
+					// it's a printable ASCII char
 					if (ch == 0x5C)
 						REPprintf("$\\\\");
 					else
 						REPprintf("$%c", ch);
-				// else it’s a control char
+				// else it's a control char
 				} else if (ch == 0x09) {
 					REPprintf("$\\t");
 				} else if (ch == 0x0D) {
@@ -244,7 +244,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 									// and therefore this frame needs multi-line output
 									for (i = 0; !iter.done() && !isAggr; iter.next(), ++i) {
 										if (printLength >= 0 && i >= printLength)
-											// don’t exceed number-of-slots-to-print preference
+											// don't exceed number-of-slots-to-print preference
 											break;
 										isAggr = IsAggregate(iter.value());
 									}
@@ -253,7 +253,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 								depth++;
 								for (iter.reset(), i = 0; !iter.done(); iter.next(), ++i) {
 									if (printLength >= 0 && i >= printLength) {
-										// don’t exceed number-of-slots-to-print preference
+										// don't exceed number-of-slots-to-print preference
 										REPprintf("...");
 										break;
 									}
@@ -296,13 +296,13 @@ PrintObjectAux(Ref obj, int indent, int depth)
 						numOfSlots = Length(obj);
 						objClass = ClassOf(obj);
 						if (EQ(objClass, SYMA(pathExpr))) {
-						// it’s a path expression
+						// it's a path expression
 							bool	hasSymbol = true;
 							for (i = 0; i < numOfSlots && hasSymbol; ++i) {
 								hasSymbol = IsSymbol(GetArraySlotRef(obj, i));
 							}
 							if (hasSymbol) {
-							// it’s all symbols so print in dotted form
+							// it's all symbols so print in dotted form
 								for (i = 0; i < numOfSlots; ++i) {
 									REPprintf("%s", SymbolName(GetArraySlotRef(obj, i)));
 									if (i < numOfSlots - 1)
@@ -349,7 +349,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 											REPprintf(": ");
 									}
 								}
-								
+
 								for (iter.reset(), i = 0; !iter.done(); iter.next(), ++i) {
 									if (printLength >= 0 && i >= printLength) {
 										// exceeded number-of-slots-to-print preference
@@ -381,7 +381,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 							isWeird = false;
 							for (unsigned char * p = s; (ch = *p) != kEndOfString; p++) {
 								if (((sType[ch] & (isUppercase|isLowercase|isDigit)) != 0) || ch == '_') {
-									/* it’s good */;
+									/* it's good */;
 								} else {
 									isWeird = true;
 									break;
@@ -395,7 +395,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 							while ((ch = *s++) != kEndOfString) {
 								if (isWeird) {
 									if (ch >= 0x20 && ch <= 0x7F) {
-										// it’s no longer weird
+										// it's no longer weird
 										REPprintf("\\u");
 										isWeird = false;
 										if (ch == 0x5C)
@@ -421,7 +421,7 @@ PrintObjectAux(Ref obj, int indent, int depth)
 							}
 							REPprintf("|");
 						} else {
-							// it’s a simple symbol
+							// it's a simple symbol
 							REPprintf("'%s", s);
 						}
 
@@ -492,7 +492,7 @@ static bool
 IsAggregate(Ref obj)
 {
 	return ISREALPTR(obj) && FLAGTEST(ObjectFlags(obj), kObjSlotted);
-//		&& !IsSymbol(obj);	// how can it be a symbol if it’s slotted? But that’s what the original does.
+//		&& !IsSymbol(obj);	// how can it be a symbol if it's slotted? But that's what the original does.
 }
 
 
@@ -669,7 +669,7 @@ Stringer(RefArg obj)
 	{
 		StringerStringObject(GetArraySlotRef(obj, i), strPtr, &textSize, inkPtr, &inkSize);
 		strPtr += textSize;
-		inkPtr += inkSize;		
+		inkPtr += inkSize;
 	}
 	if (inkLength > 0)
 	{
@@ -703,7 +703,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			*(UniChar *)outText = RCHAR(obj);
-		return true;		
+		return true;
 	}
 
 	else if (ISINT(obj))
@@ -714,7 +714,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			ConvertToUnicode(str, (UniChar *)outText, strLen);
-		return true;		
+		return true;
 	}
 
 	else if (IsReal(obj))
@@ -737,7 +737,7 @@ StringerStringObject(RefArg obj, Ptr outText, int * outTextSize, Ptr outInk, int
 		*outInkSize = 0;
 		if (outText != NULL)
 			ConvertToUnicode(strPtr, (UniChar *)outText, strLen);
-		return true;		
+		return true;
 	}
 
 	else if (IsSymbol(obj))
@@ -1212,7 +1212,7 @@ FPrint(RefArg inRcvr, RefArg inObj)
 
 /*------------------------------------------------------------------------------
 	Print a Ref object.
-	DON’T follow it with a newline.
+	DON'T follow it with a newline.
 	Args:		inRcvr		the receiver
 				inObj			the object to print
 	Return:	nil

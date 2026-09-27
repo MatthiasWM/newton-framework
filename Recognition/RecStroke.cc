@@ -175,7 +175,7 @@ CRecStroke::addPoint(TabPt * inPt)
 		XTRY
 		{
 			f46 = 0;
-			if (count() > 800)	// sic -- 100 * sizeof(SamplePt)? BeginStroke (DrawInk.cc) doesn’t allow more than 100 pts/stroke
+			if (count() > 800)	// sic -- 100 * sizeof(SamplePt)? BeginStroke (DrawInk.cc) doesn't allow more than 100 pts/stroke
 				bifurcate();
 			if (count() == 0)
 			{
@@ -358,7 +358,7 @@ CRecStroke::rotate(float inDegrees)
 	Matrix xformer;
 	MxInit(&xformer);
 	RotateMatrix(&xformer, -inDegrees, theCentre.x, theCentre.y);
-	
+
 	FPoint xformedPt;
 	SamplePt * p;
 	for (ArrayIndex i = 0; i < count(); ++i, ++p)
@@ -393,7 +393,7 @@ CRecStroke::scale(float inX, float inY)
 		dy = fBBox.top + fBBox.bottom;
 	if (dx != 0.0 || dy != 0.0)
 		MxMove(&xformer, dx, dy);
-	
+
 	FPoint xformedPt;
 	SamplePt * p;
 	for (ArrayIndex i = 0; i < count(); ++i, ++p)
@@ -420,7 +420,7 @@ CRecStroke::map(FRect * inBox)
 	{
 		p->getPoint(&pt);
 		MapPoint(&pt, &srcBox, &dstBox);
-		SetPoint(p, &pt);		// original doesn’t do negative bounds checks
+		SetPoint(p, &pt);		// original doesn't do negative bounds checks
 	}
 }
 

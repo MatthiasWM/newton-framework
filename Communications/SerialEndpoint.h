@@ -111,7 +111,7 @@ public:
 	CCommToolGetReply		fReply;				// +38
 	CRcvCompleteEvent		fCompletionEvent;	// +50
 
-// don’t really know...
+// don't really know...
 	UByte *					f6C;
 	CBufferSegment *		f70;
 	int						f74;

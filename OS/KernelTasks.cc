@@ -16,7 +16,7 @@
 
 //#if defined(__i386__) || defined(__x86_64__)
 // for IA32 & LP64 ABI, stack must be aligned at 16-byte boundary on function entry
-// we’ll just always use that anyway
+// we'll just always use that anyway
 #define kABIStackAlignment	16
 //#endif
 
@@ -409,11 +409,11 @@ CTask::~CTask()
 		fRegister[kParm2] = inTaskId;		-> user task id
 	Args:		inProc			the code to execute
 				inStackSize		size of stack to allocate
-				inTaskId			task’s id
+				inTaskId			task's id
 				inDataId			shared mem object containing task instance context
 				inPriority		task scheduler priority
 				inName			identifier; useful for humans but not used by the machine AFAICT
-				inEnv				task’s environment
+				inEnv				task's environment
 	Return:	error code
 ------------------------------------------------------------------------------*/
 
@@ -431,7 +431,7 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 		size_t		dataSize;
 		size_t		taskDataSize;
 
-		// we’re going to allocate one chunk of memory for both stack and task data
+		// we're going to allocate one chunk of memory for both stack and task data
 		// so work out size of the data
 		if (inDataId != kNoId)
 			XFAIL(err = data.getSize(&dataSize))
@@ -444,13 +444,13 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 #if __LP64__
 		stackSize *= 2;
 #endif
-		stackSize += sizeof(long)*16*KByte;	// add stack buffer since we don’t grow the stack automatically; idle task has zero stack size!
+		stackSize += sizeof(long)*16*KByte;	// add stack buffer since we don't grow the stack automatically; idle task has zero stack size!
 //		taskDataSize += 256;		// add guard zone
 #endif
 
 		if (gOSIsRunning)
 		{
-			// we’ve got the VM system, so create a new stack with a bit extra for the task data
+			// we've got the VM system, so create a new stack with a bit extra for the task data
 			fState |= kMemIsVirtual;
 			XFAILIF(err = NewStack(inEnv->fHeapDomainId, stackSize + kABIStackAlignment + taskDataSize, fId, &fStackTop, &fStackBase), fStackBase = 0;)
 			// point to the data area
@@ -462,7 +462,7 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 		}
 		else
 		{
-			// can’t use VM; allocate stack in the C heap
+			// can't use VM; allocate stack in the C heap
 			fState &= ~kMemIsVirtual;
 			XFAILNOT(fStackBase = (VAddr)NewPtr(stackSize + kABIStackAlignment + taskDataSize), err = kOSErrCouldNotCreateObject;)
 
@@ -525,7 +525,7 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 		XFAIL(err)
 
 		if ((fState & kMemIsVirtual) != 0)
-			// we’ve got VM; unlock the data area, but leave the params locked
+			// we've got VM; unlock the data area, but leave the params locked
 			UnlockHeapRange(fTaskData, fStackTop);
 
 		fTaskDataSize = taskDataSize;
@@ -621,9 +621,9 @@ CTask::freeStack(void)
 
 
 /*------------------------------------------------------------------------------
-	Set the id of the task to which this task’s resources will be bequeathed
+	Set the id of the task to which this task's resources will be bequeathed
 	when it dies.
-	Args:		inId			the task 
+	Args:		inId			the task
 	Return:	--
 ------------------------------------------------------------------------------*/
 
@@ -687,7 +687,7 @@ CTaskQueue::add(CTask * inTask, KernelObjectState inState, CTaskContainer * inCo
 	checkBeforeAdd(inTask);
 	if (fHead == NULL)
 	{
-		// there’s no queue yet, the task is at the head
+		// there's no queue yet, the task is at the head
 		fHead = inTask;
 		inTask->fTaskQItem.fPrev = (CTask *)this; // huh? remove sets fPrev to NULL
 	}
@@ -732,7 +732,7 @@ CTaskQueue::peek(void)
 
 /*------------------------------------------------------------------------------
 	Find a task (from its ObjectId) and remove it, updating its state.
-	Args:		inId			the task’s id
+	Args:		inId			the task's id
 				inState		the state it should have after removal
 	Return:	the task
 ------------------------------------------------------------------------------*/
@@ -793,9 +793,9 @@ CTaskQueue::removeFromQueue(CTask * inTask, KernelObjectState inState)
 	CTask *	qPrev = inTask->fTaskQItem.fPrev;
 	if (inTask == fHead)
 	{
-		// we’re removing the head of the queue
+		// we're removing the head of the queue
 		if (fTail == fHead)
-			// we’re removing the only item from the queue
+			// we're removing the only item from the queue
 			fHead = fTail = NULL;
 		else
 		{
@@ -805,10 +805,10 @@ CTaskQueue::removeFromQueue(CTask * inTask, KernelObjectState inState)
 	}
 	else
 	{
-		// we’re removing from the body of the queue
+		// we're removing from the body of the queue
 		qPrev->fTaskQItem.fNext = qNext;
 		if (inTask == fTail)
-			// we’re removing the last item from the queue
+			// we're removing the last item from the queue
 			fTail = qPrev;
 		else
 			qNext->fTaskQItem.fPrev = qPrev;

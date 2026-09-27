@@ -44,7 +44,7 @@ void			LBUpdate(void * inData);
 /*------------------------------------------------------------------------------
 	D a t a
 	S t a n d a r d   V B O   P r o c s
-	Don’t know if this is the right kind of initialization.
+	Don't know if this is the right kind of initialization.
 ------------------------------------------------------------------------------*/
 
 const IndirectBinaryProcs  gLBProcs	// 0C1010A0
@@ -431,10 +431,10 @@ LBDataPtr(void * inData)
 			ThrowOSErr(err);
 	}
 #if 0
-	// before the implementation of CFlashStore we malloc’d large binaries lazily
+	// before the implementation of CFlashStore we malloc'd large binaries lazily
 	if (memcmp((void *)largeBinary->fAddr, "SIMY", 4) == 0)
 	{
-		// it’s a placeholder -- need to expand it
+		// it's a placeholder -- need to expand it
 		// LB has been allocated but has no data -- we need to allocate space for the data
 		// bear in mind the LB may be compressed and we will need to write data back to the LB at some point
 		InstantiateLargeObject(&largeBinary->fAddr);

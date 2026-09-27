@@ -155,7 +155,7 @@ CAlertEventHandler::idleProc(CUMsgToken * inToken, size_t * inSize, CEvent * inE
 	{
 		if (!r7)
 		{
-			// this ain’t right...
+			// this ain't right...
 			if (currentAlert->f0C != 0)
 			{
 				currentAlert->displayAlert();

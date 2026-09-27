@@ -2,7 +2,7 @@
 	File:		LZCompressor.cc
 
 	Contains:	LZ compression class.
-	
+
 	Written by:	Newton Research Group, 2007.
 */
 
@@ -20,7 +20,7 @@ void
 InitLZCompression(void)
 {
 #if 0
-//	we don’t have this yet
+//	we don't have this yet
 	CLZCallbackCompressor::classInfo()->registerProtocol();
 #endif
 	CLZCompressor::classInfo()->registerProtocol();
@@ -565,7 +565,7 @@ CLZCompressor::compressChunk(size_t * outSize, void * inDstBuf, size_t inDstLen,
 				doneSize = 0;
 			doneSize += sizeof(size_t);
 		}
-		else 
+		else
 			compressBlock(&doneSize, dstPtr, inDstLen, srcPtr, blockSize);
 		srcPtr += blockSize;
 		dstPtr += doneSize;

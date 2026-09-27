@@ -819,7 +819,7 @@ MungeBounds(RefArg inShape)
 					pixmap->bounds.bottom = BYTE_SWAP_SHORT(pixmap->bounds.bottom);
 					pixmap->bounds.right = BYTE_SWAP_SHORT(pixmap->bounds.right);
 				}
-				else	// it’s a FramBitmap
+				else	// it's a FramBitmap
 				{
 					FramBitmap * bitmap = (FramBitmap *)(Ptr)pixmapData;
 					bitmap->reserved1 = 0x11EB;	// sign it so we know bounds have been swapped
@@ -943,7 +943,7 @@ ShapeBounds(RefArg inShape, Rect * outRect)
 		CDataPtr boundsData(boundsObj);
 		*outRect = *(Rect *)(Ptr) boundsData;
 
-		// fix up line bounds so it’s always a non-empty rect
+		// fix up line bounds so it's always a non-empty rect
 		if (EQ(shapeClass, SYMA(line)))
 		{
 			short swap;
@@ -974,7 +974,7 @@ ShapeBounds(RefArg inShape, Rect * outRect)
 
 
 /*------------------------------------------------------------------------------
-	Get a shape’s bounds rect.
+	Get a shape's bounds rect.
 	Args:		inShape
 				outRect
 				inOffset
@@ -1192,13 +1192,13 @@ DrawShapeList(RefArg inShapes, CSaveStyle * inStyle, Point inOffset)
 		{
 			RefVar	shape = iter.value();
 			if (IsStyleFrame(shape) || ISNIL(shape))
-			//	it’s a style frame so update the style
+			//	it's a style frame so update the style
 				badStyle = !inStyle->setStyle(shape, inOffset, 0);
 			else if (!badStyle)
 			{
 				if (IsArray(shape))
 				{
-				//	it’s a group of shapes; draw them in a new level
+				//	it's a group of shapes; draw them in a new level
 					RefVar		oldStyle(inStyle->getStyle());
 					SaveLevel	level;
 					inStyle->beginLevel(&level);
@@ -1206,7 +1206,7 @@ DrawShapeList(RefArg inShapes, CSaveStyle * inStyle, Point inOffset)
 					{
 					//	recurse
 						DrawShapeList(shape, inStyle, inOffset);
-					// reset the style -- shouldn’t this be in the on_unwind?
+					// reset the style -- shouldn't this be in the on_unwind?
 						inStyle->setStyle(oldStyle, inOffset, 1);
 					}
 					on_unwind
@@ -1216,7 +1216,7 @@ DrawShapeList(RefArg inShapes, CSaveStyle * inStyle, Point inOffset)
 					end_unwind;
 				}
 				else
-				//	it’s a single shape
+				//	it's a single shape
 					DrawOneShape(shape, inStyle, inOffset);
 			}
 		}
@@ -1273,14 +1273,14 @@ DrawOneShape(RefArg inShape, CSaveStyle * inStyle, Point inOffset)
 #endif
 
 //000DFE14
-	if (EQ(shapeClass, SYMA(rectangle)))			// •• rectangle
+	if (EQ(shapeClass, SYMA(rectangle)))			// ** rectangle
 	{
 		fillFn = (FillFunc) (void(*)(const Rect*)) FillRect;
 		strokeFn = (StrokeFunc) (void(*)(const Rect*)) StrokeRect;
 		goto commondraw;
 	}
 
-	else if (EQ(shapeClass, SYMA(line)))			// •• line
+	else if (EQ(shapeClass, SYMA(line)))			// ** line
 	{
 		if (inStyle->fDoStroke)
 		{
@@ -1418,7 +1418,7 @@ commondraw:
 				size_t	shapeLen = Length(shapeData);
 				if (shapeLen > 16)
 				{
-				// it’s bigger than a rectangle; keep it in a handle
+				// it's bigger than a rectangle; keep it in a handle
 					mutableShapeDataPtr = NewPtr(shapeLen);	// was NewHandle
 					memmove(mutableShapeDataPtr, shapePtr, shapeLen);
 					shapePtr = mutableShapeDataPtr;
@@ -1466,7 +1466,7 @@ commondraw:
 	}
 
 //000E0428
-	else if (EQ(shapeClass, SYMA(picture)))			// •• picture
+	else if (EQ(shapeClass, SYMA(picture)))			// ** picture
 	{
 		shapeData = GetProtoVariable(inShape, SYMA(data));
 		Rect  boundsRect;
@@ -1496,7 +1496,7 @@ commondraw:
 	}
 
 //000E05C0
-	else if (EQ(shapeClass, SYMA(bitmap)))				// •• bitmap
+	else if (EQ(shapeClass, SYMA(bitmap)))				// ** bitmap
 	{
 		Rect boundsRect;
 		GetBoundsRect(inShape, &boundsRect, inOffset, inStyle);
@@ -1511,7 +1511,7 @@ commondraw:
 	}
 
 //000E0678
-	else if (EQ(shapeClass, SYMA(text)))				// •• text
+	else if (EQ(shapeClass, SYMA(text)))				// ** text
 	{
 		Rect  boundsRect;
 		GetBoundsRect(inShape, &boundsRect, inOffset, inStyle);
@@ -1545,7 +1545,7 @@ commondraw:
 		else
 		{
 //000E0994
-		// it’s just a string of text (not justified within a box)
+		// it's just a string of text (not justified within a box)
 			StyleRecord style;
 			CreateTextStyleRecord(inStyle->fFontSpec, &style);
 		/*	if (inStyle->fDoText)
@@ -1593,8 +1593,8 @@ commondraw:
 			OffsetRect(&bounds, dh, dv);
 			InvertRect(&bounds);
 		}
-		else if (EQ(shapeClass, SYMA(rectangle)))							// it’s a rect…
-			  && (dh < grabHandleOffset || dv < grabHandleOffset))	// …but too small to have distinct grab handles
+		else if (EQ(shapeClass, SYMA(rectangle)))							// it's a rect...
+			  && (dh < grabHandleOffset || dv < grabHandleOffset))	// ...but too small to have distinct grab handles
 		{
 			if (dv < grabHandleOffset)
 			{

@@ -127,7 +127,7 @@ struct PendingImport
 	int f00;
 	int f04;
 	int f08;		// offset to ImportUnit in g12C2
-//size+0C -- don’t really know
+//size+0C -- don't really know
 };
 
 extern void ProcessPart(int inSelector, CFramesPartAccessor & inPart, long inArg3, long inOffset);

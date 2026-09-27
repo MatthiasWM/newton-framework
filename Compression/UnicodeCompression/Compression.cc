@@ -184,7 +184,7 @@ CUnicodeCompressor::writeChunk(void * inSrcBuf, size_t inSrcLen)
 			unsigned char codeTable = (ch >> 8) & 0xFF;
 			if (fRunLen > 0)
 			{
-				// we’re in a run
+				// we're in a run
 				if (codeTable == fCodeTable)
 				{
 					// in the same code table -- add char to the run
@@ -421,13 +421,13 @@ CUnicodeDecompressor::readChunk(void * inDstBuf, size_t * ioDstLen, bool * outDo
 		{
 			if (fIsEOF && fRunLen == 0)
 			{
-				// no more compressed data, and no run in progress -- we’re done
+				// no more compressed data, and no run in progress -- we're done
 				*ioDstLen = i * sizeof(UniChar);
 				break;
 			}
 			if (fRunLen > 0)
 			{
-				// we’re in a codetable run
+				// we're in a codetable run
 				// output Unicode char from codetable|charcode bytes
 #if defined(hasByteSwapping)
 				*s++ = fRun[fRunIndex++];
@@ -473,7 +473,7 @@ CUnicodeDecompressor::readChunk(void * inDstBuf, size_t * ioDstLen, bool * outDo
 				}
 				else
 				{
-					// it’s an unpopular codetable -- treat the runlen as the charcode
+					// it's an unpopular codetable -- treat the runlen as the charcode
 					*s++ = fRunLen;
 					fRunLen = 0;
 				}
@@ -483,7 +483,7 @@ CUnicodeDecompressor::readChunk(void * inDstBuf, size_t * ioDstLen, bool * outDo
 			}
 		}
 		if (fIsEOF && fRunLen == 0)
-			// no more compressed data, and no run in progress -- we’re done
+			// no more compressed data, and no run in progress -- we're done
 			*outDone = true;
 	}
 	XENDTRY;
@@ -514,7 +514,7 @@ NewCompressor(CompressionType inCompression, WriteProcPtr inWriter, VAddr instan
 	{
 		XFAIL(inCompression != kUnicodeCompression)
 		compr = (CUnicodeCompressor *)MakeByName("CCallbackCompressor", "CUnicodeCompressor");
-		XFAILIF(compr == NULL, ThrowMsg("Couldn’t create compressor.");)
+		XFAILIF(compr == NULL, ThrowMsg("Couldn't create compressor.");)
 		XFAILIF(err = compr->init(NULL), ThrowOSErr(err);)
 		compr->fWrite = inWriter;
 		compr->fHandler = instance;
@@ -533,7 +533,7 @@ NewDecompressor(CompressionType inCompression, ReadProcPtr inReader, VAddr insta
 	{
 		XFAIL(inCompression != kUnicodeCompression)
 		decompr = (CUnicodeDecompressor *)MakeByName("CCallbackDecompressor", "CUnicodeDecompressor");
-		XFAILIF(decompr == NULL, ThrowMsg("Couldn’t create decompressor.");)
+		XFAILIF(decompr == NULL, ThrowMsg("Couldn't create decompressor.");)
 		XFAILIF(err = decompr->init(NULL), ThrowOSErr(err);)
 		decompr->fRead = inReader;
 		decompr->fHandler = instance;

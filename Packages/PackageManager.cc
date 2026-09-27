@@ -243,7 +243,7 @@ CPackageBlock::init(ULong inId, ULong inVersion, size_t inSize, SourceType inSrc
 	fName = NULL;
 	fCopyright = NULL;
 	fParts = NULL;
-	
+
 	newton_try
 	{
 		fName = new UniChar[(Ustrlen(inName) + 1)*sizeof(UniChar)];
@@ -310,7 +310,7 @@ CPackageEventHandler::CPackageEventHandler()
 
 CPackageEventHandler::~CPackageEventHandler()
 {
-	// no delete fPackageList -- it’s persistent
+	// no delete fPackageList -- it's persistent
 	if (fRegistry)
 		delete fRegistry;
 }
@@ -874,7 +874,7 @@ printf("CPackageEventHandler::installPart()\n");
 						*outCode = (VAddr)protocolImpl;
 					} else if (protocolImpl != NULL) {
 						if (IsStream(inSrcType) || (IsMemory(inSrcType) && inPart.autoCopy)) {
-							free(protocolImpl);	// yes, really: protocol code was malloc’d
+							free(protocolImpl);	// yes, really: protocol code was malloc'd
 						}
 					}
 				}
@@ -906,7 +906,7 @@ printf("sending CPkPartInstallEvent to port %d\n", existingPart.packageId);
 		if (protocolImpl != NULL && err != noErr) {
 			protocolImpl->deregisterProtocol();
 			if (IsStream(inSrcType) || inPart.autoCopy) {
-				free(protocolImpl);	// yes, really: protocol code was malloc’d
+				free(protocolImpl);	// yes, really: protocol code was malloc'd
 			}
 			*outCode = NULL;
 		}
@@ -936,7 +936,7 @@ CPackageEventHandler::removePart(const PartId& inId, const CInstalledPart& inPar
 	if (inPart.f108 && (protocolImpl = inPart.f0C) != NULL && inPart.f04 == 0) {
 		protocolImpl->deregisterProtocol();
 		if (inPart.f101) {
-			free(protocolImpl);	// yes, really: protocol code was malloc’d
+			free(protocolImpl);	// yes, really: protocol code was malloc'd
 		}
 	}
 }
@@ -1224,7 +1224,7 @@ CPrivatePackageIterator::getRelocationChunkInfo(void)
 
 /* -----------------------------------------------------------------------------
 	Reset all pointers.
-	We don’t own the package data so there’s no actual disposal to be done.
+	We don't own the package data so there's no actual disposal to be done.
 	Args:		--
 	Return:	--
 ----------------------------------------------------------------------------- */
@@ -1754,7 +1754,7 @@ CPackageIterator::processorTypeOfPart(ArrayIndex inPartIndex)
 
 void
 CPackageIterator::store(CStore * inStore, PSSId inId, CCallbackCompressor * inCompressor, CLOCallback * inCallback)
-{ /*it’s a biggy*/ }
+{ /*it's a biggy*/ }
 
 
 #pragma mark -
@@ -1799,7 +1799,7 @@ Ref
 FGetPackages(RefArg inRcvr)
 {
 	if (gPkgWorld->fork(NULL) != noErr)
-		ThrowMsg("couldn’t fork it over");
+		ThrowMsg("couldn't fork it over");
 
 	RefVar pkgs(MakeArray(0));
 	CPMIterator iter;
@@ -1920,7 +1920,7 @@ CPackageLoader::load(void)
 			OpaqueRef thing, spec;
 			CUNameServer ns;
 			XFAIL(err = ns.lookup("pipe", kUPort, &thing, &spec))
-//			sp10 = fBuffer->fSharedMem;	// don’t believe these are used
+//			sp10 = fBuffer->fSharedMem;	// don't believe these are used
 //			sp14 = thing;
 #endif
 		}

@@ -169,7 +169,7 @@ ReplaceSelection(RefArg inRcvr, RefArg inString)
 	Return:	the text
 ------------------------------------------------------------------------------*/
 
-Ref	
+Ref
 TextString(RefArg inRcvr)
 {
 	NSTextView * txView = (NSTextView *)(Ref) GetFrameSlot(inRcvr, SYMA(viewCObject));
@@ -619,7 +619,7 @@ TokenStart(RefArg inRcvr, RefArg inOffset)
 
 /*------------------------------------------------------------------------------
 	Return the index of the first character after the token containing offset.
-	
+
 	Args:		inRcvr			NewtonScript context
 				inOffset
 	Return:	the class (int)
@@ -659,7 +659,7 @@ Ref
 TellUser(RefArg inRcvr, RefArg inString)
 {
 	NSString * str = MakeNSString(inString);
-	// pass to view’s delegate == window controller
+	// pass to view's delegate == window controller
 	NSTextView * txView = (NSTextView *)(Ref) GetFrameSlot(inRcvr, SYMA(viewCObject));
 	[txView.window.windowController tellUser:str];
 	return inString;

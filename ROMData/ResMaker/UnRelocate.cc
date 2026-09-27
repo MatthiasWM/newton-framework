@@ -62,7 +62,7 @@ UnRelocatePkg(void * inPkg, void * inROMBase)
 	PackageDirectory * dir = (PackageDirectory *) inPkg;
 	long offsetToPartData = CANONICAL_LONG(dir->directorySize);
 
-//	if it’s a "package1" with relocation info then adjust that relocation info
+//	if it's a "package1" with relocation info then adjust that relocation info
 	if (dir->signature[7] == '1') {
 		ULong flags = CANONICAL_LONG(dir->flags);
 		if (FLAGTEST(flags, kRelocationFlag)) {
@@ -135,7 +135,7 @@ FixRef(Ref32 ref, Ptr inROMBase, int inPkgBase)
 			FixRef(ref, inROMBase, inPkgBase);	//	for frames, class is actually map
 	}
 
-//	if it’s a frame / array, step through each slot / element fixing those
+//	if it's a frame / array, step through each slot / element fixing those
 	if (ISSLOTTED(rObj)) {
 		refPtr = rObj->slot;
 		for (ArrayIndex i = 0, count = ARRAY32LENGTH(rObj); i < count; ++i, ++refPtr) {

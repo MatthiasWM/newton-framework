@@ -32,7 +32,7 @@ __ZN9CMuxStore9classInfoEv:
 		BRAZ		__ZN9CMuxStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN9CMuxStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -115,7 +115,7 @@ __ZN11CFlashStore9classInfoEv:
 		BRAZ		__ZN11CFlashStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN11CFlashStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -198,7 +198,7 @@ __ZN13CPackageStore9classInfoEv:
 		BRAZ		__ZN13CPackageStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN13CPackageStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -280,7 +280,7 @@ __ZN15CLOPackageStore9classInfoEv:
 		BRAZ		__ZN15CLOPackageStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN15CLOPackageStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -336,7 +336,7 @@ __ZN10CHackStore9classInfoEv:
 		BRAZ		__ZN10CHackStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN10CHackStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -419,7 +419,7 @@ __ZN12CLOHackStore9classInfoEv:
 		BRAZ		__ZN12CLOHackStore4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN12CLOHackStore7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

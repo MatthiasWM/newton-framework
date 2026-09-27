@@ -2,7 +2,7 @@
 	File:		LZCompressor.h
 
 	Contains:	LZ compression class.
-	
+
 	Written by:	Newton Research Group, 2006.
 					With a little help from Philz, and a disassembly of the DILs.
 */
@@ -69,7 +69,7 @@ private:
 	bool				fLitFlag;			// +42D
 	bool				fMemFlag;			// +42E
 	CPushPopper *	fBitStack;			// +430
-	TTNode *			fAvailNode;			// +434	malloc’d buffer
+	TTNode *			fAvailNode;			// +434	malloc'd buffer
 };
 
 

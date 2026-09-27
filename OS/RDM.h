@@ -137,7 +137,7 @@ public:
 	virtual NewtonErr releaseRequest(int inSelector);
 
 #if defined(forFramework)
-	// beccause we don’t subclass from CUDomainManager
+	// beccause we don't subclass from CUDomainManager
 	NewtonErr	remember(VAddr inArg1, ULong inPermissions, ULong inArg3, bool inArg4);
 #endif
 // large objects

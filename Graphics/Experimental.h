@@ -2,12 +2,12 @@
 	File:		Experimental.h
 
 	Contains:	Thoughts for organising Newton graphics functions.
-					The main problem is Newton’s QuickDraw legacy which we don’t really want to propagate.
-					However, if we are to use view data extracted from the ROM we’ll need to use Rects etc,
+					The main problem is Newton's QuickDraw legacy which we don't really want to propagate.
+					However, if we are to use view data extracted from the ROM we'll need to use Rects etc,
 					short sized ordinates, and a drawing origin of top-left.
 					There should be a layer that transforms these values to Core Graphics / Quartz.
 					(With a view possibly to OpenGL?)
-					So we’ll keep the old QD geometry but implement it ourselves.
+					So we'll keep the old QD geometry but implement it ourselves.
 					We definitely want to ditch the old headers that deprecate QD.
 
 	Written by:	Newton Research Group, 2010.

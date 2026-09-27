@@ -164,7 +164,7 @@ struct FontEngineInfo
 	long		x00;
 	long		x04;
 	long		x08;
-	
+
 	float		x3C;
 	float		x40;
 
@@ -251,8 +251,8 @@ ConvertToFlush(ULong inViewJustify, float * outJustification)
 				inStyles				array of pointers to style records
 				inRuns				array of run lengths matching styles
 				inPt					location of text
-				inOptions			
-				outBoundsInfo		
+				inOptions
+				outBoundsInfo
 	Return:	--
 ------------------------------------------------------------------------------*/
 
@@ -283,10 +283,10 @@ MeasureTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short *
 	Args:		inStr					rich string
 				inStart				offset to start of text
 				inLength				length of text
-				inStyle				
-				inPt					•baseline• of text
-				inOptions			
-				outBoundsInfo		
+				inStyle
+				inPt					*baseline* of text
+				inOptions
+				outBoundsInfo
 	Return:	--
 ------------------------------------------------------------------------------*/
 
@@ -308,10 +308,10 @@ MeasureRichString(CRichString & inStr, ULong inStart, size_t inLength, StyleReco
 	Args:		inStr					a rich string
 				inStart				offset to start of text
 				inLength				length of text
-				inStyle				
+				inStyle
 				inPt					location of text
-				inOptions			
-				outBoundsInfo		
+				inOptions
+				outBoundsInfo
 				inDoDraw				false => do measure
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -511,7 +511,7 @@ DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect 
 	// Create the framesetter with the attributed string.
 	CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(attrStr);
 	CFRelease(attrStr);
-	 
+
 	// Create the frame and draw it into the graphics context
 	CTFrameRef frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, NULL);
 	CTFrameDraw(frame, quartz);

@@ -6,13 +6,13 @@ couldn't read "%s"
 *
 couldn't Get resource type = 0x%8X in "%s"
 couldn't get size of resource in "%s"
-### 
- 
+###
+
 expected a value
 option "%s" must be between %ld and %ld
 option "%s" must be an integer
 missing required option "%s"
-, 
+,
 
 could not allocate gGelatoPageTable
 multiple extension ID's
@@ -26,14 +26,14 @@ diagnostics align size “%04X” unknown (!= 4K/1K)
 expected filename or raw data block
 expected filename or raw data block
 expected filename
-expected resource filename 
-resource filename is too long 
+expected resource filename
+resource filename is too long
 couldn't open resource fork of "%s"
-‘-ALL’ option found zero resources within "%s"
+‘-ALL' option found zero resources within "%s"
 
 start
 length
-# Unrecognized options: 
+# Unrecognized options:
 bad option list
 
 start
@@ -41,7 +41,7 @@ length
 tag
 lanesize
 lanecount
-# Unrecognized options: 
+# Unrecognized options:
 bad option list
 
 manufacturer
@@ -51,13 +51,13 @@ needsvpp
 size
 blocksize
 start
-# Unrecognized options: 
+# Unrecognized options:
 bad option list
 
 min
 max
 percent
-# Unrecognized options: 
+# Unrecognized options:
 bad option list
 
 multiple patch table addresses
@@ -93,7 +93,7 @@ resource
 patchtableaddr
 
 &:§!
-"; Line 
+"; Line
 !
 <unknown>
 File " <-150A>
@@ -175,14 +175,14 @@ Internal error: instr at offset 0x%lX isn't a branch to offset 0x%lX
 unrecognized section name "%s"
 expected identifier
 # Error: -0E4A
-# Error: 
+# Error:
 # Warning: -0E3C
-### 
+###
 ### Config file clauses:
 ###     -o <output-file>  set output file name
 ###     -help             print this message
  [-help] [-o <output-file>] [<config-file>]
-### Usage: 
+### Usage:
 help -0D72
 o -0D6C
 expected filename with

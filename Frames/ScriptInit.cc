@@ -135,10 +135,10 @@ InitScriptGlobals(void)
 	DefGlobalVar(SYMA(constantFunctions), Clone(RA(constantFunctions)));
 #endif
 
-// •• This has already been done by REPInit()
+// ** This has already been done by REPInit()
 	DefGlobalVar(SYMA(functions), RA(gFunctionFrame));
 	DefGlobalVar(SYMA(vars), RA(gVarFrame));
-// ••
+// **
 //DefGlobalVar(SYMA(trace), SYMA(functions));	// switch on function tracing
 //EnableFramesFunctionProfiling(true);
 

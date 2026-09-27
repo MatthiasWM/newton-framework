@@ -436,7 +436,7 @@
 	EntryCachedObject: plainC.FEntryCachedObject/*entry*/,
 
 
-//••
+//**
 
 
 	XmitStoreSoupsEntering: func(arg1)

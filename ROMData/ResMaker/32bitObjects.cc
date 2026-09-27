@@ -18,7 +18,7 @@ extern Ref FixPointerRef(Ref r);
 
 /* -----------------------------------------------------------------------------
 	Return name of 32-bit symbol.
-	Correct capitalisation while we’re about it.
+	Correct capitalisation while we're about it.
 	Args:		r			pointer Ref within ROM data block
 	Return:	C string, not necessarily within symbol object
 ----------------------------------------------------------------------------- */
@@ -134,7 +134,7 @@ B32EQ1(Ref a, Ref b)
 		return true;
 	if ((obj1 == NULL) || (obj2 == NULL))
 		return false;
-//	There are some loose symbols in the ROM - they aren’t in the symbol table
+//	There are some loose symbols in the ROM - they aren't in the symbol table
 //	so we have to make a manual check for them.
 	return (((SymbolObject32 *)obj1)->objClass == CANONICAL_LONG(kSymbolClass) && ((SymbolObject *)obj2)->objClass == kSymbolClass
 	    &&  CANONICAL_LONG(((SymbolObject32 *)obj1)->hash) == ((SymbolObject *)obj2)->hash
@@ -296,7 +296,7 @@ B32FindOffset(Ref map, Ref tag)
 
 	if ((tag == SYMA(_proto) || UnsafeSymbolEqual(tag, SYMA(_proto), k_protoHash))
 	&&  (((FrameMapObject32 *)(map-1))->objClass & kMapProto) == 0)
-		;	// we’re looking for a _proto slot but there’s no proto chain
+		;	// we're looking for a _proto slot but there's no proto chain
 	else
 	{
 		Ref	implMap;
@@ -353,7 +353,7 @@ B32GetProtoVariable(Ref inRcvr, Ref inTag, bool * outExists)
 		impl = FixPointerRef(CANONICAL_LONG(impl));
 	}
 
-	// variable wasn’t found
+	// variable wasn't found
 	*outExists = false;
 	return NILREF;
 }

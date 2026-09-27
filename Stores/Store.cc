@@ -12,7 +12,7 @@
 #pragma mark CStore
 /*------------------------------------------------------------------------------
 	C S t o r e
-	This is a p-class interface, so there’s no implementation here.
+	This is a p-class interface, so there's no implementation here.
 	But you might use this file as a template for a store implementation.
 ------------------------------------------------------------------------------*/
 
@@ -68,7 +68,7 @@ CStore::checkIntegrity(ULong * inArg1)
 
 #pragma mark Store info
 /* -----------------------------------------------------------------------------
-	Return the store’s root object id.
+	Return the store's root object id.
 	Args:		outRootId
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -115,7 +115,7 @@ CStore::isReadOnly(bool * outIsReadOnly)
 /* -----------------------------------------------------------------------------
 	Is this store in ROM? A ROM Flash Card is an application card.
 	Args:		--
-	Return	true => it’s in ROM
+	Return	true => it's in ROM
 ----------------------------------------------------------------------------- */
 
 bool
@@ -161,7 +161,7 @@ CStore::isLocked(void)
 
 #pragma mark MuxStore
 /* -----------------------------------------------------------------------------
-	Set the store’s buddy.
+	Set the store's buddy.
 	Args:		inStore
 	Return	error code
 ----------------------------------------------------------------------------- */
@@ -256,7 +256,7 @@ CStore::getObjectSize(PSSId inObjectId, size_t * outSize)
 
 /* -----------------------------------------------------------------------------
 	Return the id of the next object in the store.
-	Don’t think this interface is used anywhere.
+	Don't think this interface is used anywhere.
 	Args:		inObjectId
 				outNextObjectId
 	Return	error code
@@ -291,7 +291,7 @@ CStore::address(PSSId inObjectId)
 
 /* -----------------------------------------------------------------------------
 	Read an object in the store.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inStartOffset		offset into object
 				outBuffer			buffer to receive object data
 				inLength				size of object to read -- may not be whole object
@@ -305,7 +305,7 @@ CStore::read(PSSId inObjectId, size_t inStartOffset, void * outBuffer, size_t in
 
 /* -----------------------------------------------------------------------------
 	Write an object to the store.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inStartOffset		offset into buffer for object data
 				inBuffer				object data
 				inLength				size of object data

@@ -34,7 +34,7 @@ MemError(void)
 
 struct Block
 {
-	Size				size;		// first b/c it’s 64-bit
+	Size				size;		// first b/c it's 64-bit
 	union {
 		ObjectId		owner;	// 32-bit
 		ULong			name;
@@ -122,7 +122,7 @@ FreePtr(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s size.
+	Set a pointer's size.
 	(The function formerly known as SetPtrSize.)
 	Args:		inPtr			the pointer in question
 				inSize		its new size
@@ -150,7 +150,7 @@ ReallocPtr(Ptr inPtr, Size inSize)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s size.
+	Get a pointer's size.
 	Args:		inPtr			the pointer in question
 	Return:	its size
 ------------------------------------------------------------------------------*/
@@ -168,7 +168,7 @@ GetPtrSize(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s owner.
+	Get a pointer's owner.
 	Args:		inPtr			the pointer in question
 	Return:	its owner
 ------------------------------------------------------------------------------*/
@@ -188,7 +188,7 @@ GetPtrOwner(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s owner.
+	Set a pointer's owner.
 	Args:		inPtr			the pointer in question
 				inOwner		its owner
 	Return:	--
@@ -206,7 +206,7 @@ SetPtrOwner(Ptr inPtr, ObjectId inOwner)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s name.
+	Get a pointer's name.
 	Args:		inPtr			the pointer in question
 	Return:	its name
 ------------------------------------------------------------------------------*/
@@ -227,7 +227,7 @@ GetPtrName(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s name.
+	Set a pointer's name.
 	Args:		inPtr			the pointer in question
 				inName		its name
 	Return:	--
@@ -245,7 +245,7 @@ SetPtrName(Ptr inPtr, ULong inName)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s type.
+	Get a pointer's type.
 	Args:		inPtr			the pointer in question
 	Return:	its type
 ------------------------------------------------------------------------------*/
@@ -263,7 +263,7 @@ GetPtrType(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s type.
+	Set a pointer's type.
 	Args:		inPtr			the pointer in question
 				inType		its type
 	Return:	--
@@ -322,7 +322,7 @@ UnlockPtr(Ptr inPtr)
 
 /*------------------------------------------------------------------------------
 	Wired pointers.
-	Behave like normal pointers. (They’re fake!)
+	Behave like normal pointers. (They're fake!)
 ------------------------------------------------------------------------------*/
 #if 0
 

@@ -201,7 +201,7 @@ CreateNub(RefArg inConnectionKind, RefArg inMachineName, RefArg inInputTranslato
 
 				case 2:
 					isSerial = true;
-					// fall thru…
+					// fall thru...
 
 				case 1:
 					sp00 = new COptionArray;
@@ -292,7 +292,7 @@ FNTKListener(RefArg rcvr, RefArg inStart, RefArg inConnectionKind, RefArg inMach
 
 	if (ISTRUE(inStart))
 	{
-		// create the NTK nub (if it doesn’t already exist)
+		// create the NTK nub (if it doesn't already exist)
 		if (gNTKNub == NULL)
 		{
 			XTRY
@@ -323,7 +323,7 @@ FNTKListener(RefArg rcvr, RefArg inStart, RefArg inConnectionKind, RefArg inMach
 			delete gNTKNub, gNTKNub = NULL;
 		}
 		else
-			err = -1;	// nub doesn’t exist
+			err = -1;	// nub doesn't exist
 	}
 
 	return MAKEINT(err);
@@ -399,7 +399,7 @@ FNTKSend(RefArg rcvr, RefArg inRef)
 /* -----------------------------------------------------------------------------
 	Determine whether the NTK nub is active.
 	Args:		rcvr
-	Return:	true => it’s alive
+	Return:	true => it's alive
 ----------------------------------------------------------------------------- */
 
 Ref
@@ -1464,7 +1464,7 @@ CNTKNub::readCommand(EventType * outCmd, size_t * outLength)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1553,7 +1553,7 @@ CNTKNub::handleCodeBlock(size_t inLength)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1610,7 +1610,7 @@ CNTKNub::sendTextHeader(size_t inLength)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1637,7 +1637,7 @@ CNTKNub::sendResult(NewtonErr inResult)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1663,7 +1663,7 @@ CNTKNub::sendEOM(void)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1690,7 +1690,7 @@ CNTKNub::sendRef(EventType inCmd, RefArg inRef)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1716,7 +1716,7 @@ CNTKNub::enterBreakLoop(int inLevel)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1742,7 +1742,7 @@ CNTKNub::exitBreakLoop(void)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 
@@ -1801,7 +1801,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, char * inMessage)
 		}
 		end_try;
 	}
-	
+
 	return err;
 }
 
@@ -1833,7 +1833,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, RefArg inData)
 		}
 		end_try;
 	}
-	
+
 	return err;
 }
 
@@ -1870,7 +1870,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, NewtonErr inError)
 		}
 		end_try;
 	}
-	
+
 	return err;
 }
 
@@ -1895,7 +1895,7 @@ CNTKNub::sendExceptionHeader(EventType inCmd)
 		err = (NewtonErr)(long)CurrentException()->data;
 	}
 	end_try;
-	
+
 	return err;
 }
 #endif

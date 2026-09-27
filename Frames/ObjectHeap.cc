@@ -256,7 +256,7 @@ AllocateMapWithTags(RefArg inSuperMap, RefArg tagsArray)
 
 
 /*----------------------------------------------------------------------
-	Compute frame’s map size.
+	Compute frame's map size.
 	In:		inMap			a frame map
 	Return:	long			the number of tags in this and all supermaps.
 ----------------------------------------------------------------------*/
@@ -275,7 +275,7 @@ ComputeMapSize(Ref inMap)
 
 /*----------------------------------------------------------------------
 	Set the length of an array object.
-	Unsafe in that it doesn’t check the type of Ref passed in.
+	Unsafe in that it doesn't check the type of Ref passed in.
 	It might be a frame.
 	In:		obj		the object
 				length	number of slots
@@ -291,7 +291,7 @@ UnsafeSetArrayLength(RefArg obj, ArrayIndex length)
 
 /*----------------------------------------------------------------------
 	Return the length of an array.
-	Unsafe in that it doesn’t check the type of Ref passed in.
+	Unsafe in that it doesn't check the type of Ref passed in.
 	In:		p			pointer to array object
 	Return:	long		number of slots
 ----------------------------------------------------------------------*/
@@ -481,13 +481,13 @@ TotalClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones, bool doSh
 
 	if (gHeap->inHeap(obj) || ISINROM(obj.h->ref))
 	{
-		// it’s internal so no need to clone
+		// it's internal so no need to clone
 		if (doShare)
 		{
 			if (FLAGTEST(ObjectFlags(obj), kObjReadOnly))
 			{
 				clones.add(obj);
-				return NILREF;		//	don’t descend into package or ROM
+				return NILREF;		//	don't descend into package or ROM
 			}
 			else
 				objClone = obj;
@@ -535,7 +535,7 @@ TotalClone(RefArg obj)
 		if (IsSymbol(r))
 		{
 			if (gHeap->inHeap(r) || ISINROM(r))
-				// it’s internal so no need to clone
+				// it's internal so no need to clone
 				return r;
 			return MakeSymbol(SymbolName(r));
 		}
@@ -555,7 +555,7 @@ EnsureInternal(RefArg obj)
 		if (IsSymbol(r))
 		{
 			if (gHeap->inHeap(r) || ISINROM(r))
-				// it’s already internal
+				// it's already internal
 				return r;
 			return MakeSymbol(SymbolName(r));
 		}
@@ -1194,13 +1194,13 @@ bool gLogObjectHeapAllocations = false;
 RefHandle *
 CObjectHeap::allocateRefHandle(Ref inRef)
 {
-	// point to free RefHandle…
+	// point to free RefHandle...
 	RefHandle * refh = refHBlock->data + refHIndex;
 	// sanity check -- ref handle MUST NOT be in use
 	if (refh->stackPos != MAKEINT(kIndexNotFound)) {
 		printf("\nCObjectHeap::allocateRefHandle() handle in use!\n");
 	}
-	// …which points to the next
+	// ...which points to the next
 	refHIndex = RVALUE(refh->ref);
 
 	// populate this RefHandle
@@ -1210,7 +1210,7 @@ CObjectHeap::allocateRefHandle(Ref inRef)
 if (gLogObjectHeapAllocations) { printf("allocating #%p, ref=%ld stackPos=%ld\n", refh, RVALUE(refh->ref), RVALUE(refh->stackPos)); }
 
 	// The last free RefHandle has a ref of kIndexNotFound.
-	// When this is reached it’s time to expand the RefHandle table.
+	// When this is reached it's time to expand the RefHandle table.
 	if (refHIndex == kIndexNotFound) {
 		return expandObjectTable(refh);
 	}
@@ -1227,7 +1227,7 @@ if (gLogObjectHeapAllocations) { printf("allocating #%p, ref=%ld stackPos=%ld\n"
 void
 CObjectHeap::disposeRefHandle(RefHandle * inRefHandle)
 {
-	if (inRefHandle == NULL) {	// original doesn’t check
+	if (inRefHandle == NULL) {	// original doesn't check
 		printf("\nCObjectHeap::disposeRefHandle(NULL)\n");
 	}
 
@@ -1299,7 +1299,7 @@ CObjectHeap::clearRefHandles(void)
 size_t
 CObjectHeap::coalesceFreeBlocks(ObjHeader * freeObj, size_t reqSize)
 {
-	// trivial rejection of object that isn’t actually free
+	// trivial rejection of object that isn't actually free
 	if ((freeObj->flags & kObjFree) == 0)
 		return 0;
 
@@ -1314,7 +1314,7 @@ CObjectHeap::coalesceFreeBlocks(ObjHeader * freeObj, size_t reqSize)
 			freeSize += nextSize;
 		}
 		freeObj->size = freeSize;
-		// if we coalesced the freeHeap, it’s now this free object
+		// if we coalesced the freeHeap, it's now this free object
 		if (freeHeap > freeObj && freeHeap < INC(freeObj, freeSize))
 			freeHeap = freeObj;
 	}
@@ -1596,7 +1596,7 @@ CObjectHeap::allocateMap(RefArg inSuperMap, ArrayIndex inLength)
 
 /*----------------------------------------------------------------------
 	Resize a heap object.
-	If a new object has to be created (ie we can’t adjust the size
+	If a new object has to be created (ie we can't adjust the size
 	of the original) then forward refs from the old to the new.
 ----------------------------------------------------------------------*/
 
@@ -1623,7 +1623,7 @@ CObjectHeap::resizeObject(RefArg inObj, size_t inSize)
 /*----------------------------------------------------------------------
 	Set the length of an array.
 	If the array is lengthened, fill the new elements with NILREF.
-	Unsafe in that it doesn’t check the type of Ref passed in.
+	Unsafe in that it doesn't check the type of Ref passed in.
 	It might be a frame.
 ----------------------------------------------------------------------*/
 
@@ -1650,7 +1650,7 @@ CObjectHeap::unsafeSetArrayLength(RefArg inObj, ArrayIndex inLength)
 /*----------------------------------------------------------------------
 	Set the length of a binary object.
 	If the binary is lengthened, fill the new data with zeros.
-	Unsafe in that it doesn’t check the type of Ref passed in.
+	Unsafe in that it doesn't check the type of Ref passed in.
 ----------------------------------------------------------------------*/
 
 void
@@ -2031,7 +2031,7 @@ printf("VBO ");
 				}
 				// Zero the slotIndex in preparation for walking slotted objects
 				obj->gc.count.slots = 0;
-				// Thread the ref into the marker list, overloading the ref’s slot[0]
+				// Thread the ref into the marker list, overloading the ref's slot[0]
 				link = marker;
 				marker = ref;
 				ref = obj->slot[0];
@@ -2171,7 +2171,7 @@ CObjectHeap::update(Ref ref)
 		if (declaw->inAnyRange(ref))
 			return kBadPackageRef;
 	}
-	else if (ISREALPTR(ref)								// we’re only interested in pointer objects in the heap
+	else if (ISREALPTR(ref)								// we're only interested in pointer objects in the heap
 		  && ref > (Ref) heapBase
 		  && ref < (Ref) heapLimit)
 	{
@@ -2197,8 +2197,8 @@ printf("-> #%08X\n", fref);
 				return fref;
 			}
 		}
-		if ((obj->flags & kObjMarked) == 0			// object that isn’t marked…
-		 && ref > (Ref) heapBase						// …but is in the heap
+		if ((obj->flags & kObjMarked) == 0			// object that isn't marked...
+		 && ref > (Ref) heapBase						// ...but is in the heap
 		 && ref < (Ref) heapLimit)
 		{
 #if debugLevel > 1
@@ -2207,8 +2207,8 @@ printf("-> nil\n");
 			return NILREF;									// is no longer required
 		}
 
-		else if ((obj->flags & kObjLocked) == 0	// object that isn’t locked…
-			  && ref > (Ref) heapBase					// …and is in the heap
+		else if ((obj->flags & kObjLocked) == 0	// object that isn't locked...
+			  && ref > (Ref) heapBase					// ...and is in the heap
 			  && ref < (Ref) heapLimit)
 		{
 #if debugLevel > 1
@@ -2252,7 +2252,7 @@ ENTER_FUNC
 
 	// PASS 1
 	// Calculate where objects will move to after compaction
-	// and store the destination address in the object’s destRef.
+	// and store the destination address in the object's destRef.
 	for (obj = heapBase;
 		  obj < (ObjHeader *)refHBlock;						// exclude the ref handles block
 		  obj = INC(obj, objSize))
@@ -2290,7 +2290,7 @@ ENTER_FUNC
 			}
 			else
 			{
-				// object is marked and isn’t locked
+				// object is marked and isn't locked
 				// so move it to the start of the free block
 				FreeBlock * freep = &a[0];
 				a[0].size += objSize;
@@ -2310,7 +2310,7 @@ ENTER_FUNC
 		}
 		else
 		{
-			// object isn’t marked
+			// object isn't marked
 			// so expand the free block
 			a[0].size += MEMALIGN(obj->size);
 //printf("! #%lX[%d] \n", a[0].block, a[0].size);
@@ -2349,13 +2349,13 @@ printf(" %s%s%s%s%s%s\n",
 		if (refHDelta < a[0].size)
 			a[0].size -= refHDelta;		// reduce the free size by the amount requested
 		else
-		{										// can’t expand by requested amount, but do as much as possible
+		{										// can't expand by requested amount, but do as much as possible
 			refHBlockSize = currentRefHBlockSize + a[0].size;
 			refHDelta = a[0].size;
 			a[0].size = 0;
 		}
 	}
-	refHBlock->gc.destRef = MAKEPTR(refHBlock);	// this doesn’t move
+	refHBlock->gc.destRef = MAKEPTR(refHBlock);	// this doesn't move
 
 	// PASS 2
 	// Update refs in all objects in the heap

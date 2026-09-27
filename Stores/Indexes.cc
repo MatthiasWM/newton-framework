@@ -319,10 +319,10 @@ CSoupIndex::setNodeNo(NodeHeader * inNode, int inSlot, ULong inNodeNum)
 
 
 /*------------------------------------------------------------------------------
-	Set the root node, optionally creating it if it doesn’t exist.
-	Args:		inCreate		true => create a root node if one doesn’t exist
+	Set the root node, optionally creating it if it doesn't exist.
+	Args:		inCreate		true => create a root node if one doesn't exist
 	Return:	pointer to root node
-				NULL => we don’t have a root node
+				NULL => we don't have a root node
 ------------------------------------------------------------------------------*/
 
 NodeHeader *
@@ -353,7 +353,7 @@ CSoupIndex::readANode(PSSId inId, PSSId inNextId)
 	NodeHeader * theNode = fCache->findNode(this, inId);
 	if (theNode == NULL)
 	{
-		// it’s not in the cache; read it from store
+		// it's not in the cache; read it from store
 		size_t itsSize;
 		OSERRIF(store()->getObjectSize(inId, &itsSize));
 		theNode = fCache->rememberNode(this, inId, fInfo.nodeSize, false, false);
@@ -386,7 +386,7 @@ CSoupIndex::readADupNode(PSSId inId)
 	NodeHeader * theNode = fCache->findNode(this, inId);
 	if (theNode == NULL)
 	{
-		// it’s not in the cache; read it from store
+		// it's not in the cache; read it from store
 		size_t itsSize;
 		OSERRIF(store()->getObjectSize(inId, &itsSize));
 		theNode = fCache->rememberNode(this, inId, fInfo.nodeSize, true, false);
@@ -413,7 +413,7 @@ CSoupIndex::deleteNode(PSSId inId)
 
 /*------------------------------------------------------------------------------
 	Change a node.
-	Doesn’t appear to do anything.
+	Doesn't appear to do anything.
 	Args:		inNode
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -742,7 +742,7 @@ CSoupIndex::kfReplaceFirstData(KeyField * ioField, void * inData)
 	ALIGNkfSIZE(dataSize);
 	if (ioField->type == KeyField::kData)
 	{
-		// it’s a singleton
+		// it's a singleton
 		ioField->length = keySize + dataSize;				// update the size
 		memmove((char *)ioField + keySize, inData, dataSize);	// copy data into data space
 	}
@@ -1210,7 +1210,7 @@ CSoupIndex::deleteKey(KeyField * inField, NodeHeader * inNode, bool * outArg3)
 			}
 		}
 	}
-	
+
 
 	return r9;
 }
@@ -1365,7 +1365,7 @@ CSoupIndex::keyInNode(KeyField * inKeyField, NodeHeader * inNode, PSSId * outId,
 			*outSlot = index;
 			*outId = leftNodeNo(inNode, index);
 			return true;
-		}	
+		}
 	}
 	if (cmp > 0)
 		index++;
@@ -1411,7 +1411,7 @@ CSoupIndex::balanceTwoNodes(NodeHeader * inNode1, NodeHeader * inNode2, int inSl
 	{
 		inSlot = lastSlotInNode(inNode1);
 		copyKeyFmNode(&sp00, &nodeNo, inNode1, inSlot);
-		rightNodeNo(inNode1, inSlot);	// sic -- doesn’t do anything with the result
+		rightNodeNo(inNode1, inSlot);	// sic -- doesn't do anything with the result
 		node3 = inNode2;
 		inNode2 = readANode(nodeNo, inNode1->id);
 	}
@@ -1428,7 +1428,7 @@ CSoupIndex::balanceTwoNodes(NodeHeader * inNode1, NodeHeader * inNode2, int inSl
 
 	changeNode(inNode2);
 	changeNode(node3);
-	
+
 	return mergeTwoNodes(kf, inNode1, inNode2, node3);
 }
 
@@ -1489,7 +1489,7 @@ CSoupIndex::mergeTwoNodes(KeyField * inField, NodeHeader * inNode1, NodeHeader *
 		result = false;
 		insertAfterDelete(inField, inNode3->id, inNode1);
 	}
-	
+
 	return result;
 }
 
@@ -1841,7 +1841,7 @@ CSoupIndex::rawKeyCompare(const SKey& inKey1, const SKey& inKey2)
 		lenCmp = 0;
 	if ((cmp = memcmp(inKey1.data(), inKey2.data(), len1)) == 0)
 		return lenCmp;
-	return cmp;	
+	return cmp;
 }
 
 
@@ -1892,7 +1892,7 @@ CSoupIndex::multiKeyCompare(const SKey& inKey1, const SKey& inKey2)
 				size_t keySize;
 				if ((keySize = fKeySizes[keyType]) == 0)
 				{
-					// we need to use the key’s given size to update the pointer to the next key
+					// we need to use the key's given size to update the pointer to the next key
 					keySize = SKey::kOffsetToData + ((SKey *)key1)->size();
 					ALIGNkfSIZE(keySize);
 					key1 += keySize;
@@ -2420,7 +2420,7 @@ CSoupIndex::moveAndGetState(bool inDoForward, int inArg2, KeyField * inField, In
 	KeyField * kf = keyFieldAddr(outState->node, outState->slot);
 	outState->isDup = (kf->type != KeyField::kData);
 	outState->dupNode = NULL;
-	return 0;	
+	return 0;
 }
 
 
@@ -2503,7 +2503,7 @@ CSoupIndex::moveUsingState(bool inDoForward, int inArg2, KeyField * inField, Ind
 	KeyField * kf = keyFieldAddr(ioState->node, ioState->slot);
 	ioState->isDup = (kf->type != KeyField::kData);
 	ioState->dupNode = NULL;
-	return 0;	
+	return 0;
 }
 
 
@@ -2894,7 +2894,7 @@ CUnionSoupIndex::CUnionSoupIndex(ArrayIndex inNumOfIndexes, UnionIndexData * ind
 
 CUnionSoupIndex::~CUnionSoupIndex()
 {
-	delete[] fIndexData;	// sic -- we didn’t alloc them (that’s done in CCursor::createIndexes), but we’re deleting them
+	delete[] fIndexData;	// sic -- we didn't alloc them (that's done in CCursor::createIndexes), but we're deleting them
 }
 
 
@@ -3020,7 +3020,7 @@ CUnionSoupIndex::search(bool inDoForward, SKey * inKey, SKey * inData, StopProcP
 	||  !isValidState(inKey, inData))
 	{
 		// state has changed since last search -- have to reset our index cache
-		
+
 		for (int i = fNumOfSoupsInUnion - 1; i >= 0; --i)
 		{
 			unionInfo = fIndexData + i;
@@ -3084,7 +3084,7 @@ CUnionSoupIndex::search(bool inDoForward, SKey * inKey, SKey * inData, StopProcP
 	commit();
 	if (status == 0)
 		soupIndex->kfDisassembleKeyField(unionInfo->kf, outKey, outData);
-	
+
 	return status;
 }
 
@@ -3384,7 +3384,7 @@ IndexPathsEqual(RefArg inPath1, RefArg inPath2)
 		if (count1 == 0)
 			return PathsEqual(inPath1, inPath2);
 	}
-	
+
 	return false;
 }
 
@@ -3680,7 +3680,7 @@ AddNewSoupIndexes(RefArg inSoup, RefArg inStore, RefArg inIndexes)
 			AddArraySlot(indexes, indexDesc);
 		}
 	}
-	
+
 	return indexes;
 }
 

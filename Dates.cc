@@ -48,7 +48,7 @@ Ref	FIncrementMonth(RefArg inRcvr, RefArg inMinsSince1904, RefArg inNumOfMonths)
 // however...
 // NS numbers will still run out on 5/1/2010, so...
 // we could adjust the seconds time base, to, say, 2003, giving us another ten years grace
-// sadly, C’s ULong seconds will run out in 2040 anyway
+// sadly, C's ULong seconds will run out in 2040 anyway
 
 #if defined(Fix2010)
 #define kSecsSince1904 0xBA37E000
@@ -393,7 +393,7 @@ CParseBuffer::convert(void * inContext)
 
 #pragma mark -
 
-// from Carbon’s TextUtils.h
+// from Carbon's TextUtils.h
 struct NBreakTable
 {
 	char		flags1;
@@ -503,7 +503,7 @@ FindWordBreaks(const UniChar * inStr, ArrayIndex inStrLen, ULong inOffset, bool 
 					// exit code
 					if (mark <= probe)
 					{
-						// haven’t yet reached the initially specified character
+						// haven't yet reached the initially specified character
 						// reset the start and keep looking for the end
 						wordStart = mark;
 						p = mark;
@@ -511,7 +511,7 @@ FindWordBreaks(const UniChar * inStr, ArrayIndex inStrLen, ULong inOffset, bool 
 					}
 					else
 					{
-						// we’re done
+						// we're done
 						wordEnd = mark;
 						break;
 					}
@@ -528,7 +528,7 @@ FindWordBreaks(const UniChar * inStr, ArrayIndex inStrLen, ULong inOffset, bool 
 		*outStartOffset = wordStart - inStr;
 		*outEndOffset = wordEnd - inStr;
 	}
-	
+
 	else	// not a valid string
 	{
 		*outStartOffset = 0;
@@ -712,7 +712,7 @@ CDate::initWithMinutes(ULong inMinsSince1904)
 		theDay -= startOfMarch;
 	}
 
-	div_t month = div(theDay * 128 + 71, 3919);	
+	div_t month = div(theDay * 128 + 71, 3919);
 	fYear = theYear;
 	fMonth = firstMonth + month.quot;
 	fDay = 1 + month.rem / 128;
@@ -802,7 +802,7 @@ CDate::isValidDate(void) const
 int
 CDate::stringToDate(const UniChar * inStr, ArrayIndex * outParsedStrLen, ArrayIndex inStrLen)
 {
-	// set up defaults for those elements we can’t parse
+	// set up defaults for those elements we can't parse
 	setCurrentTime();
 	ULong thisMinute = fMinute;
 	ULong thisHour = fHour;
@@ -941,7 +941,7 @@ CDate::stringToDateFrame(const UniChar * inStr, ArrayIndex * outParsedStrLen, Ar
 			SetFrameSlot(theDate, SYMA(dayOfWeek), MAKEINT(fDayOfWeek));
 	}
 	SetFrameSlot(theDate, SYMA(status), MAKEINT(status));
-	
+
 	return status;
 }
 

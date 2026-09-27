@@ -9,7 +9,7 @@
 #if !defined(__INKTYPES_H)
 #define __INKTYPES_H 1
 
-// we’re going to need QD types for display interface
+// we're going to need QD types for display interface
 #include "QDTypes.h"
 
 // include Paths.h?

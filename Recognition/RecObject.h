@@ -64,15 +64,15 @@ extern bool gVerbose;
 	Call dealloc() rather than iDispose when the ref count == 0.
 
 CRecObject
- CArray •
+ CArray *
   CDArray
    CTypeList
    CTypeAssoc
    CRecStroke
    CRecUnitList
-  CAreaList •
- CRecArea •
- CRecUnit •
+  CAreaList *
+ CRecArea *
+ CRecUnit *
   CSIUnit
    CStrokeUnit
  CRecDomain
@@ -80,7 +80,7 @@ CRecObject
   CEdgeListDomain
   CWRecDomain
   CStrokeDomain
- 
+
 ------------------------------------------------------------------------------*/
 
 class CRecObject
@@ -183,7 +183,7 @@ public:
 	virtual NewtonErr loadFromSoup(RefArg, RefArg, ULong);
 	virtual NewtonErr save(ULong, ULong, ULong, ULong);
 
-//	void					lock(void);			we don’t use Handles any more
+//	void					lock(void);			we don't use Handles any more
 //	void					unlock(void);
 
 	ArrayIndex			count(void) const;
@@ -241,7 +241,7 @@ protected:
 
 
 /*------------------------------------------------------------------------------
-	C T y p e L i s t 
+	C T y p e L i s t
 ------------------------------------------------------------------------------*/
 
 class CTypeList : public CDArray

@@ -19,7 +19,7 @@
 /*------------------------------------------------------------------------------
 	Initialize built-in functions.
 	Plain C functions have to be added to the functions global procedurally
-	since we can’t get a reference to them in the NS world.
+	since we can't get a reference to them in the NS world.
 	Args:		--
 	Return:  --
 ------------------------------------------------------------------------------*/

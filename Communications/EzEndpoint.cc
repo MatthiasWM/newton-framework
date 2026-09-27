@@ -19,7 +19,7 @@ DeclareException(exTranslator, exRootException);
 
 
 CEzEndpointPipe * g0001E0E0;
-	
+
 // AppleTalk stubs
 
 NewtonErr
@@ -81,11 +81,11 @@ EzConvertOptions(RefArg inOptions, COptionArray ** outOpenOptions, COptionArray 
 	XTRY
 	{
 		*outOpenOptions = new COptionArray;
-		XFAILIF(*outOpenOptions == NULL, err = kOSErrNoMemory;)	// I’m paraphrasing here; the original uses MemError()
+		XFAILIF(*outOpenOptions == NULL, err = kOSErrNoMemory;)	// I'm paraphrasing here; the original uses MemError()
 		XFAIL(err = (*outOpenOptions)->init())
 
 		optDataOut = (POptionDataOut *)MakeByName("PFrameSink", "POptionDataOut");
-		XFAILIF(optDataOut == NULL, err = kOSErrNoMemory;)			// I’m paraphrasing here; the original uses MemError()
+		XFAILIF(optDataOut == NULL, err = kOSErrNoMemory;)			// I'm paraphrasing here; the original uses MemError()
 		scrDataOut = (PScriptDataOut *)MakeByName("PFrameSink", "PScriptDataOut");
 		XFAILIF(scrDataOut == NULL, err = kOSErrNoMemory;)			// ...you get the idea
 
@@ -141,7 +141,7 @@ EzConvertOptions(RefArg inOptions, COptionArray ** outOpenOptions, COptionArray 
 		}
 		newton_catch(exTranslator)
 		{
-			// we have an error, but we don’t want to rethrow it
+			// we have an error, but we don't want to rethrow it
 			err = 1;
 		}
 		end_try;

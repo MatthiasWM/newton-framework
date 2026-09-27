@@ -73,7 +73,7 @@ COption::copyDataFrom(COption * inOption)
 	size_t optLen = inOption->length();
 	if (optLen > length())
 	{
-		// full source won’t fit in this option
+		// full source won't fit in this option
 		optLen = length();
 		err = -7;
 	}
@@ -226,7 +226,7 @@ COptionArray::copyOptionAt(ArrayIndex index, COption * ioOption)
 		size_t optLen = option->length();
 		if (optLen > ioOption->length())
 		{
-			// full source won’t fit in target option
+			// full source won't fit in target option
 			optLen = ioOption->length();
 			err = -7;
 		}

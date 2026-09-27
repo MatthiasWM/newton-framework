@@ -12,7 +12,7 @@
 #include <cassert>
 
 // Most of the CMuxStore wrappers just need to lock ivar access
-// -- but hold on, isn’t this what the monitor is supposed to do?
+// -- but hold on, isn't this what the monitor is supposed to do?
 // #beltandbraces
 
 #if defined(forFramework)
@@ -752,7 +752,7 @@ NewtonErr
 CMuxStoreMonitor::init(CStore * inStore)
 {
 #if defined(correct)
-	// lock a KByte of the monitor’s stack
+	// lock a KByte of the monitor's stack
 	ULong here;
 	VAddr start = TRUNC((VAddr)&here, KByte) - KByte;
 	LockHeapRange(start, start + 2*KByte - 1);

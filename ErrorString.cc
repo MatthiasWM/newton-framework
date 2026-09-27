@@ -66,7 +66,7 @@ GetMagicPointerString(int inMP)
 
 
 /* -----------------------------------------------------------------------------
-	While we’re in the Cocoa environment:
+	While we're in the Cocoa environment:
 	Return the URL to the Application Support directory.
 	Args:		--
 	Return:	a URL
@@ -100,7 +100,7 @@ ApplicationSupportFolder(void)
 	NSFileManager * fmgr = [NSFileManager defaultManager];
 	NSURL * baseURL = [fmgr URLForDirectory:NSApplicationSupportDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:YES error:nil];
 	NSURL * appFolder = [baseURL URLByAppendingPathComponent:@"Newton"];
-	// if folder doesn’t exist, create it
+	// if folder doesn't exist, create it
 	[fmgr createDirectoryAtURL:appFolder withIntermediateDirectories:NO attributes:nil error:nil];
 	return appFolder;
 }

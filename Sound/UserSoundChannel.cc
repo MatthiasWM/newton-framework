@@ -221,7 +221,7 @@ CUSoundChannel::open(int inInputDevice, int inOutputDevice)
 			channelSelector = kSndOpenInputChannel;
 			codecSelector = kSndOpenCompressorChannel;
 		}
-	
+
 		XFAIL(err = sendImmediate(channelSelector, 0, inOutputDevice, &reply, sizeof(reply)))
 		XFAIL(err = reply.fError)
 		fChannelId = reply.fChannel;
@@ -762,7 +762,7 @@ CFrameSoundChannel::convert(RefArg inSound, SoundBlock * outParms)
 		else if (IsBinary(item)) {
 #if defined(hasByteSwapping)
 			// assume sound is imported from NTK and is therefore BIG-ENDIAN
-			// it’s only binary so we can’t detect it and fix it at init
+			// it's only binary so we can't detect it and fix it at init
 			Fixed rate = *(Fixed *)BinaryData(item);
 			rate = BYTE_SWAP_LONG(rate);
 			outParms->sampleRate = rate / (Fixed)0x00010000;
@@ -876,7 +876,7 @@ CFrameSoundChannel::initCodec(SoundBlock * ioParms)
 	}
 	XENDTRY;
 
-	return err;	
+	return err;
 }
 
 

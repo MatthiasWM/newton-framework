@@ -137,7 +137,7 @@ CFunctionState::atTopLevel(void)
 
 /*----------------------------------------------------------------------
 	Set up a frame that maps var name to index.
-	In OS 2, a function’s args and local vars are indexed off the stack.
+	In OS 2, a function's args and local vars are indexed off the stack.
 	Initially all indices are zero.
 	Args:		--
 	Return:	--
@@ -255,7 +255,7 @@ CFunctionState::computeArgFrame(void)
 
 /*----------------------------------------------------------------------
 	Add a constant value to the constants frame.
-	Args:		inTag		the constant’s name
+	Args:		inTag		the constant's name
 				inVal		the constant value
 	Return:	--
 ----------------------------------------------------------------------*/
@@ -436,7 +436,7 @@ CFunctionState::literalOffset(RefArg inLiteral)
 		||  EQ(lit, inLiteral))
 			return i;
 	}
-	// literal wasn’t found so add it to our list
+	// literal wasn't found so add it to our list
 	if (fNumOfLiterals >= Length(fLiterals))
 		SetLength(fLiterals, Length(fLiterals) + kLiteralsChunkSize);
 	SetArraySlot(fLiterals, fNumOfLiterals, inLiteral);

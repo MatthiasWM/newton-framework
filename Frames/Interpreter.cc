@@ -437,7 +437,7 @@ VMStack::at(ArrayIndex index)
 
 /*------------------------------------------------------------------------------
 	Initialize fork globals.
-	Args:		inGlobals		pointer to fork’s globals
+	Args:		inGlobals		pointer to fork's globals
 	Return:  error code
 ------------------------------------------------------------------------------*/
 
@@ -459,7 +459,7 @@ InitForkGlobalsForFrames(NewtGlobals * inGlobals)
 	for (intrp = gInterpreterList; intrp != NULL; ) {
 		index++;
 		for (intrp = gInterpreterList; intrp != NULL; intrp = intrp->next) {
-			 if (intrp->id == index) {	// ensure next unique id hasn’t already been taken
+			 if (intrp->id == index) {	// ensure next unique id hasn't already been taken
 				break;
 			}
 		}
@@ -468,7 +468,7 @@ InitForkGlobalsForFrames(NewtGlobals * inGlobals)
 	newt->stackPos = index;
 
 #if defined(correct)
-	// set up fork’s stack
+	// set up fork's stack
 	VAddr		stackBase;
 	CUTask	aTask;
 	return GetTaskStackInfo(&aTask, &newt->stackTop, &stackBase);
@@ -499,7 +499,7 @@ SwitchFramesForkGlobals(bool inDoFork)
 
 /*------------------------------------------------------------------------------
 	Destroy fork globals - fork is dead.
-	Args:		inGlobals	pointer to fork’s globals
+	Args:		inGlobals	pointer to fork's globals
 	Return:  --
 ------------------------------------------------------------------------------*/
 
@@ -515,7 +515,7 @@ DestroyForkGlobalsForFrames(NewtGlobals * inGlobals)
 /*------------------------------------------------------------------------------
 	Initialize the global functions frame.
 	Also function frames - for the compiler?
-	This is a bit suspect - we don’t use the old CodeBlock function frames
+	This is a bit suspect - we don't use the old CodeBlock function frames
 	any more.
 	Args:		--
 	Return:  --
@@ -530,7 +530,7 @@ InitFunctions(void)
 	gCodeBlockPrototype = RA(codeblockPrototype);
 
 	// the original used the mechanism in FakeFrames.h to declare these xxFunctionPrototypes
-	// we’ve built them in
+	// we've built them in
 	if (gUseCFunctionDocStrings) {
 		gCFunctionPrototype = RA(debugCFunctionPrototype);
 	} else {
@@ -1161,7 +1161,7 @@ SetFastLoopFlags(void)
 
 
 /*------------------------------------------------------------------------------
-	And this is where our story really starts…
+	And this is where our story really starts...
 	kSlow: true for the ROM's SlowRun(), false for FastRun().
 	Return:	true when done, false to switch to the other loop
 ------------------------------------------------------------------------------*/
@@ -1269,7 +1269,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 			case 002:
 				// unwind stack and leave return value on top
 				var1 = *(dataStack.top-1);
-				dataStack.top = dataStack.base + (RVALUE(vm->stackFrame) >> kStackFrameFlagBits) + 3 + 1;	// ••
+				dataStack.top = dataStack.base + (RVALUE(vm->stackFrame) >> kStackFrameFlagBits) + 3 + 1;	// **
 				*(dataStack.top-1) = var1;
 				// restore VM state of caller
 				vm = ctrlStack.pop();
@@ -1750,7 +1750,7 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 				break;
 
 		/*------------------------------
-			set-path (don’t push value)
+			set-path (don't push value)
 			object pathExpr value --
 		------------------------------*/
 			case 0230:
@@ -2197,11 +2197,11 @@ FAref(RefArg inRcvr, RefArg inObj, RefArg index)
 {
 	ArrayIndex i = RINDEX(index);
 
-	// object we are indexing into must be an array…
+	// object we are indexing into must be an array...
 	if ((ObjectFlags(inObj) & kObjMask) == kArrayObject)
 		return GetArraySlot(inObj, i);
 
-	// …or a string
+	// ...or a string
 	else if (IsString(inObj))
 	{
 		CRichString str(inObj);
@@ -2320,7 +2320,7 @@ CInterpreter::controlPosition(void)
 /*------------------------------------------------------------------------------
 	Set a local value.
 	Args:		index		VM stack frame index
-				tag		name of local or index into function’s literals array
+				tag		name of local or index into function's literals array
 				value		the value to set
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -2341,21 +2341,21 @@ CInterpreter::setLocalOnStack(RefArg index, RefArg tag, RefArg value)
 			if (/*localIndex < 0 ||*/ localIndex >= RINT(GetArraySlotRef(fn, kFunctionNumArgsIndex)))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
 			stackIndex = RVALUE(vms->stackFrame) >> 6;
-			dataStack.base[stackIndex + 3] = value;	// ••
+			dataStack.base[stackIndex + 3] = value;	// **
 		}
 		else if (IsNativeFunction(fn))
 		{
 			if (/*localIndex < 0 ||*/ localIndex >= GetFunctionArgCount(fn))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
 			stackIndex = RVALUE(vms->stackFrame) >> 6;
-			dataStack.base[stackIndex] = value;	// ••
+			dataStack.base[stackIndex] = value;	// **
 		}
 		else if (EQ(fnClass, SYMA(CodeBlock)))
 		{
 			Ref locals = vms->locals;
 			if (/*localIndex < 0 ||*/ localIndex + 3 >= Length(locals))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
-			SetArraySlotRef(locals, localIndex + 3, value);	// ••
+			SetArraySlotRef(locals, localIndex + 3, value);	// **
 		}
 	}
 	else	// SetFindVar
@@ -2370,7 +2370,7 @@ CInterpreter::setLocalOnStack(RefArg index, RefArg tag, RefArg value)
 /*------------------------------------------------------------------------------
 	Get a local value.
 	Args:		index		VM stack frame index
-				tag		name of local or index into function’s literals array
+				tag		name of local or index into function's literals array
 	Return:	Ref		the value
 ------------------------------------------------------------------------------*/
 
@@ -2391,21 +2391,21 @@ CInterpreter::getLocalFromStack(RefArg index, RefArg tag)
 			if (/*localIndex < 0 ||*/ localIndex >= RINT(GetArraySlotRef(fn, kFunctionNumArgsIndex)))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
 			stackIndex = RVALUE(vms->stackFrame) >> 6;
-			var = dataStack.base[stackIndex + 3];	// ••
+			var = dataStack.base[stackIndex + 3];	// **
 		}
 		else if (IsNativeFunction(fn))
 		{
 			if (/*localIndex < 0 ||*/ localIndex >= GetFunctionArgCount(fn))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
 			stackIndex = RVALUE(vms->stackFrame) >> 6;
-			var = dataStack.base[stackIndex];	// ••
+			var = dataStack.base[stackIndex];	// **
 		}
 		else if (EQ(fnClass, SYMA(CodeBlock)))
 		{
 			Ref	locals = vms->locals;
 			if (/*localIndex < 0 ||*/ localIndex + 3 >= Length(locals))
 				ThrowExFramesWithBadValue(kNSErrOutOfRange, tag);
-			var = GetArraySlotRef(locals, localIndex + 3);	// ••
+			var = GetArraySlotRef(locals, localIndex + 3);	// **
 		}
 	}
 	else	// FindVar
@@ -2460,7 +2460,7 @@ CInterpreter::stackFrameAt(ArrayIndex index)
 	if (/*index < 0 ||*/ index >= numStackFrames())
 		ThrowExFramesWithBadValue(kNSErrOutOfRange, MAKEINT(index));
 
-	return ctrlStack.at(index + 1);	// ••
+	return ctrlStack.at(index + 1);	// **
 }
 
 #pragma mark -
@@ -2514,7 +2514,7 @@ CInterpreter::unsafeDoSend(RefArg rcvr, RefArg impl, RefArg fn, ArrayIndex numAr
 				ThrowErr(exInterpreter, kNSErrWrongNumberOfArgs);
 
 			// set up stack frame for OS2.x function
-			int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// ••
+			int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// **
 			vm->stackFrame = MAKEINT((stackFrameIndex << kStackFrameFlagBits) | kStackFrameLocals);
 			// set up lexical environment
 			RefVar	argFrame(funSlot[kFunctionArgFrameIndex]);
@@ -2594,7 +2594,7 @@ CInterpreter::unsafeDoCall(Ref func, ArrayIndex numArgs)		// yes, really a Ref!
 				ThrowErr(exInterpreter, kNSErrWrongNumberOfArgs);
 
 			// set up stack frame for OS2.x function
-			int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// ••
+			int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// **
 			vm->stackFrame = MAKEINT((stackFrameIndex << kStackFrameFlagBits) | kStackFrameLocals);
 			// set up lexical environment
 			RefVar	argFrame(funSlot[kFunctionArgFrameIndex]);
@@ -2641,7 +2641,7 @@ CInterpreter::unsafeDoCall(Ref func, ArrayIndex numArgs)		// yes, really a Ref!
 
 /*------------------------------------------------------------------------------
 	Send a message to a known implementor.
-	Despatch the message depending on the handling function’s class:
+	Despatch the message depending on the handling function's class:
 		'CodeBlock				1.x
 		kPlainFuncClass      2.x
 		kPlainCFunctionClass 2.x native
@@ -2898,7 +2898,7 @@ CInterpreter::callPlainCodeBlock(RefArg func, ArrayIndex numArgs, unsigned huh)
 		ThrowErr(exInterpreter, kNSErrWrongNumberOfArgs);
 
 	// set up stack info
-	int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// ••
+	int stackFrameIndex = STACKINDEX(dataStack) - numArgs - 2;	// **
 	vm->stackFrame = MAKEINT((stackFrameIndex << kStackFrameFlagBits) | ((huh & 0x02) ? 0x03 : kStackFrameLocals));
 
 	// set up vm
@@ -3049,7 +3049,7 @@ CInterpreter::callCFuncPtr(CFunction cfunc, ArrayIndex numArgs)
 	RefVar		rcvr(vm->rcvr);
 	ArrayIndex	stackIndex = dataStack.top - dataStack.base;
 
-	// ensure the stack’s RefStruct pointers are valid
+	// ensure the stack's RefStruct pointers are valid
 	if ((dataStack.xTop - dataStack.xBase) < stackIndex)
 		dataStack.fill();
 
@@ -3164,7 +3164,7 @@ CInterpreter::rreturn(FramesProfilingKind profile)
 	if (tracing)
 		traceReturn();
 	// INCOMPLETE
-	// there’s little point since this is never called -- was used in the slow interpreter loop
+	// there's little point since this is never called -- was used in the slow interpreter loop
 }
 
 /*------------------------------------------------------------------------------
@@ -3312,7 +3312,7 @@ CInterpreter::traceGet(RefArg rcvr, RefArg impl, RefArg path)
 {
 	if (!isTraceGetEnabled)
 		return;
-	if (ISNIL(impl))	// can happen when tracing hasVar and var doesn’t exist
+	if (ISNIL(impl))	// can happen when tracing hasVar and var doesn't exist
 		return;
 	if (NOTNIL(fTraceSlotName) && !EQ(path, fTraceSlotName))
 		return;
@@ -3547,7 +3547,7 @@ CInterpreter::handleException(Exception * inException, int inDepth, StackState &
 
 
 /*------------------------------------------------------------------------------
-	Pop exception handlers off the stack until they’re back within
+	Pop exception handlers off the stack until they're back within
 	the current stack.
 ------------------------------------------------------------------------------*/
 

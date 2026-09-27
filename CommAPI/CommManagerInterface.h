@@ -3,7 +3,7 @@
 
 	Contains:	CommManager interface
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__COMMMANAGERINTERFACE_H)
@@ -137,7 +137,7 @@ inline ULong		CServiceInfo::getServiceId(void)	{ return fServiceId; }
 --------------------------------------------------------------------------------*/
 NewtonErr	InitializeCommManager(void);
 
-// client calls…
+// client calls...
 
 /*--------------------------------------------------------------------------------
 	start the service described in the COptionArray,

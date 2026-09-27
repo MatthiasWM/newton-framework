@@ -25,7 +25,7 @@ ProjectionEntry;
 
 typedef struct
 {
-	UniChar  f00;  // don’t really know
+	UniChar  f00;  // don't really know
 	UniChar  f02;
 	UniChar  f04;
 }

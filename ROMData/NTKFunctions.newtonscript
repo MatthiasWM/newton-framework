@@ -39,7 +39,7 @@ partData := {
 				locRoot.english.(path) := obj;
 				if locRoot.(language) exists then begin
 					if locRoot.(language).(path) exists then
-						locRoot.(language).(path)	// this is the expression that’s returned
+						locRoot.(language).(path)	// this is the expression that's returned
 					else
 						Throw('|evt.ex.msg|, "Localization frame for " & language & " has no entry at " & path)
 				end else

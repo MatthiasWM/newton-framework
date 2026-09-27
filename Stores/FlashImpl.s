@@ -32,7 +32,7 @@ __ZN17CNewInternalFlash9classInfoEv:
 		BRAZ		__ZN17CNewInternalFlash4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN17CNewInternalFlash7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

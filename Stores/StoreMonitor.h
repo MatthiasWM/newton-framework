@@ -16,7 +16,7 @@
 	C S t o r e M o n i t o r
 	P-class interface.
 
-	It’s not the full store protocol.
+	It's not the full store protocol.
 ------------------------------------------------------------------------------*/
 
 MONITOR CStoreMonitor : public CProtocol

@@ -122,7 +122,7 @@ void ObjectPrinter::PrintFunction(RefArg ref, bool isNative) {
 }
 
 // plain symbol: { { alpha | '_' } [ { alpha | digit | '_' } ]*
-// piped symbol: ‘|’ [ { symbol-character | \ { ‘|’ | \ } ]* ‘|’ }
+// piped symbol: ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
 // symbol-character: <any ASCII character with code 32–127 except '|' or '\'>
 void ObjectPrinter::PrintSymbol(RefArg ref) {
   assert(IsSymbol(ref));

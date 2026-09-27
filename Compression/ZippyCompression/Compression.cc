@@ -32,7 +32,7 @@ PROTOCOL CZippyCallbackCompressor : public CCallbackCompressor
 };
 
 
-typedef int ByteAccessor;	// don’t really know
+typedef int ByteAccessor;	// don't really know
 
 PROTOCOL CZippyCompressor : public CCompressor
 {
@@ -170,10 +170,10 @@ CZippyDecompressor::decompressChunk(size_t * outSize, void * inDstBuf, size_t in
 	//	assume header is big-endian - we never create it so it must be from Newton device
 	header->size = BYTE_SWAP_LONG(header->size);
 	header->flags = BYTE_SWAP_LONG(header->flags);
-#endif		
+#endif
 	if (header->flags == 0x00010000)
 	{
-		// it’s encoded
+		// it's encoded
 		uint32_t * dst = (uint32_t *)inDstBuf;
 		size_t len = 0;
 		ArrayIndex bitIndex = 0;
@@ -191,7 +191,7 @@ CZippyDecompressor::decompressChunk(size_t * outSize, void * inDstBuf, size_t in
 	}
 	else
 	{
-		// it’s a verbatim copy
+		// it's a verbatim copy
 		size_t chunkSize = header->size - sizeof(ZippyHeader);
 		*outSize = chunkSize;
 		memcpy(inDstBuf, src, chunkSize);	// was fast_copy()
@@ -298,7 +298,7 @@ CZippyDecompressor::expandValue(unsigned char ** ioSrc, ArrayIndex * ioBitIndex,
 #endif
 
 		uint32_t newValue = (bits.ul >> ((7 - *ioBitIndex) + 5)) & 0x3FF8;
-		
+
 		*ioBitIndex = (*ioBitIndex + 17) & 0x07;	// skip 2 tag bits + 15 bit value
 		if (*ioBitIndex == 0)
 			*ioSrc += 3;
@@ -336,7 +336,7 @@ CZippyDecompressor::expandValue(unsigned char ** ioSrc, ArrayIndex * ioBitIndex,
 			word.uc[1] = src[4];
 			word.uc[0] = src[5];
 #else
-			word.uc[0] = src[2];		// we’re on the cusp of the next byte
+			word.uc[0] = src[2];		// we're on the cusp of the next byte
 			word.uc[1] = src[3];
 			word.uc[2] = src[4];
 			word.uc[3] = src[5];
@@ -646,7 +646,7 @@ CZippyRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen
 		size_t relocInfoSize;
 		CSimpleCRelocator relocator;
 		XFAIL(err = relocator.init(fStore, inObjId, &relocInfoSize))
-		
+
 		// read FrameRelocationHeader
 		XFAIL(err = fStore->read(inObjId, relocInfoSize, &relocHeader, sizeof(relocHeader)))
 		XFAIL(err = fStore->getObjectSize(inObjId, &objSize))

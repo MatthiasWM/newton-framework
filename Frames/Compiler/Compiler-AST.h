@@ -22,7 +22,7 @@ struct Token
 	{
 		int type;
 		RefStruct ref;
-/*		// can’t put values in a union b/c std::string has non-trivial copy ctor
+/*		// can't put values in a union b/c std::string has non-trivial copy ctor
 		long integer;
 		double real;
 		std::string symbol;
@@ -399,7 +399,7 @@ class PrototypeAST {
 public:
   PrototypeAST(const std::string &name, const std::vector<std::string> &args)
     : Name(name), Args(args) {}
-  
+
   Function *Codegen();
 };
 
@@ -410,7 +410,7 @@ class FunctionAST {
 public:
   FunctionAST(PrototypeAST *proto, ExprAST *body)
     : Proto(proto), Body(body) {}
-  
+
   Function *Codegen();
 };
 

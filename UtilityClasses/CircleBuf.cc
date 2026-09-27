@@ -63,7 +63,7 @@ CCircleBuf::allocate(ArrayIndex inSize, int inArg2, EBufferResidence inResidence
 		// allocate the buffer
 		if (inResidence == eWiredBuffer)
 		{
-			// it’s wired -- there’s a page size limit
+			// it's wired -- there's a page size limit
 			if (allocSize > 4032)
 			{
 				allocSize = 4032;
@@ -547,7 +547,7 @@ CCircleBuf::getBytes(CCircleBuf * inBuf)
 
 		if (i == fGetIndex)
 		{
-			status = 3;	// copy stopped because we’re full
+			status = 3;	// copy stopped because we're full
 			break;
 		}
 	}
@@ -715,7 +715,7 @@ CCircleBuf::flushBytes(void)
 {
 	ULong offset;
 	while (getEOMMark(&offset) != -1)
-		/* rip through ’em all */;
+		/* rip through 'em all */;
 	fGetIndex = fPutIndex;
 }
 

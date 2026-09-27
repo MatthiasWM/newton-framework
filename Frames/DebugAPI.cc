@@ -594,7 +594,7 @@ CNSDebugAPI::tempValue(ArrayIndex index, ArrayIndex inTempIndex)
 	if (stkIndex >= stackStart(index+1))
 		ThrowExFramesWithBadValue(kNSErrOutOfRange, MAKEINT(inTempIndex));
 	return *(fInterpreter->dataStack.base + stkIndex);
-	
+
 }
 
 
@@ -685,7 +685,7 @@ REPStackTrace(void * interpreter)
 
 					if (EQ(ClassOf(theFunc), SYMA(CodeBlock)))
 					{
-						// it’s a Newton1 CodeBlock
+						// it's a Newton1 CodeBlock
 						//sp-08
 						RefVar argFrame(GetArraySlot(theFunc, kFunctionArgFrameIndex));
 						RefVar argMap(((FrameObject *)ObjectPtr(argFrame))->map);
@@ -703,7 +703,7 @@ REPStackTrace(void * interpreter)
 					}
 					else
 					{
-						// it’s a Newton2 _function
+						// it's a Newton2 _function
 						RefVar locals(debugAPI.locals(stackIndex));
 						ArrayIndex numOfLocals = Length(locals);
 						ArrayIndex numOfArgs = GetFunctionArgCount(theFunc);
@@ -734,7 +734,7 @@ REPStackTrace(void * interpreter)
 /* -----------------------------------------------------------------------------
 	D i s a s s e m b l y
 ----------------------------------------------------------------------------- */
-#if 1		// #ifdef hasDisasm		I think it’s fun always to be able to Disassemble, no?
+#if 1		// #ifdef hasDisasm		I think it's fun always to be able to Disassemble, no?
 
 const char * simpleInstrs[] =
 {
@@ -783,7 +783,7 @@ const char * paramInstrs[] =
 	P l a i n   C   I n t e r f a c e
 	Originally part of the NS Debug Tools.pkg which includes breakpoint and
 	other extended debugging functions.
-	We don’t respect the global NSDParamFrame (Newton Toolkit User’s Guide 7-23)
+	We don't respect the global NSDParamFrame (Newton Toolkit User's Guide 7-23)
 		verbose
 		disasmInstWidth
 		disasmArgWidth

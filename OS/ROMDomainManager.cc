@@ -104,7 +104,7 @@ LOTransactionHandler::addObjectToTransaction(PSSId inId, CStore * inStore, int i
 			err = inStore->startTransactionAgainst(inId);
 	}
 	XENDTRY;
-	
+
 	return err;
 }
 
@@ -156,7 +156,7 @@ LOTransactionHandler::endTransaction(bool inArg1, CStore * inStore, PSSId inObjI
 		}
 	}
 	XENDTRY;
-	
+
 	return err;
 }
 
@@ -713,7 +713,7 @@ CROMDomainManager1K::resizeObject(VAddr * outAddr, VAddr inAddr, size_t inSize, 
 
 /* -----------------------------------------------------------------------------
 	Munge an object -- insert or remove bytes.
-	Args:		inChunk		object’s package wrapper
+	Args:		inChunk		object's package wrapper
 				inStart		offset into object
 				inDelta		number of bytes to remove/insert
 	Return:  error code
@@ -778,7 +778,7 @@ CROMDomainManager1K::mungeObject(PackageChunk * inChunk, ArrayIndex inStart, int
 
 /* -----------------------------------------------------------------------------
 	Insert 1K pages into an object.
-	Args:		inChunk		object’s package wrapper
+	Args:		inChunk		object's package wrapper
 				inOffset		offset (in pages) into object
 				inCount		number of pages to insert
 	Return:  error code
@@ -792,7 +792,7 @@ CROMDomainManager1K::insertPages(PackageChunk * inChunk, ArrayIndex inOffset, Ar
 
 	XTRY
 	{
-		// create array for object’s new data page ids
+		// create array for object's new data page ids
 		XFAIL(inCount > 0)
 		ArrayIndex	numOfPages = (inChunk->fSize + (kSubPageSize-1)) / kSubPageSize;
 		ArrayIndex limit = inOffset + inCount;
@@ -819,7 +819,7 @@ CROMDomainManager1K::insertPages(PackageChunk * inChunk, ArrayIndex inOffset, Ar
 		}
 		XFAIL(err)
 		XFAIL(err = doTransactionAgainstObject(0, inChunk, inChunk->fDataId, 2))
-		// replace the object’s data with the new id array
+		// replace the object's data with the new id array
 		err = store->replaceObject(inChunk->fDataId, pageArray, pageArraySize);
 	}
 	XENDTRY;
@@ -832,7 +832,7 @@ CROMDomainManager1K::insertPages(PackageChunk * inChunk, ArrayIndex inOffset, Ar
 
 /* -----------------------------------------------------------------------------
 	Remove pages from an object.
-	Args:		inChunk		object’s package wrapper
+	Args:		inChunk		object's package wrapper
 				inOffset		offset into object
 				inCount		number of pages to remove
 	Return:  error code
@@ -846,7 +846,7 @@ CROMDomainManager1K::removePages(PackageChunk * inChunk, ArrayIndex inOffset, Ar
 
 	XTRY
 	{
-		// create array for object’s new data page ids
+		// create array for object's new data page ids
 		XFAIL(inCount > 0)
 		ArrayIndex	numOfPages = (inChunk->fSize + (kSubPageSize-1)) / kSubPageSize;	// sp04
 		ArrayIndex limit = inOffset + inCount;	// r7
@@ -870,7 +870,7 @@ CROMDomainManager1K::removePages(PackageChunk * inChunk, ArrayIndex inOffset, Ar
 		XFAIL(err)
 		XFAIL(err = doTransactionAgainstObject(0, inChunk, inChunk->fDataId, 2))
 
-		// replace the object’s data with the new id array
+		// replace the object's data with the new id array
 		if (limit == newNumOfPages)
 			// removing from the end -- just resize the object
 			err = store->setObjectSize(inChunk->fDataId, newNumOfPages * sizeof(PSSId));
@@ -952,7 +952,7 @@ CROMDomainManager1K::getObjectPtr(VAddr inAddr)
 		}
 	}
 
-// address isn’t within any object
+// address isn't within any object
 	return NULL;
 }
 
@@ -979,7 +979,7 @@ CROMDomainManager1K::objectToIndex(VAddr inAddr, ArrayIndex * outIndex)
 		{
 			*outIndex = index;
 			err = noErr;
-			break;	// original doesn’t break!
+			break;	// original doesn't break!
 		}
 	}
 	return err;
@@ -1008,7 +1008,7 @@ CROMDomainManager1K::objectToIndex(CStore * inStore, PSSId inObjId, ArrayIndex *
 		{
 			*outIndex = index;
 			err = noErr;
-			break;	// original doesn’t break!
+			break;	// original doesn't break!
 		}
 	}
 	return err;
@@ -1037,7 +1037,7 @@ CROMDomainManager1K::packageToIndex(PSSId inPkgId, ArrayIndex * outIndex)
 		{
 			*outIndex = index;
 			err = noErr;
-			break;	// original doesn’t break!
+			break;	// original doesn't break!
 		}
 	}
 	return err;
@@ -1045,7 +1045,7 @@ CROMDomainManager1K::packageToIndex(PSSId inPkgId, ArrayIndex * outIndex)
 
 
 /* -----------------------------------------------------------------------------
-	Delete an object’s entire package.
+	Delete an object's entire package.
 	Args:		inChunk
 				inErr
 	Return:  error code
@@ -1067,7 +1067,7 @@ CROMDomainManager1K::deleteObjectInfo(PackageChunk * inChunk, NewtonErr inErr)
 	}
 
 #if 0
-// we don’t implement xxxCleanup companders anywhere, and this is a cause of crashes in NCX
+// we don't implement xxxCleanup companders anywhere, and this is a cause of crashes in NCX
 	sprintf(companderCleanupName, "%sCleanup", inChunk->fCompanderName);
 	if ((info = ClassInfoByName("CStoreCompander", companderCleanupName)) != NULL)
 		inChunk->fStoreCompander->setType(info);
@@ -1120,7 +1120,7 @@ CROMDomainManager1K::addPackage(CStore * inStore, PSSId inObjId, bool inReadOnly
 				doReleaseDatabase();
 			}
 #endif
-			// verify object’s root
+			// verify object's root
 			XFAILIF((root.flags & 0xFFFF) > 2, err = kOSErrBadPackage;)
 			// inherit r/w from store and object root
 			inStore->isReadOnly(&isRO);
@@ -1128,7 +1128,7 @@ CROMDomainManager1K::addPackage(CStore * inStore, PSSId inObjId, bool inReadOnly
 			if (inReadOnly)
 				isRW = false;
 
-			// read store’s compander name
+			// read store's compander name
 			chunk.fDataId = root.fDataId;
 			XFAIL(err = inStore->getObjectSize(root.fCompanderNameId, &companderNameLen))
 			chunk.fCompanderName = new char[companderNameLen+1];
@@ -1160,7 +1160,7 @@ CROMDomainManager1K::addPackage(CStore * inStore, PSSId inObjId, bool inReadOnly
 				// return its address
 				*outAddr = chunk.fAddr;
 			}
-			else if ((root.flags & 0xFFFF) == 2)	// it’s actually a LargeObjectRoot
+			else if ((root.flags & 0xFFFF) == 2)	// it's actually a LargeObjectRoot
 			{
 				// calc its size
 				inStore->read(inObjId, offsetof(LargeObjectRoot, fActualSize), &objSize, sizeof(objSize));
@@ -1204,10 +1204,10 @@ CROMDomainManager1K::addPackage(CStore * inStore, PSSId inObjId, bool inReadOnly
 /* -----------------------------------------------------------------------------
 	Allocate an entry for a package wrapper in the fPackageTable.
 	In a VM system, faulting in data from backing store would be deferred until
-	the large object’s BinaryData is referenced.
+	the large object's BinaryData is referenced.
 	Here we fault in all the data immediately.
 	Args:		inChunk		package descriptor
-								on return, object’s address is set and descriptor is inserted in fPackageTable
+								on return, object's address is set and descriptor is inserted in fPackageTable
 				outIndex		on return, fPackageTable index of entry
 	Return:  error code
 ----------------------------------------------------------------------------- */
@@ -1293,7 +1293,7 @@ CROMDomainManager1K::allocatePackageEntry(PackageChunk * inChunk, ArrayIndex * o
 
 
 /* -----------------------------------------------------------------------------
-	Set an object’s package wrapper.
+	Set an object's package wrapper.
 	Args:		inStore			the store on which to create the package
 				inObjId			the object to package up
 				inPkgId			its package
@@ -1391,7 +1391,7 @@ CROMDomainManager1K::flushCache(ArrayIndex index, bool inArg2)
 		for (ArrayIndex subPageIndex = 0; subPageIndex < 4; ++subPageIndex)
 		{
 			if ((pageAddr = pageTableEntry->fPageAddr[subPageIndex]) != 0xFFFF
-			&&  pageAddr*4 >= r10		// ••?? comparing pages to subpages
+			&&  pageAddr*4 >= r10		// **?? comparing pages to subpages
 			&&  pageAddr*4 < r9)
 				subPageMask |= (1 << subPageIndex);
 		}
@@ -1565,7 +1565,7 @@ CROMDomainManager1K::releaseRequest(int inSelector)
 			fCD = true;
 		if ((err = getWorkingSetPage(&pageNum)) == noErr)
 			release(pageNum);
-		
+
 	}
 #else
 	err = noErr;
@@ -1583,7 +1583,7 @@ CROMDomainManager1K::releaseRequest(int inSelector)
 	Return:  error code
 ------------------------------------------------------------------------------*/
 #if defined(forFramework)
-// beccause we don’t subclass from CUDomainManager
+// beccause we don't subclass from CUDomainManager
 NewtonErr
 CROMDomainManager1K::remember(VAddr inAddr, ULong inPermissions, PSSId inId, bool inAlwaysTrueAFAICT)
 { return noErr; }
@@ -1595,7 +1595,7 @@ CROMDomainManager1K::decompressAndMap(VAddr inAddr, PackageChunk * inChunk)
 	NewtonErr	err = noErr;
 	ArrayIndex	pageIndex;
 	ArrayIndex	subPageIndex = (inAddr / kSubPageSize) & 0x03;
-	
+
 	if ((err = getSubPage(inAddr, &pageIndex, inChunk)) != noErr)
 		ThrowErr(exAbort, err);
 
@@ -1807,7 +1807,7 @@ CROMDomainManager1K::reset(ArrayIndex inNumSubPages, ArrayIndex inGuardSubPages)
 	fNumOfPages = numOfPages;
 	fC4 = numOfPages / 10;		// low water
 	fC8 = numOfPages / 2;		// mid water
-	f68 = numOfPages - inGuardSubPages/kSubPagesPerPage;	// danger zone? doesn’t seem to be referenced anywhere
+	f68 = numOfPages - inGuardSubPages/kSubPagesPerPage;	// danger zone? doesn't seem to be referenced anywhere
 
 	XTRY
 	{
@@ -2014,7 +2014,7 @@ CROMDomainManager1K::restrictToInternalWorkingSet(void)
 		expiry.set(100*kMilliseconds);
 	else
 		expiry.set(400*kMilliseconds);
-		
+
 	return delta < expiry;
 #else
 	return false;
@@ -2200,7 +2200,7 @@ CROMDomainManager1K::writeOutPage(VAddr inAddr)
 NewtonErr
 CROMDomainManager1K::getSubPage(VAddr inAddr, ArrayIndex * outPageIndex, PackageChunk * inChunk)
 {
-// IT’S A WHOPPER
+// IT'S A WHOPPER
 	int			sp00;	// actually stores bool
 	long			sp04;
 	ArrayIndex	sp08;

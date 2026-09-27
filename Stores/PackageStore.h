@@ -18,7 +18,7 @@
 	P a c k a g e S t o r e D a t a
 	A package store is a block of read-only data loaded from a package.
 	The data is prefixed with a PackageStoreData struct that defines the objects
-	within the store. An object’s id is an index into an array that gives the
+	within the store. An object's id is an index into an array that gives the
 	offset to the object within the package data block.
 ----------------------------------------------------------------------------- */
 

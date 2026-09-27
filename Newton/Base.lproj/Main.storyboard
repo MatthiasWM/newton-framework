@@ -63,7 +63,7 @@
                                 <menu key="submenu" title="File" id="1oI-fT-W6A">
                                     <items>
                                         <menuItem title="New Newton" keyEquivalent="n" id="uvs-fR-I65"/>
-                                        <menuItem title="Open…" keyEquivalent="o" id="vI7-y8-hqa"/>
+                                        <menuItem title="Open..." keyEquivalent="o" id="vI7-y8-hqa"/>
                                         <menuItem title="Open Recent" id="Q01-F2-UrD">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Open Recent" systemMenu="recentDocuments" id="ipp-Y9-Nxh">
@@ -95,7 +95,7 @@ CA
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Find" id="W9m-Pb-76Z">
                                                 <items>
-                                                    <menuItem title="Find…" tag="1" keyEquivalent="f" id="XTo-aH-8p8"/>
+                                                    <menuItem title="Find..." tag="1" keyEquivalent="f" id="XTo-aH-8p8"/>
                                                     <menuItem title="Find Next" tag="2" keyEquivalent="g" id="IXs-re-6p0"/>
                                                     <menuItem title="Find Previous" tag="3" keyEquivalent="G" id="LCA-w1-Tr7"/>
                                                     <menuItem title="Use Selection for Find" tag="7" keyEquivalent="e" id="39L-Zc-M67"/>

@@ -225,7 +225,7 @@ CPrecedentsForWriting::add(RefArg inObj)
 void
 CPrecedentsForWriting::reset(void)
 {
-	// only one entry, the root…
+	// only one entry, the root...
 	setArraySize(1);
 	// which is NULL
 	WrPrec *	p = get(0);

@@ -3,7 +3,7 @@
 
 	Contains:	Interface to CommAPI config/options
 
-	Copyright:	© 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__OPTIONARRAY_H)

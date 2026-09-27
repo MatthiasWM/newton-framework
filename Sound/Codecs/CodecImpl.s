@@ -32,7 +32,7 @@ __ZN10CDTMFCodec9classInfoEv:
 		BRAZ		__ZN10CDTMFCodec4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN10CDTMFCodec7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)
@@ -79,7 +79,7 @@ __ZN9CGSMCodec9classInfoEv:
 		BRAZ		__ZN9CGSMCodec4makeEv		// branch to New(void), or MOV PC,LK
 		BRAZ		__ZN9CGSMCodec7destroyEv	// branch to Delete(void), or MOV PC,LK
 
-		.long		0				// this implementation’s version
+		.long		0				// this implementation's version
 		.long		0				// flags
 		.long		0				// reserved
 		.long		6f - 0b		// branch to bail-out function (that returns nil now)

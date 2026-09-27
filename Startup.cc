@@ -60,7 +60,7 @@ CStartupDriver * gStartupDriver;			// 0C1010E8.x68 = 0C101150
 
 /* -----------------------------------------------------------------------------
 	Load the startup driver.
-	I don’t believe the startup driver does anything. Or is even implemented.
+	I don't believe the startup driver does anything. Or is even implemented.
 ----------------------------------------------------------------------------- */
 
 void

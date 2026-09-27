@@ -92,7 +92,7 @@ Done:										; 003AD750
 		LDREQ	R1, [&003ADEA8]	; gAtomicFIQNestCount
 		LDREQ	R1, [R1]
 		CMPEQ	R1, #0
-		BGT	NoSwap2				; if in nested interrupt, don’t swap!
+		BGT	NoSwap2				; if in nested interrupt, don't swap!
 		MSR	CPSR, #&93			; not nested so re-enable FIQ (but not IRQ)
 		NOP
 		NOP
@@ -136,14 +136,14 @@ DoScheduled:
 		LDMIA	SP!, {R0}
 1:		LDR	R1, [&003ADEB8]		; gCurrentTask
 		LDR	R1, [R1]
-		CMP	R0, R1					; if task hasn’t changed, don’t do task swap
+		CMP	R0, R1					; if task hasn't changed, don't do task swap
 		BEQ	NoSwap
 
 		LDR	R2, [&003ADEB8]		; gCurrentTask
 		STR	R0, [R2]					; update gCurrentTask
 		CMP	R1, #&00000000
 		ADDEQ	SP, SP, #&00000020 (32)
-		BEQ	SwapIn					; if no previous task, don’t swap it out
+		BEQ	SwapIn					; if no previous task, don't swap it out
 
 SwapOut:
 		LDMIA	SP!, {R2-R3, R10-R12, LK}

@@ -122,7 +122,7 @@ CTimerQueue::check(void)
 	Cancel a timer element in the queue.
 	Args:		inRefCon			identifier for the timer element
 	Return:	the element cancelled
-				NULL => wasn’t found
+				NULL => wasn't found
 --------------------------------------------------------------------------------*/
 
 CTimerElement *
@@ -194,7 +194,7 @@ CTimerQueue::enqueue(CTimerElement * inItem)
 /*--------------------------------------------------------------------------------
 	Remove an element from the queue.
 	Args:		inItem			the item to remove
-				inAdjust			true => account for the element’s timeout so that future elements still fire at the same time
+				inAdjust			true => account for the element's timeout so that future elements still fire at the same time
 	Return:	the element
 --------------------------------------------------------------------------------*/
 
@@ -269,7 +269,7 @@ CTimerQueue::calibrate(void)
 /*--------------------------------------------------------------------------------
 	C T i m e r P o r t
 	A (user) port that performs timed receives.
-	Doesn’t appear to be used anywhere.
+	Doesn't appear to be used anywhere.
 --------------------------------------------------------------------------------*/
 
 CTimerPort::CTimerPort()

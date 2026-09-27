@@ -14,7 +14,7 @@
 
 /* -------------------------------------------------------------------------------
 	R e g i o n s
-	We don’t use regions for drawing (stroke/fill), quartz doesn’t do them.
+	We don't use regions for drawing (stroke/fill), quartz doesn't do them.
 ------------------------------------------------------------------------------- */
 #if 0
 struct Rgn

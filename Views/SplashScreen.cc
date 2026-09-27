@@ -201,4 +201,4 @@ public:
 	bool			getText(UniChar * outStr);
 };
 
-// We don’t have a separate splash screen.
+// We don't have a separate splash screen.

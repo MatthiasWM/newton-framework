@@ -228,7 +228,7 @@ CGeneralizedTestFnVar::applyKey(RefArg inElement)
 int
 CGeneralizedTestFnVar::testClosure(RefArg inObj1, RefArg inObj2)
 {
-//	fObj1 = *inObj1;	// original passes Ref *; we don’t need to create RefVars
+//	fObj1 = *inObj1;	// original passes Ref *; we don't need to create RefVars
 //	fObj2 = *inObj2;
 	return RINT(NSCall(fTest, inObj1, inObj2));
 }
@@ -236,7 +236,7 @@ CGeneralizedTestFnVar::testClosure(RefArg inObj1, RefArg inObj2)
 int
 CGeneralizedTestFnVar::testEQClosure(RefArg inObj1, RefArg inObj2)
 {
-//	fObj1 = *inObj1;	// original passes Ref *; we don’t need to create RefVars
+//	fObj1 = *inObj1;	// original passes Ref *; we don't need to create RefVars
 //	fObj2 = *inObj2;
 	Ref	result = NSCall(fTest, inObj1, inObj2);
 	if (ISINT(result))
@@ -525,7 +525,7 @@ LSearch(RefArg inArray, RefArg inItem, RefArg inStart, RefArg inTest, RefArg inK
 	on_unwind
 		UnlockRef(inArray);
 	end_unwind;
-	
+
 	return index;
 }
 

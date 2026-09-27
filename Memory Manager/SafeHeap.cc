@@ -102,7 +102,7 @@ InitSafeHeap(SSafeHeapPage ** outHeap)
 /*------------------------------------------------------------------------------
 	Determine whether the safe heap is completely empty.
 	Args:		inHeap			the heap
-	Return:	true => it’s empty
+	Return:	true => it's empty
 ------------------------------------------------------------------------------*/
 
 bool
@@ -170,14 +170,14 @@ SafeHeapFree(void * inPtr)
 {
 	if (inPtr != NULL)
 	{
-		SSafeHeapPage * page = *SafeHeapEndSentinelFor(inPtr);		
+		SSafeHeapPage * page = *SafeHeapEndSentinelFor(inPtr);
 		page->free(inPtr);
 	}
 }
 
 
 /*------------------------------------------------------------------------------
-	Return the safe heap’s page end sentinel.
+	Return the safe heap's page end sentinel.
 	Args:		inPtr		a block
 	Return:	safe heap page owner for the page
 ------------------------------------------------------------------------------*/
@@ -320,7 +320,7 @@ shortcut:
 				prevFreeBlock = NULL;
 		}
 	}
-	// didn’t find anything big enough
+	// didn't find anything big enough
 	return NULL;
 }
 
@@ -353,7 +353,7 @@ SSafeHeapPage::free(void * inPtr)
 	}
 
 	if (fFree == kSafeHeapAvailable	// this page is now all free
-	&&  fPrev != NULL						// but there’s another page
+	&&  fPrev != NULL						// but there's another page
 	&&  ALIGNED(this, kPageSize))
 	{
 	//	we can free this page

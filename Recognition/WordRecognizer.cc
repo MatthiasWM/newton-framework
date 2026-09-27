@@ -245,7 +245,7 @@ CStdWordUnit::sizeInBytes(void)
 			thisSize = GetPtrSize(str);
 	}
 
-	thisSize += (sizeof(CStdWordUnit) - sizeof(CSIUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CStdWordUnit) - sizeof(CSIUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CSIUnit::sizeInBytes() + thisSize;
 }
 
@@ -307,7 +307,7 @@ CStdWordUnit::getString(ArrayIndex index)
 
 void
 CStdWordUnit::setParam(UnitInterpretation*, ArrayIndex index, Ptr)
-{ /* we don’t use params */ }
+{ /* we don't use params */ }
 
 
 CArray *
@@ -397,7 +397,7 @@ CStdWordUnit::disposeTrainingData(Ptr inData)
 	C W R e c U n i t
 	Original class hierarchy looks like
 		TWRecUnit <- TRecUnit <- TStdWordUnit <- TSIUnit <- TUnit.
-	We’ve eliminated the TRecUnit layer which would clash names anyway.
+	We've eliminated the TRecUnit layer which would clash names anyway.
 ----------------------------------------------------------------------------- */
 
 CWRecUnit *
@@ -568,7 +568,7 @@ CWordList::operator delete(void * inPtr)
 {
 	*((CWordList *)inPtr)->fWords = NULL;
 	if (inPtr >= gPreallocWordLists && inPtr < gPreallocWordLists + sizeof(CWordList)*12)
-		return;	// don’t delete a preallocated word list!
+		return;	// don't delete a preallocated word list!
 	delete (CWordList *)inPtr;
 }
 

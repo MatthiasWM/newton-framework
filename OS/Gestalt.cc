@@ -60,7 +60,7 @@ CUGestalt::gestalt(GestaltSelector inSelector, void * ioParmBlock, size_t * ioPa
 	OpaqueRef	thing = 0;
 	OpaqueRef	spec = 0;
 
-	// first see if there’s a registered gestalt
+	// first see if there's a registered gestalt
 	// its name is the selector expressed as a hex number
 	sprintf(selectorName, "%x", inSelector);
 	ns.lookup(selectorName, kRegisteredGestalt, &thing, &spec);
@@ -106,12 +106,12 @@ CUGestalt::registerGestalt(GestaltSelector inSelector, void * ioParmBlock, size_
 	OpaqueRef	thing = 0;
 	OpaqueRef	spec = 0;
 
-	// see if it’s already registered - can’t register it if so
+	// see if it's already registered - can't register it if so
 	sprintf(selectorName, "%x", inSelector);
 	ns.lookup(selectorName, kRegisteredGestalt, &thing, &spec);
 	if (thing != 0)
 		return kOSErrAlreadyRegistered;
-	// also can’t allow selectors in the kGestalt_Base range
+	// also can't allow selectors in the kGestalt_Base range
 	else if (inSelector > kGestalt_Base && inSelector < kGestalt_Extended_Base)
 		return kOSErrBadParameters;
 
@@ -120,7 +120,7 @@ CUGestalt::registerGestalt(GestaltSelector inSelector, void * ioParmBlock, size_
 
 
 /*--------------------------------------------------------------------------------
-	Replace a gestalt that’s already been registered.
+	Replace a gestalt that's already been registered.
 	Args:		inSelector		its unique identifier
 				ioParmBlock		its data
 				inParmSize		its size
@@ -135,13 +135,13 @@ CUGestalt::replaceGestalt(GestaltSelector inSelector, void * ioParmBlock, size_t
 	OpaqueRef	thing = 0;
 	OpaqueRef	spec = 0;
 
-	// see if it’s already registered - must unregister it if so
-	// but no matter if it doesn’t exist
+	// see if it's already registered - must unregister it if so
+	// but no matter if it doesn't exist
 	sprintf(selectorName, "%x", inSelector);
 	ns.lookup(selectorName, kRegisteredGestalt, &thing, &spec);
 	if (thing != 0)
 		ns.unregisterName(selectorName, (char *)kRegisteredGestalt);
-	// also can’t allow selectors in the kGestalt_Base range
+	// also can't allow selectors in the kGestalt_Base range
 	else if (inSelector > kGestalt_Base && inSelector < kGestalt_Extended_Base)
 		return kOSErrBadParameters;
 

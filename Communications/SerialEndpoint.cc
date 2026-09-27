@@ -389,7 +389,7 @@ CSerialEndpoint::waitForEvent(Timeout inTimeout)
 		err = f3C->block(inTimeout);
 	}
 	XENDTRY;
-	f41 = false;	// original doesn’t clear this on err
+	f41 = false;	// original doesn't clear this on err
 	return err;
 }
 
@@ -756,7 +756,7 @@ CSerialEndpoint::grabPutPB(bool inMake)
 		}
 	}
 	XENDFAIL;
-	
+
 	return pb;
 }
 
@@ -849,7 +849,7 @@ CSerialEndpoint::grabGetPB(bool inMake)
 		}
 	}
 	XENDFAIL;
-	
+
 	return pb;
 }
 

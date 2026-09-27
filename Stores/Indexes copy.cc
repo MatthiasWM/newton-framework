@@ -35,7 +35,7 @@ inline void * operator new[](size_t, CSoupIndex * addr) { return addr; }
 
 /*----------------------------------------------------------------------
 	H a c k
-	Shouldn’t need this when actual GetGlobalTime() is available.
+	Shouldn't need this when actual GetGlobalTime() is available.
 ----------------------------------------------------------------------*/
 #include <mach/mach.h>
 #include <mach/clock.h>
@@ -207,7 +207,7 @@ GetEntryKey(RefArg inEntry, RefArg inPath)
 
 	else if (FrameHasPath(inEntry, inPath))
 		return GetFramePath(inEntry, inPath);
-		
+
 	return NILREF;
 }
 
@@ -284,7 +284,7 @@ SKeyToKey(const SKey & inKey, RefArg inType, short * outp)
 		keyObj = MakeArray(count);
 		for (i = 0; i < count; i++)
 		{
-			if (aKey == aKeyLimit)	// we’re full
+			if (aKey == aKeyLimit)	// we're full
 				break;
 			if ((flags & 0x01) == 0)
 			{
@@ -305,7 +305,7 @@ SKeyToKey(const SKey & inKey, RefArg inType, short * outp)
 void
 KeyToSKey(RefArg inKey, RefArg inType, SKey * outKey, short * outSize, BOOL * outIsComplexKey)
 {
-	BOOL isNonNumericKey = NO;	// assume it’s numeric
+	BOOL isNonNumericKey = NO;	// assume it's numeric
 
 	if (IsArray(inType))
 	{
@@ -396,7 +396,7 @@ MultiKeyToSKey(RefArg inKey, RefArg inType, SKey * outKey)
 			if (nextKeyLen > 78)
 			{
 				if (!isComplexKey)
-					break;		// don’t need to bother with simple (numeric) keys
+					break;		// don't need to bother with simple (numeric) keys
 				aKeySize = 78 - keyLen;	// shorten the key to fit the available space
 				if (aKeySize <= 2)
 					break;	// no room for any more keys
@@ -977,7 +977,7 @@ CSoupIndex::kfReplaceFirstData(KeyField * ioField, void * inData)
 	ALIGNkfSIZE(dataSize);
 	if (ioField->flags == 0)
 	{
-		// it’s a singleton
+		// it's a singleton
 		ioField->length = keySize + dataSize;				// update the size
 		memmove(ioField + keySize, inData, dataSize);	// copy data into data space
 	}
@@ -1433,7 +1433,7 @@ CSoupIndex::deleteKey(KeyField * inField, NodeHeader * inNode, BOOL * outArg3)
 			}
 		}
 	}
-	
+
 
 	return r9;
 }
@@ -1596,7 +1596,7 @@ CSoupIndex::keyInNode(KeyField * inKeyField, NodeHeader * inNode, ULong * outId,
 			*outIndex = index;
 			*outId = leftNodeNo(inNode, index);
 			return YES;
-		}	
+		}
 	}
 	if (cmp > 0)
 		index++;
@@ -1667,7 +1667,7 @@ CSoupIndex::checkForDupData(KeyField * inField, void * inData)
 		ThrowOSErr(1);
 
 	PSSId dupId;
-	if (inField->flags != 0		// sic -- shouldn’t this be == 0x01 ?
+	if (inField->flags != 0		// sic -- shouldn't this be == 0x01 ?
 	&&  (dupId = kfNextDupId(inField)) != 0)
 	{
 		DupNodeHeader * dupNode = readADupNode(dupId);
@@ -1784,7 +1784,7 @@ CSoupIndex::rawKeyCompare(const SKey& inKey1, const SKey& inKey2)
 		lenCmp = 0;
 	if ((cmp = memcmp(inKey1.data(), inKey2.data(), len1)) == 0)
 		return lenCmp;
-	return cmp;	
+	return cmp;
 }
 
 
@@ -1835,7 +1835,7 @@ CSoupIndex::multiKeyCompare(const SKey& inKey1, const SKey& inKey2)
 				size_t keySize;
 				if ((keySize = fKeySizes[keyType]) == 0)
 				{
-					// we need to use the key’s given size to update the pointer to the next key
+					// we need to use the key's given size to update the pointer to the next key
 					keySize = SKey::kOffsetToData + ((SKey *)key1)->size();
 					ALIGNkfSIZE(keySize);
 					key1 += keySize;
@@ -2383,7 +2383,7 @@ CUnionSoupIndex::CUnionSoupIndex(unsigned inNumOfIndexes, UnionIndexData * index
 CUnionSoupIndex::~CUnionSoupIndex()
 {
 	for (int i = fNumOfSoupsInUnion - 1; i >= 0; i--)
-		delete (fIndexData + i);	// sic -- we didn’t alloc them, but we’re deleting them?
+		delete (fIndexData + i);	// sic -- we didn't alloc them, but we're deleting them?
 }
 
 
@@ -2406,7 +2406,7 @@ CUnionSoupIndex::find(SKey * inKey, SKey * outKey, SKey * outData, BOOL inArg4)
 		if (((r10 == 0 && ((index->f40 && !inArg4) || r8 == 2 || r8 == 3))
 		   || r10 == 2)
 		&&  (hasAKey == 0 || index->compareKeys(sp54, *outKey) < 0))
-		
+
 		{
 			r8 = r10;
 			memmove(outKey, &sp54, index->kfSizeOfKey(&sp54));
@@ -2828,7 +2828,7 @@ AddTag(RefArg inTags, RefArg inNewTag)
 		}
 		else
 		{
-		// slot is occupied -- ensure we’re not trying to duplicate the tag
+		// slot is occupied -- ensure we're not trying to duplicate the tag
 			if (EQ(tag, inNewTag))
 				return NO;
 		}
@@ -3041,7 +3041,7 @@ IndexPathsEqual(RefArg inPath1, RefArg inPath2)
 		if (count1 == 0)
 			return PathsEqual(inPath1, inPath2);
 	}
-	
+
 	return NO;
 }
 
@@ -3344,7 +3344,7 @@ AddNewSoupIndexes(RefArg inSoup, RefArg inStore, RefArg inIndexes)
 			AddArraySlot(indexes, indexDesc);
 		}
 	}
-	
+
 	return indexes;
 }
 

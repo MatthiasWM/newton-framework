@@ -304,7 +304,7 @@ FJournalReplayALine(RefArg inRcvr, RefArg inStartX, RefArg inStartY, RefArg inEn
 		ULong * p = theStroke->points;
 		if (isSelection)
 		{
-			// don’t move for the first second
+			// don't move for the first second
 			pt.x = startPt.x * 8;
 			pt.y = startPt.y * 8;
 			pt.z = 4;
@@ -528,7 +528,7 @@ CJournalReplayHandler::initStroke(ULong inOriginX, ULong inOriginY)
 {
 	if (fStrokeIndex == 1)
 	{
-		f18 = 0;		// doesn’t appear to be used
+		f18 = 0;		// doesn't appear to be used
 		fTimebase = (gJournalPlayer->fNumOfStrokes > 1) ? GetTicks() + 300 : GetTicks();
 	}
 	setOrigin(inOriginX, inOriginY);

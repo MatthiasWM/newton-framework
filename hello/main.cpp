@@ -3,7 +3,7 @@
 //  hello
 //
 //  Created by Matthias Melcher on 09.11.23.
-//  Copyright © 2023 Newton Research. All rights reserved.
+//  Copyright (c) 2023 Newton Research. All rights reserved.
 //
 
 #include <cstdio>

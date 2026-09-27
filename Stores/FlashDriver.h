@@ -13,7 +13,7 @@
 
 /*------------------------------------------------------------------------------
 	C F l a s h D r i v e r
-	It’s actually a protocol; but life’s too short.
+	It's actually a protocol; but life's too short.
 ------------------------------------------------------------------------------*/
 
 class CFlashDriver

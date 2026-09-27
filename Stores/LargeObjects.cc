@@ -481,7 +481,7 @@ DeleteLargeObject(VAddr inAddr)
 /*------------------------------------------------------------------------------
 	P a c k a g e s
 ------------------------------------------------------------------------------*/
-const UniChar * g0C1016E4 = (const UniChar *)L"Patch";		// I think; it’s not defined in the original
+const UniChar * g0C1016E4 = (const UniChar *)L"Patch";		// I think; it's not defined in the original
 
 NewtonErr	InstallPackage(void*, SourceType, ULong*, bool*, bool*, CStore * inStore = NULL, ObjectId inId = kNoId);
 
@@ -504,7 +504,7 @@ SizeOfPatches(void)
 		if (info.fPatch[i].fPatchPageCount > 0)
 			patchPageSize += kPageSize;
 	}
-	
+
 	return (patchPageSize != 0) ? patchSize + patchPageSize : 0;
 #else
 	return 0;
@@ -535,7 +535,7 @@ NewPackage(CPipe * inPipe, CStore * inStore, PSSId inId, ULong * outArg4, const 
 			{
 				XFAILIF(sp00, *outArg4 = 0; DeallocatePackage(inStore, inId);)	// not really an error
 				VAddr addr;
-				XFAILIF(MapLargeObject(&addr, inStore, inId, true), DeallocatePackage(inStore, inId);)	// sic -- don’t record the err
+				XFAILIF(MapLargeObject(&addr, inStore, inId, true), DeallocatePackage(inStore, inId);)	// sic -- don't record the err
 				XFAILIF(CommitObject(addr), DeallocatePackage(inStore, inId);)
 				UnmapLargeObject(addr);
 			}
@@ -557,7 +557,7 @@ NewPackage(CPipe * inPipe, CStore * inStore, PSSId inId, ULong * outArg4, const 
 	else
 		// could not allocate package
 		inStore->abort();
-	
+
 	return err;
 }
 
@@ -733,7 +733,7 @@ PackageUnavailable(PSSId inPkgId)
 	parms.fObjId = 0;
 	parms.fPkgId = inPkgId;
 	um.invokeRoutine(kRDM_UnmapLargeObject, &parms);
-	
+
 	return err;
 
 #else
@@ -763,7 +763,7 @@ InstallPackage(void * inPkgData, SourceType inSrcType, PSSId * outPkgId, bool * 
 
 		gPkgWorld->releaseMutex();
 		gPackageSemaphore->acquire(kWaitOnBlock);
-		
+
 		err = pkgMgr.sendRPC(&replySize, &loadEvent, sizeof(CPkBeginLoadEvent), &loadEvent, sizeof(CPkBeginLoadEvent));
 		if (err == noErr
 		&&  inStore != NULL

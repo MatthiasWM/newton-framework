@@ -163,14 +163,14 @@ CAsyncSerTool::allocateBuffers(void)
 {
 	f3F0 = 0;
 
-	// it’s a biggy
+	// it's a biggy
 	NewtonErr err;
 	XTRY
 	{
 	}
 	XENDTRY;
 	return err;
-	
+
 }
 
 
@@ -370,7 +370,7 @@ CFramedAsyncSerTool::processOptionStart(COption * ioOption, ULong inLabel, ULong
 		else
 			ioOption->copyDataFrom(&framing);
 	}
-	
+
 	else if (inLabel == 'frst')
 	{
 		if (inOpcode == 0x0100 || inOpcode == 0x0200)
@@ -506,7 +506,7 @@ CFramedAsyncSerTool::fillOutputBuffer(void)
 						if (fPutBuffer.getNextByte(&ch) != 0)
 						{
 							// put buffer is empty -- refill it from client data
-							if (fNumOfBytesToSend != 0)		// •• NOT RIGHT ••
+							if (fNumOfBytesToSend != 0)		// ** NOT RIGHT **
 								XFAILIF(status = fPutBuffer.copyIn(fDataToSend, sp04), fPutFrameState = 8; if (status == 5) status = kSerErrInternalError;)
 							else if (f278)
 								fPutFrameState = 3;
@@ -690,7 +690,7 @@ CFramedAsyncSerTool::emptyInputBuffer(ULong * outArg)
 					XFAIL(status = fRecvBuf.getNextByte(&ch, outArg))
 					if (ch == framing.fEOMChar)
 					{
-						// it’s end-of-message
+						// it's end-of-message
 						if (framing.fDoGetFCS)
 						{
 							fGetFCS.computeCRC(ch);
@@ -701,14 +701,14 @@ CFramedAsyncSerTool::emptyInputBuffer(ULong * outArg)
 					}
 					else if (ch == framing.fEscapeChar)
 					{
-						// it’s an escaped escape
+						// it's an escaped escape
 						fIsGetCharStacked = true;
 						fStackedGetChar = ch;
 						fIsGetCharEscaped = true;
 						fGetFrameState = 3;
 					}
 					else
-						// it’s nonsense -- ignore it
+						// it's nonsense -- ignore it
 						fGetFrameState = 3;
 					break;
 

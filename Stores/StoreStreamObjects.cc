@@ -49,7 +49,7 @@ StoreObjectHeader::setHintsHandlerId(int inFlags)
 
 /*------------------------------------------------------------------------------
 	Decompression callback.
-	Trampoline back to the CStoreReadPipe instance that’s decompressing.
+	Trampoline back to the CStoreReadPipe instance that's decompressing.
 ------------------------------------------------------------------------------*/
 
 NewtonErr
@@ -100,7 +100,7 @@ CStoreReadPipe::CStoreReadPipe(CStoreWrapper * inWrapper, CompressionType inComp
 CStoreReadPipe::~CStoreReadPipe()
 {
 	if (fDecompressor != NULL)
-		fDecompressor->destroy();	// it’s a protocol
+		fDecompressor->destroy();	// it's a protocol
 }
 
 
@@ -111,7 +111,7 @@ CStoreReadPipe::~CStoreReadPipe()
 const CStoreReadPipe &
 CStoreReadPipe::operator>>(unsigned char & ioValue)
 {
-	// if we’ve got anything in the buffer, use that
+	// if we've got anything in the buffer, use that
 	long bytesRemaining = fBufEnd - fBufOffset;
 	if (bytesRemaining >= 1)
 	{
@@ -191,7 +191,7 @@ CStoreReadPipe::setPosition(fpos_t inPos)
 void
 CStoreReadPipe::read(char * ioBuf, size_t inSize)
 {
-	// if we’ve got enough in the buffer, use that
+	// if we've got enough in the buffer, use that
 	long bytesRemaining = fBufEnd - fBufOffset;
 	if (bytesRemaining >= inSize)
 	{
@@ -336,7 +336,7 @@ ReadReference(CStoreReadPipe & inPipe)
 
 /*------------------------------------------------------------------------------
 	Compression callback.
-	Springboard back to the CStoreWritePipe instance that’s compressing.
+	Springboard back to the CStoreWritePipe instance that's compressing.
 ------------------------------------------------------------------------------*/
 
 NewtonErr
@@ -367,7 +367,7 @@ CStoreWritePipe::~CStoreWritePipe()
 	&&  fBufPtr != fBuf)
 		FreePtr(fBufPtr);
 	if (fCompressor != NULL)
-		fCompressor->destroy();	// it’s a protocol
+		fCompressor->destroy();	// it's a protocol
 }
 
 
@@ -800,7 +800,7 @@ CStoreObjectReader::scan1(void)
 
 			if (objType != kNSPlainArray)
 				((ArrayObject *)ObjectPtr(obj))->objClass = scan();
-			// else it’s 'array by default
+			// else it's 'array by default
 
 			for (ArrayIndex i = 0; i < numOfElements; ++i)
 				SetArraySlot(obj, i, scan());
@@ -1249,7 +1249,7 @@ CStoreObjectWriter::scan1(void)
 							word += wordLen;
 							hintLen = (word - text) / sizeof(UniChar);
 							f4A0 += hintLen;
-							// textLen -= hintLen;	// not done in the original but looks like it’s needed
+							// textLen -= hintLen;	// not done in the original but looks like it's needed
 							text = word;
 							for ( ; hintLen > fHintChunkSize; hintLen -= fHintChunkSize)
 								nextHintChunk();

@@ -168,7 +168,7 @@ GetEntryKey(RefArg inEntry, RefArg inPath)
 
 	else if (FrameHasPath(inEntry, inPath))
 		return GetFramePath(inEntry, inPath);
-		
+
 	return NILREF;
 }
 
@@ -245,7 +245,7 @@ SKeyToKey(const SKey & inKey, RefArg inType, short * outp)
 		keyObj = MakeArray(count);
 		for (ArrayIndex i = 0; i < count; ++i)
 		{
-			if (aKey == aKeyLimit)	// we’re full
+			if (aKey == aKeyLimit)	// we're full
 				break;
 			if ((flags & 0x01) == 0)
 			{
@@ -266,7 +266,7 @@ SKeyToKey(const SKey & inKey, RefArg inType, short * outp)
 void
 KeyToSKey(RefArg inKey, RefArg inType, SKey * outKey, short * outSize, bool * outIsComplexKey)
 {
-	bool isNonNumericKey = false;	// assume it’s numeric
+	bool isNonNumericKey = false;	// assume it's numeric
 
 	if (IsArray(inType))
 	{
@@ -356,7 +356,7 @@ MultiKeyToSKey(RefArg inKey, RefArg inType, SKey * outKey)
 			if (nextKeyLen > kSKeyBufSize)
 			{
 				if (!isComplexKey)
-					break;		// don’t need to bother with simple (numeric) keys
+					break;		// don't need to bother with simple (numeric) keys
 				aKeySize = kSKeyBufSize - keyLen;	// shorten the key to fit the available space
 				if (aKeySize <= 2)
 					break;	// no room for any more keys
@@ -612,7 +612,7 @@ AddTag(RefArg inTags, RefArg inNewTag)
 		}
 		else
 		{
-		// slot is occupied -- ensure we’re not trying to duplicate the tag
+		// slot is occupied -- ensure we're not trying to duplicate the tag
 			if (EQ(tag, inNewTag))
 				return false;
 		}

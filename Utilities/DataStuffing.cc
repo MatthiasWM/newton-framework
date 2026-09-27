@@ -347,7 +347,7 @@ FStuffHex(RefArg rcvr, RefArg inHexStr, RefArg inClass)
   // Length returns binary length, one UTF-16 char is 2 bytes, remove the trailing NUL
 	ArrayIndex i, numOfChars = Length(inHexStr)/2-1;
 
-	// we’re expecting a sequence of hex chars -- should be paired to make bytes
+	// we're expecting a sequence of hex chars -- should be paired to make bytes
 	RefVar obj(AllocateBinary(inClass, numOfChars/2));
 	LockRef(inHexStr); LockRef(obj);
 	UniChar * s = (UniChar *)BinaryData(inHexStr);

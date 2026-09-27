@@ -234,7 +234,7 @@ ProcessPackages(CChunk * inData, long inOffset)
 				CPackageAccessor pkg(*inData, pkgOffset);
 				// iterate over parts in the package
 				for (ArrayIndex partNo = 0, numOfParts = pkg.numParts(); partNo < numOfParts; ++partNo) {
-					// we’re only interested in NOS parts: unit import/export declaration frames
+					// we're only interested in NOS parts: unit import/export declaration frames
 					if ((pkg.partFlags(partNo) & 0x0F) == kNOSPart) {
 //						C588(0x20);
 						long partOffset = pkg.partOffset(partNo);	// offset to part data in part area of package
@@ -522,7 +522,7 @@ ResourceHandler(void)
 	if (gLex->getToken(tokn) && tokn.fType == kStringToken) {
 		gLex->consumeToken();
 // INCOMPLETE
-// we don’t use resources in OS X
+// we don't use resources in OS X
 	} else {
 		FatalError("expected resource filename");
 	}

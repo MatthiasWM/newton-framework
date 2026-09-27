@@ -299,7 +299,7 @@ public:
 #endif
 	VAddr				fBase;				// +10	base address
 	VAddr				fLimit;				// +14	(one past) end address
-	ArrayIndex		fStackRegionCount;	// +18	number of…
+	ArrayIndex		fStackRegionCount;	// +18	number of...
 	CStackInfo **	fStackRegion;			// +1C	one for each 33K
 };
 

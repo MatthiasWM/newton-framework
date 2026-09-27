@@ -190,7 +190,7 @@ CFlashBlock::init(CFlashStore * inStore)
 	fNextObjAddr = 0;
 	fZappedSize = 0;
 	fAvailableId = 0;
-	fValidity = 0;	// original doesn’t bother
+	fValidity = 0;	// original doesn't bother
 	return noErr;
 }
 
@@ -222,7 +222,7 @@ EXIT_FUNC
 
 /* -----------------------------------------------------------------------------
 	Set address parameters for the block.
-	Args:		info			log entry defining the block’s place
+	Args:		info			log entry defining the block's place
 				outHuh		on return, huh?
 	Return:	error code
 ----------------------------------------------------------------------------- */
@@ -285,7 +285,7 @@ EXIT_FUNC
 
 /* -----------------------------------------------------------------------------
 	Set address parameters for the RESERVED block.
-	Args:		info			log entry defining the block’s place
+	Args:		info			log entry defining the block's place
 				outHuh		on return, huh?
 	Return:	error code
 ----------------------------------------------------------------------------- */
@@ -320,9 +320,9 @@ CFlashBlock::lookup(PSSId inId, int inState, CStoreObjRef& ioObj, int * outArg4)
 
 /* -----------------------------------------------------------------------------
 	Add an object to the block.
-	Args:		inObjectId			object’s id
+	Args:		inObjectId			object's id
 				inState				its state
-				inSize				object’s size
+				inSize				object's size
 				inObj					on return, valid store object ref
 				inArg5
 				inArg6				true => pad objects to fill 4K -- for stress testing?
@@ -443,7 +443,7 @@ CFlashBlock::zapObject(ZAddr inAddr)
 	XTRY
 	{
 		StoreObjHeader obj;
-		ZAddr physAddr = fStore->translate(inAddr);	// really? don’t we translate in basicWrite() too?
+		ZAddr physAddr = fStore->translate(inAddr);	// really? don't we translate in basicWrite() too?
 		// read object header
 		XFAIL(err = readObjectAt(inAddr, &obj))
 		// validate it
@@ -722,7 +722,7 @@ CFlashBlock::objectMigrated(ZAddr inAddr, long inArg2)
 	Args:		inAddr			current object
 				outAddr			on return, address/offset of next object
 				inAllObjects	true => return every object encountered
-									false => return only zapped objects -- don’t think this is ever used
+									false => return only zapped objects -- don't think this is ever used
 	Return:	error code
 ----------------------------------------------------------------------------- */
 

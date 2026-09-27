@@ -127,7 +127,7 @@ CPixelMapCompander::init(CStore * inStore, PSSId inRootId, PSSId inParmsId, bool
 		fRootId = inRootId;
 		fPixMapId = inParmsId;
 		fShared = inShared;
-		
+
 		if (inShared)
 		{
 			XFAIL(err = GetSharedLZObjects(&fCompressor, &fDecompressor, &fBuffer, &fBufSize))
@@ -314,7 +314,7 @@ CPixelMapCompander::write(size_t inOffset, char * inBuf, size_t inBufLen, VAddr 
 			int wholeRowBytes = (inBufLen / rowBytes) * rowBytes;
 			int r2 = wholeRowBytes / sizeof(int32_t);
 			fRowLongs = r2;
-//			if (PixelDepth(&fPixMapObj->pixMap) == kOneBitDepth)		// can’t make any sense of this
+//			if (PixelDepth(&fPixMapObj->pixMap) == kOneBitDepth)		// can't make any sense of this
 //				fPixMapObj->pixMap.grayTable = r2;
 			int r1 = wholeRowBytes / sizeof(int32_t) - fRowLongs;
 			f38 = inBufLen;

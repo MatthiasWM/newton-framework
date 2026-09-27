@@ -49,9 +49,9 @@ GetHeapRefCon(Heap inHeap)
 
 
 /*------------------------------------------------------------------------------
-	Get the task’s current heap.
+	Get the task's current heap.
 	Args:		--
-	Return:	the task’s current heap
+	Return:	the task's current heap
 ------------------------------------------------------------------------------*/
 
 Heap
@@ -62,7 +62,7 @@ GetHeap(void)
 
 
 /*------------------------------------------------------------------------------
-	Set the task’s current heap.
+	Set the task's current heap.
 	Args:		inHeap		a heap
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -75,9 +75,9 @@ SetHeap(Heap inHeap)
 
 
 /*------------------------------------------------------------------------------
-	Get the task’s current heap.
+	Get the task's current heap.
 	Args:		--
-	Return:	the task’s current heap
+	Return:	the task's current heap
 ------------------------------------------------------------------------------*/
 
 Heap
@@ -92,7 +92,7 @@ GetCurrentHeap(void)
 
 
 /*------------------------------------------------------------------------------
-	Set the task’s current heap.
+	Set the task's current heap.
 	Args:		inHeap		a heap
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -133,7 +133,7 @@ NewHeapAt(VAddr inAddr, Size inSize, Heap * outHeap)
 	Create a new heap.
 	Args:		inAddr		where heap is in VM
 				inSize		size of heap
-				inPageSize	
+				inPageSize
 	Return:	new heap
 ------------------------------------------------------------------------------*/
 
@@ -206,7 +206,7 @@ NewHeap(VAddr inAddr, Size inSize, Size inPageSize)
 
 /*------------------------------------------------------------------------------
 	Create a new heap.
-	Args:		inDomain			domain for heap (or zero for current env’s default)
+	Args:		inDomain			domain for heap (or zero for current env's default)
 				inMaxSize		max size of both Ptr & Handle allocation
 				outHeap			new heap
 				inOptions		various options
@@ -254,7 +254,7 @@ NewVMHeap(ObjectId inDomain, Size inMaxSize, Heap * outHeap, ULong inOptions)
 
 /*------------------------------------------------------------------------------
 	Create a new heap, specifying sizes for Ptrs and Handles.
-	Args:		inDomain			domain for heap (or zero for current env’s default)
+	Args:		inDomain			domain for heap (or zero for current env's default)
 				inPtrSize		max size of Ptr allocation
 				inHandleSize	max size of Handle allocation
 				outHeap			new heap
@@ -309,7 +309,7 @@ NewSegregatedVMHeap(ObjectId inDomain, Size inPtrSize, Size inHandleSize, Heap *
 
 /*------------------------------------------------------------------------------
 	Create a new persistent heap (ie one that lives beyond reboot).
-	Args:		inDomain			domain for heap (or zero for current env’s default)
+	Args:		inDomain			domain for heap (or zero for current env's default)
 				inMaxSize		max size of both Ptr & Handle allocation
 				outHeap			new heap
 				inOptions		various options
@@ -325,7 +325,7 @@ NewPersistentVMHeap(ObjectId inDomain, Size inMaxSize, Heap * outHeap, ULong inO
 
 	if (inDomain == kNoId)
 		inDomain = TaskSwitchedGlobals()->fDefaultHeapDomainId;
-	
+
 	for (ArrayIndex index = 0; MemObjManager::findEntryByIndex(kMemObjDomain, index, &domainEntry, &err); index++)
 	{
 		if (domainEntry.fId == inDomain)
@@ -348,7 +348,7 @@ NewPersistentVMHeap(ObjectId inDomain, Size inMaxSize, Heap * outHeap, ULong inO
 			return err;
 		}
 	}
-	// didn’t find the domain
+	// didn't find the domain
 	return kStackErrBadDomain;
 }
 
@@ -461,7 +461,7 @@ AddSemaphoreToHeap(Heap inHeap)
 
 
 /*------------------------------------------------------------------------------
-	Return a heap’s semaphore.
+	Return a heap's semaphore.
 	Args:		inHeap			the heap
 	Return:	its semaphore
 ------------------------------------------------------------------------------*/
@@ -478,7 +478,7 @@ GetHeapSemaphore(Heap inHeap)
 
 
 /*------------------------------------------------------------------------------
-	Clobber a heap’s semaphore. Careful! Does not work for safe heaps.
+	Clobber a heap's semaphore. Careful! Does not work for safe heaps.
 	Args:		inHeap			the heap
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -503,7 +503,7 @@ ClobberHeapSemaphore(Heap inHeap)
 	Clobber a heap.
 	Args:		inHeap			the heap
 				inVerification	sanity check
-				inRecoverable	
+				inRecoverable
 	Return:	error code
 ------------------------------------------------------------------------------*/
 
@@ -903,7 +903,7 @@ WalkEachBlock(SHeap * inHeap, void ** outWhereSmashed, VetProcPtr inVet, Size * 
 				return err;
 
 			nextBlock = (Block *)((VAddr) block + block->free.size);
-			wasPrevBlockFree = true;			
+			wasPrevBlockFree = true;
 		}
 		else
 		{
@@ -1026,7 +1026,7 @@ ValidateHeap(Heap inHeap, int inArg2)
 ------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
-	Get the heap’s seed.
+	Get the heap's seed.
 	Args:		inHeap		the heap
 	Return:	its seed
 ------------------------------------------------------------------------------*/
@@ -1082,15 +1082,15 @@ NextHeapBlock(	Heap			inHeap,
 	else
 		block = (Block *)inHeap - 1;
 
-	if ((block->flags & 0x80) == 0)	// it’s free
+	if ((block->flags & 0x80) == 0)	// it's free
 		blockSize = block->free.size;
 	else
 		blockSize = block->inuse.size;
 	block = (Block *)((Ptr) block + blockSize);
 	if ((VAddr) block >= HeapPtr(inHeap)->end)
 		block = (Block *)inFromBlock;
-	
-	if ((block->flags & 0x80) == 0)	// it’s free
+
+	if ((block->flags & 0x80) == 0)	// it's free
 	{
 		blockType = kMM_HeapFreeBlock;
 		if (outFoundBlock != NULL)
@@ -1106,10 +1106,10 @@ NextHeapBlock(	Heap			inHeap,
 		if (outFoundBlockOwner != NULL)
 			*outFoundBlockOwner = 0;
 	}
-	else if ((block->inuse.flags & 0x03) == 0x01)	// it’s a direct block
+	else if ((block->inuse.flags & 0x03) == 0x01)	// it's a direct block
 	{
 		if ((block->inuse.flags & 0x10) != 0
-		&&  block->inuse.busy == 0xFF)	// it’s an internal block
+		&&  block->inuse.busy == 0xFF)	// it's an internal block
 		{
 			// map block type
 			switch (block->inuse.type)
@@ -1143,7 +1143,7 @@ NextHeapBlock(	Heap			inHeap,
 			if (outFoundBlockOwner != NULL)
 				*outFoundBlockOwner = 0;
 		}
-		else	// it’s REALLY a direct block
+		else	// it's REALLY a direct block
 		{
 			blockType = kMM_HeapPtrBlock;
 			if (outFoundBlock != NULL)
@@ -1160,7 +1160,7 @@ NextHeapBlock(	Heap			inHeap,
 				*outFoundBlockOwner = block->inuse.owner;
 		}
 	}
-	else	// it’s an indirect block
+	else	// it's an indirect block
 	{
 		blockType = kMM_HeapHandleBlock;
 		if (outFoundBlock != NULL)
@@ -1222,7 +1222,7 @@ CountHeapBlocks(	Size *	outTotalSize,
 
 			else if (blockType == kMM_HeapEndBlock)
 			{
-				// that’s it; set totals and return
+				// that's it; set totals and return
 				if (outTotalSize != NULL)
 					*outTotalSize = totalSize;
 				if (outFoundCount != NULL)
@@ -1234,7 +1234,7 @@ CountHeapBlocks(	Size *	outTotalSize,
 				  &&  (inBlockType == 0 || inBlockType == blockType)
 				  &&  (blockOwner & inNameMask) == inName)
 			{
-				// it’s a matching block; count it
+				// it's a matching block; count it
 				totalSize += blockSize;
 				foundCount++;
 			}

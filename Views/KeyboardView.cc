@@ -272,7 +272,7 @@ TranslateKey(ULong inCode, bool inIsDown, ULong inModifiers, ULong * ioState)
 //L64
 	if (ch8bit == 0)
 	{
-	//	it’s a dead key
+	//	it's a dead key
 		;
 		for (int i = deadKeys->numOfPairs; i > 0; i--)
 		{
@@ -494,7 +494,7 @@ bool
 UserVisibleChar(UniChar inChar)
 {
 	if (inChar >= 0xF721 && inChar <= 0xF72F)
-		return false;	// it’s a function key
+		return false;	// it's a function key
 	return (inChar > 0x20 && inChar != 0x7F);
 }
 
@@ -693,7 +693,7 @@ Ref
 FRestoreKeyView(RefArg inRcvr, RefArg inView)
 {
 	CView * keyView = GetView(inView);
-	if (keyView != NULL)		// original doesn’t bother to check
+	if (keyView != NULL)		// original doesn't bother to check
 		return MAKEBOOLEAN(gRootView->restoreKeyView(keyView));
 	return NILREF;
 }
@@ -773,7 +773,7 @@ Ref
 FGatherKeyCommands(RefArg inRcvr, RefArg inView)
 {
 	CView * keyView = GetView(inView);
-	if (keyView != NULL)		// original doesn’t bother to check
+	if (keyView != NULL)		// original doesn't bother to check
 		return GatherKeyCommands(keyView);
 	return NILREF;
 }
@@ -1168,7 +1168,7 @@ CKeyboardView::init(RefArg inProto, CView * inView)
 
 /*--------------------------------------------------------------------------------
 	Perform a command.
-	If it’s a click then track the pen otherwise pass it on.
+	If it's a click then track the pen otherwise pass it on.
 	Args:		inCmd		the command frame
 	Return:	true if we handled the command
 --------------------------------------------------------------------------------*/
@@ -1315,7 +1315,7 @@ CKeyboardView::handleKeyPress(CVisKeyIterator & inIter, RefArg inKeycode)
 		}
 		if (visKeycode != 0)
 		{
-			// it’s an actual key and not just a modifier
+			// it's an actual key and not just a modifier
 			// keycode is actually new modifiers
 			CView *	rcvr = GetKeyReceiver(fContext, fKeyReceiverView);
 			if (rcvr != NULL)
@@ -1535,14 +1535,14 @@ CKeyboardView::drawKey(CVisKeyIterator & inIter, bool inIsHighlighted, bool inDo
 	// Finally! Start drawing - the frame first
 	drawKeyFrame(inIter, isHighlighted, inDo3);
 
-	// then the keycap - it’s either a bitmap or text
+	// then the keycap - it's either a bitmap or text
 	if (isBitmap)
 	{
 		Rect	bounds;
 		bounds.left = (inIter.fKeyCap.left + inIter.fKeyCap.right - sp54) / 2;
 		bounds.right = bounds.left + sp54;
 		bounds.top = (inIter.fKeyCap.top + inIter.fKeyCap.bottom - sp50) / 2;
-		bounds.bottom = bounds.top + sp50;		
+		bounds.bottom = bounds.top + sp50;
 		DrawBitmap(legend, &bounds, isHighlighted ? modeBic : modeOr);
 	}
 

@@ -150,7 +150,7 @@ size_t
 CRecDomain::sizeInBytes(void)
 {
 	size_t thisSize = fPieceTypes->sizeInBytes();
-	thisSize += (sizeof(CRecDomain) - sizeof(CRecObject));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CRecDomain) - sizeof(CRecObject));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CRecObject::sizeInBytes() + thisSize;
 }
 

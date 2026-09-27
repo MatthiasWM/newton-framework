@@ -42,7 +42,7 @@ CHeapAllocator::deallocate(void * inBlock)
 #pragma mark -
 /* -----------------------------------------------------------------------------
 	C N o R e u s e A l l o c a t o r
-	There’s no init function, but someone’s gotta init fMem|fSize.
+	There's no init function, but someone's gotta init fMem|fSize.
 ----------------------------------------------------------------------------- */
 
 void *
@@ -510,7 +510,7 @@ C32BitFlashRange::doWrite(VAddr inAddr, size_t inLength, char * inBuffer)
 
 	if (inLength)
 	{
-		// there’s a sub-word remaining
+		// there's a sub-word remaining
 		// fetch word from the source
 		ULong word = MISALIGNED(inBuffer) ? FetchReallyUnalignedWord(inBuffer) : *(ULong *)inBuffer;
 		// generate a byte mask for the bytes in the 32-bit word

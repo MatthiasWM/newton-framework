@@ -90,7 +90,7 @@ struct KeyField
 // or just make CSoupIndex a friend?
 	unsigned short flags:2;
 	unsigned short	length:14;
-	char	buf[300];	// don’t really know
+	char	buf[300];	// don't really know
 };
 
 /*

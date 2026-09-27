@@ -33,7 +33,7 @@ ReadPatchInfoFile(CChunk * outData, const char * inFilename)
 {
 	FILE * fp = fopen(inFilename, "r");
 	if (fp == NULL) {
-		FatalError("couldn’t open %s", inFilename);
+		FatalError("couldn't open %s", inFilename);
 	}
 	int spm10;
 	SkipComment(fp);

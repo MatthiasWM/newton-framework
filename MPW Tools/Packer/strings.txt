@@ -51,21 +51,21 @@ package name specified twice:  “%s” and “%s”
 “%s” is not an option
 offset %lu is too large
 can't allocate %lu bytes for Unicode string
-can’t dispose the part buffer
-can’t open input part file “%P”
-can’t seek to position %lu of part file “%P”
-can’t allocate the part buffer
-can’t lock the part buffer
-can’t read %lu bytes for part %d from part file “%P”
-can’t close input part file
+can't dispose the part buffer
+can't open input part file “%P”
+can't seek to position %lu of part file “%P”
+can't allocate the part buffer
+can't lock the part buffer
+can't read %lu bytes for part %d from part file “%P”
+can't close input part file
 frames relocating “%P” to 0x%08lx == 0x%08lx - 0x%08lx
-can’t write part data to output file “P”
-can’t dispose part buffer
+can't write part data to output file “P”
+can't dispose part buffer
 ### %s: Ouch!
 
 \$%02x
-can’t open package file “%P”
-can’t read %lu bytes for package header package file “%P”
+can't open package file “%P”
+can't read %lu bytes for package header package file “%P”
 
 package0
  # package is version 0
@@ -74,12 +74,12 @@ package1
 # package is version 1
 
 file “%P” does not seem to be a package file
-can’t read %lu bytes for part directory header package file “%P”
-can’t allocate %lu bytes for directory entries
-can’t read %lu bytes for part directory entries from package file “%P”
-can’t allocate %lu bytes for string table
-can’t read %lu bytes for string table from “%P”
-can’t read %lu bytes for relocation header from “%P”
+can't read %lu bytes for part directory header package file “%P”
+can't allocate %lu bytes for directory entries
+can't read %lu bytes for part directory entries from package file “%P”
+can't allocate %lu bytes for string table
+can't read %lu bytes for string table from “%P”
+can't read %lu bytes for relocation header from “%P”
 
  -p
 
@@ -95,31 +95,31 @@ s ∂
 # package flags are 0x%08lx ∂
 # package has %lu bytes of relocation info starting at file offset 0x%08lx ∂
 # total size is %lu, %lu part%s: ∂
-%s "Part %d" 
--notify '%s' 
-# file offset = 0x%08lx, size = 0x%08lx, partflags = 0x%08lx 
+%s "Part %d"
+-notify '%s'
+# file offset = 0x%08lx, size = 0x%08lx, partflags = 0x%08lx
 ∂
--autoLoad 
--autoRemove 
--autoCopy 
--compressed "%s" 
-can’t close input package file “%P”
+-autoLoad
+-autoRemove
+-autoCopy
+-compressed "%s"
+can't close input package file “%P”
 
-can’t open input package file “%P”
-can’t read package file “%P”
+can't open input package file “%P”
+can't read package file “%P”
 package0package1
 file “%P” does not seem to be a package file
 package file “%P” has relocations:  Packer cannot yet get parts from package files with relocations
-can’t read package file “%P”
-can’t allocate %lu bytes for directory entries
-can’t read package file “%P”
-can’t allocate %lu bytes for string table
-can’t read string table from “%P”
+can't read package file “%P”
+can't allocate %lu bytes for directory entries
+can't read package file “%P”
+can't allocate %lu bytes for string table
+can't read string table from “%P”
 part %d, “%P” input offset = 0x%08lx = 0x%08lx + 0x%08lx; logical start address = 0x%08lx
-can’t close input package file “%P”
+can't close input package file “%P”
 
-can’t open input AIF part file “%P”
-can’t read AIF header of part file “%P”
+can't open input AIF part file “%P”
+can't read AIF header of part file “%P”
 part file “%P” does not seem to be in AIF format
 Bad AIF part file with unaligned image base 0x%08lx
 Bad AIF part file with unaligned read-only size 0x%08lx
@@ -129,22 +129,22 @@ part file “%P” seems to have %lu bytes of zero-initialized data
 an executable
 a non-executable
 “%P” is %s AIF file
-part file “%P” is relocatable, executable AIF format -- I can’t handle it unless it is '-aif -bin -reloc', sorry
-can’t seek to position %lu of AIF part file “%P”
-can’t read AIF relocation count of part file “%P”
+part file “%P” is relocatable, executable AIF format -- I can't handle it unless it is '-aif -bin -reloc', sorry
+can't seek to position %lu of AIF part file “%P”
+can't read AIF relocation count of part file “%P”
 AIF part file “%P” has %lu relocation%s
-can’t allocate %lu bytes for AIF relocations
-can’t read AIF relocations of part file “%P”
-I can’t yet handle AIF part files with relocations that have been linked with -data
-can’t close input AIF part file “%P”
+can't allocate %lu bytes for AIF relocations
+can't read AIF relocations of part file “%P”
+I can't yet handle AIF part files with relocations that have been linked with -data
+can't close input AIF part file “%P”
 
 package0
 copyright string is “%s”
 no copyright string
 package name is “%s”
-can’t find package name
-can’t allocate %lu bytes for directory entries
-can’t allocate %lu bytes for file infos
+can't find package name
+can't allocate %lu bytes for directory entries
+can't allocate %lu bytes for file infos
 ran off end of partEntries
 expecting “-protocol”, “-frames”, “-raw”, or “-package”, but found “%s”
 sorry, '-package -aif' is not implemented yet
@@ -152,42 +152,42 @@ sorry, '-package -aif' is not implemented yet
 -aif
 part file name is “%P”
 -index
-Part “%P” ‘-index’ option ignored for non-package part
+Part “%P” ‘-index' option ignored for non-package part
 -copyflags
-Part “%P” ‘-copyflags’ option ignored for non-package part
+Part “%P” ‘-copyflags' option ignored for non-package part
 -compressed
-Part “%P” ‘-compressed’ option ignored for pre-built package
+Part “%P” ‘-compressed' option ignored for pre-built package
 -notify
-Part “%P” ‘-notify’ option ignored for pre-built package
-Part “%P” ‘%s’ option ignored for pre-built package
-I didn’t expect to see “%s”
-can’t get info on “%P”
-can’t read frame part data from “%P”
+Part “%P” ‘-notify' option ignored for pre-built package
+Part “%P” ‘%s' option ignored for pre-built package
+I didn't expect to see “%s”
+can't get info on “%P”
+can't read frame part data from “%P”
 
 s
 %lu relocation%s kept for part
 “%P” part length is %lu bytes
-can’t create output file “%P”
-can’t open output file “%P”
-can’t truncate output file “%P”
+can't create output file “%P”
+can't open output file “%P”
+can't truncate output file “%P”
 package1
 package size %lu, is not long aligned
 package contains %lu parts, package size is %lu bytes
 writing AIF header
-can’t write AIF header to output file “P”
+can't write AIF header to output file “P”
 writing package header
-can’t write package header to to output file “P”
+can't write package header to to output file “P”
 writing package directory, size = %lu bytes
-can’t write package directory header to output file “P”
-can’t write package directory entries to output file “P”
+can't write package directory header to output file “P”
+can't write package directory entries to output file “P”
 writing string table, size = %lu bytes, padded to %lu bytes
-can’t write %lu bytes of string table to output file “P”
+can't write %lu bytes of string table to output file “P”
 writing relocations = %lu bytes, %lu bytes used
-can’t write %lu bytes of relocations to output file “P”
-can’t copy part file “%P”
-can’t close ouput file
+can't write %lu bytes of relocations to output file “P”
+can't copy part file “%P”
+can't close ouput file
 deleting output file “%P”
-can’t delete output file “%P”
+can't delete output file “%P”
 finished without error
 terminated by error
 
@@ -198,21 +198,21 @@ terminated by error
 -raw
 -frames
 -protocol
-!Pkg DOCK 
+!Pkg DOCK
 Packer.out
 
 (-package packageFile [-index number] [-copyflags])
 #	<partspec>		:: ([(-protocol | -frames | -raw) [-aif] partFile [-autoLoad] [-autoRemove] [-autoCopy] [-compressed compressor] [-notify partType info] ]) |
 #	<miscpackageflags>	:: [-invisible] [-copyprotected] [-dispatchonly] [-nocompression] [-base <address>]
 
-# Usage:   %s [-p] ([-o [-aif] outputFile] packageName [-packageID id] [-version vers] [-c outputCreator] [-copyright string] <miscpackageflags> <partspec>…) | -dump dumpFile)
+# Usage:   %s [-p] ([-o [-aif] outputFile] packageName [-packageID id] [-version vers] [-c outputCreator] [-copyright string] <miscpackageflags> <partspec>...) | -dump dumpFile)
 
 
 
 # .
 
-### %s - 
-%s - 
+### %s -
+%s -
 .
 
 *error
@@ -225,8 +225,8 @@ error
 # %s
 
 no %s follows “%s”
-can’t write %lu bytes of padding to output file “P”
-can’t write %lu bytes of padding to output file “P”
+can't write %lu bytes of padding to output file “P”
+can't write %lu bytes of padding to output file “P”
 0
 <unknown>
 can't allocate %ld bytes, err = %d
@@ -245,22 +245,22 @@ Assertion failed
 
 %s -- File "%s"-- Line %d
 
-didn’t find C relocation at %lu
+didn't find C relocation at %lu
 inconsistent image size for file %lu:  0x%08lx != 0x%08lx
 relocating “%P” from 0x%08lx to 0x%08lx
 relocation (%lu) beyond image size (%lu)
 two calls to TRelocationChunk::Allocate
-can’t allocate %lu bytes for TCompressedRelocation[%u] in TRelocationChunk::Allocate
+can't allocate %lu bytes for TCompressedRelocation[%u] in TRelocationChunk::Allocate
 TRelocationChunk::Append called before TRelocationChunk::Allocate
 too many calls to TRelocationChunk::Append
 found unaligned relocation 0x%08lx
-can’t write %lu bytes of reloc chunk header to output file “P”
-can’t write %lu bytes of reloc chunk relocations to output file “P”
-can’t allocate %lu bytes for TFileRelocations[%lu] in TRelocationCollector::TRelocationCollector
+can't write %lu bytes of reloc chunk header to output file “P”
+can't write %lu bytes of reloc chunk relocations to output file “P”
+can't allocate %lu bytes for TFileRelocations[%lu] in TRelocationCollector::TRelocationCollector
 relocations already computed
 too many calls to TRelocationCollector::AddRelocations
 relocations already computed
-can’t allocate %lu bytes for TRelocationChunk[%lu] in TRelocationCollector::Compute
+can't allocate %lu bytes for TRelocationChunk[%lu] in TRelocationCollector::Compute
 found %lu empty relocation chunks
 oops, accessing relocation chunk (%lu) beyond limit (%lu)
 oops, nil relocation chunk
@@ -271,7 +271,7 @@ relocations info became to big %lu < %lu
 
 
 relocations not yet computedrelocations not yet computedrelocations not yet computed
-can’t write %lu bytes of reloc part header to output file “P”
+can't write %lu bytes of reloc part header to output file “P”
 relocations not yet computed
 file number out-of-range to TRelocationCollector::Relocate %lu <= %lu
 
@@ -282,8 +282,8 @@ ShellDirectory
 %_Static_Constructor_Destructor_Pointers
 %_Static_Constructor_Destructor_Pointers
 
-OS error 
-Error 
+OS error
+Error
 (Error message file is corrupted)
 (Error message file has bad block)
 Too many files open
@@ -669,7 +669,7 @@ main(int argc, const char * argv[])
     1F4C: 4879 FFFF DF4E  -$20B2          PEA     glob111
     1F52: 43EE FF1E      200FF1E          LEA     vaq_20(A6),A1
     1F56: 2049           ' I'             MOVEA.L A1,A0
-    1F58: A00C           '..'             _GetFileInfo ; (A0|IOPB:ParamBlockRec):D0\OSErr 
+    1F58: A00C           '..'             _GetFileInfo ; (A0|IOPB:ParamBlockRec):D0\OSErr
     1F5A: 48C0           'H.'             EXT.L   D0
     1F5C: 2F00           '/.'             PUSH.L  D0
     1F5E: 4EB9 0000 2B62 1002B8A          JSR     exit_if_OSErr__FCsCPCce
@@ -1245,6 +1245,6 @@ main(int argc, const char * argv[])
     27A6: 584F           'XO'             ADDQ    #4,A7
     27A8: 4CEE 18F8 FD6E 200FD6E laq_57   MOVEM.L vaq_1(A6),D3-D7/A3-A4
     27AE: 4E5E           'N^'             UNLK    A6
-    27B0: 4E75           'Nu'             RTS     
+    27B0: 4E75           'Nu'             RTS
 
 

@@ -237,7 +237,7 @@ CMainDisplayDriver::powerOn(void)
 	g0F141800 = 0x0000000D;
 	g0F140800 = 0x00000001;
 	g0F141C00 = 0x00000003;
-//	INCOMPLETE	
+//	INCOMPLETE
 */
 }
 
@@ -245,7 +245,7 @@ CMainDisplayDriver::powerOn(void)
 void
 CMainDisplayDriver::powerOff(void)
 {
-//	INCOMPLETE	
+//	INCOMPLETE
 }
 
 
@@ -322,7 +322,7 @@ printf("image=NULL -- ");
 		int	dstOffset = fPixMap.rowBytes * inDstBounds->top + (inDstBounds->left & ~0x07) * kScreenDepth / 8;
 		if (fOrientation != kLandscape)		// ie flipped
 			dstOffset = 76796 - dstOffset; 	// 480*320*4/8-4
- 
+
 		blitParms.srcRowOffset = inPixmap->rowBytes - byteWd;
 		blitParms.dstRowOffset = fPixMap.rowBytes - byteWd;
 		blitParms.srcAddr = PixelMapBits(inPixmap) + srcOffset;
@@ -431,12 +431,12 @@ CMainDisplayDriver::blitLandscapeFlip(BlitRec * inBlit)	// 007A60E8
 void
 CMainDisplayDriver::blitPortrait(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * inDstBounds, int inTransferMode, int inMode)
 {
-return;	// don’t risk this yet
+return;	// don't risk this yet
 // r9: r4..
 //sp-24
 	int sp04 = fScreenWidth * kScreenDepth / 8;
 	int sp00 = sp04 / 4;
-	
+
 	// byte-aligned leftmost pixel in image
 	int	r6 = (inSrcBounds->left - inPixmap->bounds.left) & ~0x07;			//srcLeft?
 	// byte-aligned rightmost pixel in image
@@ -582,13 +582,13 @@ CMainDisplayDriver::setFeature(int inSelector, int inValue)
 */		}
 		break;
 
-//	case 3:		fixed - can’t set it
+//	case 3:		fixed - can't set it
 
 	case 4:	// orientation
 		fOrientation = inValue;
 		break;
 
-//	case 5:		fixed - can’t set it
+//	case 5:		fixed - can't set it
 	}
 }
 

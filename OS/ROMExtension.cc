@@ -107,7 +107,7 @@ ScanForREx(SGlobalsThatLiveAcrossReboot *	info, PAddr inAddr)
 		immediately after the base image (long-word aligned)
 		at phys   8 MB
 		at phys 256 MB ?
-	…but on Mac host we only scan the loaded file.
+	...but on Mac host we only scan the loaded file.
 	Args:		info			pointer to persistent globals
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -335,7 +335,7 @@ GetLastRExConfigEntry(ULong inTag, size_t * outSize)
 	/*
 	GenericWithReturnSWI is declared to return a NewtonErr.
 	In a 32-bit world any value, including pointers, could be returned.
-	This won’t do in a 64-bit world so we have to sanitise this call.
+	This won't do in a 64-bit world so we have to sanitise this call.
 	*/
 #if defined(correct)
 	return GenericWithReturnSWI(kGetLastRExConfigEntry, inTag, 0, 0, outSize, NULL, NULL);

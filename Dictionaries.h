@@ -165,7 +165,7 @@ public:
 	CDictionary *	positionToHandle(ArrayIndex inSeq);
 	ArrayIndex		handleToPosition(CDictionary * inDict);
 
-//	void				lockChain(void);			we don’t use Handles any more
+//	void				lockChain(void);			we don't use Handles any more
 //	void				unlockChain(void);
 
 protected:

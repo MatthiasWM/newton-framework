@@ -7,7 +7,7 @@
 					The stack manager also allocates address ranges for stacks.
 					By default, the stack manager will allocate each new task a 32 KByte region of address space in the stack domain.
 					Tasks can request larger stack regions if necessary.
-					Initially, there is no storage associated with a task’s stack region.
+					Initially, there is no storage associated with a task's stack region.
 					As the task uses the region, it faults and the stack manager allocates storage.
 					Guard bands separate stack regions so that attempts to access outside of the region bounds can be detected.
 					If a task generates an access in the guard area an exception will be generated.
@@ -388,7 +388,7 @@ CStackManager::safeUserRequestEntry(int inSelector, void * ioData)
 	}
 
 	fC4.release();
-	memmove(ioData, &parms, parmSize);	
+	memmove(ioData, &parms, parmSize);
 
 	return err;
 }
@@ -732,7 +732,7 @@ CStackManager::getMatchingPage(CStackInfo * info, ULong inPageNo, ULong inSubPag
 	if (matchingPage != NULL)
 		pageMatchFound(info, inPageNo, inSubPageMask, matchingPage);
 	return matchingPage;
-	
+
 }
 
 
@@ -995,7 +995,7 @@ CStackManager::FMNewStack(FM_NewStack_Parms * ioParms, CStackInfo ** outInfo)
 		lastRegionInRange = firstRegionInRange + regionsRequired;	// actually BEYOND the range
 		stackRegionStart = domain->fBase + (firstRegionInRange * kGuardedStackRegionSize);
 		stackRegionEnd = domain->fBase + (lastRegionInRange * kGuardedStackRegionSize);
-		stackBase = stackRegionEnd - (regionsRequired * kGuardedStackRegionSize) + kTwilightStackSize;	// don’t enter the twilight zone
+		stackBase = stackRegionEnd - (regionsRequired * kGuardedStackRegionSize) + kTwilightStackSize;	// don't enter the twilight zone
 
 		// create info describing the stack
 		CStackInfo * info = new CStackInfo;
@@ -1043,7 +1043,7 @@ CStackManager::FMNewHeapArea(FM_NewHeapArea_Parms * ioParms)
 		parms.maxSize = ioParms->maxSize;
 		parms.ownerId = kNoId;
 		XFAIL(err = FMNewStack(&parms, &info))
-		
+
 		info->fOptions |= ioParms->options;
 		info->fStackStart = (ioParms->addr == 0) ? info->fAreaStart : info->fAreaEnd;
 		info->fStackEnd = info->fStackStart + ioParms->maxSize;
@@ -1357,7 +1357,7 @@ CStackPage::init(CUDomainManager * inManager, ObjectId inPageId)
 	{
 		//	reuse existing page
 		fPageId = inPageId;
-		// we don’t own it
+		// we don't own it
 		fIsPageOurs = false;
 		return noErr;
 	}

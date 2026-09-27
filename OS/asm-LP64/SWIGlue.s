@@ -71,7 +71,7 @@
 
 _SetAndClearBitsAtomic:
 /*		assume super mode, no interrupts
-		were we in user mode we’d need to:
+		were we in user mode we'd need to:
 
 		pushq		%rbp						# prolog
 		movq		%rsp, %rbp
@@ -566,7 +566,7 @@ _PortReceiveSWI:
 	Reset the message filter on a port.
 	Args:		rdi	inId					port id
 				rsi	inMsgId				message id
-				rdx	inMsgFilter			types of message we’re interested in
+				rdx	inMsgFilter			types of message we're interested in
 	Return:	error code
 ---------------------------------------------------------------- */
 
@@ -798,7 +798,7 @@ _SMemMsgSetMsgAvailPortSWI:
 	NewtonErr
 	SMemMsgGetSenderTaskIdSWI(ObjectId inId, ObjectId * outSenderTaskId)
 
-	Get message sender’s task id.
+	Get message sender's task id.
 	Args:		rdi	inId
 				rsi	outSenderTaskId
 

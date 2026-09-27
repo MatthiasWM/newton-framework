@@ -57,7 +57,7 @@ InitControllerState(CController * inController)
 	inController->f24 = kDistantFuture;
 	inController->f28 = kDistantFuture;
 	inController->f2C = kDistantFuture;
-	
+
 	return (inController->fPiecePool == NULL
 		  || inController->fUnitPool == NULL
 		  || inController->f14 == NULL) ? kOSErrNoMemory : noErr;	// original returns 1 as error
@@ -73,7 +73,7 @@ CController::make(void)
 	XTRY
 	{
 		XFAIL(controller == NULL)
-		XFAILIF(controller->iController() != noErr, controller->release(); controller = NULL;)	// original doesn’t bother
+		XFAILIF(controller->iController() != noErr, controller->release(); controller = NULL;)	// original doesn't bother
 	}
 	XENDTRY;
 	return controller;
@@ -197,7 +197,7 @@ CController::setExpireStrokeRoutine(ExpireStrokeProcPtr inHandler)
 
 
 /*------------------------------------------------------------------------------
-	A domain’s initialize method should call registerDomain, passing the domain
+	A domain's initialize method should call registerDomain, passing the domain
 	returned by the make method.
 	Args:		ioDomain
 	Return:	--
@@ -214,7 +214,7 @@ CController::registerDomain(CRecDomain * ioDomain)
 
 
 /*------------------------------------------------------------------------------
-	A domain’s group method should call newGroup after creating a new output unit
+	A domain's group method should call newGroup after creating a new output unit
 	and adding a piece to it with addSub.
 	Args:		inUnit
 	Return:	--
@@ -242,7 +242,7 @@ CController::newGroup(CRecUnit * inUnit)
 
 /*------------------------------------------------------------------------------
 	getDelayList returns a list of previously grouped pieces.
-	A domain’s group method should call getDelayList when a new piece comes in.
+	A domain's group method should call getDelayList when a new piece comes in.
 	The group method can then analyze whether the new piece should be added to the group.
 	Args:		inUnit
 	Return:	--
@@ -292,7 +292,7 @@ CController::getUList(CRecDomain * inDomain, ULong inType, ULong inWantedBits, U
 
 
 /*------------------------------------------------------------------------------
-	A domain’s classify method should call newClassification after classifying the units
+	A domain's classify method should call newClassification after classifying the units
 	that have been grouped together and storing an interpretation in the output unit.
 	Args:		inUnit
 	Return:	non-zero => error, but not yer actual error code
@@ -598,9 +598,9 @@ CController::nextIdleTime(void)
 
 
 /*------------------------------------------------------------------------------
-	Determine whether we’re busy. What does ‘busy’ mean, exactly?
+	Determine whether we're busy. What does ‘busy' mean, exactly?
 	Args:		--
-	Return:	true => we’re busy
+	Return:	true => we're busy
 ------------------------------------------------------------------------------*/
 
 bool
@@ -967,7 +967,7 @@ CController::noEventsWithinDelay(CRecUnit * inUnit, ULong inDelay)
 		CClickUnit **	clikUnitPtr = (CClickUnit **) fPiecePool->getIterator(&iter);
 		for (ArrayIndex i = 0; i < iter.count(); clikUnitPtr = (CClickUnit **) iter.getNext(), i++)
 		{
-			CClickUnit * unit = *clikUnitPtr;		// not necessarily a CClickUnit, but that’s what we’re looking for
+			CClickUnit * unit = *clikUnitPtr;		// not necessarily a CClickUnit, but that's what we're looking for
 			unitStartTime = unit->getStartTime();
 			if (unitStartTime > delayStart  &&  unitStartTime < delayEnd  &&  UnitsHitSameArea(inUnit, unit))
 			{

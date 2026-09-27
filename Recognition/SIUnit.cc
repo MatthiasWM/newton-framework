@@ -36,7 +36,7 @@ InitInterpretation(UnitInterpretation * interpretation, ULong inParamSize, Array
 
 
 #pragma mark CSIUnit
-/* -----------------------------------------------------------------------------	
+/* -----------------------------------------------------------------------------
 	 C S I U n i t
 ----------------------------------------------------------------------------- */
 
@@ -47,7 +47,7 @@ CSIUnit::~CSIUnit()
 { }
 
 
-/* -----------------------------------------------------------------------------	
+/* -----------------------------------------------------------------------------
 	Create a new CSIUnit.
 	Args:		inDomain			the domain that actually created the unit, or NULL
 				inType			-> fType of unit
@@ -55,7 +55,7 @@ CSIUnit::~CSIUnit()
 				inInterpSize
 	Return:	instance of CSIUnit
 
-	Doesn’t exist in the ROM -- may be inlined.
+	Doesn't exist in the ROM -- may be inlined.
 ----------------------------------------------------------------------------- */
 
 CSIUnit *
@@ -163,7 +163,7 @@ CSIUnit::sizeInBytes(void)
 		thisSize += fSubUnits->sizeInBytes();
 	if (fHasInterpretations == 1)
 		thisSize += fInterpretations->sizeInBytes();
-	thisSize += (sizeof(CSIUnit) - sizeof(CRecUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CSIUnit) - sizeof(CRecUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CRecUnit::sizeInBytes() + thisSize;
 }
 
@@ -479,7 +479,7 @@ CSIUnit::addSub(CRecUnit * inSubunit)
 	{
 		if (fHasSubUnits == 0)
 		{
-			// we don’t have any subunits yet -- make this the only one
+			// we don't have any subunits yet -- make this the only one
 			fHasSubUnits = 1;
 			fSubUnits = (CDArray *)inSubunit;
 			index = 0;

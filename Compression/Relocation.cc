@@ -26,7 +26,7 @@ RelocateFramesInPage(FrameRelocationHeader * inHeader, char * inPage, VAddr inAd
 	if (pageSize == 0)
 		return;
 
-// for now, don’t even TRY to relocate
+// for now, don't even TRY to relocate
 	return;
 
 	Ref * refPtr;
@@ -172,7 +172,7 @@ CSimpleCRelocator::init(CStore * inStore, PSSId inId, size_t * outReloInfoSize)
 		fReloInfo.numOfEntries = BYTE_SWAP_SHORT(fReloInfo.numOfEntries);
 		fReloInfo.x08 = BYTE_SWAP_LONG(fReloInfo.x08);
 		fReloInfo.baseAddr = BYTE_SWAP_LONG(fReloInfo.baseAddr);
-#endif		
+#endif
 		// check we have the right version
 		XFAILIF(fReloInfo.version != kReloInfoVersionGrokd, err = kOSErrBadPackageVersion;)
 		if (fReloInfo.numOfEntries != 0)

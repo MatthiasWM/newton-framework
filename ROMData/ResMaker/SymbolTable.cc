@@ -183,7 +183,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames, CSymbol ** 
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL) {
-			ExitWithMessage("can’t open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file “%s”", expFilename);
 		}
 		if (expFileIndex == 0) {
 			// strip F prefix from C function name to make NewtonSxript function name
@@ -325,7 +325,7 @@ FillSymbolTable(CPointerTable * inTable)
 
 	symFile = fopen(gSymbolFilename, "r");
 	if (symFile == NULL) {
-		ExitWithMessage("can’t open -sym file “%s”", gSymbolFilename);
+		ExitWithMessage("can't open -sym file “%s”", gSymbolFilename);
 	}
 	while (!feof(symFile)) {
 		lineLen = 0;

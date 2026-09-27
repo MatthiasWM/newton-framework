@@ -132,7 +132,7 @@ CSoundChannel::schedule(CUSoundNodeRequest * inRequest, CUMsgToken * inToken)
 		XFAILNOT(comp = AudioComponentFindNext(NULL, &desc), err = -1;)
 		XFAIL(err = AudioComponentInstanceNew(comp, &gOutputUnit))
 
-		// Set output unit’s stream format
+		// Set output unit's stream format
 		AudioStreamBasicDescription format;
 		format.mSampleRate = inRequest->fSound.sampleRate;
 		format.mFormatID = kAudioFormatLinearPCM;
@@ -169,10 +169,10 @@ CSoundChannel::schedule(CUSoundNodeRequest * inRequest, CUMsgToken * inToken)
 			renderer.inputProcRefCon = inRequest->fSound.codec;
 		}
 		XFAIL(err = AudioUnitSetProperty(gOutputUnit,
-							kAudioUnitProperty_SetRenderCallback, 
+							kAudioUnitProperty_SetRenderCallback,
 							kAudioUnitScope_Input,
-							0, 
-							&renderer, 
+							0,
+							&renderer,
 							sizeof(AURenderCallbackStruct)))
 
 	}

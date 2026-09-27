@@ -192,7 +192,7 @@ protected:
 	int						fComprType;			// +50
 	float						fSampleRate;		// +54
 	bool						fIsCodecReady;		// +5C
-	RefStruct				fCodecName;			// +60	doesn’t appear to be used
+	RefStruct				fCodecName;			// +60	doesn't appear to be used
 	CFrameSoundCallback	fCallback;			// +64
 };
 

@@ -52,7 +52,7 @@ NewPtr(Size inSize)
 
 	if (!gOSIsRunning || IsSafeHeap(GetHeap()))
 	{
-		// OS isn’t running yet, or heap is safe
+		// OS isn't running yet, or heap is safe
 		bool		hasSemaphore = (GetHeapSemaphore(NULL) != NULL);
 		if (hasSemaphore)
 			GetHeapSemaphore(NULL)->acquire(kWaitOnBlock);
@@ -163,7 +163,7 @@ FreePtr(Ptr inPtr)
 			Size size = SafeHeapBlockSize(inPtr);
 			SafeHeapFree(inPtr);
 			gPtrsUsed -= size;
-			TaskSwitchedGlobals()->fMemErr = noErr;		// original doesn’t do this!
+			TaskSwitchedGlobals()->fMemErr = noErr;		// original doesn't do this!
 
 			if (hasSemaphore)
 				GetHeapSemaphore(NULL)->release();
@@ -209,7 +209,7 @@ FreePtr(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s size.
+	Set a pointer's size.
 	(The function formerly known as SetPtrSize.)
 	Args:		inPtr			the pointer in question
 				inSize		its new size
@@ -243,7 +243,7 @@ ReallocPtr(Ptr inPtr, Size inSize)
 				GetHeapSemaphore(NULL)->acquire(kWaitOnBlock);
 
 			newPtr = (Ptr) SafeHeapRealloc(inPtr, inSize);
-			TaskSwitchedGlobals()->fMemErr = noErr;		// original doesn’t do this!
+			TaskSwitchedGlobals()->fMemErr = noErr;		// original doesn't do this!
 
 			if (hasSemaphore)
 				GetHeapSemaphore(NULL)->release();
@@ -283,7 +283,7 @@ ReallocPtr(Ptr inPtr, Size inSize)
 				if (prevSize <= inSize)
 					gPtrsUsed += (inSize - prevSize);
 				else
-					gPtrsUsed -= (prevSize - inSize); 
+					gPtrsUsed -= (prevSize - inSize);
 			}
 
 			if ((gNewtConfig & 0x40) != 0 && (err = CheckHeap(NULL, &whereSmashed)) != noErr)
@@ -307,7 +307,7 @@ ReallocPtr(Ptr inPtr, Size inSize)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s size.
+	Get a pointer's size.
 	Args:		inPtr			the pointer in question
 	Return:	its size
 ------------------------------------------------------------------------------*/
@@ -329,7 +329,7 @@ GetPtrSize(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s owner.
+	Get a pointer's owner.
 	Args:		inPtr			the pointer in question
 	Return:	its owner
 ------------------------------------------------------------------------------*/
@@ -349,7 +349,7 @@ GetPtrOwner(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s owner.
+	Set a pointer's owner.
 	Args:		inPtr			the pointer in question
 				inOwner		its owner
 	Return:	--
@@ -367,7 +367,7 @@ SetPtrOwner(Ptr inPtr, ObjectId inOwner)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s name.
+	Get a pointer's name.
 	Args:		inPtr			the pointer in question
 	Return:	its name
 ------------------------------------------------------------------------------*/
@@ -388,7 +388,7 @@ GetPtrName(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s name.
+	Set a pointer's name.
 	Args:		inPtr			the pointer in question
 				inName		its name
 	Return:	--
@@ -406,7 +406,7 @@ SetPtrName(Ptr inPtr, ULong inName)
 
 
 /*------------------------------------------------------------------------------
-	Get a pointer’s type.
+	Get a pointer's type.
 	Args:		inPtr			the pointer in question
 	Return:	its type
 ------------------------------------------------------------------------------*/
@@ -424,7 +424,7 @@ GetPtrType(Ptr inPtr)
 
 
 /*------------------------------------------------------------------------------
-	Set a pointer’s type.
+	Set a pointer's type.
 	Args:		inPtr			the pointer in question
 				inType		its type
 	Return:	--

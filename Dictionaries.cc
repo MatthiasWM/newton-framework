@@ -162,8 +162,8 @@ char *			g0C100818 = huh;
 UniChar *		g0C10081C = (UniChar *)huh;
 ULong				g0C100824;
 char				gNoName[4] = {0,0,0,0};	// 0C100828
-ULong				g0C100834[4] = {0x3F,0x3F,0x7F,0x7F};	// don’t know how this gets initialised
-ULong				g0C100844[4] = {2,2,3,4};	// don’t know how this gets initialised
+ULong				g0C100834[4] = {0x3F,0x3F,0x7F,0x7F};	// don't know how this gets initialised
+ULong				g0C100844[4] = {2,2,3,4};	// don't know how this gets initialised
 
 CDictionary *	gTimeLexDictionary;		// +08	0C100F8C
 CDictionary *	gDateLexDictionary;		// +0C	0C100F90
@@ -334,7 +334,7 @@ InitDictionaries(void)
 		start: 0x006863DC (6841308), length: 0x00095580 (611712)
 	It can be extracted with the command line:
 		tail -c +6841309 "ROM Image" | head -c 611712 > DictData
-	This data file is read at init time into a malloc’d block
+	This data file is read at init time into a malloc'd block
 	and we point into that.
 	The offsets are generated from the ROM symbols file using grep:
 		(.*)g(.*)$
@@ -949,7 +949,7 @@ CDictionary::verifyString(UniChar * inStr, UniChar ** outArg3, ULong ** outArg4,
 	char * nodeNamePtr = gNoName;		// r7
 	UniChar * r9 = g0C10081C;
 
-	Ustrcpy(gStrBuf, inStr);		// don’t know why we need to copy the string
+	Ustrcpy(gStrBuf, inStr);		// don't know why we need to copy the string
 	fStr = gStrBuf;
 	fStrLen = Ustrlen(gStrBuf);
 	fStrIndex = 0;
@@ -1207,7 +1207,7 @@ CDictionary::verify(void)
 		while (ch > *dictData
 			&&  (r7 = (flags & 0xC0) >> 6) != 0)
 		{
-			// character in string doesn’t match dictinoary character -- try alternative
+			// character in string doesn't match dictinoary character -- try alternative
 			ULong r1;
 			UChar * r8 = dictData + g0C100844[r7];
 			if ((flags & 0x10) != 0)
@@ -1815,7 +1815,7 @@ FAirusNew(RefArg inRcvr, RefArg inType, RefArg inArg2)
 	if (airusResult >= 0)
 		SetFrameSlot(inRcvr, SYMA(dict), AddressToRef(dict));
 	return MAKEINT(airusResult);
-	
+
 }
 
 

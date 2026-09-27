@@ -58,7 +58,7 @@ SetCardReinsertReason(const UniChar * inReason, bool inArg2)
 		{
 			if (inArg2)
 			{
-			// 
+			//
 				UniChar * alertText = (UniChar *)BinaryData(RA(uPackageNeedsCardAlertText));
 				size_t reasonStrLen = Ustrlen(alertText) + Ustrlen(inReason);
 				XFAIL(reasonStr = (UniChar *)NewPtr((reasonStrLen + 1)*sizeof(UniChar)))
@@ -387,7 +387,7 @@ CPSSManager::stuffSendAndTransition(int inSlot, int inArg2, int inArg3)
 
 	for (ArrayIndex i = 0; i < kNumberOfHWSockets; ++i)
 	{
-		f190.f1C[i] = f308[i].f3C;			// it’s actually a little more complicated than this
+		f190.f1C[i] = f308[i].f3C;			// it's actually a little more complicated than this
 	}
 
 	f190.f0C = f308[inSlot].fBC.f10;		//f3D4	CStore *

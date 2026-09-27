@@ -524,7 +524,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 			case kSimpleReturn:
 				// stack:	--
 				if (!stack.empty()) {
-					// there’s a value to return
+					// there's a value to return
 					if (pc < instrCount-1) {
 						str = "return " + stack.back().text;
 						// ignore following pop (this is a compiler idiom to keep the stack aligned)
@@ -532,7 +532,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 							++instrPtr; ++pc;
 						}
 					} else {
-						// at the end of the function we don’t need explicitly to return a value;
+						// at the end of the function we don't need explicitly to return a value;
 						str = stack.back().text;
 					}
 					stack.pop_back();
@@ -620,15 +620,15 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 				else if (ISCHAR(b)) {
 					UniChar	ch = RCHAR(b);
 					if (ch > 0xFF) {
-						// it’s a Unicode char
+						// it's a Unicode char
 						str = string("$\\u") + HexStr(ch, 4);
 					} else if (ch >= 0x20 && ch <= 0x7F) {
-						// it’s a printable ASCII char
+						// it's a printable ASCII char
 						if (ch == 0x5C)
 							str = "$\\\\";
 						else
 							str = string("$") + (char)ch;
-					// else it’s a control char
+					// else it's a control char
 					} else if (ch == 0x09) {
 						str = "$\\t";
 					} else if (ch == 0x0D) {
@@ -763,7 +763,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 			if (stack.empty()) {
 				str = "";
 			} else {
-				// we might need the stack value for if-then-else; but don’t pop it
+				// we might need the stack value for if-then-else; but don't pop it
 				str = stack.back().text;
 			}
 			lines.push_back(Fragment(lineStart, str, kFragmentBranch, b));
@@ -830,7 +830,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 				}
 				str.clear();
 				if (b == 0xFFFF) {
-					b = 1;	// we’re not interested in the value but we need to pop it off the stack
+					b = 1;	// we're not interested in the value but we need to pop it off the stack
 				}
 				for (ArrayIndex i = b; i > 0; --i) {
 					str = stack.back().text + str;
@@ -852,7 +852,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 				if (str[0] == '\'') {
 					str[0] = '.';
 				} else if (str.find('.') != string::npos) {
-					/* it’s a path expression */
+					/* it's a path expression */
 					str.insert(0, ".");
 				} else {
 					str = ".(" + str + ')';
@@ -867,7 +867,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 					if (str[0] == '\'') {
 						path = '.' + str.substr(1) + path;
 					} else if (str.find('.') != string::npos) {
-						/* it’s a path expression */
+						/* it's a path expression */
 						path = '.' + str + path;
 					} else {
 						path = ".(" + str + ')' + path;
@@ -892,7 +892,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 					if (path[0] == '\'') {
 						path[0] = '.';
 					} else if (path.find('.') != string::npos) {
-						/* it’s a path expression */
+						/* it's a path expression */
 						str.insert(0, ".");
 					} else {
 						path = ".(" + path + ')';
@@ -914,7 +914,7 @@ MakeFragments(RefArg inFunc, vector<string> const& varNames, vector<string> cons
 						if (pathElement[0] == '\'') {
 							path = '.' + pathElement.substr(1) + path;
 						} else if (pathElement.find('.') != string::npos) {
-							/* it’s a path expression */
+							/* it's a path expression */
 							path = '.' + pathElement + path;
 						} else {
 							path = ".(" + pathElement + ')' + path;
@@ -1531,7 +1531,7 @@ DumpCode(RefArg inFunc)
 				REPprintf("-- foreach construct --\n");
 				frag->dump(frags);
 			}
-			// remember where we’re going then remove this branch
+			// remember where we're going then remove this branch
 			ArrayIndex dest = frag->branch;
 			frags.erase(frag);
 			// if followed by iterator clean-up then remove that
@@ -1559,7 +1559,7 @@ DumpCode(RefArg inFunc)
 								Remove(varNames, GetFirstWord(it->text));
 								frags.erase(it); --frag;
 							}
-							// remember where we’re going then remove this branch
+							// remember where we're going then remove this branch
 							dest = it->branch;
 							frags.erase(it); --frag;
 							// add auto vars to fragment text
@@ -1746,7 +1746,7 @@ DumpCode(RefArg inFunc)
 							}
 						}
 						if (it == frags.end()) {
-							// couldn’t find destination of branch so remove it
+							// couldn't find destination of branch so remove it
 							frags.erase(frag+1);
 						}
 					}
@@ -1907,7 +1907,7 @@ DumpCode(RefArg inFunc)
 				frags.erase(frag);
 			}
 		} else if (frag->opcode == kFragmentSetPathAndPush && (frag+1)->opcode == kFragmentReturn) {
-// if instruction is set-path 1 (leaving value on stack) followed by return then remove it (otherwise there’s a duplicate line) 
+// if instruction is set-path 1 (leaving value on stack) followed by return then remove it (otherwise there's a duplicate line)
 			frags.erase(frag);
 		}
 	}

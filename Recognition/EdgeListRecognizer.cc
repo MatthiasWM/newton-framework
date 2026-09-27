@@ -154,7 +154,7 @@ TestCarets(CDArray * ioPts, UnitInterpretation * interp)
 				// first stroke is shorter than the second by at least half
 				if (numOfPts == 4)
 					return false;
-				// we’re going to add a point between 2 & 3
+				// we're going to add a point between 2 & 3
 				FPoint ptx;
 				Interpolate(&pt2, &pt3, d2/d1, &ptx);
 				ioPts->add();
@@ -398,7 +398,7 @@ CEdgeListUnit::sizeInBytes(void)
 	CDArray * corners = getCorners();
 	if (corners)
 		thisSize = corners->sizeInBytes();
-	thisSize += (sizeof(CEdgeListUnit) - sizeof(CSIUnit));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CEdgeListUnit) - sizeof(CSIUnit));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CSIUnit::sizeInBytes() + thisSize;
 }
 

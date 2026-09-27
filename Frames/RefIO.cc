@@ -35,7 +35,7 @@ InitTranslators(void)
 #pragma mark -
 /*------------------------------------------------------------------------------
 	S t r e a m i n g
-	These are for NCX; they’re not bona fide Newton functions.
+	These are for NCX; they're not bona fide Newton functions.
 ------------------------------------------------------------------------------*/
 
 long
@@ -408,7 +408,7 @@ PScriptDataOut::translate(void * inContext, CPipeCallback * ioCallback)
 				if (r7)
 				{
 					r10 = inContext->x10;
-					
+
 					for (i = 0; i < count && err == noErr; r10 += r7[i], i++)
 						err = parseOutput(GetArraySlot(sp0C, i), inContext->x04, inContext->x08, &r7[i], &sp08[i]);
 					FreePtr(r7);
@@ -431,7 +431,7 @@ PScriptDataOut::translate(void * inContext, CPipeCallback * ioCallback)
 					free(sp08);
 			}
 			end_unwind;
-			
+
 		}
 	}
 	return obj;
@@ -469,7 +469,7 @@ PScriptDataIn::translate(void * inContext, CPipeCallback * ioCallback)
 Ref
 PScriptDataIn::parseInput(FormType inType, long, long, bool*, RefArg, NewtonErr * outErr)
 {
-	
+
 }
 
 #pragma mark -

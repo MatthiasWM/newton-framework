@@ -142,7 +142,7 @@ CEzPipeProtocol::writeDockerHeader(EventType inCommand, bool inNoMore)
 	else
 	{
 		// more to come
-		// we don’t know the size yet so don’t write that
+		// we don't know the size yet so don't write that
 		fPipe->writeChunk(&header, sizeof(header)-sizeof(header.length), false);
 	}
 }
@@ -228,7 +228,7 @@ CDocker::tossDataStructures(void)
 	{
 		newton_try
 		{
-			delete fPipe;	//it’s a virtual, anyway
+			delete fPipe;	//it's a virtual, anyway
 		}
 		newton_catch_all
 		{ }
@@ -1701,7 +1701,7 @@ CDocker::readDesktopInfo(void)
 	SetFrameSlot(f20, SYMA(protocolVersion), MAKEINT(fProtocolVersion));
 
 	// randomise keys
-/*	we don’t have the XxxRandSeed() functions yet
+/*	we don't have the XxxRandSeed() functions yet
 	ULong savedSeed = GetRandSeed();
 	SetRandSeed(RealClock());
 	fNewtonKey.hi = Random() + (Random() << 8);

@@ -11,7 +11,7 @@
 						...
 						_parent:	{},			// plain soup functions
 						_proto: {},				// signature, indexes and info
-	
+
 					}
 
 	Written by:	Newton Research Group.
@@ -82,7 +82,7 @@ PlainSoupGetIndexes(RefArg inRcvr)
 
 	RefVar soupIndexes(GetFrameSlot(soupIndexInfo, SYMA(indexes)));
 	ArrayIndex count = Length(soupIndexes);
-	RefVar indexes(MakeArray(count - 1));	// don’t need _uniqueId
+	RefVar indexes(MakeArray(count - 1));	// don't need _uniqueId
 	RefVar index;
 	for (ArrayIndex i = 0, ii = 0; i < count; ++i)
 	{
@@ -380,7 +380,7 @@ PlainSoupRemoveTags(RefArg inRcvr, RefArg inTags)
 			if (ISINT(index))
 				SetArraySlot(soupTags, RINDEX(index), RA(NILREF));
 		}
-		
+
 		theTime = MAKEINT(RealClock() & 0x1FFFFFFF);
 		SetFrameSlot(soupIndexInfo, SYMA(indexesModTime), theTime);
 		SoupChanged(soupIndexInfo, false);
@@ -469,7 +469,7 @@ PlainSoupModifyTag(RefArg inRcvr, RefArg inOldTag, RefArg inNewTag)
 
 #pragma mark Soup info
 /* -----------------------------------------------------------------------------
-	Return a slot in the soup’s info frame.
+	Return a slot in the soup's info frame.
 	Native function for soup._parent.SetInfo
 	Args:		inRcvr		soup object frame
 				inTag			info frame slot
@@ -491,7 +491,7 @@ PlainSoupGetInfo(RefArg inRcvr, RefArg inTag)
 
 
 /* -----------------------------------------------------------------------------
-	Set a slot in the soup’s info frame.
+	Set a slot in the soup's info frame.
 	Native function for soup._parent.SetInfo
 	Args:		inRcvr		soup object frame
 				inTag			info frame slot
@@ -527,7 +527,7 @@ PlainSoupSetInfo(RefArg inRcvr, RefArg inTag, RefArg inValue)
 
 
 /* -----------------------------------------------------------------------------
-	Return the soup’s info frame.
+	Return the soup's info frame.
 	Native function for soup._parent.GetAllInfo
 	Args:		inRcvr		soup object frame
 	Return:	info frame
@@ -546,7 +546,7 @@ PlainSoupGetAllInfo(RefArg inRcvr)
 
 
 /* -----------------------------------------------------------------------------
-	Set the soup’s info frame.
+	Set the soup's info frame.
 	Native function for soup._parent.SetAllInfo
 	Args:		inRcvr		soup object frame
 				info			soup info frame
@@ -575,7 +575,7 @@ PlainSoupSetAllInfo(RefArg inRcvr, RefArg info)
 
 
 /* -----------------------------------------------------------------------------
-	Return the soup’s signature.
+	Return the soup's signature.
 	Native function for soup._parent.GetSignature
 	Args:		inRcvr		soup object frame
 	Return:	the signature: an integer
@@ -593,7 +593,7 @@ PlainSoupGetSignature(RefArg inRcvr)
 
 
 /* -----------------------------------------------------------------------------
-	Set the soup’s signature.
+	Set the soup's signature.
 	Native function for soup._parent.SetSignature
 	Args:		inRcvr		soup object frame
 				inSignature	an integer
@@ -692,7 +692,7 @@ PlainSoupGetSize(RefArg inRcvr)
 
 
 /* -----------------------------------------------------------------------------
-	Set soup’s name.
+	Set soup's name.
 	Native function for soup._parent.SetName
 	Args:		inRcvr		soup object frame
 				inName		name string

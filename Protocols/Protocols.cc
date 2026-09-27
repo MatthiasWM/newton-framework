@@ -9,7 +9,7 @@
 	Each p-class implementation must provide a classInfo struct that is registered with
 	the ClassInfoRegistry; assembler-type despatching is performed through the classInfo.
 
-	Is the interface’s static make(name) really needed? It’s only half-heartedly used.
+	Is the interface's static make(name) really needed? It's only half-heartedly used.
 	There seem to be two ways to instantiate a p-class implementation:
 
 	MakeByName
@@ -17,16 +17,16 @@
 		calls classInfo->make()
 			allocates instance
 			creates default interface ivars
-			calls implementation’s make()
+			calls implementation's make()
 
 	intf::make
 		calls AllocInstanceByName()
 			finds CClassInfo for named implementation
 			calls classInfo->makeAt()
 				creates default interface ivars
-		dispatches to implementation’s make()
+		dispatches to implementation's make()
 
-	So I’m guessing the intf::make style is for 1.0 -- but should we abandon it?
+	So I'm guessing the intf::make style is for 1.0 -- but should we abandon it?
 	MakeByName is more powerful since it allows you to specify capabilities rather than
 	simply naming an implementation.
 
@@ -35,7 +35,7 @@
 		calls FreeInstance()
 
 	...which means that unless we implement all the dispatch glue,
-	we’ll have to call FreeInstance() at the tail of every implementation’s destroy()
+	we'll have to call FreeInstance() at the tail of every implementation's destroy()
 
 #if defined(hasNoProtocols)
 	FreeInstance(this);
@@ -162,7 +162,7 @@ CClassInfoRegistry *	gProtocolRegistry;
 struct ProtocolEntry
 {
 	const CClassInfo *	classInfo;		// +00
-	ULong			refCon;			// +04	for 1.0? don’t believe this is used any longer
+	ULong			refCon;			// +04	for 1.0? don't believe this is used any longer
 	UShort		refCount;		// +08
 	UShort		instanceCount;	// +0A
 	UShort		intfHash;		// +0C
@@ -453,7 +453,7 @@ CClassInfoRegistryImpl::make(void)
 {
 	fCmp = new CClassInfoComparator;
 	fProtocols = new NSortedArray;
-	fProtocols->init(fCmp, sizeof(ProtocolEntry)/*element size*/, 8*sizeof(ProtocolEntry)/*chunk size*/, 104/*initial count*/, false/*don’t shrink*/);
+	fProtocols->init(fCmp, sizeof(ProtocolEntry)/*element size*/, 8*sizeof(ProtocolEntry)/*chunk size*/, 104/*initial count*/, false/*don't shrink*/);
 	fSeed = 1;
 	invalidateSatisfyCache();
 	return this;
@@ -610,7 +610,7 @@ CClassInfoRegistryImpl::satisfy(const char * inInterfaceName, const char * inImp
 				&&  strcmp(cacheEntry->implementationName(), inImplementationName) == 0)
 				{
 					info = cacheEntry;
-					break;	// original doesn’t break
+					break;	// original doesn't break
 				}
 			}
 		}
@@ -820,7 +820,7 @@ CClassInfo::makeAt(CProtocol *p) const
 void
 CClassInfo::destroy(CProtocol * instance) const
 {
-	// doesn’t call destroy on the instance? *fDefaultDeleteBranch();
+	// doesn't call destroy on the instance? *fDefaultDeleteBranch();
 	FreeProcPtr freeFn;
 	if ((freeFn = freeProc()) != NULL)
 		(*freeFn)(instance);
@@ -842,7 +842,7 @@ CClassInfo::getCapability(const char * inKey) const
 	{
 		if (inKey == NULL || strcmp(inKey, s) == 0)
 			return s + strlen(s) + 1;
-		s = s + strlen(s) + 1;		
+		s = s + strlen(s) + 1;
 	}
 	return NULL;
 }
@@ -862,7 +862,7 @@ CClassInfo::getCapability(ULong inKey) const
 	{
 		if (strcmp(key, s) == 0)
 			return s + strlen(s) + 1;
-		s = s + strlen(s) + 1;		
+		s = s + strlen(s) + 1;
 	}
 	return NULL;
 }
@@ -911,7 +911,7 @@ CClassInfo::signature(void) const
 	Attempt to find the p-class implementation with the named interface and implementation.
 	The value NULL is a wild card. (Passing two nils has unpredictable results).
 	An instance of the implementation with the highest version number is returned.
-	The instance’s make(void) method is called before the instance is returned.
+	The instance's make(void) method is called before the instance is returned.
 	If there is no matching implementation, NULL is returned.
 	Args:		inInterface			string naming a p-class interface
 				inImplementation	string naming a p-class implementation
@@ -949,7 +949,7 @@ MakeByName(const char * inInterface, const char * inImplementation, ULong inVers
 
 /*--------------------------------------------------------------------------------
 	Similar to the first MakeByName, except that the p-class must have the specified
-	capability. The capability’s value doesn’t matter. The instance created is
+	capability. The capability's value doesn't matter. The instance created is
 	that of the implementation with the specified capability with the highest
 	version number.
 	Args:		inInterface			string naming a p-class interface
@@ -969,7 +969,7 @@ MakeByName(const char * inInterface, const char * inImplementation, const char *
 
 
 /*--------------------------------------------------------------------------------
-	Similar to the first MakeByName, except that the instance’s make(void) method
+	Similar to the first MakeByName, except that the instance's make(void) method
 	is not called.
 	Args:		inInterface			string naming a p-class interface
 				inImplementation	string naming a p-class implementation
@@ -1003,9 +1003,9 @@ AllocInstanceByName(const char * inInterface, const char * inImplementation)
 
 
 /*--------------------------------------------------------------------------------
-	Free an instance of a p-class. The instance’s destroy(void) method is not called.
+	Free an instance of a p-class. The instance's destroy(void) method is not called.
 	This is a fairly low-level operation.
-	You shouldn’t have to use this method.
+	You shouldn't have to use this method.
 	Use destroy() methods instead.
 	Args:		instance		a protocol instance
 	Return:	--

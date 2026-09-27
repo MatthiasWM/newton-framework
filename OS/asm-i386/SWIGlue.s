@@ -53,7 +53,7 @@ _SetAndClearBitsAtomic:
 		// assume super mode, no interrupts
 		jmp		1f
 
-		// were we in user mode we’d need to:
+		// were we in user mode we'd need to:
 		pushl		%ebp						# prolog
 		movl		%esp, %ebp
 		subl		$(8+16), %esp			# keep stack 16-byte aligned
@@ -289,7 +289,7 @@ _GenericSWI:
 /* ----------------------------------------------------------------
 	SWI functions that return values can not do that in registers
 	in the i386 architecture. So we need to read from the current
-	task’s registers when writing back return values.
+	task's registers when writing back return values.
 ---------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------
@@ -484,7 +484,7 @@ _PortSendSWI:
 				outReplyMemId		+28	- sent reply id
 				outSenderMsgId		+24	sender info - sent message id
 				inFlags				+20	flags
-				inMsgFilter			+16	types of message we’re interested in
+				inMsgFilter			+16	types of message we're interested in
 				inMsgId				+12	message id
 				inId					 +8	port id
 
@@ -545,7 +545,7 @@ _PortReceiveSWI:
 	PortResetFilterSWI(ObjectId inId, ULong inMsgId, ULong inMsgFilter)
 
 	Reset the message filter on a port.
-	Args:		12(%esp)	inMsgFilter			types of message we’re interested in
+	Args:		12(%esp)	inMsgFilter			types of message we're interested in
 				 8(%esp)	inMsgId				message id
 				 4(%esp)	inId					port id
 	Return:	error code
@@ -585,7 +585,7 @@ _SemaphoreOpGlue:
 	Atomically swap a memory location with a new value.
 	Args:		 8(%esp)	inValue		its new value
 				 4(%esp)	ioAddr		the memory location
-		
+
 	Return:	its former value
 ---------------------------------------------------------------- */
 
@@ -786,7 +786,7 @@ _SMemMsgSetMsgAvailPortSWI:
 	NewtonErr
 	SMemMsgGetSenderTaskIdSWI(ObjectId inId, ObjectId * outSenderTaskId)
 
-	Get message sender’s task id.
+	Get message sender's task id.
 	Args:		outSenderTaskId+12
 				inId				 +8
 
@@ -996,11 +996,11 @@ _MonitorEntryGlue:
 1:
 		pushl		%ebp					# prolog
 		movl		%esp, %ebp
-		subl		$12, %esp			# keep stack 16-byte aligned…
+		subl		$12, %esp			# keep stack 16-byte aligned...
 		pushl		16(%ebp)
 		pushl		12(%ebp)
 		pushl		 8(%ebp)
-		call		*20(%ebp)			#…at this point
+		call		*20(%ebp)			#...at this point
 
 		addl		$24, %esp
 

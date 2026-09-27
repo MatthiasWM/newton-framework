@@ -25,7 +25,7 @@ CRecUnit::~CRecUnit()
 { }
 
 
-/* -----------------------------------------------------------------------------	
+/* -----------------------------------------------------------------------------
 	Create a new CRecUnit.
 	This is not a virtual method, so subclasses of CRecUnit are free to redefine
 	the interface to their make methods.
@@ -34,7 +34,7 @@ CRecUnit::~CRecUnit()
 				inAreaList		-> fAreaList of unit
 	Return:	instance of CRecUnit
 
-	Doesn’t exist in the ROM -- may be inlined.
+	Doesn't exist in the ROM -- may be inlined.
 ----------------------------------------------------------------------------- */
 
 CRecUnit *
@@ -120,7 +120,7 @@ CRecUnit::sizeInBytes(void)
 	size_t thisSize = 0;
 	if (fAreaList)
 		thisSize = fAreaList->sizeInBytes();
-	thisSize += (sizeof(CRecUnit) - sizeof(CRecObject));	// original doesn’t need sizeof evaluation b/c it uses dynamic Ptr size
+	thisSize += (sizeof(CRecUnit) - sizeof(CRecObject));	// original doesn't need sizeof evaluation b/c it uses dynamic Ptr size
 	return CRecObject::sizeInBytes() + thisSize;
 }
 
@@ -465,13 +465,13 @@ CRecUnit::setAreas(CAreaList * inAreas)
 	{
 		if (inAreas->count() > 1)
 		{
-			// it’s a bona fide list
+			// it's a bona fide list
 			fAreaList = inAreas->retain();
 			setFlags(kAreasUnit);
 		}
 		else if (inAreas->count() == 1)
 		{
-			// it’s a single area
+			// it's a single area
 			CRecArea * anArea = inAreas->getArea(0);
 			fAreaList = anArea->retain();
 		}

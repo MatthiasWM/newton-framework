@@ -514,9 +514,9 @@ StreamSymbol(FILE * inFile, const char * inSym)
 /*------------------------------------------------------------------------------
 	Stream a binary object.
 	Args:		inFile		the file to write
-				inClass		the object’s class
-				inData		the object’s data
-				inSize		the object’s size
+				inClass		the object's class
+				inData		the object's data
+				inSize		the object's size
 	Return:  --
 ------------------------------------------------------------------------------*/
 
@@ -573,7 +573,7 @@ EmitCCMFrameFile(CSymbol * inFunctions)
 {
 	FILE *	f = fopen(gOutputFilename, "w");
 	if (f == NULL)
-		ExitWithMessage("can’t open output file “%s” for write", gOutputFilename);
+		ExitWithMessage("can't open output file “%s” for write", gOutputFilename);
 
 	fputc(kNSOFVersion, f);
 
@@ -620,7 +620,7 @@ EmitCCMFrameFile(CSymbol * inFunctions)
 
 /*------------------------------------------------------------------------------
 	Fill the symbol table.
-	Args:		
+	Args:
 	Return:  true if error
 ------------------------------------------------------------------------------*/
 
@@ -642,7 +642,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL)
-			ExitWithMessage("can’t open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file “%s”", expFilename);
 
 		while (!feof(expFile))
 		{
@@ -737,7 +737,7 @@ FindSymbolicInfo(CSymbolTable * inTable, CSymbol * inFunctions)
 
 	symList = (struct nlist *) calloc(numOfFuncs+1, sizeof(struct nlist));
 	if (symList == NULL)
-		ExitWithMessage("can’t allocate %ld bytes for the symbol list", (numOfFuncs+1) * sizeof(struct nlist));
+		ExitWithMessage("can't allocate %ld bytes for the symbol list", (numOfFuncs+1) * sizeof(struct nlist));
 
 	sym = symList;
 	for (func = inFunctions->fNext; func != nil; sym++, func = func->fNext)
@@ -745,14 +745,14 @@ FindSymbolicInfo(CSymbolTable * inTable, CSymbol * inFunctions)
 
 	Progress("searching for symbolic function definitions within file “%s”", gImageFilename);
 	if (nlist(gImageFilename, symList) != numOfFuncs)
-			ExitWithMessage("couldn’t locate function definitions for all functions");
+			ExitWithMessage("couldn't locate function definitions for all functions");
 
 	sym = symList;
 	for (func = inFunctions->fNext; func != nil; sym++, func = func->fNext)
 		func->fOffset = sym->n_value;
 
 	if (AnyUndefinedOffsetsOrArgCounts(inFunctions))
-		ExitWithMessage("couldn’t define all functions");
+		ExitWithMessage("couldn't define all functions");
 #endif
 }
 
@@ -892,9 +892,9 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	gImageFile = fopen(gImageFilename, "r");
 	if (gImageFile == NULL)
-		ExitWithMessage("can’t open file “%s”", gImageFilename);
+		ExitWithMessage("can't open file “%s”", gImageFilename);
 	if (fread(&gImageHeader, sizeof(mach_header_64), 1, gImageFile) != 1)
-		ExitWithMessage("can’t read %ld bytes for mach_header from file “%s”", sizeof(mach_header_64), gImageFilename);
+		ExitWithMessage("can't read %ld bytes for mach_header from file “%s”", sizeof(mach_header_64), gImageFilename);
 	if (gImageHeader.magic != MH_MAGIC_64)
 		ExitWithMessage("file “%s” does not seem to be in Mach-O format", gImageFilename);
 	fclose(gImageFile);

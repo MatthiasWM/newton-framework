@@ -2,7 +2,7 @@
 	File:		Paths.h
 
 	Contains:	Interface to path functions.
-					Don’t know where paths are used.
+					Don't know where paths are used.
 
 	Written by:	Newton Research Group, 2010.
 */

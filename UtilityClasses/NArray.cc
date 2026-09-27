@@ -61,7 +61,7 @@ NBlockComparator::compareKeys(const void * inKey1, const void * inKey2) const
 
 /*------------------------------------------------------------------------------
 	N I t e r a t o r
-	Implemented in the ROM, but doesn’t appear to be used.
+	Implemented in the ROM, but doesn't appear to be used.
 ------------------------------------------------------------------------------*/
 
 void
@@ -89,7 +89,7 @@ NArray::NArray()
 	fChunkSize = kDefaultChunkSize;
 	fCount = 0;
 	fAllocatedCount = 0;
-	fArrayStorage = NULL;	
+	fArrayStorage = NULL;
 	fIter = NULL;
 	fAllowShrinkage = true;
 }
@@ -236,7 +236,7 @@ NArray::contains(const void * inElement) const
 	for (ArrayIndex i = 0; i < fCount; ++i)
 	{
 		const void * key1 = cmp.keyOf(at(i));
-		const void * key2 = cmp.keyOf(inElement);	// shouldn’t this be OUTSIDE the loop?
+		const void * key2 = cmp.keyOf(inElement);	// shouldn't this be OUTSIDE the loop?
 		if (cmp.compareKeys(key1, key2) == 0)
 			return i;
 	}

@@ -440,7 +440,7 @@ CCommTool::taskMain(void)
 		}
 		handleInternalEvent();
 	}
-	
+
 }
 
 
@@ -454,7 +454,7 @@ CCommTool::createPort(ULong inId, CUPort & outPort)
 	XTRY
 	{
 		XFAIL(err = outPort.init())
-		
+
 		MAKE_ID_STR(inId,type);
 
 		char name[16];		// is actually the task id
@@ -1609,12 +1609,12 @@ CCommTool::optionMgmtComplete(NewtonErr inResult)
 
 NewtonErr
 CCommTool::addDefaultOptions(COptionArray * inOptions)
-{ return noErr; }	// that’s really all it does
+{ return noErr; }	// that's really all it does
 
 
 NewtonErr
 CCommTool::addCurrentOptions(COptionArray * inOptions)
-{ return noErr; }	// that’s really all it does
+{ return noErr; }	// that's really all it does
 
 
 void
@@ -1945,7 +1945,7 @@ CCommTool::processOption(COption * inOption, ULong inLabel, ULong inOpcode)
 
 CUPort *
 CCommTool::forwardOptions(void)
-{ return NULL; }	// that’s really all it does
+{ return NULL; }	// that's really all it does
 
 
 NewtonErr

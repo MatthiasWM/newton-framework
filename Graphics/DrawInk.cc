@@ -214,7 +214,7 @@ static _CODEWORD	SEGMENT_TBL[] =
 	{ 0, 0, 0 }
 };
 
-static _CODEWORD	STROKE_TBL[] =	
+static _CODEWORD	STROKE_TBL[] =
 {
 	{ 0, 1, 1 },
 	{ 1, 2, 2 },
@@ -255,7 +255,7 @@ void		AddStrokePoint(_EXPAND * ioData, int inX, int inY);
 
 int		PGCDrawPointProc(short inSelector, _POINT * inPt, _DCC * inContext);
 void		DrawBufferedPoints(_DPINST * inPtBuffer);
-	
+
 int		ReadNewStroke(_DCC * inContext, short * outType);
 int		ReadSegmentNear(_DCC * inContext, short * outType);
 int		ReadShortStroke(_DCC * inContext);
@@ -640,7 +640,7 @@ DecoderRun(_DCC * inContext)
 	{
 		XFAIL(!inContext->proc(kInkCoderInit, NULL, inContext))
 
-		inContext->x20 = (unsigned char *)inContext->x1C;	// don’t need this, it’s a relic of the Handle implementation
+		inContext->x20 = (unsigned char *)inContext->x1C;	// don't need this, it's a relic of the Handle implementation
 
 		inContext->skipPoint.isInUse = true;
 		inContext->skipPoint.isReady = false;
@@ -688,7 +688,7 @@ DecoderClose(_DCC * inContext, int * outArg2)
 			*outArg2 = inContext->x10;
 	}
 /*
-	// TDIL doesn’t bother with codebooks
+	// TDIL doesn't bother with codebooks
 	if (inContext->x74 == 1)
 		UnlockCodeBook(1);
 	else if (inContext->x74 == 2
@@ -811,7 +811,7 @@ ReadNewStroke(_DCC * inContext, short * outType)
 			}
 			else
 			{
-				// it’s a long one
+				// it's a long one
 				inContext->x74 = 2;
 				XFAIL(!DecoderSelectCodeBook(inContext))
 				dx = GetNBit(inContext, 9);
@@ -1350,7 +1350,7 @@ PGCStorePointProc(short inSelector, _POINT * inPt, _DCC * inContext)
 					if (BeginStroke(instanceData->expandParms) == 0)
 						break;
 				}
-				
+
 				Point	thePoint;
 				float	ordinate;
 				ordinate = inPt->x;
@@ -1395,7 +1395,7 @@ BeginStroke(_EXPAND * ioData)
 {
 	XTRY
 	{
-		// can’t have more than 100 points in a stroke
+		// can't have more than 100 points in a stroke
 		XFAIL(ioData->x28 >= 100)
 		if (ioData->x20)
 		{
@@ -1653,7 +1653,7 @@ DrawBufferedPoints(_DPINST * inPoints)
 
 #if 0
 /*------------------------------------------------------------------------------
-	We’re not bothering with this stuff.
+	We're not bothering with this stuff.
 ------------------------------------------------------------------------------*/
 
 struct _BOOKENTRY
@@ -1682,7 +1682,7 @@ LockBook(const char * inName, _BOOKENTRY * ioBook)
 	if (ioBook->x08 == 0)
 	{
 		if (inName[4] == '1')
-		
+
 	}
 
 	else
@@ -1737,9 +1737,9 @@ GetInkFormat(void * inData)
 
 /*------------------------------------------------------------------------------
 	HWR memory.
-	We’re not going to bother with handles.
-	Modern memory implementations don’t use ’em -- even TDIL doesn’t.
-	In any case, the handle’s locked most of the time.
+	We're not going to bother with handles.
+	Modern memory implementations don't use 'em -- even TDIL doesn't.
+	In any case, the handle's locked most of the time.
 ------------------------------------------------------------------------------*/
 
 typedef OpaqueRef HWRef;

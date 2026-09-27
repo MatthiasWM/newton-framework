@@ -101,7 +101,7 @@ CStoreCompanderWrapper::destroy(void)
 	{
 #if 0
     char  buf[128];
-// we don’t implement xxxCleanup companders anywhere, and this is a cause of crashes in NCX
+// we don't implement xxxCleanup companders anywhere, and this is a cause of crashes in NCX
 		sprintf(buf, "%sCleanup", fCompanderName);
 
 		const CClassInfo * info;
