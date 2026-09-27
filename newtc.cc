@@ -180,6 +180,7 @@ bool init()
   defGlobalCFunction("TestWindow", (void*)FTestWindow, 3);
   defGlobalCFunction("TestWindowClick", (void*)FTestWindowClick, 0);
   defGlobalCFunction("TestWindowClose", (void*)FTestWindowClose, 0);
+  defGlobalCFunction("TestCloseWindow", (void*)FTestCloseWindow, 1);
 #endif
 
   return true;
@@ -296,6 +297,8 @@ void handleArgScript(const std::string &filename)
  ROM's own InstallPart. InstallFormPart copies the install script
  (EnsureInternal: package objects are read-only); line tables follow the
  copy (10.2b). It keeps the app's base view (BuildContext) in the root view.
+ Then newtc opens that app right away (no Extras drawer, one app at a
+ time): GetRoot().(app):Open().
  */
 
 // The ROM's message (RegisterNewPackage), through GetRoot():Notify(
@@ -390,6 +393,30 @@ bool installPackage(RefArg package)
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, partInstallInfo(package, part, i, MakeSymbol(typeName.c_str())));
     DoBlock(installPart, args);   // reports its own errors (Notify)
+  }
+
+  // newtc runs one app and has no Extras drawer to tap: open the form
+  // part's app right away, GetRoot().(app):Open()
+  for (ArrayIndex i = 0; i < count; ++i) {
+    RefVar part(GetArraySlot(parts, i));
+    RefVar type(GetFrameSlot(part, MakeSymbol("type")));
+    if (!IsString(type) || UTF8FromString(type) != "form")
+      continue;
+    RefVar app(GetFrameSlot(GetFrameSlot(part, MakeSymbol("data")), MakeSymbol("app")));
+    RefVar view(IsSymbol(app) ? GetFrameSlot(RootView(), app) : NILREF);
+    if (!IsFrame(view))
+      continue;
+    newton_try
+    {
+      RefVar noArgs(MakeArray(0));
+      DoMessage(view, MakeSymbol("Open"), noArgs);
+    }
+    newton_catch_all
+    {
+      gREPout->exceptionNotify(CurrentException());
+    }
+    end_try;
+    break;
   }
   return true;
 }

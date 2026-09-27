@@ -1,0 +1,29 @@
+// 10.4: opening and closing a view (FOpenX, FCloseX; Host/FLTK/Links.h), in
+// NewtonOS's order (CView::init, CView::dispose): viewSetupFormScript,
+// viewSetupChildrenScript, the children, viewSetupDoneScript, the window is
+// shown, viewShowScript; closing: viewQuitScript, the children's, then
+// viewPostQuitScript (the quit script returned 'postQuit). A child of the
+// root view gets a desktop window; declareSelf and _parent are set, and
+// viewCObject is set while the view is open.
+DefGlobalVar('tmpl, {
+  viewClass: 74, viewFlags: 1, viewJustify: 16 + 64,   // vjParentCenterH + vjParentCenterV
+  viewBounds: {left: 0, top: 0, right: 200, bottom: 100},
+  title: "Open and Close",
+  declareSelf: 'base,
+  viewSetupFormScript: func() Print("viewSetupFormScript"),
+  viewSetupChildrenScript: func() Print("viewSetupChildrenScript"),
+  viewSetupDoneScript: func() Print("viewSetupDoneScript"),
+  viewShowScript: func() Print("viewShowScript"),
+  viewQuitScript: func() begin Print("viewQuitScript"); 'postQuit end,
+  viewPostQuitScript: func() Print("viewPostQuitScript"),
+  stepChildren: [
+    {viewClass: 81, viewFlags: 1, viewBounds: {left: 10, top: 10, right: 190, bottom: 40},
+     text: "Hello from a paragraph view",
+     viewSetupFormScript: func() Print("  child viewSetupFormScript"),
+     viewQuitScript: func() Print("  child viewQuitScript")}]
+});
+DefGlobalVar('view, BuildContext(tmpl));
+Print(view:Open());
+Print([view.viewCObject <> nil, view.base = view, view._parent = GetRoot()]);
+Print(view:Close());
+Print(view.viewCObject);

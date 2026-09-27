@@ -59,12 +59,20 @@ def main():
         return_line = next(i for i, text in enumerate(source, 1) if "return arg0.InstallScript" in text)
         (tmp / "call.ns").write_text(PROGRAM)
 
+        # with FLTK, a package's app opens in a window after installing
+        # (10.4): the sessions close it (its close button) to end
+        fltk = b"true" in subprocess.run(
+            [args.newtc, "-s", "Print(HasSlot(functions, 'TestWindow))"], capture_output=True).stdout
+        close_app = (['{"command": "evaluate", "arguments": {"expression": '
+                      '"TestCloseWindow(GetRoot().|hello:SIG|)", "context": "repl"}}'] if fltk else [])
+
         def session(launch, extra_args, breakpoints_first=False):
             """A session that stops at if_line, steps once, and runs to the end.
             Returns the transcript, stderr, exit code, whether it stopped at
             if_line in hello.ns, and the line of the step (or None)."""
             breakpoints = ('{"command": "setBreakpoints", "arguments": {"source": {"path": "$DIR/hello.ns"}, '
                            '"breakpoints": [{"line": %d}]}}' % if_line)
+            is_package = launch["program"].endswith(".pkg")
             launch = '{"command": "launch", "arguments": %s}' % json.dumps(launch)
             script = "\n".join([
                 '{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}',
@@ -77,6 +85,7 @@ def main():
                 'wait stopped',
                 '{"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}',
                 '{"command": "continue", "arguments": {"threadId": 1}}',
+                *(close_app if is_package else []),
                 'wait terminated',
                 '{"command": "disconnect"}'])
             transcript, err, code = dap_client.run_script(args.newtc, script, tmp, {"DIR": str(tmp)}, extra_args)
@@ -145,6 +154,7 @@ def main():
             'wait initialized',
             '{"command": "launch", "arguments": {"program": "$DIR/hello.pkg"}}',
             '{"command": "configurationDone"}',
+            *close_app,
             'wait terminated',
             '{"command": "disconnect"}']), tmp, {"DIR": str(tmp)}, [])
         transcripts.append(nomap[0])

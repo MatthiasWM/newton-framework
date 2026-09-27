@@ -1,5 +1,6 @@
 // Installing the Hello package (-hello makes it; -run installs it through
-// the ROM's InstallPart): the app's base view is in the root view,
-// GetRoot().|hello:SIG|, built by BuildContext from the package's theForm
-// (a view frame, not open: viewCObject is nil). install_hello.check looks.
+// the ROM's InstallPart, then opens it): the app's base view is in the root
+// view, GetRoot().|hello:SIG|, built by BuildContext from the package's
+// theForm. install_hello.check looks, then closes it (the same with and
+// without FLTK; -stubs quiet: without FLTK, Open and Close are stubs).
 ref0;

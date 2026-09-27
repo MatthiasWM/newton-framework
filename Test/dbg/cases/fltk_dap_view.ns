@@ -1,0 +1,13 @@
+// A breakpoint in a view script (needs FLTK): the view's
+// viewSetupFormScript (line 9) stops while view:Open() opens it; the stack
+// shows who called it. Then the client closes the window (TestCloseWindow,
+// its close button), the viewQuitScript runs, and the program ends.
+DefGlobalVar('view, BuildContext({
+  viewClass: 74, viewFlags: 1, viewBounds: {left: 20, top: 20, right: 220, bottom: 120},
+  viewSetupFormScript: func()
+  begin
+    self.opened := true;
+  end,
+  viewQuitScript: func() Print("quit")}));
+view:Open();
+Print("the view is open");

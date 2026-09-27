@@ -25,7 +25,6 @@ Ref FClearHardKeymap(RefArg rcvr);
 Ref FClearPopup(RefArg rcvr);
 Ref FClearUndoStacks(RefArg rcvr);
 Ref FClipboardCommand(RefArg rcvr);
-Ref FCloseX(RefArg rcvr);
 Ref FCommandKeyboardConnected(RefArg rcvr);
 Ref FCountGesturePoints(RefArg rcvr);
 Ref FCurrentExports(RefArg rcvr);
@@ -245,7 +244,6 @@ NS_STUB(FClearHardKeymap, RefArg rcvr)
 NS_STUB(FClearPopup, RefArg rcvr)
 NS_STUB(FClearUndoStacks, RefArg rcvr)
 NS_STUB(FClipboardCommand, RefArg rcvr)
-NS_STUB(FCloseX, RefArg rcvr)
 NS_STUB(FCommandKeyboardConnected, RefArg rcvr)
 NS_STUB(FCountGesturePoints, RefArg rcvr)
 NS_STUB(FCurrentExports, RefArg rcvr)

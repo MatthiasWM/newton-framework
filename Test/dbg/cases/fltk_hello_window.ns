@@ -1,0 +1,6 @@
+// 10.4: -run installs the Hello package and opens its app right away
+// (GetRoot().(app):Open(); no Extras drawer). Its base view (protoFloatNGo)
+// gets a desktop window; closing the window (TestCloseWindow presses its
+// close button from the event loop) sends the view Close(): viewQuitScript
+// runs, the window goes, the last window closed ends newtc.
+ref0;

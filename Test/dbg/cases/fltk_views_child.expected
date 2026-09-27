@@ -1,0 +1,7 @@
+[true, true]
+"group quit"
+"text quit"
+[true, nil]
+"parent quit"
+"second quit"
+[nil, nil]

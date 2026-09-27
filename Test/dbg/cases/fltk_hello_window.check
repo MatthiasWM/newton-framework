@@ -1,0 +1,8 @@
+// run after -run (see fltk_hello_window.ns)
+begin
+  local view := GetRoot().|hello:SIG|;
+  Print(view.viewCObject <> nil);
+  view.viewQuitScript := func() Print("Hello closed");
+  TestCloseWindow(view);
+  Print("waiting for the window to close");
+end;

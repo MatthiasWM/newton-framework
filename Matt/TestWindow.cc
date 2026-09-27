@@ -12,6 +12,7 @@
 #include <FL/Fl_Window.H>
 
 #include "Matt/TestWindow.h"
+#include "Host/FLTK/Links.h"
 #include "Matt/EventLoop.h"
 #include "Matt/JSON.h"
 
@@ -53,7 +54,7 @@ void CloseWindow(void)
   if (gWindow == nullptr)
     return;
   gWindow->hide();
-  Fl::delete_widget(gWindow);   // later: this may run inside the button's callback
+  delete gWindow;   // fine also inside the button's callback (Fl_Widget_Tracker)
   gWindow = nullptr;
   gButton = nullptr;
 }
@@ -86,6 +87,21 @@ Ref FTestWindowClick(RefArg rcvr)
 Ref FTestWindowClose(RefArg rcvr)
 {
   CloseWindow();
+  return NILREF;
+}
+
+// The window is looked up when the timeout fires, in the event loop: by
+// then the view is open even if this was called earlier (e.g. while the
+// program still installs its app).
+Ref FTestCloseWindow(RefArg rcvr, RefArg inView)
+{
+  Fl::add_timeout(0.0, [](void * data) {
+    RefStruct * view = static_cast<RefStruct *>(data);
+    nfl::Link * link = nfl::Link::Of(*view);
+    if (link && link->Widget()->top_window())
+      link->Widget()->top_window()->do_callback();
+    delete view;
+  }, new RefStruct(inView));
   return NILREF;
 }
 

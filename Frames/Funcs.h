@@ -18,6 +18,8 @@ Ref	DoBlock(RefArg codeBlock, RefArg args);
 Ref	DoScript(RefArg rcvr, RefArg script, RefArg args);
 Ref	DoMessage(RefArg rcvr, RefArg msg, RefArg args);
 Ref	DoMessageIfDefined(RefArg rcvr, RefArg msg, RefArg args, bool * isDefined);
+Ref	DoProtoMessage(RefArg rcvr, RefArg msg, RefArg args);
+Ref	DoProtoMessageIfDefined(RefArg rcvr, RefArg msg, RefArg args, bool * isDefined);
 
 ArrayIndex	GetFunctionArgCount(Ref fn);
 

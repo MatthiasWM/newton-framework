@@ -14,6 +14,10 @@
        the Debug Console can make events)
    TestWindowClose() -> nil
        close the window
+   TestCloseWindow(view) -> nil
+       close the view's desktop window from the event loop, as a user would
+       (its close button): the view gets Close() (Host/FLTK/Links.h). The
+       view needs to be open when the event loop gets to it.
  */
 
 #ifndef MATT_TESTWINDOW_H
@@ -25,6 +29,7 @@
 extern "C" Ref FTestWindow(RefArg rcvr, RefArg inTitle, RefArg inReceiver, RefArg inMessage);
 extern "C" Ref FTestWindowClick(RefArg rcvr);
 extern "C" Ref FTestWindowClose(RefArg rcvr);
+extern "C" Ref FTestCloseWindow(RefArg rcvr, RefArg inView);
 #endif
 
 #endif // MATT_TESTWINDOW_H

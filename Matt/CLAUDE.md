@@ -167,11 +167,15 @@ Decided or leaning (Matt, 2026-09-27):
   clPictureView, clEditView, ...), and one for the root view. The view
   frame refers to its link in its `viewCObject` slot (decided, see above),
   the widget refers to it with `user_data()`.
-- **Ownership**: leaning towards the view (its link) owning the widget,
-  rather than FLTK parents owning their children with the link only
-  passing messages. To watch: an `Fl_Group` deletes its children when it is
-  deleted, so a link must take its widget out of the parent (or be told)
-  before either is deleted.
+- **Ownership** (decided, 2026-09-27): each link owns its widget and
+  deletes it when the view closes, children before their parent. A widget
+  that holds the children's widgets (a GroupLink's: nfl::Group,
+  nfl::FloatNGo) must not delete them as an Fl_Group does: it overrides
+  delete_child() to only take the child out (GroupLink::RemoveChild), and
+  calls clear() in its own destructor (in ~Fl_Group the object is an
+  Fl_Group again, and clear() would call Fl_Group::delete_child()).
+  Widgets are deleted right away, also from their own callback (FLTK 1.4:
+  Fl_Widget_Tracker); Fl::delete_widget() is legacy, not used.
 - **Refs in C++**: links keep the objects they need as `RefStruct` members
   (never `RefVar`, see 10.1 in HISTORY.md); `TestWindow`'s `MessageButton`
   is the pattern.
@@ -290,11 +294,54 @@ Directory and namespace (decided, Matt, 2026-09-27):
       Tests: `install_hello` (-hello -run: GetRoot().|hello:SIG| is the base
       view, not open), `install_parts`, `test_nsdbg.py` (breakpoints in the
       decompiled Hello package, installed by the ROM).
-- [ ] 10.4 Open and close: the first link classes (root, clView, the app's
-      base view as an FLTK window); `-run` and `-dap` open the app right
-      after installing it (`GetRoot().(app):Open()`; no Extras drawer, one
-      app at a time); the view scripts run in NewtonOS's
-      order; closing the window closes the view (viewQuitScript).
+- [x] 10.4 Open and close (first part). Research: `@180` is protoFloatNGo
+      (a protoFloater with a protoClosebox child, `@166`); the Hello text is
+      protoStaticText (`@218`). The view methods are in the ROM's root view
+      template `@287` (viewClass 75): ROM NewtonScript (Open, Toggle, ...)
+      and natives (`_Open` is FOpenX, `Close` is FCloseX, Hide, Show, Dirty,
+      SyncView, ...); a view finds them through its _parent chain, so the
+      root view's frame now has `_proto: @287` (the built-in apps' templates
+      come along as slots; nothing is built). The ROM's Open checks the
+      orientation (displayParams) and calls `self:_Open()`; FOpenX calls
+      RealOpenX, which has the parent add the child (CView::init); FCloseX
+      queues a close command (CView::dispose later; newtc closes at once).
+      Host/FLTK/ (namespace nfl, only with NEWTC_USES_FLTK): `nfl::Link` (a
+      view's link: the context as a RefStruct, parent and children, global
+      bounds, the widget; viewCObject = AddressToRef(link) as in the ROM,
+      widget user_data() = link); `WindowLink` for a child of the root view
+      (widget `nfl::FloatNGo`, an Fl_Double_Window; closing it sends the
+      view Close() through SendEventMessage), `ParagraphLink` for
+      clParagraphView (an Fl_Box with the text), `ViewLink` for everything
+      else (an Fl_Group for the children). Open follows CView::init:
+      viewSetupFormScript, bounds (viewBounds in the parent's bounds by
+      viewJustify; for a root child the app area; parent justification
+      only), declareSelf, the widget, viewSetupChildrenScript, the children
+      (viewChildren then stepChildren, each BuildContext'ed and opened),
+      viewSetupDoneScript; a window is shown, viewShowScript. Close follows
+      CView::dispose: viewQuitScript, viewCObject nil, the children,
+      viewPostQuitScript on 'postQuit, the widget deleted (Fl::delete_widget;
+      only the top of the closed subtree, as a group deletes its children).
+      View scripts are found through _proto only (CView::runScript). An
+      error while opening closes what was built and passes the exception
+      on. FOpenX and FCloseX live in Host/Views.cc; without FLTK they are
+      stubs. `installPackage()` opens the form part's app right after
+      installing it (`GetRoot().(app):Open()`), for -run and -dap. The
+      window sits at (100, 100) plus its position on the Newton display.
+      `DoProtoMessage`, `DoProtoMessageIfDefined` are now declared in
+      Frames/Funcs.h. Test helper `TestCloseWindow(view)` (Matt/TestWindow):
+      presses the view window's close button from the event loop.
+      Stubs met: GlobalBox (protoFloater's viewSetupFormScript uses it to
+      keep a floater on the screen), ChildViewFrames. The debugger names
+      the ROM's view methods after @287's debug slot ("646.Open"): a better
+      name would help.
+      Tests: `fltk_views` (the script order, open and close),
+      `fltk_hello_window` (-hello -run opens a window; its close button
+      closes the view and ends newtc), `fltk_dap_view` (a breakpoint in a
+      viewSetupFormScript), `install_hello` (now the same with and without
+      FLTK), `test_nsdbg.py` and VSNewt close the app's window at the end.
+- [ ] 10.4b Next for views: the natives the Hello app and the tests call
+      (GlobalBox, ChildViewFrames, Hide/Show, Dirty), justification against
+      siblings and ratios, the close box (protoClosebox) and buttons.
 - [ ] 10.5 The Hello app with a button (protoTextButton,
       buttonClickScript), a modal alert, and a reaction to closing; tests
       (TestWindow's approach: clicks from the event loop).

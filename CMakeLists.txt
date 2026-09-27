@@ -708,6 +708,11 @@ if (NEWTC_USES_FLTK)
   FetchContent_MakeAvailable (fltk)
   message (STATUS "newtc: with FLTK (${fltk_SOURCE_DIR})")
   target_compile_definitions (newtc PRIVATE NEWTC_USES_FLTK=1)
+  # the Newton views on FLTK (Host/FLTK/, namespace nfl)
+  target_sources (newtc PRIVATE
+    Host/FLTK/Links.cc Host/FLTK/Links.h
+    Host/FLTK/FloatNGo.cc Host/FLTK/FloatNGo.h
+  )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
 endif ()
 

@@ -1,0 +1,12 @@
+"viewSetupFormScript"
+"viewSetupChildrenScript"
+"  child viewSetupFormScript"
+"viewSetupDoneScript"
+"viewShowScript"
+true
+[true, true, true]
+"viewQuitScript"
+"  child viewQuitScript"
+"viewPostQuitScript"
+true
+nil

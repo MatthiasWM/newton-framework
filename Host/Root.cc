@@ -17,6 +17,11 @@ namespace {
 
 Ref gRoot = NILREF;   // a GC root (AddGCRoot), made on first use
 
+// The ROM's root view template (magic pointer 287, viewClass 75): the view
+// methods as ROM NewtonScript (Open, Toggle, ...) and natives (_Open is
+// FOpenX, Close is FCloseX, ...), and the built-in apps' templates.
+const int kRootTemplate = 287;
+
 // A NewtonScript function object for a C function (see newtc.cc).
 Ref MakeCFunction(void * inFunction, int inNumArgs)
 {
@@ -50,6 +55,9 @@ Ref RootView(void)
   if (ISNIL(gRoot)) {
     AddGCRoot(&gRoot);
     RefVar root(AllocateFrame());
+    // the ROM's root view template: the view methods (Open, Close, Hide,
+    // Dirty, ...) that every view finds through its _parent chain
+    SetFrameSlot(root, MakeSymbol("_proto"), MAKEMAGICPTR(kRootTemplate));
     SetFrameSlot(root, MakeSymbol("Notify"), MakeCFunction((void *)Notify, 3));
     gRoot = root;
   }

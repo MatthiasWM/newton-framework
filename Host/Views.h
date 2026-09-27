@@ -12,6 +12,10 @@
    BuildContext(template) -> a view frame for the template, a child of the
        root view, not open (no native view yet). Installing a form part
        keeps the app's base view made this way: GetRoot().(appSymbol).
+   view:Open(), view:Close() -> the ROM's view methods (in the root view's
+       _proto) call the natives FOpenX (_Open) and FCloseX (Close), which
+       open and close the view with FLTK (Host/FLTK/Links.h). Without FLTK
+       they are stubs: they say so and return nil.
  */
 
 #ifndef HOST_VIEWS_H
@@ -26,5 +30,7 @@
 Ref BuildViewContext(RefArg inTemplate, bool inEvenIfHidden);
 
 extern "C" Ref FBuildContext(RefArg rcvr, RefArg inTemplate);
+extern "C" Ref FOpenX(RefArg rcvr);
+extern "C" Ref FCloseX(RefArg rcvr);
 
 #endif // HOST_VIEWS_H

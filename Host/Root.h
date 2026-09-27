@@ -9,8 +9,10 @@
  NewtonOS's root view has much more (the Extras drawer, the notification
  system, memory kept aside so it can still tell the user when memory runs
  out, ...). newtc's grows only with what programs need: so far a writable
- frame with Notify(). It has no window of its own: window-like views get one
- FLTK window each (Host/FLTK/).
+ frame with Notify(), whose _proto is the ROM's root view template (@287):
+ every view finds the ROM's view methods (Open, Close, Hide, ...) through its
+ _parent chain, as in NewtonOS. It has no window of its own: window-like
+ views get one FLTK window each (Host/FLTK/).
 
  Not FLTK-specific, so newtc without FLTK has a root view, too (-dap installs
  packages into it).

@@ -139,12 +139,10 @@ void		CRootView::update(Rect * inRect) { }
 
 
 extern "C" {
-Ref	FOpenX(RefArg inRcvr);
 Ref	FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref	FRefreshViews(RefArg inRcvr);
 }
 
-NS_STUB(FOpenX, RefArg inRcvr)
 
 Ref
 FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue)

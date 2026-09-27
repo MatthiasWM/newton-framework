@@ -1,0 +1,6 @@
+true
+"waiting for the window to close"
+"Hello closed"
+
+--- stderr ---
+newtc: FGlobalBoxX is not implemented yet (stub in <file:line>), returns nil.
