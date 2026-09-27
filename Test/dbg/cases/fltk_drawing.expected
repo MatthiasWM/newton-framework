@@ -1,4 +1,5 @@
 ["black", 0, "gray", 128, "its frame", 0, "light gray", 191, "not filled", 255, "its outline", 0]
 ["list: style, then a nested one", 128, 0, "transform", 0]
 ["viewDrawScript", 0, 255]
+["viewFormat fill", 0, "frame outside", 128, "icon: a 0 bit, a 1 bit", 255, 0]
 ["after Dirty", 255]

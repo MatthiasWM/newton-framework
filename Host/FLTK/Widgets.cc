@@ -9,6 +9,8 @@
 #include <FL/fl_draw.H>
 
 #include "Host/FLTK/Widgets.h"
+
+#include <algorithm>
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Drawing.h"
 
@@ -44,6 +46,27 @@ Fl_Boxtype BoxForFormat(long inViewFormat, Fl_Color * outColor)
   if (fill)
     return FL_FLAT_BOX;
   return FL_NO_BOX;
+}
+
+
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat)
+{
+  long fill = inViewFormat & 0x0F;             // vfFillMask
+  long frame = (inViewFormat >> 4) & 0x0F;     // vfFrameMask
+  int pen = int((inViewFormat >> 8) & 0x0F);   // vfPenMask
+  int round = int((inViewFormat >> 24) & 0x0F);
+  if (fill) {
+    fl_color(NewtonColor(fill));
+    if (round) fl_rounded_rectf(x, y, w, h, round);
+    else fl_rectf(x, y, w, h);
+  }
+  if (frame && pen > 0) {   // outside the bounds: the widget's edge, pen wide
+    fl_color(NewtonColor(frame));
+    for (int i = 0; i < pen && 2 * i < std::min(w, h); ++i) {
+      if (round) fl_rounded_rect(x + i, y + i, w - 2 * i, h - 2 * i, round);
+      else fl_rect(x + i, y + i, w - 2 * i, h - 2 * i);
+    }
+  }
 }
 
 
@@ -154,6 +177,10 @@ void PictureView::DrawImage()
     py = by + bh - fImage->h();
   bool hilited = Hilited();
   Fl_Image * image = (hilited && fHilitedImage) ? fHilitedImage : fImage;
+  if (fCopy) {   // copy: the icon's 0 bits too (white, black when hilited)
+    fl_color(hilited ? FL_BLACK : FL_WHITE);
+    fl_rectf(px, py, image->w(), image->h());
+  }
   fl_color(hilited ? FL_WHITE : FL_BLACK);   // a bitmap's color
   image->draw(px, py);
 }

@@ -206,12 +206,16 @@ public:
   // clear() here, not only in ~Fl_Group(): there, the object is an Fl_Group
   // already, and clear() would call Fl_Group::delete_child() (which deletes)
   ~Group() override { clear(); }
-  /** Its canvas, or itself, its viewDrawScript, then its children. */
+  /** Its fill and frame (viewFormat), its viewDrawScript, its children,
+      then what scripts drew (Drawing.h). */
   void draw() override;
+  void Format(long inViewFormat) { fFormat = inViewFormat; }
   /** Pen events the children don't take go to the view (Link::HandlePen). */
   int handle(int inEvent) override;
 protected:
   int delete_child(int inIndex) override { return GroupLink::RemoveChild(this, inIndex); }
+private:
+  long fFormat = 0;
 };
 
 /** view:_Open() (FOpenX): open the view (and its children) if it isn't

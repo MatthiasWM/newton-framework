@@ -360,8 +360,9 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    return NewWidget<Group>(WidgetX(), WidgetY(),
-                            WidgetW(), WidgetH());
+    Group * group = NewWidget<Group>(WidgetX(), WidgetY(), WidgetW(), WidgetH());
+    group->Format(IntSlot(fContext, "viewFormat"));
+    return group;
   }
 };
 
@@ -447,6 +448,7 @@ protected:
       view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
                                     IconOf(fContext), align);
     view->FrameInset(fOutset);
+    view->TransferMode(IntSlot(fContext, "viewTransferMode"));
     Fl_Color color;
     view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
     view->color(color);
@@ -734,7 +736,8 @@ void Link::SetHilite(bool inOn)
 
 void Group::draw()
 {
-  draw_box();
+  if (fFormat)
+    DrawViewFormat(x(), y(), w(), h(), fFormat);
   RunDrawScript(this);
   draw_children();
   DrawOverlay(this);
@@ -1070,13 +1073,20 @@ Ref DragView(RefArg inContext, RefArg inUnit, RefArg inBounds)
     movedY = dy;
   };
   // the view follows the pen until it comes up (a nested event loop, as
-  // TrackHilite; the ROM moves a picture of the view, then the view)
+  // TrackHilite; the ROM moves a picture of the view, then the view). It
+  // is drawn over its siblings meanwhile, then back in its place.
   Fl_Widget_Tracker widget(link->Widget());
+  Fl_Group * parent = link->Widget()->parent();
+  int place = parent ? parent->find(link->Widget()) : 0;
+  if (parent)
+    parent->add(link->Widget());   // the last: drawn over the others
   while (!widget.deleted() && !stroke->Done()) {
     Fl::wait();
     if (!widget.deleted())
       follow();
   }
+  if (!widget.deleted() && parent && parent->find(link->Widget()) < parent->children())
+    parent->insert(*link->Widget(), place);
   return NILREF;
 }
 

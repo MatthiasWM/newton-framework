@@ -34,6 +34,12 @@ namespace nfl {
     fill color. */
 Fl_Boxtype BoxForFormat(long inViewFormat, Fl_Color * outColor);
 
+/** A view's fill and frame (viewFormat: fill, frame colors, pen width,
+    roundness) in x, y, w, h (the view's bounds and its frame around them:
+    the frame is outside the bounds, as on a Newton). Grays are solid (a
+    Newton's are patterns). */
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat);
+
 /** A widget that sends its pen events to its view's link. */
 class ViewWidget : public Fl_Widget
 {
@@ -85,10 +91,14 @@ class PictureView : public ViewWidget
 public:
   PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign);
   PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign);
+  /** viewTransferMode: 0 copy (the icon's 0 bits white: the default), 1 or
+      (only its 1 bits); the others as copy (FLTK has no raster ops). */
+  void TransferMode(long inMode) { fCopy = inMode != 1; }
 protected:
   void draw() override;
 private:
   void DrawImage();
+  bool fCopy = true;
   Fl_Image * fImage = nullptr;
   Fl_Image * fHilitedImage = nullptr;
   std::vector<unsigned char> fXbm;    // Fl_Bitmap doesn't copy its data

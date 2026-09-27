@@ -560,9 +560,23 @@ Directory and namespace (decided, Matt, 2026-09-27):
         them), CopyBits (the alert's gyre), transform scaling, regions,
         ink, a real PICT from MakePict, DrawXBitmap (a stub Battleship
         calls: the dashed square in its setup dialog?).
+        After Matt's screenshots of nBattleship 2.5 on a Newton
+        (Screenshot1-5.jpg, not in git): groups draw their viewFormat
+        (DrawViewFormat: fill, and the frame outside the bounds, pen wide;
+        the maps' 565: black, gray frame), so the game view covers the
+        title; picture views draw their icon in their viewTransferMode
+        (copy, the default: the 0 bits white; the deploy map's grid on its
+        black fill); a dragged view is drawn over its siblings while it
+        moves, then back in its place. Grays are solid here; a Newton
+        screen shows them as patterns (a 50% dither: the dotted frames,
+        the gray shots).
   - [ ] 10.7d Timers: AddDelayedAction/Call/Send, AddDeferredAction/Send/
         Call (the computer's turns).
-  - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus), MoveBehind;
+  - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus; the info
+        button's menu: About, Help, a line, New Game), MoveBehind;
+        protoCheckbox (its box and text: "Notify when ships are sunk");
+        protoTitle's underline; the floater's dragger (a bump at the top
+        center); the handwriting font of the pickers' values (Matt's);
         Newton's own characters (U+FC01, the picker diamond, shows as an
         Arabic letter); Hide/Show of a view whose widget can't hold its
         children (a paragraph's children stay visible).
