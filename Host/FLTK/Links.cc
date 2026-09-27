@@ -11,6 +11,7 @@
 
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/FloatNGo.h"
+#include "Host/FLTK/Boxtypes.h"
 #include "Host/Root.h"
 #include "Host/Views.h"
 #include "Matt/EventLoop.h"
@@ -335,6 +336,7 @@ Ref OpenView(RefArg inContext)
 {
   if (Link::Of(inContext))
     return TRUEREF;   // open already
+  RegisterBoxtypes();   // before the first window is shown (only once)
   RefVar parent(GetProtoVariable(inContext, SYMA(_parent)));
   Link * parentLink = Link::Of(parent);
   if (parentLink == nullptr && !EQ(parent, RootView()))

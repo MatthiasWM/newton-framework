@@ -6,6 +6,7 @@
 
 #include "Host/FLTK/FloatNGo.h"
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Boxtypes.h"
 
 namespace nfl {
 
@@ -14,6 +15,8 @@ FloatNGo::FloatNGo(int x, int y, int w, int h, const char * inTitle, Link * inLi
 {
   copy_label(inTitle);
   user_data(inLink);
+  color(FL_WHITE); // NewtonOS background color
+  box(FLOATER_BOX);
   // closing the window closes the view: view:Close(), from the event loop
   // (no link: the view is closed already)
   callback([](Fl_Widget * w, void *) {
