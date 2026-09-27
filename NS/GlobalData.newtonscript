@@ -1,1 +1,9 @@
-// NewtonScript functions// Added by Newton Research GroupDefineGlobalFn('DeclareGlobalFn, func(fnSym, numArgs, descr)	begin	knownGlobalFunctions.(fnSym) := numArgs;	if descr then		globalFnHelpStrings.(fnSym) := ['globalFn, descr, 'run];	end);
+
+// NewtonScript functions
+// Added by Newton Research Group
+DefineGlobalFn('DeclareGlobalFn, func(fnSym, numArgs, descr)
+	begin
+	knownGlobalFunctions.(fnSym) := numArgs;
+	if descr then
+		globalFnHelpStrings.(fnSym) := ['globalFn, descr, 'run];
+	end);

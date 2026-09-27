@@ -1,1 +1,5 @@
-// Build optionsUnDefineGlobalConstant('forNTK);constant forNTK := true;
+
+// Build options
+UnDefineGlobalConstant('forNTK);
+constant forNTK := true;
+

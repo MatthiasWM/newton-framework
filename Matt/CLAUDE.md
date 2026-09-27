@@ -61,7 +61,8 @@ Done so far (details in HISTORY.md):
 - `Views/` (CView, CRootView, ...) and `Packages/` (package manager): the
   ported NewtonOS code. newtc compiles neither (only MessagePad does, which
   we don't pursue); they are the reference for what views and packages do.
-  Old Mac files: CR line endings, MacRoman.
+  Source files are ASCII (Matt replaced the MacRoman characters) with LF
+  line endings (the CR-only files were converted, 2026-09-27).
 - Tests: `Test/dbg/` (`run_dbg_tests.py` with `cases/`: `.ns` plus `.in`,
   `.dap`, `.args`, `.after`, `.expected`; `dap_client.py`; `test_dap_extras.py`,
   `test_terminal.py`, `test_nsdbg.py`), `Test/nsdbg_check.py`,
