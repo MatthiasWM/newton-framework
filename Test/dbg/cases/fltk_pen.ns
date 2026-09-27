@@ -1,0 +1,51 @@
+// 10.7b (needs FLTK): pen strokes. viewClickScript(unit) gets the stroke
+// (Host/FLTK/Pen.h): GetPoint, GetPointsArray (y, x: Battleship's map takes
+// points[0] as the row), GetPointsArrayXY, StrokeBounds, StrokeDone,
+// InkOff; Drag(unit, bounds) moves the view with the pen, within bounds.
+// TestDrag (Matt/TestWindow.h) moves the pen by dx, dy in steps. A
+// floater (protoFloatNGo) is dragged by its dragger (top center, in the
+// frame: the ROM's DragWindow, with RelBounds); TestPen puts the pen there.
+DefGlobalVar('ship, nil);
+DefGlobalVar('map, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  viewQuitScript: func() begin
+    local after := :GlobalBox();
+    Print(["window moved by", after.left - before.left, after.top - before.top]);
+  end,
+  stepChildren: [
+    {viewClass: 74, viewFlags: 513, viewBounds: {left: 10, top: 10, right: 50, bottom: 20},
+     viewSetupDoneScript: func() ship := self,
+     viewClickScript: func(unit)
+       begin
+         local start := :GlobalBox();
+         InkOff(unit);
+         Print(["down at", GetPoint(0, unit) - start.left, GetPoint(1, unit) - start.top, StrokeDone(unit)]);
+         :Drag(unit, {left: start.left - 5, top: start.top - 100, right: start.right + 1000, bottom: start.bottom + 1000});
+         local moved := :GlobalBox();
+         Print(["moved by", moved.left - start.left, moved.top - start.top, StrokeDone(unit)]);
+         true
+       end},
+    {viewClass: 74, viewFlags: 513, viewBounds: {left: 10, top: 40, right: 110, bottom: 90},
+     viewSetupDoneScript: func() map := self,
+     viewClickScript: func(unit)
+       begin
+         local box := :GlobalBox();
+         while not StrokeDone(unit) do nil;   // polling works: events come meanwhile
+         local points := GetPointsArray(unit);
+         local xy := GetPointsArrayXY(unit);
+         local bounds := StrokeBounds(unit);
+         Print(["y, x", points[0] - box.top, points[1] - box.left, "x, y", xy[0] - box.left, xy[1] - box.top,
+                "bounds", bounds.right - bounds.left, bounds.bottom - bounds.top]);
+         Print(["final", GetPoint(4, unit) - box.left, GetPoint(5, unit) - box.top, GetPoint(8, unit).x - box.left]);
+         true
+       end}]}));
+app:Open();
+TestDrag(ship, 30, 7);     // right 30, down 7
+TestDrag(ship, -40, 0);    // left 40: only 5 more (the bounds)
+TestDrag(map, 20, 10);
+DefGlobalVar('before, app:GlobalBox());
+TestPen(app, 100, -4, 30, 20);    // the dragger
+
+foreach kid in app:ChildViewFrames() do
+  if kid.viewClass = 76 then TestTap(kid, nil);   // the close box

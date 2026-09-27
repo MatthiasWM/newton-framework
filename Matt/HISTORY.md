@@ -1161,6 +1161,11 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B23 **GetPointsArray gives x, y** (Recognition/Unit.cc, the port; not
+  compiled by newtc): it wrote h, v, though its comment says v, h and
+  GetPointsArrayXY exists for x, y; Battleship's map takes points[0] as the
+  row. Found 2026-09-27 (10.7b); fixed in the port, and newtc's own
+  (Host/FLTK/Pen.cc) gives y, x.
 - [x] B22 **validTest is inverted** (Stores/Cursors.cc, CCursor::validTest):
   an entry was dropped when validTest returned non-nil, the entries it
   should keep. Found 2026-09-27 (10.7a); fixed; test `soups`.

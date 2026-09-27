@@ -1,0 +1,12 @@
+["down at", 20, 5, nil]
+["moved by", 30, 7, true]
+["down at", 20, 5, nil]
+["moved by", -5, 0, true]
+["y, x", 25, 50, "x, y", 50, 25, "bounds", 21, 11]
+["final", 70, 35, 70]
+["window moved by", 30, 20]
+
+--- stderr ---
+newtc: FViewContainsCaretView is not implemented yet (stub in <file:line>), returns nil.
+newtc: FCommandKeyboardConnected is not implemented yet (stub in <file:line>), returns nil.
+newtc: FMoveBehindX is not implemented yet (stub in <file:line>), returns nil.

@@ -17,6 +17,7 @@
 #include "Host/FLTK/Boxtypes.h"
 #include "Host/FLTK/Widgets.h"
 #include "Host/FLTK/RomImages.h"
+#include "Host/FLTK/Pen.h"
 #include "Host/Root.h"
 #include "Host/Views.h"
 #include "Matt/EventLoop.h"
@@ -30,6 +31,7 @@
 #include "ROMResources.h"
 
 #include <algorithm>
+#include <cstring>
 #include <string>
 
 namespace nfl {
@@ -179,10 +181,23 @@ Ref RunScript(RefArg inContext, const char * inScript)
   return DoProtoMessage(inContext, script, args);
 }
 
+// Newton's own characters (the Private Use Area of its fonts), as Unicode
+// shows them: U+FC01, the picker diamond, is BLACK DIAMOND U+25C6.
+std::string DisplayText(std::string inText)
+{
+  static const struct { const char * newton, * unicode; } kChars[] = {
+    { "\xEF\xB0\x81", "\xE2\x97\x86" },   // U+FC01 -> U+25C6
+  };
+  for (const auto & c : kChars)
+    for (size_t at = inText.find(c.newton); at != std::string::npos; at = inText.find(c.newton, at))
+      inText.replace(at, strlen(c.newton), c.unicode);
+  return inText;
+}
+
 std::string TextSlot(RefArg inContext, const char * inSlot)
 {
   RefVar text(GetProtoVariable(inContext, MakeSymbol(inSlot)));
-  return IsString(text) ? UTF8FromString(text) : std::string();
+  return IsString(text) ? DisplayText(UTF8FromString(text)) : std::string();
 }
 
 // The FLTK font for a font spec (a viewFont): a font frame ({family, face, size})
@@ -589,6 +604,53 @@ void Link::IdleTimeout(void * inLink)
 }
 
 
+// Where the pen is on the Newton display: the event's screen position, from
+// the window's (so that it holds while a window moves).
+PenPoint Link::PenAt(Fl_Widget * inWidget)
+{
+  Link * window = Window();
+  Fl_Window * fltkWindow = inWidget->as_window() ? inWidget->as_window() : inWidget->window();
+  PenPoint point;
+  point.x = Fl::event_x_root() - fltkWindow->x_root() + window->fBounds.left - window->fOutset;
+  point.y = Fl::event_y_root() - fltkWindow->y_root() + window->fBounds.top - window->fOutset;
+  return point;
+}
+
+
+void Link::MoveBy(long inDX, long inDY)
+{
+  if (inDX == 0 && inDY == 0)
+    return;
+  OffsetBounds(inDX, inDY);
+  if (fParent == nullptr) {   // a window: on the desktop
+    fWidget->position(fWidget->x() + int(inDX), fWidget->y() + int(inDY));
+    return;
+  }
+  Place();
+  if (Fl_Group * parent = fWidget->parent())
+    parent->redraw();
+}
+
+
+void Link::OffsetBounds(long inDX, long inDY)
+{
+  fBounds.left += inDX; fBounds.right += inDX;
+  fBounds.top += inDY; fBounds.bottom += inDY;
+  for (Link * child : fChildren)
+    child->OffsetBounds(inDX, inDY);
+}
+
+
+// The widgets where the bounds are (FLTK moves a group's children with it;
+// the others, e.g. a paragraph's, are placed here too).
+void Link::Place()
+{
+  fWidget->position(WidgetX(), WidgetY());
+  for (Link * child : fChildren)
+    child->Place();
+}
+
+
 int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
 {
   switch (inEvent) {
@@ -596,16 +658,19 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
       if ((IntSlot(fContext, "viewFlags") & vClickable) == 0)
         return 0;
       fPenDown = fPenInside = true;
+      fStroke = Stroke::Begin(PenAt(inWidget));
       // FLTK makes the widget the pushed one only after this returns; but
       // TrackHilite() waits for the pen to come up in here
       Fl::pushed(inWidget);
-      RefVar args(MakeArray(1));   // the unit: nil for now
+      RefVar args(MakeArray(1));
+      SetArraySlot(args, 0, fStroke->Unit());
       SendViewEvent(fContext, "viewClickScript", args);
       // the script may have closed the view: this link may be gone
       return 1;
     }
     case FL_DRAG:
       if (fPenDown) {
+        fStroke->Add(PenAt(inWidget));
         bool inside = Fl::event_inside(inWidget);
         if (inside != fPenInside) {
           fPenInside = inside;
@@ -617,6 +682,7 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
       return 0;
     case FL_RELEASE:
       if (fPenDown) {
+        fStroke->End(PenAt(inWidget));
         fPenInside = Fl::event_inside(inWidget);
         fPenDown = false;
         return 1;
@@ -661,8 +727,9 @@ int Group::handle(int inEvent)
       return link ? link->HandlePen(this, inEvent) : 0;
     case FL_DRAG:
     case FL_RELEASE:
-      if (link && Fl::pushed() == this)
-        return link->HandlePen(this, inEvent);
+      // the view's own pen (FLTK clears Fl::pushed() before FL_RELEASE)
+      if (link && link->HandlePen(this, inEvent))
+        return 1;
       break;
   }
   return Fl_Group::handle(inEvent);
@@ -948,6 +1015,38 @@ void ValueChanged(RefArg inContext, RefArg inTag)
 {
   if (Link * link = IsFrame(inContext) ? Link::Of(inContext) : nullptr)
     link->Update(inTag);
+}
+
+Ref DragView(RefArg inContext, RefArg inUnit, RefArg inBounds)
+{
+  Link * link = OpenLink(inContext);
+  Stroke * stroke = Stroke::Of(inUnit);
+  stroke->Ink(false);
+  bool limited = IsFrame(inBounds);
+  Bounds limit = limited ? BoundsOf(inBounds) : Bounds();
+  Bounds start = link->GlobalBounds();
+  PenPoint first = stroke->First();
+  long movedX = 0, movedY = 0;
+  auto clamp = [](long d, long lo, long hi) { return lo > hi ? 0 : std::max(lo, std::min(hi, d)); };
+  auto follow = [&]() {
+    long dx = stroke->Last().x - first.x, dy = stroke->Last().y - first.y;
+    if (limited) {   // the view stays within the bounds
+      dx = clamp(dx, limit.left - start.left, limit.right - start.right);
+      dy = clamp(dy, limit.top - start.top, limit.bottom - start.bottom);
+    }
+    link->MoveBy(dx - movedX, dy - movedY);
+    movedX = dx;
+    movedY = dy;
+  };
+  // the view follows the pen until it comes up (a nested event loop, as
+  // TrackHilite; the ROM moves a picture of the view, then the view)
+  Fl_Widget_Tracker widget(link->Widget());
+  while (!widget.deleted() && !stroke->Done()) {
+    Fl::wait();
+    if (!widget.deleted())
+      follow();
+  }
+  return NILREF;
 }
 
 } // namespace nfl

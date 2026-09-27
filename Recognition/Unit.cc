@@ -693,8 +693,8 @@ FGetPointsArray(RefArg inRcvr, RefArg inUnit)
 	for (ArrayIndex i = 0; i < numOfPoints; ++i)
 	{
 		Point pt = strok->getPoint(i);
-		SetArraySlot(thePoints, i*2, MAKEINT(pt.h));
-		SetArraySlot(thePoints, i*2+1, MAKEINT(pt.v));
+		SetArraySlot(thePoints, i*2, MAKEINT(pt.v));	// was h, v (B23)
+		SetArraySlot(thePoints, i*2+1, MAKEINT(pt.h));
 	}
 	return thePoints;
 }

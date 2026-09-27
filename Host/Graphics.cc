@@ -28,6 +28,14 @@ Ref FSetBounds(RefArg rcvr, RefArg inLeft, RefArg inTop, RefArg inRight, RefArg 
 }
 
 
+Ref FRelBounds(RefArg rcvr, RefArg inLeft, RefArg inTop, RefArg inWidth, RefArg inHeight)
+{
+  RefVar right(MAKEINT(RINT(inLeft) + RINT(inWidth)));
+  RefVar bottom(MAKEINT(RINT(inTop) + RINT(inHeight)));
+  return FSetBounds(rcvr, inLeft, inTop, right, bottom);
+}
+
+
 Ref FOffsetRect(RefArg rcvr, RefArg ioRect, RefArg inDeltaH, RefArg inDeltaV)
 {
   long dh = RINT(inDeltaH), dv = RINT(inDeltaV);

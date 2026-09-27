@@ -36,6 +36,10 @@ public:
       alert's; shared, not deleted), at x, y in the window. */
   void Picture(Fl_Image * inPicture, int x, int y) { fPicture = inPicture; fPictureX = x; fPictureY = y; }
 
+  /** Pen events the children don't take go to the view (a floater's
+      dragger: DragWindow, Link::HandlePen). */
+  int handle(int inEvent) override;
+
 protected:
   int delete_child(int inIndex) override;
   void draw() override;

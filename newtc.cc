@@ -184,6 +184,8 @@ bool init()
   defGlobalCFunction("TestWindowClose", (void*)FTestWindowClose, 0);
   defGlobalCFunction("TestCloseWindow", (void*)FTestCloseWindow, 1);
   defGlobalCFunction("TestTap", (void*)FTestTap, 2);
+  defGlobalCFunction("TestDrag", (void*)FTestDrag, 3);
+  defGlobalCFunction("TestPen", (void*)FTestPen, 5);
   defGlobalCFunction("TestSnapshot", (void*)FTestSnapshot, 2);
 #endif
 

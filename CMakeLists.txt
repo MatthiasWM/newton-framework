@@ -576,7 +576,7 @@ function (embed_newtonscript target nsfile name)
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
 
-target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h)
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
@@ -715,7 +715,7 @@ if (NEWTC_USES_FLTK)
   target_sources (newtc PRIVATE
     Host/FLTK/Links.cc Host/FLTK/Links.h
     Host/FLTK/FloatNGo.cc Host/FLTK/FloatNGo.h
-    Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
+    Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Pen.cc Host/FLTK/Pen.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
   # the ROM's graphics, lifted into PNGs (Host/FLTK/Images), compiled in

@@ -44,8 +44,8 @@
  (FailGetView), they throw "nil view" for a view that isn't open.
 
  Pen (the mouse): a pen down on a view with vClickable in its viewFlags
- sends it viewClickScript(unit), as NewtonOS does (the unit is nil for
- now). A button's viewClickScript (protoTextButton, protoPictureButton)
+ sends it viewClickScript(unit), as NewtonOS does; the unit is the stroke
+ (Pen.h), whose points the pen events add. A button's viewClickScript (protoTextButton, protoPictureButton)
  calls TrackHilite(unit): it waits while the pen is down (a nested FLTK
  event loop, as the ROM waits in its own), hilites the view while the pen
  is inside, and returns true if the pen came up inside; then the script
@@ -62,6 +62,7 @@
 #include <FL/Fl_Group.H>
 
 #include "Frames/Objects.h"
+#include "Host/FLTK/Pen.h"
 
 #include <vector>
 
@@ -87,6 +88,9 @@ public:
   Link * Parent() const { return fParent; }
   Fl_Widget * Widget() const { return fWidget; }
   const Bounds & GlobalBounds() const { return fBounds; }
+  /** How far its frame reaches out of its bounds (its widget is that much
+      bigger all around). */
+  int Outset() const { return fOutset; }
 
   /** The user closed the view's window: view:Close(), as an event. */
   void SendClose();
@@ -102,6 +106,10 @@ public:
   /** A slot of the view frame changed (SetValue): show it. The link
       classes know their own slots (text); the bounds and a redraw here. */
   virtual void Update(RefArg inTag);
+
+  /** Move the view, its children and their widgets by dx, dy (Drag). A
+      window moves on the desktop. */
+  void MoveBy(long inDX, long inDY);
 
   /** Hilite(), TrackHilite(): the widget draws the view hilited. */
   bool Hilited() const { return fHilited; }
@@ -138,6 +146,10 @@ protected:
   bool fTracking = false;      // TrackHilite() waits for the pen to come up
 
   void SetHilite(bool inOn);
+  PenPoint PenAt(Fl_Widget * inWidget);
+  void OffsetBounds(long inDX, long inDY);
+  void Place();
+  Stroke * fStroke = nullptr;  // the stroke of the pen down on the view
   void SetupIdle(long inMilliseconds);
   static void IdleTimeout(void * inLink);
 
@@ -225,6 +237,11 @@ Ref ViewFlags(RefArg inContext);
 /** view:Hilite(on): draw the view hilited (on: non-nil) or not. Nothing
     for a closed view (as the ROM). */
 Ref HiliteView(RefArg inContext, RefArg inOn);
+
+/** view:Drag(unit, bounds): in a viewClickScript, while the pen is down:
+    the view follows the pen (it stays within bounds, global, if given);
+    then it is where the pen left it. Returns nil. */
+Ref DragView(RefArg inContext, RefArg inUnit, RefArg inBounds);
 
 /** view:TrackHilite(unit): in a viewClickScript, while the pen is down:
     hilite the view while the pen is inside it. Returns true if the pen came

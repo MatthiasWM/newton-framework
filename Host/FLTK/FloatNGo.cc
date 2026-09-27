@@ -32,6 +32,24 @@ FloatNGo::~FloatNGo()
 }
 
 
+int FloatNGo::handle(int inEvent)
+{
+  Link * link = static_cast<Link *>(user_data());
+  switch (inEvent) {
+    case FL_PUSH:
+      if (Fl_Double_Window::handle(inEvent))
+        return 1;   // a child took it
+      return link ? link->HandlePen(this, inEvent) : 0;
+    case FL_DRAG:
+    case FL_RELEASE:
+      if (link && link->HandlePen(this, inEvent))
+        return 1;
+      break;
+  }
+  return Fl_Double_Window::handle(inEvent);
+}
+
+
 void FloatNGo::draw()
 {
   if (fPicture == nullptr) {

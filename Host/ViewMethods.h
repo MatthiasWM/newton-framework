@@ -18,6 +18,7 @@
        now (vVisible off while hidden: Visible(view) uses it); 0 if it
        isn't open.
    view:Dirty() -> draw the view again.
+   view:Drag(unit, bounds) -> the view follows the pen until it comes up.
    SetValue(view, slot, value) -> nil: sets the slot, and an open view
        shows it (text, viewBounds, else it is drawn again).
    view:Hilite(on) -> draw the view hilited or not.
@@ -46,6 +47,7 @@ Ref FChildViewFramesX(RefArg rcvr);
 Ref FHideX(RefArg rcvr);
 Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
+Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds);
 Ref FParentX(RefArg rcvr);
 Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref FGetFlags(RefArg rcvr, RefArg inView);

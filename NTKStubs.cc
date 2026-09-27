@@ -41,7 +41,6 @@ Ref FDoPopup(RefArg rcvr);
 Ref FDoScrubEffect(RefArg rcvr);
 Ref FDragAndDrop(RefArg rcvr);
 Ref FDragAndDropLtd(RefArg rcvr);
-Ref FDragX(RefArg rcvr);
 Ref FDrawPolygons(RefArg rcvr);
 Ref FDrawShape(RefArg rcvr);
 Ref FDropHilites(RefArg rcvr);
@@ -73,9 +72,6 @@ Ref FGetId(RefArg rcvr);
 Ref FGetInkWordInfo(RefArg rcvr);
 Ref FGetKeyView(RefArg rcvr);
 Ref FGetPackages(RefArg rcvr);
-Ref FGetPoint(RefArg rcvr);
-Ref FGetPointsArray(RefArg rcvr);
-Ref FGetPointsArrayXY(RefArg rcvr);
 Ref FGetPolygons(RefArg rcvr);
 Ref FGetPopup(RefArg rcvr);
 Ref FGetRemoteWriting(RefArg rcvr);
@@ -86,10 +82,6 @@ Ref FGetStylesOfRange(RefArg rcvr);
 Ref FGetTextFlags(RefArg rcvr);
 Ref FGetTrueModifiers(RefArg rcvr);
 Ref FGetUndoState(RefArg rcvr);
-Ref FGetUnitDownTime(RefArg rcvr);
-Ref FGetUnitEndTime(RefArg rcvr);
-Ref FGetUnitStartTime(RefArg rcvr);
-Ref FGetUnitUpTime(RefArg rcvr);
 Ref FGetView(RefArg rcvr);
 Ref FGetWordArray(RefArg rcvr);
 Ref FGlobalOuterBoxX(RefArg rcvr);
@@ -105,9 +97,6 @@ Ref FHiliteViewChildren(RefArg rcvr);
 Ref FHiliter(RefArg rcvr);
 Ref FHobbleTablet(RefArg rcvr);
 Ref FInRepeatedKeyCommand(RefArg rcvr);
-Ref FInkOff(RefArg rcvr);
-Ref FInkOffUnHobbled(RefArg rcvr);
-Ref FInkOn(RefArg rcvr);
 Ref FInsertItemsAtCaret(RefArg rcvr);
 Ref FInsertTabletSample(RefArg rcvr);
 Ref FInsetRect(RefArg rcvr);
@@ -163,7 +152,6 @@ Ref FRectsOverlap(RefArg rcvr);
 Ref FRedoChildrenX(RefArg rcvr);
 Ref FRegisterGestalt(RefArg rcvr);
 Ref FRegisterOpenKeyboard(RefArg rcvr);
-Ref FRelBounds(RefArg rcvr);
 Ref FRemoveStepView(RefArg rcvr);
 Ref FRemoveView(RefArg rcvr);
 Ref FReplaceGestalt(RefArg rcvr);
@@ -186,8 +174,6 @@ Ref FShowCaret(RefArg rcvr);
 Ref FSlideEffectX(RefArg rcvr);
 Ref FStartBypassTablet(RefArg rcvr);
 Ref FStopBypassTablet(RefArg rcvr);
-Ref FStrokeBounds(RefArg rcvr);
-Ref FStrokeDone(RefArg rcvr);
 Ref FStrokeInPicture(RefArg rcvr);
 Ref FSyncChildrenX(RefArg rcvr);
 Ref FSyncScrollX(RefArg rcvr);
@@ -246,7 +232,6 @@ NS_STUB(FDoPopup, RefArg rcvr)
 NS_STUB(FDoScrubEffect, RefArg rcvr)
 NS_STUB(FDragAndDrop, RefArg rcvr)
 NS_STUB(FDragAndDropLtd, RefArg rcvr)
-NS_STUB(FDragX, RefArg rcvr)
 NS_STUB(FDrawPolygons, RefArg rcvr)
 NS_STUB(FDrawShape, RefArg rcvr)
 NS_STUB(FDropHilites, RefArg rcvr)
@@ -278,9 +263,6 @@ NS_STUB(FGetId, RefArg rcvr)
 NS_STUB(FGetInkWordInfo, RefArg rcvr)
 NS_STUB(FGetKeyView, RefArg rcvr)
 NS_STUB(FGetPackages, RefArg rcvr)
-NS_STUB(FGetPoint, RefArg rcvr)
-NS_STUB(FGetPointsArray, RefArg rcvr)
-NS_STUB(FGetPointsArrayXY, RefArg rcvr)
 NS_STUB(FGetPolygons, RefArg rcvr)
 NS_STUB(FGetPopup, RefArg rcvr)
 NS_STUB(FGetRemoteWriting, RefArg rcvr)
@@ -290,10 +272,6 @@ NS_STUB(FGetStylesOfRange, RefArg rcvr)
 NS_STUB(FGetTextFlags, RefArg rcvr)
 NS_STUB(FGetTrueModifiers, RefArg rcvr)
 NS_STUB(FGetUndoState, RefArg rcvr)
-NS_STUB(FGetUnitDownTime, RefArg rcvr)
-NS_STUB(FGetUnitEndTime, RefArg rcvr)
-NS_STUB(FGetUnitStartTime, RefArg rcvr)
-NS_STUB(FGetUnitUpTime, RefArg rcvr)
 NS_STUB(FGetView, RefArg rcvr)
 NS_STUB(FGetWordArray, RefArg rcvr)
 NS_STUB(FGlobalOuterBoxX, RefArg rcvr)
@@ -309,9 +287,6 @@ NS_STUB(FHiliteViewChildren, RefArg rcvr)
 NS_STUB(FHiliter, RefArg rcvr)
 NS_STUB(FHobbleTablet, RefArg rcvr)
 NS_STUB(FInRepeatedKeyCommand, RefArg rcvr)
-NS_STUB(FInkOff, RefArg rcvr)
-NS_STUB(FInkOffUnHobbled, RefArg rcvr)
-NS_STUB(FInkOn, RefArg rcvr)
 NS_STUB(FInsertItemsAtCaret, RefArg rcvr)
 NS_STUB(FInsertTabletSample, RefArg rcvr)
 NS_STUB(FInsetRect, RefArg rcvr)
@@ -367,7 +342,6 @@ NS_STUB(FRectsOverlap, RefArg rcvr)
 NS_STUB(FRedoChildrenX, RefArg rcvr)
 NS_STUB(FRegisterGestalt, RefArg rcvr)
 NS_STUB(FRegisterOpenKeyboard, RefArg rcvr)
-NS_STUB(FRelBounds, RefArg rcvr)
 NS_STUB(FRemoveStepView, RefArg rcvr)
 NS_STUB(FRemoveView, RefArg rcvr)
 NS_STUB(FReplaceGestalt, RefArg rcvr)
@@ -390,8 +364,6 @@ NS_STUB(FShowCaret, RefArg rcvr)
 NS_STUB(FSlideEffectX, RefArg rcvr)
 NS_STUB(FStartBypassTablet, RefArg rcvr)
 NS_STUB(FStopBypassTablet, RefArg rcvr)
-NS_STUB(FStrokeBounds, RefArg rcvr)
-NS_STUB(FStrokeDone, RefArg rcvr)
 NS_STUB(FStrokeInPicture, RefArg rcvr)
 NS_STUB(FSyncChildrenX, RefArg rcvr)
 NS_STUB(FSyncScrollX, RefArg rcvr)

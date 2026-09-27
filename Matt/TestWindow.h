@@ -25,8 +25,15 @@
        the text of the button to tap (e.g. "OK" in an alert). Taps run one
        after the other. The events go through
        FLTK (Fl::handle), to the view's widget (Host/FLTK/Links.h, "Pen").
+   TestDrag(view, dx, dy) -> nil
+       as TestTap, but the pen moves by dx, dy (in steps, each in a turn of
+       the event loop) before it comes up.
+   TestPen(view, x, y, dx, dy) -> nil
+       as TestDrag, but the pen goes down at x, y from the view's top left
+       (its bounds; negative: in its frame, e.g. a floater's dragger).
    TestSnapshot(view, path) -> nil
-       from the event loop: save the view's window as a PNG file at path,
+       from the event loop, after the taps before it: save the view's
+       window as a PNG file at path,
        as drawn (in the screen's resolution: twice the size on Retina).
        Prints to stderr if it can't.
  */
@@ -42,6 +49,8 @@ extern "C" Ref FTestWindowClick(RefArg rcvr);
 extern "C" Ref FTestWindowClose(RefArg rcvr);
 extern "C" Ref FTestCloseWindow(RefArg rcvr, RefArg inView);
 extern "C" Ref FTestTap(RefArg rcvr, RefArg inView, RefArg inOutside);
+extern "C" Ref FTestDrag(RefArg rcvr, RefArg inView, RefArg inDX, RefArg inDY);
+extern "C" Ref FTestPen(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY, RefArg inDX, RefArg inDY);
 extern "C" Ref FTestSnapshot(RefArg rcvr, RefArg inView, RefArg inPath);
 #endif
 

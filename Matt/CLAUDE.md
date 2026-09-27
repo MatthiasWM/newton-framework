@@ -506,9 +506,29 @@ Directory and namespace (decided, Matt, 2026-09-27):
         JSON (no windfall: Matt/JSON.cc covers what DAP needs, not all
         NewtonScript objects). Careful when testing: `[c:Entry()]` is an
         array of class 'c; and `=` on strings compares identity.
-  - [ ] 10.7b Pen strokes: a real unit for viewClickScript; GetPoint,
-        GetPointsArray, InkOff, Drag (dragging ships into place; floaters
-        too). Today the unit is nil.
+  - [x] 10.7b Pen strokes. A unit is a host stroke (Host/FLTK/Pen.h,
+        nfl::Stroke; AddressToRef, as the ROM's UnitFromRef): its points on
+        the Newton display from pen down to up, added by the pen events on
+        the view's widget (Link::HandlePen; screen positions, so they hold
+        while a window moves); the last 8 strokes stay valid, an older unit
+        is "nil unit". Natives (Host/Pen.{h,cc}): GetPoint (selectors 0-8),
+        GetPointsArray (y, x: Battleship takes points[0] as the row; the
+        port wrote x, y: B23), GetPointsArrayXY, StrokeBounds, StrokeDone,
+        InkOff/InkOn (no ink drawn yet), GetUnit*Time. Asking about a stroke
+        that goes on lets FLTK handle waiting events (a script may poll
+        StrokeDone). Drag(unit, bounds) (FDragX): the view follows the pen
+        in a nested loop, within bounds, and ends where the pen left it
+        (Link::MoveBy: bounds and widgets of the view and its children; a
+        window moves on the desktop). protoFloatNGo drags by its dragger
+        (top center, in the frame; the ROM's DragWindow; nfl::FloatNGo
+        passes pen events to its link now); RelBounds. Fixed: a group
+        widget didn't get FL_RELEASE (FLTK clears Fl::pushed() first). The
+        picker diamond U+FC01 shows as U+25C6 (DisplayText). Test helpers:
+        TestDrag(view, dx, dy), TestPen(view, x, y, dx, dy); TestSnapshot
+        waits for the taps before it; synthetic pen positions are screen
+        positions. Test `fltk_pen`. Battleship: ships drag and snap into
+        the grid. Not yet: ink, gestures (viewGestureScript: a quick tap
+        on a ship turns it by 90 degrees, gestureKind 49), recognition.
   - [ ] 10.7c Shapes and drawing: MakeRect, MakeRoundRect, MakeLine,
         MakeShape (from a bitmap), MakePict, OffsetShape, DrawShape,
         DoDrawing (also the alert's gyre, CopyBits); icons drawn with their
