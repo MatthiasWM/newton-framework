@@ -15,6 +15,7 @@
 
 #include "Matt/TestWindow.h"
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Widgets.h"
 #include "Matt/EventLoop.h"
 #include "Matt/JSON.h"
 
@@ -138,16 +139,30 @@ bool WindowExists(Fl_Window * inWindow)
 
 struct Tap
 {
-  RefStruct view;
+  RefStruct view;         // the view to tap, or
+  std::string text;       // the text of the button to tap
   bool outside;
   Fl_Window * window = nullptr;
   int x = 0, y = 0;
 };
 
-// Taps one after the other: a tap's pen down may wait for its pen up in a
-// nested event loop (TrackHilite), which must not start the next tap.
+// The open text view (a button) with this text, in any window.
+Fl_Widget * FindText(Fl_Widget * inWidget, const std::string & inText)
+{
+  if (auto * text = dynamic_cast<nfl::TextView *>(inWidget))
+    return text->Text() == inText ? text : nullptr;
+  if (Fl_Group * group = inWidget->as_group())
+    for (int i = 0; i < group->children(); ++i)
+      if (Fl_Widget * found = FindText(group->child(i), inText))
+        return found;
+  return nullptr;
+}
+
+// Taps one after the other: the next one starts when the pen of the one
+// before is up, even if its pen-down's script still runs (a button that
+// opens a modal dialog waits in a nested event loop for the next tap).
 std::deque<Tap *> gTaps;
-bool gTapping = false;
+bool gPenDown = false;
 
 void StartTap(void *);
 
@@ -160,20 +175,29 @@ void EndTap(void * data)
     SendPen(tap->window, FL_RELEASE, tap->outside ? -10 : tap->x, tap->outside ? -10 : tap->y);
   }
   delete tap;
+  gPenDown = false;
+  Fl::add_timeout(0.0, StartTap);   // runs after the event loop got the pen up
 }
 
 // The pen goes down now and up in the next timeout (so a nested event loop
-// in the pen-down's script gets it); the next tap after that.
+// in the pen-down's script gets it).
 void StartTap(void *)
 {
-  if (gTapping || gTaps.empty())
+  if (gPenDown || gTaps.empty())
     return;
   Tap * tap = gTaps.front();
   gTaps.pop_front();
-  nfl::Link * link = nfl::Link::Of(tap->view);
-  Fl_Widget * widget = link ? link->Widget() : nullptr;
+  Fl_Widget * widget = nullptr;
+  if (tap->text.empty()) {
+    nfl::Link * link = nfl::Link::Of(tap->view);
+    widget = link ? link->Widget() : nullptr;
+  } else {
+    for (Fl_Window * w = Fl::first_window(); w && !widget; w = Fl::next_window(w))
+      widget = FindText(w, tap->text);
+  }
   tap->window = widget ? (widget->as_window() ? widget->as_window() : widget->window()) : nullptr;
   if (tap->window == nullptr) {
+    fprintf(stderr, "newtc: TestTap: nothing to tap\n");
     delete tap;
     Fl::add_timeout(0.0, StartTap);
     return;
@@ -181,11 +205,9 @@ void StartTap(void *)
   bool isWindow = widget == tap->window;
   tap->x = (isWindow ? 0 : widget->x()) + widget->w() / 2;
   tap->y = (isWindow ? 0 : widget->y()) + widget->h() / 2;
-  gTapping = true;
+  gPenDown = true;
   Fl::add_timeout(0.0, EndTap, tap);
   SendPen(tap->window, FL_PUSH, tap->x, tap->y);
-  gTapping = false;
-  Fl::add_timeout(0.0, StartTap);   // after EndTap (timeouts run in order)
 }
 
 } // namespace
@@ -193,7 +215,9 @@ void StartTap(void *)
 
 Ref FTestTap(RefArg rcvr, RefArg inView, RefArg inOutside)
 {
-  gTaps.push_back(new Tap{RefStruct(inView), NOTNIL(inOutside)});
+  Tap * tap = new Tap{RefStruct(IsString(inView) ? NILREF : (Ref)inView),
+                      IsString(inView) ? UTF8FromString(inView) : std::string(), NOTNIL(inOutside)};
+  gTaps.push_back(tap);
   Fl::add_timeout(0.0, StartTap);
   return NILREF;
 }

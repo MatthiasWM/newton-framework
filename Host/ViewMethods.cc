@@ -26,6 +26,8 @@ Ref FShowX(RefArg rcvr)            { return nfl::ShowView(rcvr); }
 Ref FDirtyX(RefArg rcvr)           { return nfl::DirtyView(rcvr); }
 Ref FHiliteX(RefArg rcvr, RefArg inOn)        { return nfl::HiliteView(rcvr, inOn); }
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit) { return nfl::TrackHilite(rcvr, inUnit); }
+Ref FModalDialog(RefArg rcvr)                 { return nfl::ModalDialog(rcvr); }
+Ref FSetupIdleX(RefArg rcvr, RefArg inMilliseconds) { return nfl::SetupIdle(rcvr, inMilliseconds); }
 
 #else
 
@@ -40,6 +42,8 @@ NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FDirtyX, RefArg rcvr)
 NS_STUB(FHiliteX, RefArg rcvr, RefArg inOn)
 NS_STUB(FTrackHiliteX, RefArg rcvr, RefArg inUnit)
+NS_STUB(FModalDialog, RefArg rcvr)
+NS_STUB(FSetupIdleX, RefArg rcvr, RefArg inMilliseconds)
 
 #endif
 

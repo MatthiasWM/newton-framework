@@ -1,0 +1,18 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "setBreakpoints", "arguments": {"source": {"path": "$PROGRAM"}, "breakpoints": [{"line": 13}]}}
+{"command": "configurationDone"}
+wait output
+{"command": "evaluate", "arguments": {"expression": "TestTap(\"Tap me\", nil)", "context": "repl"}}
+wait stopped
+{"command": "next", "arguments": {"threadId": 1}}
+wait output
+{"command": "evaluate", "arguments": {"expression": "TestTap(\"OK\", nil)", "context": "repl"}}
+wait stopped
+{"command": "stackTrace", "arguments": {"threadId": 1}}
+{"command": "continue", "arguments": {"threadId": 1}}
+wait output
+{"command": "evaluate", "arguments": {"expression": "TestTap(closeBox, nil)", "context": "repl"}}
+wait terminated
+{"command": "disconnect"}

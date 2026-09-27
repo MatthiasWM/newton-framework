@@ -40,11 +40,16 @@ class ViewWidget : public Fl_Widget
 public:
   ViewWidget(int x, int y, int w, int h) : Fl_Widget(x, y, w, h) { }
   int handle(int inEvent) override;
+  /** The widget is the view's bounds and its frame around them (a
+      NewtonOS frame is outside the bounds): the frame's width. What the
+      view shows goes inside. */
+  void FrameInset(int inPixels) { fInset = inPixels; }
 protected:
   bool Hilited() const;
   /** The box, hilited if the view is: FL_DOWN_BOX for FL_UP_BOX, else
       filled black. */
   void DrawBox();
+  int fInset = 0;
 };
 
 /** clTextView: one line (or more) of text in one font. */
@@ -53,6 +58,7 @@ class TextView : public ViewWidget
 public:
   TextView(int x, int y, int w, int h, const std::string & inText,
            Fl_Font inFont, Fl_Fontsize inSize, Fl_Align inAlign);
+  const std::string & Text() const { return fText; }
 protected:
   void draw() override;
 private:

@@ -8,6 +8,9 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Group.H>
+#include <FL/Fl_Window.H>
+#include <FL/fl_draw.H>
+#include <FL/platform.H>   // fl_open_display()
 
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/FloatNGo.h"
@@ -25,6 +28,7 @@
 #include "ViewFlags.h"
 #include "ROMResources.h"
 
+#include <algorithm>
 #include <string>
 
 namespace nfl {
@@ -180,13 +184,16 @@ std::string TextSlot(RefArg inContext, const char * inSlot)
   return IsString(text) ? UTF8FromString(text) : std::string();
 }
 
-// The FLTK font for a view's viewFont: a font frame ({family, face, size})
+// The FLTK font for a font spec (a viewFont): a font frame ({family, face, size})
 // or a font spec (an integer: family, size, face in bits, tsFamilyMask ...).
 // newtc has no Newton fonts yet: Helvetica for Espy and Geneva, Times for
 // New York. The face bits (bold 1, italic 2) are FLTK's.
-void FontOf(RefArg inContext, Fl_Font * outFont, Fl_Fontsize * outSize)
+} // namespace
+
+
+void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize)
 {
-  RefVar viewFont(GetProtoVariable(inContext, SYMA(viewFont)));
+  RefVar viewFont(inSpec);
   long family = 0, face = 0, size = 12;
   if (IsFrame(viewFont)) {
     RefVar name(GetFrameSlot(viewFont, SYMA(family)));
@@ -204,6 +211,15 @@ void FontOf(RefArg inContext, Fl_Font * outFont, Fl_Fontsize * outSize)
   }
   *outFont = (family == 1 ? FL_TIMES : FL_HELVETICA) + Fl_Font(face & 3);
   *outSize = Fl_Fontsize(size);
+}
+
+namespace {
+
+// The font of a view (viewFont).
+void FontOf(RefArg inContext, Fl_Font * outFont, Fl_Fontsize * outSize)
+{
+  RefVar viewFont(GetProtoVariable(inContext, SYMA(viewFont)));
+  FontFromSpec(viewFont, outFont, outSize);
 }
 
 // FLTK's alignment for the H and V bits of a viewJustify (how a view places
@@ -282,7 +298,7 @@ protected:
   Fl_Widget * MakeWidget() override
   {
     return NewWidget<Group>(WidgetX(), WidgetY(),
-                            int(fBounds.Width()), int(fBounds.Height()));
+                            WidgetW(), WidgetH());
   }
 };
 
@@ -296,8 +312,10 @@ protected:
   Fl_Widget * MakeWidget() override
   {
     Fl_Box * box = NewWidget<Fl_Box>(WidgetX(), WidgetY(),
-                                     int(fBounds.Width()), int(fBounds.Height()));
-    box->copy_label(TextSlot(fContext, "text").c_str());
+                                     WidgetW(), WidgetH());
+    std::string text = TextSlot(fContext, "text");
+    std::replace(text.begin(), text.end(), '\r', '\n');   // a Newton new line
+    box->copy_label(text.c_str());
     box->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP);
     Fl_Font font;
     Fl_Fontsize size;
@@ -321,12 +339,14 @@ protected:
     Fl_Fontsize size;
     FontOf(fContext, &font, &size);
     TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(),
-                                          int(fBounds.Width()), int(fBounds.Height()),
+                                          WidgetW(), WidgetH(),
                                           TextSlot(fContext, "text"), font, size,
                                           AlignOf(IntSlot(fContext, "viewJustify")));
     Fl_Color color;
-    view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
+    long viewFormat = IntSlot(fContext, "viewFormat");
+    view->box(BoxForFormat(viewFormat, &color));
     view->color(color);
+    view->FrameInset(fOutset);
     return view;
   }
 };
@@ -341,8 +361,9 @@ protected:
   Fl_Widget * MakeWidget() override
   {
     PictureView * view = NewWidget<PictureView>(WidgetX(), WidgetY(),
-                                                int(fBounds.Width()), int(fBounds.Height()),
+                                                WidgetW(), WidgetH(),
                                                 IconOf(fContext), AlignOf(IntSlot(fContext, "viewJustify")));
+    view->FrameInset(fOutset);
     Fl_Color color;
     view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
     view->color(color);
@@ -364,11 +385,17 @@ protected:
       title = TextSlot(fContext, "appName");
     if (title.empty())
       title = "Newton";
-    // the frame is outside the view's bounds (as on a Newton): around them
-    fOutset = FrameOutset(IntSlot(fContext, "viewFormat"));
-    return NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
-                               int(fBounds.Width() + 2 * fOutset), int(fBounds.Height() + 2 * fOutset),
-                               title.c_str(), this);
+    // the frame (fOutset) is outside the view's bounds (as on a Newton)
+    long viewFormat = IntSlot(fContext, "viewFormat");
+    FloatNGo * window = NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
+                                            int(fBounds.Width() + 2 * fOutset), int(fBounds.Height() + 2 * fOutset),
+                                            title.c_str(), this);
+    if (((viewFormat & vfFrameMask) >> vfFrameShift) != vfDragger) {
+      Fl_Color color;   // not a floater: e.g. an alert
+      window->box(BoxForFormat(viewFormat, &color));
+      window->color(color);
+    }
+    return window;
   }
 };
 
@@ -399,6 +426,7 @@ Link::Link(RefArg inContext, Link * inParent)
 
 Link::~Link()
 {
+  Fl::remove_timeout(IdleTimeout, this);
   if (fParent) {
     auto & siblings = fParent->fChildren;
     for (auto it = siblings.begin(); it != siblings.end(); ++it)
@@ -419,14 +447,14 @@ Link * Link::Of(RefArg inContext)
 int Link::WidgetX()
 {
   Link * window = Window();
-  return int(fBounds.left - window->fBounds.left + window->fOutset);
+  return int(fBounds.left - fOutset - window->fBounds.left + window->fOutset);
 }
 
 
 int Link::WidgetY()
 {
   Link * window = Window();
-  return int(fBounds.top - window->fBounds.top + window->fOutset);
+  return int(fBounds.top - fOutset - window->fBounds.top + window->fOutset);
 }
 
 
@@ -464,6 +492,41 @@ Bounds Link::JustifiedBounds()
 }
 
 
+// A view script for an event, found through _proto only (as runScript).
+static Ref SendViewEvent(RefArg inContext, const char * inScript, RefArg inArgs)
+{
+  RefVar script(MakeSymbol(inScript));
+  if (ISNIL(GetProtoVariable(inContext, script)))
+    return NILREF;
+  return SendEventMessage(inContext, script, inArgs);
+}
+
+
+void Link::SetupIdle(long inMilliseconds)
+{
+  Fl::remove_timeout(IdleTimeout, this);
+  if (inMilliseconds > 0)
+    Fl::add_timeout(inMilliseconds / 1000.0, IdleTimeout, this);
+}
+
+
+// viewIdleScript: again after the milliseconds it returns; nil stops.
+void Link::IdleTimeout(void * inLink)
+{
+  Link * link = static_cast<Link *>(inLink);
+  if (!EventsDelivered()) {
+    Fl::add_timeout(0.05, IdleTimeout, link);   // a script runs: a bit later
+    return;
+  }
+  RefVar context(link->fContext);
+  RefVar args(MakeArray(0));
+  RefVar result(SendViewEvent(context, "viewIdleScript", args));
+  // the script may have closed the view (the timeout is gone with the link)
+  if (Link::Of(context) == link && ISINT(result))
+    link->SetupIdle(RINT(result));
+}
+
+
 int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
 {
   switch (inEvent) {
@@ -474,13 +537,9 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
       // FLTK makes the widget the pushed one only after this returns; but
       // TrackHilite() waits for the pen to come up in here
       Fl::pushed(inWidget);
-      // viewClickScript through _proto only (not a parent's), as runScript
-      RefVar script(MakeSymbol("viewClickScript"));
-      if (NOTNIL(GetProtoVariable(fContext, script))) {
-        RefVar args(MakeArray(1));   // the unit: nil for now
-        SendEventMessage(fContext, script, args);
-        // the script may have closed the view: this link may be gone
-      }
+      RefVar args(MakeArray(1));   // the unit: nil for now
+      SendViewEvent(fContext, "viewClickScript", args);
+      // the script may have closed the view: this link may be gone
       return 1;
     }
     case FL_DRAG:
@@ -560,6 +619,7 @@ Link * Build(RefArg inContext, Link * inParent)
     if (IsSymbol(declareSelf))
       SetFrameSlot(inContext, declareSelf, inContext);
 
+    link->fOutset = FrameOutset(IntSlot(inContext, "viewFormat"));
     link->fWidget = link->MakeWidget();
     link->fWidget->user_data(link);
     if (inParent) {
@@ -636,7 +696,7 @@ void Dispose(Link * inLink)
 }
 
 
-Ref OpenView(RefArg inContext)
+Ref OpenView(RefArg inContext, bool inModal)
 {
   if (Link::Of(inContext))
     return TRUEREF;   // open already
@@ -647,6 +707,8 @@ Ref OpenView(RefArg inContext)
     ThrowMsg("Open: the parent view is not open");
   Link * link = Build(inContext, parentLink);
   if (parentLink == nullptr) {
+    if (inModal)
+      link->Widget()->as_window()->set_modal();
     link->Widget()->show();
     RunScript(inContext, "viewShowScript");
   } else {
@@ -753,6 +815,36 @@ Ref TrackHilite(RefArg inContext, RefArg inUnit)
     return NILREF;   // the view was closed (and the link deleted)
   link->fTracking = false;
   return link->fPenInside ? TRUEREF : NILREF;
+}
+
+Ref ModalDialog(RefArg inContext)
+{
+  if (Link::Of(inContext))
+    ThrowMsg("ModalDialog: the view is open already");
+  OpenView(inContext, true);
+  RefStruct view(inContext);
+  RunModalEventLoop([](void * data) { return Link::Of(*static_cast<RefStruct *>(data)) == nullptr; }, &view);
+  return NILREF;
+}
+
+
+Ref SetupIdle(RefArg inContext, RefArg inMilliseconds)
+{
+  OpenLink(inContext)->SetupIdle(ISINT(inMilliseconds) ? RINT(inMilliseconds) : 0);
+  return NILREF;
+}
+
+
+Ref StrFontWidth(RefArg inString, RefArg inFontSpec)
+{
+  if (!IsString(inString))
+    ThrowBadTypeWithFrameData(kNSErrNotAString, inString);
+  Fl_Font font;
+  Fl_Fontsize size;
+  FontFromSpec(inFontSpec, &font, &size);
+  fl_open_display();   // measuring needs the display, even before a window
+  fl_font(font, size);
+  return MAKEINT(long(fl_width(UTF8FromString(inString).c_str()) + 0.5));
 }
 
 } // namespace nfl

@@ -571,7 +571,6 @@ Ref FGetRelevantTemplates(RefArg rcvr);
 Ref FEntryReplaceWithModTime(RefArg rcvr);
 Ref FLayoutMeeting(RefArg rcvr);
 Ref FNBPStart(RefArg rcvr);
-Ref FStrFontWidth(RefArg rcvr);
 Ref DSPrevSubStr(RefArg rcvr);
 Ref FCallOnlineService(RefArg rcvr);
 Ref DSFindPossibleLocation(RefArg rcvr);
@@ -1299,7 +1298,6 @@ NS_STUB(FGetRelevantTemplates, RefArg rcvr)
 NS_STUB(FEntryReplaceWithModTime, RefArg rcvr)
 NS_STUB(FLayoutMeeting, RefArg rcvr)
 NS_STUB(FNBPStart, RefArg rcvr)
-NS_STUB(FStrFontWidth, RefArg rcvr)
 NS_STUB(DSPrevSubStr, RefArg rcvr)
 NS_STUB(FCallOnlineService, RefArg rcvr)
 NS_STUB(DSFindPossibleLocation, RefArg rcvr)

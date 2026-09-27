@@ -1,0 +1,19 @@
+// Stepping over a modal alert (needs FLTK): stopped at line 13, "next" runs
+// ModalConfirm: the client taps "OK" while buttonClickScript waits in the
+// alert's nested event loop; the alert's button script ends there without
+// ending the step (DAPLeaveScript), so the step stops at line 14. Then the
+// client taps the close box, and the program ends.
+DefGlobalVar('closeBox, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  stepChildren: [
+    {_proto: @226, text: "Tap me", viewBounds: {left: 10, top: 10, right: 90, bottom: 30},
+     buttonClickScript: func()
+       begin
+         local answer := ModalConfirm("Sure?", 'okCancel);
+         Print(["answer", answer]);
+       end}]}));
+app:Open();
+foreach kid in app:ChildViewFrames() do
+  if kid.viewClass = 76 then closeBox := kid;
+Print("the app is open");

@@ -1,0 +1,23 @@
+/*
+ File: Graphics.h
+
+ Global functions for rectangles and text measurement (natives in the ROM):
+
+   SetBounds(left, top, right, bottom) -> {left, top, right, bottom}
+   OffsetRect(rect, deltaH, deltaV) -> rect, moved (the frame itself)
+   StrFontWidth(string, fontSpec) -> the string's width in pixels in that
+       font (with FLTK: Host/FLTK/Links.h; without, a stub)
+ */
+
+#ifndef HOST_GRAPHICS_H
+#define HOST_GRAPHICS_H
+
+#include "Frames/Objects.h"
+
+extern "C" {
+Ref FSetBounds(RefArg rcvr, RefArg inLeft, RefArg inTop, RefArg inRight, RefArg inBottom);
+Ref FOffsetRect(RefArg rcvr, RefArg ioRect, RefArg inDeltaH, RefArg inDeltaV);
+Ref FStrFontWidth(RefArg rcvr, RefArg inString, RefArg inFontSpec);
+}
+
+#endif // HOST_GRAPHICS_H

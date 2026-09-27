@@ -21,7 +21,9 @@
    TestTap(view, outside) -> nil
        tap the view with the pen (the mouse) from the event loop, as a user
        would: down at its center and up again; with outside non-nil, the
-       pen moves out of the view before it comes up. The events go through
+       pen moves out of the view before it comes up. view can be a string:
+       the text of the button to tap (e.g. "OK" in an alert). Taps run one
+       after the other. The events go through
        FLTK (Fl::handle), to the view's widget (Host/FLTK/Links.h, "Pen").
    TestSnapshot(view, path) -> nil
        from the event loop: save the view's window as a PNG file at path,

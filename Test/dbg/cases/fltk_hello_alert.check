@@ -1,0 +1,10 @@
+// run after -run (see fltk_hello_alert.ns)
+begin
+  local view := GetRoot().|hello:SIG|;
+  foreach kid in view:ChildViewFrames() do
+    if kid.viewClass = 76 then closeBox := kid;
+  TestTap("Say Hello", nil);
+  TestTap("OK", nil);
+  TestTap(closeBox, nil);
+  Print("tapping");
+end;

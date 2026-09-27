@@ -66,9 +66,11 @@ void DAPHandleIdleRequests(void);
 
 /** A host event starts or ends a script (e.g. a callback): look for
     requests while it runs, stop at its first instruction if a pause is
-    pending; at the end, cancel a line step still running. */
+    pending; at the end, cancel a line step still running. Not at the end
+    of an event in a modal dialog's event loop (inOutermost false): the
+    script that opened the dialog still runs, and its line step goes on. */
 void DAPEnterScript(void);
-void DAPLeaveScript(void);
+void DAPLeaveScript(bool inOutermost);
 
 /** Number of exceptions reported so far (they are sent as "stderr" output);
     newtc uses it for the exit code of the program. */

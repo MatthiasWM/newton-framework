@@ -1,0 +1,9 @@
+{left: 1, top: 2, right: 3, bottom: 4}
+{left: 11, top: 22, right: 13, bottom: 24}
+true
+["confirmed", 0]
+["yes/no", nil]
+"app closed"
+
+--- stderr ---
+newtc: FSetKeyView is not implemented yet (stub in <file:line>), returns nil.

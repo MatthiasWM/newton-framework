@@ -16,6 +16,10 @@
    view:Hilite(on) -> draw the view hilited or not.
    view:TrackHilite(unit) -> in a viewClickScript: hilite the view while
        the pen is down inside it; true if it came up inside.
+   view:ModalDialog() -> open the view as a modal window; returns when it
+       is closed (events run their scripts meanwhile).
+   view:SetupIdle(milliseconds) -> viewIdleScript() after that long, and
+       again after the milliseconds it returns, until it returns nil.
 
  Except Close, Dirty and Hilite (which do nothing), they throw "nil view"
  for a view that isn't open (the ROM's FailGetView).
@@ -37,6 +41,8 @@ Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
 Ref FHiliteX(RefArg rcvr, RefArg inOn);
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit);
+Ref FModalDialog(RefArg rcvr);
+Ref FSetupIdleX(RefArg rcvr, RefArg inMilliseconds);
 }
 
 #endif // HOST_VIEWMETHODS_H

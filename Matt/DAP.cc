@@ -276,9 +276,9 @@ void DAPEnterScript(void)
 }
 
 
-void DAPLeaveScript(void)
+void DAPLeaveScript(bool inOutermost)
 {
-  if (!gDAPActive)
+  if (!gDAPActive || !inOutermost)
     return;
   DAPSetPolling(false);
   CancelLineStep();       // stepping out of a callback: the next one is unrelated

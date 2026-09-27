@@ -109,17 +109,20 @@ protected:
   Link * Window();
 
   /** Where the widget goes in its window (FLTK's window coordinates): the
-      view's bounds relative to the window's content, which is fOutset in
-      from the window's edges (its frame). */
+      view's bounds relative to the window's content (which is the window's
+      fOutset in from its edges), and around them the view's frame (its own
+      fOutset): NewtonOS draws a view's frame outside its bounds. */
   int WidgetX();
   int WidgetY();
+  int WidgetW() const { return int(fBounds.Width() + 2 * fOutset); }
+  int WidgetH() const { return int(fBounds.Height() + 2 * fOutset); }
 
   RefStruct fContext;
   Link * fParent;
   std::vector<Link *> fChildren;
   Bounds fBounds;
   Fl_Widget * fWidget = nullptr;
-  int fOutset = 0;             // a window: its frame, around the view's bounds
+  int fOutset = 0;             // its frame, around the view's bounds
   bool fInSetupForm = false;   // viewSetupFormScript runs (fBounds not set yet)
   bool fHidden = false;        // Hide()
   bool fHilited = false;       // Hilite(), TrackHilite()
@@ -128,6 +131,8 @@ protected:
   bool fTracking = false;      // TrackHilite() waits for the pen to come up
 
   void SetHilite(bool inOn);
+  void SetupIdle(long inMilliseconds);
+  static void IdleTimeout(void * inLink);
 
   friend Link * Build(RefArg inContext, Link * inParent);
   friend void Dispose(Link * inLink);
@@ -138,6 +143,7 @@ protected:
   friend Ref ShowView(RefArg inContext);
   friend Ref HiliteView(RefArg inContext, RefArg inOn);
   friend Ref TrackHilite(RefArg inContext, RefArg inUnit);
+  friend Ref SetupIdle(RefArg inContext, RefArg inMilliseconds);
 };
 
 /** A link whose widget holds the widgets of the view's children (a group,
@@ -173,8 +179,9 @@ protected:
 };
 
 /** view:_Open() (FOpenX): open the view (and its children) if it isn't
-    open yet. Throws if its parent isn't open. Returns true. */
-Ref OpenView(RefArg inContext);
+    open yet. Throws if its parent isn't open. Returns true. inModal: a
+    window that blocks the others (ModalDialog). */
+Ref OpenView(RefArg inContext, bool inModal = false);
 
 /** view:Close() (FCloseX): close the view and its children. Returns true,
     nil if it wasn't open. */
@@ -208,6 +215,22 @@ Ref HiliteView(RefArg inContext, RefArg inOn);
     up inside (the view stays hilited), else nil. Nil at once if no pen is
     down on the view. */
 Ref TrackHilite(RefArg inContext, RefArg inUnit);
+
+/** view:ModalDialog(): open the view (a child of the root view) as a modal
+    window and wait until it is closed; events run their scripts meanwhile
+    (RunModalEventLoop, Matt/EventLoop.h). Returns nil. */
+Ref ModalDialog(RefArg inContext);
+
+/** view:SetupIdle(milliseconds): send the view viewIdleScript() after that
+    long, and again after the milliseconds it returns, until it returns nil
+    (or the view closes). 0 or nil: stop. */
+Ref SetupIdle(RefArg inContext, RefArg inMilliseconds);
+
+/** StrFontWidth(string, fontSpec): the string's width in pixels. */
+Ref StrFontWidth(RefArg inString, RefArg inFontSpec);
+
+/** The FLTK font for a font spec (a font frame or a packed integer). */
+void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize);
 
 } // namespace nfl
 

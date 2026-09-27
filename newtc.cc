@@ -1282,16 +1282,17 @@ void handleArgHello() {
           bounds: { left: 0, top: 0, right: 24, bottom: 27 }
         },
         theForm: {
-          viewBounds: { left: -12, top: 56, right: 140, bottom: 152 },
-          viewClickScript: func(arg) begin end,
+          viewBounds: { left: 0, top: 50, right: 200, bottom: 120 },
           stepChildren: [
             stepChildren: {
-              text: "Hello, world!",
-              viewBounds: { left: 8, top: 24, right: 144, bottom: 56 },
-              viewJustify: 8388614,
-              _proto: @218
+              text: "Say Hello",
+              viewBounds: { left: 50, top: 25, right: 150, bottom: 50 },
+              buttonClickScript: func()
+                ModalConfirm("Hello World of NewtonScript.\n\nHow exciting to see you!", ["OK"]),
+              _proto: @226
             }
           ],
+          viewQuitScript: func() Print("Goodbye"),
           _proto: @180,
           appSymbol: '|hello:SIG|
         },

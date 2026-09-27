@@ -89,13 +89,12 @@ TextView::TextView(int x, int y, int w, int h, const std::string & inText,
 void TextView::draw()
 {
   DrawBox();
-  Fl_Boxtype b = box();
   fl_font(fFont, fSize);
   fl_color(Hilited() ? FL_WHITE : FL_BLACK);
   fl_push_clip(x(), y(), w(), h());
-  // draw_symbols 0: '@' is just a character
-  fl_draw(fText.c_str(), x() + Fl::box_dx(b), y() + Fl::box_dy(b),
-          w() - Fl::box_dw(b), h() - Fl::box_dh(b), fAlign | FL_ALIGN_INSIDE, nullptr, 0);
+  // in the view's bounds, inside its frame; draw_symbols 0: '@' is just a character
+  fl_draw(fText.c_str(), x() + fInset, y() + fInset, w() - 2 * fInset, h() - 2 * fInset,
+          fAlign | FL_ALIGN_INSIDE, nullptr, 0);
   fl_pop_clip();
 }
 
@@ -126,15 +125,17 @@ void PictureView::draw()
   DrawBox();
   if (!fImage)
     return;
-  int px = x() + (w() - fImage->w()) / 2, py = y() + (h() - fImage->h()) / 2;
+  // in the view's bounds, inside its frame
+  int bx = x() + fInset, by = y() + fInset, bw = w() - 2 * fInset, bh = h() - 2 * fInset;
+  int px = bx + (bw - fImage->w()) / 2, py = by + (bh - fImage->h()) / 2;
   if (fAlign & FL_ALIGN_LEFT)
-    px = x();
+    px = bx;
   else if (fAlign & FL_ALIGN_RIGHT)
-    px = x() + w() - fImage->w();
+    px = bx + bw - fImage->w();
   if (fAlign & FL_ALIGN_TOP)
-    py = y();
+    py = by;
   else if (fAlign & FL_ALIGN_BOTTOM)
-    py = y() + h() - fImage->h();
+    py = by + bh - fImage->h();
   fl_color(Hilited() ? FL_WHITE : FL_BLACK);
   fImage->draw(px, py);
 }

@@ -1,0 +1,24 @@
+// 10.5: a modal alert (needs FLTK). The button's buttonClickScript calls
+// ModalConfirm (the ROM's: an alert @544 opened with ModalDialog); the
+// alert's buttons run their scripts in a nested event loop while
+// buttonClickScript waits, and ModalConfirm returns the button's value.
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 120},
+  viewQuitScript: func() Print("app closed"),
+  stepChildren: [
+    {_proto: @226, text: "Say Hello",
+     viewBounds: {left: 50, top: 25, right: 150, bottom: 50},
+     buttonClickScript: func()
+       begin
+         Print(["confirmed", ModalConfirm("Hello World of NewtonScript.\r\rHow exciting to see you!", ["OK"])]);
+         Print(["yes/no", ModalConfirm("Really?", 'yesNo)]);
+       end}]}));
+app:Open();
+Print(SetBounds(1, 2, 3, 4));
+Print(OffsetRect(SetBounds(1, 2, 3, 4), 10, 20));
+Print(StrFontWidth("Say Hello", 0) > 0);
+TestTap("Say Hello", nil);
+TestTap("OK", nil);        // ["confirmed", 0]
+TestTap("No", nil);        // ["yes/no", nil]
+foreach kid in app:ChildViewFrames() do
+  if kid.viewClass = 76 then TestTap(kid, nil);   // the close box

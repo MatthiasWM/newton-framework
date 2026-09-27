@@ -4,5 +4,6 @@ begin
   Print([IsFrame(view), view._parent = GetRoot()]);
   Print(view._proto.viewBounds);
   Print(view._proto.stepChildren[0].text);
+  view.viewQuitScript := nil;   // its "Goodbye": only with FLTK
   view:Close();   // -run opened it (with FLTK: in a window)
 end;

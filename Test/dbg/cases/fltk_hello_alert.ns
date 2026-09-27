@@ -1,0 +1,5 @@
+// 10.5: the Hello app (-hello) after -run: tapping its "Say Hello" button
+// opens a modal alert (ModalConfirm); tapping the alert's "OK" closes it;
+// tapping the app's close box closes the app (its viewQuitScript says
+// "Goodbye"), and the last window closed ends newtc.
+ref0;

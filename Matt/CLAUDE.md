@@ -392,9 +392,48 @@ Directory and namespace (decided, Matt, 2026-09-27):
       (fl_capture_window, fl_write_png; screen resolution). It waits until
       the window is on the screen, so don't close the window in the same
       breath.
-- [ ] 10.5 The Hello app with a button (protoTextButton,
-      buttonClickScript), a modal alert, and a reaction to closing; tests
-      (TestWindow's approach: clicks from the event loop).
+- [x] 10.5 The Hello app with a button and a modal alert. `-hello` is
+      now Einstein's Hello: a protoFloatNGo with a "Say Hello" button whose
+      buttonClickScript calls ModalConfirm("Hello World of
+      NewtonScript.\n\nHow exciting to see you!", ["OK"]); its
+      viewQuitScript prints "Goodbye" (install_hello switches that off: its
+      output must be the same without FLTK). ModalConfirm is the ROM's: it
+      builds the alert @544 (a clPictureView, its message, a row of
+      protoTextButtons placed by sibling justification) and calls
+      ModalDialog. Natives: ModalDialog (FModalDialog: opens the view as a
+      modal window, set_modal(), and waits in RunModalEventLoop until it is
+      closed), SetupIdle (FSetupIdleX: viewIdleScript on an Fl timeout,
+      again after the milliseconds it returns; the alert's gyre uses it),
+      SetBounds, OffsetRect, StrFontWidth (Host/Graphics.{h,cc}; with
+      FLTK's font metrics, for StdButtonWidth). Paragraph text: CR (a
+      Newton "\n") is a new line. Every view's widget is its bounds plus
+      its frame around them (FrameOutset: pen + inset; NewtonOS draws
+      frames outside viewBounds), and the text or picture goes inside the
+      frame (ViewWidget::FrameInset). Checked against Matt's measurement of
+      an alert's OK button on a Newton: 25x17 = StdButtonWidth - 1 + 2x2
+      pen, 13 + 2x2 (with Espy's "OK" 16 pixels wide; Helvetica's 14 gives
+      23x17 here). A window that isn't a dragger gets the box of its
+      viewFormat. The ROM's alert picture (@13) is a PICT v1: one 208x154
+      1-bit PackBitsRect (the whole alert).
+      Event loop (Matt/EventLoop): RunModalEventLoop() lets events run
+      their scripts on top of the waiting one (as NewtonOS); the DAP
+      requests stay an event source. DAPLeaveScript(inOutermost): the end
+      of an event script inside a modal loop doesn't cancel the waiting
+      script's line step (found while testing: "next" over ModalConfirm ran
+      on). TestTap(view or text, outside): taps queue up and the next one
+      starts once the pen of the one before is up (inside a modal loop
+      too); a string taps the button with that text.
+      Tests: `fltk_modal` (ModalConfirm with ["OK"] and 'yesNo, SetBounds,
+      OffsetRect, StrFontWidth), `fltk_hello_alert` (-hello -run: Say
+      Hello, OK, the close box), `fltk_dap_modal` (a breakpoint after the
+      alert), `fltk_dap_modal_step` (next over ModalConfirm); test_nsdbg.py
+      and VSNewt count the package's functions instead of expecting 2.
+      Not yet: the alert's look (its icon @13 is a QuickDraw PICT; newtc
+      draws no PICTs yet), DoDrawing (the gyre), SetKeyView and keys (the
+      default button, Return), Close as a posted command.
+      Note: NewtonScript's escapes are \n (CR), \t, \\, \", \u; "\r" is
+      an "r" (Apple's compiler; newt/0, which Einstein's samples were
+      written for, also knows \r).
 - [ ] 10.6 `-stubs report` on Hello and Battleship: the list of natives to
       implement next.
 - [ ] 10.7 Battleship.

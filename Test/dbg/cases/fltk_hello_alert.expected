@@ -1,0 +1,5 @@
+"tapping"
+"Goodbye"
+
+--- stderr ---
+newtc: FSetKeyView is not implemented yet (stub in <file:line>), returns nil.

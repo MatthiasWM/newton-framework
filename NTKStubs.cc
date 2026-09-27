@@ -137,7 +137,6 @@ Ref FMakeText(RefArg rcvr);
 Ref FMakeTextBox(RefArg rcvr);
 Ref FMakeTextLines(RefArg rcvr);
 Ref FMatchKeyMessage(RefArg rcvr);
-Ref FModalDialog(RefArg rcvr);
 Ref FModalRecognitionOff(RefArg rcvr);
 Ref FModalRecognitionOn(RefArg rcvr);
 Ref FModalState(RefArg rcvr);
@@ -147,7 +146,6 @@ Ref FNTKDownload(RefArg rcvr);
 Ref FNTKListener(RefArg rcvr);
 Ref FNTKSend(RefArg rcvr);
 Ref FNextKeyView(RefArg rcvr);
-Ref FOffsetRect(RefArg rcvr);
 Ref FOffsetShape(RefArg rcvr);
 Ref FOffsetView(RefArg rcvr);
 Ref FParentX(RefArg rcvr);
@@ -175,7 +173,6 @@ Ref FRestoreKeyView(RefArg rcvr);
 Ref FRevealEffectX(RefArg rcvr);
 Ref FSectRect(RefArg rcvr);
 Ref FSendKeyMessage(RefArg rcvr);
-Ref FSetBounds(RefArg rcvr);
 Ref FSetCalibration(RefArg rcvr);
 Ref FSetCaretInfo(RefArg rcvr);
 Ref FSetClipboard(RefArg rcvr);
@@ -186,7 +183,6 @@ Ref FSetOriginX(RefArg rcvr);
 Ref FSetPopup(RefArg rcvr);
 Ref FSetRemoteWriting(RefArg rcvr);
 Ref FSetSysAlarm(RefArg rcvr);
-Ref FSetupIdleX(RefArg rcvr);
 Ref FShapeBounds(RefArg rcvr);
 Ref FShowCaret(RefArg rcvr);
 Ref FSlideEffectX(RefArg rcvr);
@@ -347,7 +343,6 @@ NS_STUB(FMakeText, RefArg rcvr)
 NS_STUB(FMakeTextBox, RefArg rcvr)
 NS_STUB(FMakeTextLines, RefArg rcvr)
 NS_STUB(FMatchKeyMessage, RefArg rcvr)
-NS_STUB(FModalDialog, RefArg rcvr)
 NS_STUB(FModalRecognitionOff, RefArg rcvr)
 NS_STUB(FModalRecognitionOn, RefArg rcvr)
 NS_STUB(FModalState, RefArg rcvr)
@@ -357,7 +352,6 @@ NS_STUB(FNTKDownload, RefArg rcvr)
 NS_STUB(FNTKListener, RefArg rcvr)
 NS_STUB(FNTKSend, RefArg rcvr)
 NS_STUB(FNextKeyView, RefArg rcvr)
-NS_STUB(FOffsetRect, RefArg rcvr)
 NS_STUB(FOffsetShape, RefArg rcvr)
 NS_STUB(FOffsetView, RefArg rcvr)
 NS_STUB(FParentX, RefArg rcvr)
@@ -385,7 +379,6 @@ NS_STUB(FRestoreKeyView, RefArg rcvr)
 NS_STUB(FRevealEffectX, RefArg rcvr)
 NS_STUB(FSectRect, RefArg rcvr)
 NS_STUB(FSendKeyMessage, RefArg rcvr)
-NS_STUB(FSetBounds, RefArg rcvr)
 NS_STUB(FSetCalibration, RefArg rcvr)
 NS_STUB(FSetCaretInfo, RefArg rcvr)
 NS_STUB(FSetClipboard, RefArg rcvr)
@@ -396,7 +389,6 @@ NS_STUB(FSetOriginX, RefArg rcvr)
 NS_STUB(FSetPopup, RefArg rcvr)
 NS_STUB(FSetRemoteWriting, RefArg rcvr)
 NS_STUB(FSetSysAlarm, RefArg rcvr)
-NS_STUB(FSetupIdleX, RefArg rcvr)
 NS_STUB(FShapeBounds, RefArg rcvr)
 NS_STUB(FShowCaret, RefArg rcvr)
 NS_STUB(FSlideEffectX, RefArg rcvr)
