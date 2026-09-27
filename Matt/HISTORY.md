@@ -1161,6 +1161,13 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B17 **The interpreter's stacks are 4 KB** (ObjectSystem.cc
+  `NewStack`): the port shrank the 64 KB a Newton gives them to 4 KB (512
+  values), and nothing checks their bounds (on a Newton they grow in
+  virtual memory). Found 2026-09-27 lifting the ROM's images: an array
+  literal of 1200 magic pointers, then a native call: AddressSanitizer
+  heap-buffer-overflow in `RefStructStack::fill()`. Fixed (2026-09-27):
+  the full 64 KB. Test `big_array_literal` (fails without the fix).
 - [x] B13 **The REPL prints strings unescaped**: `Print("a\"b\\c")` shows
   `"a"b\c"` (`SafelyPrintString`, Frames/ObjectPrinter.cc, marked "not
   complete yet"): `"`, `\` and control characters (CR, LF, tab) are not

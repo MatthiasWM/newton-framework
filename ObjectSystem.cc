@@ -109,11 +109,12 @@ ULong		GetTicks(void) {
 extern "C" { NS_STUB(FAddDeferredSend, RefArg inRcvr, RefArg inTarget, RefArg inMsg, RefArg inArg) }
 extern "C" { NS_STUB(FAddDeferredCall, RefArg inRcvr, RefArg inMsg, RefArg inArg) }
 
-// RefStack allocates a new stack, but we don't want the whole VM system
+// RefStack allocates a new stack, but we don't want the whole VM system.
+// On a Newton the stack grows (virtual memory) up to inMaxSize; nothing
+// checks its bounds, so allocate all of it (it was 4 KB: 512 values; an
+// array literal of 1200 elements ran over it, bug B17).
 extern "C" NewtonErr	NewStack(ObjectId inDomainId, size_t inMaxSize, ObjectId inOwnerId, VAddr * outTopOfStack, VAddr * outBottomOfStack)
 {
-	if (inMaxSize == 64*KByte)
-		inMaxSize = 4*KByte;
 	*outBottomOfStack = (VAddr)malloc(inMaxSize);
 	*outTopOfStack = *outBottomOfStack + inMaxSize - 1;
 	return noErr;

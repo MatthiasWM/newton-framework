@@ -76,16 +76,21 @@ struct NewtonBitmap
   std::vector<unsigned char> bits;
 };
 
-/** clPictureView: its icon, placed by inAlign (viewJustify). */
+/** clPictureView: its icon, placed by inAlign (viewJustify): an image of
+    the ROM's (RomImages.h; shared, with an inverted one for hiliting), or
+    a Newton bitmap (from a package; drawn black, white when hilited). */
 class PictureView : public ViewWidget
 {
 public:
+  PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign);
   PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign);
 protected:
   void draw() override;
 private:
+  Fl_Image * fImage = nullptr;
+  Fl_Image * fHilitedImage = nullptr;
   std::vector<unsigned char> fXbm;    // Fl_Bitmap doesn't copy its data
-  std::unique_ptr<Fl_Bitmap> fImage;
+  std::unique_ptr<Fl_Bitmap> fBitmap;
   Fl_Align fAlign;
 };
 

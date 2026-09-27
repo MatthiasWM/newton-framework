@@ -16,6 +16,7 @@
 #include "Host/FLTK/FloatNGo.h"
 #include "Host/FLTK/Boxtypes.h"
 #include "Host/FLTK/Widgets.h"
+#include "Host/FLTK/RomImages.h"
 #include "Host/Root.h"
 #include "Host/Views.h"
 #include "Matt/EventLoop.h"
@@ -277,6 +278,14 @@ int FrameOutset(long inViewFormat)
   return int(((inViewFormat & vfPenMask) >> vfPenShift) + ((inViewFormat & vfInsetMask) >> vfInsetShift));
 }
 
+// The ROM's image for a view's icon slot, if it is one of the ROM's (a
+// magic pointer, as in protoClosebox: @334) and newtc has it; else nullptr.
+Fl_Image * RomIconOf(RefArg inContext, bool inInverted = false)
+{
+  Ref icon = GetProtoVariable(inContext, SYMA(icon));
+  return ISMAGICPTR(icon) ? RomImage(RVALUE(icon), inInverted) : nullptr;
+}
+
 // Widgets are added to their parent explicitly: FLTK must not add a new one
 // to the group made last (Fl_Group::current()).
 template <class W, class... Args> W * NewWidget(Args... args)
@@ -360,9 +369,14 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    PictureView * view = NewWidget<PictureView>(WidgetX(), WidgetY(),
-                                                WidgetW(), WidgetH(),
-                                                IconOf(fContext), AlignOf(IntSlot(fContext, "viewJustify")));
+    PictureView * view;
+    Fl_Align align = AlignOf(IntSlot(fContext, "viewJustify"));
+    if (Fl_Image * image = RomIconOf(fContext))
+      view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
+                                    image, RomIconOf(fContext, true), align);
+    else
+      view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
+                                    IconOf(fContext), align);
     view->FrameInset(fOutset);
     Fl_Color color;
     view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
@@ -395,6 +409,9 @@ protected:
       window->box(BoxForFormat(viewFormat, &color));
       window->color(color);
     }
+    if (IntSlot(fContext, "viewClass") == clPictureView)
+      if (Fl_Image * picture = RomIconOf(fContext))   // an alert: its frame
+        window->Picture(picture, fOutset, fOutset);
     return window;
   }
 };

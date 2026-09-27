@@ -32,6 +32,18 @@ FloatNGo::~FloatNGo()
 }
 
 
+void FloatNGo::draw()
+{
+  if (fPicture == nullptr) {
+    Fl_Double_Window::draw();
+    return;
+  }
+  draw_box();
+  fPicture->draw(fPictureX, fPictureY);
+  draw_children();
+}
+
+
 int FloatNGo::delete_child(int inIndex)
 {
   return GroupLink::RemoveChild(this, inIndex);

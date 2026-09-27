@@ -99,6 +99,11 @@ void TextView::draw()
 }
 
 
+PictureView::PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign)
+: ViewWidget(x, y, w, h), fImage(inImage), fHilitedImage(inHilited), fAlign(inAlign)
+{ }
+
+
 PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign)
 : ViewWidget(x, y, w, h), fAlign(inAlign)
 {
@@ -116,7 +121,8 @@ PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon
       fXbm[size_t(row) * xbmRowBytes + i] = r;
     }
   }
-  fImage = std::make_unique<Fl_Bitmap>(fXbm.data(), inIcon.width, inIcon.height);
+  fBitmap = std::make_unique<Fl_Bitmap>(fXbm.data(), inIcon.width, inIcon.height);
+  fImage = fBitmap.get();
 }
 
 
@@ -136,8 +142,10 @@ void PictureView::draw()
     py = by;
   else if (fAlign & FL_ALIGN_BOTTOM)
     py = by + bh - fImage->h();
-  fl_color(Hilited() ? FL_WHITE : FL_BLACK);
-  fImage->draw(px, py);
+  bool hilited = Hilited();
+  Fl_Image * image = (hilited && fHilitedImage) ? fHilitedImage : fImage;
+  fl_color(hilited ? FL_WHITE : FL_BLACK);   // a bitmap's color
+  image->draw(px, py);
 }
 
 } // namespace nfl

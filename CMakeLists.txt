@@ -715,6 +715,17 @@ if (NEWTC_USES_FLTK)
     Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
+  # the ROM's graphics, lifted into PNGs (Host/FLTK/Images), compiled in
+  file (GLOB rom_images CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Host/FLTK/Images/rom_*.png")
+  set (rom_images_cc "${CMAKE_BINARY_DIR}/generated/RomImageData.cc")
+  add_custom_command (
+    OUTPUT "${rom_images_cc}"
+    COMMAND ${CMAKE_COMMAND} -DDIR=${CMAKE_SOURCE_DIR}/Host/FLTK/Images -DOUT=${rom_images_cc}
+            -P ${CMAKE_SOURCE_DIR}/cmake/EmbedImages.cmake
+    DEPENDS ${rom_images} "${CMAKE_SOURCE_DIR}/cmake/EmbedImages.cmake"
+    COMMENT "Embedding the ROM's images"
+  )
+  target_sources (newtc PRIVATE Host/FLTK/RomImages.cc Host/FLTK/RomImages.h "${rom_images_cc}")
 endif ()
 
 

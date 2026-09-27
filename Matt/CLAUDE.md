@@ -428,12 +428,36 @@ Directory and namespace (decided, Matt, 2026-09-27):
       Hello, OK, the close box), `fltk_dap_modal` (a breakpoint after the
       alert), `fltk_dap_modal_step` (next over ModalConfirm); test_nsdbg.py
       and VSNewt count the package's functions instead of expecting 2.
-      Not yet: the alert's look (its icon @13 is a QuickDraw PICT; newtc
-      draws no PICTs yet), DoDrawing (the gyre), SetKeyView and keys (the
+      Not yet: the alert's look (its icon @13 is a QuickDraw PICT; 10.5b
+      draws it), DoDrawing (the gyre), SetKeyView and keys (the
       default button, Return), Close as a posted command.
       Note: NewtonScript's escapes are \n (CR), \t, \\, \", \u; "\r" is
       an "r" (Apple's compiler; newt/0, which Einstein's samples were
       written for, also knows \r).
+- [x] 10.5b The ROM's graphics as PNGs, compiled in.
+      `Host/FLTK/Images/extract_rom_images.py path/to/newtc` has newtc dump
+      every magic pointer that is a picture (a PICT: 4, all version 1 with
+      one PackBitsRect: @13 the alert frame, @74 its gyre, @320 the light
+      bulb, @321 the world map) or a bitmap frame (144 icons, 1 bit) and
+      writes rom_NNNN[_name].png (NNNN the magic pointer index, the name
+      from Frames/MagicPointers.h): PICTs 8-bit gray, opaque; icons gray and
+      alpha (transparent where no bit is set; the 'mask slot isn't used).
+      27 KB in all. cmake/EmbedImages.cmake compiles them into a table
+      (build/.../generated/RomImageData.cc), Host/FLTK/RomImages.h finds one
+      by magic pointer index (RomImage(13); inverted for hiliting). A
+      picture view whose icon is one of the ROM's (a magic pointer, e.g.
+      protoClosebox's @334) draws its PNG; a window-like one draws it
+      behind its children (the alert: its wavy frame). Every image is drawn
+      at the ROM object's size (a PICT's frame, an icon's bounds;
+      Fl_Image::scale()), so a PNG can be replaced by one of any resolution
+      and depth (tried: the alert frame at 416x308, 8-bit gray);
+      extract_rom_images.py keeps existing PNGs (--force: all again).
+      Found and fixed on the way: B17 (the interpreter's stacks were 4 KB).
+      Not yet: DoDrawing('CopyBits, [@74, 0, 0, 2]) (the gyre: @74 XORed
+      over the alert every 300 ms, 12 times). Icons in alerts: ModalConfirm's
+      has none; Notify's alerts do (the alert's messageHIndent makes room):
+      when Notify shows alerts, find their pictures in the ROM and draw them
+      with RomImage().
 - [ ] 10.6 `-stubs report` on Hello and Battleship: the list of natives to
       implement next.
 - [ ] 10.7 Battleship.

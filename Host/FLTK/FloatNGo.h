@@ -13,6 +13,7 @@
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Image.H>
 
 namespace nfl {
 
@@ -31,8 +32,17 @@ public:
   // already, and clear() would call Fl_Group::delete_child() (which deletes)
   ~FloatNGo() override;
 
+  /** A picture behind the children (a clPictureView's icon, e.g. an
+      alert's; shared, not deleted), at x, y in the window. */
+  void Picture(Fl_Image * inPicture, int x, int y) { fPicture = inPicture; fPictureX = x; fPictureY = y; }
+
 protected:
   int delete_child(int inIndex) override;
+  void draw() override;
+
+private:
+  Fl_Image * fPicture = nullptr;
+  int fPictureX = 0, fPictureY = 0;
 };
 
 } // namespace nfl
