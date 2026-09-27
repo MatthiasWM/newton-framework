@@ -20,6 +20,7 @@ Xcuserdata
 /out
 /build
 /newtonos.s
+/Screenshot*
 /Symbols_demangled_by_name.txt
 /symbols.txt
 /Newton.xcodeproj/xcuserdata/
