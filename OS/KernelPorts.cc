@@ -115,7 +115,7 @@ CPort::reset(ULong inSenderFlags, ULong inReceiverFlags)
 
 
 /*--------------------------------------------------------------------------------
-	Reset a message�s filter.
+	Reset a message's filter.
 	Args:		inMsg				the message
 				inFilter			its new filter
 	Return:	error code
@@ -135,10 +135,10 @@ CPort::resetFilter(CSharedMemMsg * inMsg, ULong inFilter)
 				break;
 		XFAILNOT(msg, err = kOSErrNoMessageWaiting;)
 
-		// update the message�s filter
+		// update the message's filter
 		inMsg->fFilter = inFilter;
 
-		// see if someone�s sent a suitable message
+		// see if someone's sent a suitable message
 		for (msg = (CSharedMemMsg *)fSenders.peek(); msg != NULL; msg = (CSharedMemMsg *)fSenders.getNext(msg))
 			if (msg->fFilter == kMsgType_MatchAll
 			|| (msg->fFilter & inMsg->fType) != 0)
@@ -177,7 +177,7 @@ CPort::send(CSharedMemMsg * inMsg, ULong inFlags)
 			inMsg->fFlags |= 0x0080;
 		}
 
-		// see if someone�s waiting for this message
+		// see if someone's waiting for this message
 		for (msg = (CSharedMemMsg *)fReceivers.peek(); msg != NULL; msg = (CSharedMemMsg *)fReceivers.getNext(msg))
 			if (msg->fFilter == kMsgType_MatchAll
 			|| (msg->fFilter & inMsg->fType) != 0)
@@ -188,7 +188,7 @@ CPort::send(CSharedMemMsg * inMsg, ULong inFlags)
 
 		if (msg != NULL)
 		{
-			// someone�s waiting for this message, let the receiver have it
+			// someone's waiting for this message, let the receiver have it
 			if (FLAGTEST(inFlags, kPortFlags_ScheduleOnSend))
 				WantSchedule();
 			fReceivers.removeFromQueue(msg);
@@ -196,7 +196,7 @@ CPort::send(CSharedMemMsg * inMsg, ULong inFlags)
 		}
 		else
 		{
-			// noone�s waiting for this message, add it to the senders
+			// noone's waiting for this message, add it to the senders
 			if (FLAGTEST(inFlags, kPortFlags_Urgent))
 				fSenders.addToFront(inMsg);
 			else
@@ -234,13 +234,13 @@ CPort::receive(CSharedMemMsg * inMsg, ULong inFlags)
 			XFAILNOT(gTimerEngine->queueTimeout(inMsg), err = kOSErrMessageTimedOut;)
 		}
 
-		// see if someone�s sent a suitable message
+		// see if someone's sent a suitable message
 		for (msg = (CSharedMemMsg *)fSenders.peek(); msg != NULL; msg = (CSharedMemMsg *)fSenders.getNext(msg))
 			if (inMsg->fFilter == kMsgType_MatchAll
 			|| (inMsg->fFilter & msg->fType) != 0)
 				break;
 
-		// if the caller wants to check whether it�s available, stop it timing out
+		// if the caller wants to check whether it's available, stop it timing out
 		if (FLAGTEST(inFlags, kPortFlags_IsMsgAvail))
 		{
 			inMsg->fStatus = noErr;
@@ -250,22 +250,22 @@ CPort::receive(CSharedMemMsg * inMsg, ULong inFlags)
 
 		if (msg != NULL)
 		{
-			// someone�s sent the message we�re waiting for
+			// someone's sent the message we're waiting for
 			fSenders.removeFromQueue(msg);
 			inMsg->completeReceiver(msg);
 		}
 		else
 		{
-			// noone�s sent the message�
+			// noone's sent the message
 			if (FLAGTEST(inFlags, kPortFlags_ReceiveOnMsgAvail))
 			{
-				// �and we�re not prepared to wait
+				// and we're not prepared to wait
 				gTimerEngine->remove(inMsg);
 				err = kOSErrNoMessageWaiting;
 			}
 			else
 			{
-				// �we�ll wait
+				// we'll wait
 				if (FLAGTEST(inFlags, kPortFlags_CanRemoveTask))
 					// stop this task
 					UnScheduleTask(gCurrentTask);
@@ -345,7 +345,7 @@ PortSendKernelGlue(ObjectId inPortId, ObjectId inMsgId, ObjectId inMemId, ULong 
 			if (FLAGTEST(inFlags, kPortFlags_CanRemoveTask))
 				UnScheduleTask(gCurrentTask);
 			msg->fFilter = inFlags & ~kPortFlags_CanRemoveTask;	// set flags for NotifySend()
-			break;	// don�t send it now
+			break;	// don't send it now
 		}
 
 		err = port->send(msg, inFlags);

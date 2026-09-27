@@ -114,7 +114,7 @@ public:
 	CView *		caretView(void) const;
 	void			caretViewGone(void);
 
-//	Keyboard	
+//	Keyboard
 	void			registerKeyboard(RefArg, ULong);
 	bool			unregisterKeyboard(RefArg);
 	ArrayIndex	getKeyboardIndex(RefArg);
@@ -172,7 +172,7 @@ private:
 	bool				fIsPassthruKeyboardConnected;	// +64
 	CView *			fCaretView;			// +68	view containing the caret
 	int				x6C;					// +6C
-	CView *			x70;					// just guessing it’s a CView
+	CView *			x70;					// just guessing it's a CView
 	CView *			fDefaultButton;	// +74
 	CView *			fCaretSlip;			// +78
 	RefStruct		fSelectionStack;	// +7C

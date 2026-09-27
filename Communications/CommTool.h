@@ -3,7 +3,7 @@
 
 	Contains:	Base class for communications tools.
 
-	Copyright:	� 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__COMMTOOL_H)
@@ -716,7 +716,7 @@ public:
 	virtual void			doControl(ULong inOpCode, ULong inMsgType);
 	virtual void			doKillControl(ULong inMsgType);
 	virtual void			doStatus(ULong inOpCode, ULong inMsgType);
-	
+
 	virtual void			getCommEvent(void);
 	virtual void			doKillGetCommEvent(void);
 	virtual NewtonErr		postCommEvent(CCommToolGetEventReply& ioEvent, NewtonErr inResult);
@@ -787,7 +787,7 @@ public:
 	virtual NewtonErr		processOptionStart(COption * inOption, ULong inLabel, ULong inOpcode);
 	virtual void			processOptionComplete(ULong inResult);
 	virtual void			processOption(COption * inOption, ULong inLabel, ULong inOpcode);
-	
+
 	virtual CUPort *		forwardOptions(void);
 	virtual NewtonErr		addDefaultOptions(COptionArray* inOptions);
 	virtual NewtonErr		addCurrentOptions(COptionArray* inOptions);
@@ -796,7 +796,7 @@ public:
 	virtual void			processPutBytesOptionComplete(ULong);
 	virtual NewtonErr		processGetBytesOptionStart(COption* theOption, ULong inLabel, ULong inOpcode);
 	virtual void			processGetBytesOptionComplete(ULong);
-	
+
 	virtual void			putBytes(CBufferList *)= 0;
 	virtual void			putFramedBytes(CBufferList *, bool) = 0;
 	virtual void			putComplete(NewtonErr inResult, size_t inPutBytesCount);
@@ -815,7 +815,7 @@ public:
 
 	virtual void			prepPutRequest(void);
 	virtual void			putOptionsComplete(NewtonErr inResult);
-	
+
 			  void			prepControlRequest(ULong inMsgType);
 
 			  void			prepKillRequest(void);

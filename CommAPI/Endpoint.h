@@ -3,7 +3,7 @@
 
 	Contains:	Protocol Interface for CEndpoints
 
-	Copyright:	� 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__ENDPOINT_H)

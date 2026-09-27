@@ -3,7 +3,7 @@
 
 	Contains:	Interface to the CUserAbortEvent and CUserAbortHandler objects.
 
-	Copyright:	� 1993, 1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993, 1995 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__USERABORT_H)

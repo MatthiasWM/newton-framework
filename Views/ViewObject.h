@@ -14,7 +14,7 @@
 
 /*
 **	Put one of these inside the {...} of your view object implementations.
-**	It declares some magic stuff you’re probably better off not puzzling over.
+**	It declares some magic stuff you're probably better off not puzzling over.
 **
 **	That is:
 **

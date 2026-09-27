@@ -3,7 +3,7 @@
 
 	Contains:	Serial tool option definitions.
 
-	Copyright:	� 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v52 internal.
 */

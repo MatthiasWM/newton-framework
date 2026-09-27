@@ -289,7 +289,7 @@ FNumberStr(RefArg inRcvr, RefArg inNum)
 	Args:		ioStr
 				ioOffset
 				inIgnore		true => ignore placeholders (used in conditional phrases)
-				inSuppress	true => don�t parse ^ placeholders, delete them
+				inSuppress	true => don't parse ^ placeholders, delete them
 				inArgs
 	Return:	offset to last char parsed successfully
 ------------------------------------------------------------------------------*/
@@ -408,11 +408,11 @@ ParamStrParse(CRichString * ioStr, ArrayIndex ioOffset, bool inIgnore, bool inSu
 		}
 
 		else if (ch == '|')
-			// we�ve reached a conditional phrase - stop now and return this offset to caller
+			// we've reached a conditional phrase - stop now and return this offset to caller
 			break;
 
 		else
-			// it�s not an interesting character, just move along
+			// it's not an interesting character, just move along
 			ioOffset++;
 		if (sp04)
 			break;
@@ -536,7 +536,7 @@ ASCIIString(RefArg inStr)
 				ch			the character to find
 				startPos	the index at which to start searching
 	Return:	ArrayIndex	the character position
-								kIndexNotFound => wasn�t found
+								kIndexNotFound => wasn't found
 ------------------------------------------------------------------------------*/
 
 ArrayIndex
@@ -758,7 +758,7 @@ StrMunger(RefArg s1, ArrayIndex s1start, ArrayIndex s1count,
 				substr	the string to find
 				startPos	the index at which to start searching
 	Return:	the position
-				-1 => wasn�t found
+				-1 => wasn't found
 ------------------------------------------------------------------------------*/
 
 ArrayIndex
@@ -1129,7 +1129,7 @@ RecurseFindStringInFrame(RefArg inSlot, RefArg ioPath, RefArg outResult, const C
 				  &&  pathDepth < 10)
 			{
 				Ref	wasFound;
-				// it�s a frame or array, so recurse
+				// it's a frame or array, so recurse
 				if (NOTNIL(outResult))
 					SetArraySlot(ioPath, inDepth, iter.tag());
 				wasFound = RecurseFindStringInFrame(iter.value(), ioPath, outResult, inStr, pathDepth);
@@ -1305,7 +1305,7 @@ FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont)
 	ArrayIndex fitLen = MeasureRichString(str, 0, strLen, &style, gZeroFPoint, &options, &boundsInfo);
 	if (fitLen < strLen)
 	{
-		// doesn�t fit -- truncate string and append ellipsis
+		// doesn't fit -- truncate string and append ellipsis
 		// measure width of ellipsis char
 		StyleRecord * stylePtr = &style;
 		MeasureTextOnce((void *)gEllipsis, 1, &stylePtr, NULL, gZeroFPoint, &options, &boundsInfo);

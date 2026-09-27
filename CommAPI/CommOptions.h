@@ -3,7 +3,7 @@
 
 	Contains:	Options defintions for CommManagerInterface
 
-	Copyright:	� 1992-1994 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1994 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__COMMOPTIONS_H)

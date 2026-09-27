@@ -127,7 +127,7 @@ CMonitor::init(MonitorProcPtr inProc, size_t inStackSize, void * inContext, CEnv
 
 /*------------------------------------------------------------------------------
 	Acquire the processor to run the monitor.
-	ie unschedule whatever task we�re currently running and schedule this task.
+	ie unschedule whatever task we're currently running and schedule this task.
 	Args:		--
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -141,14 +141,14 @@ CMonitor::acquire(void)
 	{
 		XFAILIF((fSuspended & 3) != 0, err = kOSErrNoSuchMonitor;)
 
-		CTask *	currentTask = gCurrentTask;		// must hold a local copy�
+		CTask *	currentTask = gCurrentTask;		// must hold a local copy
 		if ((currentTask->fState & 0x00800000) == 0
 		&&  currentTask->fRegister[kMonSelector] == (ULong)kSuspendMonitor)
 		{
 			XFAILIF(owner() != currentTask->owner(), err = kOSErrObjectNotOwnedByTask;)
 			suspend(2);
 		}
-		UnScheduleTask(currentTask);					// �because this nils out the global
+		UnScheduleTask(currentTask);					// because this nils out the global
 		if (++fQueueCount == 1)
 		{
 			if (!setUpEntry(currentTask))				// set up monitor task
@@ -203,7 +203,7 @@ CMonitor::release(NewtonErr inResult)
 		Restart();
 	ExitAtomic();
 
-	// decide what to do with the task now it�s done
+	// decide what to do with the task now it's done
 	unsigned long pc = fCaller->fRegister[kcThePC];
 	if ((fCaller->fState & 0x00400000) != 0
 	 || (fCaller->fState & 0x00000002) != 0)
@@ -268,7 +268,7 @@ CMonitor::setUpEntry(CTask * inTask)
 
 	EnterAtomic();
 	if (gWantReboot)
-		// don�t schedule anything new
+		// don't schedule anything new
 		ExitAtomic();
 
 	else

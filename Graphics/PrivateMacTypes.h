@@ -1,10 +1,10 @@
 /*
      File:       CarbonCore/MacTypes.h
- 
+
      Contains:   Basic Macintosh data types.
 					  Copied and stripped of Memory Manager and QuickDraw declarations for our own purposes.
- 
-     Copyright:  � 1985-2006 by Apple Computer, Inc., all rights reserved.
+
+     Copyright:  (c) 1985-2006 by Apple Computer, Inc., all rights reserved.
 
 */
 
@@ -66,15 +66,15 @@ extern "C" {
 /********************************************************************************
 
     Base integer types for all target OS's and CPU's
-    
-        UInt8            8-bit unsigned integer 
+
+        UInt8            8-bit unsigned integer
         SInt8            8-bit signed integer
-        UInt16          16-bit unsigned integer 
-        SInt16          16-bit signed integer           
-        UInt32          32-bit unsigned integer 
-        SInt32          32-bit signed integer   
-        UInt64          64-bit unsigned integer 
-        SInt64          64-bit signed integer   
+        UInt16          16-bit unsigned integer
+        SInt16          16-bit signed integer
+        UInt32          32-bit unsigned integer
+        SInt32          32-bit signed integer
+        UInt64          64-bit unsigned integer
+        SInt64          64-bit signed integer
 
 *********************************************************************************/
 typedef unsigned char                   UInt8;
@@ -123,13 +123,13 @@ typedef struct UnsignedWide             UnsignedWide;
   Note:   wide and UnsignedWide must always be structs for source code
            compatibility. On the other hand UInt64 and SInt64 can be
           either a struct or a long long, depending on the compiler.
-         
-           If you use UInt64 and SInt64 you should do all operations on 
-          those data types through the functions/macros in Math64.h.  
+
+           If you use UInt64 and SInt64 you should do all operations on
+          those data types through the functions/macros in Math64.h.
            This will assure that your code compiles with compilers that
            support long long and those that don't.
-            
-           The MS Visual C/C++ compiler uses __int64 instead of long long. 
+
+           The MS Visual C/C++ compiler uses __int64 instead of long long.
 */
     #if defined(_MSC_VER) && !defined(__MWERKS__) && defined(_M_IX86)
       typedef   signed __int64                SInt64;
@@ -147,13 +147,13 @@ typedef UnsignedWide                    UInt64;
 
 /********************************************************************************
 
-    Base fixed point types 
-    
+    Base fixed point types
+
         Fixed           16-bit signed integer plus 16-bit fraction
         UnsignedFixed   16-bit unsigned integer plus 16-bit fraction
         Fract           2-bit signed integer plus 30-bit fraction
         ShortFixed      8-bit signed integer plus 8-bit fraction
-        
+
 *********************************************************************************/
 //typedef SInt32                          Fixed;
 typedef Fixed *                         FixedPtr;
@@ -167,15 +167,15 @@ typedef ShortFixed *                    ShortFixedPtr;
 
 /********************************************************************************
 
-    Base floating point types 
-    
+    Base floating point types
+
         Float32         32 bit IEEE float:  1 sign bit, 8 exponent bits, 23 fraction bits
-        Float64         64 bit IEEE float:  1 sign bit, 11 exponent bits, 52 fraction bits  
+        Float64         64 bit IEEE float:  1 sign bit, 11 exponent bits, 52 fraction bits
         Float80         80 bit MacOS float: 1 sign bit, 15 exponent bits, 1 integer bit, 63 fraction bits
         Float96         96 bit 68881 float: 1 sign bit, 15 exponent bits, 16 pad bits, 1 integer bit, 63 fraction bits
-        
+
     Note: These are fixed size floating point types, useful when writing a floating
-          point value to disk.  If your compiler does not support a particular size 
+          point value to disk.  If your compiler does not support a particular size
           float, a struct is used instead.
           Use of of the NCEG types (e.g. double_t) or an ANSI C type (e.g. double) if
           you want a floating point representation that is natural for any given
@@ -204,11 +204,11 @@ typedef struct Float32Point Float32Point;
 /********************************************************************************
 
     MacOS Memory Manager types
-    
+
         Ptr             Pointer to a non-relocatable block
         Handle          Pointer to a master pointer to a relocatable block
         Size            The number of bytes in a block (signed for historical reasons)
-        
+
 typedef char *                          Ptr;
 typedef Ptr *                           Handle;
 typedef long                            Size;
@@ -217,7 +217,7 @@ typedef long                            Size;
 /********************************************************************************
 
     Higher level basic types
-    
+
         OSErr                   16-bit result error code
         OSStatus                32-bit result error code
         LogicalAddress          Address in the clients virtual address space
@@ -238,7 +238,7 @@ typedef long                            Size;
         FourCharCode            A 32-bit value made by packing four 1 byte characters together
         OSType                  A FourCharCode used in the OS and file system (e.g. creator)
         ResType                 A FourCharCode used to tag resources (e.g. 'DLOG')
-        
+
 *********************************************************************************/
 typedef SInt16                          OSErr;
 typedef SInt32                          OSStatus;
@@ -264,25 +264,25 @@ typedef ResType *                       ResTypePtr;
 /********************************************************************************
 
     Boolean types and values
-    
+
         Boolean         Mac OS historic type, sizeof(Boolean)==1
         bool            Defined in stdbool.h, ISO C/C++ standard type
         false           Now defined in stdbool.h
         true            Now defined in stdbool.h
-        
+
 *********************************************************************************/
 typedef unsigned char                   Boolean;
 /********************************************************************************
 
     Function Pointer Types
-    
+
         ProcPtr                 Generic pointer to a function
         Register68kProcPtr      Pointer to a 68K function that expects parameters in registers
         UniversalProcPtr        Pointer to classic 68K code or a RoutineDescriptor
-        
+
         ProcHandle              Pointer to a ProcPtr
         UniversalProcHandle     Pointer to a UniversalProcPtr
-        
+
 typedef CALLBACK_API_C( long , ProcPtr )();
 typedef CALLBACK_API( void , Register68kProcPtr )();
 #if TARGET_RT_MAC_CFM
@@ -300,7 +300,7 @@ typedef UniversalProcPtr *              UniversalProcHandle;
 /********************************************************************************
 
     Common Constants
-    
+
         noErr                   OSErr: function performed properly - no error
         kNilOptions             OptionBits: all flags false
         kInvalidID              KernelID: NULL is for pointers as kInvalidID is for ID's
@@ -308,15 +308,15 @@ typedef UniversalProcPtr *              UniversalProcHandle;
 
     Note: kVariableLengthArray is used in array bounds to specify a variable length array.
           It is ususally used in variable length structs when the last field is an array
-          of any size.  Before ANSI C, we used zero as the bounds of variable length 
+          of any size.  Before ANSI C, we used zero as the bounds of variable length
           array, but zero length array are illegal in ANSI C.  Example usage:
-    
-        struct FooList 
+
+        struct FooList
         {
             short   listLength;
             Foo     elements[kVariableLengthArray];
         };
-        
+
 enum {
   noErr                         = 0
 };
@@ -340,7 +340,7 @@ enum {
 /********************************************************************************
 
     String Types and Unicode Types
-    
+
         UnicodeScalarValue,     A complete Unicode character in UTF-32 format, with
         UTF32Char               values from 0 through 0x10FFFF (excluding the surrogate
                                 range 0xD800-0xDFFF and certain disallowed values).
@@ -372,20 +372,20 @@ enum {
         StringHandle            Pointer to a StringPtr
         ConstStringPtr          Pointer to a read-only pascal string
         ConstStrNNNParam        For function parameters only - means string is const
-        
+
         CStringPtr              Pointer to a C string           (in C:  char*)
         ConstCStringPtr         Pointer to a read-only C string (in C:  const char*)
-        
+
     Note: The length of a pascal string is stored as the first byte.
           A pascal string does not have a termination byte.
           A pascal string can hold at most 255 bytes of data.
-          The first character in a pascal string is offset one byte from the start of the string. 
-          
-          A C string is terminated with a byte of value zero.  
+          The first character in a pascal string is offset one byte from the start of the string.
+
+          A C string is terminated with a byte of value zero.
           A C string has no length limitation.
-          The first character in a C string is the zeroth byte of the string. 
-          
-        
+          The first character in a C string is the zeroth byte of the string.
+
+
 *********************************************************************************/
 typedef UInt32                          UnicodeScalarValue;
 typedef UInt32                          UTF32Char;
@@ -412,7 +412,7 @@ typedef unsigned char                   Str15[16];
 typedef unsigned char                   Str32Field[34];
 /*
     QuickTime 3.0:
-    The type StrFileName is used to make MacOS structs work 
+    The type StrFileName is used to make MacOS structs work
     cross-platform.  For example FSSpec or SFReply previously
     contained a Str63 field.  They now contain a StrFileName
     field which is the same when targeting the MacOS but is
@@ -455,18 +455,18 @@ typedef ProcessSerialNumber *           ProcessSerialNumberPtr;
 /********************************************************************************
 
     Quickdraw Types
-    
+
         Point               2D Quickdraw coordinate, range: -32K to +32K
         Rect                Rectangular Quickdraw area
         Style               Quickdraw font rendering styles
         StyleParameter      Style when used as a parameter (historical 68K convention)
         StyleField          Style when used as a field (historical 68K convention)
         CharParameter       Char when used as a parameter (historical 68K convention)
-        
-    Note:   The original Macintosh toolbox in 68K Pascal defined Style as a SET.  
-            Both Style and CHAR occupy 8-bits in packed records or 16-bits when 
-            used as fields in non-packed records or as parameters. 
-        
+
+    Note:   The original Macintosh toolbox in 68K Pascal defined Style as a SET.
+            Both Style and CHAR occupy 8-bits in packed records or 16-bits when
+            used as fields in non-packed records or as parameters.
+
 struct Point {
   short               v;
   short               h;
@@ -515,14 +515,14 @@ typedef Style                           StyleField;
 /********************************************************************************
 
     QuickTime TimeBase types (previously in Movies.h)
-    
+
         TimeValue           Count of units
         TimeScale           Units per second
-        CompTimeValue       64-bit count of units (always a struct) 
-        TimeValue64         64-bit count of units (long long or struct) 
+        CompTimeValue       64-bit count of units (always a struct)
+        TimeValue64         64-bit count of units (long long or struct)
         TimeBase            An opaque reference to a time base
         TimeRecord          Package of TimeBase, duration, and scale
-        
+
 *********************************************************************************/
 typedef SInt32                          TimeValue;
 typedef SInt32                          TimeScale;
@@ -541,7 +541,7 @@ typedef struct TimeRecord               TimeRecord;
     THINK C base objects
 
         HandleObject        Root class for handle based THINK C++ objects
-        PascalObject        Root class for pascal style objects in THINK C++ 
+        PascalObject        Root class for pascal style objects in THINK C++
 
 *********************************************************************************/
 #if defined(__SC__) && !defined(__STDC__) && defined(__cplusplus)
@@ -555,16 +555,16 @@ typedef struct TimeRecord               TimeRecord;
 /********************************************************************************
 
     MacOS versioning structures
-    
+
         VersRec                 Contents of a 'vers' resource
         VersRecPtr              Pointer to a VersRecPtr
         VersRecHndl             Resource Handle containing a VersRec
         NumVersion              Packed BCD version representation (e.g. "4.2.1a3" is 0x04214003)
         UniversalProcPtr        Pointer to classic 68K code or a RoutineDescriptor
-        
+
         ProcHandle              Pointer to a ProcPtr
         UniversalProcHandle     Pointer to a UniversalProcPtr
-        
+
 *********************************************************************************/
 #if TARGET_RT_BIG_ENDIAN
 struct NumVersion {
@@ -615,7 +615,7 @@ typedef VersRecPtr *                    VersRecHndl;
 /*********************************************************************************
 
     Old names for types
-        
+
 *********************************************************************************/
 typedef UInt8                           Byte;
 typedef SInt8                           SignedByte;

@@ -119,7 +119,7 @@ VIEW_SOURCE_MACRO(clView, CRootView, CView)
 
 /*--------------------------------------------------------------------------------
 	Constructor.
-	Doesn’t do anything, initialization is done in init().
+	Doesn't do anything, initialization is done in init().
 --------------------------------------------------------------------------------*/
 
 CRootView::CRootView()
@@ -200,7 +200,7 @@ CRootView::realDoCommand(RefArg inCmd)
 				}
 				FPlaySound(RA(NILREF), RA(addSound));	// ROM_addSound via RS
 			}
-			else // it’s the clipboard icon
+			else // it's the clipboard icon
 			{
 				if (ISNIL(fClipboardIcons))
 					fClipboardIcons = MakeArray(0);
@@ -238,7 +238,7 @@ CRootView::realDoCommand(RefArg inCmd)
 					if (Length(fClipboardViews) == 0)
 						fClipboardViews = NILREF;
 				}
-				else // it’s the clipboard icon
+				else // it's the clipboard icon
 				{
 					ArrayRemove(fClipboardIcons, theView->fContext);
 					if (Length(fClipboardIcons) == 0)
@@ -294,7 +294,7 @@ CRootView::init(RefArg inProto, CView * inView)
 	&& result != 0)	// actually first byte of result -- maybe cast to (bool)
 		gKeyboardConnected = true;
 #endif
-	
+
 	RefVar context(Clone(RA(rootContext)));
 	SetFrameSlot(context, SYMA(_proto), inProto);		// RA(viewRoot) = SYS_rootProto = @287
 	CView::init(context, this);
@@ -423,7 +423,7 @@ printf("CRootView::invalidate(inRgn={t:%d,l:%d,b:%d,r:%d}, inView=%p)\n", inRgn.
 				return;
 			}
 		}
-		
+
 		// when all else fails -- view(0) is the root view with the invalidated region; the others are NULL
 		fLayer[0].fView = this;
 		fLayer[0].fInvalid.fRegion->unionRegion(inRgn);
@@ -539,7 +539,7 @@ printf("CRootView::update(inRect={t:%d,l:%d,b:%d,r:%d})\n", inRect->top, inRect-
 
 		if (!updateCaret && fIsCaretUp)
 		{
-			// caret is up -- if it’s in any of our views of interest it may need updating
+			// caret is up -- if it's in any of our views of interest it may need updating
 			Rect  caretRect = getCaretRect();
 			for (ArrayIndex i = 0; i < kNumOfLayers; ++i)
 			{
@@ -559,7 +559,7 @@ printf("CRootView::update(inRect={t:%d,l:%d,b:%d,r:%d})\n", inRect->top, inRect-
 		{
 			StartDrawing(NULL, &fInkyRect);
 			StopDrawing(NULL, &fInkyRect);	// ensures fInkyRect is blitted to h/w screen
-			fInkyRect = gZeroRect;				// original sets ’em manually
+			fInkyRect = gZeroRect;				// original sets 'em manually
 		}
 
 		for (ArrayIndex i = 0; i < kNumOfLayers; ++i)
@@ -721,7 +721,7 @@ CRootView::getFrontmostModalView(void)
 IdlingView *
 CRootView::getIdlingView(CView * inView)
 {
-	for (IdlingView * idler = fIdlingList, * prev = (IdlingView *)&fIdlingList; idler != NULL; prev = idler, idler = idler->fNext)	// blimey that’s tricky
+	for (IdlingView * idler = fIdlingList, * prev = (IdlingView *)&fIdlingList; idler != NULL; prev = idler, idler = idler->fNext)	// blimey that's tricky
 		if (idler->fView == inView)
 			return prev;
 	return NULL;
@@ -1227,7 +1227,7 @@ CRootView::restoreBitsUnderCaret(void)
 		GetPort(&thePort);
 		thePort->visRgn = caretRgn;
 		fCaret->draw(&caretMap.bounds, &caretBox, 0, NULL);
-		
+
 		GetPort(&thePort);
 		thePort->visRgn = savedVisRgn;
 		DisposeRgn(caretRgn);
@@ -1335,7 +1335,7 @@ CRootView::keyboardActive(void)
 	if (NOTNIL(fKeyboards))
 	{
 		ArrayIndex count = Length(fKeyboards);
-		for (ArrayIndex i = 1; i < count; i += 2)	// we’re examining the status slot
+		for (ArrayIndex i = 1; i < count; i += 2)	// we're examining the status slot
 		{
 			if ((RINT(GetArraySlot(fKeyboards, i)) & 0x04) != 0)
 				return true;
@@ -1364,7 +1364,7 @@ CRootView::findDefaultButtonAndCaretSlip(CView * inView, CView ** outDefaultButt
 				break;
 			}
 		}
-			
+
 	}
 	*outDefaultButton = defaultButton;
 	*outCaretSlip = caretSlip;
@@ -1455,7 +1455,7 @@ CRootView::setKeyView(CView * inView, int inX, int inY, bool inArg4)
 void
 CRootView::commonSetKeyView(CView * inView, int inX, int inY)
 {
-	// it’s a relative biggy
+	// it's a relative biggy
 }
 
 

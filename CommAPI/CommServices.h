@@ -3,7 +3,7 @@
 
 	Contains:	Comm Service Identifiers
 
-	Copyright:	� 1992-1994, 1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1994, 1996 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__COMMSERVICES_H)

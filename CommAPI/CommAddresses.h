@@ -3,7 +3,7 @@
 
 	Contains:	Address formats
 
-	Copyright:	� 1992-1994 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1994 by Apple Computer, Inc., all rights reserved.
 */
 
 /* --------------------------------------------------------------------------------------------------------------------
