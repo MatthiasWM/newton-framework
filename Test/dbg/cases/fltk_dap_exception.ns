@@ -1,0 +1,13 @@
+// An exception in a callback, with "All Exceptions" off (needs FLTK): it is
+// reported (stderr output) and the program goes on waiting for events; it
+// counts for the exit code (exited 1).
+DefGlobalVar('clicks, 0);
+DefGlobalVar('app, {
+  Clicked: func()
+  begin
+    clicks := clicks + 1;
+    if clicks = 2 then TestWindowClose();
+    if clicks = 1 then Throw('|evt.ex.msg|, "an exception in a callback");
+  end});
+TestWindow("fltk_dap_exception", app, 'Clicked);
+Print("waiting for a click");

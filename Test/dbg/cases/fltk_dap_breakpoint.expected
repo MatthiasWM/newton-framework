@@ -1,0 +1,30 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/fltk_dap_breakpoint.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"setBreakpoints","arguments":{"source":{"path":"$DIR/fltk_dap_breakpoint.ns"},"breakpoints":[{"line":9}]}}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"setBreakpoints","body":{"breakpoints":[{"id":1,"verified":false,"line":9,"message":"No code for this line yet: set when the code is compiled"}]}}
+-> {"seq":4,"type":"request","command":"configurationDone"}
+<- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"configurationDone"}
+<- {"seq":6,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":1,"verified":true,"line":9}}}
+<- {"seq":7,"type":"event","event":"output","body":{"category":"stdout","output":"\"waiting for a click\"\n"}}
+-> {"seq":5,"type":"request","command":"evaluate","arguments":{"expression":"TestWindowClick()","context":"repl"}}
+<- {"seq":8,"type":"response","request_seq":5,"success":true,"command":"evaluate","body":{"result":"nil","type":"nil","variablesReference":0}}
+<- {"seq":9,"type":"event","event":"output","body":{"category":"stdout","output":"(#<ref>).Clicked(), 4: Push \"clicked \"\n"}}
+<- {"seq":10,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":6,"type":"request","command":"stackTrace","arguments":{"threadId":1}}
+<- {"seq":11,"type":"response","request_seq":6,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":1,"name":"app.Clicked","line":9,"column":1,"source":{"name":"fltk_dap_breakpoint.ns","path":"$DIR/fltk_dap_breakpoint.ns"},"instructionPointerReference":"0x10004"}],"totalFrames":1}}
+-> {"seq":7,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":12,"type":"response","request_seq":7,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":13,"type":"event","event":"output","body":{"category":"stdout","output":"\"clicked 42\"\n"}}
+<- {"seq":14,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":15,"type":"event","event":"terminated"}
+-> {"seq":8,"type":"request","command":"disconnect"}
+<- {"seq":16,"type":"response","request_seq":8,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

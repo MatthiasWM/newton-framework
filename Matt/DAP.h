@@ -50,6 +50,26 @@ void DAPInstallTranslators(void);
     (gCompiledStatementHook, DAP:NewCode()). */
 void DAPSetPolling(bool inPolling);
 
+/* The event loop (Matt/EventLoop.h): while no NewtonScript runs, newtc waits
+   for host events and DAP requests. All of these do nothing without -dap. */
+
+/** The file descriptor DAP requests come in on (stdin, or the -dap-server
+    connection); -1 without -dap. */
+int DAPInputFd(void);
+
+/** The client has closed the connection (end of input). */
+bool DAPClientGone(void);
+
+/** Handle the requests that are waiting, while no NewtonScript runs. A
+    "pause" stays pending until the next script starts. */
+void DAPHandleIdleRequests(void);
+
+/** A host event starts or ends a script (e.g. a callback): look for
+    requests while it runs, stop at its first instruction if a pause is
+    pending; at the end, cancel a line step still running. */
+void DAPEnterScript(void);
+void DAPLeaveScript(void);
+
 /** Number of exceptions reported so far (they are sent as "stderr" output);
     newtc uses it for the exit code of the program. */
 int DAPExceptionCount(void);

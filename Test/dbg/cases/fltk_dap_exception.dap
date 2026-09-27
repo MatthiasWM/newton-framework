@@ -1,0 +1,11 @@
+{"command": "initialize", "arguments": {"clientID": "test", "adapterID": "newtonscript"}}
+wait initialized
+{"command": "launch", "arguments": {"program": "$PROGRAM"}}
+{"command": "setExceptionBreakpoints", "arguments": {"filters": []}}
+{"command": "configurationDone"}
+wait output
+{"command": "evaluate", "arguments": {"expression": "TestWindowClick()", "context": "repl"}}
+wait output
+{"command": "evaluate", "arguments": {"expression": "TestWindowClick()", "context": "repl"}}
+wait terminated
+{"command": "disconnect"}

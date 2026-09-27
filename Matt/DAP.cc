@@ -48,7 +48,8 @@ bool gDAPInputEnded = false;  // end of stdin: the client is gone
 int gDAPExceptionCount = 0;
 bool gDAPPolling = false;     // look for requests while the program runs
 int gDAPBreakLoopDepth = 0;   // > 0 while stopped in a break loop
-bool gDAPPauseRequested = false;
+bool gDAPPauseRequested = false;  // stop at the next poll (see FDAPPause)
+bool gDAPActive = false;      // -dap/-dap-server: the translators are installed
 FILE *gDAPLog = nullptr;      // -dap-log: every message, both ways
 
 // -dap-log: one line per message, as in the test transcripts: "-> " from
@@ -230,6 +231,54 @@ void DAPSetPolling(bool inPolling)
 }
 
 
+int DAPInputFd(void)
+{
+  return gDAPActive ? gDAPInFd : -1;
+}
+
+
+bool DAPClientGone(void)
+{
+  return gDAPActive && gDAPInputEnded;
+}
+
+
+void DAPHandleIdleRequests(void)
+{
+  if (!gDAPActive || gDAPBreakLoopDepth > 0 || gDAPInputEnded)
+    return;
+  newton_try
+  {
+    while (InputWaiting() && ReceiveAndDispatch())
+      ;
+  }
+  newton_catch_all
+  {
+    fprintf(stderr, "newtc: error handling a DAP request while idle\n");
+  }
+  end_try;
+}
+
+
+void DAPEnterScript(void)
+{
+  if (!gDAPActive)
+    return;
+  DAPSetPolling(true);
+  if (gDAPPauseRequested)
+    DebuggerPollNow();    // the pending pause stops at the first instruction
+}
+
+
+void DAPLeaveScript(void)
+{
+  if (!gDAPActive)
+    return;
+  DAPSetPolling(false);
+  CancelLineStep();       // stepping out of a callback: the next one is unrelated
+}
+
+
 bool DAPStartLog(const char *inPath)
 {
   gDAPLog = fopen(inPath, "w");
@@ -322,9 +371,12 @@ Ref FDAPErrorText(RefArg rcvr, RefArg inCode)
 }
 
 
+// While a script runs, the next poll stops it. While none runs (the event
+// loop waits), the pause stays pending until the next script starts
+// (DAPEnterScript).
 Ref FDAPPause(RefArg rcvr)
 {
-  if (gDAPPolling && gDAPBreakLoopDepth == 0)
+  if (gDAPBreakLoopDepth == 0)
     gDAPPauseRequested = true;
   return NILREF;
 }
@@ -739,6 +791,7 @@ void DAPInstallTranslators(void)
   gREPout = gDAPOutTranslator;
   gREPin = (PInTranslator *)MakeByName("PInTranslator", "PDAPInTranslator");
   gStubNotify = DAPStubNotice;
+  gDAPActive = true;
 }
 
 

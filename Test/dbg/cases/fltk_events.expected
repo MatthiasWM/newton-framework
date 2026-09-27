@@ -1,0 +1,5 @@
+"the program returned; the window keeps it running"
+"click 1"
+"click 2"
+    !!! Exception: an exception in a callback
+"click 3"

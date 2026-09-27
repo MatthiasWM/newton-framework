@@ -386,6 +386,11 @@ typedef bool (*DebuggerPollProc)(void);
 extern DebuggerPollProc	gDebuggerPoll;
 #define kDebuggerPollInterval 1000
 
+/* Not in ROM: poll before the next instruction instead of after the
+   interval (newtc -dap: a pause that came while no NewtonScript ran stops
+   at the first instruction of the next script). */
+void DebuggerPollNow(void);
+
 /* Not in ROM: a debugger's step check (line stepping). While set, the slow
    loop calls it before every instruction with the running function, the
    PC, and the frame's index (as in CNSDebugAPI: 0 = oldest); true stops in

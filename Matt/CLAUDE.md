@@ -1021,6 +1021,61 @@ in the interpreter (C++), not in NewtonScript.
 - [ ] 9.2 Later: ROM code (with Einstein), `-run` opening the form
       (needs the root view: GetRoot, BuildContext).
 
+### Phase 10: GUI with FLTK (branch Add_fltk)
+Decisions (Matt, 2026-09-27): FLTK is the host layer (windows, drawing,
+events), optional: CMake option `NEWTC_USES_FLTK` (off by default) fetches
+FLTK master from GitHub (FetchContent) and links it statically; without it
+nothing is fetched and everything builds as before. newtc stays single
+threaded: FLTK only runs while no NewtonScript runs.
+- [x] 10.1 The event loop (Matt/EventLoop.{h,cc}). After the program (a
+      -script, -run, or the -dap program) returns, `RunEventLoop()` waits
+      for events (`Fl::wait()`) while it has a window open; it returns when
+      the last one closes or the DAP client is gone. Rules:
+      - Host events run NewtonScript only through `SendEventMessage(rcvr,
+        msg, args)`, and only while no NewtonScript runs (the interpreter's
+        control stack is where the loop started): scripts never overlap.
+        While a script runs or is stopped in a break loop nobody calls
+        Fl::wait(), so no events come; one that does (a nested loop, e.g.
+        an FLTK dialog opened by a native) is dropped. Later, a modal Newton
+        dialog (ModalDialog()) will open a nested loop whose events may run
+        scripts inside the one that opened it, as in NewtonOS.
+      - An exception in a callback is caught there (newton_try) and
+        reported like one in the program (-dap: counts for the exit code);
+        it must not unwind through FLTK. With breakOnThrows the debugger
+        stops at the throw first, as usual.
+      - DAP requests are one more event source: `Fl::add_fd()` on the DAP
+        input (stdin or the -dap-server socket), handled with
+        `DAPHandleIdleRequests()`; requests that came while the program ran
+        are handled when the loop starts. The closed input ends the loop.
+      - Pause while idle stays pending: `DAPEnterScript()` then makes the
+        interpreter poll before the next instruction (new
+        `DebuggerPollNow()`, Interpreter.h), so it stops at the first
+        instruction of the next callback. Handy to step through whatever a
+        click does.
+      - Stepping out of a callback cancels the step (`DAPLeaveScript()`):
+        the next callback is something else, the program just runs.
+      - Stopped in a break loop, the windows don't repaint (macOS keeps
+        their contents; the beach ball shows over them): like any native
+        app stopped in a debugger.
+      - Refs kept for host objects (widgets) must be GC roots (AddGCRoot),
+        or the garbage collector's moves leave them stale.
+      A window for testing until there are Newton views
+      (Matt/TestWindow.{h,cc}, FLTK only): `TestWindow(title, receiver,
+      message)` (a button that sends receiver:message()),
+      `TestWindowClick()` (clicks it from the event loop, as a user would:
+      tests and the Debug Console make events with it), `TestWindowClose()`.
+      Test harness: cases named `fltk_*` are skipped when newtc has no FLTK.
+      Tests: `fltk_events` (-script: events after the program returned, one
+      at a time, an exception in a callback, the window ends newtc),
+      `fltk_dap_breakpoint`, `fltk_dap_pause` (pause while idle, next, step
+      out doesn't stop in the next callback), `fltk_dap_exception`,
+      `fltk_dap_eof`.
+- [ ] 10.2 Measure what the ROM's views need: GetRoot and BuildContext with
+      a drawing backend that does nothing; `-stubs report` while the Hello
+      form opens lists the native functions to implement.
+- [ ] 10.3 The Newton screen: an FLTK window, drawing with FLTK.
+- [ ] 10.4 Pen and keyboard events into the view system.
+
 ### Later: the rest of the VS Code extension
 - `-lsp` mode in newtc (diagnostics, completion, ...), TextMate grammar.
 

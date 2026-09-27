@@ -1,0 +1,6 @@
+// The client goes away (end of input) while the program waits for events
+// (needs FLTK): the event loop ends, and so does newtc, with the window
+// still open.
+DefGlobalVar('app, {Clicked: func() Print("never clicked")});
+TestWindow("fltk_dap_eof", app, 'Clicked);
+Print("waiting for a click");

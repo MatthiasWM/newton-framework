@@ -1,0 +1,17 @@
+// The event loop (Matt/EventLoop.h; needs FLTK): after the program returns,
+// newtc runs on while it has a window open. Each click runs Clicked, one at
+// a time (the click Clicked asks for comes after it returned). An exception
+// in a callback is reported and the loop goes on. Closing the window ends
+// newtc.
+DefGlobalVar('clicks, 0);
+DefGlobalVar('app, {
+  Clicked: func()
+  begin
+    clicks := clicks + 1;
+    Print("click " & clicks);
+    if clicks < 3 then TestWindowClick() else TestWindowClose();
+    if clicks = 2 then Throw('|evt.ex.msg|, "an exception in a callback");
+  end});
+TestWindow("fltk_events", app, 'Clicked);
+TestWindowClick();
+Print("the program returned; the window keeps it running");

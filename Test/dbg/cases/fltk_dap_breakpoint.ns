@@ -1,0 +1,13 @@
+// A breakpoint in a callback (needs FLTK). The program opens a window and
+// returns; while it waits for events, the client evaluates TestWindowClick()
+// (the Debug Console), the click runs Clicked, and it stops at the
+// breakpoint (line 9). Continue: Clicked closes the window, the program ends.
+DefGlobalVar('app, {
+  Clicked: func()
+  begin
+    local n := 42;
+    Print("clicked " & n);
+    TestWindowClose();
+  end});
+TestWindow("fltk_dap_breakpoint", app, 'Clicked);
+Print("waiting for a click");

@@ -1,0 +1,15 @@
+// Pause while the program waits for events (needs FLTK): the pause stays
+// pending and stops at the first instruction of the next callback (line
+// 12), a handy way to step through whatever a click does. Step out of the
+// callback: that cancels the step (the next callback is something else),
+// so the second click runs without stopping and closes the window.
+DefGlobalVar('clicks, 0);
+DefGlobalVar('app, {
+  Clicked: func()
+  begin
+    clicks := clicks + 1;
+    Print("click " & clicks);
+    if clicks = 2 then TestWindowClose();
+  end});
+TestWindow("fltk_dap_pause", app, 'Clicked);
+Print("waiting for a click");

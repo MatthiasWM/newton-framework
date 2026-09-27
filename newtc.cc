@@ -17,6 +17,8 @@
 #include "Matt/DAP.h"
 #include "Matt/LineTables.h"
 #include "Utilities/Unimplemented.h"
+#include "Matt/EventLoop.h"
+#include "Matt/TestWindow.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -171,6 +173,13 @@ bool init()
   defGlobalCFunction("LineOfPC", (void*)FLineOfPC, 2);
   defGlobalCFunction("CodeForLine", (void*)FCodeForLine, 2);
   defGlobalCFunction("StartLineStep", (void*)FStartLineStep, 4);
+
+#if NEWTC_USES_FLTK
+  // A window for testing the event loop (see Matt/TestWindow.h)
+  defGlobalCFunction("TestWindow", (void*)FTestWindow, 3);
+  defGlobalCFunction("TestWindowClick", (void*)FTestWindowClick, 0);
+  defGlobalCFunction("TestWindowClose", (void*)FTestWindowClose, 0);
+#endif
 
   return true;
 }
@@ -498,6 +507,8 @@ void handleArgDap(int port = -1)
       end_try;
       DAPSetPolling(false);
       CancelLineStep();   // a step still running when the program ended
+      // the program opened a window: it runs on in its events
+      RunEventLoop();
       if (DAPExceptionCount() > exceptions)
         exitCode = 1;
       // -stubs report: in the Debug Console while the session still runs
@@ -1152,6 +1163,8 @@ int main(int argc, char **argv) {
   }
 
   ret = handleArgs(argc, argv);
+  // a program opened a window: it runs on in its events (see Matt/EventLoop.h)
+  RunEventLoop();
   return ret;
 }
 

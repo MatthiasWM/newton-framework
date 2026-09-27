@@ -128,6 +128,13 @@ def run_case(newtc, ns):
     return normalize(out)
 
 
+def has_fltk(newtc):
+    """newtc was built with FLTK (NEWTC_USES_FLTK): it has TestWindow()."""
+    proc = subprocess.run([str(newtc), "-s", "Print(HasSlot(functions, 'TestWindow))"],
+                          capture_output=True, timeout=TIMEOUT)
+    return b"true" in proc.stdout
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run newtc debugger tests.")
     ap.add_argument("names", nargs="*", help="only run cases whose name contains one of these")
@@ -146,8 +153,13 @@ def main():
     if not cases:
         sys.exit("no matching test cases")
 
-    failed = 0
+    fltk = has_fltk(newtc)
+    failed = skipped = 0
     for ns in cases:
+        if ns.stem.startswith("fltk_") and not fltk:
+            print(f"skip    {ns.stem}  (newtc without FLTK)")
+            skipped += 1
+            continue
         actual = run_case(newtc, ns)
         exp_file = ns.with_suffix(".expected")
         if args.verbose:
@@ -171,7 +183,8 @@ def main():
                 fromfile=f"{ns.stem}.expected", tofile=f"{ns.stem} (actual)"))
 
     if not args.update:
-        print(f"\n{len(cases) - failed} passed, {failed} failed")
+        print(f"\n{len(cases) - failed - skipped} passed, {failed} failed"
+              + (f", {skipped} skipped" if skipped else ""))
     return 1 if failed else 0
 
 

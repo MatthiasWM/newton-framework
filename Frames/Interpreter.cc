@@ -65,6 +65,13 @@ extern bool		gAccurateStackTrace;			// +1C 0C105468 - SetDebugMode(), in DebugAP
 BreakLoopReason	gBreakLoopReason = kBreakLoopCalled;	// not in ROM, see Interpreter.h
 DebuggerPollProc	gDebuggerPoll = NULL;						// not in ROM, see Interpreter.h
 DebuggerStepProc	gDebuggerStep = NULL;						// not in ROM, see Interpreter.h
+static int			gDebuggerPollCountdown = kDebuggerPollInterval;	// not in ROM
+
+// Not in ROM: poll before the next instruction (see Interpreter.h).
+void DebuggerPollNow(void)
+{
+	gDebuggerPollCountdown = 1;
+}
 
 extern ArrayIndex		gCurrentStackPos;
 
@@ -1193,10 +1200,9 @@ CInterpreter::run1(ArrayIndex initialStackDepth)
 				instructionOffset = instrPtr - instrBase;
 				handleBreakPoints();
 				// Not in ROM: let a debugger look for requests now and then.
-				static int pollCountdown = kDebuggerPollInterval;
-				if (gDebuggerPoll != NULL && --pollCountdown <= 0)
+				if (gDebuggerPoll != NULL && --gDebuggerPollCountdown <= 0)
 				{
-					pollCountdown = kDebuggerPollInterval;
+					gDebuggerPollCountdown = kDebuggerPollInterval;
 					if (gDebuggerPoll())
 					{
 						gBreakLoopReason = kBreakLoopPause;
