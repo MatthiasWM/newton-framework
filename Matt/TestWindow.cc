@@ -17,30 +17,43 @@
 
 #include "Frames/Frames.h"
 
-#include <string>
-
 namespace {
 
-Fl_Window * gWindow = nullptr;
-Fl_Button * gButton = nullptr;
-
-// What a click sends. GC roots: the garbage collector updates them when it
-// moves the objects (a Ref in a widget's user_data would go stale).
-Ref gReceiver = NILREF;
-Ref gMessage = NILREF;
-
-void Clicked(Fl_Widget *, void *)
+// A button that sends a message to a NewtonScript object when clicked. It
+// owns what it sends as RefStructs: the garbage collector updates them when
+// it moves the objects (a plain Ref in user_data() would go stale), and they
+// go away with the button. The pattern for widgets that stand for Newton
+// objects. Not RefVar: a RefVar's handle belongs to the stack position it
+// was made at, and when a NewtonScript exception unwinds past it (longjmp:
+// no destructors), ClearRefHandles() frees it; a RefStruct's handle is
+// freed only by its destructor.
+class MessageButton : public Fl_Button
 {
-  RefVar args(MakeArray(0));
-  SendEventMessage(gReceiver, gMessage, args);
-}
+public:
+  MessageButton(int x, int y, int w, int h, const char * label, RefArg inReceiver, RefArg inMessage)
+  : Fl_Button(x, y, w, h, label), receiver(inReceiver), message(inMessage)
+  {
+    callback([](Fl_Widget * w, void *) {
+      MessageButton * button = static_cast<MessageButton *>(w);
+      RefVar args(MakeArray(0));
+      SendEventMessage(button->receiver, button->message, args);
+    });
+  }
+
+private:
+  RefStruct receiver;
+  RefStruct message;
+};
+
+Fl_Window * gWindow = nullptr;
+MessageButton * gButton = nullptr;
 
 void CloseWindow(void)
 {
   if (gWindow == nullptr)
     return;
   gWindow->hide();
-  Fl::delete_widget(gWindow);   // may be inside its own callback
+  Fl::delete_widget(gWindow);   // later: this may run inside the button's callback
   gWindow = nullptr;
   gButton = nullptr;
 }
@@ -50,22 +63,12 @@ void CloseWindow(void)
 
 Ref FTestWindow(RefArg rcvr, RefArg inTitle, RefArg inReceiver, RefArg inMessage)
 {
-  static bool rooted = false;
-  if (!rooted) {
-    AddGCRoot(&gReceiver);
-    AddGCRoot(&gMessage);
-    rooted = true;
-  }
   if (!IsSymbol(inMessage))
     ThrowBadTypeWithFrameData(kNSErrNotASymbol, inMessage);
   CloseWindow();
-  gReceiver = inReceiver;
-  gMessage = inMessage;
-  static std::string title;     // the window keeps the pointer
-  title = IsString(inTitle) ? UTF8FromString(inTitle) : std::string("newtc");
-  gWindow = new Fl_Window(240, 100, title.c_str());
-  gButton = new Fl_Button(20, 30, 200, 40, "Click");
-  gButton->callback(Clicked);
+  gWindow = new Fl_Window(240, 100);
+  gWindow->copy_label(IsString(inTitle) ? UTF8FromString(inTitle).c_str() : "newtc");
+  gButton = new MessageButton(20, 30, 200, 40, "Click", inReceiver, inMessage);
   gWindow->end();
   gWindow->show();
   return NILREF;

@@ -1057,8 +1057,15 @@ threaded: FLTK only runs while no NewtonScript runs.
       - Stopped in a break loop, the windows don't repaint (macOS keeps
         their contents; the beach ball shows over them): like any native
         app stopped in a debugger.
-      - Refs kept for host objects (widgets) must be GC roots (AddGCRoot),
-        or the garbage collector's moves leave them stale.
+      - Refs kept by host objects (widgets) must be `RefStruct` members:
+        the GC updates them when objects move (a plain Ref goes stale), and
+        they live as long as the widget. Not `RefVar`: its handle belongs to
+        the stack position it was made at, and when a NewtonScript exception
+        unwinds past it (longjmp, no destructors) `ClearRefHandles()` frees
+        it (seen: a button's message turned into garbage after an exception
+        in a callback). A RefStruct's handle has stack position 0 and is only
+        freed by its destructor. (AddGCRoot is for a few C++ globals.) The
+        test window's MessageButton is the pattern.
       A window for testing until there are Newton views
       (Matt/TestWindow.{h,cc}, FLTK only): `TestWindow(title, receiver,
       message)` (a button that sends receiver:message()),
