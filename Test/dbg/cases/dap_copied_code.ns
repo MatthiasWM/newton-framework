@@ -1,0 +1,14 @@
+// 10.2b: a breakpoint in code that was copied (TotalClone here; the ROM's
+// InstallFormPart does it with EnsureInternal) stops in the copy, too: the
+// copy keeps the line table, and the line breakpoints are installed again
+// in the copies before they run. The breakpoint is on line 9; next goes
+// to line 10, in the copy.
+DefGlobalVar('original, func(x)
+begin
+  local y := x * 2;
+  y := y + 1;
+  y;
+end);
+DefGlobalVar('copy, TotalClone(original));
+Print(copy <> original and copy.instructions <> original.instructions);
+Print(call copy with (20));

@@ -70,6 +70,13 @@ std::string PathToObject(RefArg root, RefArg target);
     instructions) without changing fn (package objects may be read-only). */
 void RegisterLineTable(RefArg fn, RefArg table);
 
+/** Code with a line table was copied (DeepClone, TotalClone, EnsureInternal;
+    e.g. the ROM's InstallFormPart copies a package's InstallScript): the
+    copy has the line table, too, and CodeForLine finds it. Then this is
+    called, so that a debugger can install its line breakpoints again, in
+    the copies as well (newtc -dap: DAP:CodeCopied()). */
+extern void (*gCodeCopiedHook)(void);
+
 /** Load a debug map (JSON text) for the package (or other object) root:
     each function is found by the hash of its instructions (if several
     have the same bytecode, by its path) and gets the map's line table.

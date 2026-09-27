@@ -275,6 +275,24 @@ DefGlobalVar('DAP, {
     breakOnThrows := saved;
   end,
 
+  // Called by C++ (DAPPoll) after code with a line table was copied
+  // (DeepClone, TotalClone, EnsureInternal: e.g. the ROM's InstallFormPart
+  // copies a package's InstallScript), before the copy runs: the line
+  // breakpoints are installed again, so that they are in the copies, too.
+  CodeCopied: func()
+  begin
+    local saved := breakOnThrows;
+    breakOnThrows := nil;
+    foreach bp in lineBreakpoints do
+      if bp.verified then
+      begin
+        :RemoveLineBreakpoint(bp);
+        bp.installed := [];
+        :InstallLineBreakpoint(bp);
+      end;
+    breakOnThrows := saved;
+  end,
+
   // -- Bytecode listings (virtual sources)
 
   // The listing of a NewtonScript function: its disassembly, one

@@ -50,6 +50,7 @@ bool gDAPPolling = false;     // look for requests while the program runs
 int gDAPBreakLoopDepth = 0;   // > 0 while stopped in a break loop
 bool gDAPPauseRequested = false;  // stop at the next poll (see FDAPPause)
 bool gDAPActive = false;      // -dap/-dap-server: the translators are installed
+bool gDAPCodeCopied = false;  // code with a line table was copied (gCodeCopiedHook)
 FILE *gDAPLog = nullptr;      // -dap-log: every message, both ways
 
 // -dap-log: one line per message, as in the test transcripts: "-> " from
@@ -185,6 +186,11 @@ bool DAPPoll(void)
   inPoll = true;
   newton_try
   {
+    if (gDAPCodeCopied) {
+      // line breakpoints again, in the copies too, before the copies run
+      gDAPCodeCopied = false;
+      DoMessage(GetGlobalVar(MakeSymbol("DAP")), MakeSymbol("CodeCopied"), RA(NILREF));
+    }
     while (InputWaiting() && ReceiveAndDispatch())
       ;
   }
@@ -791,6 +797,9 @@ void DAPInstallTranslators(void)
   gREPout = gDAPOutTranslator;
   gREPin = (PInTranslator *)MakeByName("PInTranslator", "PDAPInTranslator");
   gStubNotify = DAPStubNotice;
+  // code with a line table was copied: at the next instruction, DAPPoll()
+  // installs the line breakpoints in the copies, too
+  gCodeCopiedHook = []() { gDAPCodeCopied = true; DebuggerPollNow(); };
   gDAPActive = true;
 }
 

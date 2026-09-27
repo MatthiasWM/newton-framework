@@ -198,6 +198,8 @@ Ref FStartLineStep(RefArg rcvr, RefArg inKind, RefArg inFn, RefArg inPC, RefArg 
 }
 
 
+void FunctionCopied(RefArg inOriginal, RefArg inCopy);   // below
+
 void InstallLineTables(void)
 {
   if (ISNIL(gFunctions)) {
@@ -210,6 +212,7 @@ void InstallLineTables(void)
     AddGCRoot(&gCacheTable);
   }
   gCompiledFunctionHook = RememberFunction;
+  gClonedFunctionHook = FunctionCopied;
 }
 
 
@@ -344,6 +347,30 @@ std::string InstructionsHash(RefArg fn)
   char text[17];
   snprintf(text, sizeof(text), "%016llx", (unsigned long long)hash);
   return text;
+}
+
+
+void (*gCodeCopiedHook)(void) = nullptr;
+
+// gClonedFunctionHook (Objects.h): a deep clone copied a function with its
+// code (e.g. EnsureInternal: the ROM's InstallFormPart copies a package's
+// InstallScript, as package objects are read-only). A copy of code with a
+// line table gets it, too (its own lineTable slot is copied along; a
+// registered one is registered for the copy), and CodeForLine finds the
+// copy, so that line breakpoints can be set in it (gCodeCopiedHook).
+void FunctionCopied(RefArg inOriginal, RefArg inCopy)
+{
+  if (EQ(GetFrameSlot(inOriginal, SYMA(instructions)), GetFrameSlot(inCopy, SYMA(instructions))))
+    return;   // the same code (e.g. shared, as internal read-only objects are)
+  RefVar table(TableOf(inOriginal));
+  if (ISNIL(table))
+    return;
+  if (ISNIL(TableOf(inCopy)))
+    RegisterLineTable(inCopy, table);   // remembers it, too
+  else
+    RememberFunction(inCopy);
+  if (gCodeCopiedHook)
+    gCodeCopiedHook();
 }
 
 

@@ -146,8 +146,8 @@ Findings that shape the design:
   would stop working. Options: newtc's EnsureInternal treats a loaded
   package as internal (it stays in memory until newtc exits); or debug maps
   also match copies (by the hash of their instructions). Decided (Matt,
-  2026-09-27): code must stay debuggable after EnsureInternal; solve it
-  early (step 10.2b), before the ROM's InstallPart is used. Until then
+  2026-09-27): packages stay read-only as on a Newton, so EnsureInternal
+  copies; line tables follow the copies (done, 10.2b). Until 10.3
   `installPackage()` does InstallFormPart's work itself (without
   EnsureInternal), and follows RegisterNewPackage and InstallPart otherwise
   (order, per-part error handling, the ROM's messages).
@@ -229,13 +229,31 @@ Directory and namespace (decided, Matt, 2026-09-27):
       (`GetRoot().ExtrasDrawer`): GetAppName asks it when an app's base
       view has neither appName nor title, and InstallPart tells it about
       built-in and 1.x packages.
-- [ ] 10.2b Debugging after EnsureInternal: functions that EnsureInternal
-      (or TotalClone, Clone) copies keep their line tables and debug maps,
-      so breakpoints and stepping still work in code the ROM copied (e.g. an
-      InstallScript copied by InstallFormPart). Decide how (see "Findings":
-      a loaded package counts as internal, or tables follow copies), with a
-      test: a breakpoint in a decompiled InstallScript installed by the ROM's
-      InstallPart.
+- [x] 10.2b Debugging after EnsureInternal. Package objects stay read-only
+      as on a Newton, so EnsureInternal copies their code (the ROM's
+      InstallFormPart copies the install script); line tables follow the
+      copies. New hook `gClonedFunctionHook(original, copy)` (Objects.h, not
+      in ROM), called by DeepClone, TotalClone, and EnsureInternal when they
+      have copied a function with its slots. LineTables (`FunctionCopied`):
+      if the original's code has a line table and the copy's code is new,
+      the copy gets it (its own lineTable slot is copied along; a debug
+      map's table is registered for the copy) and CodeForLine finds the
+      copy; then `gCodeCopiedHook()`. With -dap it asks for a poll before
+      the next instruction (DebuggerPollNow), and DAPPoll calls
+      `DAP:CodeCopied()`, which installs the line breakpoints again, in the
+      copies too, before they run. (Shallow Clone shares the code: nothing
+      to do.)
+      Fixed on the way (both porting slips, checked against the ROM):
+      `DeepClone1` wrote the cloned slots into the original instead of the
+      copy, so DeepClone changed its argument (e.g. Stores.cc deep-clones
+      the ROM's canonicalCardInfo); `TotalClone1` added the original, not
+      the copy, to its list of clones, so an object reached twice (or a
+      cycle) led back to the original.
+      Tests: `clone_copies`, `dap_copied_code` (a breakpoint in a function
+      stops in its TotalClone, next goes on by line in the copy),
+      `test_nsdbg.py` (the ROM's own InstallFormPart installs the decompiled
+      Hello package: the breakpoint in hello.ns stops in the copied
+      InstallScript).
 - [ ] 10.3 `BuildContext(template)`: the view frame for a template (as CView
       buildContext does, no native view yet). Then `installPackage()` uses
       the ROM's `InstallPart` (after 10.2b), so `root.(app)` is the app's

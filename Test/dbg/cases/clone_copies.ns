@@ -1,0 +1,16 @@
+// DeepClone and TotalClone copy an object's slots into the copy (the port
+// wrote them into the original, so DeepClone changed it), and an object
+// reached twice, or in a cycle, becomes one copy (TotalClone kept pointing
+// at the original). As in ROM.
+begin
+  local inner := {v: 1};
+  local x := {a: inner, b: [inner]};
+  local d := DeepClone(x);
+  Print([d.a <> inner, x.a = inner, x.b[0] = inner, d.b[0] = d.a]);
+  local t := TotalClone(x);
+  Print([t.a <> inner, t.b[0] = t.a]);
+  local cycle := {name: "c"};
+  cycle.me := cycle;
+  local c := TotalClone(cycle);
+  Print([c <> cycle, c.me = c]);
+end;

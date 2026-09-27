@@ -320,6 +320,11 @@ extern	Ref		DeepClone(RefArg obj);
 extern	Ref		TotalClone(RefArg obj);
 // Don't clone except as necessary to ensure maps and symbols are in RAM
 extern	Ref		EnsureInternal(RefArg obj);
+/* Not in ROM: called when DeepClone, TotalClone, or EnsureInternal has
+   copied a function (a frame) with its slots, so that a debugger can let
+   the copy's code keep the original's line table and breakpoints (see
+   Matt/LineTables.h). */
+extern	void		(*gClonedFunctionHook)(RefArg inOriginal, RefArg inCopy);
 
 //______________________________________________________________________________
 // Array Functions

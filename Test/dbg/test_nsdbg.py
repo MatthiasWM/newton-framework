@@ -107,6 +107,19 @@ def main():
         checks.append(("program hello.pkg: next, then it ends normally",
                        step == return_line and code == 0 and '"exitCode":0' in transcript))
 
+        # the ROM's own InstallFormPart copies the install script (EnsureInternal:
+        # package objects are read-only); the copy keeps the debug map's lines
+        (tmp / "rom_install.ns").write_text(
+            "// the ROM's InstallFormPart installs the package's form part\n"
+            "InstallFormPart({partFrame: ref0.part[0].data});\n")
+        transcript, err, code, stops, step = session(
+            {"program": "$DIR/rom_install.ns"}, ["-pkg", "hello.pkg", "-nsdbg", "hello.nsdbg"])
+        transcripts.append(transcript)
+        checks.append(("the ROM's InstallFormPart: it stops in the copied InstallScript",
+                       stops and "InstallScript" in transcript))
+        checks.append(("the ROM's InstallFormPart: next, in the copy, then it ends normally",
+                       step == return_line and code == 0 and '"exitCode":0' in transcript))
+
         # breakpoints sent before the launch: pending, then set when the package is loaded
         transcript, err, code, stops, step = session(
             {"program": "$DIR/hello.pkg", "debugMap": "$DIR/hello.nsdbg"}, [], breakpoints_first=True)

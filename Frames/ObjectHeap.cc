@@ -408,6 +408,18 @@ Clone(RefArg obj)
 }
 
 
+// Not in ROM: see Objects.h.
+void (*gClonedFunctionHook)(RefArg inOriginal, RefArg inCopy) = NULL;
+
+// A function (a frame) was copied with its slots: tell a debugger.
+static void
+ClonedFunction(RefArg obj, RefArg objClone)
+{
+	if (gClonedFunctionHook != NULL && !EQ(objClone, obj) && IsFrame(obj) && IsFunction(obj))
+		gClonedFunctionHook(obj, objClone);
+}
+
+
 Ref
 DeepClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones)
 {
@@ -431,10 +443,13 @@ DeepClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones)
 			if (ISPTR(r))
 			{
 				slot = r;
-				((ArrayObject *)ObjectPtr(obj))->slot[i] = DeepClone1(slot, originals, clones);
-
+				Ref slotClone = DeepClone1(slot, originals, clones);
+				// into the clone, as in ROM (the port wrote into obj: DeepClone
+				// changed the original)
+				((ArrayObject *)ObjectPtr(objClone))->slot[i] = slotClone;
 			}
 		}
+		ClonedFunction(obj, objClone);
 	}
 	return objClone;
 }
@@ -487,7 +502,8 @@ TotalClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones, bool doSh
 		else
 			objClone = Clone(obj);
 	}
-	clones.add(obj);
+	clones.add(objClone);	// as in ROM (the port added obj: an object met twice
+									// was not the clone the second time)
 
 	ArrayIndex count;
 	if (FLAGTEST(ObjectFlags(obj), kObjSlotted))
@@ -504,6 +520,7 @@ TotalClone1(RefArg obj, CPrecedents & originals, CPrecedents & clones, bool doSh
 				((ArrayObject *)ObjectPtr(objClone))->slot[i-1] = slotClone;
 		}
 	}
+	ClonedFunction(obj, objClone);
 
 	return objClone;
 }
