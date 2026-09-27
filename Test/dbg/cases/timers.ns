@@ -1,0 +1,21 @@
+// Calls later (10.7d; Host/Timers.h): delayed calls run when they are due,
+// deferred ones after the current script; sends go to a receiver; the
+// program runs on while calls wait (also without a window or FLTK). The
+// ROM's procrastinated calls (NewtonScript, on AddDelayedCall) replace a
+// waiting one of the same name. Ticks are 60 a second (B25: they were 50).
+DefGlobalVar('start, Ticks());
+DefGlobalVar('counter, {count: 0, Bump: func(n) begin count := count + n; Print(["bumped by", n, "now", count]) end});
+AddDelayedCall(func() Print("delayed 300"), nil, 300);
+AddDelayedCall(func(a, b) Print(["delayed 100 with", a, b]), [1, 2], 100);
+AddDelayedSend(counter, 'Bump, [5], 200);
+AddDeferredCall(func() Print("deferred"), nil);
+AddDeferredSend(counter, 'Bump, [1]);
+AddDelayedAction(func() Print("delayed action 150"), nil, 150);
+AddDeferredAction(func() Print("deferred action"), nil);
+AddProcrastinatedCall('newtcTest, func() Print("procrastinated: once"), nil, 250);
+AddProcrastinatedCall('newtcTest, func() Print("procrastinated: once"), nil, 250);
+AddDelayedCall(func() begin
+  local ticks := Ticks() - start;
+  Print(["ticks after 500 ms: about 30", ticks >= 27 and ticks <= 45]);
+end, nil, 500);
+Print("the script ends");

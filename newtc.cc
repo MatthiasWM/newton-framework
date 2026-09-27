@@ -18,6 +18,7 @@
 #include "Matt/LineTables.h"
 #include "Utilities/Unimplemented.h"
 #include "Stores/HostStore.h"
+#include "Host/Timers.h"
 #include "Matt/EventLoop.h"
 #include "Matt/TestWindow.h"
 #include "Host/Root.h"
@@ -1247,6 +1248,7 @@ int main(int argc, char **argv) {
     return -1;
   }
   SetStubMode(kStubLog);
+  EnableTimers();   // calls later: the program's, not the ROM's start's (Host/Timers.h)
   // The ROM's start sets printLength to 16 (the Inspector's limit) once it
   // can read the System soup; newtc prints whole arrays and frames (-dap
   // sets its own limits)

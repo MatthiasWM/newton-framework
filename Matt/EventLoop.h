@@ -31,8 +31,9 @@
 
 #include "Frames/Objects.h"
 
-/** Wait for host events while the program has a window open; returns when
-    the last one is closed, or the DAP client is gone. */
+/** Wait for host events while the program has a window open, or, if it
+    never had one, while calls wait to run (Host/Timers.h); returns when
+    the last window is closed, or the DAP client is gone. */
 void RunEventLoop(void);
 
 /** Send a message to a NewtonScript object for a host event (e.g. a button

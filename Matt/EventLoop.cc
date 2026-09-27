@@ -7,10 +7,15 @@
 #if NEWTC_USES_FLTK
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl.H>
+#include <FL/platform.H>   // fl_open_display()
 #endif
 
 #include "Matt/EventLoop.h"
 #include "Matt/DAP.h"
+#include "Host/Timers.h"
+
+#include <chrono>
+#include <thread>
 
 #include "Frames/Frames.h"
 #include "Frames/Funcs.h"
@@ -116,12 +121,25 @@ void RemoveDAPEventSource(void)
 
 void RunEventLoop(void)
 {
-  if (Fl::first_window() == nullptr)
+  if (Fl::first_window() == nullptr && !TimersPending())
     return;
+  fl_open_display();   // timeouts need it (macOS: the run loop), also without a window
   gEventLoopDepth = InterpreterDepth();
   bool added = AddDAPEventSource();
-  while (Fl::first_window() != nullptr && !DAPClientGone())
-    Fl::wait();
+  // while a window is open, or calls are waiting (Host/Timers.h)
+  // (Fl::wait() returns at once without a window; Fl::wait(time) waits for
+  // the timeouts too. It runs the due ones first, then waits for the next:
+  // so not longer than until the next call is due, to look again after it.)
+  // Waiting calls keep a program without windows running; once it had
+  // windows, it ends when they are closed (an app's timers may repeat).
+  bool hadWindow = false;
+  while (!DAPClientGone()) {
+    if (Fl::first_window() != nullptr)
+      hadWindow = true;
+    else if (hadWindow || !TimersPending())
+      break;
+    Fl::wait(TimersPending() ? NextTimerDelay() : 1e20);
+  }
   if (added)
     RemoveDAPEventSource();
   gEventLoopDepth = -1;
@@ -144,8 +162,17 @@ void RunModalEventLoop(bool (*inDone)(void *), void * inData)
 
 #else
 
+// No windows without FLTK: only the waiting calls (Host/Timers.h), each
+// when it is due.
 void RunEventLoop(void)
 {
+  gEventLoopDepth = InterpreterDepth();
+  for (double delay; (delay = NextTimerDelay()) >= 0; ) {
+    if (delay > 0)
+      std::this_thread::sleep_for(std::chrono::duration<double>(delay));
+    RunDueTimers();
+  }
+  gEventLoopDepth = -1;
 }
 
 void RunModalEventLoop(bool (*inDone)(void *), void * inData)

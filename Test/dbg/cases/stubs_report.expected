@@ -3,7 +3,6 @@ nil
 nil
 
 --- stderr ---
-newtc: 3 of <total> stubs called:
+newtc: 2 of <total> stubs called:
          2  Fsin                             <file:line>
          1  FBatteryLevel                    <file:line>
-         1  FAddDeferredCall                 <file:line>

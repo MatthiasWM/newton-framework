@@ -1161,6 +1161,9 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B25 **Ticks are 50 a second** (ObjectSystem.cc, GetTicks: ms / 20); a
+  Newton's are 60 (the ROM's procrastinated calls compute Ticks() + ms *
+  60 div 1000). Found and fixed 2026-09-28 (10.7d); test `timers`.
 - [x] B24 **MakeLine swaps x and y** (Graphics/Shapes.cc, the port; not
   compiled by newtc): the ROM stores y1, x1, y2, x2 (a Rect's top, left,
   bottom, right); the port put x1 in top. Found 2026-09-28 (10.7c) in the

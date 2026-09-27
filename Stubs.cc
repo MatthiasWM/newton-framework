@@ -550,7 +550,6 @@ Ref FFontDescent(RefArg rcvr);
 Ref FhasSiblingSlot(RefArg rcvr);
 Ref FBlockStrokes(RefArg rcvr);
 Ref FUnorderedLessOrEqual(RefArg rcvr);
-Ref FAddDelayedAction(RefArg rcvr);
 Ref FScanWordStart(RefArg rcvr);
 Ref FViewAllowsInk(RefArg rcvr);
 Ref FStyleArrayContainsInk(RefArg rcvr);
@@ -589,7 +588,6 @@ Ref FVBOUndoChanges(RefArg rcvr);
 Ref FSetGlobal(RefArg rcvr);
 Ref FValidateWord(RefArg rcvr);
 Ref FGetLetterHilite(RefArg rcvr);
-Ref FAddDeferredAction(RefArg rcvr);
 Ref FStripRecognitionWordDiacritsOK(RefArg rcvr);
 Ref FTestReportMessage(RefArg rcvr);
 Ref FGetVBOCompanderData(RefArg rcvr);
@@ -1271,7 +1269,6 @@ NS_STUB(FFontDescent, RefArg rcvr)
 NS_STUB(FhasSiblingSlot, RefArg rcvr)
 NS_STUB(FBlockStrokes, RefArg rcvr)
 NS_STUB(FUnorderedLessOrEqual, RefArg rcvr)
-NS_STUB(FAddDelayedAction, RefArg rcvr)
 NS_STUB(FScanWordStart, RefArg rcvr)
 NS_STUB(FViewAllowsInk, RefArg rcvr)
 NS_STUB(FStyleArrayContainsInk, RefArg rcvr)
@@ -1310,7 +1307,6 @@ NS_STUB(FVBOUndoChanges, RefArg rcvr)
 NS_STUB(FSetGlobal, RefArg rcvr)
 NS_STUB(FValidateWord, RefArg rcvr)
 NS_STUB(FGetLetterHilite, RefArg rcvr)
-NS_STUB(FAddDeferredAction, RefArg rcvr)
 NS_STUB(FStripRecognitionWordDiacritsOK, RefArg rcvr)
 NS_STUB(FTestReportMessage, RefArg rcvr)
 NS_STUB(FGetVBOCompanderData, RefArg rcvr)

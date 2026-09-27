@@ -1,0 +1,10 @@
+"the script ends"
+"deferred"
+["bumped by", 1, "now", 1]
+"deferred action"
+["delayed 100 with", 1, 2]
+"delayed action 150"
+["bumped by", 5, "now", 6]
+"procrastinated: once"
+"delayed 300"
+["ticks after 500 ms: about 30", true]

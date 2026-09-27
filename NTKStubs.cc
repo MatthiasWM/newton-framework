@@ -2,8 +2,6 @@
 #include "Unimplemented.h"
 
 extern "C" {
-Ref FAddDelayedCall(RefArg rcvr);
-Ref FAddDelayedSend(RefArg rcvr);
 Ref FAddKeyCommand(RefArg rcvr);
 Ref FAddKeyCommands(RefArg rcvr);
 Ref FAddStepView(RefArg rcvr);
@@ -182,8 +180,6 @@ Ref FYieldToFork(RefArg rcvr);
 Ref FpkgDownload(RefArg rcvr);
 }
 
-NS_STUB(FAddDelayedCall, RefArg rcvr)
-NS_STUB(FAddDelayedSend, RefArg rcvr)
 NS_STUB(FAddKeyCommand, RefArg rcvr)
 NS_STUB(FAddKeyCommands, RefArg rcvr)
 NS_STUB(FAddStepView, RefArg rcvr)

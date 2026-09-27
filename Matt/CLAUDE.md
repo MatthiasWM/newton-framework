@@ -570,8 +570,22 @@ Directory and namespace (decided, Matt, 2026-09-27):
         moves, then back in its place. Grays are solid here; a Newton
         screen shows them as patterns (a 50% dither: the dotted frames,
         the gray shots).
-  - [ ] 10.7d Timers: AddDelayedAction/Call/Send, AddDeferredAction/Send/
-        Call (the computer's turns).
+  - [x] 10.7d Timers. Host/Timers.{h,cc}: AddDelayedCall, AddDelayedSend,
+        AddDeferredCall, AddDeferredSend, and the 1.x AddDelayedAction,
+        AddDeferredAction (the ROM's procrastinated calls are NewtonScript
+        on AddDelayedCall). Each runs as an event (SendEventCall,
+        SendEventMessage); if a script runs when it is due, it waits for
+        it (not dropped). With FLTK: Fl timeouts; without: RunEventLoop
+        sleeps until the next is due (also works without FLTK). A program
+        without windows runs on while calls wait; one that had windows ends
+        when they close (an app's timers may repeat). Calls the ROM
+        schedules while newtc starts are dropped (EnableTimers() after
+        init): they belong to the built-in apps (the first sets up the
+        owner from the Names soup, which newtc doesn't have). FLTK: without
+        a window, Fl::wait() returns at once; Fl::wait(time) runs the due
+        timeouts first, then waits: so the loop waits until the next call
+        at most. Ticks are 60 a second (B25). Test `timers` (both builds).
+        Battleship: a whole turn, the computer answering after its delay.
   - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus; the info
         button's menu: About, Help, a line, New Game), MoveBehind;
         protoCheckbox (its box and text: "Notify when ships are sunk");

@@ -101,13 +101,13 @@ void *			GetGlobals(void)  { return gCurrentGlobals; }
 
 int		GetCPUMode(void)	{ return kUserMode; }
 void		Wait(ULong inMilliseconds) { }
+// Ticks: 60 a second, as on a Newton (was ms / 20, 50 a second: B25)
 ULong		GetTicks(void) {
 	CTime now(GetGlobalTime());
-	return now.convertTo(kMilliseconds)/20;
+	return ULong((unsigned long long)now.convertTo(kMilliseconds) * 60 / 1000);
 }
 
-extern "C" { NS_STUB(FAddDeferredSend, RefArg inRcvr, RefArg inTarget, RefArg inMsg, RefArg inArg) }
-extern "C" { NS_STUB(FAddDeferredCall, RefArg inRcvr, RefArg inMsg, RefArg inArg) }
+// FAddDeferredSend, FAddDeferredCall: Host/Timers.cc
 
 // RefStack allocates a new stack, but we don't want the whole VM system.
 // On a Newton the stack grows (virtual memory) up to inMaxSize; nothing
