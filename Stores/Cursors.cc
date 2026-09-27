@@ -658,7 +658,8 @@ CCursor::validTest(const SKey & inKey, PSSId inId, bool inForward, bool * outIsE
 				}
 				if ((fQuerySpecBits & kQueryValidTest) != 0)
 				{
-					if (NOTNIL(DoBlock(fValidTestFn, fTestFnArgs)))
+					// an entry is valid if validTest returns non-nil (was NOTNIL: B22)
+					if (ISNIL(DoBlock(fValidTestFn, fTestFnArgs)))
 						return false;
 				}
 			}

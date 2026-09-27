@@ -2889,6 +2889,7 @@ CUnionSoupIndex::CUnionSoupIndex(ArrayIndex inNumOfIndexes, UnionIndexData * ind
 	fNumOfSoupsInUnion = inNumOfIndexes;
 	fIndexData = indexes;
 	fSeqInUnion = 0;
+	fIsForwardSearch = false;	// was never set (B21): a first forward search resets the cache
 }
 
 

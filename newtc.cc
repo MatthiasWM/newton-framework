@@ -17,6 +17,7 @@
 #include "Matt/DAP.h"
 #include "Matt/LineTables.h"
 #include "Utilities/Unimplemented.h"
+#include "Stores/HostStore.h"
 #include "Matt/EventLoop.h"
 #include "Matt/TestWindow.h"
 #include "Host/Root.h"
@@ -1021,6 +1022,9 @@ the commands in the given order.
   Control
   -clear                  Delete all object in the hold
   -pkglist <filename>     Apply following commands to all 'form packages in the file
+  -store <filename>       Keep the internal store (the soups) in this file: read it
+                          at the start, save it when a change is committed and at
+                          the end. Without it, the store is new and empty each time.
 
   Debugging
   -stubs <mode>           What a call to a built-in function that isn't implemented
@@ -1095,6 +1099,11 @@ int handleArgs(int argc, char **argv)
           throw(std::runtime_error("-dap-log: can't open the file."));
       } else if (cmd == "-g") {
         handleArgG();
+      } else if (cmd == "-store") {
+        // set before the store was made (main); just skip the file here
+        if (argi >= argc)
+          throw(std::runtime_error("-store: expected a file name."));
+        argi++;
       } else if (cmd == "-stubs") {
         if (argi >= argc || !SetStubOptions(argv[argi++]))
           throw(std::runtime_error("-stubs: expected log, throw, quiet, or report."));
@@ -1222,6 +1231,10 @@ int main(int argc, char **argv) {
   for (int i = 1; i < argc; ++i)
     if (strcmp(argv[i], "-dap") == 0)
       DAPStartIO();
+  // -store: the internal store's file, before init() makes the store
+  for (int i = 1; i + 1 < argc; ++i)
+    if (strcmp(argv[i], "-store") == 0)
+      CHostStore::SetFile(argv[i + 1]);
   // Stubs that newtc's own start calls are counted, but not the program's
   // business: no log (see Utilities/Unimplemented.h)
   SetStubMode(kStubQuiet);
@@ -1230,6 +1243,10 @@ int main(int argc, char **argv) {
     return -1;
   }
   SetStubMode(kStubLog);
+  // The ROM's start sets printLength to 16 (the Inspector's limit) once it
+  // can read the System soup; newtc prints whole arrays and frames (-dap
+  // sets its own limits)
+  DefGlobalVar(MakeSymbol("printLength"), NILREF);
   if (const char * stubs = getenv("NEWTC_STUBS"))
     if (!SetStubOptions(stubs))
       fprintf(stderr, "newtc: NEWTC_STUBS: expected log, throw, quiet, or report.\n");

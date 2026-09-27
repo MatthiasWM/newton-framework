@@ -1,0 +1,34 @@
+// Soups (10.7a), on Apple's soup code over the host store (Stores/
+// HostStore.h): Add, a query on an index with an end test, EntryChange
+// (B20: it threw once a cursor existed), a new soup, walking a cursor,
+// CountEntries, a validTest (B22: it kept the entries it should drop),
+// removing an entry. GetSoup found no soup before (B19). (Careful:
+// [c:Entry()] is an array of class 'c, not a message send.)
+DefGlobalVar('so, GetStores()[0]:GetSoup("System"));
+Print(IsFrame(so));
+DefGlobalVar('e, so:Add({tag: "newtc test", level: 3}));
+Print([e.tag, e.level, IsInteger(e._uniqueId)]);
+func TestQuery() Query(so, {type: 'index, indexPath: 'tag, startKey: "newtc test",
+  endTest: func(x) not StrEqual(x.tag, "newtc test")});
+DefGlobalVar('c, TestQuery());
+Print(c:Entry().level);
+e.level := 4;
+EntryChange(e);
+DefGlobalVar('again, TestQuery());
+DefGlobalVar('levels, [nil, nil]);
+levels[0] := c:Entry().level;
+levels[1] := again:Entry().level;
+Print(levels);
+Print(c:Next());
+DefGlobalVar('s2, GetStores()[0]:CreateSoup("newtc numbers", []));
+for i := 1 to 5 do s2:Add({n: i});
+DefGlobalVar('c2, Query(s2, {}));
+DefGlobalVar('sum, 0);
+while c2:Entry() do begin sum := sum + c2:Entry().n; c2:Next() end;
+Print(["sum", sum, c2:CountEntries()]);
+DefGlobalVar('odd, Query(s2, {validTest: func(x) x.n mod 2 = 1}));
+DefGlobalVar('odds, []);
+while odd:Entry() do begin AddArraySlot(odds, odd:Entry().n); odd:Next() end;
+Print(["odd", odds]);
+EntryRemoveFromSoup(e);
+Print(TestQuery():Entry());

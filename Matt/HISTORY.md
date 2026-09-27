@@ -1161,6 +1161,29 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B22 **validTest is inverted** (Stores/Cursors.cc, CCursor::validTest):
+  an entry was dropped when validTest returned non-nil, the entries it
+  should keep. Found 2026-09-27 (10.7a); fixed; test `soups`.
+- [x] B21 **An uninitialized flag in CUnionSoupIndex** (Stores/Indexes.cc):
+  fIsForwardSearch was never set; UBSan: "load of value 190 ... not a
+  valid value for type 'bool'". Found and fixed 2026-09-27 (10.7a).
+- [x] B20 **EntryChange throws once a cursor exists** (Stores/Entries.cc,
+  EntryChangeCommon): `cursor = GetArraySlot(cursor, i)` instead of
+  `cursors` ("ObjectPtr of non-pointer"). Found and fixed 2026-09-27
+  (10.7a); test `soups`.
+- [x] B19 **Soups are switched off**: `StoreGetSoup` (Stores/StoreWrapper.cc)
+  started with `return NILREF;` ("MATT: TODO: KLUDGE: avoid an endless
+  loop ... alignment is off occasionally ... 64 bit members"), so
+  `GetStores()[0]:GetSoup("System")` was nil although GetSoupNames() listed
+  it. Found running Battleship (10.6). Fixed 2026-09-27 (10.7a): the
+  kludge is gone, no endless loop any more (Matt's earlier alignment
+  fixes); newtc's store is the host store (Stores/HostStore.h).
+- [x] B11 **Undefined behaviour when the store is created**: the first run
+  with a new HOME (no store in `~/Library` yet) reported
+  `Stores/FlashStore.cc:1896:35: runtime error: reference binding to null
+  pointer of type 'CStoreObjRef'` (UBSan). Seen with a temporary HOME in
+  `Test/dbg/test_terminal.py`. Gone for newtc 2026-09-27 (10.7a): it no
+  longer uses the flash store (the MessagePad target still does).
 - [x] B18 **Random(low, high) is out of range** (Toolbox/Maths.cc): the port
   computed `lo + rand()/(hi-lo+1)` instead of `%`. Found 2026-09-27 running
   Battleship. Fixed the same day; test `random_numbers`.

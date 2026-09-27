@@ -158,6 +158,7 @@ set ( SRCFILES
   Stores/MuxStore.cc
   Stores/NodeCache.cc
   Stores/PSSManager.cc
+  Stores/HostStore.cc
   Stores/PackageStore.cc
   Stores/PlainSoup.cc
   Stores/Soups.cc
@@ -623,6 +624,8 @@ set_property (TARGET newtc
 
 target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1)
 target_compile_definitions(newtc PRIVATE __LP64__=1)
+# the internal store keeps its objects in memory and a file (Stores/HostStore.h)
+target_compile_definitions(newtc PRIVATE NEWTC_HOST_STORE=1)
 # UBSan links a runtime library from the toolchain, so a newtc built with it
 # only runs where that library is: the binary bundled with VSNewt is built
 # with -DNEWTC_UBSAN=OFF (Matt/tools/build_vsnewt_newtc.sh).

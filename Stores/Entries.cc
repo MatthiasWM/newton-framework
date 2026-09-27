@@ -294,7 +294,7 @@ EntryChangeCommon(RefArg inEntry, int inSelector)
 			RefVar cursor;
 			for (int i = Length(cursors) - 1; i >= 0; i--)
 			{
-				cursor = GetArraySlot(cursor, i);
+				cursor = GetArraySlot(cursors, i);	// was (cursor, i): B20
 				if (NOTNIL(cursor))
 					CursorObj(cursor)->entryChanged(inEntry, r7, sp0C);
 			}

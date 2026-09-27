@@ -477,8 +477,29 @@ Directory and namespace (decided, Matt, 2026-09-27):
       Now its setup dialog opens, Play starts a game and shows the map.
       Tests `fltk_view_values`, `random_numbers`, `stub_name`.
 - [ ] 10.7 Battleship, in this order (each a step of its own):
-  - [ ] 10.7a Soups: `StoreGetSoup` returns nil (B19), so Battleship can't
-        read its preferences (the System soup: Query, Add, EntryChange).
+  - [x] 10.7a Soups. The hybrid: Apple's soup code (soups, entries,
+        B-tree indexes, cursors, union soups, package stores; ported) stays;
+        only the internal store's bottom changes. `Stores/HostStore.{h,cc}`
+        is a CStore in memory (a map from PSSId to bytes; root id 39 as
+        CFlashStore) instead of the emulated flash chip (CFlashStore,
+        blocks, drivers: no longer used by newtc; `NEWTC_HOST_STORE` in
+        PSSManager.cc). Transactions as CFlashStore: a main one
+        (lockStore/unlockStore/abort) and objects in transactions of their
+        own (startTransactionAgainst, newWithinTransaction, separatelyAbort,
+        addToCurrentTransaction), both by keeping objects' contents before
+        the change. `-store <file>` keeps it in a file (read at the start;
+        the committed state written to a temporary file and renamed, at
+        each commit and at exit); without it, a new empty store each run
+        (as before: tests). Fixed on the way: B19 (StoreGetSoup's kludge;
+        the endless loop is gone), B20 (EntryChange threw once a cursor
+        existed), B21 (an uninitialized flag in CUnionSoupIndex), B22
+        (validTest kept the entries it should drop). The ROM's start now
+        sets printLength to 16 (it reads the System soup): newtc resets it.
+        Battleship opens on real soups and keeps its settings with -store.
+        Tests `soups`, `Test/dbg/test_store.py`. Not done: import/export as
+        JSON (no windfall: Matt/JSON.cc covers what DAP needs, not all
+        NewtonScript objects). Careful when testing: `[c:Entry()]` is an
+        array of class 'c; and `=` on strings compares identity.
   - [ ] 10.7b Pen strokes: a real unit for viewClickScript; GetPoint,
         GetPointsArray, InkOff, Drag (dragging ships into place; floaters
         too). Today the unit is nil.
@@ -552,17 +573,6 @@ Interpreter and runtime
   Strategy (2026-09-26): every stub now says so when called (see
   Conventions, "Stubs"); `-stubs report` shows which ones real programs
   call, to choose what to implement next.
-- [ ] B19 **Soups are switched off**: `StoreGetSoup` (Stores/StoreWrapper.cc)
-  starts with `return NILREF;` ("MATT: TODO: KLUDGE: avoid an endless
-  loop ... alignment is off occasionally ... 64 bit members"), so
-  `GetStores()[0]:GetSoup("System")` is nil although GetSoupNames() lists
-  it, and Query(nil, ...) throws "Undefined method 'Query". Found running
-  Battleship (10.6), which keeps its preferences in the System soup.
-- [ ] B11 **Undefined behaviour when the store is created**: the first run
-  with a new HOME (no store in `~/Library` yet) reports
-  `Stores/FlashStore.cc:1896:35: runtime error: reference binding to null
-  pointer of type 'CStoreObjRef'` (UBSan). Seen with a temporary HOME in
-  `Test/dbg/test_terminal.py`.
 - [ ] B15 **`SPrintObject` is half ported** (Frames/Strings.cc,
   `MakeStringObject`): reals, nil, true, frames, arrays give `""`, a 62-bit
   integer is cut to 32 bits (`1152921504606846975` -> `"-1"`,

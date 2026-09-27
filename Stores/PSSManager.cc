@@ -11,6 +11,7 @@
 #include "MemObjManager.h"
 #include "MuxStore.h"
 #include "FlashStore.h"
+#include "HostStore.h"
 #include "Strings.h"
 #include "ROMResources.h"
 
@@ -91,12 +92,21 @@ InitPSSManager(ObjectId inEnvId, ObjectId inDomId)
 	CMuxStoreMonitor::classInfo()->registerProtocol();
 	CFlashStore::classInfo()->registerProtocol();
 	CNewInternalFlash::classInfo()->registerProtocol();
+#if NEWTC_HOST_STORE
+	CHostStore::classInfo()->registerProtocol();
+#endif
 
 	XTRY
 	{
 		// create flash store instance and wrap it with mutex access
 		CStore *	muxStore, * flashStore;
 		XFAILNOT(muxStore = CStore::make("CMuxStore"), err = memFullErr;)
+#if NEWTC_HOST_STORE
+		// newtc: objects in memory, and in a file if one is set (-store)
+		XFAILNOT(flashStore = CStore::make("CHostStore"), muxStore->destroy(); err = memFullErr;)
+		muxStore->setStore(flashStore, inEnvId);
+		flashStore->init(NULL, 0, inEnvId, 0, 0, NULL);
+#else
 		XFAILNOT(flashStore = CStore::make("CFlashStore"), muxStore->destroy(); err = memFullErr;)
 		muxStore->setStore(flashStore, inEnvId);
 
@@ -118,6 +128,7 @@ InitPSSManager(ObjectId inEnvId, ObjectId inDomId)
 			flashStore->init((void *)persistentEntry.fBase, persistentEntry.fSize, inEnvId, 0, 0x08, NULL);
 #endif
 		}
+#endif
 
 		// set globals
 		gInRAMStore = flashStore;
