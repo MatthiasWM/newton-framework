@@ -218,3 +218,30 @@ Ref FGetRoot(RefArg rcvr);
 
 TView:Constructor() -> TView::SetupForm()
 virtaul call: r1 = vtable,  ld lr, pc ; add     pc, r1, #52
+
+Fonts:
+
+Key Newton Fonts
+- Espy Sans (System): The primary UI font built into Newton OS, roughly equivalent to what Geneva or Chicago was to early Mac OS.
+ - Simple: A standard, highly legible bitmap font comparable to Geneva.
+ - Condensed Gothic: A narrow bitmap font used for high-density information display.
+ - Newton Casual: A specialty font styled to mimic clean comic-book handwriting, designed to make handwriting recognition outputs easier for users to read.
+
+Yes, I want to embed the four Newton fonts into my Newton environment simulator. I need a replacement for 	System (Espy sans), Fancy (New York), Simple (Geneva), and HWFont (Casual)
+
+Carthage Sans: https://github.com/csyde/carthage-fonts (probably not!)
+https://www.scootergraphics.com/nusans/
+
+https://www.gust.org.pl/projects/e-foundry/tex-gyre/schola
+or https://fonts.google.com/specimen/Newsreader?preview.script=Latn
+
+https://github.com/liberationfonts/liberation-fonts
+or https://rsms.me/inter/
+
+https://github.com/crozynski/comicneue
+
+
+Apple's Espy Sans 12 : https://www.google.com/url?sa=i&source=web&rct=j&url=https://github.com/csyde/carthage-fonts
+
+336x224 44x46 26x26
+168x112 22x23 13x13

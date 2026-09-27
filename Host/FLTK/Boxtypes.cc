@@ -24,7 +24,7 @@ void DrawUpFrame(int x, int y, int w, int h, Fl_Color c)
 {
   constexpr int oft = 2;
   constexpr int oft2 = oft/2;
-  constexpr int oftr = 4;
+  constexpr int oftr = 3;
   // -- outer frame
   fl_color(FL_BLACK);
   fl_line_style(FL_SOLID, oft);
@@ -51,7 +51,7 @@ void DrawDownFrame(int x, int y, int w, int h, Fl_Color c)
 {
   constexpr int oft = 0;
   constexpr int oft2 = 0;
-  constexpr int oftr = 5;
+  constexpr int oftr = 4;
   // -- outer frame
   fl_color(FL_BLACK);
   fl_line_style(FL_SOLID, oft);
@@ -81,7 +81,7 @@ void DrawFloaterFrame(int x, int y, int w, int h, Fl_Color c)
   constexpr int ift = 5;
   constexpr int oft = 2;
   constexpr int oft2 = oft/2;
-  constexpr int oftr = 4;
+  constexpr int oftr = 3;
   // -- inner frame
   fl_color(FL_GRAY);
   // top
@@ -114,7 +114,7 @@ void RegisterBoxtypes()
   registered = true;
   // dx, dy, dw, dh: how much of the box is frame (left, top, and the width
   // and height taken off), for the widget's inside
-  Fl::set_boxtype(FLOATER_BOX, DrawFloaterBox, 7, 7, 14, 14);
+  Fl::set_boxtype(FLOATER_BOX, DrawFloaterBox, 8, 8, 16, 16);
   // A typical push button box and down box
   // Note: we will need another box for the default "Enter" button
   // Note: yes, NewtonOS offers to customize the frame radius and thickness.
