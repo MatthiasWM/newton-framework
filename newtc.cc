@@ -19,6 +19,7 @@
 #include "Utilities/Unimplemented.h"
 #include "Matt/EventLoop.h"
 #include "Matt/TestWindow.h"
+#include "Host/Root.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
@@ -296,14 +297,20 @@ void handleArgScript(const std::string &filename)
  install script with EnsureInternal, which would lose the debug map.
  */
 
-// The ROM's messages (RegisterNewPackage, InstallPart), printed instead of
-// GetRoot():Notify(...) until there is a root view.
+// The ROM's messages (RegisterNewPackage, InstallPart), through
+// GetRoot():Notify(kNotifyAlert, "Newton", ...) as in the ROM.
 static void reportPartError(RefArg package, const char * inWhat, ArrayIndex inPart, const std::string & inType)
 {
   RefVar name(GetFrameSlot(package, MakeSymbol("name")));
-  REPprintf("An error occurred %s the package \"%s\". It may not work with this system. "
-            "Contact the software publisher for further information. (Part %u, Type %s)\n",
-            inWhat, IsString(name) ? UTF8FromString(name).c_str() : "?", (unsigned)inPart, inType.c_str());
+  char text[512];
+  snprintf(text, sizeof(text), "An error occurred %s the package \"%s\". It may not work with this system. "
+           "Contact the software publisher for further information. (Part %u, Type %s)",
+           inWhat, IsString(name) ? UTF8FromString(name).c_str() : "?", (unsigned)inPart, inType.c_str());
+  RefVar args(MakeArray(3));
+  SetArraySlot(args, 0, MAKEINT(3));   // kNotifyAlert
+  SetArraySlot(args, 1, MakeStringFromCString("Newton"));
+  SetArraySlot(args, 2, MakeStringFromCString(text));
+  DoMessage(RootView(), MakeSymbol("Notify"), args);
 }
 
 // ROM InstallFormPart: the part frame is read-only, so the install script

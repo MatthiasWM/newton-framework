@@ -1,0 +1,9 @@
+// 10.2: GetRoot() is the root view's frame, the same one every time, and
+// writable (installing keeps each app's base view in it). Its Notify prints.
+// The ROM's own NewtonScript uses it: InstallFormPart refuses an app that is
+// already there, through GetRoot():Notify.
+Print(IsFrame(GetRoot()) and GetRoot() = GetRoot());
+GetRoot().|hello:SIG| := {appName: "Hello"};
+Print(GetRoot().|hello:SIG|.appName);
+GetRoot():Notify(3, "Newton", "Hello from the root view.");
+Print(InstallFormPart({partFrame: {app: '|hello:SIG|}}));

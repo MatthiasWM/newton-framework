@@ -10,6 +10,8 @@ Every test case lives in Test/dbg/cases/ and consists of:
   <name>.expected  the expected output (stdout, then stderr if any)
   <name>.args      (optional) extra newtc arguments, placed before -script,
                    e.g. -dbg
+  <name>.after     (optional) newtc arguments placed after -script <name>.ns,
+                   e.g. -run (runs what the script returned)
 
 A DAP case has a <name>.dap script instead of <name>.in: newtc runs as
 `newtc [args] -dap`, and dap_client.py plays the script (requests, `wait
@@ -112,9 +114,11 @@ def run_case(newtc, ns):
         return run_dap_case(newtc, ns, extra)
     inp = ns.with_suffix(".in")
     stdin = inp.read_bytes() if inp.exists() else b""
+    after_file = ns.with_suffix(".after")
+    after = after_file.read_text().split() if after_file.exists() else []
     try:
         proc = subprocess.run(
-            [str(newtc), *extra, "-script", ns.name],
+            [str(newtc), *extra, "-script", ns.name, *after],
             cwd=ns.parent, input=stdin, capture_output=True, timeout=TIMEOUT)
     except subprocess.TimeoutExpired as e:
         out = (e.stdout or b"").decode("utf-8", "replace")

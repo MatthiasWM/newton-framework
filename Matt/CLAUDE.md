@@ -52,6 +52,9 @@ Done so far (details in HISTORY.md):
   `AST*` (the decompiler); `tools/` (`rom_jumptable.py`,
   `build_vsnewt_newtc.sh`).
 - `Utilities/Unimplemented.{h,cc}`: `NS_STUB` and `-stubs`.
+- `Host/`: newtc as a Newton on the desktop: `Root` (the root view, not
+  FLTK-specific); `Host/FLTK/` (planned) for the FLTK layer, namespace
+  `nfl`.
 - `Frames/Interpreter.{h,cc}`: the debugger hooks (not in ROM):
   `gBreakLoopReason`, `gDebuggerPoll`, `DebuggerPollNow()`,
   `gDebuggerStep`.
@@ -60,7 +63,7 @@ Done so far (details in HISTORY.md):
   we don't pursue); they are the reference for what views and packages do.
   Old Mac files: CR line endings, MacRoman.
 - Tests: `Test/dbg/` (`run_dbg_tests.py` with `cases/`: `.ns` plus `.in`,
-  `.dap`, `.args`, `.expected`; `dap_client.py`; `test_dap_extras.py`,
+  `.dap`, `.args`, `.after`, `.expected`; `dap_client.py`; `test_dap_extras.py`,
   `test_terminal.py`, `test_nsdbg.py`), `Test/nsdbg_check.py`,
   `Test/lines_invariant.py`, `Test/run_corpus.py` (the package corpus,
   `Test/corpus_results/latest_manifest.json`).
@@ -174,6 +177,12 @@ Decided or leaning (Matt, 2026-09-27):
   so that the garbage collector can tell us when a view frame is gone.
 - **Look and feel**: in FLTK itself (Matt's PR on GitHub): graphics for
   frames and other elements in the NewtonOS style, inline fonts.
+- **The root view** (decided, 2026-09-27): only what programs need, when
+  they need it. NewtonOS's root view has much more before any package is
+  opened (the Extras drawer, notifications, memory set aside so it can
+  still show an out-of-memory alert, ...). No window of its own: no
+  Newton screen; each window-like Newton view (an app's base view, a
+  floating view, ...) gets an FLTK window of its own.
 - **Scripts from events**: only through `SendEventMessage()`, one at a time,
   exceptions caught there (the 10.1 rules, summarized under Reference).
   Modal dialogs open a nested event loop whose events may run scripts inside
@@ -206,10 +215,20 @@ Directory and namespace (decided, Matt, 2026-09-27):
       InstallPart): DoNotInstall in a try, per-part error handling with the
       ROM's messages; install script as InstallFormPart does it, without
       EnsureInternal.
-- [ ] 10.2 The root view: `GetRoot()` returns the root view's frame (a
-      global, GC rooted), with `Notify(level, title, text)` (the Debug
-      Console first, an FLTK alert later). Decide where the root view lives
-      (a desktop window per app, or one Newton screen).
+- [x] 10.2 The root view (Host/Root.{h,cc}; not FLTK-specific, so -dap
+      without FLTK has one too): `GetRoot()` returns the root view's frame,
+      the same one every time (a GC root), writable; `root:Notify(level,
+      title, message)` prints "title: message" (the Debug Console with
+      -dap; an FLTK alert later). The ROM's NewtonScript works with it:
+      InstallFormPart refuses an app that is already there through
+      Notify. installPackage() reports its errors through it, too. The
+      GetRoot stub is gone. Test harness: `<name>.after` holds arguments
+      after `-script <name>.ns` (e.g. `-run`). Tests: `root_view`,
+      `install_parts`.
+      Needed later (then, not before): the Extras drawer
+      (`GetRoot().ExtrasDrawer`): GetAppName asks it when an app's base
+      view has neither appName nor title, and InstallPart tells it about
+      built-in and 1.x packages.
 - [ ] 10.2b Debugging after EnsureInternal: functions that EnsureInternal
       (or TotalClone, Clone) copies keep their line tables and debug maps,
       so breakpoints and stepping still work in code the ROM copied (e.g. an

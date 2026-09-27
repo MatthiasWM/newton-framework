@@ -1,0 +1,7 @@
+// Installing a package (-run; installPackage() follows the ROM's
+// RegisterNewPackage and InstallPart): an error in one part is reported
+// through GetRoot():Notify with the ROM's message, and the other parts are
+// still installed.
+{name: "Two Parts", part: [
+  {type: "form", data: {app: 'one, InstallScript: func(p) Throw('|evt.ex.msg|, "part one fails")}},
+  {type: "auto", data: {InstallScript: func(p) Print("part two installed")}}]}

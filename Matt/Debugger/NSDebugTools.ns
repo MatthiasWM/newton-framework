@@ -1634,7 +1634,7 @@ DefineGlobalConstant('kNSDTools, {
     begin
       local oldTrace := call kNSDSetTrace with (nil);
       local wasEnabled := self:EnableBreakPoints(flag <> nil);
-      // newtc: no root view without a GUI, so no app to update
+      // newtc: the tools' about box app isn't installed: nothing to update
       local root := GetRoot();
       local app := root and root.|NS Debug Tools:PIE|;
       local isOpen := app and call kNSDIsOpen with (app);

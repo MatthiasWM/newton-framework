@@ -305,8 +305,6 @@ NS_STUB(FGetPointsArrayXY, RefArg rcvr)
 NS_STUB(FGetPolygons, RefArg rcvr)
 NS_STUB(FGetPopup, RefArg rcvr)
 NS_STUB(FGetRemoteWriting, RefArg rcvr)
-// nil until there is a root view (plan step 9.2); the NS Debug Tools expect it
-NS_STUB_NIL_OK(FGetRoot, RefArg rcvr)
 NS_STUB(FGetScoreArray, RefArg rcvr)
 NS_STUB(FGetStyleAtOffset, RefArg rcvr)
 NS_STUB(FGetStylesOfRange, RefArg rcvr)
