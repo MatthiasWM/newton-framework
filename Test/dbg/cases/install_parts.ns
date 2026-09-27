@@ -1,7 +1,8 @@
-// Installing a package (-run; installPackage() follows the ROM's
-// RegisterNewPackage and InstallPart): an error in one part is reported
-// through GetRoot():Notify with the ROM's message, and the other parts are
-// still installed.
+// Installing a package (-run): installPackage() hands each part to the
+// ROM's own InstallPart, which catches an error in a part, reports it through
+// GetRoot():Notify with its message (the exception itself isn't printed, as
+// on a Newton; with -dap the debugger stops at the throw), and still
+// installs the other parts.
 {name: "Two Parts", part: [
   {type: "form", data: {app: 'one, InstallScript: func(p) Throw('|evt.ex.msg|, "part one fails")}},
   {type: "auto", data: {InstallScript: func(p) Print("part two installed")}}]}

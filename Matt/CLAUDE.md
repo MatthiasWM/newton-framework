@@ -131,8 +131,12 @@ in `@4098`); decompiled with `newtc -script x.ns -decompile` where x.ns is
    viewQuitScript and removes `viewCObject`. (To confirm in CView,
    `Views/View.cc`, when we get there.)
 
-For newtc: `-run` (and `-dap` with a package as the program) installs and
-then opens the app, as if its icon had been tapped.
+For newtc (Matt, 2026-09-27): there is no Extras drawer, so no icon to tap,
+and newtc runs a single app. So `-run` (and `-dap` with a package as the
+program) installs and activates the package and then opens its app right
+away: `GetRoot().(appSymbol):Open()`. The NewtonOS environment (the button
+bar, the Extras drawer, the built-in apps) may come in a later iteration,
+not for a while.
 
 Findings that shape the design:
 - **`viewCObject`**: the ROM's NewtonScript uses this slot 251 times, often
@@ -147,10 +151,8 @@ Findings that shape the design:
   package as internal (it stays in memory until newtc exits); or debug maps
   also match copies (by the hash of their instructions). Decided (Matt,
   2026-09-27): packages stay read-only as on a Newton, so EnsureInternal
-  copies; line tables follow the copies (done, 10.2b). Until 10.3
-  `installPackage()` does InstallFormPart's work itself (without
-  EnsureInternal), and follows RegisterNewPackage and InstallPart otherwise
-  (order, per-part error handling, the ROM's messages).
+  copies; line tables follow the copies (done, 10.2b). Since 10.3
+  `installPackage()` uses the ROM's own InstallPart.
 - **The C++ view system isn't in newtc**: CView/CRootView (`Views/`) and the
   package manager are only compiled for MessagePad. `GetRoot`,
   `BuildContext` and the view natives are stubs. The link classes (below)
@@ -175,8 +177,10 @@ Decided or leaning (Matt, 2026-09-27):
 - **The link in the view frame**: a CObject binary
   (`AllocateCObjectBinary` with a destructor, like `NSDMakeNSDebugAPI`),
   so that the garbage collector can tell us when a view frame is gone.
-- **Look and feel**: in FLTK itself (Matt's PR on GitHub): graphics for
-  frames and other elements in the NewtonOS style, inline fonts.
+- **Look and feel**: the NewtonOS look (graphics for frames and other
+  elements, the Newton fonts) is implemented here, in `Host/FLTK/`. FLTK
+  itself gets inline fonts (fonts compiled into the program; Matt's PR,
+  https://github.com/fltk/fltk/pull/1617), which the Newton fonts will use.
 - **The root view** (decided, 2026-09-27): only what programs need, when
   they need it. NewtonOS's root view has much more before any package is
   opened (the Extras drawer, notifications, memory set aside so it can
@@ -185,6 +189,16 @@ Decided or leaning (Matt, 2026-09-27):
   floating view, ...) gets an FLTK window of its own.
 - **Scripts from events**: only through `SendEventMessage()`, one at a time,
   exceptions caught there (the 10.1 rules, summarized under Reference).
+- **Telling the user** (agreed, 2026-09-27): what NewtonOS shows in a
+  notification goes through `GetRoot():Notify` (the ROM's own code does it,
+  e.g. for install errors), and so will an exception that escapes a
+  callback (the ROM's behaviour; to change in SendEventMessage when we get
+  there). Notify decides how to show it: printed while developing (-dap,
+  terminal; a modal alert would get in the way, and the debugger already
+  stopped at the throw), a Newton-style FLTK alert later for someone just
+  running a package (an option, or when no debugger is attached). Our texts
+  can say more than the ROM's bare error numbers ("Undefined variable:
+  'foo", the number in small print).
   Modal dialogs open a nested event loop whose events may run scripts inside
   the one that opened the dialog, as in NewtonOS.
 
@@ -214,7 +228,7 @@ Directory and namespace (decided, Matt, 2026-09-27):
 - [x] 10.1b `installPackage()` follows the ROM (RegisterNewPackage,
       InstallPart): DoNotInstall in a try, per-part error handling with the
       ROM's messages; install script as InstallFormPart does it, without
-      EnsureInternal.
+      EnsureInternal (replaced by the ROM's InstallPart in 10.3).
 - [x] 10.2 The root view (Host/Root.{h,cc}; not FLTK-specific, so -dap
       without FLTK has one too): `GetRoot()` returns the root view's frame,
       the same one every time (a GC root), writable; `root:Notify(level,
@@ -254,13 +268,31 @@ Directory and namespace (decided, Matt, 2026-09-27):
       `test_nsdbg.py` (the ROM's own InstallFormPart installs the decompiled
       Hello package: the breakpoint in hello.ns stops in the copied
       InstallScript).
-- [ ] 10.3 `BuildContext(template)`: the view frame for a template (as CView
-      buildContext does, no native view yet). Then `installPackage()` uses
-      the ROM's `InstallPart` (after 10.2b), so `root.(app)` is the app's
-      base view.
+- [x] 10.3 `BuildContext(template)` (Host/Views.{h,cc}; the stub is gone):
+      the view frame for a template, as CView::buildContext and the ROM
+      (FBuildContext builds even a hidden view): a clone of the ROM's view
+      frame (magic pointer 29: `_parent`, `_proto`, `viewCObject`; 31 adds
+      `realData` for data views), or the template's own `_cacheContext`;
+      `_proto` the template, `_parent` the root view; a stationery
+      (`viewStationery`, e.g. 'para, or ink) gets its form from `stdForms`
+      (view classes with bit 0x10000 keep the template as realData). No
+      native view: `viewCObject` stays nil until the view is opened.
+      `installPackage()` now hands each 'form and 'auto part to the ROM's
+      own `InstallPart`, with the install info Packages/Parts.cc makes (a
+      clone of canonicalFramePartInstallInfo; no store: ids and types 0, no
+      packageStyle, so the Extras drawer isn't asked). So the ROM installs
+      the form part: devInstallScript before InstallScript, EnsureInternal
+      copies (debuggable since 10.2b), root.(app) := BuildContext(theForm),
+      the "already installed" check, errors reported through Notify (the
+      ROM catches an exception in a part and shows only its message; with
+      -dap the debugger stops at the throw first).
+      Tests: `install_hello` (-hello -run: GetRoot().|hello:SIG| is the base
+      view, not open), `install_parts`, `test_nsdbg.py` (breakpoints in the
+      decompiled Hello package, installed by the ROM).
 - [ ] 10.4 Open and close: the first link classes (root, clView, the app's
-      base view as an FLTK window); `-run` and `-dap` open the installed
-      app (`GetRoot().(app):Open()`); the view scripts run in NewtonOS's
+      base view as an FLTK window); `-run` and `-dap` open the app right
+      after installing it (`GetRoot().(app):Open()`; no Extras drawer, one
+      app at a time); the view scripts run in NewtonOS's
       order; closing the window closes the view (viewQuitScript).
 - [ ] 10.5 The Hello app with a button (protoTextButton,
       buttonClickScript), a modal alert, and a reaction to closing; tests

@@ -1,0 +1,7 @@
+// run after install_hello.ns and -run
+begin
+  local view := GetRoot().|hello:SIG|;
+  Print([IsFrame(view), view._parent = GetRoot(), view.viewCObject]);
+  Print(view._proto.viewBounds);
+  Print(view._proto.stepChildren[0].text);
+end;

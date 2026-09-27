@@ -287,25 +287,26 @@ void handleArgScript(const std::string &filename)
    SafeActivatePackageQT(...)        -> ActivatePackage(pkgRef) (C++), which
                                      calls each part's handler; for 'form and
                                      'auto parts (Packages/Parts.cc)
-   InstallPart(installInfo)          -> InstallFormPart / InstallAutoPart,
-                                     an error is reported (Notify) and the
-                                     next part is still installed.
+   InstallPart(installInfo)          -> InstallFormPart / InstallAutoPart (in
+                                     a try: an error is reported with Notify
+                                     and the next part is still installed).
  newtc has no store, soups, or C++ package manager, so installPackage() does
- these steps itself, with the same order and error handling. The form part
- is installed by hand (installFormPart), not by the ROM's InstallFormPart:
- that one needs the root view (GetRoot, BuildContext), and it copies the
- install script with EnsureInternal, which would lose the debug map.
+ the C++ steps itself: the DoNotInstall check, then for each 'form and
+ 'auto part the install info that Packages/Parts.cc makes, handed to the
+ ROM's own InstallPart. InstallFormPart copies the install script
+ (EnsureInternal: package objects are read-only); line tables follow the
+ copy (10.2b). It keeps the app's base view (BuildContext) in the root view.
  */
 
-// The ROM's messages (RegisterNewPackage, InstallPart), through
-// GetRoot():Notify(kNotifyAlert, "Newton", ...) as in the ROM.
-static void reportPartError(RefArg package, const char * inWhat, ArrayIndex inPart, const std::string & inType)
+// The ROM's message (RegisterNewPackage), through GetRoot():Notify(
+// kNotifyAlert, "Newton", ...) as in the ROM.
+static void reportInstallError(RefArg package, ArrayIndex inPart)
 {
   RefVar name(GetFrameSlot(package, MakeSymbol("name")));
   char text[512];
-  snprintf(text, sizeof(text), "An error occurred %s the package \"%s\". It may not work with this system. "
-           "Contact the software publisher for further information. (Part %u, Type %s)",
-           inWhat, IsString(name) ? UTF8FromString(name).c_str() : "?", (unsigned)inPart, inType.c_str());
+  snprintf(text, sizeof(text), "An error occurred installing the package \"%s\". It may not work with this system. "
+           "Contact the software publisher for further information. (Part %u)",
+           IsString(name) ? UTF8FromString(name).c_str() : "?", (unsigned)inPart);
   RefVar args(MakeArray(3));
   SetArraySlot(args, 0, MAKEINT(3));   // kNotifyAlert
   SetArraySlot(args, 1, MakeStringFromCString("Newton"));
@@ -313,45 +314,32 @@ static void reportPartError(RefArg package, const char * inWhat, ArrayIndex inPa
   DoMessage(RootView(), MakeSymbol("Notify"), args);
 }
 
-// ROM InstallFormPart: the part frame is read-only, so the install script
-// gets a new frame {_proto: partFrame, app, InstallScript, RemoveScript}; the
-// developer's scripts (NTK: devInstallScript, devRemoveScript) come first.
-// Not yet: the "already installed" check and root.(app) :=
-// BuildContext(partFrame.theForm) (need the root view); no EnsureInternal
-// (the package stays in memory, and debug maps find functions by their
-// instructions).
-static void installFormPart(RefArg partFrame)
+// The install info for a part, as InstallPart (Packages/Parts.cc) makes it:
+// a clone of the ROM's canonicalFramePartInstallInfo. No store: package id
+// and type 0, no device (deviceKind 0), no packageStyle (so the Extras
+// drawer isn't asked).
+static Ref partInstallInfo(RefArg package, RefArg part, ArrayIndex inPart, RefArg inType)
 {
-  RefVar symInstall(MakeSymbol("InstallScript"));
-  RefVar symRemove(MakeSymbol("RemoveScript"));
-  RefVar context(AllocateFrame());
-  SetFrameSlot(context, MakeSymbol("_proto"), partFrame);
-  SetFrameSlot(context, MakeSymbol("app"), GetFrameSlot(partFrame, MakeSymbol("app")));
-  RefVar install(GetFrameSlot(partFrame, MakeSymbol("devInstallScript")));
-  SetFrameSlot(context, symInstall, NOTNIL(install) ? (Ref)install : GetFrameSlot(partFrame, symInstall));
-  RefVar remove(GetFrameSlot(partFrame, MakeSymbol("devRemoveScript")));
-  SetFrameSlot(context, symRemove, NOTNIL(remove) ? (Ref)remove : GetFrameSlot(partFrame, symRemove));
-  RefVar args(MakeArray(1));
-  SetArraySlot(args, 0, context);
-  if (NOTNIL(GetFrameSlot(context, symInstall)))
-    DoMessage(context, symInstall, args);
-  SetFrameSlot(context, symInstall, NILREF);
-}
-
-// ROM InstallAutoPart: partFrame:?InstallScript(partFrame).
-static void installAutoPart(RefArg partFrame)
-{
-  RefVar args(MakeArray(1));
-  SetArraySlot(args, 0, partFrame);
-  bool defined;
-  DoMessageIfDefined(partFrame, MakeSymbol("InstallScript"), args, &defined);
+  RefVar info(Clone(RA(canonicalFramePartInstallInfo)));
+  RefVar name(GetFrameSlot(package, MakeSymbol("name")));
+  SetFrameSlot(info, MakeSymbol("partType"), inType);
+  SetFrameSlot(info, MakeSymbol("partFrame"), GetFrameSlot(part, MakeSymbol("data")));
+  SetFrameSlot(info, MakeSymbol("packageId"), MAKEINT(0));
+  SetFrameSlot(info, MakeSymbol("packageName"), IsString(name) ? (Ref)name : MakeStringFromCString(""));
+  SetFrameSlot(info, MakeSymbol("partIndex"), MAKEINT(inPart));
+  RefVar size(GetFrameSlot(part, MakeSymbol("size")));
+  SetFrameSlot(info, MakeSymbol("size"), ISINT(size) ? (Ref)size : MAKEINT(0));
+  SetFrameSlot(info, MakeSymbol("packageType"), MAKEINT(0));
+  SetFrameSlot(info, MakeSymbol("deviceKind"), MAKEINT(0));
+  SetFrameSlot(info, MakeSymbol("deviceNumber"), MAKEINT(0));
+  SetFrameSlot(info, MakeSymbol("packageStyle"), NILREF);
+  return info;
 }
 
 /**
  \brief Install a package like a Newton does (-run, and -dap with a package
  as the program); see above. Nothing is installed if a part's DoNotInstall()
- returns non-nil or throws. An exception in a part's install script is
- reported, and the other parts are still installed.
+ returns non-nil or throws.
  \return false if `package` is no package.
  */
 bool installPackage(RefArg package)
@@ -381,7 +369,7 @@ bool installPackage(RefArg package)
     newton_catch_all
     {
       gREPout->exceptionNotify(CurrentException());
-      reportPartError(package, "installing", i, "");
+      reportInstallError(package, i);
       install = false;
     }
     end_try;
@@ -389,27 +377,19 @@ bool installPackage(RefArg package)
   if (!install)
     return true;
 
-  // ActivatePackage -> InstallPart, for each part
+  // ActivatePackage -> the ROM's InstallPart, for each 'form and 'auto part
+  RefVar installPart(GetFrameSlot(gFunctionFrame, MakeSymbol("InstallPart")));
   for (ArrayIndex i = 0; i < count; ++i) {
     RefVar part(GetArraySlot(parts, i));
-    RefVar partFrame(GetFrameSlot(part, MakeSymbol("data")));
     RefVar type(GetFrameSlot(part, MakeSymbol("type")));
-    if (!IsFrame(partFrame) || !IsString(type))
+    if (!IsFrame(GetFrameSlot(part, MakeSymbol("data"))) || !IsString(type))
       continue;
     std::string typeName = UTF8FromString(type);
-    newton_try
-    {
-      if (typeName == "form")
-        installFormPart(partFrame);
-      else if (typeName == "auto")
-        installAutoPart(partFrame);
-    }
-    newton_catch_all
-    {
-      gREPout->exceptionNotify(CurrentException());
-      reportPartError(package, "activating", i, typeName);
-    }
-    end_try;
+    if (typeName != "form" && typeName != "auto")
+      continue;
+    RefVar args(MakeArray(1));
+    SetArraySlot(args, 0, partInstallInfo(package, part, i, MakeSymbol(typeName.c_str())));
+    DoBlock(installPart, args);   // reports its own errors (Notify)
   }
   return true;
 }

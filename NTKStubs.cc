@@ -15,7 +15,6 @@ Ref FArrayToPoints(RefArg rcvr);
 Ref FBlockKeyCommand(RefArg rcvr);
 Ref FBookAvailable(RefArg rcvr);
 Ref FBookRemoved(RefArg rcvr);
-Ref FBuildContext(RefArg rcvr);
 Ref FBusyBoxControl(RefArg rcvr);
 Ref FCalibrateTablet(RefArg rcvr);
 Ref FCaretRelativeToVisibleRect(RefArg rcvr);
@@ -236,7 +235,6 @@ NS_STUB(FArrayToPoints, RefArg rcvr)
 NS_STUB(FBlockKeyCommand, RefArg rcvr)
 NS_STUB(FBookAvailable, RefArg rcvr)
 NS_STUB(FBookRemoved, RefArg rcvr)
-NS_STUB(FBuildContext, RefArg rcvr)
 NS_STUB(FBusyBoxControl, RefArg rcvr)
 NS_STUB(FCalibrateTablet, RefArg rcvr)
 NS_STUB(FCaretRelativeToVisibleRect, RefArg rcvr)
