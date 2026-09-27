@@ -52,9 +52,20 @@ Done so far (details in HISTORY.md):
   `AST*` (the decompiler); `tools/` (`rom_jumptable.py`,
   `build_vsnewt_newtc.sh`).
 - `Utilities/Unimplemented.{h,cc}`: `NS_STUB` and `-stubs`.
-- `Host/`: newtc as a Newton on the desktop: `Root` (the root view, not
-  FLTK-specific); `Host/FLTK/` (planned) for the FLTK layer, namespace
-  `nfl`.
+- `Host/`: newtc as a Newton on the desktop, not FLTK-specific: `Root`
+  (the root view), `ViewMethods` and `Graphics` (the natives, stubs
+  without FLTK), `Shapes` (shapes in the ROM's formats), `Pict` (PICT
+  bitmaps), `Pen` (stroke natives), `Timers` (delayed and deferred calls).
+- `Host/FLTK/`: the FLTK layer, namespace `nfl`. `Links` (a Link per open
+  view: the link slot is `viewCObject`; Build/Dispose, pen, hide/show,
+  bounds, fonts), `Widgets` (ViewWidget, TextView, PictureView,
+  DrawViewFormat), `FloatNGo` (a window), `Boxtypes` (Matt's boxes:
+  FLOATER_BOX, buttons), `Drawing` (DrawShape, DrawXBitmap, canvases,
+  viewDrawScript), `Pen` (strokes), `Popup` (DoPopup), `RomImages` and
+  `Images/` (the ROM's pictures as PNGs, embedded by
+  cmake/EmbedImages.cmake).
+- `Stores/HostStore.{h,cc}`: the store in a file (`-store`), under Apple's
+  soup code.
 - `Frames/Interpreter.{h,cc}`: the debugger hooks (not in ROM):
   `gBreakLoopReason`, `gDebuggerPoll`, `DebuggerPollNow()`,
   `gDebuggerStep`.
@@ -70,8 +81,10 @@ Done so far (details in HISTORY.md):
   is still UTF-8 is harmless: a few symbols in comments (degrees, dashes),
   the .md files, and test outputs that show Newton strings.
 - Tests: `Test/dbg/` (`run_dbg_tests.py` with `cases/`: `.ns` plus `.in`,
-  `.dap`, `.args`, `.after`, `.expected`; `dap_client.py`; `test_dap_extras.py`,
-  `test_terminal.py`, `test_nsdbg.py`), `Test/nsdbg_check.py`,
+  `.dap`, `.args`, `.after`, `.expected`; cases named `fltk_*` need
+  FLTK and are skipped without; `dap_client.py`; `test_dap_extras.py`,
+  `test_terminal.py`, `test_nsdbg.py`, `test_store.py`),
+  `Test/stub_census.py`, `Test/nsdbg_check.py`,
   `Test/lines_invariant.py`, `Test/run_corpus.py` (the package corpus,
   `Test/corpus_results/latest_manifest.json`).
 - VSNewt: `/Users/matt/dev/VSNewt.git/vsnewt` (github MatthiasWM/VSNewt).
@@ -232,6 +245,27 @@ Directory and namespace (decided, Matt, 2026-09-27):
   `extern "C"` at global scope (`FGetRoot`, ...): the ROM's function table
   finds them by their C names. Include FLTK's headers before the
   framework's (the framework `#define`s `OVERRIDE`, `INVISIBLE`, ...).
+
+### Resume here (2026-09-28)
+
+Last commit 6f83ae5 (10.7e, most of it). Next: the rest of 10.7e (see its
+open items), then 10.7f and 10.7g. Builds: `build/VSCode` (FLTK, the
+default for the tests) and `build/Release` (no FLTK; pass the runner an
+absolute `--newtc`). All suites: `python3 Test/dbg/run_dbg_tests.py`
+(96 with FLTK; 75 + 21 skipped without), then `test_nsdbg.py`,
+`test_dap_extras.py`, `test_terminal.py`, `test_store.py`.
+Working on Battleship (the package: see 10.7):
+- `newtc -pkg Battleship.pkg -odecompile bs.ns`: its source, to read.
+- A `-script` after `-pkg ... -run` runs once the app is open: walk
+  `GetRoot().|Battleship:ATOW|:ChildViewFrames()` and print text,
+  viewJustify, `:GlobalBox()`; `TestSnapshot(view, "x.png")` saves a
+  picture to compare with Matt's Screenshot1-5.jpg (repo root, not in
+  git). Top-level `local`s don't carry over between statements: wrap the
+  script in a func. An uncaught exception in a script leaves the window
+  open (newtc then waits): run with a timeout.
+- A ROM function's literals (`fn.literals`) tell which natives it calls:
+  that is how the DrawXBitmap caller was found.
+- `-stubs throw` or `-stubs report` for the stubs a run calls.
 
 ### Steps
 
