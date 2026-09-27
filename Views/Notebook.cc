@@ -297,7 +297,7 @@ DrawUnicodeText(str, Ustrlen(str), &box, gWhiteColor, vjCenterH);
 
 /*------------------------------------------------------------------------------
 	Run the application.
-	While we’re idle, update the root view.
+	While we're idle, update the root view.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -319,7 +319,7 @@ CNotebook::run(void)
 	When the global time is past our idle time we should perform the regular
 	idle tasks.
 	Args:		--
-	Return:	bool		it’s time to idle
+	Return:	bool		it's time to idle
 ------------------------------------------------------------------------------*/
 
 bool

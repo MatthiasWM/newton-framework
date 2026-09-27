@@ -5,7 +5,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	G l o b a l   F u n c t i o n s
 ------------------------------------------------------------------------------*/
 
-//ее	Math Operators
+//**	Math Operators
 
 	|+|: plainC.FAdd,								/* freq-func */
 	|-|: plainC.FSubtract,						/* freq-func */
@@ -25,7 +25,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	|setAref|: plainC.FSetAref,				/* freq-func */
 	|newIterator|: plainC.FNewIterator,		/* freq-func */
 
-//ее	Utilities - Object System
+//**	Utilities - Object System
 
 	ClassOf: plainC.FClassOf,					/* freq-func */
 	Clone: plainC.FClone,						/* freq-func */
@@ -86,7 +86,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	PostCommandParam: plainC.FPostCommandParam /* cmdId, view, parm */,
 
 
-//ее	Utilities - Strings
+//**	Utilities - Strings
 
 	BeginsWith: plainC.FBeginsWith,
 	Capitalize: plainC.FCapitalize,
@@ -263,7 +263,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	ScanPrevWordEnd: plainC.FScanPrevWordEnd /* funcPtr: 6996505, numArgs: 3 */,
 	ScanNextWord: plainC.FScanNextWord /* funcPtr: 6996504, numArgs: 3 */,
 
-//ее Utilities - Characters
+//** Utilities - Characters
 
 	Chr: plainC.FCHR,
 	Ord: plainC.FORD,
@@ -296,14 +296,14 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 		ch
 		end,
 
-//ее	Utilities - Bitwise
+//**	Utilities - Bitwise
 
 	band: plainC.FBitAnd,						/* freq-func */
 	bor: plainC.FBitOr,							/* freq-func */
 	bxor: plainC.FBitXor,
 	bnot: plainC.FBitNot,						/* freq-func */
 
-//ее	Utilities - Array
+//**	Utilities - Array
 
 	addArraySlot: plainC.FAddArraySlot,		/* freq-func */
 	Array: plainC.FArray,
@@ -324,7 +324,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	Sort: plainC.FSort,
 	StableSort: plainC.FStableSort /* funcPtr: 806624, numArgs: 3 */,
 
-//ее	Utilities - Sorted Array
+//**	Utilities - Sorted Array
 
 	BDelete: plainC.FBDelete /* funcPtr: 810654, numArgs: 5 */,
 	BDifference: plainC.FBDifference /* funcPtr: 811407, numArgs: 4 */,
@@ -339,7 +339,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	BSearchLeft: plainC.FBSearchLeft /* funcPtr: 810361, numArgs: 4 */,
 	BSearchRight: plainC.FBSearchRight /* funcPtr: 810259, numArgs: 4 */,
 
-//ее	Utilities - Integer Math
+//**	Utilities - Integer Math
 
 	abs: plainC.Fabs /* funcPtr: 6907709, numArgs: 1 */,
 	ceiling: plainC.Fceiling /* funcPtr: 6908751, numArgs: 1 */,
@@ -356,7 +356,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	GetRandomState: plainC.FGetRandomState /* funcPtr: 714065, numArgs: 0 */,
 	SetRandomState: plainC.FSetRandomState /* funcPtr: 714105, numArgs: 1 */,
 
-//ее Utilities - Floating Point Math
+//** Utilities - Floating Point Math
 
 	isfinite: plainC.Fisfinite /* funcPtr: 6914035, numArgs: 1 */,
 	IsFiniteNumber: plainC.FIsFiniteNumber /* funcPtr: 6914035, numArgs: 1 */,
@@ -422,7 +422,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	UnorderedOrGreater: plainC.FUnorderedOrGreater /* funcPtr: 6912973, numArgs: 2 */,
 	UnorderedOrLess: plainC.FUnorderedOrLess /* funcPtr: 6912974, numArgs: 2 */,
 
-//ее Utilities - Floating Point Environment
+//** Utilities - Floating Point Environment
 
 	feclearexcept: plainC.Ffeclearexcept /* funcPtr: 6914021, numArgs: 1 */,
 	fegetenv: plainC.Ffegetenv /* funcPtr: 6914022, numArgs: 0 */,
@@ -437,12 +437,12 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	fegetround: plainC.Ffegetround /* funcPtr: 6914024, numArgs: 0 */,
 	fesetround: plainC.Ffesetround /* funcPtr: 6914029, numArgs: 1 */,
 
-//ее Utilities - Financial
+//** Utilities - Financial
 
 	annuity: plainC.Fannuity /* funcPtr: 6912981, numArgs: 2 */,
 	compound: plainC.Fcompound /* funcPtr: 6912987, numArgs: 2 */,
 
-//ее Utilities - Exceptions
+//** Utilities - Exceptions
 
 	Throw: plainC.FThrow/*name, data*/,
 	Rethrow: plainC.FRethrow,
@@ -486,7 +486,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 		Throw(xName, xData)
 		end,
 
-//ее Utilities - Message Sending
+//** Utilities - Message Sending
 
 	Apply: plainC.FApply,
 	Perform: plainC.FPerform,
@@ -526,9 +526,9 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 		result
 		end,
 
-//ее Utilities - Deferred Message Sending
+//** Utilities - Deferred Message Sending
 
-//	IsHalting: although documented, doesn╒t appear to exist
+//	IsHalting: although documented, doesn't appear to exist
 	AddDeferredCall: plainC.FAddDeferredCall,
 	AddDeferredSend: plainC.FAddDeferredSend,
 	AddDelayedCall: plainC.FAddDelayedCall,
@@ -611,7 +611,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 			AddProcrastinatedSend(msgSym, rcvr, msg, args, delay)
 		end,
 
-//ее Utilities - Data Extraction
+//** Utilities - Data Extraction
 
 	ExtractChar: plainC.FExtractChar/*obj, offset*/,
 	ExtractUniChar: plainC.FExtractUniChar/*obj, offset*/,
@@ -623,7 +623,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	ExtractPString: plainC.FExtractPString/*obj, offset*/,
 	ExtractBytes: plainC.FExtractBytes/*obj, offset, length, class*/,
 
-//ее Utilities - Data Stuffing
+//** Utilities - Data Stuffing
 
 	StuffChar: plainC.FStuffChar/*obj, offset, data*/,
 	StuffUniChar: plainC.FStuffUniChar/*obj, offset, data*/,
@@ -633,7 +633,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	StuffCString: plainC.FStuffCString/*obj, offset, str*/,
 	StuffPString: plainC.FStuffPString/*obj, offset, str*/,
 
-//ее Utilities - Getting and Setting Globals
+//** Utilities - Getting and Setting Globals
 
 	DefGlobalFn: plainC.FDefGlobalFn,
 	UnDefGlobalFn: func(inTag)			begin RemoveSlot(functions, inTag); nil end,
@@ -645,7 +645,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	GetGlobalVar: func(inTag)			vars.(inTag),
 	GlobalVarExists: func(inTag)		HasSlot(vars, inTag),
 
-//ее Utilities - Debugging
+//** Utilities - Debugging
 
 	Print: plainC.FPrint,
 	Write: plainC.FWrite,
@@ -929,7 +929,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	GetUnitUpTime: plainC.FGetUnitUpTime /* funcPtr: 7017663, numArgs: 1 */,
 	GetUnitDownTime: plainC.FGetUnitDownTime /* funcPtr: 7017662, numArgs: 1 */,
 
-//ее Stroke Journal
+//** Stroke Journal
 
 	JournalStartRecord: plainC.FJournalStartRecord /* funcPtr: 254972, numArgs: 2 */,
 	JournalStopRecord: plainC.FJournalStopRecord,
@@ -938,7 +938,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	JournalReplayStrokes: PlainC.JournalReplayStrokes /* funcPtr: 255451, numArgs: 4 */,
 	JournalReplayBusy: plainC.FJournalReplayBusy,
 
-//ее NTK
+//** NTK
 
 	NTKAlive: plainC.FntkAlive,
 	NTKDownload: plainC.FntkDownload/*connectionKind, machineName, inputTranslator, outputTranslator*/,
@@ -947,7 +947,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 	ntpDownloadPackage: plainC.FpkgDownload/*connectionKind, machineName*/,
 	ntpTetheredListener: plainC.FSetUpTetheredListener/*start, connectionKind, machineName*/,
 
-//ее Utilities - Miscellaneous
+//** Utilities - Miscellaneous
 
 	AddMemoryItem: func(memSym, value)
 		AddMemoryItemUnique(memSym, value, nil),
@@ -1313,7 +1313,7 @@ DefineGlobalConstant('kGetFrameStuffFunc, plainC.FGetFrameStuff);
 
 	TableLookup: plainC.FTableLookup/*table, key*/,
 
-//ееееееее
+//********
 
 	SetRamParaData: plainC.FSetRamParaData /* funcPtr: 7109580, numArgs: 2 */,
 

@@ -156,7 +156,7 @@ CalibrateInker(void)
 	if (reply.result() == noErr)
 	{
 		gInkerCalibrated = true;
-//		DoBlock(RA(SaveCalibration), RA(NILREF));		// don’t have that code readily to hand
+//		DoBlock(RA(SaveCalibration), RA(NILREF));		// don't have that code readily to hand
 	}
 	return reply.result();
 }
@@ -724,7 +724,7 @@ bool
 CInker::convert(void)
 {
 	if (gCalibrate || InkerBufferEmpty())
-		// there’s nothing to convert
+		// there's nothing to convert
 		return false;
 
 	TabletSample sample;

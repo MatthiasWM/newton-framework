@@ -341,7 +341,7 @@ GetUnsuccessfulBootCount(void)
 #pragma mark -
 
 /*------------------------------------------------------------------------------
-	Initialize globals that DON’T live across reboot - ones that are reset
+	Initialize globals that DON'T live across reboot - ones that are reset
 	each boot.
 	Args:		--
 	Return:  --
@@ -432,7 +432,7 @@ PostCGlobalsHWInit(void)
 			gGlobalsThatLiveAcrossReboot->fRebootReason = kOSErrRebootBatteryFault;
 #endif
 
-// LowLevelProcRevLevel()  but doesn’t do anything with the result
+// LowLevelProcRevLevel()  but doesn't do anything with the result
 	gGlobalsThatLiveAcrossReboot.fMagicNumber = kRebootMagicNumber;
 }
 
@@ -566,7 +566,7 @@ ResetFromResetSwitch(void)
 	PostCGlobalsHWInit		nothing of any significance
 	OSBoot						create task to boot OS
 
-	And it should start in assembler…
+	And it should start in assembler...
 	Args:		--
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -647,7 +647,7 @@ L20	LDR	R0, [g0F183C00]
 		LDR	R0, [g0F111400]
 		LDR	R1, [x000007E6]		; 2022
 		STR	R1, [R0]
-		LDR	R0, [x0000016F]		; 367 = 100µs ?
+		LDR	R0, [x0000016F]		; 367 = 100us ?
 		BL		SafeShortTimerDelay
 		LDR	R0, [g0F111400]
 		MOV	R1, #0
@@ -808,7 +808,7 @@ L20	LDR	R0, [g0F183C00]
 
 
 /*------------------------------------------------------------------------------
-	Continue booting in C++…
+	Continue booting in C++...
 	Args:		--
 	Return:  --
 ------------------------------------------------------------------------------*/
@@ -826,7 +826,7 @@ OSBoot(void)
 //	We just need a valid pointer.
 	gCurrentGlobals = (TaskGlobals *)&globals + 1;
 
-// Set up a null task while we’re booting.
+// Set up a null task while we're booting.
 	bootEnvironment.fDomainAccess = (kClientDomain << (kDomainBits * 2))
 											 |(kClientDomain << (kDomainBits * 1))
 											 | kClientDomain;	// 0x15 3 client domains
@@ -848,10 +848,10 @@ OSBoot(void)
 	MemObjManager::findEnvironmentId('krnl', &environmentId);
 	environment = (CEnvironment *)IdToObj(kEnvironmentType, environmentId);
 
-// No task swaps while we’re adding new tasks
+// No task swaps while we're adding new tasks
 	EnterFIQAtomic();
 
-// Initialize the kernel’s global variables and timers.
+// Initialize the kernel's global variables and timers.
 	InitGlobalWorld();
 	InitTime();
 	InitRealTimeClock();
@@ -859,9 +859,9 @@ OSBoot(void)
 // Initialize user (as opposed to supervisor) space.
 	UserInit();
 
-// Register a task to be performed when the system’s doing nothing.
-//	When it’s REALLY doing nothing. No other tasks are alive.
-//	This, of course, “should never happen”, but if it does, reboot.
+// Register a task to be performed when the system's doing nothing.
+//	When it's REALLY doing nothing. No other tasks are alive.
+//	This, of course, "should never happen", but if it does, reboot.
 	task = new CTask();
 	gIdleTask = task;
 	RegisterObject(task, kTaskType, kSystemId, NULL);
@@ -987,7 +987,7 @@ InitialKSRVTask(void)
 }
 
 
-// ••••• Stubs
+// ***** Stubs
 
 void
 InitStdIO(void)

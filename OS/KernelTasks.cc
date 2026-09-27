@@ -490,7 +490,7 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 
 		XFAILIF(fSharedMem == kNoId || fSharedMemMsg == kNoId, err = kOSErrCouldNotCreateObject;)
 
-		// set up “globals” pointer
+		// set up "globals" pointer
 		fGlobals = (void *)(fTaskData + sizeof(TaskGlobals));
 
 		// initialize task switched globals

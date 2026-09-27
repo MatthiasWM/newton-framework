@@ -6,14 +6,14 @@
 	Written by:	Newton Research Group.
 
 	Newton (QuickDraw)
-	all drawing is done into the screenÕs GrafPort (bitmap)
+	all drawing is done into the screen's GrafPort (bitmap)
 	which is blitted to the LCD bitmap @ ~33fps (actually only dirty rect is blitted)
 
 	Quartz
-	all drawing is done into a windowÕs quartz context (presumably off-screen bitmap)
+	all drawing is done into a window's quartz context (presumably off-screen bitmap)
 	the quartz compositor blends this context onto the display
 so...
-	weÕll just draw into the windowÕs quartz context
+	we'll just draw into the window's quartz context
 	at some point we could create a quartz context for each child view of the root, making app views more manageable
 alternatively...
 	create a CGLayer and draw into its context
@@ -21,7 +21,7 @@ alternatively...
 		CGLayerRef qLayer = CGLayerCreateWithContext((CGContextRef)windowContext.graphicsPort, window.contentView.frame.size, NULL);
 		CGContextRef qContext = CGLayerGetContext(qLayer);
 		//draw into qContext
-	screen task should blit that into windowÕs context
+	screen task should blit that into window's context
 		void CGContextDrawLayerAtPoint(windowContext, CGPointZero, qLayer);
 	although in reality we should probably
 		StopDrawing() -> set needsDisplay on the contentView
@@ -221,7 +221,7 @@ SetupScreen(void)
 
 
 /*------------------------------------------------------------------------------
-	Set up the screenÕs pixmap.
+	Set up the screen's pixmap.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -545,7 +545,7 @@ InitScreenTask(void)
 		gScreen.f34 = semList;
 		semList->init(1, MAKESEMLISTITEM(0,-1));
 
-// we donÕt use this frame-buffering scheme
+// we don't use this frame-buffering scheme
 #if defined(correct)
 		CUTask * task = new CUTask;
 		gScreen.updateTask = task;
@@ -613,7 +613,7 @@ UpdateHardwareScreen(void)
 
 /*------------------------------------------------------------------------------
 	Blit a pixmap to the display.
-	If thereÕs an external display connected, blit to that too.
+	If there's an external display connected, blit to that too.
 	Args:		inPixmap			the pix map to be blitted
 				inSrcBounds		bounds  of inPixmap to use
 				inDstBounds		bounds to blit into
@@ -700,7 +700,7 @@ QDStartDrawing(NativePixelMap * inPixmap, Rect * inBounds)
 
 #if !defined(forFramework)
 	if (PixelMapBits(inPixmap) == PixelMapBits(&gScreenPixelMap))
-		//	weÕre drawing to the display so acquire a lock
+		//	we're drawing to the display so acquire a lock
 		gScreen.lock->acquire(kWaitOnBlock);
 #endif
 }
@@ -729,7 +729,7 @@ QDStopDrawing(NativePixelMap * inPixmap, Rect * inBounds)
 #if !defined(forFramework)
 		if (!isAnythingToDraw)
 			gScreen.semaphore->semOp(gScreen.f2C, kWaitOnBlock);
-		//	weÕre drawing to the display so release the lock
+		//	we're drawing to the display so release the lock
 		gScreen.lock->release();
 printf("QDStopDrawing() -- ");
 		WeAreDirty();

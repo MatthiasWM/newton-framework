@@ -154,7 +154,7 @@ PadFileToLongAlignment(FILE * ioFile, size_t inSize, const char * inFilename)
 		uint32_t zero = 0;
 		size_t numWritten = fwrite(&zero, padding, 1, ioFile);
 		if (numWritten != 1)	err = EIO;
-		ReportOSErr(err, "can't write %lu bytes of padding to output file “%s”", padding, inFilename);
+		ReportOSErr(err, "can't write %lu bytes of padding to output file \"%s\"", padding, inFilename);
 	}
 	return err;
 }
@@ -171,7 +171,7 @@ PadFileBy(FILE * ioFile, size_t inSize, const char * inFilename)
 		padding = inSize > 256? 256 : inSize;
 		size_t numWritten = fwrite(zero, padding, 1, ioFile);
 		if (numWritten != 1)	err = EIO;
-		if (ReportOSErr(err, "can't write %lu bytes of padding to output file “%s”", padding, inFilename)) break;
+		if (ReportOSErr(err, "can't write %lu bytes of padding to output file \"%s\"", padding, inFilename)) break;
 	}
 	return err;
 }
@@ -200,7 +200,7 @@ void
 AssureNextArg(const char ** inArg, const char ** inArgLimit, const char * inNextArg, const char ** inUsage)
 {
 	if (inArg + 1 >= inArgLimit)
-		UsageErrorMessage(inUsage, "no %s follows “%s”", inNextArg, *inArg);
+		UsageErrorMessage(inUsage, "no %s follows \"%s\"", inNextArg, *inArg);
 }
 
 
@@ -256,7 +256,7 @@ ParseOptions(const char ** inArg, const char ** inArgLimit)
 			const char * pkgIdStr;
 			AssureNextArg(argp, inArgLimit, "package id", gUsageStr);
 			pkgIdStr = *++argp;
-			ErrorMessageIf(strlen(pkgIdStr) != 4, "package id “%s” must be 4 bytes long", pkgIdStr);
+			ErrorMessageIf(strlen(pkgIdStr) != 4, "package id \"%s\" must be 4 bytes long", pkgIdStr);
 			gPkgId = (pkgIdStr[0] << 24) | (pkgIdStr[1] << 16) | (pkgIdStr[2] << 8) | pkgIdStr[3];
 		}
 
@@ -312,7 +312,7 @@ ParseOptions(const char ** inArg, const char ** inArgLimit)
 		else if (hcistrcmp(option, "-compressed") == 0) {	//m30F0
 			AssureNextArg(argp, inArgLimit, "compression type", gUsageStr);	//m30E4
 			if (partCompressor != NULL) {
-				ErrorMessage("-compressed specified twice for one part: “%s” and “%s”", partCompressor, *++argp);	//m30D2
+				ErrorMessage("-compressed specified twice for one part: \"%s\" and \"%s\"", partCompressor, *++argp);	//m30D2
 			}
 			*partArg++ = option;
 			++argp;
@@ -323,7 +323,7 @@ ParseOptions(const char ** inArg, const char ** inArgLimit)
 		else if (hcistrcmp(option, "-index") == 0) {	//m3098
 			AssureNextArg(argp, inArgLimit, "part index", gUsageStr);	//m3090
 			if (partIndex != NULL) {
-				ErrorMessage("-index specified twice for one part: “%s” and “%s”", partIndex, *++argp);	//m3084
+				ErrorMessage("-index specified twice for one part: \"%s\" and \"%s\"", partIndex, *++argp);	//m3084
 			}
 			*partArg++ = option;
 			++argp;
@@ -344,14 +344,14 @@ ParseOptions(const char ** inArg, const char ** inArgLimit)
 			++argp;
 			*partArg++ = *argp;
 			notifyPartType = *argp;
-			ErrorMessageIf(strlen(notifyPartType) != 4, "part type “%s” must be 4 bytes long", notifyPartType);	//m2FF0
+			ErrorMessageIf(strlen(notifyPartType) != 4, "part type \"%s\" must be 4 bytes long", notifyPartType);	//m2FF0
 			AssureNextArg(argp, inArgLimit, "part info", gUsageStr);	//m2FCC
 			++argp;
 			*partArg++ = *argp;
 		}
 //+05E8
 		else if (hcistrcmp(option, "-aif") == 0) {	//m2FC2
-			ErrorMessage("“-aif” can only appear immediately after “-o”, “-protocol”, “-frames” or “-raw”");	//m2FBC
+			ErrorMessage("\"-aif\" can only appear immediately after \"-o\", \"-protocol\", \"-frames\" or \"-raw\"");	//m2FBC
 		}
 //+060C
 		else if (*option == '-') {
@@ -359,7 +359,7 @@ ParseOptions(const char ** inArg, const char ** inArgLimit)
 		}
 
 		else {
-			ErrorMessageIf(gPackageName != NULL, "package name specified twice:  “%s” and “%s”", gPackageName, option);	//m2F6A
+			ErrorMessageIf(gPackageName != NULL, "package name specified twice:  \"%s\" and \"%s\"", gPackageName, option);	//m2F6A
 			gPackageName = option;
 		}
 	}
@@ -418,16 +418,16 @@ ReadPartData(const PartFileInfo * info, size_t inSize, void ** outPartData)
 	XTRY {
 		FILE * fp = fopen(info->fName, "r");
 		err = (fp == NULL)? EIO:0;
-		XFAIL(ReportOSErr(err, "can't open input part file “%s”", info->fName))
+		XFAIL(ReportOSErr(err, "can't open input part file \"%s\"", info->fName))
 		XTRY {
 			err = fseek(fp, info->fOffset, SEEK_SET);
-			XFAIL(ReportOSErr(err, "can't seek to position %u of part file “%s”", info->fOffset, info->fName))
+			XFAIL(ReportOSErr(err, "can't seek to position %u of part file \"%s\"", info->fOffset, info->fName))
 			gPartData = (Ptr)malloc(inSize);
 			if (gPartData == NULL) err = ENOMEM;
 			XFAIL(ReportOSErr(err, "can't allocate the part buffer"));
 			size_t numRead = fread(gPartData, inSize, 1, fp);
 			if (numRead != 1) err = EIO;
-			XFAIL(ReportOSErr(err, "can't read %lu bytes for part %d from part file “%s”", inSize, info->fPartIndex, info->fName));
+			XFAIL(ReportOSErr(err, "can't read %lu bytes for part %d from part file \"%s\"", inSize, info->fPartIndex, info->fName));
 		} XENDTRY;
 
 		int closErr = fclose(fp);
@@ -504,13 +504,13 @@ copyFileTo(FILE * ioFile, const PartFileInfo * info, size_t inSize, ArrayIndex i
 	err = ReadPartData(info, inSize, &partData);
 	if (err == 0) {
 		if (inPlainFrames) {
-			Progress("frames relocating “%s” to 0x%08lx == 0x%08lx - 0x%08lx", info->fName, inArg5 - info->fLogicalAddress, inArg5, info->fLogicalAddress);
+			Progress("frames relocating \"%s\" to 0x%08lx == 0x%08lx - 0x%08lx", info->fName, inArg5 - info->fLogicalAddress, inArg5, info->fLogicalAddress);
 			RelocateFrames(partData, inSize, inArg5 - info->fLogicalAddress);
 		}
 		inArg7->relocate(inArg4, inArg5, (ULong *)partData, inSize);
 		size_t numWritten = fwrite(partData, inSize, 1, ioFile);
 		if (numWritten != 1) err = EIO;
-		ReportOSErr(err, "can't write part data to output file “s”", gOutputFilename);
+		ReportOSErr(err, "can't write part data to output file \"s\"", gOutputFilename);
 	}
 	return err;
 }
@@ -575,13 +575,13 @@ DumpPackageInfo(const char * inFilename)
 	int err;
 	FILE * fp = fopen(inFilename, "r");
 	err = (fp == NULL)? EIO:0;
-	ExitIfOSErr(err, "can't open package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't open package file \"%s\"", inFilename);
 
 	PackageDirectory pkgDir;
 	size_t sizeReqd = sizeof(PackageDirectory);
 	size_t numRead = fread(&pkgDir, sizeReqd, 1, fp);
 	if (numRead != 1) err = EIO;
-	ExitIfOSErr(err, "can't read %lu bytes for package header package file “%s”", sizeReqd, inFilename);
+	ExitIfOSErr(err, "can't read %lu bytes for package header package file \"%s\"", sizeReqd, inFilename);
 
 #if defined(hasByteSwapping)
 	pkgDir.id = BYTE_SWAP_LONG(pkgDir.id);
@@ -603,7 +603,7 @@ DumpPackageInfo(const char * inFilename)
 	} else if (memcmp(pkgDir.signature, "package1", 8) == 0) {
 		printf("# package is version 1\n");
 	} else {
-		ErrorMessage("file “%s” does not seem to be a package file", inFilename);
+		ErrorMessage("file \"%s\" does not seem to be a package file", inFilename);
 	}
 
 	// the original splits the package directory into a package header and parts directory header
@@ -613,7 +613,7 @@ DumpPackageInfo(const char * inFilename)
 	PartEntry * partEntries = (PartEntry *)calloc_or_exit(pkgDir.numParts, sizeof(PartEntry), "can't allocate %lu bytes for directory entries");
 	numRead = fread(partEntries, sizeof(PartEntry), pkgDir.numParts, fp);
 	if (numRead != pkgDir.numParts) err = EIO;
-	ExitIfOSErr(err, "can't read %lu bytes for part directory entries from package file “%s”", sizeOfPartEntries, inFilename);
+	ExitIfOSErr(err, "can't read %lu bytes for part directory entries from package file \"%s\"", sizeOfPartEntries, inFilename);
 
 #if defined(hasByteSwapping)
 	PartEntry * pe = partEntries;
@@ -635,7 +635,7 @@ DumpPackageInfo(const char * inFilename)
 	Ptr stringData = (Ptr)malloc_or_exit(sizeReqd, "can't allocate %lu bytes for string table");	//van8
 	numRead = fread(stringData, sizeReqd, 1, fp);
 	if (numRead != 1) err = EIO;
-	ExitIfOSErr(err, "can't read %lu bytes for string table from “%s”", sizeReqd, inFilename);
+	ExitIfOSErr(err, "can't read %lu bytes for string table from \"%s\"", sizeReqd, inFilename);
 
 	size_t sizeOfRelocationInfo = 0;	//d6
 	RelocationHeader pkgRelo;
@@ -643,7 +643,7 @@ DumpPackageInfo(const char * inFilename)
 		sizeReqd = sizeof(RelocationHeader);
 		numRead = fread(&pkgRelo, sizeReqd, 1, fp);
 		if (numRead != 1) err = EIO;
-		ExitIfOSErr(err, "can't read %lu bytes for relocation header from “%s”", sizeReqd, inFilename);
+		ExitIfOSErr(err, "can't read %lu bytes for relocation header from \"%s\"", sizeReqd, inFilename);
 
 #if defined(hasByteSwapping)
 		pkgRelo.relocationSize = BYTE_SWAP_LONG(pkgRelo.relocationSize);
@@ -664,7 +664,7 @@ DumpPackageInfo(const char * inFilename)
 	if (FLAGTEST(pkgDir.flags, kAutoRemoveFlag)) printf(" -dispatchonly");
 	if (FLAGTEST(pkgDir.flags, kNoCompressionFlag)) printf(" -nocompression");
 	if (FLAGTEST(pkgDir.flags, kInvisibleFlag)) printf(" -invisible");
-	if (pkgDir.copyright.length != 0) printf(" -copyright “%s”", UnUnicode(stringData, pkgDir.copyright));
+	if (pkgDir.copyright.length != 0) printf(" -copyright \"%s\"", UnUnicode(stringData, pkgDir.copyright));
 	printf("∂\n# package flags are 0x%08x ∂\n", pkgDir.flags);
 	if (FLAGTEST(pkgDir.flags, kRelocationFlag)) printf("# package has %lu bytes of relocation info starting at file offset 0x%08x ∂\n", sizeOfRelocationInfo, pkgDir.directorySize);
 	printf("# total size is %u, %u part%s: ∂\n", pkgDir.size, pkgDir.numParts, pkgDir.numParts == 1? "":"s");
@@ -695,7 +695,7 @@ DumpPackageInfo(const char * inFilename)
 	free(partEntries);
 	free(stringData);
 	err = fclose(fp);
-	ExitIfOSErr(err, "can't close input package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't close input package file \"%s\"", inFilename);
 }
 
 
@@ -714,7 +714,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	int err;
 	FILE * fp = fopen(inFilename, "r");	//vao4
 	err = (fp == NULL)? EIO:0;
-	ExitIfOSErr(err, "can't open input package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't open input package file \"%s\"", inFilename);
 
 	info->fBase = 0;
 	info->fNumOfRelocations = 0;
@@ -723,7 +723,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	size_t sizeReqd = sizeof(PackageDirectory);
 	size_t numRead = fread(&pkgDir, sizeReqd, 1, fp);
 	if (numRead != 1) err = EIO;
-	ExitIfOSErr(err, "can't read package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't read package file \"%s\"", inFilename);
 
 #if defined(hasByteSwapping)
 	pkgDir.id = BYTE_SWAP_LONG(pkgDir.id);
@@ -741,9 +741,9 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 #endif
 
 	if (memcmp(pkgDir.signature, "package0", 8) != 0 && memcmp(pkgDir.signature, "package1", 8) != 0) {
-		ErrorMessage("file “%s” does not seem to be a package file", inFilename);
+		ErrorMessage("file \"%s\" does not seem to be a package file", inFilename);
 	}
-	ErrorMessageIf(FLAGTEST(pkgDir.flags, kRelocationFlag), "package file “%s” has relocations: Packer cannot yet get parts from package files with relocations", inFilename);
+	ErrorMessageIf(FLAGTEST(pkgDir.flags, kRelocationFlag), "package file \"%s\" has relocations: Packer cannot yet get parts from package files with relocations", inFilename);
 
 	// as above, the original splits the package directory into a package header and parts directory header
 	// reading them separately
@@ -753,7 +753,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	PartEntry * myPartEntry = partEntries + info->fPartIndex;	//a4
 	numRead = fread(partEntries, sizeof(PartEntry), pkgDir.numParts, fp);
 	if (numRead != pkgDir.numParts) err = EIO;
-	ExitIfOSErr(err, "can't read package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't read package file \"%s\"", inFilename);
 
 #if defined(hasByteSwapping)
 	PartEntry * pe = partEntries;
@@ -775,7 +775,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	Ptr stringData = (Ptr)malloc_or_exit(sizeReqd, "can't allocate %lu bytes for string table");	//vao3
 	numRead = fread(stringData, sizeReqd, 1, fp);
 	if (numRead != 1) err = EIO;
-	ExitIfOSErr(err, "can't read string table from “%s”", inFilename);
+	ExitIfOSErr(err, "can't read string table from \"%s\"", inFilename);
 
 	gPkgId = ioPackage->id = pkgDir.id;
 	gPkgFlags = ioPackage->flags = pkgDir.flags;
@@ -789,7 +789,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	info->fOffset = pkgDir.directorySize + myPartEntry->offset;
 	info->fLogicalAddress = info->fBase + info->fOffset;
 
-	Progress("part %d, “%s” input offset = 0x%08x = 0x%08x + 0x%08x; logical start address = 0x%08x", info->fPartIndex, inFilename, info->fOffset, pkgDir.directorySize, myPartEntry->offset, info->fLogicalAddress);
+	Progress("part %d, \"%s\" input offset = 0x%08x = 0x%08x + 0x%08x; logical start address = 0x%08x", info->fPartIndex, inFilename, info->fOffset, pkgDir.directorySize, myPartEntry->offset, info->fLogicalAddress);
 
 	ioPart->type = myPartEntry->type;
 	ioPart->reserved1 = myPartEntry->reserved1;
@@ -805,7 +805,7 @@ PrepPackagePartFile(const char * inFilename, PartFileInfo * const info, PartEntr
 	free(stringData);
 
 	err = fclose(fp);
-	ExitIfOSErr(err, "can't close input package file “%s”", inFilename);
+	ExitIfOSErr(err, "can't close input package file \"%s\"", inFilename);
 
 	return myPartEntry->size;
 }
@@ -824,44 +824,44 @@ PrepAIFFile(const char * inFilename, PartFileInfo * info)
 	int err;
 	FILE * fp = fopen(inFilename, "r");	//vap4
 	err = (fp == NULL)? EIO:0;
-	ExitIfOSErr(err, "can't open input AIF part file “%s”", inFilename);
+	ExitIfOSErr(err, "can't open input AIF part file \"%s\"", inFilename);
 
 	AIFHeader header;	//vap5
 	size_t numRead = fread(&header, sizeof(AIFHeader), 1, fp);
 	if (numRead != 1) err = EIO;
-	ExitIfOSErr(err, "can't read AIF header of part file “%s”", inFilename);
+	ExitIfOSErr(err, "can't read AIF header of part file \"%s\"", inFilename);
 
-	ErrorMessageIf(header.exitCode != 0xEF000011, "part file “%s” does not seem to be in AIF format", inFilename);
+	ErrorMessageIf(header.exitCode != 0xEF000011, "part file \"%s\" does not seem to be in AIF format", inFilename);
 	ErrorMessageIf(MISALIGNED(header.imageBase), "bad AIF part file with unaligned image base 0x%08x", header.imageBase);
 	ErrorMessageIf(MISALIGNED(header.roSize), "bad AIF part file with unaligned read-only size 0x%08x", header.roSize);
 	ErrorMessageIf(MISALIGNED(header.rwSize), "bad AIF part file with unaligned read-write size 0x%08x", header.rwSize);
-	WarningMessageIf(header.rwSize != 0, "part file “%s” seems to have %u bytes of initialized data", inFilename);
-	WarningMessageIf(header.zeroInitSize != 0, "part file “%s” seems to have %u bytes of zero-initialized data", inFilename);
+	WarningMessageIf(header.rwSize != 0, "part file \"%s\" seems to have %u bytes of initialized data", inFilename);
+	WarningMessageIf(header.zeroInitSize != 0, "part file \"%s\" seems to have %u bytes of zero-initialized data", inFilename);
 
 	bool isExe = *(uint8_t *)&header.imageEntryCode == 0xEB;	//d7
 
-	Progress("“%s” is %s AIF file", inFilename, isExe? "an executable":"a non-executable");
+	Progress("\"%s\" is %s AIF file", inFilename, isExe? "an executable":"a non-executable");
 
 	info->fBase = header.imageBase + (isExe? 0x80:0);
 	info->fOffset = (isExe? 0:0x80);
 	if (header.selfRelocCode != 0 && header.selfRelocCode != 0xE1A00000) {
-		ErrorMessageIf(isExe, "part file “%s” is relocatable, executable AIF format -- I can't handle it unless it is '-aif -bin -reloc', sorry", inFilename);
+		ErrorMessageIf(isExe, "part file \"%s\" is relocatable, executable AIF format -- I can't handle it unless it is '-aif -bin -reloc', sorry", inFilename);
 
 		ArrayIndex numOfRelocations;	//vap2
 		err = fseek(fp, header.selfRelocCode, SEEK_SET);
-		ExitIfOSErr(err, "can't seek to position %u of AIF part file “%s”", header.selfRelocCode, inFilename);
+		ExitIfOSErr(err, "can't seek to position %u of AIF part file \"%s\"", header.selfRelocCode, inFilename);
 		numRead = fread(&numOfRelocations, sizeof(numOfRelocations), 1, fp);
 		if (numRead != 1) err = EIO;
-		ExitIfOSErr(err, "can't read AIF relocation count of part file “%s”", inFilename);
+		ExitIfOSErr(err, "can't read AIF relocation count of part file \"%s\"", inFilename);
 
-		Progress("AIF part file “%s” has %u relocation%s", inFilename, numOfRelocations, numOfRelocations == 1? "":"s");
+		Progress("AIF part file \"%s\" has %u relocation%s", inFilename, numOfRelocations, numOfRelocations == 1? "":"s");
 
 		if (numOfRelocations > 0) {
 			size_t sizeOfRelocations = numOfRelocations * sizeof(int32_t);	//vap3
 			info->fRelocations = (int32_t *)malloc_or_exit(sizeOfRelocations, "can't allocate %lu bytes for AIF relocations");
 			numRead = fread(info->fRelocations, sizeOfRelocations, 1, fp);
 			if (numRead != 1) err = EIO;
-			ExitIfOSErr(err, "can't read AIF relocations of part file “%s”", inFilename);
+			ExitIfOSErr(err, "can't read AIF relocations of part file \"%s\"", inFilename);
 
 			ErrorMessageIf(FLAGTEST(header.addressMode, 0x0100), "I can't yet handle AIF part files with relocations that have been linked with -data");
 		}
@@ -869,7 +869,7 @@ PrepAIFFile(const char * inFilename, PartFileInfo * info)
 	}
 
 	err = fclose(fp);
-	ExitIfOSErr(err, "can't close input AIF part file “%s”", inFilename);
+	ExitIfOSErr(err, "can't close input AIF part file \"%s\"", inFilename);
 	return header.roSize + header.rwSize;
 }
 
@@ -907,7 +907,7 @@ main(int argc, const char * argv[])
 
 	if (!gDoCopyFlags) {
 		if (gCopyright) {
-			Progress("copyright string is “%s”", gCopyright);
+			Progress("copyright string is \"%s\"", gCopyright);
 			pkgDir.copyright = AddUnicodeString(gCopyright);
 		} else {
 			Progress("no copyright string");
@@ -915,7 +915,7 @@ main(int argc, const char * argv[])
 		}
 
 		if (gPackageName) {
-			Progress("package name is “%s”", gPackageName);
+			Progress("package name is \"%s\"", gPackageName);
 			pkgDir.name = AddUnicodeString(gPackageName);
 		} else {
 			UsageErrorMessage(gUsageStr, "can't find package name");
@@ -952,7 +952,7 @@ main(int argc, const char * argv[])
 			// expecting the type of part first
 			int partType = StringTableMatch(*argp++, gPartTypes);
 			if (partType == -1) {
-				ErrorMessage("expecting “-protocol”, “-frames”, “-raw”, or “-package”, but found “%s”", *--argp);
+				ErrorMessage("expecting \"-protocol\", \"-frames\", \"-raw\", or \"-package\", but found \"%s\"", *--argp);
 			}
 			// partType is 0..3 aligned with PartEntry flags
 			if (partType == kPackagePart) {
@@ -969,7 +969,7 @@ main(int argc, const char * argv[])
 			// expeecting the filename of the part next
 			const char * partFilename = *argp++;	//vaq_19
 			partFile->fName = partFilename;
-			Progress("part file name is “%s”", partFilename);
+			Progress("part file name is \"%s\"", partFilename);
 
 			// finally the options
 			for ( ; argp < lastArg; ++argp) {
@@ -984,17 +984,17 @@ main(int argc, const char * argv[])
 						partFile->fPartIndex = atoi(*argp);
 					} else {
 						++argp;
-						WarningMessage("Part “%s” ‘-index' option ignored for non-package part", partFilename);
+						WarningMessage("Part \"%s\" '-index' option ignored for non-package part", partFilename);
 					}
 				} else if (hcistrcmp(option, "-copyflags") == 0) {
 					if (partType == kPackagePart) {
 						copyflags = true;
 					} else {
-						WarningMessage("Part “%s” ‘-copyflags' option ignored for non-package part", partFilename);
+						WarningMessage("Part \"%s\" '-copyflags' option ignored for non-package part", partFilename);
 					}
 				} else if (hcistrcmp(option, "-compressed") == 0) {
 					if (partType == kPackagePart) {
-						WarningMessage("Part “%s” ‘-compressed' option ignored for pre-built package", partFilename);
+						WarningMessage("Part \"%s\" '-compressed' option ignored for pre-built package", partFilename);
 						++argp;
 					} else {
 						partEntry->flags |= kCompressedFlag;
@@ -1004,7 +1004,7 @@ main(int argc, const char * argv[])
 				} else if (hcistrcmp(option, "-notify") == 0) {
 					if (partType == kPackagePart) {
 						++argp;
-						WarningMessage("Part “%s” ‘-notify' option ignored for pre-built package", partFilename);
+						WarningMessage("Part \"%s\" '-notify' option ignored for pre-built package", partFilename);
 					} else {
 						partEntry->flags |= kNotifyFlag;
 						++argp;
@@ -1020,13 +1020,13 @@ main(int argc, const char * argv[])
 					}
 				} else if ((i = StringTableMatch(option, gPartFlags)) != -1) {
 					if (partType == kPackagePart) {
-						WarningMessage("Part “%s” ‘%s' option ignored for pre-built package", partFilename, option);
+						WarningMessage("Part \"%s\" '%s' option ignored for pre-built package", partFilename, option);
 					} else {
 						partEntry->flags |= PartFlagsFromStringTableIndex(i);
 					}
 					break;
 				} else {
-					InternalErrorIf(true, "I didn't expect to see “%s”", option);
+					InternalErrorIf(true, "I didn't expect to see \"%s\"", option);
 					++argp;
 				}
 			}
@@ -1039,7 +1039,7 @@ main(int argc, const char * argv[])
 				}
 				fclose(fp);
 			}
-			ExitIfOSErr(err, "can't get info on “%s”", partFilename);
+			ExitIfOSErr(err, "can't get info on \"%s\"", partFilename);
 
 			partEntry->offset = partEntryOffset;
 			//vaq_28 = 0;
@@ -1056,7 +1056,7 @@ main(int argc, const char * argv[])
 			bool isPlainFrames = (FLAGTEST(partEntry->flags, kNOSPart) && !FLAGTEST(partEntry->flags, kCompressedFlag));
 			if (isPlainFrames) {
 				err = ReadPartData(partFile, partSize, &framePart);
-				ExitIfOSErr(err, "can't read frame part data from “%s”", partFilename);
+				ExitIfOSErr(err, "can't read frame part data from \"%s\"", partFilename);
 			}
 
 			ArrayIndex numOfRelocations = relocations.addRelocations(partFile->fBase, partSize, partFile->fNumOfRelocations, partFile->fRelocations, isPlainFrames, framePart, partFilename);
@@ -1068,7 +1068,7 @@ main(int argc, const char * argv[])
 			if (partFile->fNumOfRelocations > 0) {
 				Progress("%u relocation%s kept for part", numOfRelocations, numOfRelocations == 1 ? "" : "s");
 			}
-			Progress("“%s” part length is %lu bytes", partFilename, partSize);
+			Progress("\"%s\" part length is %lu bytes", partFilename, partSize);
 			partEntry->size = partEntry->size2 = partSize;
 			pkgDir.size += partSize;
 			partEntryOffset += partSize;
@@ -1088,7 +1088,7 @@ main(int argc, const char * argv[])
 		// create output package file
 		FILE * fp = fopen(gOutputFilename, "w");	//vaq_33
 		err = (fp == NULL)? EIO:0;
-		XFAIL(ReportOSErr(err, "can't open output file “%s”", gOutputFilename))
+		XFAIL(ReportOSErr(err, "can't open output file \"%s\"", gOutputFilename))
 
 		XTRY {
 			if (relocations.count() > 0) {
@@ -1115,7 +1115,7 @@ main(int argc, const char * argv[])
 				Progress("writing AIF header");
 				numWritten = fwrite(&header, sizeof(AIFHeader), 1, fp);
 				if (numWritten != 1) err = EIO;
-				XFAIL(ReportOSErr(err, "can't write AIF header to output file “s”", gOutputFilename))
+				XFAIL(ReportOSErr(err, "can't write AIF header to output file \"s\"", gOutputFilename))
 			}
 
 			Progress("writing package header");
@@ -1141,21 +1141,21 @@ main(int argc, const char * argv[])
 
 			numWritten = fwrite(&pkgDir, sizeof(PackageDirectory), 1, fp);
 			if (numWritten != 1) err = EIO;
-			XFAIL(ReportOSErr(err, "can't write package header to output file “s”", gOutputFilename))
+			XFAIL(ReportOSErr(err, "can't write package header to output file \"s\"", gOutputFilename))
 			numWritten = fwrite(partEntries, sizeOfPartEntries, 1, fp);
 			if (numWritten != 1) err = EIO;
-			XFAIL(ReportOSErr(err, "can't write package directory entries to output file “s”", gOutputFilename))
+			XFAIL(ReportOSErr(err, "can't write package directory entries to output file \"s\"", gOutputFilename))
 
 			Progress("writing string table, size = %lu bytes, padded to %lu bytes",  stringDataSize, alignedStringDataSize);
 			err = gStrings.write(fp);
-			XFAIL(ReportOSErr(err, "can't write %lu bytes of string table to output file “s”", stringDataSize, gOutputFilename))
+			XFAIL(ReportOSErr(err, "can't write %lu bytes of string table to output file \"s\"", stringDataSize, gOutputFilename))
 
 			XFAIL(err = PadFileToLongAlignment(fp, stringDataSize, gOutputFilename))
 
 			if (relocations.count() > 0) {
 				Progress("writing relocations = %lu bytes, %lu bytes used", sizeOfRelocations, relocations.sizeUsed());
 				err = relocations.write(fp, gOutputFilename);
-				XFAIL(ReportOSErr(err, "can't write %lu bytes of relocations to output file “s”", sizeOfRelocations, gOutputFilename))
+				XFAIL(ReportOSErr(err, "can't write %lu bytes of relocations to output file \"s\"", sizeOfRelocations, gOutputFilename))
 			}
 
 			ULong logicalAddress = gBaseAddress + pkgDirectorySize + sizeOfRelocations;
@@ -1164,7 +1164,7 @@ main(int argc, const char * argv[])
 			for (ArrayIndex i = 0; partFile < partFiles + gNumOfPartEntries; ++partEntry, ++partFile, ++i) {
 				bool isPlainFrames = (FLAGTEST(partEntry->flags, kNOSPart) && !FLAGTEST(partEntry->flags, kCompressedFlag));
 				err = copyFileTo(fp, partFile, partEntry->size, i, partEntry->offset + logicalAddress, isPlainFrames, &relocations);	// static on CRelocationCollector?
-				XFAIL(ReportOSErr(err, "can't copy part file “%s”", partFile->fName))
+				XFAIL(ReportOSErr(err, "can't copy part file \"%s\"", partFile->fName))
 				XFAIL(err = PadFileToLongAlignment(fp, partEntry->size, gOutputFilename))
 				if (partFile->fRelocations != NULL) {
 					free(partFile->fRelocations), partFile->fRelocations = NULL;
@@ -1184,9 +1184,9 @@ main(int argc, const char * argv[])
 
 	// on error clean up by deleting output file
 	if (err) {
-		Progress("deleting output file “%s”", gOutputFilename);
+		Progress("deleting output file \"%s\"", gOutputFilename);
 		err = remove(gOutputFilename);
-		ReportOSErr(err, "can't delete output file “%s”", gOutputFilename);
+		ReportOSErr(err, "can't delete output file \"%s\"", gOutputFilename);
 	}
 
 	free(partFiles);

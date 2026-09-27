@@ -60,10 +60,10 @@ CDynArray::resize(int inDelta)
 		if (fAllocSize == 0)
 			fArray = new void*[0];
 		else if (fUsedSize + inDelta > fAllocSize)
-			return -1;	// can’t resize above allocated size
+			return -1;	// can't resize above allocated size
 	}
 	else if (fUsedSize < -inDelta)
-		return -1;		// can’t resize below what we already have
+		return -1;		// can't resize below what we already have
 
 	fUsedSize += inDelta;
 	return fUsedSize;
@@ -389,7 +389,7 @@ CExtPageTracker::doDeferral(void)
 /*------------------------------------------------------------------------------
 	C E x t P a g e T r a c k e r M g r
 ------------------------------------------------------------------------------*/
-/* don’t know where this came from…
+/* don't know where this came from...
 CExtPageTrackerMgr::CExtPageTrackerMgr()
 	: f04(8), f00(false)	// 8 returned from func
 { }
@@ -704,7 +704,7 @@ CPageManager::queryClients(int inArg1, CUMonitor * inMonitor)
 			return page;
 	}
 
-	// couldn’t find any pages
+	// couldn't find any pages
 	return NULL;
 }
 
@@ -730,7 +730,7 @@ CPageManager::askOnePageToAClient(int inArg1, ObjectId inClientId)
 			return true;
 	}
 
-	// couldn’t find any pages
+	// couldn't find any pages
 	return false;
 }
 

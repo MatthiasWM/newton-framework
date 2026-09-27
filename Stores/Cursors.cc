@@ -469,7 +469,7 @@ CCursor::exitParking(bool inForward)
 	int result;
 
 	if (fIsCursorAtEnd == inForward)
-		return 3;	// already at end -- can’t go any further
+		return 3;	// already at end -- can't go any further
 
 	if (inForward)
 	{
@@ -563,7 +563,7 @@ WordsValidTestTextProc(UniChar * inStr, ArrayIndex inLen, void * inParms)
 		UniChar * wordStr = GetUString(testWord);
 		UniChar * theStr = FindWord(inStr, inLen, wordStr, true);
 		if (theStr == NULL)
-			break;	// we didn’t find the word
+			break;	// we didn't find the word
 		if (((SWordsTestParms*)inParms)->fIsWholeWords)
 		{
 			// we want to find whole words, so next character must be a delimiter
@@ -572,7 +572,7 @@ WordsValidTestTextProc(UniChar * inStr, ArrayIndex inLen, void * inParms)
 				theStr += Ustrlen(wordStr);
 				if (IsDelimiter(*theStr))
 					break;	// yup, found a whole word
-				// there’s more to this word -- look again starting from this point
+				// there's more to this word -- look again starting from this point
 				theStr = FindWord(theStr, inLen - (theStr - inStr), wordStr, false);
 			}
 		}
@@ -1172,7 +1172,7 @@ CCursor::unregisterFromSoup(RefArg inSoup) const
 		for (int i = Length(soupList) - 1; i >= 0; i--)
 			DeleteEntryFromCache(GetFrameSlot(GetArraySlot(soupList, i), SYMA(cursors)), fCursor);
 	}
-//	else		can’t be right, but that’s what the original does
+//	else		can't be right, but that's what the original does
 	DeleteEntryFromCache(GetFrameSlot(inSoup, SYMA(cursors)), fCursor);
 }
 
@@ -1357,7 +1357,7 @@ Ref	CursorStatus(RefArg inRcvr) { return CursorObj(inRcvr)->status(); }
 #pragma mark -
 
 /*----------------------------------------------------------------------
-	Update a soup’s cursors after some change to the soup.
+	Update a soup's cursors after some change to the soup.
 ----------------------------------------------------------------------*/
 
 void

@@ -43,14 +43,14 @@ public:
 	NewtonErr	init(PAddr inBase, size_t inSize, bool inReadOnly = false, bool inCache = true);
 	void			initState(PAddr inBase, size_t inSize, bool inReadOnly = false, bool inCache = true);
 
-	// Change any mappings associated with this phys…
+	// Change any mappings associated with this phys...
 	NewtonErr	invalidate();			// to invalid
 	NewtonErr	makeInaccessible();	// to inaccessible
 	NewtonErr	makeAccessible();		// to accessible
 
 	// Change the mapping associated with the provided virtual address of this phys.
 	// This routine is not for the faint of heart.  It cannot cause a page allocation
-	// so if the virtual address and range don’t match the pagetable entries exactly it
+	// so if the virtual address and range don't match the pagetable entries exactly it
 	// will return an error.  In other words the specified range better match exactly a
 	// previously mapped physical range in size and base.
 	NewtonErr	changeVirtualMapping(VAddr inVAddr, size_t inVSize, PhysicalChange inAccess);

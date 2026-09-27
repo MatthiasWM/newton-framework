@@ -49,10 +49,10 @@ public:
 	friend class CUAsyncMessage;
 
 private:
-	ObjectId		fMsgId;			// message sender’s id
+	ObjectId		fMsgId;			// message sender's id
 	ObjectId		fReplyId;		// send reply message here
 	ULong			fSignature;		// signature used to sync to message sender
-	ObjectId		fRcvrMsgId;		// message receiver’s id on async receive
+	ObjectId		fRcvrMsgId;		// message receiver's id on async receive
 };
 
 /*------------------------------------------------------------------------------

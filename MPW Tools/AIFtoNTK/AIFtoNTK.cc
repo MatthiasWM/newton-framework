@@ -582,7 +582,7 @@ StreamSymbol(FILE * inFile, const char * inSym)
 	{
 		char  ch = inSym[i];
 		if (ch == ' ' || ch == '|' || ch == '\\')
-			ExitWithMessage("invalid character (0x%02X) found in function name “%s”", ch, inSym);
+			ExitWithMessage("invalid character (0x%02X) found in function name \"%s\"", ch, inSym);
 	}
 
 	for (i = 0, precedent = gSymbolPrecedents; i < gNumOfSymbolPrecedents; i++, precedent++)
@@ -713,7 +713,7 @@ EmitNCMFrameFile(CSymbol * inFunctions)
 	unsigned char *	image;
 	FILE *	f = fopen(gOutputFilename, "w");
 	if (f == NULL)
-		ExitWithMessage("can't open output file “%s” for write", gOutputFilename);
+		ExitWithMessage("can't open output file \"%s\" for write", gOutputFilename);
 
 	fputc(kNSOFVersion, f);
 
@@ -734,11 +734,11 @@ EmitNCMFrameFile(CSymbol * inFunctions)
 	StreamSymbol(f, "ARM610");						// CPUType
 
 	if (fseek(gImageFile, sizeof(AIFHeader), SEEK_SET) != 0)
-		ExitWithMessage("can't seek to read-only data in file “%s”", gImageFilename);
+		ExitWithMessage("can't seek to read-only data in file \"%s\"", gImageFilename);
 	if ((image = (unsigned char *) malloc(gImageHeader.roSize + 8)) == NULL)
 		ExitWithMessage("can't allocate %ld bytes for the RO image data", gImageHeader.roSize);
 	if (fread(image, gImageHeader.roSize, 1, gImageFile) != 1)
-		ExitWithMessage("can't read %ld bytes of RO image data from file “%s”", gImageHeader.roSize, gImageFilename);
+		ExitWithMessage("can't read %ld bytes of RO image data from file \"%s\"", gImageHeader.roSize, gImageFilename);
 
 	StreamBinary(f, "code", image, gImageHeader.roSize);		// code
 	free(image);
@@ -790,7 +790,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL)
-			ExitWithMessage("can't open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file \"%s\"", expFilename);
 
 		while (!feof(expFile))
 		{
@@ -803,11 +803,11 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 				{
 					int	numOfItems = sscanf(line, "%255s%ln%li", name, &lineLen, &a0238);
 					if (lineLen == 255)
-						ExitWithMessage("input line too long in file “%s”", expFilename);
+						ExitWithMessage("input line too long in file \"%s\"", expFilename);
 					if (numOfItems > 0 && line[0] != ';')
 					{
 						if (strlen(name) > 254)
-							ExitWithMessage("encountered function name longer than 254 characters in file “%s”", expFilename);
+							ExitWithMessage("encountered function name longer than 254 characters in file \"%s\"", expFilename);
 						symbol = new CSymbol(name, symbol);
 						inTable->add(symbol); // vt0C
 						if (isFirst)
@@ -824,7 +824,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 			}
 		}
 		if (isFirst)
-			WarningMessage("no names found in the function names file “%s”", expFilename);
+			WarningMessage("no names found in the function names file \"%s\"", expFilename);
 		fclose(expFile);
 	}
 
@@ -847,12 +847,12 @@ ArgCountsNotDefined(CSymbol * inFunctions, bool inDoProgress)
 	for (CSymbol * func = inFunctions->fNext; func != nil; func = func->fNext)
 	{
 		if (inDoProgress && func->fNumArgs >= 0)
-			Progress("symbol “%s”, argCnt = %i", func->fName, func->fNumArgs);
+			Progress("symbol \"%s\", argCnt = %i", func->fName, func->fNumArgs);
 		if (func->fNumArgs < 0)
 		{
 			if (inDoProgress)
-				ErrorMessage("could not find source symbolics for the function named “%s”.\n"
-								 "#   Did you forget to use “extern \"C\" %s”?", func->fName, func->fName);
+				ErrorMessage("could not find source symbolics for the function named \"%s\".\n"
+								 "#   Did you forget to use \"extern \"C\" %s\"?", func->fName, func->fName);
 			isUndefined = true;
 		}
 	}
@@ -876,8 +876,8 @@ AnyUndefinedOffsets(CSymbol * inFunctions)
 	{
 		if (func->fOffset == -1)
 		{
-			ErrorMessage("could not find function entry point for the function named “%s”.\n"
-							 "#   Did you forget to use “extern \"C\" %s”?", func->fName, func->fName);
+			ErrorMessage("could not find function entry point for the function named \"%s\".\n"
+							 "#   Did you forget to use \"extern \"C\" %s\"?", func->fName, func->fName);
 			isUndefined = true;
 		}
 	}
@@ -914,24 +914,24 @@ FindProcOffsets(const char * inFilename, FILE * inFile, const ItemSection & inIt
 
 	symbolTableSize = inItem.numOfSyms * sizeof(AIFSymbol);
 	if (symbolTableSize > *ioDebugSize)
-		ExitWithMessage("symbol table size = %ld too long (debug size = %ld) in file “%s”", symbolTableSize, *ioDebugSize, inFilename);
+		ExitWithMessage("symbol table size = %ld too long (debug size = %ld) in file \"%s\"", symbolTableSize, *ioDebugSize, inFilename);
 	symbolTable = (AIFSymbol *) malloc(symbolTableSize + 8);
 	if (symbolTable == NULL)
 		ExitWithMessage("can't allocate %ld bytes for the symbol table", symbolTableSize);
 	if (fread(symbolTable, sizeof(AIFSymbol), inItem.numOfSyms, inFile) != inItem.numOfSyms)
-		ExitWithMessage("can't read %ld bytes for symbol table from file “%s”", symbolTableSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for symbol table from file \"%s\"", symbolTableSize, inFilename);
 	*ioDebugSize -= symbolTableSize;
 
 	if (fread(&stringTableSize, sizeof(size_t), 1, inFile) != 1)
-		ExitWithMessage("can't read %ld bytes for string table length from file “%s”", sizeof(size_t), inFilename);
+		ExitWithMessage("can't read %ld bytes for string table length from file \"%s\"", sizeof(size_t), inFilename);
 	if (stringTableSize != *ioDebugSize)
-		ExitWithMessage("unexpected string table size = %ld in file “%s”", stringTableSize, inFilename);
+		ExitWithMessage("unexpected string table size = %ld in file \"%s\"", stringTableSize, inFilename);
 
 	stringTable = (char *) malloc(stringTableSize + 8);
 	if (stringTable == NULL)
 		ExitWithMessage("can't allocate %ld bytes for the string table", stringTableSize);
 	if (fread(stringTable + sizeof(long), stringTableSize - sizeof(long), 1, inFile) != 1)
-		ExitWithMessage("can't read %ld bytes for string table from file “%s”", stringTableSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for string table from file \"%s\"", stringTableSize, inFilename);
 	*ioDebugSize -= stringTableSize;
 
 	for (AIFSymbol * sym = symbolTable ; sym < (AIFSymbol *)((char*)symbolTable + symbolTableSize); sym++)
@@ -945,7 +945,7 @@ FindProcOffsets(const char * inFilename, FILE * inFile, const ItemSection & inIt
 			if ((symbol = inTable->find(name)) != nil)
 			{
 				symbol->fOffset = sym->value;
-				Progress("found symbol “%s”, offset = 0x%08X", name, sym->value);
+				Progress("found symbol \"%s\", offset = 0x%08X", name, sym->value);
 			}
 		}
 	}
@@ -954,7 +954,7 @@ FindProcOffsets(const char * inFilename, FILE * inFile, const ItemSection & inIt
 	free(symbolTable);
 
 	if (*ioDebugSize != 0)
-		ExitWithMessage("%ld excess debug bytes following low-level debug info in file “%s”", *ioDebugSize, inFilename);
+		ExitWithMessage("%ld excess debug bytes following low-level debug info in file \"%s\"", *ioDebugSize, inFilename);
 }
 
 
@@ -985,7 +985,7 @@ FindSourceProcs(const char * inFilename, FILE * inFile, const ItemSection & inIt
 	if (symbolData == NULL)
 		ExitWithMessage("can't allocate %ld bytes for the symbol data", dataSize);
 	if (fread(symbolData, dataSize, 1, inFile) != 1)
-		ExitWithMessage("can't read %ld bytes for symbol data from file “%s”", dataSize, inFilename);
+		ExitWithMessage("can't read %ld bytes for symbol data from file \"%s\"", dataSize, inFilename);
 	*ioDebugSize -= dataSize;
 
 	symbolDataEnd = symbolData + dataSize;
@@ -997,7 +997,7 @@ FindSourceProcs(const char * inFilename, FILE * inFile, const ItemSection & inIt
 			if ((symbol = inTable->find(((ItemProcedure *)item)->name)) != nil)
 			{
 				if (((ItemProcedure *)item)->numOfArgs < 1)
-					ErrorMessage("function “%s” is not defined as having at least one argument of type RefArg", ((ItemProcedure *)item)->name);
+					ErrorMessage("function \"%s\" is not defined as having at least one argument of type RefArg", ((ItemProcedure *)item)->name);
 				symbol->fNumArgs = ((ItemProcedure *)item)->numOfArgs - 1;
 			}
 		}
@@ -1028,14 +1028,14 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 	int	numOfSourceLevelSections;
 
 	if (fseek(inFile, inCodeSize, SEEK_SET) != 0)
-		ExitWithMessage("can't seek to debug info in file “%s”", inFilename);
+		ExitWithMessage("can't seek to debug info in file \"%s\"", inFilename);
 	numOfLowLevelSections = 0;
 	numOfSourceLevelSections = 0;
 	while (inDebugSize != 0)
 	{
 		unsigned long  itemSize = sizeof(ItemSection);
 		if (fread(&item, itemSize, 1, inFile) != 1)
-			ExitWithMessage("can't read %ld bytes for section item header from file “%s”", itemSize, inFilename);
+			ExitWithMessage("can't read %ld bytes for section item header from file \"%s\"", itemSize, inFilename);
 		inDebugSize -= itemSize;
 		if (item.size > inDebugSize)
 			ExitWithMessage("item length %ld exceeds remaining debug size %ld", item.size, inDebugSize);
@@ -1044,7 +1044,7 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 		if (item.language == kLanguageNone)
 		{
 			if (numOfLowLevelSections == 1)
-				ExitWithMessage("more than one low-level section in file “%s”", inFilename);
+				ExitWithMessage("more than one low-level section in file \"%s\"", inFilename);
 			FindProcOffsets(inFilename, inFile, item, inCodeSize, &inDebugSize, inTable);
 			numOfLowLevelSections++;
 			if (AnyUndefinedOffsets(inFunctions))
@@ -1055,9 +1055,9 @@ FindSymbolicInfo(const char * inFilename, FILE * inFile, long inCodeSize, size_t
 			memcpy(symbol, item.name, 3);
 			itemSize = item.size - sizeof(ItemSection);
 			if (fread(&symbol[3], 1, itemSize, inFile) != itemSize)
-				ExitWithMessage("can't read %ld bytes for section name from file “%s”", itemSize, inFilename);
+				ExitWithMessage("can't read %ld bytes for section name from file \"%s\"", itemSize, inFilename);
 			inDebugSize -= itemSize;
-			Progress("searching for symbolic function definitions within file “%s”", inFilename);
+			Progress("searching for symbolic function definitions within file \"%s\"", inFilename);
 			if (ArgCountsNotDefined(inFunctions, false))
 			{
 				FindSourceProcs(inFilename, inFile, item, inCodeSize, &inDebugSize, inTable);
@@ -1092,20 +1092,20 @@ GetAIFRelocs(const char * inFilename, FILE * inFile)
 
 	gRelocs = NULL;
 	if ((gImageHeader.selfRelocCode & 0xFF000000) == 0xEB000000)  // is executable AIF
-		ExitWithMessage("file “%s” was not linked with linker options “-aif -bin -rel”", inFilename);
+		ExitWithMessage("file \"%s\" was not linked with linker options \"-aif -bin -rel\"", inFilename);
 	if (gImageHeader.selfRelocCode != 0)
 	{
 		if (fseek(inFile, gImageHeader.selfRelocCode, SEEK_SET) != 0)
-			ExitWithMessage("can't seek to AIF relocations table in file “%s”", inFilename);
+			ExitWithMessage("can't seek to AIF relocations table in file \"%s\"", inFilename);
 		if (fread(&numOfRelocTableEntries, sizeof(numOfRelocTableEntries), 1, gImageFile) != 1)
-			ExitWithMessage("can't read relocations count from file “%s”", inFilename);
+			ExitWithMessage("can't read relocations count from file \"%s\"", inFilename);
 		if (numOfRelocTableEntries > 0)
 		{
 			size_t	relocTableSize = numOfRelocTableEntries * sizeof(unsigned long);
 			if ((gRelocs = (unsigned long *) malloc(relocTableSize)) == NULL)
 				ExitWithMessage("can't allocate %ld bytes for relocations table", relocTableSize);
 			if (fread(gRelocs, relocTableSize, 1, gImageFile) != 1)
-				ExitWithMessage("can't read AIF relocations table from file “%s”", inFilename);
+				ExitWithMessage("can't read AIF relocations table from file \"%s\"", inFilename);
 			unsigned long  numOfCodeRelocs = numOfRelocTableEntries;
 			for (i = 0; i < numOfRelocTableEntries; i++)
 			{
@@ -1129,7 +1129,7 @@ GetAIFRelocs(const char * inFilename, FILE * inFile)
 			}
 		}
 		else if (numOfRelocTableEntries != 0)
-			ExitWithMessage("bogus relocations count (0x%08X) found in file “%s”", numOfRelocTableEntries, inFilename);
+			ExitWithMessage("bogus relocations count (0x%08X) found in file \"%s\"", numOfRelocTableEntries, inFilename);
 	}
 	return numOfRelocs;
 }
@@ -1180,7 +1180,7 @@ void
 AssureNextArg(const char ** inArg, const char ** inArgLimit, char * inMessage)
 {
 	if (inArg + 1 >= inArgLimit)
-		UsageExitWithMessage("no %s follows “%s”", inMessage, *inArg);
+		UsageExitWithMessage("no %s follows \"%s\"", inMessage, *inArg);
 }
 
 
@@ -1261,9 +1261,9 @@ main(int argc, const char * argv[])
 	if (gDoDump == false)
 	{
 		if (gOutputFilename == NULL)
-			UsageExitWithMessage("“-o outputname” option missing");
+			UsageExitWithMessage("\"-o outputname\" option missing");
 		if (gHasViaOption == false)
-			UsageExitWithMessage("“-via filename” options missing");
+			UsageExitWithMessage("\"-via filename\" options missing");
 	}
 
 	if (inputFilenameLimit <= &argv[1])
@@ -1272,23 +1272,23 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	gImageFile = fopen(gImageFilename, "r");
 	if (gImageFile == NULL)
-		ExitWithMessage("can't open file “%s”", gImageFilename);
+		ExitWithMessage("can't open file \"%s\"", gImageFilename);
 	if (fread(&gImageHeader, sizeof(AIFHeader), 1, gImageFile) != 1)
-		ExitWithMessage("can't read %ld bytes for aif_header from file “%s”", sizeof(AIFHeader), gImageFilename);
+		ExitWithMessage("can't read %ld bytes for aif_header from file \"%s\"", sizeof(AIFHeader), gImageFilename);
 	if (gImageHeader.exitCode != 0xEF000011)
-		ExitWithMessage("file “%s” does not seem to be in AIF format", gImageFilename);
+		ExitWithMessage("file \"%s\" does not seem to be in AIF format", gImageFilename);
 
 	gIsExecutableAIF = ((gImageHeader.imageEntryCode & 0xFF000000) == 0xEB000000);
 	if (gImageHeader.roSize < sizeof(long))
-		ExitWithMessage("read-only code image is zero bytes long! All code was dead-stripped, probably due to missing/invalid “main”.");
+		ExitWithMessage("read-only code image is zero bytes long! All code was dead-stripped, probably due to missing/invalid \"main\".");
 	if (gIsExecutableAIF)
-		ExitWithMessage("file “%s” was linked improperly for use with NTK; link with options “-aif -bin -rel”", gImageFilename);
+		ExitWithMessage("file \"%s\" was linked improperly for use with NTK; link with options \"-aif -bin -rel\"", gImageFilename);
 	if (gImageHeader.imageBase != 0)
-		ExitWithMessage("file “%s” can NOT be linked with a non-zero base address", gImageFilename);
+		ExitWithMessage("file \"%s\" can NOT be linked with a non-zero base address", gImageFilename);
 
 	now = time(NULL);
 	strftime(timeStamp, sizeof(timeStamp), "on %D at %R", localtime(&now));
-	Progress("NTK C functions file converted from “%s” by AIFtoNTK %s", gImageFilename, timeStamp);
+	Progress("NTK C functions file converted from \"%s\" by AIFtoNTK %s", gImageFilename, timeStamp);
 	Progress("read-only (code) size = 0x%08X", gImageHeader.roSize);
 
 	hasLowLevelInfo = gImageHeader.debugType & 0x01;
@@ -1303,17 +1303,17 @@ main(int argc, const char * argv[])
 	}
 
 	else if (gImageHeader.rwSize != 0)
-		ExitWithMessage("file “%s” has R/W global variables which are NOT supported in Newton packages.\n"
+		ExitWithMessage("file \"%s\" has R/W global variables which are NOT supported in Newton packages.\n"
 							 "#  You can use const global variables and *const pointers", gImageFilename);
 
 	else if (gImageHeader.debugType != 0)
 	{
 		if (hasLowLevelInfo == false || hasSourceLevelInfo == false)
-			ExitWithMessage("file “%s” was not linked/compiled with required options for use with NTK; link with “-debug” & compile with with “-gf”", gImageFilename);
+			ExitWithMessage("file \"%s\" was not linked/compiled with required options for use with NTK; link with \"-debug\" & compile with with \"-gf\"", gImageFilename);
 		EmitNTKInterface(gImageHeader.roSize + gImageHeader.rwSize + (gIsExecutableAIF ? 0 : sizeof(AIFHeader)), gImageHeader.debugSize, gIsExecutableAIF ? 0 : sizeof(AIFHeader), gImageHeader.roSize);
 	}
 	else if (gImageHeader.debugSize == 0)
-		ExitWithMessage("file “%s” was not linked/compiled with required options for use with NTK; link with “-debug” & compile with with “-gf”", gImageFilename);
+		ExitWithMessage("file \"%s\" was not linked/compiled with required options for use with NTK; link with \"-debug\" & compile with with \"-gf\"", gImageFilename);
 	else
 		printf("0x%08X bytes of unexpected debugging information is present.\n", gImageHeader.debugSize);
 

@@ -17,7 +17,7 @@
 /*--------------------------------------------------------------------------------
 	T a b P t
 
-	The stroke recognition system’s idea of a tablet point.
+	The stroke recognition system's idea of a tablet point.
 --------------------------------------------------------------------------------*/
 
 struct TabPt

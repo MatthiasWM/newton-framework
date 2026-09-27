@@ -93,13 +93,13 @@ void		UseROMJumpTables(void);
 extern ULong *		gPrimaryTable;
 extern Heap			gKernelHeap;
 /*
-int			krnlStack[0x0400];	// 0C00???? don’t actually know size
+int			krnlStack[0x0400];	// 0C00???? don't actually know size
 int			irqStack[0x0200];		// 0C002C00
 int			fiqStack[0x0300];		// 0C003400
 int			svcStack[0x0300];		// 0C004000 ??
 int			abtStack[0x0500];		// 0C004C00
 int			undStack[0x0500];		// 0C006000
-int			userStack[0x0400];	// 0C007400 don’t actually know size
+int			userStack[0x0400];	// 0C007400 don't actually know size
 */
 KernelArea	gKernelArea;			// 0C100800
 
@@ -380,7 +380,7 @@ CRAMTable::add(SBankInfo ioBank[], SBankInfo * info)
 	{
 		if (ioBank[i].tag == kUndefined)
 		{
-		//	this entry hasn’t been used yet
+		//	this entry hasn't been used yet
 			ioBank[i] = *info;
 #if !defined(correct)
 			// use allocated memory
@@ -413,7 +413,7 @@ CRAMTable::remove(PAddr inArg1, ULong inArg2, EBankDesignation inArg3, ULong inA
 	for (usedBankIndex = 0; usedBankIndex < kMaximumMemoryPartitions; usedBankIndex++)
 	{
 		if (bank[usedBankIndex].tag == kUndefined)
-			// we didn’t find a 'krnl' bank
+			// we didn't find a 'krnl' bank
 			break;
 	}
 	if (usedBankIndex == 0)
@@ -489,7 +489,7 @@ CRAMTable::getPPage(ULong inPage, SBankInfo * inBank)
 	for (ArrayIndex i = 0; i < kMaximumMemoryPartitions; ++i)
 	{
 		if (inBank[i].tag == kUndefined)
-			// we didn’t find a 'krnl' bank
+			// we didn't find a 'krnl' bank
 			break;
 		if (inBank[i].tag == 'krnl')
 		{
@@ -648,7 +648,7 @@ SetGlobalsInitialized(void)
 /*------------------------------------------------------------------------------
 	Return the physical address of a page.
 	Args:		--
-	Return:  page’s physical address
+	Return:  page's physical address
 ------------------------------------------------------------------------------*/
 
 PAddr
@@ -896,7 +896,7 @@ InitKernelHeapArea(void)
 	Map a range of memory - to be used for kernel globals - to virtual memory.
 	Args:		inVAddr			virtual base address of memory range
 				inSize			size of memory range
-				inPerm			permissions of subpages already used within…
+				inPerm			permissions of subpages already used within...
 				inPageIndex		page to map to
 				outNextAddr		address of start of next range
 				outNextPage		page of that address
@@ -1175,13 +1175,13 @@ VMemInit(void)
 	ULong	offset = PAGEOFFSET(gNextKernelVAddr);
 	if (offset != 0)
 	{
-		// gNextKernelVAddr isn’t page aligned; note it and align it
+		// gNextKernelVAddr isn't page aligned; note it and align it
 		slopBeforeMap = (void *)gNextKernelVAddr;
 		gNextKernelVAddr += (kPageSize - offset);
 	}
 
-	gPageTracker = new ((void*)gNextKernelVAddr) CPageTracker;	// page tracker is next in kernel heap…
-	// …followed by CLittlePhys objects for each page of RAM
+	gPageTracker = new ((void*)gNextKernelVAddr) CPageTracker;	// page tracker is next in kernel heap...
+	// ...followed by CLittlePhys objects for each page of RAM
 	
 	size_t	ramSize = GetRAMSize();
 	int	numOfPages = ramSize / kPageSize - gNextPageIndex;				// num of pages available
@@ -1190,7 +1190,7 @@ VMemInit(void)
 	offset = PAGEOFFSET(PhysPageOffset(numOfPages));
 	if (offset != 0)
 	{
-		// CLittlePhys array won’t fit page exactly
+		// CLittlePhys array won't fit page exactly
 		slopAfterMap = (void *)(gNextKernelVAddr + PhysPageOffset(numOfPages));
 	}
 

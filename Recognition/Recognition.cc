@@ -99,7 +99,7 @@ struct _RecognitionState
 
 
 /* -----------------------------------------------------------------------------
-	We don’t generally do ticks (60/sec), they’re a Mac legacy.
+	We don't generally do ticks (60/sec), they're a Mac legacy.
 	But for stroke time measurement we need something of that order so
 	FOR THE RECOGNITION SYSTEM ONLY we have a GetTicks() function.
 	Args:		--
@@ -119,7 +119,7 @@ GetTicks(void)
 /* -----------------------------------------------------------------------------
 	I G   I n t e r f a c e
 
-	Don’t know what IG means.
+	Don't know what IG means.
 	GC prefix is for Group and Classify.
 
 extern void		IGGetStrokesQueue(void * inData, CStrokeUnit ** * outStrokes, ArrayIndex * outCount);
@@ -404,7 +404,7 @@ FindMatchingArea(CView * inView, ULong inMask)
 	for (ArrayIndex i = 0; i < gAreaCache->count(); ++i)
 	{
 		AreaCacheEntry * entry = (AreaCacheEntry *)gAreaCache->getEntry(i);
-		if (GetElapsedTicks(entry->x08) > 10*kSeconds)	// that’s in ms but you get the idea
+		if (GetElapsedTicks(entry->x08) > 10*kSeconds)	// that's in ms but you get the idea
 		{
 			entry->area->release();
 			gAreaCache->deleteEntry(i);
@@ -573,7 +573,7 @@ PostAndDoCommand(ULong inCmd, CUnit * inUnit, ULong inFlags)
 			CView * popup = gRootView->getPopup();	// r2
 			if (popup != NULL && popup != target)
 			{
-				// we have a popup but it’s not the target of the command
+				// we have a popup but it's not the target of the command
 				CView * parent;
 				for (parent = target->fParent; parent != popup && parent != gRootView; parent = parent->fParent)
 					;
@@ -925,7 +925,7 @@ CRecognitionManager::idle(void)
 CTime
 CRecognitionManager::nextIdle(void)
 {
-	CTime		theTime(0);	// => we don’t need idle time
+	CTime		theTime(0);	// => we don't need idle time
 	Timeout	when = kDistantFuture;	// in ms
 	if (fCapability >= 1)
 	{
@@ -934,7 +934,7 @@ CRecognitionManager::nextIdle(void)
 //		if (when == kDistantFuture)
 //			return theTime;
 	}
-	if (when == kDistantFuture) {				// this was above, but that doesn’t make real sense
+	if (when == kDistantFuture) {				// this was above, but that doesn't make real sense
 printf("CRecognitionManager::nextIdle -> %lld\n", (int64_t)theTime);
 		return theTime;
 	}
@@ -1045,7 +1045,7 @@ CStrokeCentral::initFields(void)
 	f28 = CRecUnitList::make();
 	f2C = CTime(0);
 	f34 = NULL;
-	f20 = new RefStruct;		// can’t make these members because of gStrokeWorld instance
+	f20 = new RefStruct;		// can't make these members because of gStrokeWorld instance
 	*f20 = MakeArray(0);
 	f3C = NULL;
 	f40 = new RefStruct;

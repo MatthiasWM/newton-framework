@@ -321,7 +321,7 @@ extern "C" {
 
 #if defined(__cplusplus)
 void	Throw(ExceptionName name, void * data = 0, ExceptionDestructor destructor = 0);
-// Most of the time we want to throw an error number…
+// Most of the time we want to throw an error number...
 inline void	ThrowErr(ExceptionName name, long err) { Throw(name, (void *)err); }
 // indeed the notification system assumes this is the case and reports the void * data as a number.
 // This can be annoying when the item thrown is actually an object, since its address is reported as an error number.

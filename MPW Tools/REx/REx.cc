@@ -104,7 +104,7 @@ ProcessConfigFile(void)
 		gLex->consumeToken();
 		if (!CClauseHandler::handleClause(tokn)) {
 			if (tokn.fType == kIdentifierToken) {
-				FatalError("unrecognized section name “%s”", tokn.fStrValue.c_str());
+				FatalError("unrecognized section name \"%s\"", tokn.fStrValue.c_str());
 			} else {
 				FatalError("expected identifier");
 			}
@@ -430,7 +430,7 @@ PackageHandler(void)
 	gPackages->append(tokn.fStrValue.c_str());	//data from package file
 	CPackageAccessor pkg(*gPackages, start);
 	if (!pkg.isPackage()) {
-		FatalError("“%s” is not a package file", tokn.fStrValue.c_str());
+		FatalError("\"%s\" is not a package file", tokn.fStrValue.c_str());
 	}
 	TryPatchInfoFile(gPackages, start);
 }
@@ -459,7 +459,7 @@ DiagnosticsHandler(void)
 		} else if (alignment.fValue == 1*KByte) {
 			AddBlock(kPadBlockTag, gDiagnosticsPadding, Align1K);
 		} else {
-			FatalError("diagnostics align size “%04X” unknown (!= 4K/1K)", alignment.fValue);
+			FatalError("diagnostics align size \"%04X\" unknown (!= 4K/1K)", alignment.fValue);
 		}
 	} else {
 		AddBlock(kPadBlockTag, gDiagnosticsPadding, AlignB0);
@@ -1037,7 +1037,7 @@ main(int argc, const char * argv[])
 	if (gInputFilename != NULL) {
 		_is = new ifstream(gInputFilename);
 		if (!_is->is_open()) {
-			FatalError("can't open “%s”", gInputFilename);
+			FatalError("can't open \"%s\"", gInputFilename);
 		}
 		cinbuf = cin.rdbuf();		// save old buf
 		cin.rdbuf(_is->rdbuf());	// redirect std::cin to gInputFilename
@@ -1050,7 +1050,7 @@ main(int argc, const char * argv[])
 	if (gOutputFilename != NULL) {
 		_os = new ofstream(gOutputFilename);
 		if (!_os->is_open()) {
-			FatalError("can't open “%s”", gOutputFilename);
+			FatalError("can't open \"%s\"", gOutputFilename);
 		}
 		coutbuf = cout.rdbuf();		// save old buf
 		cout.rdbuf(_os->rdbuf());	// redirect std::cout to gOutputFilename

@@ -359,7 +359,7 @@ ThrowOutOfBoundsException(RefArg value, ArrayIndex index)
 
 /*----------------------------------------------------------------------
 	Common Ref exception thrower.
-	At this point weÕve got a named exception and a frame with the
+	At this point we've got a named exception and a frame with the
 	approved slots.
 ----------------------------------------------------------------------*/
 
@@ -406,7 +406,7 @@ Throw(ExceptionName name, void * data, ExceptionDestructor destructor)
 			// Got an exception handler.
 			// Remove it from the list.
 			SetExceptionHandler(handler->next);
-			// set ths handlerÕs exception parameters
+			// set ths handler's exception parameters
 			((NewtonExceptionHandler *)handler)->exception.name = name;
 			((NewtonExceptionHandler *)handler)->exception.data = data;
 			((NewtonExceptionHandler *)handler)->exception.destructor = destructor;
@@ -613,12 +613,12 @@ ExitHandler(NewtonExceptionHandler * inHandler)
 		;
 
 	if (handler == (CatchHeader *)inHandler)
-		// itÕs first in the list so just remove it
+		// it's first in the list so just remove it
 		RemoveExceptionHandler((CatchHeader *)inHandler);
 
 	else
 	{
-		// itÕs not so call its destructor
+		// it's not so call its destructor
 		ForgetDeveloperNotified(inHandler->exception.name);
 //		if (inHandler->exception.destructor != NULL && inHandler->exception.data != NULL)
 //			inHandler->exception.destructor(inHandler->exception.data);

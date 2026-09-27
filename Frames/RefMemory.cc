@@ -163,7 +163,7 @@ NoFaultObjectPtr(Ref r)
 
 /*------------------------------------------------------------------------------
 	If the given Ref is forwarding, return the actual Ref.
-	Args:		r			Ref that’s potentially forwarding
+	Args:		r			Ref that's potentially forwarding
 	Return:	Ref		of actual object
 ------------------------------------------------------------------------------*/
 
@@ -184,7 +184,7 @@ ForwardReference(Ref r)
 
 /*------------------------------------------------------------------------------
 	Return the actual Ref of a forwarding object.
-	Args:		fo			object that’s forwarding
+	Args:		fo			object that's forwarding
 	Return:	Ref		of actual object
 ------------------------------------------------------------------------------*/
 
@@ -428,7 +428,7 @@ EQ1(Ref a, Ref b)
 	if (a < x0071FC4C && b < x0071FC4C)		// x0071FC4C is "RExBlock"
 		return false;
 */
-//	There are some loose symbols in the ROM - they aren’t in the symbol table
+//	There are some loose symbols in the ROM - they aren't in the symbol table
 //	so we have to make a manual check for them.
 	return (((SymbolObject *)obj1)->objClass == kSymbolClass && ((SymbolObject *)obj2)->objClass == kSymbolClass
 	    &&  ((SymbolObject *)obj1)->hash == ((SymbolObject *)obj2)->hash

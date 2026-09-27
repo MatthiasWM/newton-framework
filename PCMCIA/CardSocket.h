@@ -1,7 +1,7 @@
 /*
 	File:		CardSocket.h
 
-	Copyright:	й 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v15 (12/16/96) internal.
 
@@ -125,7 +125,7 @@ enum TSocketPowerLevels									// Used in RequestPower() and ReleasePower()
 //	Voltage definitions
 //
 
-#ifndef __kPCMCIAVoltageAvailibilities					// ееее Also defined in PlatformDriver.h
+#ifndef __kPCMCIAVoltageAvailibilities					// **** Also defined in PlatformDriver.h
 #define __kPCMCIAVoltageAvailibilities
 enum kPCMCIAVoltageAvailibilities
 {
@@ -233,7 +233,7 @@ class TCardSocket : public SingleObject
 
 		//	New for Voyager (kCardVersionVoyager)
 
-		// ееее Voyager only, others return a "(ULong)kError_Call_Not_Implemented"
+		// **** Voyager only, others return a "(ULong)kError_Call_Not_Implemented"
 
 		ULong		GetSocketASICId();					// Get socket ASIC Id (0:non Voyager ASIC)
 
@@ -254,7 +254,7 @@ class TCardSocket : public SingleObject
 		ULong		Do16BitRead(ULong addr);				// Do 16-bit read (data returns at low 16-bit)
 
 
-	private:		//	ееее for internal use only
+	private:		//	**** for internal use only
 
 };
 
@@ -353,7 +353,7 @@ const ULong kCardCisXpX3p3Maybe5V	=	0;				// CIS "X.X and 3.3 V" or "X.X, 3.3 an
 
 
 //
-//	Bits in Voyager PCPins reg	(in GetVPCPins())		еееее Voyager only
+//	Bits in Voyager PCPins reg	(in GetVPCPins())		***** Voyager only
 //
 
 const ULong kCardVReadFailure	=	0x00004000;			// Voyager Read failure

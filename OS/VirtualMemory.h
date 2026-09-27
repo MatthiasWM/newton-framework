@@ -3,7 +3,7 @@
 
 	Contains:	Interfaces to virtual memory functions
 
-	Copyright:	© 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v55 internal.
 
@@ -91,7 +91,7 @@ struct SPatchInfo
 	ULong		fPatchVersion;					// Current patch version
 	ULong		fPatchPageCount;				// # of pages in this patch
 	ULong		fPatchFirstPageIndex;		// Index into the patch page array
-													// ÉTrack the pages for this patch.
+													// ...Track the pages for this patch.
 	// Info about patch that's about to be installed_
 	// Non-zero only when a patch has been registered but not installed yet.
 	VAddr		fPatchPtr;						// Ptr to the patch code

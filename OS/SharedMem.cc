@@ -15,7 +15,7 @@
 /*--------------------------------------------------------------------------------
 	F u n c t i o n   P r o t o t y p e s
 
-	Glue functions must have C linkage; they’re called from assembler.
+	Glue functions must have C linkage; they're called from assembler.
 --------------------------------------------------------------------------------*/
 
 extern "C"
@@ -90,7 +90,7 @@ SMemGetSizeKernelGlue(ObjectId inId)
 		bool		isMemOwnedByTask;
 		while (!(isMemOwnedByTask = (memOwner == *gCurrentTask)) && memOwner != kNoId)
 		{
-		// current task doesn’t own the memory
+		// current task doesn't own the memory
 		// look for the task to whom the memory has been bequeathed
 			CTask *	task;
 			XFAIL(err = ConvertIdToObj(kTaskType, memOwner, &task))
@@ -111,7 +111,7 @@ SMemGetSizeKernelGlue(ObjectId inId)
 				inBuffer			address of block of memory
 				inSize			size of the block to be copied
 				inOffset			offset to start of the block to be copied
-				inSendersMsgId	id of the sending task’s message
+				inSendersMsgId	id of the sending task's message
 				inSendersSignature	signature of the sending task
 	Return:	< 0 => error code
 				else copy chunk size (byte alignment) 1 or 4
@@ -185,7 +185,7 @@ SMemCopyToKernelGlue(ObjectId inId, void * inBuffer, size_t inSize, ULong inOffs
 				outBuffer		address of block of memory
 				inSize			size of the block to be copied
 				inOffset			offset to start of the block to be copied
-				inSendersMsgId	id of the sending task’s message
+				inSendersMsgId	id of the sending task's message
 				inSendersSignature	signature of the sending task
 	Return:	error code
 				1 => perform copy, byte-at-a-time
@@ -289,9 +289,9 @@ SMemMsgSetMsgAvailPortKernelGlue(ObjectId inMsgId, ObjectId inPortId)
 
 
 /*--------------------------------------------------------------------------------
-	Get shared mem mesage sender task’s id.
+	Get shared mem mesage sender task's id.
 	Supervisor mode callback from SWI.
-	Args:		inId			message’s id
+	Args:		inId			message's id
 				inRefCon		the refCon
 	Return:	error code
 				gCurrentTask->fRegister[kReturnParm1]	-> refCon
@@ -315,7 +315,7 @@ SMemMsgGetSenderTaskIdKernelGlue(ObjectId inId)
 
 /*--------------------------------------------------------------------------------
 	Set shared mem mesage refCon.
-	Args:		inId			message’s id
+	Args:		inId			message's id
 				inRefCon		the refCon
 	Return:	error code
 --------------------------------------------------------------------------------*/
@@ -338,7 +338,7 @@ SMemMsgSetUserRefConKernelGlue(ObjectId inId, ULong inRefCon)
 
 /*--------------------------------------------------------------------------------
 	Get shared mem mesage refCon.
-	Args:		inId			message’s id
+	Args:		inId			message's id
 	Return:	error code
 				gCurrentTask->fRegister[kReturnParm1]	-> refCon
 --------------------------------------------------------------------------------*/
@@ -521,7 +521,7 @@ CSharedMemMsg::CSharedMemMsg(void)
 
 /*--------------------------------------------------------------------------------
 	Destructor.
-	Inform all tasks trying to send this message that there’s noone to receive it.
+	Inform all tasks trying to send this message that there's noone to receive it.
 --------------------------------------------------------------------------------*/
 
 CSharedMemMsg::~CSharedMemMsg(void)
@@ -579,7 +579,7 @@ CSharedMemMsg::init(CEnvironment * inEnvironment)
 
 /*--------------------------------------------------------------------------------
 	Complete a message for a sender.
-	Args:		inErr				the message’s status
+	Args:		inErr				the message's status
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -593,7 +593,7 @@ CSharedMemMsg::completeSender(NewtonErr inErr)
 /*--------------------------------------------------------------------------------
 	Complete a message for a receiver.
 	Args:		inMsg				
-				inErr				the message’s status
+				inErr				the message's status
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -612,9 +612,9 @@ CSharedMemMsg::completeReceiver(CSharedMemMsg * inMsg, NewtonErr inErr)
 			inMsg->fType = 0;
 		else
 		{
-			f8C.add(inMsg);		// what’s the point? it gets deleted in completeMsg next
+			f8C.add(inMsg);		// what's the point? it gets deleted in completeMsg next
 			fSendersSig = inMsg->fSignature = inMsg->fSequenceNo;	// sync signatures
-			if (++inMsg->fSequenceNo == 0)			// bump sender’s sequence number (uid)
+			if (++inMsg->fSequenceNo == 0)			// bump sender's sequence number (uid)
 				inMsg->fSequenceNo = 1;
 		}
 	}
@@ -625,8 +625,8 @@ CSharedMemMsg::completeReceiver(CSharedMemMsg * inMsg, NewtonErr inErr)
 /*--------------------------------------------------------------------------------
 	Complete a message.
 	Args:		inCollector
-				inType			the message’s type
-				inErr				the message’s status
+				inType			the message's type
+				inErr				the message's status
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -642,7 +642,7 @@ CSharedMemMsg::completeMsg(bool inCollector, ULong inType, NewtonErr inErr)
 	// the message should no longer time out
 	gTimerEngine->remove(this);
 
-	// it’s no longer queued
+	// it's no longer queued
 	if (f80.fContainer != NULL)
 		f80.fContainer->deleteFromQueue(this);
 

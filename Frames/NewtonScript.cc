@@ -307,7 +307,7 @@ NSSendWithArgArray(RefArg inRcvr, RefArg inSym, RefArg inArgs)
 #pragma mark -
 
 /*------------------------------------------------------------------------------
-	Send message - don’t fail if not defined.
+	Send message - don't fail if not defined.
 ------------------------------------------------------------------------------*/
 
 Ref
@@ -535,7 +535,7 @@ NSSendProtoWithArgArray(RefArg inRcvr, RefArg inSym, RefArg inArgs)
 #pragma mark -
 
 /*------------------------------------------------------------------------------
-	Send message - look up in proto chain - don’t fail if not defined.
+	Send message - look up in proto chain - don't fail if not defined.
 ------------------------------------------------------------------------------*/
 
 Ref

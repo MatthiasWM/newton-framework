@@ -118,14 +118,14 @@ struct PackageDirectory
 {
 // package header
 	char		signature[8];		//	'package0' or 'package1'
-	ULong		id;					// reserved1 according to “Newton Formats 1.1” -- typically xxxx
+	ULong		id;					// reserved1 according to "Newton Formats 1.1" -- typically xxxx
 	ULong		flags;				//	defined below
 	ULong		version;				//	arbitrary number
 	InfoRef	copyright;			//	Unicode copyright notice - optional
 	InfoRef	name;					//	Unicode package name - unique
 	ULong		size;					//	total size of package including this directory
 	Date		creationDate;
-	Date		modifyDate;			// reserved2 according to “Newton Formats 1.1” -- typically 0
+	Date		modifyDate;			// reserved2 according to "Newton Formats 1.1" -- typically 0
 // parts directory header
 	ULong		reserved3;
 	ULong		directorySize;		//	size of this directory including part entries & data

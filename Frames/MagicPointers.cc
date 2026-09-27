@@ -256,7 +256,7 @@ ResolveImportRef(Ref * ioRefPtr, void ** outArg2)
 	if (table != 0 && table != 1)
 	{
 #if defined(correct)
-		// itÕs neither MPs nor globals -- must be import refs
+		// it's neither MPs nor globals -- must be import refs
 		int r8 = table-2;
 		r6 = *outArg2;
 		if (r6 == NULL)
@@ -340,7 +340,7 @@ FPendingImports(RefArg rcvr)
 {
 	RefVar imports(MakeArray(0));
 	RefVar item;
-	MPPendingImportItem * src;	// canÕt be right?
+	MPPendingImportItem * src;	// can't be right?
 	for (src = (MPPendingImportItem *)gMPPendingImports; src != NULL; src = (MPPendingImportItem *)src->next)
 	{
 		item = Clone(RA(canonicalPendingImport));

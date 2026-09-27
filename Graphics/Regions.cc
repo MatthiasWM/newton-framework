@@ -2,7 +2,7 @@
 	File:		Regions.cc
 
 	Contains:	Screen update region implementation.
-					We really don’t want to be using QuickDraw regions in the 21st century.
+					We really don't want to be using QuickDraw regions in the 21st century.
 
 	Written by:	Newton Research Group.
 */
@@ -24,7 +24,7 @@ enum {
 
 
 /* -----------------------------------------------------------------------------
-	In the QuickDraw world there was an idiom for getting the viewport’s region.
+	In the QuickDraw world there was an idiom for getting the viewport's region.
 	Presumably this was screen/print area sized.
 	We have collapsed that into a function call.
 	Args:		--
@@ -623,7 +623,7 @@ CBaseRegion::overlap(Rect * inRect1, int r1, int r1End, Rect * inRect2, int r2, 
 			int x2 = MIN(inRect1[r1].right, inRect2[r2].right);
 
 			if (x1 < x2) {
-				// there’s an intersection -- add it to the global list
+				// there's an intersection -- add it to the global list
 				checkMemory(NULL, gRectCount + 1);
 
 				gRect[i].top = yTop;

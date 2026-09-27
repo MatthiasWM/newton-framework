@@ -1,7 +1,7 @@
 /*
 	File:		CardPCMCIA.h
 
-	Copyright:	й 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v11 internal (9/14/96).
 
@@ -379,14 +379,14 @@ class TCardPCMCIA : public SingleObject
 		ULong			fSocketNumber;								// we fill in - it represents the current socket for this parse
 		ULong		 	fTotalDeviceSize;							// Total common device size
 		ULong			fFirstDataByteAddress;						// CISTPL_VERS_2 - < 64k, allows reserving part of common memory for CIS or other uses
-		ULong			fRegisterBaseAddress;						// CISTPL_CONF - base address of registers in attribute space	(еее kCardVersionVoyager: use new TCardFunction)
+		ULong			fRegisterBaseAddress;						// CISTPL_CONF - base address of registers in attribute space	(*** kCardVersionVoyager: use new TCardFunction)
 		ULong		 	fRegistersPresent;							// CISTPL_CONF - bit array showing registers that should be there
 		UShort			fManufactureId;								// CISTPL_MANFID
 		UShort			fManufactureIdInfo;							// CISTPL_MANFID
-		UChar			fFunctionId;								// CISTPL_FUNCID									(еее kCardVersionVoyager: use new TCardFunction)
-		UChar			fFunctionSysInit;							// CISTPL_FUNCSYSINIT								(еее kCardVersionVoyager: use new TCardFunction)
-		UChar			fFuncExt[kNumFuncExtTuples][kFuncExtSize];	// CISTPL_FUNCE 									(еее kCardVersionVoyager: use new TCardFunction)
-		UChar			fNumOfFuncExt;								// number of function extension tuples in fFuncExt  (еее kCardVersionVoyager: use new TCardFunction)
+		UChar			fFunctionId;								// CISTPL_FUNCID									(*** kCardVersionVoyager: use new TCardFunction)
+		UChar			fFunctionSysInit;							// CISTPL_FUNCSYSINIT								(*** kCardVersionVoyager: use new TCardFunction)
+		UChar			fFuncExt[kNumFuncExtTuples][kFuncExtSize];	// CISTPL_FUNCE 									(*** kCardVersionVoyager: use new TCardFunction)
+		UChar			fNumOfFuncExt;								// number of function extension tuples in fFuncExt  (*** kCardVersionVoyager: use new TCardFunction)
 		UChar			fNumOfDevice;								// number of devices
 		UChar			fNumOfConfigEntry;							// number of configuration entries
 		UChar			fNumOfPackage;								// number of packages

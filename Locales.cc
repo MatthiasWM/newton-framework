@@ -150,7 +150,7 @@ SetCurrentLocale(RefArg inLocale)
 			SetFrameSlot(international, SYMA(currentLocaleBundle), saveLocale);
 			localeBundle = NILREF;
 		}
-//		FReadCursiveOptions(NILREFARG);	// we donÕt do cursive
+//		FReadCursiveOptions(NILREFARG);	// we don't do cursive
 		NSCallGlobalFn(SYMA(UpdateLocaleFromUserConfig));
 	}
 	return localeBundle;
@@ -397,7 +397,7 @@ IntlNumberMunge(const char * inStr, UniChar * outStr, bool inIsNegative, ArrayIn
 		fracStr[fracLen] = kEndOfString;
 	}
 
-	// ¥¥ build the prefix string
+	// ** build the prefix string
 	UniChar *	str = prefixStr;
 	UniChar *	affixStr;
 	bool	isBracketed = ((inFmt & kFormatMinus) != 0);
@@ -425,7 +425,7 @@ IntlNumberMunge(const char * inStr, UniChar * outStr, bool inIsNegative, ArrayIn
 	*str = kEndOfString;
 	prefixLen = Ustrlen(prefixStr);
 
-	// ¥¥ build the suffix string
+	// ** build the suffix string
 	str = suffixStr;
 	if (isCurrency)
 	{
@@ -455,7 +455,7 @@ IntlNumberMunge(const char * inStr, UniChar * outStr, bool inIsNegative, ArrayIn
 	*str = kEndOfString;
 	suffixLen = Ustrlen(suffixStr);
 
-	// ¥¥ assemble the final string
+	// ** assemble the final string
 	if (prefixLen + intLen + fracLen + suffixLen > inStrLen)
 		return -10;		// final string too long for destination
 

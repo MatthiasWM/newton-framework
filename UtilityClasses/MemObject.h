@@ -117,7 +117,7 @@ public:
 	NewtonErr		copyFrom(size_t * outSize, Ptr outBuffer, size_t inSize, ULong inOffset = 0);
 	ULong				getSize(void);
 
-	// internal only calls…
+	// internal only calls...
 	void *			getBase(void);			// returns fBuffer if type is internal
 
 private:

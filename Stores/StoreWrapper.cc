@@ -443,7 +443,7 @@ StoreCheckUnion(RefArg inRcvr)
 		}
 		end_try;
 		delete[] indexes;
-		return badSoups;	// @541:StoreMounted() expects an array of ‘incompatible' soups
+		return badSoups;	// @541:StoreMounted() expects an array of 'incompatible' soups
 	}
 	return NILREF;
 }

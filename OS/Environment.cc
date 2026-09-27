@@ -168,7 +168,7 @@ BuildDomainsAndHeaps(ObjectId inEnvId)
 						Heap		heap;		//sp0C
 						VAddr		heapStart, heapEnd;	// sp04, sp00
 
-						// can’t have persistent globals!
+						// can't have persistent globals!
 						XFAILIF(domain.isPersistent() && domain.hasGlobals(), err = kOSErrBadParameters;)
 						if (domain.isPersistent())
 						{
@@ -177,7 +177,7 @@ BuildDomainsAndHeaps(ObjectId inEnvId)
 							ObjectId					pageId;	//sp08 in prev stack frame
 							CLittlePhys *			page;				// r4
 							CPersistentDBEntry	persistentEntry;	// sp00
-							// get the domain’s persistent entry from the object manager
+							// get the domain's persistent entry from the object manager
 							MemObjManager::findEntryByName(kMemObjPersistent, domain.name(), &persistentEntry);
 
 							if ((page = (CLittlePhys *)persistentEntry.fPages.peek()) != NULL)
@@ -439,7 +439,7 @@ ClearDomainRange(ULong inStart, ULong inSize)
 
 
 /*------------------------------------------------------------------------------
-	Set the current task’s environment;
+	Set the current task's environment;
 	return the previous one.
 	Args:		inEnvId			id of new environment
 				outEnvId			id of old environment
@@ -468,7 +468,7 @@ SetEnvironment(ObjectId inEnvId, ObjectId * outEnvId)
 
 
 /*------------------------------------------------------------------------------
-	Return the id of the current task’s environment.
+	Return the id of the current task's environment.
 	Args:		outEnvId			id of environment
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -817,7 +817,7 @@ CDomain::initWithDomainNumber(ObjectId inMonitor, VAddr inRangeStart, size_t inR
 
 
 /*------------------------------------------------------------------------------
-	Set the domain’s fault monitor.
+	Set the domain's fault monitor.
 	Args:		inMonitor		id of fault monitor
 	Return:	error code
 ------------------------------------------------------------------------------*/

@@ -6,7 +6,7 @@
 				for things like OpenMux, etc.  When complete, the
 				PMuxTool implementation will call PMuxCallBack::OpenMuxComplete.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v3 (4/13/95) internal.
 

@@ -438,7 +438,7 @@ CCompiler::compile(void)
 	funcDepthPtr = NULL;
 
 	// build the AST...
-	int		err = parser();	// returns “there is an error” rather than a NewtonErr code
+	int		err = parser();	// returns "there is an error" rather than a NewtonErr code
 	// ...with a root node
 	RefVar	graph(AllocatePT1(TOKENbegin, yyval));
 
@@ -525,18 +525,18 @@ CCompiler::compile(void)
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ object [ , object ]* [ , ] ] ']'
 	frame:
-		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
+		'{' [ frame-slot [ , frame-slot ]* [ , ] ] '}'
 	frame-slot:
 		symbol : object
 
 	constructor:
 		{ array-constructor | frame-constructor | function-constructor }
 	array-constructor:
-		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ']'
 	frame-constructor:
-		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
+		'{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] '}'
 	frame-constructor-slot:
 		symbol : expression
 	function-constructor:
@@ -553,7 +553,7 @@ CCompiler::compile(void)
 	frame-accessor:
 		expression . { symbol | ( expression ) }
 	array-accessor:
-		expression ‘[' expression ‘]'
+		expression '[' expression ']'
 
 	assignment:
 		lvalue := expression
@@ -3065,7 +3065,7 @@ CCompiler::emitVarGet(RefArg inName)
 	int		b;
 
 	if (EQ(inName, SYMA(_parent)))
-		warning("References to the variable “_parent” have undefined behavior");
+		warning("References to the variable \"_parent\" have undefined behavior");
 
 	if (func->isLocalVariable(inName) && (b = func->variableIndex(inName)) != -1)
 		a = kOpcodeGetVar;
@@ -3135,7 +3135,7 @@ CCompiler::emitVarIncr(RefArg inName)
 void
 CCompiler::warning(const char * inMsg)
 {
-	REPprintf("File “%s”; Line %d ### Warning: %s\n", stream->fileName(), lineNumber, inMsg);
+	REPprintf("File \"%s\"; Line %d ### Warning: %s\n", stream->fileName(), lineNumber, inMsg);
 }
 
 

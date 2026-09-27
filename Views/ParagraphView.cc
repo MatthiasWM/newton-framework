@@ -32,7 +32,7 @@ Ref	FVoteOnWordUnit(RefArg inRcvr, RefArg inUnit);
 
 /*--------------------------------------------------------------------------------
 	Return the CParagraphView associated with a NewtonScript view.
-	Throw an exception if it’s not found.
+	Throw an exception if it's not found.
 	Args:		inContext	the NS view frame
 	Return:	CParagraphView *
 --------------------------------------------------------------------------------*/

@@ -47,18 +47,18 @@
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ object [ , object ]* [ , ] ] ']'
 	frame:
-		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
+		'{' [ frame-slot [ , frame-slot ]* [ , ] ] '}'
 	frame-slot:
 		symbol : object
 
 	constructor:
 		{ array-constructor | frame-constructor | function-constructor }
 	array-constructor:
-		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ']'
 	frame-constructor:
-		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
+		'{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] '}'
 	frame-constructor-slot:
 		symbol : expression
 	function-constructor:
@@ -75,7 +75,7 @@
 	frame-accessor:
 		expression . { symbol | ( expression ) }
 	array-accessor:
-		expression ‘[' expression ‘]'
+		expression '[' expression ']'
 
 	assignment:
 		lvalue := expression
@@ -775,9 +775,9 @@ CCompiler::parseExpressionSequence(int inUntilToken)
 	path-expression:
 		symbol [ . symbol ]+
 	array:
-		‘[' [ symbol : ] [ object [ , object ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ object [ , object ]* [ , ] ] ']'
 	frame:
-		‘{' [ frame-slot [ , frame-slot ]* [ , ] ] ‘}'
+		'{' [ frame-slot [ , frame-slot ]* [ , ] ] '}'
 	frame-slot:
 		symbol : object
 
@@ -931,7 +931,7 @@ CCompiler::parseObjectExpr(void)
 #pragma mark constructors
 /* -----------------------------------------------------------------------------
 	array-constructor:
-		‘[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ‘]'
+		'[' [ symbol : ] [ expression [ , expression ]* [ , ] ] ']'
 ----------------------------------------------------------------------------- */
 ExprAST *
 CCompiler::parseArrayConstructor(void)
@@ -986,7 +986,7 @@ CCompiler::parseArrayConstructor(void)
 
 /* -----------------------------------------------------------------------------
 	frame-constructor:
-		‘{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] ‘}'
+		'{' [ frame-constructor-slot [ , frame-constructor-slot ]* [ , ] ] '}'
 	frame-constructor-slot:
 		symbol : expression
 ----------------------------------------------------------------------------- */

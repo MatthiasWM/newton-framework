@@ -4,7 +4,7 @@
 	Contains:	Protocol interface for "Multiplexing" CommTool.  The MuxTool
 				supports multiple simultaneous connections per tool.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v2 (5/11/95) internal.
 

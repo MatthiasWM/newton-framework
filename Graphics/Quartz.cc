@@ -410,7 +410,7 @@ MakeGrayPattern(RefArg inPat)
 
 
 /*------------------------------------------------------------------------------
-	Set the pattern for drawing a view’s frame.
+	Set the pattern for drawing a view's frame.
 	Used only by View.cc.
 	Args:		inPatNo
 	Return:	YES	if a standard pattern was set
@@ -532,7 +532,7 @@ GetPattern(RefArg inPatNo, BOOL * ioTakeOwnership, CGColorRef * ioPat, BOOL inDe
 		{
 			if (*ioTakeOwnership)
 				CGColorRelease(*ioPat);
-			if ((patNo & 0x10000000) != 0)	// it’s not actually an index but an RGB value
+			if ((patNo & 0x10000000) != 0)	// it's not actually an index but an RGB value
 			{
 				ULong	r;
 				ULong	g;

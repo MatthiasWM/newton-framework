@@ -707,7 +707,7 @@ mp1xx := [
 
 /*------------------------------------------------------------------------------
 	@113
-			DSExceptions -- months that are also girls’ names?
+			DSExceptions -- months that are also girls' names?
 */
 	[ "may", "june", "april", "jan" ],
 
@@ -776,7 +776,7 @@ mp1xx := [
 		end
 	else
 		begin
-		persistentConfig._proto := @285;	// soup entries can’t have protos
+		persistentConfig._proto := @285;	// soup entries can't have protos
 		DefGlobalVar('userConfiguration, persistentConfig)
 		end;
 	if not sysSoup then

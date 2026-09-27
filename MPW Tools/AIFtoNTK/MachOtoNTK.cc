@@ -483,7 +483,7 @@ StreamSymbol(FILE * inFile, const char * inSym)
 	{
 		char  ch = inSym[i];
 		if (ch == ' ' || ch == '|' || ch == '\\')
-			ExitWithMessage("invalid character (0x%02X) found in function name “%s”", ch, inSym);
+			ExitWithMessage("invalid character (0x%02X) found in function name \"%s\"", ch, inSym);
 	}
 
 	for (i = 0, precedent = gSymbolPrecedents; i < gNumOfSymbolPrecedents; i++, precedent++)
@@ -573,7 +573,7 @@ EmitCCMFrameFile(CSymbol * inFunctions)
 {
 	FILE *	f = fopen(gOutputFilename, "w");
 	if (f == NULL)
-		ExitWithMessage("can't open output file “%s” for write", gOutputFilename);
+		ExitWithMessage("can't open output file \"%s\" for write", gOutputFilename);
 
 	fputc(kNSOFVersion, f);
 
@@ -642,7 +642,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL)
-			ExitWithMessage("can't open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file \"%s\"", expFilename);
 
 		while (!feof(expFile))
 		{
@@ -655,11 +655,11 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 				{
 					int	numOfItems = sscanf(line, "%255s%n%i", name, &lineLen, &argCount);
 					if (lineLen == 255)
-						ExitWithMessage("input line too long in file “%s”", expFilename);
+						ExitWithMessage("input line too long in file \"%s\"", expFilename);
 					if (numOfItems > 0 && line[0] != ';')
 					{
 						if (strlen(name) > 254)
-							ExitWithMessage("encountered function name longer than 254 characters in file “%s”", expFilename);
+							ExitWithMessage("encountered function name longer than 254 characters in file \"%s\"", expFilename);
 						symbol = new CSymbol(name, symbol);
 						inTable->add(symbol);
 						if (isFirst)
@@ -676,7 +676,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames)
 			}
 		}
 		if (isFirst)
-			WarningMessage("no names found in the function names file “%s”", expFilename);
+			WarningMessage("no names found in the function names file \"%s\"", expFilename);
 		fclose(expFile);
 	}
 
@@ -698,17 +698,17 @@ AnyUndefinedOffsetsOrArgCounts(CSymbol * inFunctions)
 	for (CSymbol * func = inFunctions->fNext; func != nil; func = func->fNext)
 	{
 		if (func->fOffset >= 0 && func->fNumArgs >= 0)
-			Progress("symbol “%s”, offset = %ld, argCnt = %i", func->fName, func->fOffset, func->fNumArgs);
+			Progress("symbol \"%s\", offset = %ld, argCnt = %i", func->fName, func->fOffset, func->fNumArgs);
 		if (func->fOffset == -1)
 		{
-			ErrorMessage("could not find function entry point for the function named “%s”.\n"
-							 "#   Did you forget to use “extern \"C\" %s”?", func->fName, func->fName);
+			ErrorMessage("could not find function entry point for the function named \"%s\".\n"
+							 "#   Did you forget to use \"extern \"C\" %s\"?", func->fName, func->fName);
 			isUndefined = true;
 		}
 		if (func->fNumArgs < 0)
 		{
-			ErrorMessage("could not find argument count for the function named “%s”.\n"
-							 "#   Did you forget to use “extern \"C\" %s”?", func->fName, func->fName);
+			ErrorMessage("could not find argument count for the function named \"%s\".\n"
+							 "#   Did you forget to use \"extern \"C\" %s\"?", func->fName, func->fName);
 			isUndefined = true;
 		}
 	}
@@ -743,7 +743,7 @@ FindSymbolicInfo(CSymbolTable * inTable, CSymbol * inFunctions)
 	for (func = inFunctions->fNext; func != nil; sym++, func = func->fNext)
 		sym->n_un.n_name = func->fName;
 
-	Progress("searching for symbolic function definitions within file “%s”", gImageFilename);
+	Progress("searching for symbolic function definitions within file \"%s\"", gImageFilename);
 	if (nlist(gImageFilename, symList) != numOfFuncs)
 			ExitWithMessage("couldn't locate function definitions for all functions");
 
@@ -801,7 +801,7 @@ void
 AssureNextArg(const char ** inArg, const char ** inArgLimit, const char * inMessage)
 {
 	if (inArg + 1 >= inArgLimit)
-		UsageExitWithMessage("no %s follows “%s”", inMessage, *inArg);
+		UsageExitWithMessage("no %s follows \"%s\"", inMessage, *inArg);
 }
 
 
@@ -881,9 +881,9 @@ main(int argc, const char * argv[])
 	if (gDoDump == false)
 	{
 		if (gOutputFilename == NULL)
-			UsageExitWithMessage("“-o outputname” option missing");
+			UsageExitWithMessage("\"-o outputname\" option missing");
 		if (gHasViaOption == false)
-			UsageExitWithMessage("“-via filename” options missing");
+			UsageExitWithMessage("\"-via filename\" options missing");
 	}
 
 	if (inputFilenameLimit <= &argv[1])
@@ -892,16 +892,16 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	gImageFile = fopen(gImageFilename, "r");
 	if (gImageFile == NULL)
-		ExitWithMessage("can't open file “%s”", gImageFilename);
+		ExitWithMessage("can't open file \"%s\"", gImageFilename);
 	if (fread(&gImageHeader, sizeof(mach_header_64), 1, gImageFile) != 1)
-		ExitWithMessage("can't read %ld bytes for mach_header from file “%s”", sizeof(mach_header_64), gImageFilename);
+		ExitWithMessage("can't read %ld bytes for mach_header from file \"%s\"", sizeof(mach_header_64), gImageFilename);
 	if (gImageHeader.magic != MH_MAGIC_64)
-		ExitWithMessage("file “%s” does not seem to be in Mach-O format", gImageFilename);
+		ExitWithMessage("file \"%s\" does not seem to be in Mach-O format", gImageFilename);
 	fclose(gImageFile);
 
 	now = time(NULL);
 	strftime(timeStamp, sizeof(timeStamp), "on %D at %R", localtime(&now));
-	Progress("NTK C functions file converted from “%s” by MachOtoNTK %s", gImageFilename, timeStamp);
+	Progress("NTK C functions file converted from \"%s\" by MachOtoNTK %s", gImageFilename, timeStamp);
 
 	EmitNTKInterface();
 

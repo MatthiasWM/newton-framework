@@ -656,13 +656,13 @@ DisposePattern(PatternHandle inPat)
 {
 	ULong		storage = (*inPat)->pixMapFlags & kPixMapStorage;
 
-	// donÕt dispose a built-in pattern!
+	// don't dispose a built-in pattern!
 	for (int i = 4; i >= 0; i--)
 		if (inPat == gPattern[i])
 			return;
 
 	if (storage == kPixMapOffset)
-		/* donÕt dispose anything */ ;
+		/* don't dispose anything */ ;
 	else if (storage == kPixMapHandle)
 		DisposeHandle((Handle)(*inPat)->baseAddr);
 	else

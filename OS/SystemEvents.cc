@@ -99,7 +99,7 @@ CSendSystemEvent::sendSystemEvent(CUAsyncMessage * inAsyncMessage, void * inMess
 	{
 		XFAILIF(inMessage == (void *)-1, err = kOSErrBadParameters;)	// well, obviously
 		if (outReply == (void *)-1)
-			;			 // we don’t want a reply
+			;			 // we don't want a reply
 		else
 		{
 			// get the shared reply mem

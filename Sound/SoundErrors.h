@@ -12,7 +12,7 @@
 #include "NewtonErrors.h"
 
 
-// ---------------  Sound errors…  -------------
+// ---------------  Sound errors...  -------------
 
 #define kSndErrGeneric					(ERRBASE_SOUND)
 #define kSndErrNoMemory					(ERRBASE_SOUND -  1)

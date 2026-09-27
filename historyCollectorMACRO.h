@@ -3,7 +3,7 @@
 
 	Contains:	interface definitions for tracing routines
 
-	Copyright:	© 1992-1997 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1997 by Apple Computer, Inc., all rights reserved.
 	
 	Derived from v3** (3/21/97) internal
 		

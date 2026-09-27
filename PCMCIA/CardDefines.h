@@ -1,7 +1,7 @@
 /*
 	File:		CardDefines.h
 
-	Copyright:	© 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v5 internal (10/23/96).
 

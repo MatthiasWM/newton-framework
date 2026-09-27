@@ -378,7 +378,7 @@ clicks := [ROM_click,
            {sndFrameType: 'simpleSound, samplingRate: 19623.4, dataType: 8, compressionType: 0, samples: waveform},
            {sndFrameType: 'simpleSound, samplingRate: 17482.5, dataType: 8, compressionType: 0, samples: waveform}];
 
-(fixed sampingRate is 22254.53620 -- not as a decimal but as the two shorts of a Fixed number ≈ 22254.8)
+(fixed sampingRate is 22254.53620 -- not as a decimal but as the two shorts of a Fixed number = 22254.8)
 
 for i := 1 to 5 do
 	begin

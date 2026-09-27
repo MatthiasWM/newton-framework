@@ -19,7 +19,7 @@
 /*------------------------------------------------------------------------------
 	Initialize by creating the kernel task we represent in user space.
 	Args:		inTask				task function pointer
-				inStackSize			taskÕs stack size
+				inStackSize			task's stack size
 				inDataSize			size of global data + context data
 				inData				pointer to that data (instance context for inTask)
 				inPriority			scheduler priority
@@ -172,7 +172,7 @@ CUTaskWorld::~CUTaskWorld()
 /*------------------------------------------------------------------------------
 	Start a child task.
 	Args:		inWantResultFromChild	true => wait for task init ack before starting task
-				inWantOwnerShip			true => we own the child task; false => itÕs independent
+				inWantOwnerShip			true => we own the child task; false => it's independent
 				inStartTimeout				delay after which we give up if no start ack
 				inStackSize					stack size
 				inPriority					priority
@@ -217,7 +217,7 @@ CUTaskWorld::startTask(bool inWantResultFromChild, bool inWantOwnerShip, Timeout
 /*------------------------------------------------------------------------------
 	Start a child task in the global environment.
 	Args:		inWantResultFromChild	true => wait for task init ack before starting task
-				inWantOwnerShip			true => we own the child task; false => itÕs independent
+				inWantOwnerShip			true => we own the child task; false => it's independent
 				inStartTimeout				delay after which we give up if no start ack
 				inStackSize					stack size
 				inPriority					priority

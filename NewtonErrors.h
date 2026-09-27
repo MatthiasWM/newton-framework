@@ -9,7 +9,7 @@
 #if !defined(__NEWTONERRORS_H)
 #define __NEWTONERRORS_H 1
 
-// ---------------  Error bases…  ---------------
+// ---------------  Error bases...  ---------------
 
 #define ERRBASE_COMMON				   (-7000)	// Common errors		(see below)
 #define ERRBASE_NEWT					   (-8000)	// Newt errors
@@ -47,14 +47,14 @@
 #define ERRBASE_PRODUCTSPECIFIC	(-1000000)	// Product specific errors (non-Apple errors)
 															// -1000000 -> -1999999
 
-// ---------------  Common errors…  -------------
+// ---------------  Common errors...  -------------
 
 #define noErr									  0
 #define memFullErr						 (-108)								// Not enough room in heap zone [traditional]
 #define userCanceledErr					 (-128)								// also [traditional]
 #define kNoMemory				(ERRBASE_COMMON)
 
-// ---------------  General utility class errors…  -------------
+// ---------------  General utility class errors...  -------------
 
 #define kUCErrNotImplemented			(ERRBASE_UTILITYCLASSES -  1)
 #define kUCErrNoMemory 					(ERRBASE_UTILITYCLASSES -  2)
@@ -68,11 +68,11 @@
 #define kUCErrNotInitialized 			(ERRBASE_UTILITYCLASSES - 10)
 #define kUCErrNilPtr						(ERRBASE_UTILITYCLASSES - 11)
 
-// ---------------  AppWorld errors…  -------------
+// ---------------  AppWorld errors...  -------------
 
 #define kAEErrNoHandler					(ERRBASE_UTILITYCLASSES - 100)
 
-// ---------------  Memory errors…  ---------------
+// ---------------  Memory errors...  ---------------
 //	Things that can go wrong with heaps
 //	(certainly NOT exhaustive, but all of the ones returned by CheckHeap())
 
@@ -98,7 +98,7 @@
 #define kMemErrExceptionGrokkingHeap		(ERRBASE_MEMORY - 19)	// caught an exception checking the heap [this is bad]
 #define kMemErrBadHeapHeader					(ERRBASE_MEMORY - 20)	// Invalid heap header
 
-// ---------------  Store and soup errors…  ---------------
+// ---------------  Store and soup errors...  ---------------
 
 #define kNSErrNotAFrameStore					(ERRBASE_FRAMES -  1)	// The PCMCIA card is not a data storage card
 #define kNSErrOldStoreFormat					(ERRBASE_FRAMES -  2)	// Store format is too old to understand
@@ -135,7 +135,7 @@
 #define kNSErrVBOKey								(ERRBASE_FRAMES - 33)	// Soup entries keys can not be virtual binaries
 #define kNSErrInvalidSoupName					(ERRBASE_FRAMES - 34)	// Soup name is too long
 
-// ---------------  Object system errors…  ---------------
+// ---------------  Object system errors...  ---------------
 
 #define kNSErrObjectPointerOfNonPtr			(ERRBASE_FRAMES - 200)	// ObjectPtr of non-pointer
 #define kNSErrBadMagicPointer					(ERRBASE_FRAMES - 201)	// Bad magic pointer
@@ -163,7 +163,7 @@
 #define kNSErrBadStream							(ERRBASE_FRAMES - 223)	// Invalid item encountered in stream
 #define kNSErrFuncInStream						(ERRBASE_FRAMES - 224)	// Function object encountered in stream
 
-// ---------------  Bad type errors…  ---------------
+// ---------------  Bad type errors...  ---------------
 
 #define kNSErrNotAFrame							(ERRBASE_FRAMES - 400)	// Expected a frame
 #define kNSErrNotAnArray						(ERRBASE_FRAMES - 401)	// Expected an array
@@ -193,7 +193,7 @@
 #define kNSErrNotAnIntegerOrArray			(ERRBASE_FRAMES - 425)  // Expected an integer or an array
 #define kNSErrNotAPlainString					(ERRBASE_FRAMES - 426)  // Expected a non-rich string
 
-// ---------------  Compiler errors…  ---------------
+// ---------------  Compiler errors...  ---------------
 
 #define kNSErrNoREP								(ERRBASE_FRAMES - 600)  // could not open a listener window
 #define kNSErrSyntaxError						(ERRBASE_FRAMES - 601)  // syntax error
@@ -222,7 +222,7 @@
 #define kNSErrHashForbidden					(ERRBASE_FRAMES - 626)  // #xxxx not allowed from NTK
 #define kNSErrDigitRequired					(ERRBASE_FRAMES - 628)  // Decimal digit required after @
 
-// ---------------  Interpreter errors…  ---------------
+// ---------------  Interpreter errors...  ---------------
 
 #define kNSErrNotInBreakLoop					(ERRBASE_FRAMES - 800)	// Not in a break loop
 #define kNSErrTooManyArgs						(ERRBASE_FRAMES - 802)	// Too many args for a CFunction

@@ -355,7 +355,7 @@ GetView(RefArg inContext)
 
 /*--------------------------------------------------------------------------------
 	Return the CView associated with a NewtonScript view.
-	Throw an exception if it’s not found.
+	Throw an exception if it's not found.
 	Args:		inContext	the NS view frame
 	Return:	CView *
 --------------------------------------------------------------------------------*/
@@ -398,7 +398,7 @@ BuildView(CView * inView, RefArg inContext)
 		theView = new CView;
 		break;
 
-//	case clRootView:		can’t be built, it’s part of the system
+//	case clRootView:		can't be built, it's part of the system
 
 	case clPictureView:
 		theView = new CPictureView;
@@ -435,7 +435,7 @@ BuildView(CView * inView, RefArg inContext)
 		theView = new CPolygonView;
 		break;
 
-//	case clDataView:		can’t be built, it’s a base class for other views
+//	case clDataView:		can't be built, it's a base class for other views
 
 	case clMathExpView:
 		theView = new CMathExpView;
@@ -692,14 +692,14 @@ Ref
 FGetId(RefArg inRcvr, RefArg inView)
 {
 	CView *	view = GetView(inRcvr, inView);
-	if (view)	// original doesn’t check
+	if (view)	// original doesn't check
 		return MAKEINT(view->fId);
 	return NILREF;
 }
 
 
 /*--------------------------------------------------------------------------------
-	Get a view’s flags.
+	Get a view's flags.
 	Args:		inRcvr
 	Return:	Ref
 --------------------------------------------------------------------------------*/
@@ -1014,7 +1014,7 @@ FSyncViewX(RefArg inRcvr)
 
 
 /*--------------------------------------------------------------------------------
-	Redisplay the receiver’s viewChildren.
+	Redisplay the receiver's viewChildren.
 	Args:		inRcvr		a view context
 	Return:	TRUEREF
 --------------------------------------------------------------------------------*/
@@ -1048,7 +1048,7 @@ FRedoChildrenX(RefArg inRcvr)
 
 
 /*--------------------------------------------------------------------------------
-	Redisplay the receiver’s viewChildren.
+	Redisplay the receiver's viewChildren.
 	Args:		inRcvr		a view context
 	Return:	TRUEREF
 --------------------------------------------------------------------------------*/
@@ -1104,7 +1104,7 @@ Ref
 FLayoutTableX(RefArg inRcvr, RefArg inTableDef, RefArg inColStart, RefArg inRowStart)
 {
 	CView *  view = FailGetView(inRcvr);
-// it’s a whopper
+// it's a whopper
 	return NILREF;
 }
 
@@ -1336,7 +1336,7 @@ FVisibleBox(RefArg inRcvr)
 	CView *  view = FailGetView(inRcvr);
 	Rect		box;
 	// the original intersects with the GrafPort->portRect
-	// what’s the Quartz equivalent?
+	// what's the Quartz equivalent?
 	SectRect(&view->viewBounds, &box, &box);
 	return ToObject(&box);
 }
@@ -1353,7 +1353,7 @@ FGetDrawBoxX(RefArg inRcvr)
 {
 	Rect		box;
 	// the original returns GrafPort->portRect
-	// what’s the Quartz equivalent?
+	// what's the Quartz equivalent?
 	return ToObject(&box);
 }
 
@@ -1713,7 +1713,7 @@ FDragAndDropLtd(RefArg inRcvr, RefArg inUnit, RefArg inBounds, RefArg inLimitBou
 	CView *  view = FailGetView(inRcvr);
 	Rect bounds, dragLimitBounds;
 	FromObject(inBounds, &bounds);
-	// it’s several pages
+	// it's several pages
 	return NILREF;
 }
 

@@ -22,14 +22,14 @@ multiple manufacturer id's
 multiple versions
 "%s" is not a package file
 multiple diagnostics
-diagnostics align size “%04X” unknown (!= 4K/1K)
+diagnostics align size "%04X" unknown (!= 4K/1K)
 expected filename or raw data block
 expected filename or raw data block
 expected filename
 expected resource filename
 resource filename is too long
 couldn't open resource fork of "%s"
-‘-ALL' option found zero resources within "%s"
+'-ALL' option found zero resources within "%s"
 
 start
 length

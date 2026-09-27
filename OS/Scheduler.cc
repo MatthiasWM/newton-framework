@@ -89,7 +89,7 @@ Scheduler(void)
 			gCurrentMemCountTask->fPtrsUsed += (gPtrsUsed - gSavedPtrsUsed);
 			gCurrentMemCountTask->fHandlesUsed += (gHandlesUsed - gSavedHandlesUsed);
 			memUsed = gCurrentMemCountTask->fPtrsUsed + gCurrentMemCountTask->fHandlesUsed;
-			if (memUsed > gCurrentMemCountTask->fMemUsed)	// actually looks like <, but where’s the sense in that?
+			if (memUsed > gCurrentMemCountTask->fMemUsed)	// actually looks like <, but where's the sense in that?
 				gCurrentMemCountTask->fMemUsed = memUsed;
 		}
 		gSavedHandlesUsed = gHandlesUsed;
@@ -279,7 +279,7 @@ CScheduler::add(CTask * inTask)
 //	Add the task to its queue (according to priority)
 	fTasks[priority].add(inTask, 0x00020000, this);
 
-//	If we’re only idling, schedule the task we just added
+//	If we're only idling, schedule the task we just added
 	if (gCurrentTask == gIdleTask)
 		WantSchedule();
 
@@ -290,7 +290,7 @@ CScheduler::add(CTask * inTask)
 
 
 /*------------------------------------------------------------------------------
-	Add a task to be scheduled IFF it’s not already the current task.
+	Add a task to be scheduled IFF it's not already the current task.
 	Args:		inTask		the task to schedule
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -314,7 +314,7 @@ CScheduler::remove(CTask * inTask)
 {
 	if (inTask != NULL)
 	{
-	//	If we’re removing the current task we just need to reschedule
+	//	If we're removing the current task we just need to reschedule
 		if (inTask == gCurrentTask)
 		{
 //printf("CScheduler::remove(task=%p)\n", inTask);

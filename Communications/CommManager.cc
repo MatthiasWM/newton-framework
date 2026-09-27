@@ -266,7 +266,7 @@ CMGetEndpoint(COptionArray * inOptions, CEndpoint ** outEndpoint, bool inHandleA
 		XFAILIF(eventHandler == NULL, err = kCMErrNoEndPointExists;)
 
 		CServiceInfo info;
-		XFAILIF(err = CMStartService(inOptions, &info), delete eventHandler;)	// original doesnÕt delete the eventHandler
+		XFAILIF(err = CMStartService(inOptions, &info), delete eventHandler;)	// original doesn't delete the eventHandler
 
 		eventHandler->init(info.getPortId(), info.getServiceId());
 		err = (*outEndpoint)->initBaseEndpoint(eventHandler);

@@ -72,7 +72,7 @@ MakePixelsObject(const Rect * inBounds, int inDepth, int inRowBytes, int inResX,
 }
 
 
-// MakeBitmap isn’t really a shape creation function,
+// MakeBitmap isn't really a shape creation function,
 // but this seems like a logical place for it.
 
 Ref

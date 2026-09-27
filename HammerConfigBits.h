@@ -1,9 +1,9 @@
 /*
 	File:		HammerConfigBits.h
 
-	Contains:	definitions of bits for Hammer’s Config and Tests menus
+	Contains:	definitions of bits for Hammer's Config and Tests menus
 
-	Copyright:	© 1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v1 internal.
 

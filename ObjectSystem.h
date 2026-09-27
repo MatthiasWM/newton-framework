@@ -15,7 +15,7 @@
 	NOTE that this header declares and uses RefVar C++ classes, so is
 	unsuitable for inclusion by plain C files.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	<01>			06/25/95	first created for Newton C++ Tools
 	<02>			09/13/04	expanded for Newton.framework
@@ -361,7 +361,7 @@ extern	void		SetLength(RefArg obj, long length);
 
 #define SYM(name) MakeSymbol(#name)
 extern	Ref		MakeSymbol(const char * name);	// Create or return a symbol
-extern	char *	SymbolName(Ref sym);					// Return a symbol’s name
+extern	char *	SymbolName(Ref sym);					// Return a symbol's name
 extern	ULong		SymbolHash(Ref sym);					// Return a symbol's hash value
 extern	int		SymbolCompareLexRef(Ref sym1, Ref sym2);
 extern	int		SymbolCompareLex(RefArg sym1, RefArg sym2);

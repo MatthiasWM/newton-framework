@@ -3,7 +3,7 @@
 
 	Contains:	Lantern events that a driver can send/handle
 				This are the public lantern events.
-	Copyright:	© 1997 by Apple Computer Inc. All rights reserved.
+	Copyright:	(c) 1997 by Apple Computer Inc. All rights reserved.
 	
 	Obtained from NIE2.0 F1C2 build. 9/4/97
 */

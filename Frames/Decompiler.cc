@@ -1826,7 +1826,7 @@ DumpCode(RefArg inFunc)
 			}
 			if (FLAGTEST(gDebugBits, kDumpElse)) {
 				REPprintf("-- else construct --\n");
-				REPprintf("“%s”  elseAddr=%d  exitAddr=%d\n", str.c_str(), elseAddr, exitAddr);
+				REPprintf("\"%s\"  elseAddr=%d  exitAddr=%d\n", str.c_str(), elseAddr, exitAddr);
 				elseFrag->dump(frags);
 			}
 			if (elseFrag != frags.end()) {

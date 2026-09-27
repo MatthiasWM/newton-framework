@@ -3,7 +3,7 @@
 
 	Contains:	Callbacks available to all print drivers
 
-	Copyright:	© 1993-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v4 internal.
 

@@ -278,7 +278,7 @@
 		countryName
 		end,
 
-//ее
+//**
 
 	DurationStr: func(inMinutes)
 		begin
@@ -459,7 +459,7 @@
 		end,
 
 
-//ее
+//**
 
 	GetRealPaperSize: func(sizeSym)
 		begin

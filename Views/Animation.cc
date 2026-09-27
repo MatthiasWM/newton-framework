@@ -99,7 +99,7 @@ CAnimate::~CAnimate()
 
 /*------------------------------------------------------------------------------
 	Perform an effect.
-	DonÕt bother with effects if weÕre doing a view autopsy.
+	Don't bother with effects if we're doing a view autopsy.
 	Args:		inSoundEffect
 	Return:	--
 ------------------------------------------------------------------------------*/
@@ -129,17 +129,17 @@ CAnimate::doEffect(RefArg inSoundEffect)
 			}
 			gRootView->update();
 
-			// if the effect affects the caret, restore it beforeÉ
+			// if the effect affects the caret, restore it before...
 			Rect caretClip = caretBounds;
 			SectRect(&f74, &caretClip, &caretClip);
 			if (!EmptyRect(&caretClip))
 				gRootView->restoreBitsUnderCaret();
 
-			// Ésaving whatÕs on screen before we start
+			// ...saving what's on screen before we start
 //			fSaveScreen.saveScreenBits();
 		}
 
-		// if the effect affects the caret, itÕll need redrawing after
+		// if the effect affects the caret, it'll need redrawing after
 		SectRect(&fxBox, &caretBounds, &caretBounds);
 		if (!EmptyRect(&caretBounds))
 			gRootView->dirtyCaret();
@@ -239,7 +239,7 @@ CAnimate::poofEffect(void)
 	Set up a plain effect.
 	Args:		inView		view in which to perform
 				inArg2		
-				inFX			fx definition (as defined by fxÉ in View.h)
+				inFX			fx definition (as defined by fx... in View.h)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
@@ -431,7 +431,7 @@ CAnimate::setupPoofEffect(CView * inView, const Rect * inBounds)
 	{
 		fxBox = *inBounds;
 
-		// donÕt let the poof be too small - we want to see it!
+		// don't let the poof be too small - we want to see it!
 		if (inBounds->right - inBounds->left < kMinPoofWidth
 		||  inBounds->bottom - inBounds->top < kMinPoofHeight)
 		{
@@ -492,9 +492,9 @@ CAnimate::preSetup(CView * inView, EffectKind inWhat)
 
 /*------------------------------------------------------------------------------
 	Set up common to all effects.
-	Args:		inBnd1		boundsÉ
-				inBnd2		boundsÉ
-				inBnd3		boundsÉ
+	Args:		inBnd1		bounds...
+				inBnd2		bounds...
+				inBnd3		bounds...
 	Return:	--
 ------------------------------------------------------------------------------*/
 

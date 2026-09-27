@@ -3,7 +3,7 @@
 
 	Contains:	xxx put contents here xxx
 
-	Copyright:	© 1994-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1994-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v3 (1/17/95) internal.
 

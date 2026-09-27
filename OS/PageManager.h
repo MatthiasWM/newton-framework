@@ -84,7 +84,7 @@ private:
 	P M M e s s a g e
 
 	The message sent to the page manager monitor.
-	NOTE	This differs from the ObjectMessage format. In particular, we don’t
+	NOTE	This differs from the ObjectMessage format. In particular, we don't
 			bother with a message size field.
 ------------------------------------------------------------------------------*/
 class CUMonitor;
@@ -116,7 +116,7 @@ enum PMMonSelector
 
 struct PMReleasePagesForFaultHandling
 {
-	ULong		f00;	// don’t really know
+	ULong		f00;	// don't really know
 	ULong		f04;
 	ObjectId	f08;
 };

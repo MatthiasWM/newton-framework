@@ -5,13 +5,13 @@
 
 	Written by:	Jason Rukman
 
-	Copyright:	й 1997 by Apple Computer Inc. All rights reserved.
+	Copyright:	(c) 1997 by Apple Computer Inc. All rights reserved.
 
 	Obtained from NIE2.0 F1C2 build. 9/4/97
 */
 
 
-defconst('kBinary,		17);	//еее CONFLICT ALERT: kbinary in framegluecommon is 17! changed for now	
+defconst('kBinary,		17);	//*** CONFLICT ALERT: kbinary in framegluecommon is 17! changed for now	
 defconst('kevLantClass, "lant");
 
 // Events that the TLanternDriver instance can handle

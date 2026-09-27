@@ -278,7 +278,7 @@ IsPunctSymbol(UniChar * inStr, int inOffset)	// 00256524
 														0x2018, 0x2019, 0x201C, 0x201D };
 
 	if (inOffset > 0
-	 && (inStr[inOffset] == '\'' || inStr[inOffset] == 0x2019)	// ’s don’t count as punctuation
+	 && (inStr[inOffset] == '\'' || inStr[inOffset] == 0x2019)	// 's don't count as punctuation
 	 && (inStr[inOffset-1] == 'S' || inStr[inOffset-1] == 's'))
 		return false;
 

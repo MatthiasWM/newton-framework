@@ -38,7 +38,7 @@ PrintName(PackageDirectory * inDirectory)
 	for (ArrayIndex i = 0; i < lengthOfName; ++i, ++p) {
 		name[i] = CANONICAL_SHORT(*p);
 	}
-	printf("\nPackage “%s”\n", name);
+	printf("\nPackage \"%s\"\n", name);
 }
 
 

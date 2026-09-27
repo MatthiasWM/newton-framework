@@ -75,7 +75,7 @@ AlignBuffer(void ** ioParmPtr, ArrayIndex * ioSize, ArrayIndex inAlignment)
 int
 TranslateTypeMarshalingSymbol(RefArg inSym)
 {
-	// check it isn’t actually an int anyway
+	// check it isn't actually an int anyway
 	if (ISINT(inSym))
 		return RVALUE(inSym);
 	Ref translation = GetFrameSlot(RA(marshalTypes), inSym);
@@ -425,7 +425,7 @@ UnmarshalArray(void ** ioParmPtr, RefArg inSpec, NewtonErr * outErr, CharEncodin
 ------------------------------------------------------------------------------- */
 
 NewtonErr
-DoMarshal(RefArg inArray1, RefArg inArray2, void ** outArg3, void ** outArg4, void ** outArg5, ULong * outArg6, ULong * outArg7, ULong * outArg8, int inArg9, int inArg10, int inArg11, int inArg12, int inArg13)	// 13 args -- you havin’ a laff?
+DoMarshal(RefArg inArray1, RefArg inArray2, void ** outArg3, void ** outArg4, void ** outArg5, ULong * outArg6, ULong * outArg7, ULong * outArg8, int inArg9, int inArg10, int inArg11, int inArg12, int inArg13)	// 13 args -- you havin' a laff?
 { return noErr; }
 
 

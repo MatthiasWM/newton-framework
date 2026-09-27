@@ -1,7 +1,7 @@
 /*
 	File:		PrintTypes.h
 
-	Copyright:	© 1993-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v9 internal.
 

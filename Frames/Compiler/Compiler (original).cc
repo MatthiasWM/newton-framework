@@ -3444,7 +3444,7 @@ CCompiler::emitVarGet(RefArg inName)
 	int		b;
 
 	if (EQ(inName, SYMA(_parent)))
-		warning("References to the variable “_parent” have undefined behavior");
+		warning("References to the variable \"_parent\" have undefined behavior");
 
 	if (func->isLocalVariable(inName) && (b = func->variableIndex(inName)) != -1)
 		a = kOpcodeGetVar;
@@ -3512,7 +3512,7 @@ CCompiler::emitVarIncr(RefArg inName)
 void
 CCompiler::warning(const char * msg)
 {
-	REPprintf("File “%s”; Line %d ### Warning: %s\n",
+	REPprintf("File \"%s\"; Line %d ### Warning: %s\n",
 				 stream->fileName(), stream->lineNumber(), msg);
 }
 

@@ -162,7 +162,7 @@ printf("LoadHighROMPackages(%s)\n", inFrames? "frames":"drivers");
 			srcType.format = kFixedMemory;
 			PackageDirectory * pkg;
 			NewtonErr err = noErr;
-			// iterate over them -- theyÕre contiguous in memory
+			// iterate over them -- they're contiguous in memory
 			for (long pkgOffset = 0; err == noErr || err == kOSErrPackageAlreadyExists || err == kOSErrPartTypeNotRegistered; pkgOffset += CANONICAL_LONG(pkg->size)) {
 				newton_try
 				{
@@ -171,7 +171,7 @@ printf("LoadHighROMPackages(%s)\n", inFrames? "frames":"drivers");
 					if (inFrames) {
 						gNewtWorld->fork(NULL);		// each package is loaded in its own fork
 					}
-					// thatÕs our source
+					// that's our source
 					PartSource src;
 					src.mem.buffer = pkg;
 				// src.mem.size = irrelevant;
@@ -247,7 +247,7 @@ RunDelayedActionProcs(void)
 		gNewtWorld->handleEvents(1);
 	else if (actionCount < 10)
 		gNewtWorld->handleEvents(0);
-// else we didnÕt do any
+// else we didn't do any
 }
 
 
@@ -491,7 +491,7 @@ CNewtEventHandler::CNewtEventHandler()
 	Wake up the Newton application layer at the specified delta.
 	The app layer will wake anyway at the next idle time or if there are any
 	delayed actions.
-	ÒWakeÓ in this context means generate an event.
+	"Wake" in this context means generate an event.
 	Args:		inDelta
 	Return:	--
 ----------------------------------------------------------------------------- */
@@ -685,7 +685,7 @@ CNewtEventHandler::idleProc(CUMsgToken * inToken, size_t * inSize, CEvent * inEv
 	}
 	newton_catch_all
 	{
-		// exceptions shouldnÕt happen - notify debugger
+		// exceptions shouldn't happen - notify debugger
 		ExceptionNotify(&_info.exception);
 		gREPout->exceptionNotify(&_info.exception);
 		CheckForDeferredActions();

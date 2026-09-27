@@ -74,7 +74,7 @@ enum TaskRegisters
 	kcTheFrame				=  6,
 	kcTheStack				=  7,
 	kcThePC					=  8,
-	kNumOfRegisters		= 18,		// returnParms are in this space too; but they’re not actually registers
+	kNumOfRegisters		= 18,		// returnParms are in this space too; but they're not actually registers
 
 	kMonMonId				=  9,
 	// MonitorDispatchSWI parameter registers
@@ -83,7 +83,7 @@ enum TaskRegisters
 	kMonUserRefCon			= 11,
 	kMonThePC				= 12,
 
-	kParm0					=  9,	// need to work out how/where these are used -- might have to use the task’s stack
+	kParm0					=  9,	// need to work out how/where these are used -- might have to use the task's stack
 	kParm1					= 10,
 	kParm2					= 11,
 
@@ -129,7 +129,7 @@ enum TaskRegisters
 	kcTheStack				=  7,
 	kcThePC					=  8,
 // r8..r15
-	kNumOfRegisters		= 26,		// returnParms are in this space too; but they’re not actually registers
+	kNumOfRegisters		= 26,		// returnParms are in this space too; but they're not actually registers
 
 	kMonMonId				=  5,		// rdi
 	// MonitorDispatchSWI parameter registers
@@ -138,7 +138,7 @@ enum TaskRegisters
 	kMonUserRefCon			=  3,		// rdx
 	kMonThePC				=  2,		// rcx
 
-	kParm0					=  5,	// need to work out how/where these are used -- might have to use the task’s stack
+	kParm0					=  5,	// need to work out how/where these are used -- might have to use the task's stack
 	kParm1					=  4,
 	kParm2					=  3,
 

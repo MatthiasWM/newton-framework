@@ -115,11 +115,11 @@ MakeSymbol(const char * name)
 	ULong hash = SymbolHashFunction(name);
 
 	if (FindSymbol(gROMSymbolTable, gROMSymbolTableSize, gROMSymbolTableHashShift, name, hash, &index))
-		// no need to intern it because it’s already in there
+		// no need to intern it because it's already in there
 		return gROMSymbolTable[index];
 
 	if (FindSymbol(Slots(gSymbolTable), gSymbolTableSize, gSymbolTableHashShift, name, hash, &index))
-		// no need to intern it because it’s already in there
+		// no need to intern it because it's already in there
 		return GetArraySlot(gSymbolTable, index);
 
 	RefVar	sym(AllocateBinary(kSymbolClass, sizeof(ULong) + strlen(name) + 1));	// symbols are nul-terminated
@@ -195,7 +195,7 @@ FindSymbol(Ref inSymbolTable[], ArrayIndex inSize, ArrayIndex inShift, const cha
 			*outIndex = intIndex;
 	}
 
-	// we didn’t find it
+	// we didn't find it
 	return false;
 }
 
@@ -274,7 +274,7 @@ FSymbolCompareLex(RefArg inRcvr, RefArg inSym1, RefArg inSym2)
 
 /*----------------------------------------------------------------------
 	Compare two symbol objects.
-	Unsafe in that it doesn’t check the object type.
+	Unsafe in that it doesn't check the object type.
 	Args:		sym1		a symbol
 				sym2		a symbol to compare it with
 				hash		hash value of first symbol

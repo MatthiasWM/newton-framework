@@ -88,17 +88,17 @@ COptionList::getOption(const char * inName, int * outValue, int inArg3, int inMi
 	Token tokn;
 	if (findOption(inName, tokn)) {
 		if (tokn.fType != kIntegerToken) {
-			FatalError("option “%s” must be an integer", inName);
+			FatalError("option \"%s\" must be an integer", inName);
 		}
 		if (tokn.fValue < inMin || tokn.fValue > inMax) {
-			FatalError("option “%s” must be between %ld and %ld", inName, inMin, inMax);
+			FatalError("option \"%s\" must be between %ld and %ld", inName, inMin, inMax);
 		}
 		*outValue = tokn.fValue;
 		return true;
 	}
 
 	if (tokn.fPosition.fLineNo == 0) {
-		FatalError("missing required option “%s”", inName);
+		FatalError("missing required option \"%s\"", inName);
 	}
 	return false;
 }

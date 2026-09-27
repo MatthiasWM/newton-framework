@@ -61,8 +61,14 @@ Done so far (details in HISTORY.md):
 - `Views/` (CView, CRootView, ...) and `Packages/` (package manager): the
   ported NewtonOS code. newtc compiles neither (only MessagePad does, which
   we don't pursue); they are the reference for what views and packages do.
-  Source files are ASCII (Matt replaced the MacRoman characters) with LF
-  line endings (the CR-only files were converted, 2026-09-27).
+  Source files are ASCII with LF line endings (the CR-only files were
+  converted, 2026-09-27; the last MacRoman characters too, 2026-09-27: 132
+  files). In comments, plain ASCII (' " * ... (c)); a character with a
+  meaning keeps it as an escape: NewtonScript "\u201C\u" and $\u2019 (its
+  strings are UTF-16), C/C++ '\xNN'. Curly quotes are gone too (they
+  stood in for \" in messages): straight quotes, escaped in strings. What
+  is still UTF-8 is harmless: a few symbols in comments (degrees, dashes),
+  the .md files, and test outputs that show Newton strings.
 - Tests: `Test/dbg/` (`run_dbg_tests.py` with `cases/`: `.ns` plus `.in`,
   `.dap`, `.args`, `.after`, `.expected`; `dap_client.py`; `test_dap_extras.py`,
   `test_terminal.py`, `test_nsdbg.py`), `Test/nsdbg_check.py`,

@@ -17,7 +17,7 @@
 #include "Application.h"
 
 #include "Geometry.h"
-// from DrawShape.h -- but we don’t want all the QD hassle
+// from DrawShape.h -- but we don't want all the QD hassle
 extern bool		FromObject(RefArg inObj, Rect * outBounds);
 extern Ref		ToObject(const Rect * inBounds);
 

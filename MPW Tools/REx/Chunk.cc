@@ -55,7 +55,7 @@ CChunk::append(const char * inFilename)
 {
 	FILE * fp = fopen(inFilename, "rb");
 	if (fp == NULL) {
-		FatalError("couldn't open “%s”", inFilename);
+		FatalError("couldn't open \"%s\"", inFilename);
 	}
 	fseek(fp, 0, SEEK_END);
 	size_t fileSize = ftell(fp);
@@ -64,7 +64,7 @@ CChunk::append(const char * inFilename)
 	expand(fileSize);
 	size_t numRead = fread(fPtr + start, fileSize, 1, fp);
 	if (numRead != 1) {
-		FatalError("couldn't read “%s”", inFilename);
+		FatalError("couldn't read \"%s\"", inFilename);
 	}
 	fclose(fp);
 }
@@ -74,8 +74,8 @@ CChunk::append(Ptr inRsrc, short, short, int)
 {
 	// for appending resources
 	// we don't use resources in OS X
-//	"couldn't get resource type = 0x%8X in “%s”"
-//	"couldn't get size of resource in “%s”"
+//	"couldn't get resource type = 0x%8X in "%s""
+//	"couldn't get size of resource in "%s""
 }
 
 void

@@ -14,7 +14,7 @@
 				These options are not typically public, and would not be used via comm
 				scripting.
 
-	Copyright:	© 1994-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1994-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v16 (9/9/96) internal.
 

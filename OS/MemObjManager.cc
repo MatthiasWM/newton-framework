@@ -70,7 +70,7 @@ void *				gMemObjHeap;				// 0C101174
 	char				gMemObjDB[600];									// 0C108030
 */
 
-const DomainMemInfo *	gDomainTable;		// 0C1011B8 points to…
+const DomainMemInfo *	gDomainTable;		// 0C1011B8 points to...
 
 const DomainMemInfo  g1MegDomainTable[] =	// 0C1011BC domain setups for small (<1MByte) RAM
 {	//	tag		address		size			frames		handles		flags
@@ -125,14 +125,14 @@ struct EnvironmentMemInfo
 	const ULong *  managerList;
 };
 
-const ULong gKrnlClientList[] =  {	'user', 'krnl', 'kstk', 0 };	// 0C1013B4…
+const ULong gKrnlClientList[] =  {	'user', 'krnl', 'kstk', 0 };	// 0C1013B4...
 const ULong gUserClientList[] =  {	'user', 'krnl', 'kstk', 'prot', 'rams', 'csk0', 'ccl0', 'romc', 0 };
 const ULong gRamsClientList[] =  {	'kstk', 0 };
 const ULong gRamsManagerList[] =  {	'rams', 0 };
 const ULong gProtClientList[] =  {	'user', 'krnl', 'kstk', 'csk0', 'ccl0', 'romc', 0 };
 const ULong gProtManagerList[] =  {	'prot', 0 };
 const ULong gROMClientList[] =  {	'user', 'prot', 'rams', 'ccl0', 'kstk', 0 };
-const ULong gROMManagerList[] =  {	'romc', 0 };						// …0C101434
+const ULong gROMManagerList[] =  {	'romc', 0 };						// ...0C101434
 
 const EnvironmentMemInfo  gEnvTable[] =		// 0C10143C environments
 {
@@ -932,7 +932,7 @@ MemObjManager::entryLocByName(MemObjType inType, ULong inName)
 				return p;
 	}
 
-	// if we get here we didn’t find it
+	// if we get here we didn't find it
 	return NULL;
 }
 
@@ -1023,7 +1023,7 @@ MemObjManager::entryLocByIndex(MemObjType inType, ArrayIndex index)
 			return (CMemDBEntry *)((Ptr)objInfo->entry + (index * objInfo->size));
 	}
 
-	// if we get here we didn’t find it
+	// if we get here we didn't find it
 	return NULL;
 }
 

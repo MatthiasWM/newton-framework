@@ -73,7 +73,7 @@ CPictureView::hilite(bool inHilite)
 
 
 /*------------------------------------------------------------------------------
-	Draw the picture’s highlights?
+	Draw the picture's highlights?
 	Args:		inHilite		hilite - true or false
 	Return:	--
 ------------------------------------------------------------------------------*/

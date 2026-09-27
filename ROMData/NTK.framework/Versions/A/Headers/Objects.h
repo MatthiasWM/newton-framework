@@ -360,7 +360,7 @@ extern	void		SetLength(RefArg obj, ArrayIndex length);
 // Symbol Functions
 
 extern	Ref		MakeSymbol(const char * name);	// Create or return a symbol
-extern	const char *	SymbolName(Ref sym);					// Return a symbol’s name
+extern	const char *	SymbolName(Ref sym);					// Return a symbol's name
 extern	ULong		SymbolHash(Ref sym);					// Return a symbol's hash value
 extern	int		SymbolCompareLexRef(Ref sym1, Ref sym2);
 extern	int		SymbolCompareLex(RefArg sym1, RefArg sym2);

@@ -43,7 +43,7 @@ long	gTimerInterruptCount;		// 0C101574	+08
 ------------------------------------------------------------------------------*/
 		CTime	GetClock(void);
 #if defined(correct)
-// we don’t need all this overflow stuff
+// we don't need all this overflow stuff
 static void	UpdateClock(void);
 static void	StartTimerOverflowDetect(void);
 static void	RestartTimerOverflowDetect(void);
@@ -219,7 +219,7 @@ SetAlarm(CTime & inTime)
 		if (inTime.fTime.hi > now.fTime.hi  ||  (inTime.fTime.hi == now.fTime.hi && inTime.fTime.lo > now.fTime.lo))
 		{
 			SetAlarm1(inTime.fTime.lo);
-			// check that the timer hasn’t expired already!
+			// check that the timer hasn't expired already!
 			counter = g0F181000;			// bring last timer sample up-to-date
 			if (counter <= now.fTime.lo)
 				now.fTime.hi++;			// lo-word wrapped around
@@ -236,7 +236,7 @@ SetAlarm(CTime & inTime)
 	if (inTime > now)
 	{
 		CTime delta = inTime - now;
-		// if alarm is more than 1µs away, set up interrupt
+		// if alarm is more than 1us away, set up interrupt
 		if (delta > CTime(1*kMicroseconds))
 		{
 //printf(" ->SetPlatformAlarm(%ld)\n", (long)delta);
@@ -413,7 +413,7 @@ CTimerEngine::queue(CSharedMemMsg * inMsg)
 	EnterAtomic();
 	if ((msg = (CSharedMemMsg *)peek()) != NULL)
 	{
-		// there’s something already in the queue -- find where to place the new message
+		// there's something already in the queue -- find where to place the new message
 		for ( ; msg != NULL; msg = (CSharedMemMsg *)getNext(msg))
 		{
 			if (inMsg->fExpiryTime < msg->fExpiryTime)
@@ -460,7 +460,7 @@ CTimerEngine::remove(CSharedMemMsg * inMsg)
 	EnterAtomic();
 	if (gTimerDeferred->removeFromQueue(inMsg) == false)
 	{
-		// message wasn’t in the gTimerDeferred queue
+		// message wasn't in the gTimerDeferred queue
 		if (inMsg == peek())
 		{
 			// message is first in our queue, remove it
@@ -564,7 +564,7 @@ CRealTimeAlarm::init(ULong inTime, NewtonInterruptHandler inHandler, void * inDa
 void
 CRealTimeAlarm::fire(ULong inWhen)
 {
-	// if it’s not time yet, or we’re not enabled, forget it
+	// if it's not time yet, or we're not enabled, forget it
 	if (fTime > inWhen || Swap(&fIsEnabled, 0) == 0)
 		return;
 
@@ -670,7 +670,7 @@ CRealTimeClock::setRealTimeClock(ULong inTime)
 	ClearRealTimeClockAlarm();
 	fAlarmSet = false;
 
-	// keep writing the time to the RTC hardware until it’s set correctly
+	// keep writing the time to the RTC hardware until it's set correctly
 	ULong oldTime = GetRealTimeClock();
 	while (inTime != GetRealTimeClock())
 		g0F181000 = inTime;
@@ -932,7 +932,7 @@ CRealTimeClock::alarmStatus(ULong inName, bool * outActive, CTime * outAlarmTime
 
 
 /*------------------------------------------------------------------------------
-	Fire any alarms that are primed to go off now, but don’t wake the Newt.
+	Fire any alarms that are primed to go off now, but don't wake the Newt.
 	Args:		--
 	Return:	true
 ------------------------------------------------------------------------------*/
@@ -1193,7 +1193,7 @@ CURealTimeAlarm::checkIn(ULong inName)
 
 /*------------------------------------------------------------------------------
 	Finish using the real time clock.
-	Args:		inName		the channel name we’re finished with
+	Args:		inName		the channel name we're finished with
 	Return:	error code
 ------------------------------------------------------------------------------*/
 
@@ -1371,8 +1371,8 @@ CURealTimeAlarm::setTime(CTime inTime)
 
 /*------------------------------------------------------------------------------
 	Set the CTime.
-	Args:		inAmount		the number of…
-				inUnits		…time units
+	Args:		inAmount		the number of...
+				inUnits		...time units
 	Return:	--
 ------------------------------------------------------------------------------*/
 

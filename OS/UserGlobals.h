@@ -83,7 +83,7 @@ enum
 	kAbortMode = 0x17,
 	kUndefinedMode = 0x1B,
 	kModeMask = 0x1F,
-//	flags in the PSR but not returned by GetCPUMode() -- they’re masked by kModeMask
+//	flags in the PSR but not returned by GetCPUMode() -- they're masked by kModeMask
 	kIRQDisable = 0x40,
 	kFIQDisable = 0x80
 };

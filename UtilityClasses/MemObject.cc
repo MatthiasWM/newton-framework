@@ -43,7 +43,7 @@ CMemObject::init(size_t inSize, Ptr inBuffer, bool inMakeShared, ULong inPermiss
 	return err;
 }
 
-/* this isn’t in Hammer
+/* this isn't in Hammer
 NewtonErr
 CMemObject::init(size_t inSize, bool inMakeShared, ULong inPermissions)
 {
@@ -53,7 +53,7 @@ CMemObject::init(size_t inSize, bool inMakeShared, ULong inPermissions)
 long
 CMemObject::make(ObjectId inSharedObjectId, CUMsgToken * inMsgToken)
 {
-	CUSharedMem	huh(inSharedObjectId);	// doesn’t appear to be used
+	CUSharedMem	huh(inSharedObjectId);	// doesn't appear to be used
 	
 	fSharedMemoryObject = inSharedObjectId;
 	fFlags.internal = false;

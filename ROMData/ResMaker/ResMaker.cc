@@ -1122,7 +1122,7 @@ void
 AssureNextArg(const char ** inArg, const char ** inArgLimit, const char * inMessage)
 {
 	if (inArg + 1 >= inArgLimit)
-		UsageExitWithMessage("no %s follows “%s”", inMessage, *inArg);
+		UsageExitWithMessage("no %s follows \"%s\"", inMessage, *inArg);
 }
 
 
@@ -1205,7 +1205,7 @@ main(int argc, const char * argv[])
 	gImageFilename = argv[1];
 	FILE * fp = fopen(gImageFilename, "r");
 	if (fp == NULL)
-		ExitWithMessage("can't open ROM image file “%s”", gImageFilename);
+		ExitWithMessage("can't open ROM image file \"%s\"", gImageFilename);
 
 /*== read ROM image into memory ==*/
 	size_t ROMsize;
@@ -1341,7 +1341,7 @@ main(int argc, const char * argv[])
 /*== read object pointers and names ==*/
 	fp = fopen(gSourceFilename, "r");
 	if (fp == NULL)
-		ExitWithMessage("can't open source file “%s”", gSourceFilename);
+		ExitWithMessage("can't open source file \"%s\"", gSourceFilename);
 
 /*-- PASS 1: build header file, locate symbol table array object --*/
 	FILE * fp_h = fopen("../Frames/RSData.h", "w");
@@ -1357,11 +1357,11 @@ main(int argc, const char * argv[])
 			if (line[0] != '\n') {
 				int	numOfItems = sscanf(line, "%8x%255s%n", &rAddr, rsName, &lineLen);
 				if (lineLen == 255) {
-					ExitWithMessage("input line too long in file “%s”", gSourceFilename);
+					ExitWithMessage("input line too long in file \"%s\"", gSourceFilename);
 				}
 				if (numOfItems > 1 && line[0] != ';') {
 					if (strlen(rsName) > 254) {
-						ExitWithMessage("encountered function name longer than 254 characters in file “%s”", gSourceFilename);
+						ExitWithMessage("encountered function name longer than 254 characters in file \"%s\"", gSourceFilename);
 					}
 					fprintf(fp_h, "extern Ref* RS%s;\n", rsName);
 					if (strcmp(rsName, "symbolTable") == 0) {

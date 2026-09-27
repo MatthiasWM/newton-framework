@@ -318,14 +318,14 @@ Lexical grammar, from http://manuals.info.apple.com/en_US/NewtonScriptProgramLan
 	character-sequence:
 		[ { string-character | escape-sequence } ]* [ truncated-escape ]
 	string-character:
-		<tab or any ASCII character with code 32–127 except ‘"' or ‘\'>
+		<tab or any ASCII character with code 32–127 except '"' or '\'>
 	escape-sequence:
 		{ \ {"|\|n|t} | \ u [ hex-digit hex-digit hex-digit hex-digit ]* \ u }
 	￼truncated-escape:
 		\ u [ hex-digit hex-digit hex-digit hex-digit ]*
 	symbol:
 		{ { alpha | _ } [ { alpha | digit | _ } ]* |
-		  ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
+		  '|' [ { symbol-character | \ { '|' | \ } ]* '|' }
 	symbol-character:
 		<any ASCII character with code 32–127 except '|' or '\'>
 	integer:
@@ -511,7 +511,7 @@ CCompiler::consumeToken(void)
 		}
 
 //	symbol:
-//		{ <as above> | ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
+//		{ <as above> | '|' [ { symbol-character | \ { '|' | \ } ]* '|' }
 //	symbol-character:
 //		<any ASCII character with code 32–127 except '|' or '\'>
 		case '|':
@@ -711,14 +711,14 @@ CCompiler::consumeToken(void)
 	from the input stream.
 
 	symbol:
-		{ { alpha | _ } [ { alpha | digit | _ } ]* | ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
+		{ { alpha | _ } [ { alpha | digit | _ } ]* | '|' [ { symbol-character | \ { '|' | \ } ]* '|' }
 	symbol-character:
 		<any ASCII character with code 32–127 except '|' or '\'>
 
 	character-sequence:
 		[ { string-character | escape-sequence } ]* [ truncated-escape ]
 	string-character:
-		<tab or any ASCII character with code 32–127 except ‘"' or ‘\'>
+		<tab or any ASCII character with code 32–127 except '"' or '\'>
 	escape-sequence:
 		{ \ {"|\|n|t} | \ u [ hex-digit hex-digit hex-digit hex-digit ]* \ u }
 	￼truncated-escape:
@@ -797,7 +797,7 @@ CCompiler::getCharsUntil(UniChar inDelimiter, bool isString, ArrayIndex * outLen
 			else
 			{
 //	symbol:
-//		{  ‘|' [ { symbol-character | \ { ‘|' | \ } ]* ‘|' }
+//		{  '|' [ { symbol-character | \ { '|' | \ } ]* '|' }
 				if (theChar == '|' || theChar == '\\')
 					buf[index++] = theChar;
 				else

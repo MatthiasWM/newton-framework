@@ -155,7 +155,7 @@ DefineGlobalConstant('kFormEntry,
 		app: nil
 	},
 	New: func() Clone(iconEntry) ,
-	Name: func() ParamStr("“^0”", [fentry.text]),
+	Name: func() ParamStr("\u201C\u^0\u201D\u", [fentry.text]),
 	Store: func() if IsSoupEntry(fentry) then EntryStore(fentry),
 	Where: func()
 		begin
@@ -1273,7 +1273,7 @@ mp5xx := [
 	notifications: [ { _proto: @127,
 							 timestamp: 45124864,
 							 overview: "Newton",
-							 nfText: "Welcome to Newton™",
+							 nfText: "Welcome to Newton\u2122\u",
 							 nfType: 1,
 							 seenByUser: true } ],
 
@@ -1544,7 +1544,7 @@ mp5xx := [
 										extrasDrawer: 'extrasDrawer.conversion, 
 										system: @569, 
 										systemDirectory: @570 }},
-	stdForms:	{ _proto: @269 },	// OS 1.x view protos. We don’t need ’em.
+	stdForms:	{ _proto: @269 },	// OS 1.x view protos. We don't need 'em.
 	dialinNetworkRegistry: {}, 
 	routing: { _proto: {} }
 	},
@@ -1885,13 +1885,13 @@ mp5xx := [
 			if ROMSignature <> storeSignature then
 				begin
 				if storeSignature = 0 then
-					msg := "The internal store’s signature is invalid. A hard reset may correct the problem."
+					msg := "The internal store\u2019\us signature is invalid. A hard reset may correct the problem."
 				else
-					msg := "The internal store’s signature has been altered. A hard reset may correct the problem."
+					msg := "The internal store\u2019\us signature has been altered. A hard reset may correct the problem."
 				end
 			end
 		else
-			msg := "This unit’s serial number cannot be read.";
+			msg := "This unit\u2019\us serial number cannot be read.";
 		if msg then
 			AddDeferredCall(func() GetRoot():Notify(kNotifyAlert, "Newton", msg), nil)
 		end,

@@ -3,7 +3,7 @@
 
 	Contains:	Error and problem codes for printing
 
-	Copyright:	© 1993-1994 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1994 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v11 internal.
 

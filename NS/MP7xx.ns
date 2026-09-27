@@ -51,7 +51,7 @@ mp7xx := [
 	},
 
 /*------------------------------------------------------------------------------
-	@692	¥¥ROM_draggeurNoGrayBitmap¥¥
+	@692	**ROM_draggeurNoGrayBitmap**
 			NO!!  The button bar.
 */
 	{},

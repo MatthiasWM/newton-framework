@@ -5,7 +5,7 @@
 				free-running timer. Also includes a useful global routine for
 				one-shot delays...
 
-	Copyright:	© 1992-1997 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1997 by Apple Computer, Inc., all rights reserved.
 	
 	Derived from v2 (11/18/94) internal
 

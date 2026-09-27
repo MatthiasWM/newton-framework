@@ -3,7 +3,7 @@
 
 	Contains:	Interface to serial chips, version 2.
 
-	Copyright:	© 1993-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v9 (8/2/96) internal.
 

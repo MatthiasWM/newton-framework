@@ -138,10 +138,10 @@ NewtonErr	Reboot(NewtonErr inError = noErr, ULong inRebootType = 0, bool inSafe 
 	Environment -
 ----------------------------------------------------------------------------- */
 
-// Set the current task’s environment and return the previous one.
+// Set the current task's environment and return the previous one.
 NewtonErr	SetEnvironment(ObjectId inNewEnvId, ObjectId * outOldEnvId = NULL);
 
-// Return the id of the current task’s environment.
+// Return the id of the current task's environment.
 NewtonErr	GetEnvironment(ObjectId * outEnvId);
 
 //	Environment Add/Remove/Test glue (eventually calls GenericSWI)

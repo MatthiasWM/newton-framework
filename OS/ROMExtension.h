@@ -3,7 +3,7 @@
 
 	Contains:	Structure for ROM extension blocks
 
-	Copyright:	© 1994-1996 by Apple Computer, Inc.  All rights reserved.
+	Copyright:	(c) 1994-1996 by Apple Computer, Inc.  All rights reserved.
 
 	Derived from v16 internal.
 

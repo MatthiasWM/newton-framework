@@ -198,7 +198,7 @@ private:
 
 	CUAsyncMessage	fMessage;			// +70
 	CUPort *			fPort;				// +80
-	short				x84;					//			doesn’t do anything useful
+	short				x84;					//			doesn't do anything useful
 	FPoint			fPenLoc;				// +88
 	FPoint			fSampleLoc;			// +90
 

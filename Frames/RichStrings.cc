@@ -165,7 +165,7 @@ CRichString::setFormatAndLength(UniChar * inStr, ArrayIndex inSize)
 	UniChar fmt = inStr[index] & 0x03;
 	if (fmt == 0x01)
 	{
-		// it’s an inked string -- final ULong is length-of-text + flags
+		// it's an inked string -- final ULong is length-of-text + flags
 		ULong flags = (inStr[index - 1] << 16) + fmt;
 		// repurpose index to point to end of unicode
 		index = flags >> 4;
@@ -176,14 +176,14 @@ CRichString::setFormatAndLength(UniChar * inStr, ArrayIndex inSize)
 
 	if (fmt == 0x00)
 	{
-		// it’s a plain unicode string
+		// it's a plain unicode string
 		fOffsetToInk = 0;
 		x14 = inSize;
 		fLengthOfInk = 0;
 	}
 	else
 	{
-		// it’s an inked string
+		// it's an inked string
 		fOffsetToInk = LONGALIGN((index + 1) * sizeof(UniChar));
 		x14 = fOffsetToInk;
 		fLengthOfInk = inSize - fOffsetToInk - sizeof(ULong)/*format*/;
@@ -243,12 +243,12 @@ CRichString::getInkData(ArrayIndex inStart, ArrayIndex inCount, ArrayIndex * out
 			ULong	inkLength = LONGALIGN(sizeof(inkInfo->length) + inkInfo->length);
 			if (i >= inStart)
 			{
-				// this is the range we’re interested in
+				// this is the range we're interested in
 				if (!isInkDataFound)
 				{
 					isInkDataFound = true;
 					inkDataStart = inkInfoOffset;
-					inkInfoOffset = 0;	// reset ink offset -- now we’re measuring its length
+					inkInfoOffset = 0;	// reset ink offset -- now we're measuring its length
 				}
 			}
 			else
@@ -288,7 +288,7 @@ CRichString::getInkWordNoInfoOffset(ArrayIndex inWordNo) const
 			// encountered an ink char
 			if (inWordNo-- == 0)
 			{
-				// we’ve reached the required number -- return the offset to its info
+				// we've reached the required number -- return the offset to its info
 				infoOffset = inkInfoOffset;
 				break;
 			}
@@ -1013,7 +1013,7 @@ CRichString::verify(void)
 
 		// iterate over  ink words
 		InkInfo * inkInfoPtr = (InkInfo *)strEnd;
-		InkInfo * inkInfoEnd = (InkInfo *)((Ptr)strEnd + fSize);	// sp00 but that’s mad!?
+		InkInfo * inkInfoEnd = (InkInfo *)((Ptr)strEnd + fSize);	// sp00 but that's mad!?
 		ArrayIndex inkInfoOffset = 0;	// r9
 		ArrayIndex inkInfoLen;
 		index = 0;		// r8

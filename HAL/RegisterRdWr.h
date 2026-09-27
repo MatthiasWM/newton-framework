@@ -1,7 +1,7 @@
 /*
 	File:		RegisterRdWr.h
 
-	Copyright:	© 1992-1993, 1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1993, 1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v1 (1/8/96) internal.
 

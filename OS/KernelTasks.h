@@ -104,7 +104,7 @@ public:
 	KernelObjectState	fState;			// +6C
 	CEnvironment * fEnvironment;		// +74
 	CEnvironment *	fSMemEnvironment;	// +78	for copying to/from shared memory
-	CTask *			fCurrentTask;		// +7C	if this task is a monitor, the task it’s running (ever referenced?)
+	CTask *			fCurrentTask;		// +7C	if this task is a monitor, the task it's running (ever referenced?)
 	int				fPriority;			// +80
 	ULong				fName;				// +84
 	VAddr				fStackTop;			// +88

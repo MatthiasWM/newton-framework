@@ -115,20 +115,20 @@ CDoubleQContainer::add(void * inItem)
 {
 	checkBeforeAdd(inItem);
 
-	// point to queue info within the object weÕre adding
+	// point to queue info within the object we're adding
 	CDoubleQItem *	qItem = (CDoubleQItem *)((Ptr)inItem + fOffsetToDoubleQItem);
-	// our object is added to the end of the queue, so thereÕs nothing after it
+	// our object is added to the end of the queue, so there's nothing after it
 	qItem->fNext = NULL;
 	if (fHead == NULL)
 	{
-		// thereÕs nothing in the queue yet so our object is at the head
+		// there's nothing in the queue yet so our object is at the head
 		fHead = qItem;
-		// and thereÕs nothing before our object
+		// and there's nothing before our object
 		qItem->fPrev = NULL;
 	}
 	else
 	{
-		// thread our object onto the queueÕs tail object
+		// thread our object onto the queue's tail object
 		fTail->fNext = qItem;
 		qItem->fPrev = fTail;
 	}
@@ -145,7 +145,7 @@ CDoubleQContainer::addBefore(void * inBeforeItem, void * inItem)
 	CDoubleQItem *	beforeItem = (CDoubleQItem *)((Ptr)inBeforeItem + fOffsetToDoubleQItem);
 	CDoubleQItem *	qItem = (CDoubleQItem *)((Ptr)inItem + fOffsetToDoubleQItem);
 	if (fHead == NULL || fHead == beforeItem)
-		// thereÕs nothing in the queue, or we want it before the first already in the queue
+		// there's nothing in the queue, or we want it before the first already in the queue
 		// so our object must go to the front
 		addToFront(inItem);
 	else
@@ -165,18 +165,18 @@ CDoubleQContainer::addToFront(void * inItem)
 	checkBeforeAdd(inItem);
 
 	CDoubleQItem *	qItem = (CDoubleQItem *)((Ptr)inItem + fOffsetToDoubleQItem);
-	// our object is added to the front of the queue, so thereÕs nothing before it
+	// our object is added to the front of the queue, so there's nothing before it
 	qItem->fPrev = NULL;
 	if (fHead == NULL)
 	{
 		// the queue is empty -- we must be the tail as well as the head
 		fTail = qItem;
-		// and thereÕs nothing after our object
+		// and there's nothing after our object
 		qItem->fNext = NULL;
 	}
 	else
 	{
-		// thereÕs already an object at the head of the queue (think of fHead = headItem)
+		// there's already an object at the head of the queue (think of fHead = headItem)
 		// so thread our object before that
 		fHead->fPrev = qItem;
 		qItem->fNext = fHead;

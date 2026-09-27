@@ -3,7 +3,7 @@
 
 	Contains:	Interfaces for hammer io.
 
-	Copyright:	© 1993-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v10 internal.
 

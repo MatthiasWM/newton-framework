@@ -5,7 +5,7 @@
 
 	Written by: Guy McIlroy
 
-	Copyright:	© 1997 by Apple Computer Inc. All rights reserved.
+	Copyright:	(c) 1997 by Apple Computer Inc. All rights reserved.
 
 	Obtained from NIE2.0 F1C2 build. 9/4/97
 */

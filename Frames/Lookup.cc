@@ -330,7 +330,7 @@ XFindImplementor(RefArg inRcvr, RefArg inTag, RefVar * outImpl, RefVar * value)
 	bool useTheCacheLuke = true;
 	while (NOTNIL(impl))
 	{
-		Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so itÕs okay to use a Ref
+		Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so it's okay to use a Ref
 		while (NOTNIL(impl))
 		{
 			FrameObject * frPtr = (FrameObject *)ObjectPtr(impl);
@@ -394,7 +394,7 @@ XFindImplementor(RefArg inRcvr, RefArg inTag, RefVar * outImpl, RefVar * value)
 	}
 	// end-of-parent-lookup
 
-	// couldnÕt find it
+	// couldn't find it
 	gFindImplCache->insert(inRcvr, inTag, INVALIDPTRREF, 0);
 	return false;
 }
@@ -414,16 +414,16 @@ XFindProtoImplementor(RefArg inRcvr, RefArg inTag, RefVar * outImpl, RefVar * va
 		ThrowBadTypeWithFrameData(kNSErrNotAFrame, impl);
 
 	RefVar frMap(frPtr->map);
-	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so itÕs okay to use a Ref
+	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so it's okay to use a Ref
 	for ( ; ; )
 	{
-		// look in _protoÉ
+		// look in _proto...
 		ArrayIndex slotIndex = FindOffset(frMap, SYMA(_proto));
 		if (slotIndex == kIndexNotFound)
-		// _proto (and therefore implementor) wasnÕt found
+		// _proto (and therefore implementor) wasn't found
 			break;
 
-		// Éwhich must be a frame
+		// ...which must be a frame
 		impl = ((FrameObject *)ObjectPtr(impl))->slot[slotIndex];
 		frPtr = (FrameObject *)ObjectPtr(impl);
 		if (!ISFRAME(frPtr))
@@ -449,7 +449,7 @@ XFindProtoImplementor(RefArg inRcvr, RefArg inTag, RefVar * outImpl, RefVar * va
 		// else slot is not in this context so keep looking up the _proto chain
 	}
 
-	// implementor wasnÕt found
+	// implementor wasn't found
 	if (roProto != INVALIDPTRREF)
 		gROProtoCache->insert(roProto, inTag, INVALIDPTRREF, 0);
 	return false;
@@ -488,7 +488,7 @@ FindProtoImplementor(RefArg inRcvr, RefArg inTag)
 	if (gProtoCache->lookup(inRcvr, inTag, &context, &value, &exists, &slotIndex))
 		return exists ? context : NILREF;
 
-	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so itÕs okay to use a Ref
+	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so it's okay to use a Ref
 	RefVar frMap;
 	RefVar impl(inRcvr);
 	while (NOTNIL(impl))
@@ -522,7 +522,7 @@ FindProtoImplementor(RefArg inRcvr, RefArg inTag)
 		impl = ((FrameObject *)ObjectPtr(impl))->slot[slotIndex];
 	}
 
-	// implementor wasnÕt found
+	// implementor wasn't found
 	if (roProto != INVALIDPTRREF)
 		gROProtoCache->insert(roProto, inTag, INVALIDPTRREF, 0);
 	gProtoCache->insert(inRcvr, inTag, INVALIDPTRREF, 0);
@@ -550,7 +550,7 @@ XGetVariable(RefArg inRcvr, RefArg inTag, bool * outExists, int lookup)
 	if (outExists == NULL)
 		outExists = &exists;
 
-	// nil start context => canÕt be found
+	// nil start context => can't be found
 	if (ISNIL(inRcvr))
 	{
 		*outExists = false;
@@ -610,7 +610,7 @@ XGetVariable(RefArg inRcvr, RefArg inTag, bool * outExists, int lookup)
 	bool useTheCacheLuke = true;
 	while (NOTNIL(impl))
 	{
-		Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so itÕs okay to use a Ref
+		Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so it's okay to use a Ref
 		FrameObject * frPtr = (FrameObject *)ObjectPtr(impl);
 		if (!ISFRAME(frPtr))
 			ThrowBadTypeWithFrameData(kNSErrNotAFrame, impl);
@@ -693,12 +693,12 @@ GetVariable(RefArg inRcvr, RefArg inTag, bool * outExists, int inLookup)
 	if (ISNIL(inRcvr))
 		ThrowExInterpreterWithSymbol(kNSErrNilContext, inRcvr);
 
-	// ensure weÕve got a vital pointer -- original checks each time itÕs set
+	// ensure we've got a vital pointer -- original checks each time it's set
 	bool exists;
 	if (outExists == NULL)
 		outExists = &exists;
 
-	// assume weÕre going to find it
+	// assume we're going to find it
 	*outExists = true;
 
 	RefVar next;
@@ -730,7 +730,7 @@ GetVariable(RefArg inRcvr, RefArg inTag, bool * outExists, int inLookup)
 		impl = GetFrameSlot(impl, SYMA(_parent));
 	}
 
-	// variable wasnÕt found
+	// variable wasn't found
 	if (gInterpreter->tracing >= 2)
 		gInterpreter->traceGet(inRcvr, inRcvr, inTag);
 	*outExists = false;
@@ -763,7 +763,7 @@ GetProtoVariable(RefArg inRcvr, RefArg inTag, bool * outExists)
 	if (gProtoCache->lookupValue(inRcvr, inTag, &value, outExists))
 		return value;
 
-	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so itÕs okay to use a Ref
+	Ref roProto = INVALIDPTRREF;		// R/O refs cannot move so it's okay to use a Ref
 	RefVar frMap;
 	ArrayIndex slotIndex;
 	RefVar impl(inRcvr);
@@ -807,7 +807,7 @@ GetProtoVariable(RefArg inRcvr, RefArg inTag, bool * outExists)
 		impl = ((FrameObject *)ObjectPtr(impl))->slot[slotIndex];
 	}
 
-	// variable wasnÕt found
+	// variable wasn't found
 	if (gInterpreter->tracing >= 2)
 		gInterpreter->traceGet(inRcvr, inRcvr, inTag);
 	*outExists = false;

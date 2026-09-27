@@ -11,7 +11,7 @@
 				For 2.0 ROMs, SerialChipV2.h is built into the ROM, and SerialChipV1.h
 				is simply included by the simpler TSerialChip's.
 
-	Copyright:	© 1993-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v2 internal.
 

@@ -167,7 +167,7 @@ DefineGlobalConstant('kUSLocale,
 //	Numeric strings
 	numberFormat: kUSNumberFormat,
 
-//	The rest…
+//	The rest...
 	firstDayOfWeek: 0,
 	useWeekNumber: nil,
 
@@ -334,7 +334,7 @@ DefineGlobalConstant('kUKLocale,
 						morningStr: " am",
 						eveningStr: " pm" },
 	numberformat: {_proto: kUSNumberFormat,
-						currencyPrefix: "£ " },
+						currencyPrefix: "\u00A3\u " },
 	firstDayOfWeek: 1,
 	defaultPaperSize: 'a4,
 

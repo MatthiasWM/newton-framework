@@ -38,7 +38,7 @@ SourcePos::SourcePos(SourcePos & inPos)
 ostream &
 operator<<(ostream & __os, SourcePos & inPos)
 {
-	__os << "File “" << (inPos.fFilename ? inPos.fFilename : "<unknown>") << "” Line " << inPos.fLineNo << " " << inPos.fMark << ":" << inPos.fCharNo - inPos.fMark;
+	__os << "File \"" << (inPos.fFilename ? inPos.fFilename : "<unknown>") << "\" Line " << inPos.fLineNo << " " << inPos.fMark << ":" << inPos.fCharNo - inPos.fMark;
 	return __os;
 }
 

@@ -331,7 +331,7 @@ CPickView::realDraw(Rect& inRect)
 
 //00186CB4
 		if (fHasMark && markCh != 0 && markCh != ' ') {
-			// item has a mark eg √
+			// item has a mark eg a check mark
 			FPoint txLoc;
 			txLoc.x = fMarkIndent;
 			txLoc.y = markBaseline;

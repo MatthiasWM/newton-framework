@@ -667,7 +667,7 @@ CGeneralShapeUnit::getEllipseAsStroke(void)
 			// where
 			//   X(t) = Xc + a.cos(t).cos(phi) - b.sin(t).sin(phi)
 			//   Y(t) = Yc + a.cos(t).sin(phi) + b.sin(t).cos(phi)
-			// as the parameter t varies from 0 to 2π.
+			// as the parameter t varies from 0 to 2*pi.
 			// Here (Xc,Yc) is the center of the ellipse,
 			// and phi is the angle between the X-axis and the major axis of the ellipse.
 

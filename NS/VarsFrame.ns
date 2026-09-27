@@ -123,7 +123,7 @@ initScriptsFunc := func()
 // run the initialization scripts
 	foreach initScript in @549 do
 		begin
-	//	local now := Ticks();	// don’t know what that’s doing here
+	//	local now := Ticks();	// don't know what that's doing here
 		call initScript with ()
 		end;
 */

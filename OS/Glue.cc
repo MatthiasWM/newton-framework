@@ -112,7 +112,7 @@ PortSendSWI(ObjectId inId, ULong inMsgId, ULong inReplyId, ULong inMsgType, ULon
 	Receive a message at a port.
 	Args:		inId					port id
 				inMsgId				message id
-				inMsgFilter			types of message we’re interested in
+				inMsgFilter			types of message we're interested in
 				inFlags				flags
 				outSenderMsgId		sender info - sent message id
 				outReplyMemId		- sent reply id
@@ -135,7 +135,7 @@ PortReceiveSWI(ObjectId inId, ULong inMsgId, ULong inMsgFilter, ULong inFlags,
 	Reset the message filter on a port.
 	Args:		inId					port id
 				inMsgId				message id
-				inMsgFilter			types of message we’re interested in
+				inMsgFilter			types of message we're interested in
 	Return:	error code
 ------------------------------------------------------------------------------*/
 

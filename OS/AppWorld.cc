@@ -158,7 +158,7 @@ CForkWorld::forkInit(CForkWorld * inWorld)
 
 /*--------------------------------------------------------------------------------
 	Construct the forked world.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		inWorld		the parent
 	Return:	error code
 --------------------------------------------------------------------------------*/
@@ -170,7 +170,7 @@ CForkWorld::forkConstructor(CForkWorld *)
 
 /*--------------------------------------------------------------------------------
 	Destroy the forked world.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		--
 	Return:	--
 --------------------------------------------------------------------------------*/
@@ -245,7 +245,7 @@ CForkWorld::mainDestructor(void)
 
 /*--------------------------------------------------------------------------------
 	A chance to do something before the main.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		--
 	Return:	--
 --------------------------------------------------------------------------------*/
@@ -257,7 +257,7 @@ CForkWorld::preMain(void)
 
 /*--------------------------------------------------------------------------------
 	A chance to do something after the main.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		--
 	Return:	--
 --------------------------------------------------------------------------------*/
@@ -269,7 +269,7 @@ CForkWorld::postMain(void)
 
 /*--------------------------------------------------------------------------------
 	Switch to the spawned fork.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		--
 	Return:	--
 --------------------------------------------------------------------------------*/
@@ -281,7 +281,7 @@ CForkWorld::forkSwitch(bool inDoIt)
 
 /*--------------------------------------------------------------------------------
 	Make a new fork.
-	There’s nothing to do here.
+	There's nothing to do here.
 	Args:		--
 	Return:	NULL
 --------------------------------------------------------------------------------*/

@@ -263,8 +263,8 @@ ArrayInsertAt(RefArg array, ArrayIndex index, RefArg element)
 
 /*------------------------------------------------------------------------------
 	Append a slot to an array (being a slot in a frame).
-	In:		frame		a frame containing…
-				tag		…this slot
+	In:		frame		a frame containing...
+				tag		...this slot
 				element	the slot to be appended
 	Return:	void		(the destination array object is modified)
 ------------------------------------------------------------------------------*/

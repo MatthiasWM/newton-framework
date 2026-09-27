@@ -465,7 +465,7 @@ RememberPermMapping(ULong inDomain, VAddr inVAddr, size_t inSize, Perm inPerm)
 NewtonErr
 PrimRememberMapping(VAddr inVAddr, ULong inPerm, CPhys * inPage, bool inCacheable)
 {
-	NewtonErr err = noErr;	// Newton doesn’t set this! Maybe it never checks.
+	NewtonErr err = noErr;	// Newton doesn't set this! Maybe it never checks.
 
 	switch (VtoUnit(inVAddr))
 	{

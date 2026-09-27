@@ -163,7 +163,7 @@ CUPort::init(void)
 				ioToken					message token to be built
 				outMsgType				type of received message
 				inTimeout				time after which to give up if no message received
-				inMsgFilter				type of messages we’re interested in
+				inMsgFilter				type of messages we're interested in
 				onMsgAvail				only bother if message is already available
 				tokenOnly
 	Return:	error code
@@ -236,7 +236,7 @@ CUPort::receive(size_t * outSize, void * outContent, size_t inSize, CUMsgToken *
 	Receive a message.
 	Args:		inAsync					message area
 				inTimeout				time to wait before giving up
-				inMsgFilter				type of messages we’re interested in
+				inMsgFilter				type of messages we're interested in
 				onMsgAvail				only bother if message is already available
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -273,9 +273,9 @@ CUPort::receive(CUAsyncMessage * inAsync, Timeout inTimeout, ULong inMsgFilter, 
 
 
 /*------------------------------------------------------------------------------
-	Reset the filter for messages we’re interested in.
+	Reset the filter for messages we're interested in.
 	Args:		inAsync					message area
-				inMsgFilter				type of messages we’re interested in
+				inMsgFilter				type of messages we're interested in
 	Return:	error code
 ------------------------------------------------------------------------------*/
 

@@ -6,7 +6,7 @@
 		__platform, since we can switch platform definitions.
 		__origVars & __origFunctions also support platform switching.
 	Based on an analysis of GetGlobals() in NTK:
-	NTK vars are different to Newton vars because we don’t have the view system.
+	NTK vars are different to Newton vars because we don't have the view system.
 
 	NTK functions are the same, but we also want build-time functions for NTK, and some functions are swapped out when changing platform.
 	So here is the confusion: how are these organised?
@@ -42,7 +42,7 @@ xx := 789
 Assignment to constant xx
 
 	HOW ARE THEY LOOKED UP?
-	---- it’s done by the compiler
+	---- it's done by the compiler
 
 
 gFunctionFrame -- user-defined functions
@@ -60,7 +60,7 @@ gConstFuncFrame -- pure functions
 	CCompiler::CCompiler => AddGCRoot AND AllocateFrame / ref from vars.constantFunctions
 
 
-	Here’s what we need to do to build this in to NTKConstData:
+	Here's what we need to do to build this in to NTKConstData:
 		build NTX which contains protoProtoEditor
 		run MachOtoNTK with args (Toolkit.exp, NTX.app) to build ntkC streamfile containing C entry points
 		build NSConstData defining forNTK -- vars will have protoProtoEditor!
@@ -114,7 +114,7 @@ vars := {
 		attributeSlots			default attribute slot text & help
 		toolPaletteIcons		symbols for all icons in the tool palette
 		version					5
-		copyrightNotice		"© Apple Computer, Inc. 1993-1997"
+		copyrightNotice		"(c) Apple Computer, Inc. 1993-1997"
 		screenSize				frame defining platform screen size 
 		installer				Install(), Remove()
 		Dump
@@ -129,7 +129,7 @@ vars := {
 			__origFunctions, __origVars ],
 	*/
 	// functions to be restored when platform is removed
-	//	we really should define these in the functions slot but since they’re native Mac functions they’re a little difficult to reverse-engineer
+	//	we really should define these in the functions slot but since they're native Mac functions they're a little difficult to reverse-engineer
 	__origFunctions: nil,
 	/*
 		'[	BrowseSlot,
@@ -368,7 +368,7 @@ initScriptsFunc := func()
 // run the initialization scripts
 	foreach initScript in @549 do
 		begin
-	//	local now := Ticks();	// don’t know what that’s doing here
+	//	local now := Ticks();	// don't know what that's doing here
 		call initScript with ()
 		end;
 

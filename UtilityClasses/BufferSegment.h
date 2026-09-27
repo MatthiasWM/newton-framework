@@ -3,7 +3,7 @@
 
 	Contains:	External interface to the Newton ROM buffer segment class.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc.  All rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc.  All rights reserved.
 */
 
 #ifndef __BUFFERSEGMENT_H

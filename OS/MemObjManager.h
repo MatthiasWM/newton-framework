@@ -42,7 +42,7 @@ struct DomainMemInfo
 	ULong		flags;				// +14
 };
 
-extern const DomainMemInfo *	gDomainTable;			// points to one of…
+extern const DomainMemInfo *	gDomainTable;			// points to one of...
 extern const DomainMemInfo		g1MegDomainTable[];
 extern const DomainMemInfo		g4MegDomainTable[];
 

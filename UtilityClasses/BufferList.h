@@ -3,7 +3,7 @@
 
 	Contains:	Interface to the CBufferList class.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc.  All rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc.  All rights reserved.
 */
 
 #ifndef __BUFFERLIST_H

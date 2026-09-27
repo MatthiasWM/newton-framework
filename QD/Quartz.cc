@@ -412,7 +412,7 @@ CSaveStyle::setStyle(RefArg inStyle, Point inPt, long inHuh)
 	if (EQ(inStyle, f50))
 		return YES;
 
-// IT’S A WHOPPER
+// IT'S A WHOPPER
 }
 
 void
@@ -681,7 +681,7 @@ ShapeBounds(RefArg inShape, Rect * outRect)
 			CDataPtr data(boundsFrame);
 			*outRect = *(Rect *) (char *) data;
 
-			// fix up line bounds so it’s always a non-empty rect
+			// fix up line bounds so it's always a non-empty rect
 			if ( EQRef(shapeClass, SYMline))
 			{
 				short swap;

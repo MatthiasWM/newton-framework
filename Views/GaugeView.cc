@@ -29,7 +29,7 @@ VIEW_SOURCE_MACRO(clGaugeView, CGaugeView, CView)
 
 /*--------------------------------------------------------------------------------
 	Perform a command.
-	If it’s a click then track the pen otherwise pass it on.
+	If it's a click then track the pen otherwise pass it on.
 	Args:		inCmd		the command frame
 	Return:	true if we handled the command
 --------------------------------------------------------------------------------*/
@@ -163,7 +163,7 @@ CGaugeView::realDraw(Rect& inRect)
 bool
 CGaugeView::trackSetValue(CUnit * inUnit)
 {
-	// don’t show the busy box while tracking
+	// don't show the busy box while tracking
 	BusyBoxSend(53);
 
 	CStroke * theStroke = inUnit->stroke();
@@ -208,7 +208,7 @@ CGaugeView::trackSetValue(CUnit * inUnit)
 
 /*--------------------------------------------------------------------------------
 	Set a slot.
-	If it’s the minValue or maxValue slot then update our variables.
+	If it's the minValue or maxValue slot then update our variables.
 	Args:		inTag			the slot name
 				inValue		the new value
 	Return:	--

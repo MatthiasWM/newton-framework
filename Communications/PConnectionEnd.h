@@ -5,7 +5,7 @@
 				each time a MuxTool receives an open request (e.g. NS endpoint
 				instantiate).
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v2 (5/11/95) internal.
 

@@ -183,7 +183,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames, CSymbol ** 
 		const char *	expFilename = gExportFilename[expFileIndex];
 		expFile = fopen(expFilename, "r");
 		if (expFile == NULL) {
-			ExitWithMessage("can't open -via file “%s”", expFilename);
+			ExitWithMessage("can't open -via file \"%s\"", expFilename);
 		}
 		if (expFileIndex == 0) {
 			// strip F prefix from C function name to make NewtonSxript function name
@@ -199,11 +199,11 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames, CSymbol ** 
 				if (line[0] != '\n') {
 					int	numOfItems = sscanf(line, "%127s%n%i", name+1, &lineLen, &argCount);
 					if (lineLen == 255) {
-						ExitWithMessage("input line too long in file “%s”", expFilename);
+						ExitWithMessage("input line too long in file \"%s\"", expFilename);
 					}
 					if (numOfItems > 1 && line[0] != ';') {
 						if (strlen(name+1) > 127) {
-							ExitWithMessage("encountered function name longer than 127 characters in file “%s”", expFilename);
+							ExitWithMessage("encountered function name longer than 127 characters in file \"%s\"", expFilename);
 						}
 						symbol = new CSymbol(fname, name, symbol);
 						inTable->add(symbol);
@@ -226,7 +226,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames, CSymbol ** 
 		}
 		fclose(expFile);
 		if (isVirgin) {
-			WarningMessage("no names found in the function names file “%s”", expFilename);
+			WarningMessage("no names found in the function names file \"%s\"", expFilename);
 		}
 	}
 
@@ -325,7 +325,7 @@ FillSymbolTable(CPointerTable * inTable)
 
 	symFile = fopen(gSymbolFilename, "r");
 	if (symFile == NULL) {
-		ExitWithMessage("can't open -sym file “%s”", gSymbolFilename);
+		ExitWithMessage("can't open -sym file \"%s\"", gSymbolFilename);
 	}
 	while (!feof(symFile)) {
 		lineLen = 0;
@@ -334,11 +334,11 @@ FillSymbolTable(CPointerTable * inTable)
 			if (line[0] != '\n') {
 				int	numOfItems = sscanf(line, "%8x%255s%n", &funcPtr, name, &lineLen);
 				if (lineLen == 255) {
-					ExitWithMessage("input line too long in file “%s”", gSymbolFilename);
+					ExitWithMessage("input line too long in file \"%s\"", gSymbolFilename);
 				}
 				if (numOfItems > 1 && line[0] != ';') {
 					if (strlen(name) > 254) {
-						ExitWithMessage("encountered function name longer than 254 characters in file “%s”", gSymbolFilename);
+						ExitWithMessage("encountered function name longer than 254 characters in file \"%s\"", gSymbolFilename);
 					}
 					symbol = new CPointer(funcPtr, name, symbol);
 					inTable->add(symbol);
@@ -353,7 +353,7 @@ FillSymbolTable(CPointerTable * inTable)
 	}
 	fclose(symFile);
 	if (isVirgin) {
-		WarningMessage("no names found in the function names file “%s”", gSymbolFilename);
+		WarningMessage("no names found in the function names file \"%s\"", gSymbolFilename);
 	}
 
 	return count == 0 && isVirgin;

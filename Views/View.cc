@@ -158,7 +158,7 @@ VIEW_SOURCE_MACRO(clView, CView, CResponder)
 
 /* -------------------------------------------------------------------------------
 	Constructor.
-	Doesn’t do anything, initialization is done in init().
+	Doesn't do anything, initialization is done in init().
 ------------------------------------------------------------------------------- */
 
 CView::CView()
@@ -263,11 +263,11 @@ CView::init(RefArg inContext, CView * inParentView)
 	if (NOTNIL(format))
 		viewFormat = RINT(format) & vfEverything;
 
-//	If we’re a child of the root view set up a clipper
+//	If we're a child of the root view set up a clipper
 	if (inParentView == gRootView && this != gRootView)
-		SetFrameSlot(inContext, SYMA(viewClipper), AddressToRef(new CClipper));		// when this view is GC’d viewClipper will be leaked, surely?
+		SetFrameSlot(inContext, SYMA(viewClipper), AddressToRef(new CClipper));		// when this view is GC'd viewClipper will be leaked, surely?
 
-//	Add us to our parent’s children
+//	Add us to our parent's children
 	if (this != inParentView)
 		inParentView->addCView(this);
 
@@ -452,7 +452,7 @@ CView::dispose(void)
 
 	fTagCacheMaskHi |= 0x00010000;	// sic
 
-	// and finally…
+	// and finally...
 	delete this;
 }
 
@@ -579,7 +579,7 @@ CView::realDoCommand(RefArg inCmd)
 	ULong cmdId = CommandId(inCmd);
 	switch (cmdId)
 	{
-// •• R e c o g n i t i o n   E v e n t s
+// ** R e c o g n i t i o n   E v e n t s
 	case aeClick:
 		if (FLAGTEST(viewFlags, vClickable))
 		{
@@ -663,7 +663,7 @@ EnableFramesFunctionProfiling(true);
 		}
 		break;
 
-// •• K e y   E v e n t s
+// ** K e y   E v e n t s
 	case aeKeyUp:
 	case aeKeyDown:
 	case ae34:
@@ -672,7 +672,7 @@ EnableFramesFunctionProfiling(true);
 		isHandled = true;
 		break;
 
-// •• V i e w   E v e n t s
+// ** V i e w   E v e n t s
 	case aeAddChild:
 		targetView = addChild(CommandFrameParameter(inCmd));
 		gApplication->dispatchCommand(MakeCommand(aeShow, targetView, CommandParameter(inCmd)));
@@ -915,7 +915,7 @@ CView::findId(int inId)
 
 /* -------------------------------------------------------------------------------
 	Do idle processing.
-	We run the view’s viewIdleScript.
+	We run the view's viewIdleScript.
 	Args:		inId			unused
 	Return:	int			number of milliseconds until next idle
 ------------------------------------------------------------------------------- */
@@ -1201,14 +1201,14 @@ CView::getWindowView(void)
 
 /* -------------------------------------------------------------------------------
 	Return a writeable copy of a variable.
-	Args:		inTag			variable’s slot
+	Args:		inTag			variable's slot
 	Return:	Ref
 ------------------------------------------------------------------------------- */
 
 Ref
 CView::getWriteableVariable(RefArg inTag)
 {
-	// see if it’s a proto variable
+	// see if it's a proto variable
 	RefVar var(getWriteableProtoVariable(inTag));
 	if (ISNIL(var))
 	{
@@ -1227,7 +1227,7 @@ CView::getWriteableVariable(RefArg inTag)
 
 /* -------------------------------------------------------------------------------
 	Return a writeable copy of a proto variable.
-	Args:		inTag			variable’s slot
+	Args:		inTag			variable's slot
 	Return:	Ref
 ------------------------------------------------------------------------------- */
 
@@ -1252,7 +1252,7 @@ CView::getWriteableProtoVariable(RefArg inTag)
 
 
 /* -------------------------------------------------------------------------------
-	Return the view’s copy protection.
+	Return the view's copy protection.
 	Args:		--
 	Return:	ULong
 ------------------------------------------------------------------------------- */
@@ -1331,7 +1331,7 @@ CView::setCustomPattern(RefArg inName)
 
 /* -------------------------------------------------------------------------------
 	Set new viewFlags.
-	Args:		inFlags		the flags to set (in addition to what’s already set)
+	Args:		inFlags		the flags to set (in addition to what's already set)
 	Return:	--
 ------------------------------------------------------------------------------- */
 
@@ -1366,7 +1366,7 @@ CView::clearFlags(ULong inFlags)
 
 
 /* -------------------------------------------------------------------------------
-	Set the view’s origin. All drawing within the view is with respect to this
+	Set the view's origin. All drawing within the view is with respect to this
 	origin.
 	Args:		inOrigin		the origin
 	Return:	--
@@ -1410,7 +1410,7 @@ CView::setOrigin(Point inOrigin)
 
 
 /* -------------------------------------------------------------------------------
-	Return the view’s local origin within its parent.
+	Return the view's local origin within its parent.
 	Args:		--
 	Return:	Point
 ------------------------------------------------------------------------------- */
@@ -1428,7 +1428,7 @@ CView::localOrigin(void)
 
 
 /* -------------------------------------------------------------------------------
-	Return the view’s content’s origin.
+	Return the view's content's origin.
 	Args:		--
 	Return:	Point
 ------------------------------------------------------------------------------- */
@@ -1444,7 +1444,7 @@ CView::contentsOrigin(void)
 
 
 /* -------------------------------------------------------------------------------
-	Set up the view’s visible region.
+	Set up the view's visible region.
 	Args:		--
 	Return:	the region
 ------------------------------------------------------------------------------- */
@@ -1480,7 +1480,7 @@ CView::setupVisRgn(void)
 
 /* -------------------------------------------------------------------------------
 	Determine whether we have a visible region.
-	The answer’s true if we are a child of the root view.
+	The answer's true if we are a child of the root view.
 	Args:		--
 	Return:	bool
 ------------------------------------------------------------------------------- */
@@ -1560,7 +1560,7 @@ CView::getFrontMask(void)
 
 
 /* -------------------------------------------------------------------------------
-	Return this view’s clipper. Only children of the root view have a clipper.
+	Return this view's clipper. Only children of the root view have a clipper.
 	Args:		--
 	Return:	CClipper
 ------------------------------------------------------------------------------- */
@@ -1629,7 +1629,7 @@ if (inBounds != NULL && inBounds->top < 0)
 
 
 /* -------------------------------------------------------------------------------
-	Show the view. There’s no animation but may be a sound.
+	Show the view. There's no animation but may be a sound.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -1662,7 +1662,7 @@ CView::show(void)
 
 
 /* -------------------------------------------------------------------------------
-	Hide the view. There’s no animation but may be a sound.
+	Hide the view. There's no animation but may be a sound.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -1721,7 +1721,7 @@ CView::setBounds(const Rect * inBounds)
 	if (clip)
 	{
 		Rect bounds;
-		outerBounds(&bounds);		// sic - doesn’t appear to have any effect
+		outerBounds(&bounds);		// sic - doesn't appear to have any effect
 		clip->updateRegions(this);
 		fParent->viewVisibleChanged(this, false);
 	}
@@ -1729,7 +1729,7 @@ CView::setBounds(const Rect * inBounds)
 
 
 /* -------------------------------------------------------------------------------
-	Apply the view’s justification to some bounds.
+	Apply the view's justification to some bounds.
 	Args:		ioBounds		the bounds
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -1737,7 +1737,7 @@ CView::setBounds(const Rect * inBounds)
 void
 CView::justifyBounds(Rect * ioBounds)
 {
-	if (this != fParent) // don’t justify root view bounds
+	if (this != fParent) // don't justify root view bounds
 	{
 		Rect	bounds = fParent->viewBounds;
 		if (EmptyRect(&fParent->viewBounds) && (fParent->viewFlags & vIsInSetupForm))
@@ -1922,7 +1922,7 @@ CView::dejustifyBounds(Rect * ioBounds)
 
 
 /* -------------------------------------------------------------------------------
-	Return the view’s bounds including its frame.
+	Return the view's bounds including its frame.
 	Args:		outBounds		the bounds
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -1977,7 +1977,7 @@ CView::writeBounds(const Rect * inBounds)
 
 
 /* -------------------------------------------------------------------------------
-	Recalculate the view’s bounds from its viewBounds frame.
+	Recalculate the view's bounds from its viewBounds frame.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -1998,7 +1998,7 @@ CView::recalcBounds(void)
 
 
 /* -------------------------------------------------------------------------------
-	Scale the view’s bounds.
+	Scale the view's bounds.
 	Args:		inFromRect
 				inToRect
 	Return:	--
@@ -2032,7 +2032,7 @@ CView::scale(const Rect * inFromRect, const Rect * inToRect)
 
 
 /* -------------------------------------------------------------------------------
-	Return the view’s origin (with respect to which children are located).
+	Return the view's origin (with respect to which children are located).
 	Args:		outPt		the origin
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -2575,7 +2575,7 @@ CView::childViewFrames(void)
 
 
 /* -----------------------------------------------------------------------------
-	A child view’s position has changed.
+	A child view's position has changed.
 	Invalidate display regions as necessary.
 	Args:		inView		the view that has moved
 								MUST be a child of ours
@@ -2801,7 +2801,7 @@ CView::narrowVisByIntersectingObscuringSiblingsAndUncles(CView * inView, Rect * 
 
 
 /* -----------------------------------------------------------------------------
-	A child view’s visibility has changed.
+	A child view's visibility has changed.
 	Invalidate display regions as necessary.
 	Args:		inView		the view that has become (in)visible
 								MUST be a child of ours
@@ -3057,7 +3057,7 @@ CView::hiliteAll(void)
 
 
 /* -------------------------------------------------------------------------------
-	Return this view’s highlights.
+	Return this view's highlights.
 	Args:		--
 	Return:	Ref
 ------------------------------------------------------------------------------- */
@@ -3070,7 +3070,7 @@ CView::hilites(void)
 
 
 /* -------------------------------------------------------------------------------
-	Return this view’s first highlight.
+	Return this view's first highlight.
 	Args:		--
 	Return:	Ref
 ------------------------------------------------------------------------------- */
@@ -3112,7 +3112,7 @@ CView::deleteHilited(RefArg ignored)
 	gApplication->dispatchCommand(cmd);
 }
 
-	// •••
+	// ***
 void
 CView::removeHilite(RefArg inArg1)
 {
@@ -3126,8 +3126,8 @@ CView::removeAllHilites(void)
 
 
 /* -------------------------------------------------------------------------------
-	Determine whether this view’s completely hilited.
-	You could say the view is ALL content data, so we’ll always say true.
+	Determine whether this view's completely hilited.
+	You could say the view is ALL content data, so we'll always say true.
 	Args:		inArg			dunno
 	Return:	true, always
 ------------------------------------------------------------------------------- */
@@ -3157,7 +3157,7 @@ CView::pointInHilite(Point inPt)
 
 
 /* -------------------------------------------------------------------------------
-	Draw this view’s hiliting.
+	Draw this view's hiliting.
 	Nothing to do here in the base class.
 	Args:		--
 	Return:	--
@@ -3169,7 +3169,7 @@ CView::drawHiliting(void)
 
 
 /* -------------------------------------------------------------------------------
-	Draw this view’s hilites.
+	Draw this view's hilites.
 	Nothing to do here in the base class.
 	Args:		isOn			or not
 	Return:	--
@@ -3181,8 +3181,8 @@ CView::drawHilites(bool isOn)
 
 
 /* -------------------------------------------------------------------------------
-	Draw this view’s hilited content data.
-	You could say the view is ALL content data, so we’ll draw the whole lot.
+	Draw this view's hilited content data.
+	You could say the view is ALL content data, so we'll draw the whole lot.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -3200,8 +3200,8 @@ CView::drawHilitedData(void)
 ----------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------------
-	Return this view’s text style.
-	If it doesn’t have a viewFont return the global userFont.
+	Return this view's text style.
+	If it doesn't have a viewFont return the global userFont.
 	Args:		--
 	Return:	Ref
 ------------------------------------------------------------------------------- */
@@ -3222,7 +3222,7 @@ CView::getTextStyle(void)
 
 
 /* -------------------------------------------------------------------------------
-	Return this view’s text style record.
+	Return this view's text style record.
 	Args:		outRec		style record to be filled in
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -3385,7 +3385,7 @@ CView::select(bool isOn, bool isUnique)
 
 
 /* -------------------------------------------------------------------------------
-	Deselect all this view’s children.
+	Deselect all this view's children.
 	Args:		--
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -3407,7 +3407,7 @@ CView::selectNone(void)
 
 
 /* -------------------------------------------------------------------------------
-	Set this view’s content selection.
+	Set this view's content selection.
 	This really does nothing - plain views have no content.
 	It will be overridden in more interesting views.
 	Args:		inInfo
@@ -3422,7 +3422,7 @@ CView::setSelection(RefArg inInfo, int * ioX, int * ioY)
 
 
 /* -------------------------------------------------------------------------------
-	Return this view’s content selection.
+	Return this view's content selection.
 	This really returns NULL - plain views have no content.
 	It will be overridden in more interesting views.
 	Args:		--
@@ -3437,7 +3437,7 @@ CView::getSelection(void)
 
 
 /* -------------------------------------------------------------------------------
-	Activate this view’s content selection.
+	Activate this view's content selection.
 	This does nothing - plain views have no content - except run the
 	viewCaretActivateScript so that more interesting views can call this inherited
 	method.
@@ -3618,13 +3618,13 @@ printf("CView<%p>::draw(region={t:%d,l:%d,b:%d,r:%d})\n", this, inUpdateRgn.boun
 
 					if (FLAGTEST(viewFlags, vClipping))
 					{
-/*						// save the port’s clipRgn
+/*						// save the port's clipRgn
 						savedClipRgn = new CRegionStruct;
 						GrafPtr thePort;
 						GetPort(&thePort);
 						CopyRgn(thePort->clipRgn, savedClipRgn);
 
-						// clip the port’s clipRgn to this view’s bounds
+						// clip the port's clipRgn to this view's bounds
 						GetPort(&thePort);
 						RgnHandle sp008 = thePort->clipRgn;
 						CRectangularRegion viewRgn(viewBounds);
@@ -3650,7 +3650,7 @@ printf("CView<%p>::draw(region={t:%d,l:%d,b:%d,r:%d})\n", this, inUpdateRgn.boun
 
 					if (FLAGTEST(viewFlags, vClipping))
 					{
-/*						// restore the port’s clipRgn
+/*						// restore the port's clipRgn
 						GrafPtr thePort;
 						GetPort(&thePort);
 						RgnHandle theRgn = thePort->clipRgn;
@@ -3701,7 +3701,7 @@ printf("CView<%p>::draw(region={t:%d,l:%d,b:%d,r:%d})\n", this, inUpdateRgn.boun
 
 
 /* -------------------------------------------------------------------------------
-	Draw this view’s children, clipped to a Rect.
+	Draw this view's children, clipped to a Rect.
 	-- This is never called. --
 	Args:		inRect		area of interest; NULL => draw it all
 				inView		child view from which to start drawing
@@ -3718,7 +3718,7 @@ CView::drawChildren(Rect& inRect, CView * inView)
 
 
 /* -------------------------------------------------------------------------------
-	Draw this view’s children.
+	Draw this view's children.
 	Args:		inUpdateRgn		update region
 				inView			child view from which to start drawing
 									NULL => draw them all
@@ -3757,7 +3757,7 @@ CView::drawChildren(CBaseRegion& inUpdateRgn, CView * inView)
 
 
 /* -------------------------------------------------------------------------------
-	Draw the view’s grid or line pattern, before any other drawing takes place.
+	Draw the view's grid or line pattern, before any other drawing takes place.
 	Args:		inRect			area of interest; NULL => draw it all
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -3856,7 +3856,7 @@ CView::preDraw(Rect& inRect)
 
 
 /* -------------------------------------------------------------------------------
-	Draw the view’s content.
+	Draw the view's content.
 	A plain view has no content so we really do nothing here in the base class.
 	Args:		inRect			area of interest; NULL => draw it all
 	Return:	--
@@ -3868,8 +3868,8 @@ CView::realDraw(Rect& inRect)
 
 
 /* -------------------------------------------------------------------------------
-	Draw the view’s frame after its content has been drawn.
-	Also indicate which button is default if we’re keyboard operated.
+	Draw the view's frame after its content has been drawn.
+	Also indicate which button is default if we're keyboard operated.
 	Args:		inRect			area of interest; NULL => draw it all
 	Return:	--
 ------------------------------------------------------------------------------- */
@@ -4172,7 +4172,7 @@ CView::endDrag(const CDragInfo * inDragInfo, CView * inArg2, const Point * inArg
 	Args:		inDragInfo		array of frames (one frame per dragged item)
 				inPt				current pen point (global coord)
 				inShow			true => show the feedback
-	Return:	false => no drawing done, don’t call us again
+	Return:	false => no drawing done, don't call us again
 ----------------------------------------------------------------------------- */
 
 bool
@@ -4246,7 +4246,7 @@ CView::getClipboardDataBits(Rect * inArea)
 /* -----------------------------------------------------------------------------
 	viewDropApproveScript
 	Provides a way for the view to disallow dropping onto a particular view.
-	ViewDropApproveScript returns nil if the drop shouldn’t happen, and non-nil
+	ViewDropApproveScript returns nil if the drop shouldn't happen, and non-nil
 	if the drop should happen. It is called only if the drop types match up
 	with the dragged data and the destView, and is called right before the
 	ViewDropScript, ViewDropMoveScript and/or ViewDropRemoveScript methods are called.

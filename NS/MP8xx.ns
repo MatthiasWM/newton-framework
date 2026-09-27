@@ -108,7 +108,7 @@ mp8xx := [
 					wordLen := wordLen + prevWordLen
 					end
 				end;
-			// remove character following too -- we can assume it’s whitespace
+			// remove character following too -- we can assume it's whitespace
 			if wordOffset + wordLen < StrLen(ioStr) then
 				wordLen := wordLen + 1;
 			// munge it out

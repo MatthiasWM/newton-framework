@@ -404,7 +404,7 @@ ProcessImports(CFramesPartAccessor & inPart, PartRef inTable)
 
 /* -----------------------------------------------------------------------------
 	Redirect exported UnitReferences.
-	See “Q&A Newton 2.x”
+	See "Q&A Newton 2.x"
 
 	A part's _ExportTable slot contains an array of UnitReference frames, eg:
 	 _ExportTable: [{name: '|Inet Protos:NIE|,

@@ -34,9 +34,9 @@
 				onexception |evt.ex| do
 					{ errList: "" };
 			if activationResult.dupList then
-				GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("Some packages on the store Ò^0Ó conflict with the names of packages already in use: ^1.", [storeName, activationResult.dupList]));
+				GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("Some packages on the store \u201C\u^0\u201D\u conflict with the names of packages already in use: ^1.", [storeName, activationResult.dupList]));
 			if activationResult.errList then
-				GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("Errors occurred activating packages on the store Ò^0Ó: ^1.", [storeName, activationResult.errList]));
+				GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("Errors occurred activating packages on the store \u201C\u^0\u201D\u: ^1.", [storeName, activationResult.errList]));
 			end
 		else if isInternal and penLocation.y < 40 then
 			call @808 with ();	// bless Notes
@@ -59,7 +59,7 @@
 			if entry then
 				DoProgress('vBarber,
 								{	barber: true,
-									statusText: ParamStr("Activating packages on the store Ò^0Ó.", [(inStore:GetName())]),
+									statusText: ParamStr("Activating packages on the store \u201C\u^0\u201D\u.", [(inStore:GetName())]),
 									icon: {	mask: MakeBinaryFromHex("000000000004010901090174011E018100000000000000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE000003FE0000000000000000000000000000000000000", 'mask),
 												bits: MakeBinaryFromHex("000000000004010901090174011E01817FF00000FFF80000C0180000C0180000C0180000C0180000C0180000C0180000C0180000C0180000C0180000C0180000DFD80000CF980000C7180000C2180000C0180000FFF800007FF000000000000000000000", 'bits),
 												bounds: { left: 0, top: 0, right: 13, bottom: 21 } },
@@ -74,14 +74,14 @@
 											if pkgItem then
 												begin
 												storeName := if pkgItem.store then pkgItem.store:GetName() else "Built-In";
-												dupList := StrConcatDelimited(dupList, ", ", ParamStr("Ò^0Ó on Ò^1Ó", [pkgName, storeName]));
+												dupList := StrConcatDelimited(dupList, ", ", ParamStr("\u201C\u^0\u201D\u on \u201C\u^1\u201D\u", [pkgName, storeName]));
 												end
 											else
 												try
-													inDialog:?SetStatus('vBarber, {titleText: $Ò & pkgName & $Ó, barber: true});
+													inDialog:?SetStatus('vBarber, {titleText: $\u201C & pkgName & $\u201D, barber: true});
 													ActivatePackage(entry.pkgRef)
 												onexception |evt.ex| do
-													errList := StrConcatDelimited(errList, ", ", $Ò & pkgName & $Ó);
+													errList := StrConcatDelimited(errList, ", ", $\u201C & pkgName & $\u201D);
 											entry := cursor:Next();
 										onexception |evt.ex| do
 											miscErrorCount := miscErrorCount + 1
@@ -112,7 +112,7 @@
 				pkgItem.store:GetName()
 			else
 				"Built-In";
-			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("The package Ò^0Ó (on store Ò^1Ó) was not activated because a package by the same name (on store Ò^2Ó) is already in use.", [inName, inStore:GetName(), storeName]));
+			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("The package \u201C\u^0\u201D\u (on store \u201C\u^1\u201D\u) was not activated because a package by the same name (on store \u201C\u^2\u201D\u) is already in use.", [inName, inStore:GetName(), storeName]));
 			nil
 			end
 		else
@@ -143,7 +143,7 @@
 		if Length(local1) = 0 and IsProtocolPartInUse(arg1) then
 			AddArraySlot(local1, {name: arg2, message: "This operation may cause serious problems."});
 		foreach local12 in local1 do
-			if not ModalConfirm(ParamStr("Ò^0Ó is currently in use. ^1 ^2", [local12.name, local12.message, arg3]), 'okCancelDefaultCancel) then
+			if not ModalConfirm(ParamStr("\u201C\u^0\u201D\u is currently in use. ^1 ^2", [local12.name, local12.message, arg3]), 'okCancelDefaultCancel) then
 				return;
 		true
 		end,
@@ -198,9 +198,9 @@
 			begin
 			if local1.message then
 				GetRoot():Notify(kNotifyAlert, "Newton",
-					ParamStr( {	install: "The package Ò^0Ó was not installed because it does not work with this system. ^1",
-									activate: "The package Ò^0Ó was not activated because it does not work with this system. ^1",
-									convert: "The package Ò^0Ó was not converted because it does not work with this system. ^1" }.(arg3), [inPkgName, local1.message]));
+					ParamStr( {	install: "The package \u201C\u^0\u201D\u was not installed because it does not work with this system. ^1",
+									activate: "The package \u201C\u^0\u201D\u was not activated because it does not work with this system. ^1",
+									convert: "The package \u201C\u^0\u201D\u was not converted because it does not work with this system. ^1" }.(arg3), [inPkgName, local1.message]));
 			true
 			end
 		end,
@@ -229,12 +229,12 @@
 				return
 		onexception |evt.ex| do
 			begin
-			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("An error occurred installing the package Ò^0Ó. It may not work with this system. Contact the software publisher for further information. (Part ^1, Type ^2)", [pkName, partIndex, pkInfo.parttypes[partIndex]]));
+			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("An error occurred installing the package \u201C\u^0\u201D\u. It may not work with this system. Contact the software publisher for further information. (Part ^1, Type ^2)", [pkName, partIndex, pkInfo.parttypes[partIndex]]));
 			return
 			end;
 		if GetPackageEntry(pkName, inStore) then
 			begin
-			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("The package Ò^0Ó was not installed because a package by the same name is already installed on the store Ò^1Ó.", [pkName, inStore:GetName()]));
+			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("The package \u201C\u^0\u201D\u was not installed because a package by the same name is already installed on the store \u201C\u^1\u201D\u.", [pkName, inStore:GetName()]));
 			return
 			end;
 		local partTypes := pkInfo.parttypes;
@@ -294,7 +294,7 @@
 			else if inPart.partType = 'auto then
 				result := InstallAutoPart(inPart)
 		onexception |evt.ex| do
-			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("An error occurred activating the package Ò^0Ó. It may not work with this system. Contact the software publisher for further information. (Part ^1, Type ^2)", [inPart.packageName, inPart.partIndex, inPart.partType]));
+			GetRoot():Notify(kNotifyAlert, "Newton", ParamStr("An error occurred activating the package \u201C\u^0\u201D\u. It may not work with this system. Contact the software publisher for further information. (Part ^1, Type ^2)", [inPart.packageName, inPart.partIndex, inPart.partType]));
 		if inPart.packageStyle = 'HighROM then
 			GetRoot().ExtrasDrawer:HandleNewHighROMPart(inPart)
 		else if inPart.packageStyle = '|1.X| then
@@ -325,7 +325,7 @@
 		local appSymbol := EnsureInternal(partFrame.app);
 		if root.(appSymbol) then
 			begin
-			root:Notify(kNotifyAlert, "Newton", ParamStr("An application by the name Ò^0Ó ('^1) is already installed.", [GetAppName(appSymbol), appSymbol]));
+			root:Notify(kNotifyAlert, "Newton", ParamStr("An application by the name \u201C\u^0\u201D\u ('^1) is already installed.", [GetAppName(appSymbol), appSymbol]));
 			nil
 			end
 		else
@@ -526,7 +526,7 @@
 		local pkName := entry.packageName;
 		if GetPackageEntry(pkName, destStore) then
 			begin
-			GetRoot():Notify(3, "Newton", ParamStr("The package Ò^0Ó was not moved because a package by the same name is already installed on the store Ò^1Ó.", [pkName, destStore:GetName()]));
+			GetRoot():Notify(3, "Newton", ParamStr("The package \u201C\u^0\u201D\u was not moved because a package by the same name is already installed on the store \u201C\u^1\u201D\u.", [pkName, destStore:GetName()]));
 			return;
 			end;
 		pkRef := entry.pkgRef;	// sic -- do we really need to do this again?
@@ -549,7 +549,7 @@
 			Rethrow()
 			end;
 		if isActive then
-			ActivatePackage(entry.pkgRef);	// sic -- whatÕs wrong with pkRef?
+			ActivatePackage(entry.pkgRef);	// sic -- what's wrong with pkRef?
 		true
 		end,
 

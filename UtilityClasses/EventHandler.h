@@ -157,16 +157,16 @@ class CSystemEventHandler : public CEventHandler
 public:
 						CSystemEventHandler();
 
-	// call init for each type of system event you're interested in…
+	// call init for each type of system event you're interested in...
 	NewtonErr		init(ULong inSystemEvent, ULong inSendFilter = 0);
 
 	// handler
 	virtual	void	eventHandlerProc(CUMsgToken * inToken, size_t * inSize, CEvent * inEvent);
 
-	// override to get all system events…
+	// override to get all system events...
 	virtual void	anySystemEvents(CEvent * inEvent);
 
-	// override to receive system events of their respective types…
+	// override to receive system events of their respective types...
 	virtual void	powerOn(CEvent * inEvent);
 	virtual void	powerOff(CEvent * inEvent);
 	virtual void	newCard(CEvent * inEvent);

@@ -20,7 +20,7 @@ extern void *		gCurrentGlobals;			// pointer to per task globals
 /*------------------------------------------------------------------------------
 	T a s k G l o b a l s
 
-	The OS “switches” these writable globals.
+	The OS "switches" these writable globals.
 ------------------------------------------------------------------------------*/
 
 typedef ULong			KernelParams[12];		// arguments and return values

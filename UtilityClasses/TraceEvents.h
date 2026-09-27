@@ -1,7 +1,7 @@
 /*
 	File:		TraceEvents.h
 
-	Copyright:	й 1994-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1994-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v8 internal.
 
@@ -65,7 +65,7 @@ struct CEventCollectorDebuggerInfo
 };
 
 
-//ееееееееееееееееее CEventCollector Protocol Interface ееееееееееееееееееееееееееее
+//****************** CEventCollector Protocol Interface ****************************
 
 typedef ULong CEventCollectorTimeValue;
 

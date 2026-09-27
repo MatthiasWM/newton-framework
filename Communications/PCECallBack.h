@@ -6,7 +6,7 @@
 				for things like PutBytes, etc.  When complete, the
 				PConnectionEnd implementation will call PCECallBack::PutBytesComplete.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v3 (5/24/95) internal.
 
@@ -92,7 +92,7 @@ PROTOCOL PCECallBack : public TProtocol
 
 		NewtonErr				InitAsyncRPCMsg(TUAsyncMessage& asyncMsg, ULong refCon);
 
-		// getters/setters…
+		// getters/setters...
 		ULong					GetToolConnectState();
 		void					SetToolConnectState(ULong state);
 

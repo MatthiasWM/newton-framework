@@ -74,11 +74,11 @@ CMonitor *			gTheObjectManagerMonitor;	// 0C1016A4	+08
 
 
 /*------------------------------------------------------------------------------
-	Initialize the kernel’s world.
+	Initialize the kernel's world.
 	Create a task scheduler;
 	create some queues;
 	initialize the kernel object system;
-	set up the kernel’s port.
+	set up the kernel's port.
 	Args:		--
 	Return:	error code
 ------------------------------------------------------------------------------*/
@@ -180,7 +180,7 @@ InitObjectManager(void)
 
 
 /*------------------------------------------------------------------------------
-	Register a memory object in the kernel’s object table.
+	Register a memory object in the kernel's object table.
 	Args:		inObject			the object
 				inType			its type; port, task
 				inOwnerId		its owning task
@@ -209,9 +209,9 @@ RegisterObject(CObject * ioObject, KernelTypes inType, ObjectId inOwnerId, Objec
 /*------------------------------------------------------------------------------
 	Convert a local (to a task) object id to its global id.
 	There are three special ids:
-		1	kBuiltInSMemMsgId				current task’s shared mem msg
-		2	kBuiltInSMemId					current task’s shared mem
-		3	kBuiltInSMemMonitorFaultId	current task’s monitor’s shared mem msg
+		1	kBuiltInSMemMsgId				current task's shared mem msg
+		2	kBuiltInSMemId					current task's shared mem
+		3	kBuiltInSMemMonitorFaultId	current task's monitor's shared mem msg
 	Args:		inId				a local object id
 	Return:	global id
 ------------------------------------------------------------------------------*/
@@ -247,8 +247,8 @@ LocalToGlobalId(ObjectId inId)
 
 
 /*------------------------------------------------------------------------------
-	Convert a kernel object’s token to the object itself.
-	Args:		inType			the object’s expected type
+	Convert a kernel object's token to the object itself.
+	Args:		inType			the object's expected type
 				inId				its token
 				outObj			a pointer to its pointer
 	Return:	error code
@@ -270,7 +270,7 @@ ConvertIdToObj(KernelTypes inType, ObjectId inId, void * outObj)
 
 
 /*------------------------------------------------------------------------------
-	Convert a shared memory object’s token to the object itself.
+	Convert a shared memory object's token to the object itself.
 	Args:		inId				its token
 				outObj			a pointer to its pointer
 	Return:	error code
@@ -798,7 +798,7 @@ SetDomainFaultMonitor(ObjectMessage * inMsg, size_t inSize)
 /*------------------------------------------------------------------------------
 	Return a function that knows how to scavenge a kernel object.
 	Args:		inObject			the object to scavenge
-				inId				its id - we ignore this and use the object’s id
+				inId				its id - we ignore this and use the object's id
 	Return:	function pointer
 ------------------------------------------------------------------------------*/
 
@@ -818,8 +818,8 @@ ObjectScavenger(CObject * inObject, ObjectId inId)
 		else
 			scavenger = (ScavengeProcPtr) DeleteTask;
 		break;
-//	case kEnvironmentType:	can’t be scavenged
-//	case kDomainType:			can’t be scavenged
+//	case kEnvironmentType:	can't be scavenged
+//	case kDomainType:			can't be scavenged
 	case kSemListType:
 		scavenger = (ScavengeProcPtr) DeleteSemList;
 		break;
@@ -992,7 +992,7 @@ CObjectTable::scavenge(void)
 		{
 			if (fThisObj->fId != fThisObj->owner() && !exists(fThisObj->owner()))
 			{
-				// we’ve found an object with no owner - a suitable candidate
+				// we've found an object with no owner - a suitable candidate
 				CObject * deadObject = fThisObj;
 				fThisObj = deadObject->fNext;
 				deadObject->setOwner(deadObject->fId);	// make owner invalid
@@ -1106,7 +1106,7 @@ CObjectTable::newId(KernelTypes inType)
 	{
 		bool				isPhys = (inType == kPhysType || inType == kExtPhysType);
 		CObjectTable *	object = (this == gObjectTable) ? gTheMemArchObjTbl : gObjectTable;
-		// check new id doesn’t already exist
+		// check new id doesn't already exist
 		while (exists(uid) && isPhys && object->exists(uid))
 			uid = (nextGlobalUniqueId() << kObjectTypeBits) | inType;
 	}
@@ -1117,7 +1117,7 @@ CObjectTable::newId(KernelTypes inType)
 
 /*------------------------------------------------------------------------------
 	Determine whether an object already exists in the table.
-	Args:		inId			the object’s id
+	Args:		inId			the object's id
 	Return:	true if it exists
 ------------------------------------------------------------------------------*/
 
@@ -1137,7 +1137,7 @@ CObjectTable::exists(ObjectId inId)
 
 /*------------------------------------------------------------------------------
 	Get a pointer to an object from its id.
-	Args:		inId			the object’s id
+	Args:		inId			the object's id
 	Return:	the object
 ------------------------------------------------------------------------------*/
 
@@ -1173,7 +1173,7 @@ CObjectTable::add(CObject * ioObject, KernelTypes inType, ObjectId inOwnerId)
 	ObjectId	id = newId(inType);
 
 	ioObject->fId = id;
-	// system objects have no real owner - so they’re never scavenged
+	// system objects have no real owner - so they're never scavenged
 	if (inOwnerId == kSystemId)
 		inOwnerId = id;
 	ioObject->setOwner(inOwnerId);
@@ -1193,7 +1193,7 @@ CObjectTable::add(CObject * ioObject, KernelTypes inType, ObjectId inOwnerId)
 
 /*------------------------------------------------------------------------------
 	Remove an object from the table.
-	Args:		inId				the object’s id
+	Args:		inId				the object's id
 	Return:	error code
 ------------------------------------------------------------------------------*/
 
@@ -1209,7 +1209,7 @@ CObjectTable::remove(ObjectId inId)
 		{
 			if (obj->fId == inId)
 			{
-				// we’ve found the table entry with the given id
+				// we've found the table entry with the given id
 				obj->setOwner(obj->fId);	// make owner invalid
 				ScavengeProcPtr scavenger = fScavenge(obj, inId);
 				if (scavenger)
@@ -1260,7 +1260,7 @@ CObjectTableIterator::CObjectTableIterator(CObjectTable * inTable, ObjectId inId
 
 /*------------------------------------------------------------------------------
 	Set the iterator at a position.
-	Args:		inId				the object’s id
+	Args:		inId				the object's id
 	Return:	true if the position was set successfully
 ------------------------------------------------------------------------------*/
 
@@ -1292,17 +1292,17 @@ CObjectTableIterator::getThisLineNextEntry(void)
 	fObject = fTable->fObject[(fObject == NULL) ? fInitialIndex : fIndex];
 	if (fObject)
 	{
-		// we found an object, its id is the iterator’s value
+		// we found an object, its id is the iterator's value
 		fId = (ObjectId)*fObject;
 		return true;
 	}
 
-	// if we’re done, say so now
+	// if we're done, say so now
 	fId = kNoId;
 	if (fIsDone)
 		return false;
 
-	// update the index - if wrapped to the beginning, we’re done
+	// update the index - if wrapped to the beginning, we're done
 	fIndex = (fIndex + 1) & kObjectTableMask;
 	if (fIndex == fInitialIndex)
 		fIsDone = true;

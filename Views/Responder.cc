@@ -99,7 +99,7 @@ CommandFrameParameter(RefArg inCmd)
 /*----------------------------------------------------------------------
 	Set a frame in the params array of a command frame.
 	Args:		inCmd		the command frame
-				inIndex	the index into the command frame’s params slot
+				inIndex	the index into the command frame's params slot
 							(an array)
 				inArg		the parameter to set at that index
 	Return:	--
@@ -125,7 +125,7 @@ CommandSetIndexFrame(RefArg inCmd, ArrayIndex index, RefArg inArg)
 	Set and extract an integer value in the params array of a command
 	frame.
 	Args:		inCmd		the command frame
-				inIndex	the index into the command frame’s params slot
+				inIndex	the index into the command frame's params slot
 							(an array)
 				inArg		the parameter to set at that index
 	Return:	--

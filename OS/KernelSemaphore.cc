@@ -187,8 +187,8 @@ CSemaphoreOpList::~CSemaphoreOpList()
 
 /*------------------------------------------------------------------------------
 	Initialize our oplist.
-	Args:		inNumOfOps	number of SemOps in…
-				inOps			…this array
+	Args:		inNumOfOps	number of SemOps in...
+				inOps			...this array
 	Return:	error code
 ------------------------------------------------------------------------------*/
 

@@ -219,13 +219,13 @@ global_decl:	kTokenGlobal kTokenSymbol
 				|	kTokenGlobal kTokenSymbol kTokenAssign expr
 					{	$$ = AllocatePT2(kTokenGlobal, $2, $4); }
 				|	kTokenGlobal kTokenSymbol '(' formal_args ')' expr
-					{	/* CHECK THISÉ */
+					{	/* CHECK THIS... */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(kTokenConst, $2));
 						SetArraySlot(fn, 1, AllocatePT5(kTokenFunc, GetArraySlot($4, 0), $6, RA(NILREF), GetArraySlot($4, 1), RA(NILREF)));
 						$$ = AllocatePT2(kTokenCall, SYMDefGlobalFn, fn); }
 				|	kTokenFunc kTokenSymbol '(' formal_args ')' expr
-					{	/* ÉAND THIS */
+					{	/* ...AND THIS */
 						RefVar	fn(MakeArray(2));
 						SetArraySlot(fn, 0, AllocatePT1(kTokenConst, $2));
 						SetArraySlot(fn, 1, AllocatePT5(kTokenFunc, GetArraySlot($4, 0), $6, RA(NILREF), GetArraySlot($4, 1), RA(NILREF)));

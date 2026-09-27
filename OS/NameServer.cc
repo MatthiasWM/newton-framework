@@ -144,7 +144,7 @@ CNameServer::taskConstructor(void)
 
 
 /*--------------------------------------------------------------------------------
-	The name server’s main event loop.
+	The name server's main event loop.
 	It waits for CResArbitrationRequest requests to arrive on its port and
 	dispatches them appropriately.
 	Args:		--
@@ -221,7 +221,7 @@ CNameServer::taskMain(void)
 				break;
 
 			case kGestalt:
-			//	request is NOT a CResArbitrationRequest, it’s a CGestaltRequest
+			//	request is NOT a CResArbitrationRequest, it's a CGestaltRequest
 				gestalt(((CGestaltRequest *)&request)->fSelector, &token);
 				break;
 
@@ -298,7 +298,7 @@ CNameServer::buildNameAndType(ObjectId inName, ObjectId inType)
 		CUSharedMem	typeObject;
 		size_t		size;
 
-		// name and type pointers are NULL until we’ve copied them
+		// name and type pointers are NULL until we've copied them
 		fName = NULL;
 		fType = NULL;
 		// set up shared mem objects from ids
@@ -337,7 +337,7 @@ CNameServer::deleteNameAndType(void)
 	Register the thing/spec data associated with the name/type key, which has
 	already been set up by buildNameAndType().
 	Args:		inThing		data
-				inSpec		…and more
+				inSpec		...and more
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -350,7 +350,7 @@ CNameServer::registerName(OpaqueRef inThing, OpaqueRef inSpec)
 		OpaqueRef whatever;
 		CObjectNameList *	db = &fDB[hash(fName)];
 		XFAILIF(db->lookup(fName, fType, &whatever, &whatever, NULL) != noErr || !db->add(fName, fType, inThing, inSpec), err = kOSErrAlreadyRegistered;)
-		// NULL out the key pointers so they’re not freed
+		// NULL out the key pointers so they're not freed
 		// we want them to stay in the CObjectNameEntry
 		fName = fType = NULL;
 	}
@@ -404,7 +404,7 @@ CNameServer::queueForRegister(CUMsgToken * ioToken)
 		}
 		else
 		{
-			//	name isn’t there yet; form an orderly queue to wait for it
+			//	name isn't there yet; form an orderly queue to wait for it
 			CRegistryListener * listener = new CRegistryListener;
 			XFAILIF(listener == NULL, err = kOSErrNoMemory;)
 			listener->fName = fName;
@@ -440,7 +440,7 @@ CNameServer::queueForUnregister(CUMsgToken * ioToken)
 
 		if (lookup(&thing, &spec) != noErr)
 		{
-			//	name isn’t registered; reply immediately with an error
+			//	name isn't registered; reply immediately with an error
 			ioToken->replyRPC(NULL, 0, kOSErrNotRegistered);
 		}
 		else
@@ -689,7 +689,7 @@ CNameServer::resourceArbitration(CUMsgToken & ioToken, CResArbitrationRequest * 
 			break;
 
 		default:
-		//	bad request - don’t reply
+		//	bad request - don't reply
 			return;
 		}
 	}
@@ -784,7 +784,7 @@ CNameServer::registerForSystemEvent(ULong inEvtId, ULong inEventClass, ULong inf
 
 		if ((sysEvt = (CEventMasterListItem *)fSysEvents->search(&tester, index)) == NULL)
 		{
-			// sys evt doesn’t exist yet so try to create one
+			// sys evt doesn't exist yet so try to create one
 			sysEvt = new CEventMasterListItem;
 			XFAILIF(sysEvt == NULL, err = kOSErrNoMemory;)
 			XFAIL(err = sysEvt->init(inEvtId))
@@ -888,7 +888,7 @@ CNameServer::sendSystemEvent(ULong inEvtId, ObjectId inMemMsg)
 		}
 		delete fSysEventIter;
 		if (eventInfo == NULL)
-			// there aren’t any SysEvents
+			// there aren't any SysEvents
 			err = kOSErrNotRegistered;
 	}
 	XENDTRY;
@@ -1110,7 +1110,7 @@ CObjectNameList::add(const char * inName, const char * inType, OpaqueRef inThing
 		}
 		return true;	// it was added okay
 	}
-	return false;	// we couldn’t create an entry
+	return false;	// we couldn't create an entry
 }
 
 
@@ -1136,7 +1136,7 @@ CObjectNameList::remove(const char * inName, const char * inType)
 				prevEntry->fNext = entry->fNext;
 			else
 				fRegistry = entry->fNext;
-			// if there’s resArbInfo, can delete that now
+			// if there's resArbInfo, can delete that now
 			if ((info = entry->fResArbInfo) != NULL)
 			{
 				if ((info->f00 & 0x01) != 0)
@@ -1176,7 +1176,7 @@ CObjectNameList::remove(const char * inName, const char * inType)
 			return true;	// it was removed okay
 		}
 	}
-	return false;	// we couldn’t find the name
+	return false;	// we couldn't find the name
 }
 
 
@@ -1425,7 +1425,7 @@ CUNameServer::~CUNameServer()
 	Args:		inName		the name under which the data is registered
 				inType		a secondary key
 				inThing		the data
-				inSpec		…and a bit more
+				inSpec		...and a bit more
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -1500,7 +1500,7 @@ CUNameServer::unregisterName(const char * inName, const char * inType)
 	Args:		inName		the name under which the data is registered
 				inType		a secondary key
 				outThing		the data
-				outSpec		…and a bit more
+				outSpec		...and a bit more
 	Return:	error code
 --------------------------------------------------------------------------------*/
 
@@ -1573,7 +1573,7 @@ CUNameServer::waitForUnregister(const char * inName, const char * inType)
 	Look up the two longwords, thing and spec, associated with a name/type key.
 	Args:		inName		name string
 				inType		type string, which together with inName uniquely
-								identifies a resource in the name server’s database
+								identifies a resource in the name server's database
 				outThing		pointer to thing result
 				outSpec		pointer to spec result
 	Return:	error code

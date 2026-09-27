@@ -598,7 +598,7 @@ CController::nextIdleTime(void)
 
 
 /*------------------------------------------------------------------------------
-	Determine whether we're busy. What does ‘busy' mean, exactly?
+	Determine whether we're busy. What does 'busy' mean, exactly?
 	Args:		--
 	Return:	true => we're busy
 ------------------------------------------------------------------------------*/

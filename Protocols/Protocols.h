@@ -6,7 +6,7 @@
 **		class CClassInfo;				// Meta-information for protocols
 **		MONITOR CClassInfoRegistry;		// Clearing house for implementations of protocols
 **
-**	Copyright © 1992-1994, Apple Computer, Inc.   All Rights Reserved.
+**	Copyright (c) 1992-1994, Apple Computer, Inc.   All Rights Reserved.
 **
 **	----------------------------------------------------------------
 **
@@ -120,7 +120,7 @@ inline CProtocol::operator ObjectId()
 
 /*
 **	Put one of these inside the {...} of your protocol implementations.
-**	It declares some magic stuff you’re probably better off not puzzling over.
+**	It declares some magic stuff you're probably better off not puzzling over.
 **
 **	That is:
 **
@@ -251,7 +251,7 @@ public:
 #else
 	/*
 	**	Never change these; generated glue depends on this layout,
-	** and if you change anything here you will definitely wish you hadn’t.
+	** and if you change anything here you will definitely wish you hadn't.
 	**
 	**	This structure is relocatable.  Please keep it that way.
 	*/

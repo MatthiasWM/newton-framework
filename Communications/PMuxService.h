@@ -3,7 +3,7 @@
 
 	Contains:	Protocol interface for Openning a connection end.
 
-	Copyright:	© 1992-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1995 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v1 (2/13/92) internal.
 

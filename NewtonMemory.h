@@ -8,7 +8,7 @@
 
 #if !defined(__NEWTONMEMORY_H)
 #define __NEWTONMEMORY_H 1
-// DON’T USE MAC MEMORY FUNCTIONS
+// DON'T USE MAC MEMORY FUNCTIONS
 #define __MACMEMORY__
 
 #if !defined(__NEWTONTYPES_H)
@@ -61,7 +61,7 @@ Heap			PtrToHeap(Ptr inPtr);
 **
 **	"Locking" a Ptr has the following semantics:
 **
-**		o	The Ptr’s guts are accessible to interrupt code.  (Since
+**		o	The Ptr's guts are accessible to interrupt code.  (Since
 **			VM-heaps are possibly backed by compression or some actual
 **			storage device, it is unsafe to touch memory from interrupt
 **			code without locking it);
@@ -186,8 +186,8 @@ void				SetHandleType(Handle inHandle, HeapBlockType inType);
 **	Heap Operations
 **
 */
-Heap			GetHeap(void);			// get the task’s current heap
-void			SetHeap(Heap);			// set the task’s current heap
+Heap			GetHeap(void);			// get the task's current heap
+void			SetHeap(Heap);			// set the task's current heap
 
 NewtonErr	NewHeapAt(
 					VAddr		inAddr,			// where heap is in VM
@@ -195,13 +195,13 @@ NewtonErr	NewHeapAt(
 					Heap *	outHeap);		// new heap
 
 NewtonErr	NewVMHeap(
-					ObjectId	inDomain,		// domain for heap (or zero for current env’s default)
+					ObjectId	inDomain,		// domain for heap (or zero for current env's default)
 					Size		inMaxSize,		// max size of both Ptr and Handle allocation
 					Heap *	outHeap,			// new heap
 					ULong		inOptions);		// various options (see below)
 
 NewtonErr	NewSegregatedVMHeap(
-					ObjectId	inDomain,		// domain for heap (or zero for current env’s default)
+					ObjectId	inDomain,		// domain for heap (or zero for current env's default)
 					Size		inPtrSize,		// max size of Ptr allocation
 					Size		inHandleSize,	// max size of Handle allocation
 					Heap *	outHeap,			// new heap

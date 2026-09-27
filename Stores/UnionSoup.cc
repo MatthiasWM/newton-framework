@@ -114,7 +114,7 @@ GetUnionSoup(RefArg inName)
 				SetFrameSlot(uSoup, SYMA(errorCode), MAKEINT(err));
 		}
 		else
-		// named soup doesn’t exist on any store
+		// named soup doesn't exist on any store
 			uSoup = NILREF;
 	}
 	return uSoup;
@@ -325,7 +325,7 @@ UnionSoupHasTags(RefArg inRcvr)
 				{
 					theIndex = GetArraySlot(indexes, i);
 					if (EQ(GetFrameSlot(theIndex, SYMA(type)), SYMA(tags)))
-						return TRUEREF;	// doesn’t look right, given the stuff below, but this is what the NS does
+						return TRUEREF;	// doesn't look right, given the stuff below, but this is what the NS does
 				}
 			}
 		}

@@ -21,7 +21,7 @@
 #endif
 
 
-// ---------------  Result codes…  -------------
+// ---------------  Result codes...  -------------
 
 #define kCallInProgress								(1)
 #define kEnterMonitor								(2)
@@ -29,7 +29,7 @@
 #define kSuspendTaskWaitForMemory				(4)				// suspend this task on way out of monitor until memory becomes available
 #define kSuspendTaskOnMemoryQ						(5)				// suspend task on memory queue for fault monitors
 
-// ---------------  OS errors…  -------------
+// ---------------  OS errors...  -------------
 
 #define kOSErrBadDomainObjectId					(ERRBASE_OS)
 #define kOSErrBadPhysicalPageObjectId			(ERRBASE_OS - 1)
@@ -117,7 +117,7 @@
 #define kOSErrNewROMInstalled						(ERRBASE_OS - 84)
 #define kOSErrRebootBatteryChanged				(ERRBASE_OS - 85)
 
-// ---------------  Stack errors…  -------------
+// ---------------  Stack errors...  -------------
 
 #define kStackErrStackTooSmall					(ERRBASE_OS - 200)
 #define kStackErrNoRoomForHeap					(ERRBASE_OS - 201)
@@ -127,11 +127,11 @@
 #define kStackErrAddressOutOfRange				(ERRBASE_OS - 205)
 #define kStackErrBadDomain							(ERRBASE_OS - 206)
 
-// ---------------  RDM errors…  -------------
+// ---------------  RDM errors...  -------------
 
 #define kOSErrUnsupportedRequest					(ERRBASE_OS - 301)
 
-// ---------------  Package errors…  -------------
+// ---------------  Package errors...  -------------
 
 #define kOSErrBadPackage							(ERRBASE_OS - 401)
 #define kOSErrPackageAlreadyExists			   (ERRBASE_OS - 402)
@@ -146,7 +146,7 @@
 #define kOSErrPackageBusy							(ERRBASE_OS - 411)
 #define kOSErrXIPNotPossible						(ERRBASE_OS - 412)
 
-// ---------------  Card errors…  -------------
+// ---------------  Card errors...  -------------
 
 #define kCardErrUnrecognized 						(ERRBASE_OS - 501)
 #define kCardErrNotReady	 						(ERRBASE_OS - 502)
@@ -178,7 +178,7 @@
 #define kCardErrBadCIS								(ERRBASE_OS - 534)		// Bad CIS
 #define kCardErrLinkTargetC						(ERRBASE_OS - 535)
 
-// ---------------  Flash errors…  -------------
+// ---------------  Flash errors...  -------------
 
 #define kFlashErrBusy								(ERRBASE_OS - 551)
 #define kFlashErrNotErasing						(ERRBASE_OS - 552)
@@ -194,7 +194,7 @@
 #define kFlashErrAddressOutOfRange				(ERRBASE_OS - 562)
 #define kFlashErrNoFlashInMotherBoard			(ERRBASE_OS - 563)
 
-// ---------------  ATA errors…  -------------
+// ---------------  ATA errors...  -------------
 
 #define kATAErrAddressMarkNotFound				(ERRBASE_OS - 570)
 #define kATAErrTrack0NotFound						(ERRBASE_OS - 571)
@@ -212,7 +212,7 @@
 #define kATAErrBadPartition						(ERRBASE_OS - 583)
 #define kATAErrPartitionChecksum					(ERRBASE_OS - 584)
 
-// ---------------  Store errors…  -------------
+// ---------------  Store errors...  -------------
 
 #define kStoreErrObjectOverRun					(ERRBASE_OS - 600)	/* attempt to read or write outside object bounds */
 #define kStoreErrBadBufferPtr						(ERRBASE_OS - 601)	/* was "bad object id" in heap-object-store world */
@@ -240,7 +240,7 @@
 
 #define kOSErrReservedBlockInvalidObject		(ERRBASE_OS - 700)	/* ~valid flag for object */
 
-// ---------------  DMA errors…  -------------
+// ---------------  DMA errors...  -------------
 
 #define kDMAErrMode									(ERRBASE_OS - 800)
 #define kDMAErrBusAccess							(ERRBASE_OS - 801)
@@ -271,7 +271,7 @@
 #define kSafeHeapErrBadLastPtrInPrior			(ERRBASE_OS - 907)
 #define kSafeHeapErrBadLastPtrInLast			(ERRBASE_OS - 908)
 
-// ---------------  Interrupt errors…  -------------
+// ---------------  Interrupt errors...  -------------
 
 #define kIntErrNoInterruptQueue					(ERRBASE_INTERRUPT - 1)
 #define kIntErrBadInterruptEnable				(ERRBASE_INTERRUPT - 2)

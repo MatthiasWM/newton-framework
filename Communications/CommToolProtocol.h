@@ -3,7 +3,7 @@
 
 	Contains:	Protocol common to CCommTools.
 
-	Copyright:	© 1993-1995 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1995 by Apple Computer, Inc., all rights reserved.
 */
 
 #if !defined(__COMMTOOLPROTOCOL_H)
@@ -171,7 +171,7 @@ public:
 	NONVIRTUAL	CommToolChannelNumber	CTRequestTypeToChannelNumber(CommToolRequestType msgType);
 	NONVIRTUAL	CommToolRequestType		CTChannelNumberToRequestType(CommToolChannelNumber channelNumber);
 
-	// getters/setters…
+	// getters/setters...
 	NONVIRTUAL	ULong					CTGetToolConnectState();
 	NONVIRTUAL	void					CTSetToolConnectState(ULong state);
 

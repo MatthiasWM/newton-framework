@@ -3,7 +3,7 @@
 
 	Contains:	Original CardHandler header for PCMCIA  cards.
 
-	Copyright:	© 1992-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1992-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v6 internal (3/19/97).
 

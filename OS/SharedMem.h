@@ -69,9 +69,9 @@ public:
 	ULong					fType;			// +50	message type (sender)
 	ULong					fFilter;			// +54	message types accepted (receiver)
 	ObjectId				fSendersMsg;	// +58
-	ObjectId				fSendersMem;	// +5C	sender’s replyMemId
-	ULong					fSendersType;	// +60	sender’s msgType
-	ULong					fSendersSig;	// +64	sender’s signature
+	ObjectId				fSendersMem;	// +5C	sender's replyMemId
+	ULong					fSendersType;	// +60	sender's msgType
+	ULong					fSendersSig;	// +64	sender's signature
 	ObjectId				fPortToNotify;	// +68
 	ObjectId				fNotify;			//	+6C	object to notify when msg complete: task (sync) or port (async)
 	ObjectId				fTaskToNotify;	// +70

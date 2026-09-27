@@ -544,7 +544,7 @@ PtsToAngleR(FPoint * inPt1, FPoint * inPt2)
 
 
 /* -----------------------------------------------------------------------------
-	Bring an angle into the range -π .. +π degrees.
+	Bring an angle into the range -pi .. +pi degrees.
 	Args:		ioRadians			the angle
 	Return:	--
 ----------------------------------------------------------------------------- */

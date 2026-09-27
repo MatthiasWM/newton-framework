@@ -3,7 +3,7 @@
 
 	Contains:	Configuration controls for printing subsystem
 
-	Copyright:	© 1993-1996 by Apple Computer, Inc., all rights reserved.
+	Copyright:	(c) 1993-1996 by Apple Computer, Inc., all rights reserved.
 
 	Derived from v19 internal.
 
