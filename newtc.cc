@@ -277,20 +277,74 @@ void handleArgScript(const std::string &filename)
   addGlobalRef(result);
 }
 
+/*
+ Installing a package the way the ROM does (ROM NewtonScript, decompiled
+ with newtc; see Matt/CLAUDE.md, "How a Newton installs and opens a
+ package"):
+   RegisterNewPackage(pkgRef, ...)   checks every part's DoNotInstall(), adds
+                                     the package to the "Packages" soup, then
+   SafeActivatePackageQT(...)        -> ActivatePackage(pkgRef) (C++), which
+                                     calls each part's handler; for 'form and
+                                     'auto parts (Packages/Parts.cc)
+   InstallPart(installInfo)          -> InstallFormPart / InstallAutoPart,
+                                     an error is reported (Notify) and the
+                                     next part is still installed.
+ newtc has no store, soups, or C++ package manager, so installPackage() does
+ these steps itself, with the same order and error handling. The form part
+ is installed by hand (installFormPart), not by the ROM's InstallFormPart:
+ that one needs the root view (GetRoot, BuildContext), and it copies the
+ install script with EnsureInternal, which would lose the debug map.
+ */
+
+// The ROM's messages (RegisterNewPackage, InstallPart), printed instead of
+// GetRoot():Notify(...) until there is a root view.
+static void reportPartError(RefArg package, const char * inWhat, ArrayIndex inPart, const std::string & inType)
+{
+  RefVar name(GetFrameSlot(package, MakeSymbol("name")));
+  REPprintf("An error occurred %s the package \"%s\". It may not work with this system. "
+            "Contact the software publisher for further information. (Part %u, Type %s)\n",
+            inWhat, IsString(name) ? UTF8FromString(name).c_str() : "?", (unsigned)inPart, inType.c_str());
+}
+
+// ROM InstallFormPart: the part frame is read-only, so the install script
+// gets a new frame {_proto: partFrame, app, InstallScript, RemoveScript}; the
+// developer's scripts (NTK: devInstallScript, devRemoveScript) come first.
+// Not yet: the "already installed" check and root.(app) :=
+// BuildContext(partFrame.theForm) (need the root view); no EnsureInternal
+// (the package stays in memory, and debug maps find functions by their
+// instructions).
+static void installFormPart(RefArg partFrame)
+{
+  RefVar symInstall(MakeSymbol("InstallScript"));
+  RefVar symRemove(MakeSymbol("RemoveScript"));
+  RefVar context(AllocateFrame());
+  SetFrameSlot(context, MakeSymbol("_proto"), partFrame);
+  SetFrameSlot(context, MakeSymbol("app"), GetFrameSlot(partFrame, MakeSymbol("app")));
+  RefVar install(GetFrameSlot(partFrame, MakeSymbol("devInstallScript")));
+  SetFrameSlot(context, symInstall, NOTNIL(install) ? (Ref)install : GetFrameSlot(partFrame, symInstall));
+  RefVar remove(GetFrameSlot(partFrame, MakeSymbol("devRemoveScript")));
+  SetFrameSlot(context, symRemove, NOTNIL(remove) ? (Ref)remove : GetFrameSlot(partFrame, symRemove));
+  RefVar args(MakeArray(1));
+  SetArraySlot(args, 0, context);
+  if (NOTNIL(GetFrameSlot(context, symInstall)))
+    DoMessage(context, symInstall, args);
+  SetFrameSlot(context, symInstall, NILREF);
+}
+
+// ROM InstallAutoPart: partFrame:?InstallScript(partFrame).
+static void installAutoPart(RefArg partFrame)
+{
+  RefVar args(MakeArray(1));
+  SetArraySlot(args, 0, partFrame);
+  bool defined;
+  DoMessageIfDefined(partFrame, MakeSymbol("InstallScript"), args, &defined);
+}
+
 /**
  \brief Install a package like a Newton does (-run, and -dap with a package
- as the program). From the ROM's package installer: if the frame of any part
- has a DoNotInstall method that returns non-nil, nothing is installed. Then
- each part of type "form" is installed like the ROM's InstallFormPart: its
- devInstallScript (NTK: the developer's InstallScript), else its
- InstallScript, is sent to a new frame {_proto: partFrame, app, InstallScript,
- RemoveScript} with that frame as the argument (the part frame itself is
- read-only), and then set to nil. A part of type "auto" gets
- partFrame:?InstallScript(partFrame) like InstallAutoPart.
- Not like the ROM: nothing is copied with EnsureInternal (the package is in
- memory already, and debug maps find functions by their instructions); the
- form is not opened yet (the ROM adds BuildContext(partFrame.theForm) to the
- root view), and the "already installed" check needs that root view too.
+ as the program); see above. Nothing is installed if a part's DoNotInstall()
+ returns non-nil or throws. An exception in a part's install script is
+ reported, and the other parts are still installed.
  \return false if `package` is no package.
  */
 bool installPackage(RefArg package)
@@ -301,16 +355,34 @@ bool installPackage(RefArg package)
   if (!IsArray(parts))
     return false;
   ArrayIndex count = Length(parts);
-  RefVar noArgs(MakeArray(0));
-  for (ArrayIndex i = 0; i < count; ++i) {
+
+  // RegisterNewPackage: may the package be installed?
+  bool install = true;
+  for (ArrayIndex i = 0; i < count && install; ++i) {
     RefVar partFrame(GetFrameSlot(GetArraySlot(parts, i), MakeSymbol("data")));
-    bool defined;
-    if (IsFrame(partFrame)
-        && NOTNIL(DoMessageIfDefined(partFrame, MakeSymbol("DoNotInstall"), noArgs, &defined))) {
-      REPprintf("The package's DoNotInstall() returned non-nil: not installed.\n");
-      return true;
+    if (!IsFrame(partFrame))
+      continue;
+    newton_try
+    {
+      RefVar noArgs(MakeArray(0));
+      bool defined;
+      if (NOTNIL(DoMessageIfDefined(partFrame, MakeSymbol("DoNotInstall"), noArgs, &defined))) {
+        REPprintf("The package's DoNotInstall() returned non-nil: not installed.\n");
+        install = false;
+      }
     }
+    newton_catch_all
+    {
+      gREPout->exceptionNotify(CurrentException());
+      reportPartError(package, "installing", i, "");
+      install = false;
+    }
+    end_try;
   }
+  if (!install)
+    return true;
+
+  // ActivatePackage -> InstallPart, for each part
   for (ArrayIndex i = 0; i < count; ++i) {
     RefVar part(GetArraySlot(parts, i));
     RefVar partFrame(GetFrameSlot(part, MakeSymbol("data")));
@@ -318,27 +390,19 @@ bool installPackage(RefArg package)
     if (!IsFrame(partFrame) || !IsString(type))
       continue;
     std::string typeName = UTF8FromString(type);
-    if (typeName == "form") {
-      RefVar symInstall(MakeSymbol("InstallScript"));
-      RefVar symRemove(MakeSymbol("RemoveScript"));
-      RefVar context(AllocateFrame());
-      SetFrameSlot(context, MakeSymbol("_proto"), partFrame);
-      SetFrameSlot(context, MakeSymbol("app"), GetFrameSlot(partFrame, MakeSymbol("app")));
-      RefVar install(GetFrameSlot(partFrame, MakeSymbol("devInstallScript")));
-      SetFrameSlot(context, symInstall, NOTNIL(install) ? (Ref)install : GetFrameSlot(partFrame, symInstall));
-      RefVar remove(GetFrameSlot(partFrame, MakeSymbol("devRemoveScript")));
-      SetFrameSlot(context, symRemove, NOTNIL(remove) ? (Ref)remove : GetFrameSlot(partFrame, symRemove));
-      RefVar args(MakeArray(1));
-      SetArraySlot(args, 0, context);
-      if (NOTNIL(GetFrameSlot(context, symInstall)))
-        DoMessage(context, symInstall, args);
-      SetFrameSlot(context, symInstall, NILREF);
-    } else if (typeName == "auto") {
-      RefVar args(MakeArray(1));
-      SetArraySlot(args, 0, partFrame);
-      bool defined;
-      DoMessageIfDefined(partFrame, MakeSymbol("InstallScript"), args, &defined);
+    newton_try
+    {
+      if (typeName == "form")
+        installFormPart(partFrame);
+      else if (typeName == "auto")
+        installAutoPart(partFrame);
     }
+    newton_catch_all
+    {
+      gREPout->exceptionNotify(CurrentException());
+      reportPartError(package, "activating", i, typeName);
+    }
+    end_try;
   }
   return true;
 }
