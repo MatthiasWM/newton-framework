@@ -19,6 +19,8 @@
        isn't open.
    view:Dirty() -> draw the view again.
    view:Drag(unit, bounds) -> the view follows the pen until it comes up.
+   view:DrawShape(shape, style), view:DoDrawing(method, args) -> draw on
+       the view (Host/FLTK/Drawing.h).
    SetValue(view, slot, value) -> nil: sets the slot, and an open view
        shows it (text, viewBounds, else it is drawn again).
    view:Hilite(on) -> draw the view hilited or not.
@@ -48,6 +50,8 @@ Ref FHideX(RefArg rcvr);
 Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
 Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds);
+Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle);
+Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs);
 Ref FParentX(RefArg rcvr);
 Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref FGetFlags(RefArg rcvr, RefArg inView);

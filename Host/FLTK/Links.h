@@ -64,6 +64,9 @@
 #include "Frames/Objects.h"
 #include "Host/FLTK/Pen.h"
 
+class Fl_Image_Surface;
+class Fl_RGB_Image;
+
 #include <vector>
 
 namespace nfl {
@@ -111,6 +114,12 @@ public:
       window moves on the desktop. */
   void MoveBy(long inDX, long inDY);
 
+  /** The view's canvas, made if it has none (Drawing.h); dropping it, and
+      those of the views it is in (the view system draws there anew). */
+  Fl_Image_Surface * Canvas();
+  bool HasCanvas() const { return fCanvas != nullptr; }
+  void DropCanvas();
+
   /** Hilite(), TrackHilite(): the widget draws the view hilited. */
   bool Hilited() const { return fHilited; }
 
@@ -150,6 +159,11 @@ protected:
   void OffsetBounds(long inDX, long inDY);
   void Place();
   Stroke * fStroke = nullptr;  // the stroke of the pen down on the view
+  Fl_Image_Surface * fCanvas = nullptr;   // what scripts drew (Drawing.h),
+  Fl_Image_Surface * fMask = nullptr;     // which pixels they drew,
+  Fl_RGB_Image * fOverlay = nullptr;      // and both, to draw on top
+  friend Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle);
+  friend void DrawOverlay(Fl_Widget * inWidget);
   void SetupIdle(long inMilliseconds);
   static void IdleTimeout(void * inLink);
 
@@ -192,6 +206,8 @@ public:
   // clear() here, not only in ~Fl_Group(): there, the object is an Fl_Group
   // already, and clear() would call Fl_Group::delete_child() (which deletes)
   ~Group() override { clear(); }
+  /** Its canvas, or itself, its viewDrawScript, then its children. */
+  void draw() override;
   /** Pen events the children don't take go to the view (Link::HandlePen). */
   int handle(int inEvent) override;
 protected:

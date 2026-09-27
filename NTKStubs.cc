@@ -11,7 +11,6 @@ Ref FAddUndoAction(RefArg rcvr);
 Ref FAddUndoCall(RefArg rcvr);
 Ref FAddUndoSend(RefArg rcvr);
 Ref FAddView(RefArg rcvr);
-Ref FArrayToPoints(RefArg rcvr);
 Ref FBlockKeyCommand(RefArg rcvr);
 Ref FBookAvailable(RefArg rcvr);
 Ref FBookRemoved(RefArg rcvr);
@@ -36,13 +35,11 @@ Ref FDeleteX(RefArg rcvr);
 Ref FDirtyBoxX(RefArg rcvr);
 Ref FDismissPopup(RefArg rcvr);
 Ref FDisplaySplashGraphic(RefArg rcvr);
-Ref FDoDrawing(RefArg rcvr);
 Ref FDoPopup(RefArg rcvr);
 Ref FDoScrubEffect(RefArg rcvr);
 Ref FDragAndDrop(RefArg rcvr);
 Ref FDragAndDropLtd(RefArg rcvr);
 Ref FDrawPolygons(RefArg rcvr);
-Ref FDrawShape(RefArg rcvr);
 Ref FDropHilites(RefArg rcvr);
 Ref FEffectX(RefArg rcvr);
 Ref FEventPause(RefArg rcvr);
@@ -103,7 +100,6 @@ Ref FInsetRect(RefArg rcvr);
 Ref FInvertRect(RefArg rcvr);
 Ref FIsCommandKeystroke(RefArg rcvr);
 Ref FIsKeyDown(RefArg rcvr);
-Ref FIsPrimShape(RefArg rcvr);
 Ref FIsPtInRect(RefArg rcvr);
 Ref FIsTabletCalibrationNeeded(RefArg rcvr);
 Ref FJournalReplayALine(RefArg rcvr);
@@ -118,10 +114,6 @@ Ref FLayoutTableX(RefArg rcvr);
 Ref FLayoutVerticallyX(RefArg rcvr);
 Ref FLoadFontCache(RefArg rcvr);
 Ref FMakeBitmap(RefArg rcvr);
-Ref FMakeLine(RefArg rcvr);
-Ref FMakeRect(RefArg rcvr);
-Ref FMakeShape(RefArg rcvr);
-Ref FMakeText(RefArg rcvr);
 Ref FMakeTextBox(RefArg rcvr);
 Ref FMakeTextLines(RefArg rcvr);
 Ref FMatchKeyMessage(RefArg rcvr);
@@ -134,14 +126,12 @@ Ref FNTKDownload(RefArg rcvr);
 Ref FNTKListener(RefArg rcvr);
 Ref FNTKSend(RefArg rcvr);
 Ref FNextKeyView(RefArg rcvr);
-Ref FOffsetShape(RefArg rcvr);
 Ref FOffsetView(RefArg rcvr);
 Ref FPenPos(RefArg rcvr);
 Ref FPendingImports(RefArg rcvr);
 Ref FPickViewKeyDown(RefArg rcvr);
 Ref FPointToCharOffset(RefArg rcvr);
 Ref FPointToWord(RefArg rcvr);
-Ref FPointsToArray(RefArg rcvr);
 Ref FPositionCaret(RefArg rcvr);
 Ref FPostAndDo(RefArg rcvr);
 Ref FPostCommand(RefArg rcvr);
@@ -169,7 +159,6 @@ Ref FSetOriginX(RefArg rcvr);
 Ref FSetPopup(RefArg rcvr);
 Ref FSetRemoteWriting(RefArg rcvr);
 Ref FSetSysAlarm(RefArg rcvr);
-Ref FShapeBounds(RefArg rcvr);
 Ref FShowCaret(RefArg rcvr);
 Ref FSlideEffectX(RefArg rcvr);
 Ref FStartBypassTablet(RefArg rcvr);
@@ -202,7 +191,6 @@ NS_STUB(FAddUndoAction, RefArg rcvr)
 NS_STUB(FAddUndoCall, RefArg rcvr)
 NS_STUB(FAddUndoSend, RefArg rcvr)
 NS_STUB(FAddView, RefArg rcvr)
-NS_STUB(FArrayToPoints, RefArg rcvr)
 NS_STUB(FBlockKeyCommand, RefArg rcvr)
 NS_STUB(FBookAvailable, RefArg rcvr)
 NS_STUB(FBookRemoved, RefArg rcvr)
@@ -227,13 +215,11 @@ NS_STUB(FDeleteX, RefArg rcvr)
 NS_STUB(FDirtyBoxX, RefArg rcvr)
 NS_STUB(FDismissPopup, RefArg rcvr)
 NS_STUB(FDisplaySplashGraphic, RefArg rcvr)
-NS_STUB(FDoDrawing, RefArg rcvr)
 NS_STUB(FDoPopup, RefArg rcvr)
 NS_STUB(FDoScrubEffect, RefArg rcvr)
 NS_STUB(FDragAndDrop, RefArg rcvr)
 NS_STUB(FDragAndDropLtd, RefArg rcvr)
 NS_STUB(FDrawPolygons, RefArg rcvr)
-NS_STUB(FDrawShape, RefArg rcvr)
 NS_STUB(FDropHilites, RefArg rcvr)
 NS_STUB(FEffectX, RefArg rcvr)
 NS_STUB(FEventPause, RefArg rcvr)
@@ -293,7 +279,6 @@ NS_STUB(FInsetRect, RefArg rcvr)
 NS_STUB(FInvertRect, RefArg rcvr)
 NS_STUB(FIsCommandKeystroke, RefArg rcvr)
 NS_STUB(FIsKeyDown, RefArg rcvr)
-NS_STUB(FIsPrimShape, RefArg rcvr)
 NS_STUB(FIsPtInRect, RefArg rcvr)
 NS_STUB(FIsTabletCalibrationNeeded, RefArg rcvr)
 NS_STUB(FJournalReplayALine, RefArg rcvr)
@@ -308,10 +293,6 @@ NS_STUB(FLayoutTableX, RefArg rcvr)
 NS_STUB(FLayoutVerticallyX, RefArg rcvr)
 NS_STUB(FLoadFontCache, RefArg rcvr)
 NS_STUB(FMakeBitmap, RefArg rcvr)
-NS_STUB(FMakeLine, RefArg rcvr)
-NS_STUB(FMakeRect, RefArg rcvr)
-NS_STUB(FMakeShape, RefArg rcvr)
-NS_STUB(FMakeText, RefArg rcvr)
 NS_STUB(FMakeTextBox, RefArg rcvr)
 NS_STUB(FMakeTextLines, RefArg rcvr)
 NS_STUB(FMatchKeyMessage, RefArg rcvr)
@@ -324,14 +305,12 @@ NS_STUB(FNTKDownload, RefArg rcvr)
 NS_STUB(FNTKListener, RefArg rcvr)
 NS_STUB(FNTKSend, RefArg rcvr)
 NS_STUB(FNextKeyView, RefArg rcvr)
-NS_STUB(FOffsetShape, RefArg rcvr)
 NS_STUB(FOffsetView, RefArg rcvr)
 NS_STUB(FPenPos, RefArg rcvr)
 NS_STUB(FPendingImports, RefArg rcvr)
 NS_STUB(FPickViewKeyDown, RefArg rcvr)
 NS_STUB(FPointToCharOffset, RefArg rcvr)
 NS_STUB(FPointToWord, RefArg rcvr)
-NS_STUB(FPointsToArray, RefArg rcvr)
 NS_STUB(FPositionCaret, RefArg rcvr)
 NS_STUB(FPostAndDo, RefArg rcvr)
 NS_STUB(FPostCommand, RefArg rcvr)
@@ -359,7 +338,6 @@ NS_STUB(FSetOriginX, RefArg rcvr)
 NS_STUB(FSetPopup, RefArg rcvr)
 NS_STUB(FSetRemoteWriting, RefArg rcvr)
 NS_STUB(FSetSysAlarm, RefArg rcvr)
-NS_STUB(FShapeBounds, RefArg rcvr)
 NS_STUB(FShowCaret, RefArg rcvr)
 NS_STUB(FSlideEffectX, RefArg rcvr)
 NS_STUB(FStartBypassTablet, RefArg rcvr)

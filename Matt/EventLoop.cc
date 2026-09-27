@@ -65,6 +65,27 @@ Ref SendEventMessage(RefArg inReceiver, RefArg inMessage, RefArg inArgs)
 }
 
 
+Ref SendEventCall(RefArg inFunction, RefArg inArgs)
+{
+  if (!EventsDelivered())
+    return NILREF;    // a script runs (or is stopped): one at a time
+  RefVar result;
+  DAPEnterScript();
+  newton_try
+  {
+    result = DoBlock(inFunction, inArgs);
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+    gREPout->flush();
+  }
+  end_try;
+  DAPLeaveScript(gModalLoops == 0);
+  return result;
+}
+
+
 #if NEWTC_USES_FLTK
 
 namespace {

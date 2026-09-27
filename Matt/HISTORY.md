@@ -1161,6 +1161,11 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B24 **MakeLine swaps x and y** (Graphics/Shapes.cc, the port; not
+  compiled by newtc): the ROM stores y1, x1, y2, x2 (a Rect's top, left,
+  bottom, right); the port put x1 in top. Found 2026-09-28 (10.7c) in the
+  ROM's FMakeLine; fixed in the port; newtc's own (Host/Shapes.cc) as the
+  ROM.
 - [x] B23 **GetPointsArray gives x, y** (Recognition/Unit.cc, the port; not
   compiled by newtc): it wrote h, v, though its comment says v, h and
   GetPointsArrayXY exists for x, y; Battleship's map takes points[0] as the

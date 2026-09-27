@@ -651,7 +651,6 @@ Ref FSmartStart(RefArg rcvr);
 Ref FTestMStartTestCase(RefArg rcvr);
 Ref FGetRamParaData(RefArg rcvr);
 Ref FSpellCheck(RefArg rcvr);
-Ref FMakePict(RefArg rcvr);
 Ref FUseTrainingDataForRecognition(RefArg rcvr);
 Ref FMakeStrokeBundle(RefArg rcvr);
 Ref FExpandUnit(RefArg rcvr);
@@ -665,7 +664,6 @@ Ref FGetStrokePointsArray(RefArg rcvr);
 Ref FFindShape(RefArg rcvr);
 Ref FActivate1_2EXPackage(RefArg rcvr);
 Ref FCountUnitStrokes(RefArg rcvr);
-Ref FMakeRoundRect(RefArg rcvr);
 Ref FCoordinateToLongitude(RefArg rcvr);
 Ref FLongitudeToCoordinate(RefArg rcvr);
 Ref FPictToShape(RefArg rcvr);
@@ -680,7 +678,6 @@ Ref FGetZoneFromName(RefArg rcvr);
 Ref FRemove1_2EXPackage(RefArg rcvr);
 Ref FGetRandomDictionaryWord(RefArg rcvr);
 Ref FCancelOnlineService(RefArg rcvr);
-Ref FMakeWedge(RefArg rcvr);
 Ref FPackRGB(RefArg rcvr);
 Ref FMakeCompactFont(RefArg rcvr);
 Ref FFavorAction(RefArg rcvr);
@@ -730,7 +727,6 @@ Ref FTextBox(RefArg rcvr);
 Ref FBuildRecConfig(RefArg rcvr);
 Ref FNBPStopLookup(RefArg rcvr);
 Ref FGetBitmapInfo(RefArg rcvr);
-Ref FMakeOval(RefArg rcvr);
 Ref FMungeBitmap(RefArg rcvr);
 Ref FSetOnlineDisconnect(RefArg rcvr);
 Ref FClickLetterScript(RefArg rcvr);
@@ -749,7 +745,6 @@ Ref FGetShapeInfo(RefArg rcvr);
 Ref FMungeShape(RefArg rcvr);
 Ref FGetDictionary(RefArg rcvr);
 Ref Fmin(RefArg rcvr);
-Ref FMakePolygon(RefArg rcvr);
 Ref FPrevMeeting(RefArg rcvr);
 Ref FTriggerWordRecognition(RefArg rcvr);
 Ref FMeasuredNumberStr(RefArg rcvr);
@@ -1377,7 +1372,6 @@ NS_STUB(FSmartStart, RefArg rcvr)
 NS_STUB(FTestMStartTestCase, RefArg rcvr)
 NS_STUB(FGetRamParaData, RefArg rcvr)
 NS_STUB(FSpellCheck, RefArg rcvr)
-NS_STUB(FMakePict, RefArg rcvr)
 NS_STUB(FUseTrainingDataForRecognition, RefArg rcvr)
 NS_STUB(FMakeStrokeBundle, RefArg rcvr)
 NS_STUB(FExpandUnit, RefArg rcvr)
@@ -1391,7 +1385,6 @@ NS_STUB(FGetStrokePointsArray, RefArg rcvr)
 NS_STUB(FFindShape, RefArg rcvr)
 NS_STUB(FActivate1_2EXPackage, RefArg rcvr)
 NS_STUB(FCountUnitStrokes, RefArg rcvr)
-NS_STUB(FMakeRoundRect, RefArg rcvr)
 NS_STUB(FCoordinateToLongitude, RefArg rcvr)
 NS_STUB(FLongitudeToCoordinate, RefArg rcvr)
 NS_STUB(FPictToShape, RefArg rcvr)
@@ -1406,7 +1399,6 @@ NS_STUB(FGetZoneFromName, RefArg rcvr)
 NS_STUB(FRemove1_2EXPackage, RefArg rcvr)
 NS_STUB(FGetRandomDictionaryWord, RefArg rcvr)
 NS_STUB(FCancelOnlineService, RefArg rcvr)
-NS_STUB(FMakeWedge, RefArg rcvr)
 NS_STUB(FPackRGB, RefArg rcvr)
 NS_STUB(FMakeCompactFont, RefArg rcvr)
 NS_STUB(FFavorAction, RefArg rcvr)
@@ -1456,7 +1448,6 @@ NS_STUB(FTextBox, RefArg rcvr)
 NS_STUB(FBuildRecConfig, RefArg rcvr)
 NS_STUB(FNBPStopLookup, RefArg rcvr)
 NS_STUB(FGetBitmapInfo, RefArg rcvr)
-NS_STUB(FMakeOval, RefArg rcvr)
 NS_STUB(FMungeBitmap, RefArg rcvr)
 NS_STUB(FSetOnlineDisconnect, RefArg rcvr)
 NS_STUB(FClickLetterScript, RefArg rcvr)
@@ -1475,7 +1466,6 @@ NS_STUB(FGetShapeInfo, RefArg rcvr)
 NS_STUB(FMungeShape, RefArg rcvr)
 NS_STUB(FGetDictionary, RefArg rcvr)
 NS_STUB(Fmin, RefArg rcvr)
-NS_STUB(FMakePolygon, RefArg rcvr)
 NS_STUB(FPrevMeeting, RefArg rcvr)
 NS_STUB(FTriggerWordRecognition, RefArg rcvr)
 NS_STUB(FMeasuredNumberStr, RefArg rcvr)

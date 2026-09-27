@@ -10,6 +10,7 @@
 
 #include "Host/FLTK/Widgets.h"
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Drawing.h"
 
 namespace nfl {
 
@@ -96,6 +97,8 @@ void TextView::draw()
   fl_draw(fText.c_str(), x() + fInset, y() + fInset, w() - 2 * fInset, h() - 2 * fInset,
           fAlign | FL_ALIGN_INSIDE, nullptr, 0);
   fl_pop_clip();
+  RunDrawScript(this);
+  DrawOverlay(this);
 }
 
 
@@ -129,8 +132,15 @@ PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon
 void PictureView::draw()
 {
   DrawBox();
-  if (!fImage)
-    return;
+  if (fImage)
+    DrawImage();
+  RunDrawScript(this);
+  DrawOverlay(this);
+}
+
+
+void PictureView::DrawImage()
+{
   // in the view's bounds, inside its frame
   int bx = x() + fInset, by = y() + fInset, bw = w() - 2 * fInset, bh = h() - 2 * fInset;
   int px = bx + (bw - fImage->w()) / 2, py = by + (bh - fImage->h()) / 2;

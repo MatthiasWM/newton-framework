@@ -31,6 +31,12 @@
    TestPen(view, x, y, dx, dy) -> nil
        as TestDrag, but the pen goes down at x, y from the view's top left
        (its bounds; negative: in its frame, e.g. a floater's dragger).
+   TestLater(function) -> nil
+       call the function from the event loop, after the taps before it
+       (the windows are on the screen then).
+   TestPixel(view, x, y) -> the gray (0 black ... 255 white) on the screen
+       at x, y in the view (from its top left); nil if it has no window on
+       the screen yet (use it in TestLater).
    TestSnapshot(view, path) -> nil
        from the event loop, after the taps before it: save the view's
        window as a PNG file at path,
@@ -51,6 +57,8 @@ extern "C" Ref FTestCloseWindow(RefArg rcvr, RefArg inView);
 extern "C" Ref FTestTap(RefArg rcvr, RefArg inView, RefArg inOutside);
 extern "C" Ref FTestDrag(RefArg rcvr, RefArg inView, RefArg inDX, RefArg inDY);
 extern "C" Ref FTestPen(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY, RefArg inDX, RefArg inDY);
+extern "C" Ref FTestLater(RefArg rcvr, RefArg inFunction);
+extern "C" Ref FTestPixel(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY);
 extern "C" Ref FTestSnapshot(RefArg rcvr, RefArg inView, RefArg inPath);
 #endif
 

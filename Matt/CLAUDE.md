@@ -528,12 +528,38 @@ Directory and namespace (decided, Matt, 2026-09-27):
         waits for the taps before it; synthetic pen positions are screen
         positions. Test `fltk_pen`. Battleship: ships drag and snap into
         the grid. Not yet: ink, gestures (viewGestureScript: a quick tap
-        on a ship turns it by 90 degrees, gestureKind 49), recognition.
-  - [ ] 10.7c Shapes and drawing: MakeRect, MakeRoundRect, MakeLine,
-        MakeShape (from a bitmap), MakePict, OffsetShape, DrawShape,
-        DoDrawing (also the alert's gyre, CopyBits); icons drawn with their
-        viewTransferMode (the map is a black-filled picture view: its grid
-        is invisible today); viewDrawScript for others.
+        on a ship turns it by 90 degrees, gestureKind 49; Matt: FLTK has
+        Fl::event_is_click() for a tap), recognition.
+  - [x] 10.7c Shapes and drawing. Host/Shapes.{h,cc}: shapes in the
+        ROM's formats (16-bit big-endian; checked against the ROM; its
+        canonical frames): MakeRect, MakeOval, MakeRoundRect, MakeWedge,
+        MakeLine (y1, x1, y2, x2; the port swapped them: B24), MakePolygon,
+        MakeText, MakeShape (an icon, a PICT, a polygon), MakePict (here
+        [style, shapes]; a PICT on a Newton), OffsetShape, ShapeBounds,
+        IsPrimShape, PointsToArray, ArrayToPoints; also without FLTK.
+        Host/Pict.{h,cc}: PICTs of bitmaps (version 1, BitsRect,
+        PackBitsRect) to a 1-bit bitmap: picture shapes, and picture views
+        whose icon is a PICT (Battleship's ships). Host/FLTK/Drawing.{h,cc}:
+        DrawShape, DoDrawing, viewDrawScript; styles (penSize, penPattern,
+        fillPattern: grays, or an 8x8 pattern's gray; transferMode copy and
+        or; transform [dx, dy]; font; justification; style frames in lists).
+        A view's canvas: an Fl_Image_Surface (high res; Matt: the right
+        tool) with what scripts drew and one with a mask of which pixels;
+        the widget draws itself and its children, then the canvas on top
+        (as on a Newton, over the children); a Newton-side change drops it
+        (Link::DropCanvas). (A canvas made by drawing the widget into it,
+        Fl_Widget_Surface::draw, came out shifted; the mask is better
+        anyway.) A viewDrawScript runs before the children, also while a
+        script runs (a redraw in a nested loop). Fixed: FloatNGo drew its
+        frame at its screen position (draw_box() uses x(), y()). Test
+        helpers TestLater(fn), TestPixel(view, x, y); SendEventCall (a
+        function as an event). Tests `shapes`, `fltk_drawing`. Battleship:
+        both maps with their grids, the ships as pictures, the shots.
+        Not yet: transferMode xor, bic and the others (FLTK has no raster
+        ops; Matt: left out on purpose; pixels by hand if an app needs
+        them), CopyBits (the alert's gyre), transform scaling, regions,
+        ink, a real PICT from MakePict, DrawXBitmap (a stub Battleship
+        calls: the dashed square in its setup dialog?).
   - [ ] 10.7d Timers: AddDelayedAction/Call/Send, AddDeferredAction/Send/
         Call (the computer's turns).
   - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus), MoveBehind;

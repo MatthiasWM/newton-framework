@@ -7,6 +7,7 @@
 #include "Host/FLTK/FloatNGo.h"
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Boxtypes.h"
+#include "Host/FLTK/Drawing.h"
 
 namespace nfl {
 
@@ -52,13 +53,12 @@ int FloatNGo::handle(int inEvent)
 
 void FloatNGo::draw()
 {
-  if (fPicture == nullptr) {
-    Fl_Double_Window::draw();
-    return;
-  }
-  draw_box();
-  fPicture->draw(fPictureX, fPictureY);
+  draw_box(box(), 0, 0, w(), h(), color());   // a window's own coordinates
+  if (fPicture)
+    fPicture->draw(fPictureX, fPictureY);
+  RunDrawScript(this);
   draw_children();
+  DrawOverlay(this);
 }
 
 

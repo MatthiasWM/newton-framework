@@ -22,6 +22,7 @@
 #include "Frames/Frames.h"
 
 #include <deque>
+#include <memory>
 
 namespace {
 
@@ -181,6 +182,7 @@ struct Tap
   bool at = false;        // pen down at fromX, fromY in the view (TestPen), not its center
   int fromX = 0, fromY = 0;
   std::string snapshot;   // not a tap: a snapshot of the view's window (TestSnapshot)
+  bool later = false;     // not a tap: call the function in view (TestLater)
   Fl_Window * window = nullptr;
   int x = 0, y = 0;       // where the pen goes down, on the screen
   int step = 0;
@@ -240,6 +242,16 @@ void StartTap(void *)
     return;
   Tap * tap = gTaps.front();
   gTaps.pop_front();
+  if (tap->later) {   // after the taps before it
+    RefVar fn(tap->view);
+    RefVar args(MakeArray(0));
+    delete tap;
+    gPenDown = true;   // the next one waits (TestPixel may wait for the screen)
+    SendEventCall(fn, args);
+    gPenDown = false;
+    Fl::add_timeout(0.0, StartTap);
+    return;
+  }
   if (!tap->snapshot.empty()) {   // after the taps before it
     TakeSnapshot(new Snapshot{RefStruct(tap->view), tap->snapshot});
     delete tap;
@@ -328,6 +340,43 @@ Ref FTestSnapshot(RefArg rcvr, RefArg inView, RefArg inPath)
   gTaps.push_back(tap);
   Fl::add_timeout(0.0, StartTap);
   return NILREF;
+}
+
+Ref FTestLater(RefArg rcvr, RefArg inFunction)
+{
+  Tap * tap = new Tap{RefStruct(inFunction), std::string(), false};
+  tap->later = true;
+  gTaps.push_back(tap);
+  Fl::add_timeout(0.0, StartTap);
+  return NILREF;
+}
+
+
+Ref FTestPixel(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY)
+{
+  nfl::Link * link = nfl::Link::Of(inView);
+  if (link == nullptr)
+    return NILREF;
+  Fl_Widget * widget = link->Widget();
+  Fl_Window * window = widget->as_window() ? widget->as_window() : widget->window();
+  if (window == nullptr || !window->shown())
+    return NILREF;
+  int x = (widget == window ? 0 : widget->x()) + link->Outset() + int(RINT(inX));
+  int y = (widget == window ? 0 : widget->y()) + link->Outset() + int(RINT(inY));
+  std::unique_ptr<Fl_RGB_Image> image;
+  for (int tries = 0; tries < 40 && !image; ++tries) {   // until the window is on the screen
+    if (tries)
+      Fl::wait(0.05);
+    Fl::flush();
+    window->make_current();
+    image.reset(fl_capture_window(window, x, y, 1, 1));
+  }
+  if (!image || image->data_w() < 1)
+    return NILREF;
+  const uchar * p = (const uchar *)image->data()[0];
+  int d = image->d();
+  int gray = d >= 3 ? (p[0] + p[1] + p[2]) / 3 : p[0];
+  return MAKEINT(gray);
 }
 
 #endif // NEWTC_USES_FLTK

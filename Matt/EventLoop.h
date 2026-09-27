@@ -42,6 +42,9 @@ void RunEventLoop(void);
     the event was dropped, the method isn't defined, or it threw. */
 Ref SendEventMessage(RefArg inReceiver, RefArg inMessage, RefArg inArgs);
 
+/** The same for a function: inFunction(inArgs...). */
+Ref SendEventCall(RefArg inFunction, RefArg inArgs);
+
 /** SendEventMessage() would deliver an event now (no script runs above
     the event loop). */
 bool EventsDelivered(void);

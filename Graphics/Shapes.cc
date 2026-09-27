@@ -189,11 +189,11 @@ FMakeBitmap(RefArg inRcvr, RefArg inWd, RefArg inHt, RefArg inOptions)
 Ref
 FMakeLine(RefArg inRcvr, RefArg inX1, RefArg inY1, RefArg inX2, RefArg inY2)
 {
-	Rect  bounds;
-	bounds.top = RINT(inX1);
-	bounds.left = RINT(inY1);
-	bounds.bottom = RINT(inX2);
-	bounds.right = RINT(inY2);
+	Rect  bounds;	// as the ROM: y1, x1, y2, x2 (was x1, y1, x2, y2: B24)
+	bounds.top = RINT(inY1);
+	bounds.left = RINT(inX1);
+	bounds.bottom = RINT(inY2);
+	bounds.right = RINT(inX2);
 
 	RefVar	theShape(AllocateBinary(SYMA(line), sizeof(bounds)));
 	CDataPtr shapeData(theShape);

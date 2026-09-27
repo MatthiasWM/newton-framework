@@ -88,6 +88,7 @@ public:
 protected:
   void draw() override;
 private:
+  void DrawImage();
   Fl_Image * fImage = nullptr;
   Fl_Image * fHilitedImage = nullptr;
   std::vector<unsigned char> fXbm;    // Fl_Bitmap doesn't copy its data

@@ -18,6 +18,9 @@
 #include "Host/FLTK/Widgets.h"
 #include "Host/FLTK/RomImages.h"
 #include "Host/FLTK/Pen.h"
+#include "Host/FLTK/Drawing.h"
+#include "Host/Pict.h"
+#include <FL/Fl_Image_Surface.H>
 #include "Host/Root.h"
 #include "Host/Views.h"
 #include "Matt/EventLoop.h"
@@ -262,6 +265,12 @@ NewtonBitmap IconOf(RefArg inContext)
 {
   NewtonBitmap icon;
   RefVar frame(GetProtoVariable(inContext, SYMA(icon)));
+  if (IsBinary(frame) && EQ(ClassOf(frame), SYMA(picture))) {   // a PICT (Host/Pict.h)
+    if (!pict::Decode((const unsigned char *)BinaryData(frame), Length(frame),
+                      &icon.width, &icon.height, &icon.rowBytes, &icon.bits))
+      icon = NewtonBitmap();
+    return icon;
+  }
   if (!IsFrame(frame))
     return icon;
   RefVar bits(GetFrameSlot(frame, SYMA(bits)));
@@ -503,6 +512,9 @@ Link::Link(RefArg inContext, Link * inParent)
 
 Link::~Link()
 {
+  delete fCanvas;
+  delete fMask;
+  delete fOverlay;
   Fl::remove_timeout(IdleTimeout, this);
   if (fParent) {
     auto & siblings = fParent->fChildren;
@@ -621,6 +633,7 @@ void Link::MoveBy(long inDX, long inDY)
 {
   if (inDX == 0 && inDY == 0)
     return;
+  DropCanvas();
   OffsetBounds(inDX, inDY);
   if (fParent == nullptr) {   // a window: on the desktop
     fWidget->position(fWidget->x() + int(inDX), fWidget->y() + int(inDY));
@@ -695,6 +708,7 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
 
 void Link::Update(RefArg inTag)
 {
+  DropCanvas();
   if (EQ(inTag, SYMA(viewBounds)) || EQ(inTag, SYMA(viewJustify))) {
     fBounds = JustifiedBounds();
     if (fParent) {   // a window keeps its place (the user may have moved it)
@@ -711,9 +725,19 @@ void Link::SetHilite(bool inOn)
 {
   if (fHilited == inOn)
     return;
+  DropCanvas();
   fHilited = inOn;
   if (fWidget)
     fWidget->redraw();
+}
+
+
+void Group::draw()
+{
+  draw_box();
+  RunDrawScript(this);
+  draw_children();
+  DrawOverlay(this);
 }
 
 
@@ -772,6 +796,7 @@ Link * Build(RefArg inContext, Link * inParent)
       if (group == nullptr)   // a parent that can't hold widgets: the window
         group = inParent->Window()->Widget()->as_group();
       group->add(link->fWidget);
+      inParent->DropCanvas();
     }
 
     RunScript(inContext, "viewSetupChildrenScript");
@@ -802,6 +827,8 @@ Link * Build(RefArg inContext, Link * inParent)
 // widget, the children's first (their group doesn't, see GroupLink).
 void Dispose(Link * inLink)
 {
+  if (inLink->fParent)
+    inLink->fParent->DropCanvas();
   RefVar context(inLink->fContext);
   bool postQuit = false;
   newton_try
@@ -905,6 +932,7 @@ Ref HideView(RefArg inContext)
   Link * link = OpenLink(inContext);
   if (!link->fHidden) {
     link->fHidden = true;
+    link->DropCanvas();
     link->Widget()->hide();
     if (Fl_Group * parent = link->Widget()->parent())
       parent->redraw();
@@ -919,6 +947,7 @@ Ref ShowView(RefArg inContext)
   Link * link = OpenLink(inContext);
   if (link->fHidden) {
     link->fHidden = false;
+    link->DropCanvas();
     link->Widget()->show();
     RunScript(inContext, "viewShowScript");
   }
@@ -929,8 +958,10 @@ Ref ShowView(RefArg inContext)
 Ref DirtyView(RefArg inContext)
 {
   Link * link = Link::Of(inContext);   // the ROM's FDirtyX: nothing to do if closed
-  if (link)
+  if (link) {
+    link->DropCanvas();   // drawn anew: what scripts drew is gone
     link->Widget()->redraw();
+  }
   return NILREF;
 }
 

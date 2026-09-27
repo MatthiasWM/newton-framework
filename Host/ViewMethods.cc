@@ -12,6 +12,7 @@
 #include "ROMResources.h"
 #if NEWTC_USES_FLTK
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Drawing.h"
 #endif
 
 extern "C" {
@@ -45,6 +46,8 @@ Ref FHideX(RefArg rcvr)            { return nfl::HideView(rcvr); }
 Ref FShowX(RefArg rcvr)            { return nfl::ShowView(rcvr); }
 Ref FDirtyX(RefArg rcvr)           { return nfl::DirtyView(rcvr); }
 Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds) { return nfl::DragView(rcvr, inUnit, inBounds); }
+Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle) { return nfl::DrawShape(rcvr, inShape, inStyle); }
+Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs) { return nfl::DoDrawing(rcvr, inMethod, inArgs); }
 Ref FGetFlags(RefArg rcvr, RefArg inView) { return nfl::ViewFlags(inView); }
 Ref FHiliteX(RefArg rcvr, RefArg inOn)        { return nfl::HiliteView(rcvr, inOn); }
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit) { return nfl::TrackHilite(rcvr, inUnit); }
@@ -63,6 +66,8 @@ NS_STUB(FHideX, RefArg rcvr)
 NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FDirtyX, RefArg rcvr)
 NS_STUB(FDragX, RefArg rcvr, RefArg inUnit, RefArg inBounds)
+NS_STUB(FDrawShape, RefArg rcvr, RefArg inShape, RefArg inStyle)
+NS_STUB(FDoDrawing, RefArg rcvr, RefArg inMethod, RefArg inArgs)
 // no views open without FLTK
 Ref FGetFlags(RefArg rcvr, RefArg inView) { return MAKEINT(0); }
 NS_STUB(FHiliteX, RefArg rcvr, RefArg inOn)

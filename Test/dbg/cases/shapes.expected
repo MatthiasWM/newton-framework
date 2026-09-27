@@ -1,0 +1,21 @@
+['rectangle, 
+ 8, 
+ {left: 10, top: 20, right: 30, bottom: 40}]
+{left: 15, top: 15, right: 35, bottom: 35}
+[2, 
+ 1, 
+ 22, 
+ 11, 
+ {left: 1, top: 2, right: 11, bottom: 22}]
+['polygon, 
+ {left: 0, top: 0, right: 11, bottom: 9}, 
+ [0, 0, 10, 0, 5, 8]]
+['text, 
+ {left: 0, top: 0, right: 40, bottom: 12}]
+['bitmap, 
+ {left: 0, top: 0, right: 13, bottom: 13}]
+['picture, 
+ {left: 0, top: 0, right: 208, bottom: 154}]
+{left: 0, top: 0, right: 35, bottom: 35}
+[true, nil, 'roundRectangle, 'wedge]
+{left: 0, top: 0, right: 13, bottom: 13}

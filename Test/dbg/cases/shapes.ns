@@ -1,0 +1,16 @@
+// Shapes (10.7c; Host/Shapes.h): made in the ROM's formats (16-bit big-
+// endian, a Rect is top, left, bottom, right; MakeLine: y1, x1, y2, x2, as
+// the ROM; the port had x and y swapped: B24), measured, moved.
+DefGlobalVar('r, MakeRect(10, 20, 30, 40));
+Print([ClassOf(r), Length(r), ShapeBounds(r)]);
+Print(ShapeBounds(OffsetShape(r, 5, -5)));
+DefGlobalVar('l, MakeLine(1, 2, 11, 22));
+Print([ExtractWord(l, 0), ExtractWord(l, 2), ExtractWord(l, 4), ExtractWord(l, 6), ShapeBounds(l)]);
+DefGlobalVar('p, MakePolygon([0, 0, 10, 0, 5, 8]));
+Print([ClassOf(p), ShapeBounds(p), PointsToArray(p)]);
+Print([ClassOf(MakeText("Hi", 0, 0, 40, 12)), ShapeBounds(MakeText("Hi", 0, 0, 40, 12))]);
+Print([ClassOf(MakeShape(@334)), ShapeBounds(MakeShape(@334))]);
+Print([ClassOf(MakeShape(@13)), ShapeBounds(MakeShape(@13))]);   // a PICT
+Print(ShapeBounds([r, {penSize: 2}, MakeOval(0, 0, 5, 5)]));
+Print([IsPrimShape(r), IsPrimShape(42), ClassOf(MakeRoundRect(0, 0, 10, 10, 4)), ClassOf(MakeWedge(0, 0, 10, 10, 0, 90))]);
+Print(ShapeBounds(MakePict(MakeRect(0, 0, 13, 13), {fillPattern: 5})));
