@@ -1,0 +1,17 @@
+// A breakpoint in a button's buttonClickScript (needs FLTK): the client taps
+// the button (TestTap); the ROM's viewClickScript waits for the pen in
+// TrackHilite (a nested event loop), then calls buttonClickScript, which
+// stops at line 12. Then the client taps the close box, and the program ends.
+DefGlobalVar('button, nil);
+DefGlobalVar('closeBox, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  stepChildren: [
+    {_proto: @226, text: "Tap me", viewBounds: {left: 10, top: 10, right: 90, bottom: 30},
+     viewSetupDoneScript: func() button := self,
+     buttonClickScript: func()
+       Print("button tapped")}]}));
+app:Open();
+foreach kid in app:ChildViewFrames() do
+  if kid.viewClass = 76 then closeBox := kid;
+Print("the app is open");

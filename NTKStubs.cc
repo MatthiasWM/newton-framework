@@ -103,7 +103,6 @@ Ref FHideCaret(RefArg rcvr);
 Ref FHiliteOwner(RefArg rcvr);
 Ref FHiliteUniqueX(RefArg rcvr);
 Ref FHiliteViewChildren(RefArg rcvr);
-Ref FHiliteX(RefArg rcvr);
 Ref FHiliter(RefArg rcvr);
 Ref FHobbleTablet(RefArg rcvr);
 Ref FInRepeatedKeyCommand(RefArg rcvr);
@@ -203,7 +202,6 @@ Ref FTabletBufferEmpty(RefArg rcvr);
 Ref FToggleX(RefArg rcvr);
 Ref FTopicByName(RefArg rcvr);
 Ref FTrackButtonX(RefArg rcvr);
-Ref FTrackHiliteX(RefArg rcvr);
 Ref FTranslateKey(RefArg rcvr);
 Ref FUnionRect(RefArg rcvr);
 Ref FUnregisterOpenKeyboard(RefArg rcvr);
@@ -315,7 +313,6 @@ NS_STUB(FHideCaret, RefArg rcvr)
 NS_STUB(FHiliteOwner, RefArg rcvr)
 NS_STUB(FHiliteUniqueX, RefArg rcvr)
 NS_STUB(FHiliteViewChildren, RefArg rcvr)
-NS_STUB(FHiliteX, RefArg rcvr)
 NS_STUB(FHiliter, RefArg rcvr)
 NS_STUB(FHobbleTablet, RefArg rcvr)
 NS_STUB(FInRepeatedKeyCommand, RefArg rcvr)
@@ -415,7 +412,6 @@ NS_STUB(FTabletBufferEmpty, RefArg rcvr)
 NS_STUB(FToggleX, RefArg rcvr)
 NS_STUB(FTopicByName, RefArg rcvr)
 NS_STUB(FTrackButtonX, RefArg rcvr)
-NS_STUB(FTrackHiliteX, RefArg rcvr)
 NS_STUB(FTranslateKey, RefArg rcvr)
 NS_STUB(FUnionRect, RefArg rcvr)
 NS_STUB(FUnregisterOpenKeyboard, RefArg rcvr)

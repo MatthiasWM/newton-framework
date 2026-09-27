@@ -12,6 +12,7 @@
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/FloatNGo.h"
 #include "Host/FLTK/Boxtypes.h"
+#include "Host/FLTK/Widgets.h"
 #include "Host/Root.h"
 #include "Host/Views.h"
 #include "Matt/EventLoop.h"
@@ -36,7 +37,9 @@ const int kDesktopLeft = 100;
 const int kDesktopTop = 100;
 
 // View classes (the templates' viewClass)
+const long clPictureView = 76;
 const long clParagraphView = 81;
+const long clTextView = 98;
 
 long IntSlot(RefArg inFrame, const char * inSlot)
 {
@@ -177,6 +180,87 @@ std::string TextSlot(RefArg inContext, const char * inSlot)
   return IsString(text) ? UTF8FromString(text) : std::string();
 }
 
+// The FLTK font for a view's viewFont: a font frame ({family, face, size})
+// or a font spec (an integer: family, size, face in bits, tsFamilyMask ...).
+// newtc has no Newton fonts yet: Helvetica for Espy and Geneva, Times for
+// New York. The face bits (bold 1, italic 2) are FLTK's.
+void FontOf(RefArg inContext, Fl_Font * outFont, Fl_Fontsize * outSize)
+{
+  RefVar viewFont(GetProtoVariable(inContext, SYMA(viewFont)));
+  long family = 0, face = 0, size = 12;
+  if (IsFrame(viewFont)) {
+    RefVar name(GetFrameSlot(viewFont, SYMA(family)));
+    if (EQ(name, MakeSymbol("newYork")))
+      family = 1;
+    face = IntSlot(viewFont, "face");
+    if (long s = IntSlot(viewFont, "size"))
+      size = s;
+  } else if (ISINT(viewFont)) {
+    long spec = RINT(viewFont);
+    family = (spec & tsFamilyMask) >> tsFamilyShift;
+    face = (spec & tsFaceMask) >> tsFaceShift;
+    if (long s = (spec & tsSizeMask) >> tsSizeShift)
+      size = s;
+  }
+  *outFont = (family == 1 ? FL_TIMES : FL_HELVETICA) + Fl_Font(face & 3);
+  *outSize = Fl_Fontsize(size);
+}
+
+// FLTK's alignment for the H and V bits of a viewJustify (how a view places
+// its text or picture: vjLeftH, vjCenterV, ...).
+Fl_Align AlignOf(long inJustify)
+{
+  Fl_Align align = FL_ALIGN_CENTER;
+  switch (inJustify & vjHMask) {
+    case vjLeftH:  align |= FL_ALIGN_LEFT; break;
+    case vjRightH: align |= FL_ALIGN_RIGHT; break;
+  }
+  switch (inJustify & vjVMask) {
+    case vjTopV:    align |= FL_ALIGN_TOP; break;
+    case vjBottomV: align |= FL_ALIGN_BOTTOM; break;
+  }
+  return align;
+}
+
+// A view's icon slot: a frame with a Newton bitmap in its bits slot (a
+// binary: 4 bytes, rowBytes, 2 bytes, then top, left, bottom, right, then
+// the rows; all 16-bit big-endian; the leftmost pixel in the high bit).
+// Empty if there is none.
+NewtonBitmap IconOf(RefArg inContext)
+{
+  NewtonBitmap icon;
+  RefVar frame(GetProtoVariable(inContext, SYMA(icon)));
+  if (!IsFrame(frame))
+    return icon;
+  RefVar bits(GetFrameSlot(frame, SYMA(bits)));
+  if (!IsBinary(bits) || Length(bits) < 16)
+    return icon;
+  const unsigned char * data = (const unsigned char *)BinaryData(bits);
+  auto word = [data](int offset) { return int(short((data[offset] << 8) | data[offset + 1])); };
+  int rowBytes = word(4), top = word(8), left = word(10), bottom = word(12), right = word(14);
+  if (rowBytes <= 0 || right <= left || bottom <= top
+   || Length(bits) < ArrayIndex(16 + rowBytes * (bottom - top)))
+    return icon;
+  icon.width = right - left;
+  icon.height = bottom - top;
+  icon.rowBytes = rowBytes;
+  icon.bits.assign(data + 16, data + 16 + rowBytes * icon.height);
+  return icon;
+}
+
+// How far a view's frame reaches out of its bounds (viewFormat): a dragger
+// frame (protoFloater, protoFloatNGo) kDraggerBorderWidth, another frame
+// its pen width and inset. (Not yet: the shadow, right and bottom.)
+int FrameOutset(long inViewFormat)
+{
+  long frame = (inViewFormat & vfFrameMask) >> vfFrameShift;
+  if (frame == vfDragger)
+    return kDraggerBorderWidth;
+  if (frame == vfNone)
+    return 0;
+  return int(((inViewFormat & vfPenMask) >> vfPenShift) + ((inViewFormat & vfInsetMask) >> vfInsetShift));
+}
+
 // Widgets are added to their parent explicitly: FLTK must not add a new one
 // to the group made last (Fl_Group::current()).
 template <class W, class... Args> W * NewWidget(Args... args)
@@ -197,8 +281,7 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    const Bounds & window = Window()->GlobalBounds();
-    return NewWidget<Group>(int(fBounds.left - window.left), int(fBounds.top - window.top),
+    return NewWidget<Group>(WidgetX(), WidgetY(),
                             int(fBounds.Width()), int(fBounds.Height()));
   }
 };
@@ -212,13 +295,58 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    const Bounds & window = Window()->GlobalBounds();
-    Fl_Box * box = NewWidget<Fl_Box>(int(fBounds.left - window.left), int(fBounds.top - window.top),
+    Fl_Box * box = NewWidget<Fl_Box>(WidgetX(), WidgetY(),
                                      int(fBounds.Width()), int(fBounds.Height()));
     box->copy_label(TextSlot(fContext, "text").c_str());
     box->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP);
-    box->labelsize(12);
+    Fl_Font font;
+    Fl_Fontsize size;
+    FontOf(fContext, &font, &size);
+    box->labelfont(font);
+    box->labelsize(size);
     return box;
+  }
+};
+
+
+// clTextView (protoTextButton): its text, in the box of its viewFormat.
+class TextLink : public Link
+{
+public:
+  TextLink(RefArg inContext, Link * inParent) : Link(inContext, inParent) { }
+protected:
+  Fl_Widget * MakeWidget() override
+  {
+    Fl_Font font;
+    Fl_Fontsize size;
+    FontOf(fContext, &font, &size);
+    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(),
+                                          int(fBounds.Width()), int(fBounds.Height()),
+                                          TextSlot(fContext, "text"), font, size,
+                                          AlignOf(IntSlot(fContext, "viewJustify")));
+    Fl_Color color;
+    view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
+    view->color(color);
+    return view;
+  }
+};
+
+
+// clPictureView (protoPictureButton, protoClosebox): its icon.
+class PictureLink : public Link
+{
+public:
+  PictureLink(RefArg inContext, Link * inParent) : Link(inContext, inParent) { }
+protected:
+  Fl_Widget * MakeWidget() override
+  {
+    PictureView * view = NewWidget<PictureView>(WidgetX(), WidgetY(),
+                                                int(fBounds.Width()), int(fBounds.Height()),
+                                                IconOf(fContext), AlignOf(IntSlot(fContext, "viewJustify")));
+    Fl_Color color;
+    view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
+    view->color(color);
+    return view;
   }
 };
 
@@ -236,8 +364,11 @@ protected:
       title = TextSlot(fContext, "appName");
     if (title.empty())
       title = "Newton";
-    return NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left), int(kDesktopTop + fBounds.top),
-                               int(fBounds.Width()), int(fBounds.Height()), title.c_str(), this);
+    // the frame is outside the view's bounds (as on a Newton): around them
+    fOutset = FrameOutset(IntSlot(fContext, "viewFormat"));
+    return NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
+                               int(fBounds.Width() + 2 * fOutset), int(fBounds.Height() + 2 * fOutset),
+                               title.c_str(), this);
   }
 };
 
@@ -247,8 +378,11 @@ Link * NewLink(RefArg inContext, Link * inParent)
 {
   if (inParent == nullptr)
     return new WindowLink(inContext, inParent);
-  if (IntSlot(inContext, "viewClass") == clParagraphView)
-    return new ParagraphLink(inContext, inParent);
+  switch (IntSlot(inContext, "viewClass")) {
+    case clParagraphView: return new ParagraphLink(inContext, inParent);
+    case clTextView:      return new TextLink(inContext, inParent);
+    case clPictureView:   return new PictureLink(inContext, inParent);
+  }
   return new ViewLink(inContext, inParent);
 }
 
@@ -279,6 +413,20 @@ Link * Link::Of(RefArg inContext)
     return nullptr;
   Ref cObject = GetFrameSlot(inContext, SYMA(viewCObject));
   return ISINT(cObject) ? static_cast<Link *>(RefToAddress(cObject)) : nullptr;
+}
+
+
+int Link::WidgetX()
+{
+  Link * window = Window();
+  return int(fBounds.left - window->fBounds.left + window->fOutset);
+}
+
+
+int Link::WidgetY()
+{
+  Link * window = Window();
+  return int(fBounds.top - window->fBounds.top + window->fOutset);
 }
 
 
@@ -313,6 +461,76 @@ Bounds Link::JustifiedBounds()
   }
   return Justify(BoundsOf(viewBounds), IntSlot(fContext, "viewJustify"),
                  fParent ? fParent->fBounds : AppArea(), sibling);
+}
+
+
+int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
+{
+  switch (inEvent) {
+    case FL_PUSH: {
+      if ((IntSlot(fContext, "viewFlags") & vClickable) == 0)
+        return 0;
+      fPenDown = fPenInside = true;
+      // FLTK makes the widget the pushed one only after this returns; but
+      // TrackHilite() waits for the pen to come up in here
+      Fl::pushed(inWidget);
+      // viewClickScript through _proto only (not a parent's), as runScript
+      RefVar script(MakeSymbol("viewClickScript"));
+      if (NOTNIL(GetProtoVariable(fContext, script))) {
+        RefVar args(MakeArray(1));   // the unit: nil for now
+        SendEventMessage(fContext, script, args);
+        // the script may have closed the view: this link may be gone
+      }
+      return 1;
+    }
+    case FL_DRAG:
+      if (fPenDown) {
+        bool inside = Fl::event_inside(inWidget);
+        if (inside != fPenInside) {
+          fPenInside = inside;
+          if (fTracking)
+            SetHilite(inside);
+        }
+        return 1;
+      }
+      return 0;
+    case FL_RELEASE:
+      if (fPenDown) {
+        fPenInside = Fl::event_inside(inWidget);
+        fPenDown = false;
+        return 1;
+      }
+      return 0;
+  }
+  return 0;
+}
+
+
+void Link::SetHilite(bool inOn)
+{
+  if (fHilited == inOn)
+    return;
+  fHilited = inOn;
+  if (fWidget)
+    fWidget->redraw();
+}
+
+
+int Group::handle(int inEvent)
+{
+  Link * link = static_cast<Link *>(user_data());
+  switch (inEvent) {
+    case FL_PUSH:
+      if (Fl_Group::handle(inEvent))
+        return 1;   // a child took it
+      return link ? link->HandlePen(this, inEvent) : 0;
+    case FL_DRAG:
+    case FL_RELEASE:
+      if (link && Fl::pushed() == this)
+        return link->HandlePen(this, inEvent);
+      break;
+  }
+  return Fl_Group::handle(inEvent);
 }
 
 
@@ -507,6 +725,34 @@ Ref DirtyView(RefArg inContext)
   if (link)
     link->Widget()->redraw();
   return NILREF;
+}
+
+Ref HiliteView(RefArg inContext, RefArg inOn)
+{
+  // the ROM's FHiliteX: nothing to do if closed (a button's click script
+  // unhilites it after buttonClickScript, which may have closed it)
+  if (Link * link = Link::Of(inContext))
+    link->SetHilite(NOTNIL(inOn));
+  return NILREF;
+}
+
+
+Ref TrackHilite(RefArg inContext, RefArg inUnit)
+{
+  Link * link = OpenLink(inContext);
+  if (!link->fPenDown)
+    return NILREF;
+  link->fTracking = true;
+  link->SetHilite(link->fPenInside);
+  // Other events come meanwhile (drawing, timers, DAP requests); scripts of
+  // other views don't run (SendEventMessage: one at a time).
+  Fl_Widget_Tracker widget(link->fWidget);
+  while (!widget.deleted() && link->fPenDown)
+    Fl::wait();
+  if (widget.deleted())
+    return NILREF;   // the view was closed (and the link deleted)
+  link->fTracking = false;
+  return link->fPenInside ? TRUEREF : NILREF;
 }
 
 } // namespace nfl

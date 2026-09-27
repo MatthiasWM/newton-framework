@@ -1,0 +1,36 @@
+// 10.4c: buttons and the close box (needs FLTK). A pen down on a clickable
+// view sends viewClickScript; a button's calls TrackHilite, which waits for
+// the pen to come up (a nested event loop) and says whether it came up
+// inside. protoTextButton (@226) then sends buttonClickScript; the close
+// box (protoClosebox, @166, in protoFloatNGo @180) closes the app.
+// TestTap (Matt/TestWindow.h) taps from the event loop, so all this runs
+// after the script, one tap after the other.
+DefGlobalVar('button, nil);
+DefGlobalVar('tracker, nil);
+DefGlobalVar('closeBox, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  viewQuitScript: func() Print("app closed"),
+  stepChildren: [
+    {_proto: @226, text: "Tap me", viewBounds: {left: 10, top: 10, right: 90, bottom: 30},
+     viewSetupDoneScript: func() button := self,
+     buttonClickScript: func() Print("button tapped")},
+    {_proto: @226, text: "Track", viewBounds: {left: 100, top: 10, right: 180, bottom: 30},
+     viewSetupDoneScript: func() tracker := self,
+     viewClickScript: func(unit)
+       begin
+         local inside := :TrackHilite(unit);
+         Print(["tracked", inside]);
+         :Hilite(nil);
+         true
+       end}]}));
+app:Open();
+foreach kid in app:ChildViewFrames() do
+  if kid.viewClass = 76 then closeBox := kid;
+Print(closeBox.icon.bounds);
+Print(tracker:TrackHilite(nil));   // no pen down: nil at once
+TestTap(button, nil);      // "button tapped"
+TestTap(button, true);     // up outside: nothing
+TestTap(tracker, nil);     // ["tracked", true]
+TestTap(tracker, true);    // ["tracked", nil]
+TestTap(closeBox, nil);    // closes the app; the event loop ends

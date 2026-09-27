@@ -13,9 +13,12 @@
    view:ChildViewFrames() -> the view frames of its open children.
    view:Hide(), view:Show() -> hide or show the view (it stays open).
    view:Dirty() -> draw the view again.
+   view:Hilite(on) -> draw the view hilited or not.
+   view:TrackHilite(unit) -> in a viewClickScript: hilite the view while
+       the pen is down inside it; true if it came up inside.
 
- Except Close and Dirty, they throw "nil view" for a view that isn't open
- (the ROM's FailGetView).
+ Except Close, Dirty and Hilite (which do nothing), they throw "nil view"
+ for a view that isn't open (the ROM's FailGetView).
  */
 
 #ifndef HOST_VIEWMETHODS_H
@@ -32,6 +35,8 @@ Ref FChildViewFramesX(RefArg rcvr);
 Ref FHideX(RefArg rcvr);
 Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
+Ref FHiliteX(RefArg rcvr, RefArg inOn);
+Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit);
 }
 
 #endif // HOST_VIEWMETHODS_H

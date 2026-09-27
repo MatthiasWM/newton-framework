@@ -712,7 +712,7 @@ if (NEWTC_USES_FLTK)
   target_sources (newtc PRIVATE
     Host/FLTK/Links.cc Host/FLTK/Links.h
     Host/FLTK/FloatNGo.cc Host/FLTK/FloatNGo.h
-    Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
+    Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
 endif ()

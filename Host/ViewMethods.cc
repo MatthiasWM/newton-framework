@@ -24,6 +24,8 @@ Ref FChildViewFramesX(RefArg rcvr) { return nfl::ChildViewFrames(rcvr); }
 Ref FHideX(RefArg rcvr)            { return nfl::HideView(rcvr); }
 Ref FShowX(RefArg rcvr)            { return nfl::ShowView(rcvr); }
 Ref FDirtyX(RefArg rcvr)           { return nfl::DirtyView(rcvr); }
+Ref FHiliteX(RefArg rcvr, RefArg inOn)        { return nfl::HiliteView(rcvr, inOn); }
+Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit) { return nfl::TrackHilite(rcvr, inUnit); }
 
 #else
 
@@ -36,6 +38,8 @@ NS_STUB(FChildViewFramesX, RefArg rcvr)
 NS_STUB(FHideX, RefArg rcvr)
 NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FDirtyX, RefArg rcvr)
+NS_STUB(FHiliteX, RefArg rcvr, RefArg inOn)
+NS_STUB(FTrackHiliteX, RefArg rcvr, RefArg inUnit)
 
 #endif
 

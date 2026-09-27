@@ -18,6 +18,15 @@
        close the view's desktop window from the event loop, as a user would
        (its close button): the view gets Close() (Host/FLTK/Links.h). The
        view needs to be open when the event loop gets to it.
+   TestTap(view, outside) -> nil
+       tap the view with the pen (the mouse) from the event loop, as a user
+       would: down at its center and up again; with outside non-nil, the
+       pen moves out of the view before it comes up. The events go through
+       FLTK (Fl::handle), to the view's widget (Host/FLTK/Links.h, "Pen").
+   TestSnapshot(view, path) -> nil
+       from the event loop: save the view's window as a PNG file at path,
+       as drawn (in the screen's resolution: twice the size on Retina).
+       Prints to stderr if it can't.
  */
 
 #ifndef MATT_TESTWINDOW_H
@@ -30,6 +39,8 @@ extern "C" Ref FTestWindow(RefArg rcvr, RefArg inTitle, RefArg inReceiver, RefAr
 extern "C" Ref FTestWindowClick(RefArg rcvr);
 extern "C" Ref FTestWindowClose(RefArg rcvr);
 extern "C" Ref FTestCloseWindow(RefArg rcvr, RefArg inView);
+extern "C" Ref FTestTap(RefArg rcvr, RefArg inView, RefArg inOutside);
+extern "C" Ref FTestSnapshot(RefArg rcvr, RefArg inView, RefArg inPath);
 #endif
 
 #endif // MATT_TESTWINDOW_H

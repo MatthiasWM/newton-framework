@@ -1,0 +1,6 @@
+{left: 0, top: 0, right: 13, bottom: 13}
+nil
+"button tapped"
+["tracked", true]
+["tracked", nil]
+"app closed"

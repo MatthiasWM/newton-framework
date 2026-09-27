@@ -355,9 +355,43 @@ Directory and namespace (decided, Matt, 2026-09-27):
       (percent of the sibling's or parent's size). The port only declares
       CView::justifyBounds; the code follows the ROM.
       The Hello app no longer meets a stub. Test `fltk_view_methods`.
-- [ ] 10.4c The close box (protoClosebox: a picture view, its
-      viewClickScript) and buttons, with Matt's box types and button
-      drawing.
+- [x] 10.4c Buttons and the close box. Pen: a pen down (FL_PUSH) on a
+      view with vClickable sends viewClickScript(unit) (through _proto
+      only; the unit is nil for now); Link::HandlePen, from the widgets'
+      handle(). TrackHilite(unit) (FTrackHiliteX) waits in a nested
+      Fl::wait() loop while the pen is down, as the ROM waits in its own
+      loop, hilites the view while the pen is inside, and returns true if
+      it came up inside; Hilite(on) (FHiliteX) does nothing on a closed
+      view, as the ROM's (the close box's buttonClickScript closes the view
+      before its viewClickScript unhilites it). The ROM's scripts do the
+      rest: protoTextButton (@226) and protoPictureButton (@198) call
+      TrackHilite, buttonClickScript, Hilite(nil); protoClosebox (@166, via
+      protoLargeClosebox @163) closes `base`.
+      Host/FLTK/Widgets.{h,cc}: nfl::TextView (clTextView 98: text, font,
+      the box of its viewFormat: a rounded black frame is Matt's FL_UP_BOX,
+      hilited FL_DOWN_BOX with a white label) and nfl::PictureView
+      (clPictureView 76: its icon, a Newton bitmap drawn as an Fl_Bitmap;
+      hilited inverted). viewFont: Helvetica (Espy, Geneva) or Times (New
+      York), bold and italic, the Newton size; ParagraphLink uses it too.
+      Test helper `TestTap(view, outside)` (Matt/TestWindow): taps one
+      after the other through Fl::handle(). Tests `fltk_buttons` (tap,
+      tap and slide out, TrackHilite both ways, the close box closes the
+      app), `fltk_dap_button` (a breakpoint in a buttonClickScript after
+      the nested loop).
+      Not yet: buttonPressedScript, the click sound, units (strokes), a
+      default (Enter) button. Close is immediate (the ROM posts a command).
+      Frames: NewtonOS draws a view's frame outside its viewBounds. A
+      window is bigger than its view by `FrameOutset(viewFormat)` all
+      around: kDraggerBorderWidth (8) for a dragger frame (vfDragger 13,
+      protoFloatNGo), else pen + inset; children sit relative to the
+      content (Link::WidgetX/WidgetY). Checked against Matt's screenshot of
+      hello.pkg on a Newton: window 168x112, the close box 13x13, its top
+      left 22x23 from the window's bottom right. The close box is the ROM's
+      13x13 bitmap (blocky on Retina; all graphics need a 2x look).
+      Test helper `TestSnapshot(view, path)`: the view's window as a PNG
+      (fl_capture_window, fl_write_png; screen resolution). It waits until
+      the window is on the screen, so don't close the window in the same
+      breath.
 - [ ] 10.5 The Hello app with a button (protoTextButton,
       buttonClickScript), a modal alert, and a reaction to closing; tests
       (TestWindow's approach: clicks from the event loop).

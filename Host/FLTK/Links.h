@@ -17,9 +17,14 @@
  GroupLink::RemoveChild).
 
  The link class follows the view: a child of the root view is window-like
- and gets a desktop window (WindowLink, nfl::FloatNGo); a clParagraphView
- shows its text (ParagraphLink); any other view is a group for its children
- (ViewLink, nfl::Group) for now.
+ and gets a desktop window (WindowLink, nfl::FloatNGo), bigger than the
+ view by its frame all around (NewtonOS draws a view's frame outside its
+ viewBounds; protoFloatNGo's dragger frame is 8 pixels), so its children's
+ widgets sit 8 pixels in from the window's edges; a clParagraphView
+ shows its text (ParagraphLink), a clTextView too (TextLink, nfl::TextView,
+ a protoTextButton), a clPictureView its icon (PictureLink,
+ nfl::PictureView, a protoClosebox); any other view is a group for its
+ children (ViewLink, nfl::Group) for now.
 
  Opening (FOpenX, the ROM's view:_Open(); CView::init): viewSetupFormScript;
  the bounds (viewBounds, placed in the parent with viewJustify); declareSelf;
@@ -35,8 +40,16 @@
  LocalBox, ChildViewFrames, Hide, Show, Dirty. Like the ROM's
  (FailGetView), they throw "nil view" for a view that isn't open.
 
- Not yet: reflow, allocateContext, drawing, events other than closing a
- window.
+ Pen (the mouse): a pen down on a view with vClickable in its viewFlags
+ sends it viewClickScript(unit), as NewtonOS does (the unit is nil for
+ now). A button's viewClickScript (protoTextButton, protoPictureButton)
+ calls TrackHilite(unit): it waits while the pen is down (a nested FLTK
+ event loop, as the ROM waits in its own), hilites the view while the pen
+ is inside, and returns true if the pen came up inside; then the script
+ sends buttonClickScript() and Hilite(nil).
+
+ Not yet: reflow, allocateContext, drawing by viewFormat for all views,
+ buttonPressedScript, the click sound, strokes and gestures.
  */
 
 #ifndef HOST_FLTK_LINKS_H
@@ -79,6 +92,13 @@ public:
       now (in its parent, or its previous sibling). */
   Bounds JustifiedBounds();
 
+  /** A pen event (FL_PUSH, FL_DRAG, FL_RELEASE) on the view's widget
+      inWidget; for its handle(). Returns 1 if the view takes the pen. */
+  int HandlePen(Fl_Widget * inWidget, int inEvent);
+
+  /** Hilite(), TrackHilite(): the widget draws the view hilited. */
+  bool Hilited() const { return fHilited; }
+
 protected:
   Link(RefArg inContext, Link * inParent);
 
@@ -88,13 +108,26 @@ protected:
   /** The link of the window this view is in (its own for a WindowLink). */
   Link * Window();
 
+  /** Where the widget goes in its window (FLTK's window coordinates): the
+      view's bounds relative to the window's content, which is fOutset in
+      from the window's edges (its frame). */
+  int WidgetX();
+  int WidgetY();
+
   RefStruct fContext;
   Link * fParent;
   std::vector<Link *> fChildren;
   Bounds fBounds;
   Fl_Widget * fWidget = nullptr;
+  int fOutset = 0;             // a window: its frame, around the view's bounds
   bool fInSetupForm = false;   // viewSetupFormScript runs (fBounds not set yet)
   bool fHidden = false;        // Hide()
+  bool fHilited = false;       // Hilite(), TrackHilite()
+  bool fPenDown = false;       // a pen down on the view, not up yet
+  bool fPenInside = false;     // ... and the pen is inside it
+  bool fTracking = false;      // TrackHilite() waits for the pen to come up
+
+  void SetHilite(bool inOn);
 
   friend Link * Build(RefArg inContext, Link * inParent);
   friend void Dispose(Link * inLink);
@@ -103,6 +136,8 @@ protected:
   friend Ref ChildViewFrames(RefArg inContext);
   friend Ref HideView(RefArg inContext);
   friend Ref ShowView(RefArg inContext);
+  friend Ref HiliteView(RefArg inContext, RefArg inOn);
+  friend Ref TrackHilite(RefArg inContext, RefArg inUnit);
 };
 
 /** A link whose widget holds the widgets of the view's children (a group,
@@ -131,6 +166,8 @@ public:
   // clear() here, not only in ~Fl_Group(): there, the object is an Fl_Group
   // already, and clear() would call Fl_Group::delete_child() (which deletes)
   ~Group() override { clear(); }
+  /** Pen events the children don't take go to the view (Link::HandlePen). */
+  int handle(int inEvent) override;
 protected:
   int delete_child(int inIndex) override { return GroupLink::RemoveChild(this, inIndex); }
 };
@@ -161,6 +198,16 @@ Ref ShowView(RefArg inContext);
 
 /** view:Dirty(): draw the view again. */
 Ref DirtyView(RefArg inContext);
+
+/** view:Hilite(on): draw the view hilited (on: non-nil) or not. Nothing
+    for a closed view (as the ROM). */
+Ref HiliteView(RefArg inContext, RefArg inOn);
+
+/** view:TrackHilite(unit): in a viewClickScript, while the pen is down:
+    hilite the view while the pen is inside it. Returns true if the pen came
+    up inside (the view stays hilited), else nil. Nil at once if no pen is
+    down on the view. */
+Ref TrackHilite(RefArg inContext, RefArg inUnit);
 
 } // namespace nfl
 
