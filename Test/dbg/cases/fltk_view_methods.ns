@@ -1,0 +1,48 @@
+// 10.4b: the view methods that are natives (Host/ViewMethods.h; needs FLTK):
+// GlobalBox and LocalBox (also while viewSetupFormScript runs, from the
+// viewBounds as they are then), justification in the parent, relative to
+// the previous sibling, and by ratios (as the ROM's TView::JustifyBounds),
+// ChildViewFrames, Hide, Show, Dirty, and "nil view" for a closed view.
+DefGlobalVar('parent, BuildContext({
+  viewClass: 74, viewFlags: 1, viewBounds: {left: 10, top: 20, right: 210, bottom: 140},
+  viewSetupFormScript: func()
+    begin
+      Print(:GlobalBox());
+      self.viewBounds := {left: 0, top: 0, right: 200, bottom: 100};
+      Print(:GlobalBox());
+      Print(:LocalBox());
+    end,
+  stepChildren: [
+    // in the parent
+    {viewClass: 74, viewFlags: 1, viewBounds: {left: 10, top: 10, right: 110, bottom: 30},
+     viewHideScript: func() Print("a hidden"),
+     viewShowScript: func() Print("a shown")},
+    // below a (vjSiblingBottomV), centered in the parent (vjParentCenterH)
+    {viewClass: 74, viewFlags: 1, viewJustify: 8192 + 16,
+     viewBounds: {left: 0, top: 5, right: 60, bottom: 25}},
+    // centered on b vertically (vjSiblingCenterV), right of it (vjSiblingRightH)
+    {viewClass: 74, viewFlags: 1, viewJustify: 4096 + 1024,
+     viewBounds: {left: 5, top: 0, right: 45, bottom: 10}},
+    // left and right in percent of the parent's width (vjLeftRatio, vjRightRatio)
+    {viewClass: 74, viewFlags: 1, viewJustify: 67108864 + 134217728,
+     viewBounds: {left: 25, top: 80, right: 75, bottom: 90}},
+    // at d's top (vjSiblingTopV), top and bottom in percent of d's height
+    // (vjTopRatio, vjBottomRatio)
+    {viewClass: 81, viewFlags: 1, viewJustify: 16384 + 268435456 + 536870912,
+     viewBounds: {left: 0, top: 0, right: 20, bottom: 50}, text: "e"}]}));
+parent:Open();
+Print(parent:GlobalBox());
+DefGlobalVar('kids, parent:ChildViewFrames());
+Print(Length(kids));
+foreach kid in kids do Print(kid:GlobalBox());
+Print(kids[2]:LocalBox());
+Print(kids[4].text);
+kids[0]:Hide();
+kids[0]:Hide();   // hidden already: no viewHideScript
+kids[0]:Show();
+kids[0]:Show();   // shown already: no viewShowScript
+Print(kids[0]:Dirty());
+parent:Close();
+Print(kids[0]:Dirty());   // closed: nothing to draw
+try parent:GlobalBox() onexception |evt.ex| do Print(CurrentException().message);
+try kids[0]:Hide() onexception |evt.ex| do Print(CurrentException().message);

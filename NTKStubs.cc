@@ -20,7 +20,6 @@ Ref FCalibrateTablet(RefArg rcvr);
 Ref FCaretRelativeToVisibleRect(RefArg rcvr);
 Ref FCategorizeKeyCommands(RefArg rcvr);
 Ref FChangeStylesOfRange(RefArg rcvr);
-Ref FChildViewFramesX(RefArg rcvr);
 Ref FClearHardKeymap(RefArg rcvr);
 Ref FClearPopup(RefArg rcvr);
 Ref FClearUndoStacks(RefArg rcvr);
@@ -35,7 +34,6 @@ Ref FDebugMemoryStats(RefArg rcvr);
 Ref FDebugRunUntilIdle(RefArg rcvr);
 Ref FDeleteX(RefArg rcvr);
 Ref FDirtyBoxX(RefArg rcvr);
-Ref FDirtyX(RefArg rcvr);
 Ref FDismissPopup(RefArg rcvr);
 Ref FDisplaySplashGraphic(RefArg rcvr);
 Ref FDoDrawing(RefArg rcvr);
@@ -95,7 +93,6 @@ Ref FGetUnitStartTime(RefArg rcvr);
 Ref FGetUnitUpTime(RefArg rcvr);
 Ref FGetView(RefArg rcvr);
 Ref FGetWordArray(RefArg rcvr);
-Ref FGlobalBoxX(RefArg rcvr);
 Ref FGlobalOuterBoxX(RefArg rcvr);
 Ref FHandleInkWord(RefArg rcvr);
 Ref FHandleInsertItems(RefArg rcvr);
@@ -103,7 +100,6 @@ Ref FHandleKeyEvents(RefArg rcvr);
 Ref FHandleRawInk(RefArg rcvr);
 Ref FHandleUnit(RefArg rcvr);
 Ref FHideCaret(RefArg rcvr);
-Ref FHideX(RefArg rcvr);
 Ref FHiliteOwner(RefArg rcvr);
 Ref FHiliteUniqueX(RefArg rcvr);
 Ref FHiliteViewChildren(RefArg rcvr);
@@ -134,7 +130,6 @@ Ref FKeyboardConnected(RefArg rcvr);
 Ref FLayoutTableX(RefArg rcvr);
 Ref FLayoutVerticallyX(RefArg rcvr);
 Ref FLoadFontCache(RefArg rcvr);
-Ref FLocalBoxX(RefArg rcvr);
 Ref FMakeBitmap(RefArg rcvr);
 Ref FMakeLine(RefArg rcvr);
 Ref FMakeRect(RefArg rcvr);
@@ -195,7 +190,6 @@ Ref FSetSysAlarm(RefArg rcvr);
 Ref FSetupIdleX(RefArg rcvr);
 Ref FShapeBounds(RefArg rcvr);
 Ref FShowCaret(RefArg rcvr);
-Ref FShowX(RefArg rcvr);
 Ref FSlideEffectX(RefArg rcvr);
 Ref FStartBypassTablet(RefArg rcvr);
 Ref FStopBypassTablet(RefArg rcvr);
@@ -239,7 +233,6 @@ NS_STUB(FCalibrateTablet, RefArg rcvr)
 NS_STUB(FCaretRelativeToVisibleRect, RefArg rcvr)
 NS_STUB(FCategorizeKeyCommands, RefArg rcvr)
 NS_STUB(FChangeStylesOfRange, RefArg rcvr)
-NS_STUB(FChildViewFramesX, RefArg rcvr)
 NS_STUB(FClearHardKeymap, RefArg rcvr)
 NS_STUB(FClearPopup, RefArg rcvr)
 NS_STUB(FClearUndoStacks, RefArg rcvr)
@@ -254,7 +247,6 @@ NS_STUB(FDebugMemoryStats, RefArg rcvr)
 NS_STUB(FDebugRunUntilIdle, RefArg rcvr)
 NS_STUB(FDeleteX, RefArg rcvr)
 NS_STUB(FDirtyBoxX, RefArg rcvr)
-NS_STUB(FDirtyX, RefArg rcvr)
 NS_STUB(FDismissPopup, RefArg rcvr)
 NS_STUB(FDisplaySplashGraphic, RefArg rcvr)
 NS_STUB(FDoDrawing, RefArg rcvr)
@@ -313,7 +305,6 @@ NS_STUB(FGetUnitStartTime, RefArg rcvr)
 NS_STUB(FGetUnitUpTime, RefArg rcvr)
 NS_STUB(FGetView, RefArg rcvr)
 NS_STUB(FGetWordArray, RefArg rcvr)
-NS_STUB(FGlobalBoxX, RefArg rcvr)
 NS_STUB(FGlobalOuterBoxX, RefArg rcvr)
 NS_STUB(FHandleInkWord, RefArg rcvr)
 NS_STUB(FHandleInsertItems, RefArg rcvr)
@@ -321,7 +312,6 @@ NS_STUB(FHandleKeyEvents, RefArg rcvr)
 NS_STUB(FHandleRawInk, RefArg rcvr)
 NS_STUB(FHandleUnit, RefArg rcvr)
 NS_STUB(FHideCaret, RefArg rcvr)
-NS_STUB(FHideX, RefArg rcvr)
 NS_STUB(FHiliteOwner, RefArg rcvr)
 NS_STUB(FHiliteUniqueX, RefArg rcvr)
 NS_STUB(FHiliteViewChildren, RefArg rcvr)
@@ -352,7 +342,6 @@ NS_STUB(FKeyboardConnected, RefArg rcvr)
 NS_STUB(FLayoutTableX, RefArg rcvr)
 NS_STUB(FLayoutVerticallyX, RefArg rcvr)
 NS_STUB(FLoadFontCache, RefArg rcvr)
-NS_STUB(FLocalBoxX, RefArg rcvr)
 NS_STUB(FMakeBitmap, RefArg rcvr)
 NS_STUB(FMakeLine, RefArg rcvr)
 NS_STUB(FMakeRect, RefArg rcvr)
@@ -413,7 +402,6 @@ NS_STUB(FSetSysAlarm, RefArg rcvr)
 NS_STUB(FSetupIdleX, RefArg rcvr)
 NS_STUB(FShapeBounds, RefArg rcvr)
 NS_STUB(FShowCaret, RefArg rcvr)
-NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FSlideEffectX, RefArg rcvr)
 NS_STUB(FStartBypassTablet, RefArg rcvr)
 NS_STUB(FStopBypassTablet, RefArg rcvr)

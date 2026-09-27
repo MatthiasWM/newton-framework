@@ -319,12 +319,12 @@ Directory and namespace (decided, Matt, 2026-09-27):
       (viewChildren then stepChildren, each BuildContext'ed and opened),
       viewSetupDoneScript; a window is shown, viewShowScript. Close follows
       CView::dispose: viewQuitScript, viewCObject nil, the children,
-      viewPostQuitScript on 'postQuit, the widget deleted (Fl::delete_widget;
-      only the top of the closed subtree, as a group deletes its children).
+      viewPostQuitScript on 'postQuit; each link deletes its own widget
+      directly (groups and windows don't delete children, see GroupLink).
       View scripts are found through _proto only (CView::runScript). An
       error while opening closes what was built and passes the exception
-      on. FOpenX and FCloseX live in Host/Views.cc; without FLTK they are
-      stubs. `installPackage()` opens the form part's app right after
+      on. FOpenX and FCloseX live in Host/ViewMethods.cc (since 10.4b);
+      without FLTK they are stubs. `installPackage()` opens the form part's app right after
       installing it (`GetRoot().(app):Open()`), for -run and -dap. The
       window sits at (100, 100) plus its position on the Newton display.
       `DoProtoMessage`, `DoProtoMessageIfDefined` are now declared in
@@ -339,9 +339,25 @@ Directory and namespace (decided, Matt, 2026-09-27):
       closes the view and ends newtc), `fltk_dap_view` (a breakpoint in a
       viewSetupFormScript), `install_hello` (now the same with and without
       FLTK), `test_nsdbg.py` and VSNewt close the app's window at the end.
-- [ ] 10.4b Next for views: the natives the Hello app and the tests call
-      (GlobalBox, ChildViewFrames, Hide/Show, Dirty), justification against
-      siblings and ratios, the close box (protoClosebox) and buttons.
+- [x] 10.4b The view natives and justification. Host/ViewMethods.{h,cc}
+      holds the view methods that are natives (FOpenX and FCloseX moved
+      there from Host/Views.cc): GlobalBox, LocalBox, ChildViewFrames, Hide,
+      Show, Dirty call nfl:: functions in Links.cc; without FLTK they are
+      stubs (their NTKStubs.cc stubs are gone). As the ROM: a closed view
+      throws "nil view" (FailGetView), except Close and Dirty (nil).
+      GlobalBox and LocalBox while viewSetupFormScript runs justify the
+      viewBounds as they are then (CommonBox, the setup-form flag). Hide and
+      Show run viewHideScript and viewShowScript only when the state
+      changes; the ROM queues both as commands, newtc does them at once.
+      Justification (`Justify()` in Links.cc) follows the ROM's
+      TView::JustifyBounds: parent, previous sibling (vjSibling*: the
+      sibling's bounds replace the parent's for that direction), and ratios
+      (percent of the sibling's or parent's size). The port only declares
+      CView::justifyBounds; the code follows the ROM.
+      The Hello app no longer meets a stub. Test `fltk_view_methods`.
+- [ ] 10.4c The close box (protoClosebox: a picture view, its
+      viewClickScript) and buttons, with Matt's box types and button
+      drawing.
 - [ ] 10.5 The Hello app with a button (protoTextButton,
       buttonClickScript), a modal alert, and a reaction to closing; tests
       (TestWindow's approach: clicks from the event loop).

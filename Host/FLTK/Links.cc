@@ -55,7 +55,7 @@ Bounds BoundsOf(RefArg inFrame)
 }
 
 // The area a child of the root view is placed in: the app area of the
-// display (displayParams, as CView::justifyBounds).
+// display (displayParams, as the ROM).
 Bounds AppArea(void)
 {
   RefVar params(GetGlobalVar(MakeSymbol("displayParams")));
@@ -67,25 +67,97 @@ Bounds AppArea(void)
   return area;
 }
 
-// A view's bounds on the display: its viewBounds placed in its parent's
-// (global) bounds by viewJustify (CView::justifyBounds: parent
-// justification; not yet sibling justification and ratios).
-Bounds Justify(Bounds inBounds, long inJustify, const Bounds & inParent)
+// A view's bounds on the display, as the ROM's TView::JustifyBounds (the
+// port only declares CView::justifyBounds): inBounds (its viewBounds) placed by
+// inJustify (viewJustify) in its parent's bounds (inParent, global), or
+// relative to its previous sibling (inSibling, nullptr for the first child).
+// Ratios make the bounds percentages of the sibling's or the parent's size.
+Bounds Justify(Bounds inBounds, long inJustify, const Bounds & inParent, const Bounds * inSibling)
 {
   long originH = inParent.left, originV = inParent.top;
-  switch (inJustify & vjParentVMask) {
-    case vjParentCenterV: originV += (inParent.Height() - inBounds.Height()) / 2; break;
-    case vjParentBottomV: originV += inParent.Height(); break;
-    case vjParentFullV:   originV = 0; inBounds.top += inParent.top; inBounds.bottom += inParent.bottom; break;
+  bool justifyH = true, justifyV = true;
+
+  if (inSibling && (inJustify & vjSiblingMask)) {
+    const Bounds & sibling = *inSibling;
+    if (long siblingV = inJustify & vjSiblingVMask) {
+      justifyV = false;
+      if (inJustify & vjTopRatio)
+        inBounds.top = inBounds.top * sibling.Height() / 100;
+      if (inJustify & vjBottomRatio)
+        inBounds.bottom = inBounds.bottom * sibling.Height() / 100;
+      switch (siblingV) {
+        case vjSiblingCenterV: originV = sibling.top + (sibling.Height() - inBounds.Height()) / 2; break;
+        case vjSiblingBottomV: originV = sibling.bottom; break;
+        case vjSiblingFullV:   originV = 0; inBounds.top += sibling.top; inBounds.bottom += sibling.bottom; break;
+        case vjSiblingTopV:    originV = sibling.top; break;
+      }
+    }
+    if (long siblingH = inJustify & vjSiblingHMask) {
+      justifyH = false;
+      if (inJustify & vjLeftRatio)
+        inBounds.left = inBounds.left * sibling.Width() / 100;
+      if (inJustify & vjRightRatio)
+        inBounds.right = inBounds.right * sibling.Width() / 100;
+      switch (siblingH) {
+        case vjSiblingCenterH: originH = sibling.left + (sibling.Width() - inBounds.Width()) / 2; break;
+        case vjSiblingRightH:  originH = sibling.right; break;
+        case vjSiblingFullH:   originH = 0; inBounds.left += sibling.left; inBounds.right += sibling.right; break;
+        case vjSiblingLeftH:   originH = sibling.left; break;
+      }
+    }
   }
-  switch (inJustify & vjParentHMask) {
-    case vjParentCenterH: originH += (inParent.Width() - inBounds.Width()) / 2; break;
-    case vjParentRightH:  originH += inParent.Width(); break;
-    case vjParentFullH:   originH = 0; inBounds.left += inParent.left; inBounds.right += inParent.right; break;
+
+  if (justifyH) {
+    if (inJustify & vjLeftRatio)
+      inBounds.left = inBounds.left * inParent.Width() / 100;
+    if (inJustify & vjRightRatio)
+      inBounds.right = inBounds.right * inParent.Width() / 100;
   }
+  if (justifyV) {
+    if (inJustify & vjTopRatio)
+      inBounds.top = inBounds.top * inParent.Height() / 100;
+    if (inJustify & vjBottomRatio)
+      inBounds.bottom = inBounds.bottom * inParent.Height() / 100;
+  }
+
+  if (justifyV) {
+    switch (inJustify & vjParentVMask) {
+      case vjParentCenterV: originV += (inParent.Height() - inBounds.Height()) / 2; break;
+      case vjParentBottomV: originV += inParent.Height(); break;
+      case vjParentFullV:   originV = 0; inBounds.top += inParent.top; inBounds.bottom += inParent.bottom; break;
+    }
+  }
+  if (justifyH) {
+    switch (inJustify & vjParentHMask) {
+      case vjParentCenterH: originH += (inParent.Width() - inBounds.Width()) / 2; break;
+      case vjParentRightH:  originH += inParent.Width(); break;
+      case vjParentFullH:   originH = 0; inBounds.left += inParent.left; inBounds.right += inParent.right; break;
+    }
+  }
+
   inBounds.left += originH; inBounds.right += originH;
   inBounds.top += originV; inBounds.bottom += originV;
   return inBounds;
+}
+
+// A bounds frame, {left, top, right, bottom}
+Ref BoundsFrame(const Bounds & inBounds)
+{
+  RefVar frame(AllocateFrame());
+  SetFrameSlot(frame, SYMA(left), MAKEINT(inBounds.left));
+  SetFrameSlot(frame, SYMA(top), MAKEINT(inBounds.top));
+  SetFrameSlot(frame, SYMA(right), MAKEINT(inBounds.right));
+  SetFrameSlot(frame, SYMA(bottom), MAKEINT(inBounds.bottom));
+  return frame;
+}
+
+// The link of an open view, or throw "nil view" (the ROM's FailGetView).
+Link * OpenLink(RefArg inContext)
+{
+  Link * link = Link::Of(inContext);
+  if (link == nullptr)
+    ThrowMsg("nil view");
+  return link;
 }
 
 // A view script, found through _proto only (CView::runScript): nil if the
@@ -228,6 +300,22 @@ int GroupLink::RemoveChild(Fl_Group * inGroup, int inIndex)
 }
 
 
+Bounds Link::JustifiedBounds()
+{
+  RefVar viewBounds(GetProtoVariable(fContext, SYMA(viewBounds)));
+  if (!IsFrame(viewBounds))
+    ThrowErr(exRootException, -8505);   // no view bounds
+  const Bounds * sibling = nullptr;
+  if (fParent) {
+    auto & siblings = fParent->fChildren;
+    for (size_t i = 1; i < siblings.size(); ++i)
+      if (siblings[i] == this) { sibling = &siblings[i - 1]->fBounds; break; }
+  }
+  return Justify(BoundsOf(viewBounds), IntSlot(fContext, "viewJustify"),
+                 fParent ? fParent->fBounds : AppArea(), sibling);
+}
+
+
 void Link::SendClose()
 {
   RefVar args(MakeArray(0));
@@ -244,13 +332,11 @@ Link * Build(RefArg inContext, Link * inParent)
   SetFrameSlot(inContext, SYMA(viewCObject), AddressToRef(link));
   newton_try
   {
+    link->fInSetupForm = true;
     RunScript(inContext, "viewSetupFormScript");
+    link->fInSetupForm = false;
 
-    RefVar viewBounds(GetProtoVariable(inContext, SYMA(viewBounds)));
-    if (!IsFrame(viewBounds))
-      ThrowErr(exRootException, -8505);   // no view bounds
-    link->fBounds = Justify(BoundsOf(viewBounds), IntSlot(inContext, "viewJustify"),
-                            inParent ? inParent->GlobalBounds() : AppArea());
+    link->fBounds = link->JustifiedBounds();
 
     RefVar declareSelf(GetProtoVariable(inContext, SYMA(declareSelf)));
     if (IsSymbol(declareSelf))
@@ -359,6 +445,68 @@ Ref CloseView(RefArg inContext)
     return NILREF;
   Dispose(link);
   return TRUEREF;
+}
+
+Ref GlobalBox(RefArg inContext)
+{
+  Link * link = OpenLink(inContext);
+  return BoundsFrame(link->fInSetupForm ? link->JustifiedBounds() : link->GlobalBounds());
+}
+
+
+Ref LocalBox(RefArg inContext)
+{
+  Link * link = OpenLink(inContext);
+  Bounds bounds = link->fInSetupForm ? link->JustifiedBounds() : link->GlobalBounds();
+  Bounds local;
+  local.right = bounds.Width();
+  local.bottom = bounds.Height();
+  return BoundsFrame(local);
+}
+
+
+Ref ChildViewFrames(RefArg inContext)
+{
+  Link * link = OpenLink(inContext);
+  RefVar frames(MakeArray(0));
+  for (Link * child : link->fChildren)
+    AddArraySlot(frames, child->Context());
+  return frames;
+}
+
+
+Ref HideView(RefArg inContext)
+{
+  Link * link = OpenLink(inContext);
+  if (!link->fHidden) {
+    link->fHidden = true;
+    link->Widget()->hide();
+    if (Fl_Group * parent = link->Widget()->parent())
+      parent->redraw();
+    RunScript(inContext, "viewHideScript");
+  }
+  return NILREF;
+}
+
+
+Ref ShowView(RefArg inContext)
+{
+  Link * link = OpenLink(inContext);
+  if (link->fHidden) {
+    link->fHidden = false;
+    link->Widget()->show();
+    RunScript(inContext, "viewShowScript");
+  }
+  return NILREF;
+}
+
+
+Ref DirtyView(RefArg inContext)
+{
+  Link * link = Link::Of(inContext);   // the ROM's FDirtyX: nothing to do if closed
+  if (link)
+    link->Widget()->redraw();
+  return NILREF;
 }
 
 } // namespace nfl

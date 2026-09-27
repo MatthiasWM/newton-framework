@@ -6,10 +6,6 @@
 
 #include "Host/Views.h"
 #include "Host/Root.h"
-#include "Utilities/Unimplemented.h"
-#if NEWTC_USES_FLTK
-#include "Host/FLTK/Links.h"
-#endif
 
 #include "Frames/Frames.h"
 #include "Frames/Lookup.h"
@@ -113,27 +109,3 @@ Ref FBuildContext(RefArg rcvr, RefArg inTemplate)
 {
   return BuildViewContext(inTemplate, true);
 }
-
-
-#if NEWTC_USES_FLTK
-
-// view:_Open() (the ROM's Open calls it): open the view with FLTK.
-Ref FOpenX(RefArg rcvr)
-{
-  return nfl::OpenView(rcvr);
-}
-
-// view:Close(): close it. (The ROM sends a close command that runs when the
-// events are handled; newtc closes at once.)
-Ref FCloseX(RefArg rcvr)
-{
-  return nfl::CloseView(rcvr);
-}
-
-#else
-
-// No views without FLTK (NEWTC_USES_FLTK): the stubs say so.
-NS_STUB(FOpenX, RefArg rcvr)
-NS_STUB(FCloseX, RefArg rcvr)
-
-#endif

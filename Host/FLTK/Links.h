@@ -31,8 +31,12 @@
  script returned 'postQuit; then the widget goes (a window closes).
  View scripts are found through _proto only, not _parent (as CView does).
 
- Not yet: sibling and ratio justification, reflow, allocateContext,
- hiding and showing, drawing, events other than closing a window.
+ The view methods (Host/ViewMethods.cc) act on a view's link: GlobalBox,
+ LocalBox, ChildViewFrames, Hide, Show, Dirty. Like the ROM's
+ (FailGetView), they throw "nil view" for a view that isn't open.
+
+ Not yet: reflow, allocateContext, drawing, events other than closing a
+ window.
  */
 
 #ifndef HOST_FLTK_LINKS_H
@@ -71,6 +75,10 @@ public:
   /** The user closed the view's window: view:Close(), as an event. */
   void SendClose();
 
+  /** The view's bounds on the display, from its viewBounds and viewJustify
+      now (in its parent, or its previous sibling). */
+  Bounds JustifiedBounds();
+
 protected:
   Link(RefArg inContext, Link * inParent);
 
@@ -85,9 +93,16 @@ protected:
   std::vector<Link *> fChildren;
   Bounds fBounds;
   Fl_Widget * fWidget = nullptr;
+  bool fInSetupForm = false;   // viewSetupFormScript runs (fBounds not set yet)
+  bool fHidden = false;        // Hide()
 
   friend Link * Build(RefArg inContext, Link * inParent);
   friend void Dispose(Link * inLink);
+  friend Ref GlobalBox(RefArg inContext);
+  friend Ref LocalBox(RefArg inContext);
+  friend Ref ChildViewFrames(RefArg inContext);
+  friend Ref HideView(RefArg inContext);
+  friend Ref ShowView(RefArg inContext);
 };
 
 /** A link whose widget holds the widgets of the view's children (a group,
@@ -127,6 +142,25 @@ Ref OpenView(RefArg inContext);
 /** view:Close() (FCloseX): close the view and its children. Returns true,
     nil if it wasn't open. */
 Ref CloseView(RefArg inContext);
+
+/** view:GlobalBox(), view:LocalBox(): the view's bounds on the display, or
+    with its top left at 0, 0 ({left, top, right, bottom}). While its
+    viewSetupFormScript runs, from its viewBounds as they are then (as the
+    ROM's CommonBox). */
+Ref GlobalBox(RefArg inContext);
+Ref LocalBox(RefArg inContext);
+
+/** view:ChildViewFrames(): the view frames of its open children. */
+Ref ChildViewFrames(RefArg inContext);
+
+/** view:Hide(), view:Show(): hide or show the view (viewHideScript,
+    viewShowScript). It stays open. (The ROM queues these; newtc does them
+    at once.) */
+Ref HideView(RefArg inContext);
+Ref ShowView(RefArg inContext);
+
+/** view:Dirty(): draw the view again. */
+Ref DirtyView(RefArg inContext);
 
 } // namespace nfl
 
