@@ -140,14 +140,10 @@ void		CRootView::update(Rect * inRect) { }
 
 
 extern "C" {
-Ref	FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref	FRefreshViews(RefArg inRcvr);
 }
 
-
-Ref
-FSetValue(RefArg inRcvr, RefArg inView, RefArg inTag, RefArg inValue)
-{ printf("SetValue(view, "); PrintObject(inTag, 0); printf(", "); PrintObject(inValue, 0); printf(")\n"); return NILREF; }
+// FSetValue: Host/ViewMethods.cc
 
 Ref
 FRefreshViews(RefArg inRcvr)

@@ -59,6 +59,7 @@ public:
   TextView(int x, int y, int w, int h, const std::string & inText,
            Fl_Font inFont, Fl_Fontsize inSize, Fl_Align inAlign);
   const std::string & Text() const { return fText; }
+  void Text(const std::string & inText) { fText = inText; redraw(); }
 protected:
   void draw() override;
 private:

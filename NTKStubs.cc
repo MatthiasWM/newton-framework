@@ -67,7 +67,6 @@ Ref FGetCaretInfo(RefArg rcvr);
 Ref FGetClipboard(RefArg rcvr);
 Ref FGetClipboardIcon(RefArg rcvr);
 Ref FGetDrawBoxX(RefArg rcvr);
-Ref FGetFlags(RefArg rcvr);
 Ref FGetFrameStuff(RefArg rcvr);
 Ref FGetHiliteOffsets(RefArg rcvr);
 Ref FGetId(RefArg rcvr);
@@ -148,7 +147,6 @@ Ref FNTKSend(RefArg rcvr);
 Ref FNextKeyView(RefArg rcvr);
 Ref FOffsetShape(RefArg rcvr);
 Ref FOffsetView(RefArg rcvr);
-Ref FParentX(RefArg rcvr);
 Ref FPenPos(RefArg rcvr);
 Ref FPendingImports(RefArg rcvr);
 Ref FPickViewKeyDown(RefArg rcvr);
@@ -274,7 +272,6 @@ NS_STUB(FGetCaretInfo, RefArg rcvr)
 NS_STUB(FGetClipboard, RefArg rcvr)
 NS_STUB(FGetClipboardIcon, RefArg rcvr)
 NS_STUB(FGetDrawBoxX, RefArg rcvr)
-NS_STUB(FGetFlags, RefArg rcvr)
 NS_STUB(FGetFrameStuff, RefArg rcvr)
 NS_STUB(FGetHiliteOffsets, RefArg rcvr)
 NS_STUB(FGetId, RefArg rcvr)
@@ -354,7 +351,6 @@ NS_STUB(FNTKSend, RefArg rcvr)
 NS_STUB(FNextKeyView, RefArg rcvr)
 NS_STUB(FOffsetShape, RefArg rcvr)
 NS_STUB(FOffsetView, RefArg rcvr)
-NS_STUB(FParentX, RefArg rcvr)
 NS_STUB(FPenPos, RefArg rcvr)
 NS_STUB(FPendingImports, RefArg rcvr)
 NS_STUB(FPickViewKeyDown, RefArg rcvr)

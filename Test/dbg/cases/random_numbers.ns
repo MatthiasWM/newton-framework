@@ -1,0 +1,12 @@
+// Random(low, high): an integer from low to high (B18: the port divided by
+// the range size instead of taking the remainder, so results were far out
+// of it). randomx(x): SANE's minimal standard generator, [x', x'] with
+// x' = 16807 x mod (2^31 - 1).
+DefGlobalVar('outside, 0);
+for i := 1 to 500 do begin
+  local r := Random(3, 8);
+  if r < 3 or r > 8 then outside := outside + 1;
+end;
+Print(["outside", outside]);
+Print(randomx(1));
+Print(randomx(16807));

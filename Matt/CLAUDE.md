@@ -458,9 +458,46 @@ Directory and namespace (decided, Matt, 2026-09-27):
       has none; Notify's alerts do (the alert's messageHIndent makes room):
       when Notify shows alerts, find their pictures in the ROM and draw them
       with RomImage().
-- [ ] 10.6 `-stubs report` on Hello and Battleship: the list of natives to
-      implement next.
-- [ ] 10.7 Battleship.
+- [x] 10.6 What Battleship needs (nBattleship 1.4, corpus
+      `unna2/development/source/nBattleship1.4/nBattleship 1.4 Code/`).
+      Two ways to count. Static: `Test/stub_census.py newtc pkg [--depth N]`
+      reads the package's code (and the ROM NewtonScript and protos it
+      reaches) and asks newtc what every global function and view method
+      is: stub, native, ROM NewtonScript, undefined (`StubName(fn)`: each
+      NS_STUB now records its function, Utilities/Unimplemented.h). Of 991
+      stubs, Battleship reaches 18 directly, 23 at depth 3 (Hello: 13, all
+      through ROM code: dragging, keys). Dynamic: running it (with a fake
+      System soup, below) until the next wall. Fixed on the way, since
+      they stopped it: allocateContext/stepAllocateContext and
+      preAllocatedContext (TView::Constructor, TView::AddView: children's
+      view frames made before viewSetupFormScript; protoLabelPicker),
+      Parent (FParentX), GetViewFlags (FGetFlags; Visible() uses it),
+      SetValue (was a printf in ObjectSystem.cc; now sets the slot and the
+      open view shows text and bounds), FontHeight, Random (B18), randomx.
+      Now its setup dialog opens, Play starts a game and shows the map.
+      Tests `fltk_view_values`, `random_numbers`, `stub_name`.
+- [ ] 10.7 Battleship, in this order (each a step of its own):
+  - [ ] 10.7a Soups: `StoreGetSoup` returns nil (B19), so Battleship can't
+        read its preferences (the System soup: Query, Add, EntryChange).
+  - [ ] 10.7b Pen strokes: a real unit for viewClickScript; GetPoint,
+        GetPointsArray, InkOff, Drag (dragging ships into place; floaters
+        too). Today the unit is nil.
+  - [ ] 10.7c Shapes and drawing: MakeRect, MakeRoundRect, MakeLine,
+        MakeShape (from a bitmap), MakePict, OffsetShape, DrawShape,
+        DoDrawing (also the alert's gyre, CopyBits); icons drawn with their
+        viewTransferMode (the map is a black-filled picture view: its grid
+        is invisible today); viewDrawScript for others.
+  - [ ] 10.7d Timers: AddDelayedAction/Call/Send, AddDeferredAction/Send/
+        Call (the computer's turns).
+  - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus), MoveBehind;
+        Newton's own characters (U+FC01, the picker diamond, shows as an
+        Arabic letter); Hide/Show of a view whose widget can't hold its
+        children (a paragraph's children stay visible).
+  - [ ] 10.7f The rest: keys (SetKeyView, SendKeyMessage, MatchKeyMessage,
+        RestoreKeyView), FontAscent, AddUndoAction, RelBounds, GetView,
+        TableLookup, SyncView, InkOff.
+  - [ ] 10.7g Hidden stubs: port functions that only print or return nil
+        without NS_STUB (SetValue was one; `-stubs report` can't see them).
 - Later: move EventLoop/TestWindow into `Host/FLTK/`; the FLTK layer as a
   library; Windows and Linux.
 
@@ -515,6 +552,12 @@ Interpreter and runtime
   Strategy (2026-09-26): every stub now says so when called (see
   Conventions, "Stubs"); `-stubs report` shows which ones real programs
   call, to choose what to implement next.
+- [ ] B19 **Soups are switched off**: `StoreGetSoup` (Stores/StoreWrapper.cc)
+  starts with `return NILREF;` ("MATT: TODO: KLUDGE: avoid an endless
+  loop ... alignment is off occasionally ... 64 bit members"), so
+  `GetStores()[0]:GetSoup("System")` is nil although GetSoupNames() lists
+  it, and Query(nil, ...) throws "Undefined method 'Query". Found running
+  Battleship (10.6), which keeps its preferences in the System soup.
 - [ ] B11 **Undefined behaviour when the store is created**: the first run
   with a new HOME (no store in `~/Library` yet) reports
   `Stores/FlashStore.cc:1896:35: runtime error: reference binding to null

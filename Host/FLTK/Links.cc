@@ -286,6 +286,36 @@ Fl_Image * RomIconOf(RefArg inContext, bool inInverted = false)
   return ISMAGICPTR(icon) ? RomImage(RVALUE(icon), inInverted) : nullptr;
 }
 
+// The children's view frames a view's scripts use before the children open
+// (TView::Constructor): allocateContext or stepAllocateContext, [slot,
+// template, ...]: each template's view frame, in the view's slot (e.g.
+// protoLabelPicker's entryLine, which its viewSetupFormScript sets up).
+void AllocateContexts(RefArg inContext, RefArg inSlot)
+{
+  RefVar list(GetProtoVariable(inContext, inSlot));
+  if (!IsArray(list))
+    return;
+  for (ArrayIndex i = 0, n = Length(list); i + 1 < n; i += 2) {
+    RefVar child(BuildViewContext(GetArraySlot(list, i + 1), true));
+    SetFrameSlot(child, SYMA(_parent), inContext);
+    SetFrameSlot(inContext, GetArraySlot(list, i), child);
+  }
+}
+
+// The view frame for a child template (TView::AddView): the one allocated
+// for it (its preAllocatedContext names the view's slot), if it is
+// visible; else a new one (nil if the template isn't visible).
+Ref ChildContext(RefArg inContext, RefArg inTemplate)
+{
+  RefVar tag(GetProtoVariable(inTemplate, SYMA(preAllocatedContext)));
+  if (NOTNIL(tag)) {
+    RefVar child(GetVariable(inContext, tag));
+    if (IsFrame(child))
+      return (IntSlot(child, "viewFlags") & vVisible) ? (Ref)child : NILREF;
+  }
+  return BuildViewContext(inTemplate, false);
+}
+
 // Widgets are added to their parent explicitly: FLTK must not add a new one
 // to the group made last (Fl_Group::current()).
 template <class W, class... Args> W * NewWidget(Args... args)
@@ -333,6 +363,15 @@ protected:
     box->labelsize(size);
     return box;
   }
+  void Update(RefArg inTag) override
+  {
+    if (EQ(inTag, SYMA(text))) {
+      std::string text = TextSlot(fContext, "text");
+      std::replace(text.begin(), text.end(), '\r', '\n');
+      fWidget->copy_label(text.c_str());
+    }
+    Link::Update(inTag);
+  }
 };
 
 
@@ -357,6 +396,12 @@ protected:
     view->color(color);
     view->FrameInset(fOutset);
     return view;
+  }
+  void Update(RefArg inTag) override
+  {
+    if (EQ(inTag, SYMA(text)))
+      static_cast<TextView *>(fWidget)->Text(TextSlot(fContext, "text"));
+    Link::Update(inTag);
   }
 };
 
@@ -582,6 +627,20 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
 }
 
 
+void Link::Update(RefArg inTag)
+{
+  if (EQ(inTag, SYMA(viewBounds)) || EQ(inTag, SYMA(viewJustify))) {
+    fBounds = JustifiedBounds();
+    if (fParent) {   // a window keeps its place (the user may have moved it)
+      fWidget->resize(WidgetX(), WidgetY(), WidgetW(), WidgetH());
+      if (Fl_Group * parent = fWidget->parent())
+        parent->redraw();
+    }
+  }
+  fWidget->redraw();
+}
+
+
 void Link::SetHilite(bool inOn)
 {
   if (fHilited == inOn)
@@ -626,6 +685,8 @@ Link * Build(RefArg inContext, Link * inParent)
   SetFrameSlot(inContext, SYMA(viewCObject), AddressToRef(link));
   newton_try
   {
+    AllocateContexts(inContext, SYMA(allocateContext));
+    AllocateContexts(inContext, SYMA(stepAllocateContext));
     link->fInSetupForm = true;
     RunScript(inContext, "viewSetupFormScript");
     link->fInSetupForm = false;
@@ -653,7 +714,7 @@ Link * Build(RefArg inContext, Link * inParent)
       if (!IsArray(list))
         continue;
       for (ArrayIndex i = 0, n = Length(list); i < n; ++i) {
-        RefVar child(BuildViewContext(GetArraySlot(list, i), false));
+        RefVar child(ChildContext(inContext, GetArraySlot(list, i)));
         if (NOTNIL(child))
           Build(child, link);
       }
@@ -862,6 +923,31 @@ Ref StrFontWidth(RefArg inString, RefArg inFontSpec)
   fl_open_display();   // measuring needs the display, even before a window
   fl_font(font, size);
   return MAKEINT(long(fl_width(UTF8FromString(inString).c_str()) + 0.5));
+}
+
+Ref FontHeight(RefArg inFontSpec)
+{
+  Fl_Font font;
+  Fl_Fontsize size;
+  FontFromSpec(inFontSpec, &font, &size);
+  fl_open_display();
+  fl_font(font, size);
+  return MAKEINT(fl_height());
+}
+
+Ref ViewFlags(RefArg inContext)
+{
+  Link * link = IsFrame(inContext) ? Link::Of(inContext) : nullptr;
+  if (link == nullptr)
+    return MAKEINT(0);
+  long flags = IntSlot(inContext, "viewFlags");
+  return MAKEINT(link->fHidden ? (flags & ~vVisible) : (flags | vVisible));
+}
+
+void ValueChanged(RefArg inContext, RefArg inTag)
+{
+  if (Link * link = IsFrame(inContext) ? Link::Of(inContext) : nullptr)
+    link->Update(inTag);
 }
 
 } // namespace nfl

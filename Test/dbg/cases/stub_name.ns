@@ -1,0 +1,6 @@
+// StubName(fn): the C name of a native newtc doesn't implement yet (an
+// NS_STUB), else nil (Test/stub_census.py uses it).
+Print(StubName(GetGlobalFn('MakeShape)));
+Print(StubName(GetGlobalFn('SetBounds)));   // implemented
+Print(StubName(GetGlobalFn('Visible)));     // NewtonScript
+Print(StubName(42));

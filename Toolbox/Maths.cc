@@ -308,7 +308,7 @@ FRandom(RefArg inRcvr, RefArg a, RefArg b)
 	int hi = RINT(b);
 	if (lo > hi)
 		ThrowErr(exFrames, kNSErrBadArgs);
-	return MAKEINT(lo + rand()/(hi-lo+1));
+	return MAKEINT(lo + rand() % (hi-lo+1));	// was rand()/(...): out of range (B18)
 }
 
 Ref
@@ -533,16 +533,18 @@ Fnextafterd(RefArg inRcvr, RefArg a, RefArg b)
 	return MakeReal(nextafter(x,y));
 }
 
-NS_STUB(Frandomx, RefArg inRcvr, RefArg inArg)
-// Ref
-// Frandomx(RefArg inRcvr, RefArg inArg)
-// {
-// 	double x = CoerceToDouble(inArg);
-// 	RefVar result(MakeArray(2));
-// //	SetArraySlot(result, 0, MakeReal(randomx(&x)));	// in CarbonCore fp.h
-// 	SetArraySlot(result, 1, MakeReal(x));
-// 	return result;
-// }
+// randomx(x) -> [random, x']: SANE's randomx (fp.h), the "minimal
+// standard" generator (Park and Miller): x' = 16807 * x mod (2^31 - 1), and
+// the random number is x'.
+Ref
+Frandomx(RefArg inRcvr, RefArg inArg)
+{
+	double x = fmod(16807.0 * CoerceToDouble(inArg), 2147483647.0);
+	RefVar result(MakeArray(2));
+	SetArraySlot(result, 0, MakeReal(x));
+	SetArraySlot(result, 1, MakeReal(x));
+	return result;
+}
 
 Ref
 Fremainder(RefArg inRcvr, RefArg a, RefArg b)

@@ -1161,6 +1161,9 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B18 **Random(low, high) is out of range** (Toolbox/Maths.cc): the port
+  computed `lo + rand()/(hi-lo+1)` instead of `%`. Found 2026-09-27 running
+  Battleship. Fixed the same day; test `random_numbers`.
 - [x] B17 **The interpreter's stacks are 4 KB** (ObjectSystem.cc
   `NewStack`): the port shrank the 64 KB a Newton gives them to 4 KB (512
   values), and nothing checks their bounds (on a Newton they grow in

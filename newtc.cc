@@ -104,6 +104,7 @@ static void defGlobalCFunction(const char *name, void *fn, int numArgs)
  */
 static void installNSDebugToolsNatives()
 {
+  defGlobalCFunction("StubName", (void*)FStubName, 1);   // Utilities/Unimplemented.h
   defGlobalCFunction("NSDInstallBreakPoints", (void*)FNSDInstallBreakPoints, 1);
   defGlobalCFunction("NSDEnableBreakPoints", (void*)FNSDEnableBreakPoints, 1);
   defGlobalCFunction("NSDMakeNSDebugAPI", (void*)FNSDMakeNSDebugAPI, 0);

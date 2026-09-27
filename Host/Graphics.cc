@@ -44,8 +44,14 @@ Ref FStrFontWidth(RefArg rcvr, RefArg inString, RefArg inFontSpec)
 {
   return nfl::StrFontWidth(inString, inFontSpec);
 }
+
+Ref FFontHeight(RefArg rcvr, RefArg inFontSpec)
+{
+  return nfl::FontHeight(inFontSpec);
+}
 #else
 NS_STUB(FStrFontWidth, RefArg rcvr, RefArg inString, RefArg inFontSpec)
+NS_STUB(FFontHeight, RefArg rcvr, RefArg inFontSpec)
 #endif
 
 }

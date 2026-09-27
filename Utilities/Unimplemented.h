@@ -46,10 +46,12 @@ struct StubInfo
   int line;
   bool nilIsOK;           // NS_STUB_NIL_OK: never logged or thrown
   bool cxx;               // CXX_STUB: never thrown
+  const void * function;  // NS_STUB: the stub's function (for StubName)
   long calls;
   char * message;         // "... is not implemented yet" (made on first use)
   StubInfo * next;        // all stubs, in a list
-  StubInfo(const char * inName, const char * inFile, int inLine, bool inNilIsOK, bool inCxx = false);
+  StubInfo(const char * inName, const char * inFile, int inLine, bool inNilIsOK, bool inCxx = false,
+           const void * inFunction = nullptr);
 };
 
 /** A NewtonScript stub was called: log, throw, or nothing (see above).
@@ -74,16 +76,23 @@ bool SetStubOptions(const char * inText);
 /** The report: which stubs were called, how often, out of how many. */
 std::string StubReport(void);
 
+/** The stub's C name if inFunction is a native function (a plain C
+    function object) whose C function is an NS_STUB, else nil.
+    NewtonScript: StubName(fn) (for finding the stubs a program uses). */
+extern "C" Ref FStubName(RefArg rcvr, RefArg inFunction);
+
 /** Where the log lines go (a line of text with a newline); stderr if NULL.
     newtc -dap sends them to the Debug Console. */
 extern void (*gStubNotify)(const char * inText);
 
 #define NS_STUB(name, ...) \
-  static StubInfo name##_stub(#name, __FILE__, __LINE__, false); \
+  Ref name(__VA_ARGS__); \
+  static StubInfo name##_stub(#name, __FILE__, __LINE__, false, false, (const void *)name); \
   Ref name(__VA_ARGS__) { return StubCalled(name##_stub); }
 
 #define NS_STUB_NIL_OK(name, ...) \
-  static StubInfo name##_stub(#name, __FILE__, __LINE__, true); \
+  Ref name(__VA_ARGS__); \
+  static StubInfo name##_stub(#name, __FILE__, __LINE__, true, false, (const void *)name); \
   Ref name(__VA_ARGS__) { return StubCalled(name##_stub); }
 
 #define CXX_STUB() \

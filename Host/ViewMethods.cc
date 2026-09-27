@@ -6,11 +6,31 @@
 
 #include "Host/ViewMethods.h"
 #include "Utilities/Unimplemented.h"
+#include "Frames/Frames.h"
+#include "Frames/Lookup.h"
+#include "Frames/Globals.h"
+#include "ROMResources.h"
 #if NEWTC_USES_FLTK
 #include "Host/FLTK/Links.h"
 #endif
 
 extern "C" {
+
+// As the ROM's: the _parent slot, open or not.
+Ref FParentX(RefArg rcvr)
+{
+  return GetProtoVariable(rcvr, SYMA(_parent));
+}
+
+// The slot is set with or without FLTK; an open view shows it.
+Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue)
+{
+  SetFrameSlot(inView, inTag, inValue);
+#if NEWTC_USES_FLTK
+  nfl::ValueChanged(inView, inTag);
+#endif
+  return NILREF;
+}
 
 #if NEWTC_USES_FLTK
 
@@ -24,6 +44,7 @@ Ref FChildViewFramesX(RefArg rcvr) { return nfl::ChildViewFrames(rcvr); }
 Ref FHideX(RefArg rcvr)            { return nfl::HideView(rcvr); }
 Ref FShowX(RefArg rcvr)            { return nfl::ShowView(rcvr); }
 Ref FDirtyX(RefArg rcvr)           { return nfl::DirtyView(rcvr); }
+Ref FGetFlags(RefArg rcvr, RefArg inView) { return nfl::ViewFlags(inView); }
 Ref FHiliteX(RefArg rcvr, RefArg inOn)        { return nfl::HiliteView(rcvr, inOn); }
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit) { return nfl::TrackHilite(rcvr, inUnit); }
 Ref FModalDialog(RefArg rcvr)                 { return nfl::ModalDialog(rcvr); }
@@ -40,6 +61,8 @@ NS_STUB(FChildViewFramesX, RefArg rcvr)
 NS_STUB(FHideX, RefArg rcvr)
 NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FDirtyX, RefArg rcvr)
+// no views open without FLTK
+Ref FGetFlags(RefArg rcvr, RefArg inView) { return MAKEINT(0); }
 NS_STUB(FHiliteX, RefArg rcvr, RefArg inOn)
 NS_STUB(FTrackHiliteX, RefArg rcvr, RefArg inUnit)
 NS_STUB(FModalDialog, RefArg rcvr)

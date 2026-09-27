@@ -1,0 +1,32 @@
+// 10.6 (needs FLTK): what Battleship needed to start. allocateContext:
+// protoLabelPicker (@190) sets up its entryLine child in its
+// viewSetupFormScript, before the children open (TView::Constructor
+// allocates them; preAllocatedContext reuses them). Parent(); Visible()
+// (GetViewFlags: vVisible off while hidden, 0 when closed); SetValue()
+// (the slot, and the open view shows it); FontHeight().
+DefGlobalVar('picker, nil);
+DefGlobalVar('button, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  stepChildren: [
+    {_proto: @190, text: "Comm", labelCommands: ["1 Newton"],
+     viewBounds: {left: 2, top: 10, right: 152, bottom: 0},
+     textSetup: func() labelCommands[0],
+     viewSetupDoneScript: func() picker := self},
+    {_proto: @226, text: "Play", viewBounds: {left: 10, top: 60, right: 60, bottom: 75},
+     viewSetupDoneScript: func() button := self}]}));
+app:Open();
+Print([IsFrame(picker.entryLine), picker.entryLine.text, picker.entryLine._parent = picker]);
+Print(picker:Parent() = app);
+Print([Visible(button), Visible(picker)]);
+button:Hide();
+Print(Visible(button));
+button:Show();
+Print(Visible(button));
+SetValue(button, 'text, "Deploy");
+Print(button.text);
+SetValue(button, 'viewBounds, {left: 20, top: 60, right: 90, bottom: 75});
+Print(button:GlobalBox());
+Print(FontHeight(button.viewFont) > 0);
+app:Close();
+Print(Visible(button));

@@ -26,10 +26,13 @@
  nfl::PictureView, a protoClosebox); any other view is a group for its
  children (ViewLink, nfl::Group) for now.
 
- Opening (FOpenX, the ROM's view:_Open(); CView::init): viewSetupFormScript;
+ Opening (FOpenX, the ROM's view:_Open(); CView::init): the view frames of
+ children its scripts use early (allocateContext, stepAllocateContext;
+ TView::Constructor); viewSetupFormScript;
  the bounds (viewBounds, placed in the parent with viewJustify); declareSelf;
  the widget; viewSetupChildrenScript; the children (viewChildren, then
- stepChildren: each a view frame from BuildContext, opened the same way);
+ stepChildren: each a view frame from BuildContext, or the one allocated
+ for it (preAllocatedContext), opened the same way);
  viewSetupDoneScript; then a window is shown, and viewShowScript runs.
  Closing (FCloseX, view:Close(); CView::dispose): viewQuitScript, viewCObject
  nil, the children closed the same way, viewPostQuitScript if the quit
@@ -48,7 +51,7 @@
  is inside, and returns true if the pen came up inside; then the script
  sends buttonClickScript() and Hilite(nil).
 
- Not yet: reflow, allocateContext, drawing by viewFormat for all views,
+ Not yet: reflow, drawing by viewFormat for all views,
  buttonPressedScript, the click sound, strokes and gestures.
  */
 
@@ -96,6 +99,10 @@ public:
       inWidget; for its handle(). Returns 1 if the view takes the pen. */
   int HandlePen(Fl_Widget * inWidget, int inEvent);
 
+  /** A slot of the view frame changed (SetValue): show it. The link
+      classes know their own slots (text); the bounds and a redraw here. */
+  virtual void Update(RefArg inTag);
+
   /** Hilite(), TrackHilite(): the widget draws the view hilited. */
   bool Hilited() const { return fHilited; }
 
@@ -141,6 +148,7 @@ protected:
   friend Ref ChildViewFrames(RefArg inContext);
   friend Ref HideView(RefArg inContext);
   friend Ref ShowView(RefArg inContext);
+  friend Ref ViewFlags(RefArg inContext);
   friend Ref HiliteView(RefArg inContext, RefArg inOn);
   friend Ref TrackHilite(RefArg inContext, RefArg inUnit);
   friend Ref SetupIdle(RefArg inContext, RefArg inMilliseconds);
@@ -206,6 +214,14 @@ Ref ShowView(RefArg inContext);
 /** view:Dirty(): draw the view again. */
 Ref DirtyView(RefArg inContext);
 
+/** SetValue(view, slot, value) set the slot: an open view shows it (its
+    text, its bounds; else it is drawn again). */
+void ValueChanged(RefArg inContext, RefArg inTag);
+
+/** GetViewFlags(view): its viewFlags now (vVisible off while hidden); 0 if
+    it isn't open (the ROM's FGetFlags). */
+Ref ViewFlags(RefArg inContext);
+
 /** view:Hilite(on): draw the view hilited (on: non-nil) or not. Nothing
     for a closed view (as the ROM). */
 Ref HiliteView(RefArg inContext, RefArg inOn);
@@ -228,6 +244,9 @@ Ref SetupIdle(RefArg inContext, RefArg inMilliseconds);
 
 /** StrFontWidth(string, fontSpec): the string's width in pixels. */
 Ref StrFontWidth(RefArg inString, RefArg inFontSpec);
+
+/** FontHeight(fontSpec): a line's height in pixels (ascent and descent). */
+Ref FontHeight(RefArg inFontSpec);
 
 /** The FLTK font for a font spec (a font frame or a packed integer). */
 void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize);

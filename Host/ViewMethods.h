@@ -12,7 +12,14 @@
        or with its top left at 0, 0 ({left, top, right, bottom}).
    view:ChildViewFrames() -> the view frames of its open children.
    view:Hide(), view:Show() -> hide or show the view (it stays open).
+   view:Parent() -> the view's parent view frame (_parent; also without
+       FLTK).
+   GetViewFlags(view) (FGetFlags) -> the open view's viewFlags as they are
+       now (vVisible off while hidden: Visible(view) uses it); 0 if it
+       isn't open.
    view:Dirty() -> draw the view again.
+   SetValue(view, slot, value) -> nil: sets the slot, and an open view
+       shows it (text, viewBounds, else it is drawn again).
    view:Hilite(on) -> draw the view hilited or not.
    view:TrackHilite(unit) -> in a viewClickScript: hilite the view while
        the pen is down inside it; true if it came up inside.
@@ -39,6 +46,9 @@ Ref FChildViewFramesX(RefArg rcvr);
 Ref FHideX(RefArg rcvr);
 Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
+Ref FParentX(RefArg rcvr);
+Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);
+Ref FGetFlags(RefArg rcvr, RefArg inView);
 Ref FHiliteX(RefArg rcvr, RefArg inOn);
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit);
 Ref FModalDialog(RefArg rcvr);

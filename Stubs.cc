@@ -693,7 +693,6 @@ Ref FTimeToPosition(RefArg rcvr);
 Ref FTestMGetReportMsg(RefArg rcvr);
 Ref FDeactivateTestAgent(RefArg rcvr);
 Ref FSetTimeHardware(RefArg rcvr);
-Ref FFontHeight(RefArg rcvr);
 Ref FGenPhrases(RefArg rcvr);
 Ref FNBPGetCount(RefArg rcvr);
 Ref FResetLetterDefaults(RefArg rcvr);
@@ -1420,7 +1419,6 @@ NS_STUB(FTimeToPosition, RefArg rcvr)
 NS_STUB(FTestMGetReportMsg, RefArg rcvr)
 NS_STUB(FDeactivateTestAgent, RefArg rcvr)
 NS_STUB(FSetTimeHardware, RefArg rcvr)
-NS_STUB(FFontHeight, RefArg rcvr)
 NS_STUB(FGenPhrases, RefArg rcvr)
 NS_STUB(FNBPGetCount, RefArg rcvr)
 NS_STUB(FResetLetterDefaults, RefArg rcvr)

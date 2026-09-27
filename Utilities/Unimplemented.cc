@@ -7,6 +7,8 @@
 
 #include "Unimplemented.h"
 #include "Frames/Frames.h"
+#include "Frames/Interpreter.h"
+#include "Frames/ObjHeader.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -21,9 +23,10 @@ static bool gStubReport = false;
 void (*gStubNotify)(const char * inText) = nullptr;
 
 
-StubInfo::StubInfo(const char * inName, const char * inFile, int inLine, bool inNilIsOK, bool inCxx)
+StubInfo::StubInfo(const char * inName, const char * inFile, int inLine, bool inNilIsOK, bool inCxx,
+                   const void * inFunction)
 : name(inName), file(inFile), line(inLine), nilIsOK(inNilIsOK), cxx(inCxx),
-  calls(0), message(nullptr), next(gStubs)
+  function(inFunction), calls(0), message(nullptr), next(gStubs)
 {
   gStubs = this;
 }
@@ -165,4 +168,17 @@ StubReport(void)
     text += line;
   }
   return text;
+}
+
+
+Ref
+FStubName(RefArg rcvr, RefArg inFunction)
+{
+  if (!IsFunction(inFunction) || GetArraySlotRef(inFunction, kFunctionClassIndex) != kPlainCFunctionClass)
+    return NILREF;
+  const void * function = (const void *)((ArrayObject *)ObjectPtr(inFunction))->slot[kPlainCFunctionPtrIndex];
+  for (StubInfo * stub = gStubs; stub != nullptr; stub = stub->next)
+    if (stub->function == function)
+      return MakeStringFromCString(stub->name);
+  return NILREF;
 }
