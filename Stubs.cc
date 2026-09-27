@@ -505,7 +505,6 @@ Ref FStdioOn(RefArg rcvr);
 Ref FConvertFromMP(RefArg rcvr);
 Ref FStrWidth(RefArg rcvr);
 Ref FSpellDocBegin(RefArg rcvr);
-Ref FFontLeading(RefArg rcvr);
 Ref FDisposeTrainingData(RefArg rcvr);
 Ref FCloseAppleTalk(RefArg rcvr);
 Ref FBackLightStatus(RefArg rcvr);
@@ -546,7 +545,6 @@ Ref FDrawMeetingGrid(RefArg rcvr);
 Ref FGetGlobals(RefArg rcvr);
 Ref FGetNames(RefArg rcvr);
 Ref FlocalVar(RefArg rcvr);
-Ref FFontDescent(RefArg rcvr);
 Ref FhasSiblingSlot(RefArg rcvr);
 Ref FBlockStrokes(RefArg rcvr);
 Ref FUnorderedLessOrEqual(RefArg rcvr);
@@ -713,7 +711,6 @@ Ref FGetEditArray(RefArg rcvr);
 Ref FCoordinateToLatitude(RefArg rcvr);
 Ref FLatitudeToCoordinate(RefArg rcvr);
 Ref FMapRect(RefArg rcvr);
-Ref FFontAscent(RefArg rcvr);
 Ref FWeekNumber(RefArg rcvr);
 Ref FGetMeetingTypeInfo(RefArg rcvr);
 Ref FGetNextMeetingTime(RefArg rcvr);
@@ -1224,7 +1221,6 @@ NS_STUB(FStdioOn, RefArg rcvr)
 NS_STUB(FConvertFromMP, RefArg rcvr)
 NS_STUB(FStrWidth, RefArg rcvr)
 NS_STUB(FSpellDocBegin, RefArg rcvr)
-NS_STUB(FFontLeading, RefArg rcvr)
 NS_STUB(FDisposeTrainingData, RefArg rcvr)
 NS_STUB(FCloseAppleTalk, RefArg rcvr)
 NS_STUB(FBackLightStatus, RefArg rcvr)
@@ -1265,7 +1261,6 @@ NS_STUB(FDrawMeetingGrid, RefArg rcvr)
 Ref FGetGlobals(RefArg rcvr) { return gVarFrame; }	// as in ROM: the global variables frame
 NS_STUB(FGetNames, RefArg rcvr)
 NS_STUB(FlocalVar, RefArg rcvr)
-NS_STUB(FFontDescent, RefArg rcvr)
 NS_STUB(FhasSiblingSlot, RefArg rcvr)
 NS_STUB(FBlockStrokes, RefArg rcvr)
 NS_STUB(FUnorderedLessOrEqual, RefArg rcvr)
@@ -1432,7 +1427,6 @@ NS_STUB(FGetEditArray, RefArg rcvr)
 NS_STUB(FCoordinateToLatitude, RefArg rcvr)
 NS_STUB(FLatitudeToCoordinate, RefArg rcvr)
 NS_STUB(FMapRect, RefArg rcvr)
-NS_STUB(FFontAscent, RefArg rcvr)
 NS_STUB(FWeekNumber, RefArg rcvr)
 NS_STUB(FGetMeetingTypeInfo, RefArg rcvr)
 NS_STUB(FGetNextMeetingTime, RefArg rcvr)

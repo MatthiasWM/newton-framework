@@ -184,19 +184,6 @@ Ref RunScript(RefArg inContext, const char * inScript)
   return DoProtoMessage(inContext, script, args);
 }
 
-// Newton's own characters (the Private Use Area of its fonts), as Unicode
-// shows them: U+FC01, the picker diamond, is BLACK DIAMOND U+25C6.
-std::string DisplayText(std::string inText)
-{
-  static const struct { const char * newton, * unicode; } kChars[] = {
-    { "\xEF\xB0\x81", "\xE2\x97\x86" },   // U+FC01 -> U+25C6
-  };
-  for (const auto & c : kChars)
-    for (size_t at = inText.find(c.newton); at != std::string::npos; at = inText.find(c.newton, at))
-      inText.replace(at, strlen(c.newton), c.unicode);
-  return inText;
-}
-
 std::string TextSlot(RefArg inContext, const char * inSlot)
 {
   RefVar text(GetProtoVariable(inContext, MakeSymbol(inSlot)));
@@ -295,7 +282,7 @@ NewtonBitmap IconOf(RefArg inContext)
 int FrameOutset(long inViewFormat)
 {
   long frame = (inViewFormat & vfFrameMask) >> vfFrameShift;
-  if (frame == vfDragger)
+  if (frame == vfDragger || frame == vfMatte)   // a floater's frame (Matt's FLOATER_BOX)
     return kDraggerBorderWidth;
   if (frame == vfNone)
     return 0;
@@ -375,27 +362,31 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    Fl_Box * box = NewWidget<Fl_Box>(WidgetX(), WidgetY(),
-                                     WidgetW(), WidgetH());
-    std::string text = TextSlot(fContext, "text");
-    std::replace(text.begin(), text.end(), '\r', '\n');   // a Newton new line
-    box->copy_label(text.c_str());
-    box->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP);
+    // a text view that wraps its lines (pen events, its viewFormat, what
+    // scripts draw: as the other views)
     Fl_Font font;
     Fl_Fontsize size;
     FontOf(fContext, &font, &size);
-    box->labelfont(font);
-    box->labelsize(size);
-    return box;
+    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
+                                          Text(), font, size, Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP));
+    Fl_Color color;
+    long viewFormat = IntSlot(fContext, "viewFormat");
+    view->box(BoxForFormat(viewFormat, &color));
+    view->color(color);
+    view->FrameInset(fOutset);
+    return view;
   }
   void Update(RefArg inTag) override
   {
-    if (EQ(inTag, SYMA(text))) {
-      std::string text = TextSlot(fContext, "text");
-      std::replace(text.begin(), text.end(), '\r', '\n');
-      fWidget->copy_label(text.c_str());
-    }
+    if (EQ(inTag, SYMA(text)))
+      static_cast<TextView *>(fWidget)->Text(Text());
     Link::Update(inTag);
+  }
+  std::string Text()
+  {
+    std::string text = TextSlot(fContext, "text");
+    std::replace(text.begin(), text.end(), '\r', '\n');   // a Newton new line
+    return text;
   }
 };
 
@@ -410,10 +401,10 @@ protected:
   {
     Fl_Font font;
     Fl_Fontsize size;
-    FontOf(fContext, &font, &size);
+    FontFromSpec(GetVariable(fContext, SYMA(viewFont)), &font, &size);
     TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(),
                                           WidgetW(), WidgetH(),
-                                          TextSlot(fContext, "text"), font, size,
+                                          Text(), font, size,
                                           AlignOf(IntSlot(fContext, "viewJustify")));
     Fl_Color color;
     long viewFormat = IntSlot(fContext, "viewFormat");
@@ -425,8 +416,16 @@ protected:
   void Update(RefArg inTag) override
   {
     if (EQ(inTag, SYMA(text)))
-      static_cast<TextView *>(fWidget)->Text(TextSlot(fContext, "text"));
+      static_cast<TextView *>(fWidget)->Text(Text());
     Link::Update(inTag);
+  }
+private:
+  // text and viewFont as NewtonScript finds them: in the view's protos, else
+  // in its parents' (protoCheckbox's clTextView child shows the checkbox's)
+  std::string Text()
+  {
+    RefVar text(GetVariable(fContext, SYMA(text)));
+    return IsString(text) ? DisplayText(UTF8FromString(text)) : std::string();
   }
 };
 
@@ -454,6 +453,26 @@ protected:
     view->color(color);
     return view;
   }
+  void Update(RefArg inTag) override
+  {
+    if (EQ(inTag, SYMA(icon)))
+      LoadIcon();
+    Link::Update(inTag);
+  }
+  void Dirty() override
+  {
+    LoadIcon();   // e.g. protoCheckbox: sets its icon slot, then Dirty()
+    Link::Dirty();
+  }
+private:
+  void LoadIcon()
+  {
+    PictureView * view = static_cast<PictureView *>(fWidget);
+    if (Fl_Image * image = RomIconOf(fContext))
+      view->Images(image, RomIconOf(fContext, true));
+    else
+      view->Icon(IconOf(fContext));
+  }
 };
 
 
@@ -475,7 +494,8 @@ protected:
     FloatNGo * window = NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
                                             int(fBounds.Width() + 2 * fOutset), int(fBounds.Height() + 2 * fOutset),
                                             title.c_str(), this);
-    if (((viewFormat & vfFrameMask) >> vfFrameShift) != vfDragger) {
+    long frame = (viewFormat & vfFrameMask) >> vfFrameShift;
+    if (frame != vfDragger && frame != vfMatte) {
       Fl_Color color;   // not a floater: e.g. an alert
       window->box(BoxForFormat(viewFormat, &color));
       window->color(color);
@@ -504,6 +524,25 @@ Link * NewLink(RefArg inContext, Link * inParent)
 } // namespace
 
 
+// Newton's own characters (the Private Use Area of its fonts), as Unicode
+// shows them: U+FC01, the picker diamond, is BLACK DIAMOND U+25C6.
+std::string DisplayText(std::string inText)
+{
+  static const struct { const char * newton, * unicode; } kChars[] = {
+    { "\xEF\xB0\x81", "\xE2\x97\x86" },   // U+FC01 -> U+25C6 (the picker diamond)
+    { "\xEF\xB0\x8B", "\xE2\x9C\x93" },   // U+FC0B -> U+2713 (the check mark)
+  };
+  for (const auto & c : kChars)
+    for (size_t at = inText.find(c.newton); at != std::string::npos; at = inText.find(c.newton, at))
+      inText.replace(at, strlen(c.newton), c.unicode);
+  return inText;
+}
+
+
+// The view whose viewClickScript took the pen down: it gets the pen's moves
+// and its coming up, whichever widget FLTK gives them to.
+static Link * gPenOwner = nullptr;
+
 Link::Link(RefArg inContext, Link * inParent)
 : fContext(inContext), fParent(inParent)
 {
@@ -514,6 +553,8 @@ Link::Link(RefArg inContext, Link * inParent)
 
 Link::~Link()
 {
+  if (gPenOwner == this)
+    gPenOwner = nullptr;
   delete fCanvas;
   delete fMask;
   delete fOverlay;
@@ -631,6 +672,15 @@ PenPoint Link::PenAt(Fl_Widget * inWidget)
 }
 
 
+void Link::ScreenPoint(long inX, long inY, int * outX, int * outY)
+{
+  Link * window = Window();
+  Fl_Window * fltkWindow = window->fWidget->as_window();
+  *outX = int(fltkWindow->x_root() + inX - window->fBounds.left + window->fOutset);
+  *outY = int(fltkWindow->y_root() + inY - window->fBounds.top + window->fOutset);
+}
+
+
 void Link::MoveBy(long inDX, long inDY)
 {
   if (inDX == 0 && inDY == 0)
@@ -672,37 +722,51 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
     case FL_PUSH: {
       if ((IntSlot(fContext, "viewFlags") & vClickable) == 0)
         return 0;
-      fPenDown = fPenInside = true;
-      fStroke = Stroke::Begin(PenAt(inWidget));
+      Stroke * stroke = Stroke::Begin(PenAt(inWidget));
       // FLTK makes the widget the pushed one only after this returns; but
       // TrackHilite() waits for the pen to come up in here
       Fl::pushed(inWidget);
       RefVar args(MakeArray(1));
-      SetArraySlot(args, 0, fStroke->Unit());
-      SendViewEvent(fContext, "viewClickScript", args);
-      // the script may have closed the view: this link may be gone
+      SetArraySlot(args, 0, stroke->Unit());
+      // the view, and if its viewClickScript doesn't take the pen (returns
+      // nil), the clickable views it is in, as on a Newton
+      RefVar context(fContext);
+      for (Link * link = this; link != nullptr; ) {
+        RefVar parent(link->fParent ? (Ref)link->fParent->fContext : NILREF);
+        if (IntSlot(context, "viewFlags") & vClickable) {
+          gPenOwner = link;
+          link->fPenDown = link->fPenInside = true;
+          link->fStroke = stroke;
+          RefVar taken(SendViewEvent(context, "viewClickScript", args));
+          // the script may have closed the view: this link may be gone
+          if (NOTNIL(taken) || Link::Of(context) != link)
+            break;
+          link->fPenDown = false;
+        }
+        context = parent;
+        link = IsFrame(parent) ? Link::Of(parent) : nullptr;
+      }
       return 1;
     }
     case FL_DRAG:
-      if (fPenDown) {
-        fStroke->Add(PenAt(inWidget));
-        bool inside = Fl::event_inside(inWidget);
-        if (inside != fPenInside) {
-          fPenInside = inside;
-          if (fTracking)
-            SetHilite(inside);
-        }
-        return 1;
+    case FL_RELEASE: {
+      Link * owner = gPenOwner ? gPenOwner : this;
+      if (!owner->fPenDown)
+        return 0;
+      owner->fStroke->Add(owner->PenAt(inWidget));
+      bool inside = Fl::event_inside(owner->fWidget);
+      if (inEvent == FL_RELEASE) {
+        owner->fStroke->End(owner->PenAt(inWidget));
+        owner->fPenInside = inside;
+        owner->fPenDown = false;
+        gPenOwner = nullptr;
+      } else if (inside != owner->fPenInside) {
+        owner->fPenInside = inside;
+        if (owner->fTracking)
+          owner->SetHilite(inside);
       }
-      return 0;
-    case FL_RELEASE:
-      if (fPenDown) {
-        fStroke->End(PenAt(inWidget));
-        fPenInside = Fl::event_inside(inWidget);
-        fPenDown = false;
-        return 1;
-      }
-      return 0;
+      return 1;
+    }
   }
   return 0;
 }
@@ -719,6 +783,13 @@ void Link::Update(RefArg inTag)
         parent->redraw();
     }
   }
+  fWidget->redraw();
+}
+
+
+void Link::Dirty()
+{
+  DropCanvas();   // drawn anew: what scripts drew is gone
   fWidget->redraw();
 }
 
@@ -930,6 +1001,23 @@ Ref ChildViewFrames(RefArg inContext)
 }
 
 
+// A view that can't hold widgets (a paragraph) has its children's widgets in
+// the window (see Build): they hide and show with it. Children in the view's
+// own group do that anyway.
+void Link::ShowOutsideChildren(bool inShow)
+{
+  for (Link * child : fChildren) {
+    if (child->fWidget->parent() == fWidget)
+      continue;
+    if (inShow && !child->fHidden)
+      child->fWidget->show();
+    else
+      child->fWidget->hide();
+    child->ShowOutsideChildren(inShow && !child->fHidden);
+  }
+}
+
+
 Ref HideView(RefArg inContext)
 {
   Link * link = OpenLink(inContext);
@@ -937,6 +1025,7 @@ Ref HideView(RefArg inContext)
     link->fHidden = true;
     link->DropCanvas();
     link->Widget()->hide();
+    link->ShowOutsideChildren(false);
     if (Fl_Group * parent = link->Widget()->parent())
       parent->redraw();
     RunScript(inContext, "viewHideScript");
@@ -952,6 +1041,7 @@ Ref ShowView(RefArg inContext)
     link->fHidden = false;
     link->DropCanvas();
     link->Widget()->show();
+    link->ShowOutsideChildren(true);
     RunScript(inContext, "viewShowScript");
   }
   return NILREF;
@@ -961,10 +1051,8 @@ Ref ShowView(RefArg inContext)
 Ref DirtyView(RefArg inContext)
 {
   Link * link = Link::Of(inContext);   // the ROM's FDirtyX: nothing to do if closed
-  if (link) {
-    link->DropCanvas();   // drawn anew: what scripts drew is gone
-    link->Widget()->redraw();
-  }
+  if (link)
+    link->Dirty();
   return NILREF;
 }
 
@@ -1025,6 +1113,23 @@ Ref StrFontWidth(RefArg inString, RefArg inFontSpec)
   fl_font(font, size);
   return MAKEINT(long(fl_width(UTF8FromString(inString).c_str()) + 0.5));
 }
+
+// FontAscent(fontSpec), FontDescent(fontSpec), FontLeading(fontSpec):
+// inWhich 1, 2, 3 (FLTK has no leading: 0).
+Ref FontMetric(RefArg inFontSpec, int inWhich)
+{
+  Fl_Font font;
+  Fl_Fontsize size;
+  FontFromSpec(inFontSpec, &font, &size);
+  fl_open_display();
+  fl_font(font, size);
+  switch (inWhich) {
+    case 1: return MAKEINT(fl_height() - fl_descent());
+    case 2: return MAKEINT(fl_descent());
+  }
+  return MAKEINT(0);
+}
+
 
 Ref FontHeight(RefArg inFontSpec)
 {

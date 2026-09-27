@@ -67,6 +67,8 @@
 class Fl_Image_Surface;
 class Fl_RGB_Image;
 
+#include <functional>
+#include <string>
 #include <vector>
 
 namespace nfl {
@@ -109,6 +111,12 @@ public:
   /** A slot of the view frame changed (SetValue): show it. The link
       classes know their own slots (text); the bounds and a redraw here. */
   virtual void Update(RefArg inTag);
+  /** view:Dirty(): drawn anew (a view that reads its slots when it draws on
+      a Newton reads them again). */
+  virtual void Dirty();
+
+  /** A point on the Newton display, on the screen (via the view's window). */
+  void ScreenPoint(long inX, long inY, int * outX, int * outY);
 
   /** Move the view, its children and their widgets by dx, dy (Drag). A
       window moves on the desktop. */
@@ -158,11 +166,12 @@ protected:
   PenPoint PenAt(Fl_Widget * inWidget);
   void OffsetBounds(long inDX, long inDY);
   void Place();
+  void ShowOutsideChildren(bool inShow);   // see HideView
   Stroke * fStroke = nullptr;  // the stroke of the pen down on the view
   Fl_Image_Surface * fCanvas = nullptr;   // what scripts drew (Drawing.h),
   Fl_Image_Surface * fMask = nullptr;     // which pixels they drew,
   Fl_RGB_Image * fOverlay = nullptr;      // and both, to draw on top
-  friend Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle);
+  friend void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw);
   friend void DrawOverlay(Fl_Widget * inWidget);
   void SetupIdle(long inMilliseconds);
   static void IdleTimeout(void * inLink);
@@ -284,6 +293,13 @@ Ref StrFontWidth(RefArg inString, RefArg inFontSpec);
 
 /** FontHeight(fontSpec): a line's height in pixels (ascent and descent). */
 Ref FontHeight(RefArg inFontSpec);
+
+/** FontAscent (inWhich 1), FontDescent (2), FontLeading (3: 0 here). */
+Ref FontMetric(RefArg inFontSpec, int inWhich);
+
+/** Text for FLTK (UTF-8) with Newton's own characters (U+FC01 the picker
+    diamond, U+FC0B the check mark, ...) as Unicode shows them. */
+std::string DisplayText(std::string inText);
 
 /** The FLTK font for a font spec (a font frame or a packed integer). */
 void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize);

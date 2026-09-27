@@ -1,0 +1,57 @@
+// 10.7e (needs FLTK): details Battleship's settings show. protoCheckbox
+// (@164) sets its icon slot and calls Dirty(): a picture view reads its
+// icon again. Its clTextView child has no text of its own: it finds the
+// checkbox's (NewtonScript looks up the _parent chain, too). A paragraph
+// can't hold widgets, so its children's are in the window: they hide and
+// show with it. DrawXBitmap(bounds, strip, index, mode) draws on self the index-th
+// bounds-sized cell of a strip (the status bar's clock: its hands).
+DefGlobalVar('check, nil);
+DefGlobalVar('para, nil);
+DefGlobalVar('canvasView, nil);
+DefGlobalVar('strip, {bounds: {left: 0, top: 0, right: 16, bottom: 8},
+  bits: MakeBinaryFromHex("0000000000020000000000000008001000FF00FF00FF00FF00FF00FF00FF00FF", 'bits)});
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 30, right: 220, bottom: 200},
+  stepChildren: [
+    {_proto: @164, text: "Notify", viewValue: true,
+     viewBounds: {left: 10, top: 10, right: 150, bottom: 24},
+     viewSetupDoneScript: func() begin inherited:?viewSetupDoneScript(); check := self end},
+    {viewClass: 81, viewFlags: 1, text: "", viewBounds: {left: 10, top: 40, right: 150, bottom: 54},
+     viewSetupDoneScript: func() para := self,
+     stepChildren: [{viewClass: 74, viewFlags: 1, viewFormat: 5,
+                     viewBounds: {left: 0, top: 0, right: 20, bottom: 14}}]},
+    {viewClass: 74, viewFlags: 1, viewBounds: {left: 10, top: 70, right: 150, bottom: 90},
+     viewSetupDoneScript: func() canvasView := self,
+     viewDrawScript: func() begin   // a global function: draws on self
+       DrawXBitmap({left: 0, top: 0, right: 8, bottom: 8}, strip, 1, nil);    // black
+       :DrawShape(MakeRect(10, 0, 40, 8), {fillPattern: 5});
+       DrawXBitmap({left: 10, top: 0, right: 18, bottom: 8}, strip, 0, nil);  // copy: white
+       DrawXBitmap({left: 20, top: 0, right: 28, bottom: 8}, strip, 0, 1);    // or: nothing
+     end}]}));
+app:Open();
+
+func Blacks(view, left, top, right, bottom) begin
+  local n := 0;
+  for y := top to bottom - 1 do
+    for x := left to right - 1 do
+      if TestPixel(view, x, y) < 128 then n := n + 1;
+  n
+end;
+
+TestLater(func() begin
+  DefGlobalVar('checked, Blacks(check, 7, 0, 14, 4));   // the check's top
+  Print(["label", Blacks(check, 16, 7, 60, 8) > 0]);
+  Print(["DrawXBitmap", TestPixel(canvasView, 4, 4), TestPixel(canvasView, 14, 4), TestPixel(canvasView, 24, 4)]);
+  Print(["paragraph's child", TestPixel(para, 1, 1)]);
+  para:Hide();
+  check:SetCheck(nil);
+end);
+TestLater(func() begin
+  Print(["unchecked has fewer black pixels", Blacks(check, 7, 0, 14, 4) < checked]);
+  Print(["hidden with it", TestPixel(para, 1, 1)]);
+  para:Show();
+end);
+TestLater(func() begin
+  Print(["shown with it", TestPixel(para, 1, 1)]);
+  app:Close();
+end);

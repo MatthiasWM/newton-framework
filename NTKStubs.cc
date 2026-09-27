@@ -33,7 +33,6 @@ Ref FDeleteX(RefArg rcvr);
 Ref FDirtyBoxX(RefArg rcvr);
 Ref FDismissPopup(RefArg rcvr);
 Ref FDisplaySplashGraphic(RefArg rcvr);
-Ref FDoPopup(RefArg rcvr);
 Ref FDoScrubEffect(RefArg rcvr);
 Ref FDragAndDrop(RefArg rcvr);
 Ref FDragAndDropLtd(RefArg rcvr);
@@ -77,7 +76,6 @@ Ref FGetStylesOfRange(RefArg rcvr);
 Ref FGetTextFlags(RefArg rcvr);
 Ref FGetTrueModifiers(RefArg rcvr);
 Ref FGetUndoState(RefArg rcvr);
-Ref FGetView(RefArg rcvr);
 Ref FGetWordArray(RefArg rcvr);
 Ref FGlobalOuterBoxX(RefArg rcvr);
 Ref FHandleInkWord(RefArg rcvr);
@@ -211,7 +209,6 @@ NS_STUB(FDeleteX, RefArg rcvr)
 NS_STUB(FDirtyBoxX, RefArg rcvr)
 NS_STUB(FDismissPopup, RefArg rcvr)
 NS_STUB(FDisplaySplashGraphic, RefArg rcvr)
-NS_STUB(FDoPopup, RefArg rcvr)
 NS_STUB(FDoScrubEffect, RefArg rcvr)
 NS_STUB(FDragAndDrop, RefArg rcvr)
 NS_STUB(FDragAndDropLtd, RefArg rcvr)
@@ -254,7 +251,6 @@ NS_STUB(FGetStylesOfRange, RefArg rcvr)
 NS_STUB(FGetTextFlags, RefArg rcvr)
 NS_STUB(FGetTrueModifiers, RefArg rcvr)
 NS_STUB(FGetUndoState, RefArg rcvr)
-NS_STUB(FGetView, RefArg rcvr)
 NS_STUB(FGetWordArray, RefArg rcvr)
 NS_STUB(FGlobalOuterBoxX, RefArg rcvr)
 NS_STUB(FHandleInkWord, RefArg rcvr)

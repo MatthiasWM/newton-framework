@@ -31,7 +31,6 @@ extern "C" {
 Ref		FPictureBounds(RefArg inRcvr, RefArg inPicture);
 Ref		FPictToShape(RefArg inRcvr, RefArg inPicture);
 Ref		FCopyBits(RefArg inRcvr, RefArg inImage, RefArg inX, RefArg inY, RefArg inTransferMode);
-Ref		FDrawXBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3);
 Ref		FGrayShrink(RefArg inRcvr, RefArg inArg1, RefArg inArg2);
 Ref		FDrawIntoBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3);
 Ref		FViewIntoBitmap(RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3);
@@ -744,7 +743,6 @@ FCopyBits(RefArg inRcvr, RefArg inImage, RefArg inX, RefArg inY, RefArg inTransf
 }
 
 
-NS_STUB(FDrawXBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
 NS_STUB(FGrayShrink, RefArg inRcvr, RefArg inArg1, RefArg inArg2)
 NS_STUB(FDrawIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
 NS_STUB(FViewIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)

@@ -9,6 +9,8 @@
    StrFontWidth(string, fontSpec) -> the string's width in pixels in that
        font (with FLTK: Host/FLTK/Links.h; without, a stub)
    FontHeight(fontSpec) -> a line's height in pixels (the same)
+   FontAscent, FontDescent, FontLeading(fontSpec) -> its parts (no
+       leading in FLTK: 0)
  */
 
 #ifndef HOST_GRAPHICS_H
@@ -22,6 +24,9 @@ Ref FOffsetRect(RefArg rcvr, RefArg ioRect, RefArg inDeltaH, RefArg inDeltaV);
 Ref FRelBounds(RefArg rcvr, RefArg inLeft, RefArg inTop, RefArg inWidth, RefArg inHeight);
 Ref FStrFontWidth(RefArg rcvr, RefArg inString, RefArg inFontSpec);
 Ref FFontHeight(RefArg rcvr, RefArg inFontSpec);
+Ref FFontAscent(RefArg rcvr, RefArg inFontSpec);
+Ref FFontDescent(RefArg rcvr, RefArg inFontSpec);
+Ref FFontLeading(RefArg rcvr, RefArg inFontSpec);
 }
 
 #endif // HOST_GRAPHICS_H

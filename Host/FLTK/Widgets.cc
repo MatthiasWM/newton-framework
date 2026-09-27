@@ -133,6 +133,23 @@ PictureView::PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Imag
 PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign)
 : ViewWidget(x, y, w, h), fAlign(inAlign)
 {
+  Icon(inIcon);
+}
+
+
+void PictureView::Images(Fl_Image * inImage, Fl_Image * inHilited)
+{
+  fBitmap.reset();
+  fXbm.clear();
+  fImage = inImage;
+  fHilitedImage = inHilited;
+  redraw();
+}
+
+
+void PictureView::Icon(const NewtonBitmap & inIcon)
+{
+  Images(nullptr, nullptr);
   if (inIcon.width <= 0 || inIcon.height <= 0)
     return;
   // XBM, as Fl_Bitmap wants it: the leftmost pixel in the low bit

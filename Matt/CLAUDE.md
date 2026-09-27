@@ -559,7 +559,7 @@ Directory and namespace (decided, Matt, 2026-09-27):
         ops; Matt: left out on purpose; pixels by hand if an app needs
         them), CopyBits (the alert's gyre), transform scaling, regions,
         ink, a real PICT from MakePict, DrawXBitmap (a stub Battleship
-        calls: the dashed square in its setup dialog?).
+        calls; it was the status bar's clock: done in 10.7e).
         After Matt's screenshots of nBattleship 2.5 on a Newton
         (Screenshot1-5.jpg, not in git): groups draw their viewFormat
         (DrawViewFormat: fill, and the frame outside the bounds, pen wide;
@@ -586,17 +586,48 @@ Directory and namespace (decided, Matt, 2026-09-27):
         timeouts first, then waits: so the loop waits until the next call
         at most. Ticks are 60 a second (B25). Test `timers` (both builds).
         Battleship: a whole turn, the computer answering after its delay.
-  - [ ] 10.7e Pickers: DoPopup (protoLabelPicker's menus; the info
-        button's menu: About, Help, a line, New Game), MoveBehind;
-        protoCheckbox (its box and text: "Notify when ships are sunk");
-        protoTitle's underline; the floater's dragger (a bump at the top
-        center); the handwriting font of the pickers' values (Matt's);
-        Newton's own characters (U+FC01, the picker diamond, shows as an
-        Arabic letter); Hide/Show of a view whose widget can't hold its
-        children (a paragraph's children stay visible).
+  - [ ] 10.7e Pickers and the settings' details.
+        Done: DoPopup (Host/FLTK/Popup.{h,cc}): the items (strings;
+        frames with item, mark, pickable nil; 'pickSeparator a divider) as
+        an Fl_Menu_Item array at the given place (a bounds frame, or left,
+        top in the view), Helvetica bold 12; the pick goes to the context
+        after the script (AddDeferredSend): pickActionScript(index in the
+        items, separators counted) or pickCancelledScript.
+        protoLabelPicker opens its labelCommands with the current one
+        checked (U+FC0B shows as a check mark). Paragraphs are TextViews
+        (the pen reaches them); a viewClickScript that returns nil passes
+        the pen to the parent (the entryLine's to the picker). FontAscent,
+        FontDescent, FontLeading (nfl::FontMetric); GetView. TestPick(n)
+        answers the next menu (nil: cancel; a queue). Test `fltk_popup`.
+        Matt asked why Battleship's window had a plain frame: its
+        viewFormat 0x50103F1 is a matte frame (vfMatte, pen 3, inset 1,
+        round 5), which got the button box; matte frames are floaters now
+        (FLOATER_BOX and the dragger's outset, as vfDragger).
+        The Comm picker showed over Difficulty (vjSiblingFullV: both in
+        one place, the app hides one): Hide/Show of a view whose widget
+        can't hold children (a paragraph: its children's widgets are in
+        the window) now hides and shows them too.
+        protoCheckbox: its UpdateBitmap sets the icon slot and calls
+        Dirty(): a picture view reads its icon again on Dirty (and on
+        SetValue 'icon); its clTextView child has no text or viewFont of
+        its own and finds the checkbox's (NewtonScript's lookup goes up
+        the _parent chain: TextLink uses GetVariable). The dashed square
+        is the ROM's offBitmap, as on a Newton.
+        DrawXBitmap(bounds, strip, index, mode), a global function that
+        draws on self (4 arguments; the port's stub had 3): the index-th
+        bounds-sized cell of a strip, mode as transferMode (nil: copy). The
+        status bar's clock draws its face and hands with it (smallClocks:
+        24 cells of 17 by 17). DrawShape and DrawXBitmap share DrawOnView
+        (onto the widget in a viewDrawScript, else canvas and mask).
+        Test `fltk_view_details`.
+        Open: MoveBehind; the floater's dragger (a bump at the top center;
+        Matt's box); the handwriting font of the pickers' values (Matt's);
+        icons in menus (Fl_Menu_Item can have them); the status bar's
+        clock overlaps the info button a little.
   - [ ] 10.7f The rest: keys (SetKeyView, SendKeyMessage, MatchKeyMessage,
-        RestoreKeyView), FontAscent, AddUndoAction, RelBounds, GetView,
-        TableLookup, SyncView, InkOff.
+        RestoreKeyView), AddUndoAction (protoCheckbox's ToggleCheck calls
+        it), TableLookup, SyncView. (FontAscent and GetView: 10.7e;
+        RelBounds and InkOff: 10.7b.)
   - [ ] 10.7g Hidden stubs: port functions that only print or return nil
         without NS_STUB (SetValue was one; `-stubs report` can't see them).
 - Later: move EventLoop/TestWindow into `Host/FLTK/`; the FLTK layer as a

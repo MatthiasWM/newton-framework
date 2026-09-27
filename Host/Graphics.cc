@@ -57,9 +57,16 @@ Ref FFontHeight(RefArg rcvr, RefArg inFontSpec)
 {
   return nfl::FontHeight(inFontSpec);
 }
+
+Ref FFontAscent(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 1); }
+Ref FFontDescent(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 2); }
+Ref FFontLeading(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 3); }
 #else
 NS_STUB(FStrFontWidth, RefArg rcvr, RefArg inString, RefArg inFontSpec)
 NS_STUB(FFontHeight, RefArg rcvr, RefArg inFontSpec)
+NS_STUB(FFontAscent, RefArg rcvr, RefArg inFontSpec)
+NS_STUB(FFontDescent, RefArg rcvr, RefArg inFontSpec)
+NS_STUB(FFontLeading, RefArg rcvr, RefArg inFontSpec)
 #endif
 
 }

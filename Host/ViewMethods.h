@@ -21,6 +21,9 @@
    view:Drag(unit, bounds) -> the view follows the pen until it comes up.
    view:DrawShape(shape, style), view:DoDrawing(method, args) -> draw on
        the view (Host/FLTK/Drawing.h).
+   DoPopup(items, bounds or left, top, context) -> a popup menu
+       (Host/FLTK/Popup.h); nil.
+   GetView(view) -> the view frame if it is open, else nil.
    SetValue(view, slot, value) -> nil: sets the slot, and an open view
        shows it (text, viewBounds, else it is drawn again).
    view:Hilite(on) -> draw the view hilited or not.
@@ -51,7 +54,10 @@ Ref FShowX(RefArg rcvr);
 Ref FDirtyX(RefArg rcvr);
 Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds);
 Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle);
+Ref FDoPopup(RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext);
+Ref FGetView(RefArg rcvr, RefArg inView);
 Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs);
+Ref FDrawXBitmap(RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
 Ref FParentX(RefArg rcvr);
 Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref FGetFlags(RefArg rcvr, RefArg inView);

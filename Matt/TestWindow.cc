@@ -16,6 +16,7 @@
 #include "Matt/TestWindow.h"
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Widgets.h"
+#include "Host/FLTK/Popup.h"
 #include "Matt/EventLoop.h"
 #include "Matt/JSON.h"
 
@@ -377,6 +378,12 @@ Ref FTestPixel(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY)
   int d = image->d();
   int gray = d >= 3 ? (p[0] + p[1] + p[2]) / 3 : p[0];
   return MAKEINT(gray);
+}
+
+Ref FTestPick(RefArg rcvr, RefArg inEntry)
+{
+  nfl::TestPick(inEntry);
+  return NILREF;
 }
 
 #endif // NEWTC_USES_FLTK

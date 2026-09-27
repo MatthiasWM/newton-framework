@@ -716,7 +716,7 @@ if (NEWTC_USES_FLTK)
     Host/FLTK/Links.cc Host/FLTK/Links.h
     Host/FLTK/FloatNGo.cc Host/FLTK/FloatNGo.h
     Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Pen.cc Host/FLTK/Pen.h
-    Host/FLTK/Drawing.cc Host/FLTK/Drawing.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
+    Host/FLTK/Drawing.cc Host/FLTK/Drawing.h Host/FLTK/Popup.cc Host/FLTK/Popup.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
   # the ROM's graphics, lifted into PNGs (Host/FLTK/Images), compiled in

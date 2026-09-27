@@ -24,6 +24,7 @@
 #include "ROMResources.h"
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 
 namespace nfl {
@@ -163,6 +164,17 @@ Fl_Bitmap * NewPictBitmap(RefArg inPict)
   return NewBitmap(rows.data(), rowBytes, w, h);
 }
 
+// A bitmap at x, y: in copy mode its zero bits white, else only its one bits.
+void DrawBitmap(Fl_Bitmap * inBitmap, int x, int y, int w, int h, int inMode)
+{
+  if (inMode == kModeCopy) {
+    fl_color(gMask ? FL_BLACK : FL_WHITE);
+    fl_rectf(x, y, w, h);
+  }
+  fl_color(FL_BLACK);
+  inBitmap->draw(x, y);
+}
+
 // One shape (or a list) at origin ox, oy (where the view's 0, 0 is).
 // inMask: the mask of what is drawn: every pixel drawn is black.
 void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
@@ -235,13 +247,8 @@ void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
     RefVar data(GetProtoVariable(inShape, SYMA(data)));
     std::unique_ptr<Fl_Bitmap> bitmap(EQ(cls, SYMA(bitmap)) ? NewBitmap(data) : NewPictBitmap(data));
     if (bitmap) {
-      if (style.mode == kModeCopy) {   // copy: the zero bits are white
-        fl_color(gMask ? FL_BLACK : FL_WHITE);
-        fl_rectf(x, y, w, h);
-      }
-      fl_color(FL_BLACK);
       bitmap->scale(w, h, 0, 1);   // drawn at the shape's bounds
-      bitmap->draw(x, y);
+      DrawBitmap(bitmap.get(), x, y, w, h, style.mode);
     }
   }
   fl_line_style(0);
@@ -256,6 +263,12 @@ Link * LinkOfWidget(Fl_Widget * inWidget)
 } // namespace
 
 
+// Draws on a view: straight onto its widget in its viewDrawScript, else onto
+// its canvas and its mask (Drawing.h). inDraw(ox, oy, mask) draws with the
+// view's 0, 0 at ox, oy.
+void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw);
+
+
 Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle)
 {
   Link * link = Link::Of(inContext);
@@ -263,22 +276,66 @@ Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle)
     ThrowMsg("nil view");
   Style style;
   Apply(style, inStyle);
-  Fl_Widget * widget = link->Widget();
-  int inset = link->Outset();
+  DrawOnView(link, [&](long ox, long oy, bool inMask) { Draw(inShape, style, ox, oy, inMask); });
+  return NILREF;
+}
+
+
+void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw)
+{
+  Fl_Widget * widget = inLink->Widget();
+  int inset = inLink->Outset();
   if (gDirect == widget) {   // in its viewDrawScript
-    Draw(inShape, style, widget->x() + inset, widget->y() + inset, false);
-    return NILREF;
+    inDraw(widget->x() + inset, widget->y() + inset, false);
+    return;
   }
-  link->Canvas();   // made if it has none
-  Fl_Surface_Device::push_current(link->fCanvas);
-  Draw(inShape, style, inset, inset, false);
+  inLink->Canvas();   // made if it has none
+  Fl_Surface_Device::push_current(inLink->fCanvas);
+  inDraw(inset, inset, false);
   Fl_Surface_Device::pop_current();
-  Fl_Surface_Device::push_current(link->fMask);
-  Draw(inShape, style, inset, inset, true);
+  Fl_Surface_Device::push_current(inLink->fMask);
+  inDraw(inset, inset, true);
   Fl_Surface_Device::pop_current();
-  delete link->fOverlay;   // made anew when drawn
-  link->fOverlay = nullptr;
+  delete inLink->fOverlay;   // made anew when drawn
+  inLink->fOverlay = nullptr;
   widget->redraw();
+}
+
+
+Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode)
+{
+  Link * link = Link::Of(inContext);
+  if (link == nullptr)
+    ThrowMsg("nil view");
+  RefVar bits(IsFrame(inBitmap) ? GetProtoVariable(inBitmap, SYMA(bits)) : (Ref)inBitmap);
+  if (!IsBinary(bits) || Length(bits) < 16 || !IsFrame(inBounds) || !ISINT(inIndex))
+    ThrowMsg("DrawXBitmap: bad arguments");
+  long left = RINT(GetProtoVariable(inBounds, SYMA(left))), top = RINT(GetProtoVariable(inBounds, SYMA(top)));
+  int w = int(RINT(GetProtoVariable(inBounds, SYMA(right))) - left);
+  int h = int(RINT(GetProtoVariable(inBounds, SYMA(bottom))) - top);
+  const unsigned char * data = (const unsigned char *)BinaryData(bits);
+  auto word = [data](int at) { return int(short((data[at] << 8) | data[at + 1])); };
+  int rowBytes = word(4), stripH = word(12) - word(8), stripW = word(14) - word(10);
+  int cellX = int(RINT(inIndex)) * w;
+  if (w <= 0 || h <= 0 || cellX < 0 || cellX + w > stripW || h > stripH
+      || Length(bits) < ArrayIndex(16 + rowBytes * stripH))
+    return NILREF;
+  // the cell: w by h pixels at cellX of the strip
+  int cellRowBytes = (w + 7) / 8;
+  std::vector<unsigned char> rows(size_t(cellRowBytes) * h, 0);
+  for (int y = 0; y < h; ++y)
+    for (int x = 0; x < w; ++x) {
+      int from = cellX + x;
+      if (data[16 + y * rowBytes + (from >> 3)] & (0x80 >> (from & 7)))
+        rows[size_t(y) * cellRowBytes + (x >> 3)] |= (0x80 >> (x & 7));
+    }
+  std::unique_ptr<Fl_Bitmap> bitmap(NewBitmap(rows.data(), cellRowBytes, w, h));
+  int mode = ISINT(inMode) ? int(RINT(inMode)) : kModeCopy;
+  DrawOnView(link, [&](long ox, long oy, bool inMask) {
+    gMask = inMask;
+    DrawBitmap(bitmap.get(), int(ox + left), int(oy + top), w, h, mode);
+    gMask = false;
+  });
   return NILREF;
 }
 

@@ -43,6 +43,11 @@ class Link;
 /** view:DrawShape(shape, style) */
 Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle);
 
+/** view:DrawXBitmap(bounds, bitmap, index, mode): the index-th cell of a
+    strip of bounds-sized cells (a clock's hands, digits, ...) at bounds.
+    mode: as a style's transferMode (nil: copy). */
+Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
+
 /** view:DoDrawing(method, args): view:method(args...), drawing on the view. */
 Ref DoDrawing(RefArg inContext, RefArg inMethod, RefArg inArgs);
 

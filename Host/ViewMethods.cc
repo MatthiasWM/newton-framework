@@ -13,6 +13,7 @@
 #if NEWTC_USES_FLTK
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Drawing.h"
+#include "Host/FLTK/Popup.h"
 #endif
 
 extern "C" {
@@ -47,7 +48,10 @@ Ref FShowX(RefArg rcvr)            { return nfl::ShowView(rcvr); }
 Ref FDirtyX(RefArg rcvr)           { return nfl::DirtyView(rcvr); }
 Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds) { return nfl::DragView(rcvr, inUnit, inBounds); }
 Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle) { return nfl::DrawShape(rcvr, inShape, inStyle); }
+Ref FDrawXBitmap(RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode) { return nfl::DrawXBitmap(rcvr, inBounds, inBitmap, inIndex, inMode); }
 Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs) { return nfl::DoDrawing(rcvr, inMethod, inArgs); }
+Ref FDoPopup(RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext) { return nfl::DoPopup(inItems, inWhere, inTop, inContext); }
+Ref FGetView(RefArg rcvr, RefArg inView) { return IsFrame(inView) && nfl::Link::Of(inView) ? (Ref)inView : NILREF; }
 Ref FGetFlags(RefArg rcvr, RefArg inView) { return nfl::ViewFlags(inView); }
 Ref FHiliteX(RefArg rcvr, RefArg inOn)        { return nfl::HiliteView(rcvr, inOn); }
 Ref FTrackHiliteX(RefArg rcvr, RefArg inUnit) { return nfl::TrackHilite(rcvr, inUnit); }
@@ -67,7 +71,10 @@ NS_STUB(FShowX, RefArg rcvr)
 NS_STUB(FDirtyX, RefArg rcvr)
 NS_STUB(FDragX, RefArg rcvr, RefArg inUnit, RefArg inBounds)
 NS_STUB(FDrawShape, RefArg rcvr, RefArg inShape, RefArg inStyle)
+NS_STUB(FDrawXBitmap, RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode)
 NS_STUB(FDoDrawing, RefArg rcvr, RefArg inMethod, RefArg inArgs)
+NS_STUB(FDoPopup, RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext)
+Ref FGetView(RefArg rcvr, RefArg inView) { return NILREF; }   // no views open
 // no views open without FLTK
 Ref FGetFlags(RefArg rcvr, RefArg inView) { return MAKEINT(0); }
 NS_STUB(FHiliteX, RefArg rcvr, RefArg inOn)

@@ -91,6 +91,9 @@ class PictureView : public ViewWidget
 public:
   PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign);
   PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign);
+  /** A new picture: an image (and its hilited version), or a Newton bitmap. */
+  void Images(Fl_Image * inImage, Fl_Image * inHilited);
+  void Icon(const NewtonBitmap & inIcon);
   /** viewTransferMode: 0 copy (the icon's 0 bits white: the default), 1 or
       (only its 1 bits); the others as copy (FLTK has no raster ops). */
   void TransferMode(long inMode) { fCopy = inMode != 1; }

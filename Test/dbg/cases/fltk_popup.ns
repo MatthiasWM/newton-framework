@@ -1,0 +1,35 @@
+// 10.7e (needs FLTK): popup menus (Host/FLTK/Popup.h). DoPopup shows the
+// items as an FLTK menu; the pick goes to the context after the current
+// script: pickActionScript(index in items; separators count there), or
+// pickCancelledScript. protoLabelPicker (@190) opens its labelCommands
+// with the current one marked, and shows the pick. TestPick answers the
+// next menu (entries without separators), since taps can't reach FLTK's
+// menu loop.
+DefGlobalVar('picker, nil);
+DefGlobalVar('info, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  stepChildren: [
+    {_proto: @190, text: "Speed", labelCommands: ["Slow", "Normal", "Fast"],
+     viewBounds: {left: 10, top: 10, right: 160, bottom: 24},
+     current: 1,
+     textSetup: func() labelCommands[current],
+     labelActionScript: func(cmd) begin current := cmd; Print(["picked", cmd, entryLine.text]) end,
+     viewSetupDoneScript: func() picker := self},
+    {_proto: @226, text: "i", viewBounds: {left: 10, top: 60, right: 30, bottom: 75},
+     buttonClickScript: func() begin
+       DoPopup(["About", "Help", 'pickSeparator, "New Game"], :GlobalBox().right + 3, :GlobalBox().top, self);
+       Print("DoPopup returned");
+     end,
+     pickActionScript: func(index) Print(["info menu", index]),
+     pickCancelledScript: func() Print("info menu cancelled"),
+     viewSetupDoneScript: func() info := self}]}));
+app:Open();
+Print(picker.entryLine.text);
+TestPick(2);
+TestTap(picker, nil);        // opens its menu: "Fast"
+TestPick(2);
+TestTap("i", nil);           // "New Game": index 3 in the items
+TestPick(nil);
+TestTap("i", nil);           // cancelled
+AddDelayedCall(func() app:Close(), nil, 500);   // after the picks came
