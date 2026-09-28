@@ -255,6 +255,13 @@ newtc with the package compiled in, Matt/EmbeddedApp.h), universal (arm64
 and x86_64, both tested with a whole game), macOS 13, signed ad hoc, and a
 zip of it. Double-clicked it runs the package with its store in
 ~/Library/Application Support/<name>/; with arguments it is newtc.
+Its icon: the package's own (cmake/print_app_icon.ns, make_app_icon.py:
+Newton pixels on a green rounded square). Signing for other Macs:
+SIGN_IDENTITY="Developer ID Application: Matthias Melcher (BK4ST6N599)"
+and NOTARY_PROFILE=<notarytool profile> for build_app.sh (hardened
+runtime: a whole game runs with it). Windows are 1.5 times FLTK's scale
+(ScaleScreens, Links.cc). XOR text goes through an image (DrawInverted):
+CoreText ignores the blend mode (protoTitle's title had vanished).
 
 VSNewt 0.2.0 is released (2026-09-28, github.com/MatthiasWM/VSNewt,
 tag v0.2.0): newtc with FLTK, built from 9ac9d0d by

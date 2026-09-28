@@ -278,6 +278,40 @@ void BlendInvert(bool inOn)
 }
 
 
+// Text (CoreText) ignores the blend mode: what inDraw draws (in black, with
+// the area's top left at ox, oy) goes into an image first, whose coverage
+// then inverts x, y, w, h (a white image in the blend mode).
+void DrawInverted(int x, int y, int w, int h, const std::function<void(int, int)> & inDraw)
+{
+  if (w <= 0 || h <= 0)
+    return;
+  Fl_Image_Surface surface(w, h, 1);
+  Fl_Surface_Device::push_current(&surface);
+  fl_color(FL_WHITE);
+  fl_rectf(0, 0, w, h);
+  fl_color(FL_BLACK);
+  inDraw(0, 0);
+  Fl_Surface_Device::pop_current();
+  std::unique_ptr<Fl_RGB_Image> drawn(surface.image());
+  int dw = drawn->data_w(), dh = drawn->data_h(), d = drawn->d();
+  int ld = drawn->ld() ? drawn->ld() : dw * d;
+  const uchar * c = (const uchar *)drawn->data()[0];
+  uchar * rgba = new uchar[size_t(dw) * dh * 4];
+  for (int yy = 0; yy < dh; ++yy)
+    for (int xx = 0; xx < dw; ++xx) {
+      uchar * p = rgba + (size_t(yy) * dw + xx) * 4;
+      p[0] = p[1] = p[2] = 255;
+      p[3] = uchar(255 - c[yy * ld + xx * d]);   // black: covered
+    }
+  Fl_RGB_Image image(rgba, dw, dh, 4);
+  image.alloc_array = 1;
+  image.scale(w, h, 0, 1);
+  BlendInvert(true);
+  image.draw(x, y);
+  BlendInvert(false);
+}
+
+
 // Draws on a view: straight onto its widget in its viewDrawScript, else onto
 // its canvas, its mask and its invert layer (Drawing.h; gTarget says which).
 // inDraw(ox, oy) draws with the view's 0, 0 at ox, oy.

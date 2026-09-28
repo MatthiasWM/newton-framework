@@ -778,10 +778,17 @@ if (NEWTC_APP_PKG)
     MACOSX_BUNDLE_BUNDLE_VERSION "${NEWTC_APP_VERSION}"
     MACOSX_BUNDLE_COPYRIGHT "${app_name} on newtc (newton-framework)"
   )
-  # signed (ad hoc) as a whole, the Info.plist too
+  # its icon: the package's own (cmake/make_app_icon.py), printed by the app
+  # itself (with arguments it is newtc); then signed (ad hoc) as a whole
+  find_package (Python3 COMPONENTS Interpreter REQUIRED)
+  set (app_icon_txt "${CMAKE_BINARY_DIR}/generated/AppIcon.txt")
   add_custom_command (TARGET newtc_app POST_BUILD
+    COMMAND "$<TARGET_FILE:newtc_app>" -pkg "${NEWTC_APP_PKG}"
+            -script "${CMAKE_SOURCE_DIR}/cmake/print_app_icon.ns" > "${app_icon_txt}"
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/cmake/make_app_icon.py" "${app_icon_txt}"
+            "$<TARGET_BUNDLE_CONTENT_DIR:newtc_app>/Resources/AppIcon.icns"
     COMMAND codesign --force --sign - "$<TARGET_BUNDLE_DIR:newtc_app>"
-    COMMENT "Signing ${app_name}.app (ad hoc)"
+    COMMENT "The icon of ${app_name}.app, and signing it (ad hoc)"
   )
   message (STATUS "newtc: the app ${app_name}.app (target newtc_app) from ${NEWTC_APP_PKG}")
 endif ()

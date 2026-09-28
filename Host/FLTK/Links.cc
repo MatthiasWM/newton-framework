@@ -1064,12 +1064,29 @@ void Dispose(Link * inLink)
 }
 
 
+// A Newton screen is small: its windows 1.5 times as big (more than FLTK's
+// own scale, which FLTK_SCALING_FACTOR sets; Cmd-+, Cmd--, Cmd-0 still work).
+const float kNewtonScale = 1.5f;
+
+static void ScaleScreens()
+{
+  static bool scaled = false;
+  if (scaled)
+    return;
+  scaled = true;
+  fl_open_display();
+  for (int n = 0; n < Fl::screen_count(); ++n)
+    Fl::screen_scale(n, Fl::screen_scale(n) * kNewtonScale);
+}
+
+
 Ref OpenView(RefArg inContext, bool inModal)
 {
   if (Link::Of(inContext))
     return TRUEREF;   // open already
   RegisterBoxtypes();   // before the first window is shown (only once)
   RegisterFonts();
+  ScaleScreens();
   RefVar parent(GetProtoVariable(inContext, SYMA(_parent)));
   Link * parentLink = Link::Of(parent);
   if (parentLink == nullptr && !EQ(parent, RootView()))

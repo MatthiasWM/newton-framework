@@ -6,7 +6,13 @@
 #
 #   Matt/tools/build_app.sh <app.pkg> [name] [version]
 #
-# Writes build/App/<name>.app and a zip of it next to it (to send).
+# Writes build/App/<name>.app and a zip of it next to it (to send). Signed
+# ad hoc, unless (for other Macs, without a Gatekeeper warning):
+#   SIGN_IDENTITY="Developer ID Application: Name (TEAMID)"  signs it with
+#       that certificate (from the keychain), with the hardened runtime;
+#   NOTARY_PROFILE=<profile>  also has Apple notarize it (xcrun notarytool,
+#       credentials stored with notarytool store-credentials <profile>) and
+#       staples the ticket to it.
 set -e
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 PKG=${1:?"usage: build_app.sh <app.pkg> [name] [version]"}
@@ -33,6 +39,20 @@ for ARCH in arm64 x86_64; do
     exit 1
   fi
 done
-codesign --verify --deep "$APP"
-(cd "$BUILD" && rm -f "$NAME.zip" && ditto -c -k --keepParent "$NAME.app" "$NAME.zip")
-echo "built $APP ($(du -sh "$APP" | cut -f1)) and $BUILD/$NAME.zip"
+ZIP="$BUILD/$NAME.zip"
+zip_app() { (cd "$BUILD" && rm -f "$NAME.zip" && ditto -c -k --keepParent "$NAME.app" "$NAME.zip"); }
+
+if [ -n "$SIGN_IDENTITY" ]; then
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+  echo "signed with $SIGN_IDENTITY"
+fi
+codesign --verify --deep --strict "$APP"
+zip_app
+if [ -n "$NOTARY_PROFILE" ]; then
+  [ -n "$SIGN_IDENTITY" ] || { echo "error: NOTARY_PROFILE needs SIGN_IDENTITY" >&2; exit 1; }
+  xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
+  xcrun stapler staple "$APP"
+  zip_app   # again, with the ticket
+  spctl --assess --type execute --verbose "$APP"
+fi
+echo "built $APP ($(du -sh "$APP" | cut -f1)) and $ZIP"

@@ -7,13 +7,16 @@
 // picture view draws its icon in its viewTransferMode (copy by default:
 // the icon's 0 bits white). XOR (transferMode 2) inverts what is under the
 // shape (macOS: Quartz's difference blend mode); drawn twice, it is gone.
-// A text view in XOR mode (viewTransferMode 2) shows white on black.
+// A text view in XOR mode (viewTransferMode 2) shows white on black, and
+// black on white (protoTitle); CoreText ignores the blend mode, so the text
+// goes through an image (DrawInverted).
 DefGlobalVar('canvasView, nil);
 DefGlobalVar('scripted, nil);
 DefGlobalVar('framed, nil);
 DefGlobalVar('picture, nil);
 DefGlobalVar('xorView, nil);
 DefGlobalVar('xorText, nil);
+DefGlobalVar('xorTitle, nil);
 DefGlobalVar('app, BuildContext({
   _proto: @180, viewBounds: {left: 0, top: 30, right: 220, bottom: 225},
   stepChildren: [
@@ -36,7 +39,11 @@ DefGlobalVar('app, BuildContext({
      stepChildren: [{viewClass: 81, viewFlags: 1, text: "WWWW", viewTransferMode: 2,
                      viewFont: {family: 'espy, face: 1, size: 12},
                      viewBounds: {left: 2, top: 2, right: 58, bottom: 15},
-                     viewSetupDoneScript: func() xorText := self}]}]}));
+                     viewSetupDoneScript: func() xorText := self}]},
+    {viewClass: 98, viewFlags: 1, viewFormat: 1, viewTransferMode: 2, text: "WWWW",
+     viewFont: {family: 'espy, face: 1, size: 12}, viewJustify: 6,
+     viewBounds: {left: 80, top: 165, right: 140, bottom: 185},
+     viewSetupDoneScript: func() xorTitle := self}]}));
 app:Open();
 canvasView:DoDrawing('DrawShape, [MakeRect(0, 0, 40, 30), {fillPattern: 5}]);
 canvasView:DrawShape(MakeRect(45, 0, 85, 30), {fillPattern: 3, penSize: 3});
@@ -58,6 +65,9 @@ TestLater(func() begin
   local white := 0;
   for x := 0 to 40 do if TestPixel(xorText, x, 6) > 128 then white := white + 1;
   Print(["XOR text on black: white pixels", white > 0]);
+  local dark := 0;
+  for x := 0 to 59 do if TestPixel(xorTitle, x, 10) < 128 then dark := dark + 1;
+  Print(["XOR text on white: dark pixels", dark > 0]);
   xorView:DrawShape(MakeRect(0, 12, 20, 20), {transferMode: 2, fillPattern: 5});
 end);
 TestLater(func() begin

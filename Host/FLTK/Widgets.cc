@@ -239,17 +239,20 @@ void TextView::draw()
 {
   DrawFormat(kViewFill);
   int inset = Inset(), shadow = Shadow();
-  fl_font(labelfont(), labelsize());
-  fl_color(fXor ? FL_WHITE : FL_BLACK);
-  if (fXor)
-    BlendInvert(true);
-  fl_push_clip(x(), y(), w(), h());
   // in the view's bounds, inside its frame; draw_symbols 0: '@' is just a character
-  fl_draw(fText.c_str(), x() + inset, y() + inset, w() - 2 * inset - shadow, h() - 2 * inset - shadow,
-          align() | FL_ALIGN_INSIDE, nullptr, 0);
-  fl_pop_clip();
-  if (fXor)
-    BlendInvert(false);
+  auto text = [&](int ox, int oy) {
+    fl_font(labelfont(), labelsize());
+    fl_draw(fText.c_str(), ox + inset, oy + inset, w() - 2 * inset - shadow, h() - 2 * inset - shadow,
+            align() | FL_ALIGN_INSIDE, nullptr, 0);
+  };
+  if (fXor)   // (the title of protoTitle, a message on black)
+    DrawInverted(x(), y(), w(), h(), text);
+  else {
+    fl_color(FL_BLACK);
+    fl_push_clip(x(), y(), w(), h());
+    text(x(), y());
+    fl_pop_clip();
+  }
   RunDrawScript(this);
   DrawChildrenAndFrame();
 }

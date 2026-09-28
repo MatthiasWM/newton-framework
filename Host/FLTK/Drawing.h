@@ -42,6 +42,8 @@
 
 #include "Frames/Objects.h"
 
+#include <functional>
+
 namespace nfl {
 
 class Link;
@@ -57,6 +59,10 @@ Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inInd
 /** What follows inverts what is under it, drawn in white (XOR with black):
     the difference blend mode (macOS; see Drawing.cc). */
 void BlendInvert(bool inOn);
+
+/** Invert what inDraw draws in x, y, w, h (called with the area's top left,
+    in black): for text, which the blend mode doesn't reach (CoreText). */
+void DrawInverted(int x, int y, int w, int h, const std::function<void(int, int)> & inDraw);
 
 /** view:DoDrawing(method, args): view:method(args...), drawing on the view. */
 Ref DoDrawing(RefArg inContext, RefArg inMethod, RefArg inArgs);
