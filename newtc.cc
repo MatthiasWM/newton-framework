@@ -438,10 +438,9 @@ bool installPackage(RefArg package)
  -run takes no argument. It works on the object held in ref# by a previous
  -pkg, -nsof, or -script command, so all three can be run the same way,
  e.g. `newtc -nsof app.nsof -run`. For a package, installPackage() runs
- its install scripts.
+ its install scripts and opens its app.
 
- \todo Open the form (see installPackage()); run objects from -nsof and
- -script.
+ \todo Run objects from -nsof and -script.
  */
 void handleArgRun()
 {
@@ -1012,8 +1011,9 @@ the commands in the given order.
   -s <script>             Compile and run the script, and hold the result
   -hello                  Compile a "Hello World" app and hold it
   -run                    Run the current object: a package from -pkg is installed
-                          (DoNotInstall, then its InstallScript); opening its form
-                          and running -nsof or -script objects is not implemented yet
+                          (DoNotInstall, then its InstallScript) and its app opened
+                          (with FLTK: in a window; newtc runs until it is closed);
+                          running -nsof or -script objects is not implemented yet
 
   Output Commands
   -opkg <filename>        Write the current object to a package file
