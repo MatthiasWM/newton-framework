@@ -132,9 +132,12 @@ public:
   /** A slot of the view frame changed (SetValue): show it. The link
       classes know their own slots (text); the bounds and a redraw here. */
   virtual void Update(RefArg inTag);
-  /** view:Dirty(): drawn anew (a view that reads its slots when it draws on
-      a Newton reads them again). */
-  virtual void Dirty();
+  /** view:Dirty(): drawn anew, its children too (views that read their
+      slots when they draw on a Newton read them again: Reread()). */
+  void Dirty();
+  /** Read again the slots the view's widget shows that a Newton reads
+      each time it draws (a picture view's icon). */
+  virtual void Reread() { }
 
   /** A point on the Newton display, on the screen (via the view's window). */
   void ScreenPoint(long inX, long inY, int * outX, int * outY);

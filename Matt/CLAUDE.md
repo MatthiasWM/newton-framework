@@ -746,7 +746,19 @@ Working on Battleship (the package: see 10.7):
         the status bar's clock overlaps the info button a little.
   - [ ] 10.7f The rest: keys (SetKeyView, SendKeyMessage, MatchKeyMessage,
         RestoreKeyView), AddUndoAction (protoCheckbox's ToggleCheck calls
-        it), TableLookup, SyncView. (FontAscent and GetView: 10.7e;
+        it), TableLookup, SyncView.
+        Done: taps (Links.cc, Recognize): a stroke no viewClickScript takes
+        (all return nil) goes to recognition when the pen is up (already,
+        if a script waited for it: Drag); a tap (within 4 pixels, up within
+        30 ticks) is viewGestureScript(unit, aeTap 49) of the view under
+        it if it allows gestures (vGesturesAllowed), else of the views it
+        is in, up while they return nil. Battleship turns a ship so (its
+        click script drags, then returns nil). A picture view reads its
+        icon again on any SetValue and on Dirty of it or a view it is in
+        (Reread; a Newton reads the slot when it draws: Battleship sets
+        the ship's icon slot, then its parent's Dirty()). Test
+        `fltk_gestures`. Other gestures (scrub, caret, lines), words and
+        shapes: not yet. (FontAscent and GetView: 10.7e;
         RelBounds and InkOff: 10.7b.)
   - [ ] 10.7g Hidden stubs: port functions that only print or return nil
         without NS_STUB (SetValue was one; `-stubs report` can't see them).

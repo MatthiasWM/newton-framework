@@ -384,11 +384,16 @@ protected:
     view->TransferMode(IntSlot(fContext, "viewTransferMode"));
     return view;
   }
+  // a Newton reads the icon slot when it draws: on any SetValue (a script
+  // may have set the slot itself before) and Dirty, here too
   void Update(RefArg inTag) override
   {
-    if (EQ(inTag, SYMA(icon)))
-      LoadIcon();
+    LoadIcon();
     Link::Update(inTag);
+  }
+  void Reread() override
+  {
+    LoadIcon();
   }
   // as the ROM's CPictureView: a view without a viewJustify (not 0: none)
   // centers its icon (protoInfoButton)
@@ -397,11 +402,6 @@ protected:
     if ((inJustify & vjEverything) == 0 && ISNIL(GetProtoVariable(fContext, SYMA(viewJustify))))
       return FL_ALIGN_CENTER;
     return Link::AlignFor(inJustify);
-  }
-  void Dirty() override
-  {
-    LoadIcon();   // e.g. protoCheckbox: sets its icon slot, then Dirty()
-    Link::Dirty();
   }
 private:
   void LoadIcon()
@@ -650,6 +650,44 @@ void Link::Place()
 }
 
 
+// Recognition of a stroke no viewClickScript took (the ROM's recognizers;
+// newtc knows taps only): a tap stays within kTapSlop pixels and is up within
+// kTapTicks; it goes to viewGestureScript(unit, aeTap) of the view under it
+// if it allows gestures (vGesturesAllowed), else of the views it is in, up
+// while they return nil (Battleship: a tap on a ship turns it).
+const long kTapSlop = 4;
+const long kTapTicks = 30;   // half a second
+const long kTapGesture = 49;   // aeTap (Views/Responder.h)
+
+// The stroke that waits for its pen up to be recognized, and its view.
+static Stroke * gRecognized = nullptr;
+static RefStruct * gRecognizedView = nullptr;
+
+static void Recognize(Stroke * inStroke, RefArg inContext)
+{
+  const std::vector<PenPoint> & points = inStroke->Points();
+  long left = points.front().x, right = left, top = points.front().y, bottom = top;
+  for (const PenPoint & p : points) {
+    left = std::min(left, p.x);
+    right = std::max(right, p.x);
+    top = std::min(top, p.y);
+    bottom = std::max(bottom, p.y);
+  }
+  if (right - left > kTapSlop || bottom - top > kTapSlop
+      || inStroke->UpTime() - inStroke->DownTime() > kTapTicks)
+    return;   // not a tap
+  RefVar args(MakeArray(2));
+  SetArraySlot(args, 0, inStroke->Unit());
+  SetArraySlot(args, 1, MAKEINT(kTapGesture));
+  for (RefVar context(inContext); IsFrame(context) && Link::Of(context) != nullptr; ) {
+    if ((IntSlot(context, "viewFlags") & vGesturesAllowed)
+        && NOTNIL(SendViewEvent(context, "viewGestureScript", args)))
+      break;
+    context = GetFrameSlot(context, SYMA(_parent));
+  }
+}
+
+
 int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
 {
   switch (inEvent) {
@@ -664,29 +702,59 @@ int Link::HandlePen(Fl_Widget * inWidget, int inEvent)
       SetArraySlot(args, 0, stroke->Unit());
       // the view, and if its viewClickScript doesn't take the pen (returns
       // nil), the clickable views it is in, as on a Newton
+      RefVar hitView(fContext);
       RefVar context(fContext);
+      bool taken = false;
       for (Link * link = this; link != nullptr; ) {
         RefVar parent(link->fParent ? (Ref)link->fParent->fContext : NILREF);
         if (IntSlot(context, "viewFlags") & vClickable) {
           gPenOwner = link;
           link->fPenDown = link->fPenInside = true;
           link->fStroke = stroke;
-          RefVar taken(SendViewEvent(context, "viewClickScript", args));
+          RefVar took(SendViewEvent(context, "viewClickScript", args));
           // the script may have closed the view: this link may be gone
-          if (NOTNIL(taken) || Link::Of(context) != link)
+          if (NOTNIL(took) || Link::Of(context) != link) {
+            taken = true;
             break;
+          }
           link->fPenDown = false;
         }
         context = parent;
         link = IsFrame(parent) ? Link::Of(parent) : nullptr;
+      }
+      if (!taken && Link::Of(hitView) != nullptr) {
+        // for the recognizers, when the pen is up (it may be already: a
+        // script that waited for it, Drag)
+        if (stroke->Done())
+          Recognize(stroke, hitView);
+        else {
+          gRecognized = stroke;
+          delete gRecognizedView;
+          gRecognizedView = new RefStruct(hitView);
+        }
       }
       return 1;
     }
     case FL_DRAG:
     case FL_RELEASE: {
       Link * owner = gPenOwner ? gPenOwner : this;
-      if (!owner->fPenDown)
-        return 0;
+      if (!owner->fPenDown) {
+        if (gRecognized == nullptr)
+          return 0;
+        // a stroke no view took, going on to its recognition
+        Stroke * stroke = gRecognized;
+        if (inEvent == FL_DRAG) {
+          stroke->Add(PenAt(inWidget));
+          return 1;
+        }
+        stroke->End(PenAt(inWidget));
+        gRecognized = nullptr;
+        RefVar view(*gRecognizedView);
+        delete gRecognizedView;
+        gRecognizedView = nullptr;
+        Recognize(stroke, view);
+        return 1;
+      }
       owner->fStroke->Add(owner->PenAt(inWidget));
       bool inside = Fl::event_inside(owner->fWidget);
       if (inEvent == FL_RELEASE) {
@@ -791,6 +859,12 @@ void Link::UpdatePosition(Fl_Window * inWindow)
 
 void Link::Dirty()
 {
+  std::function<void(Link *)> reread = [&](Link * inLink) {
+    inLink->Reread();
+    for (Link * child : inLink->fChildren)
+      reread(child);
+  };
+  reread(this);   // (Battleship sets a ship's icon slot, then its parent's Dirty())
   DropCanvas();   // drawn anew: what scripts drew is gone
   fWidget->redraw();
 }

@@ -1,0 +1,37 @@
+// 10.7f (needs FLTK): a stroke no viewClickScript takes (they return nil)
+// goes to recognition when the pen is up; newtc knows taps (a stroke within
+// 4 pixels, up within half a second): viewGestureScript(unit, 49), aeTap,
+// of the view under it if it allows gestures (vGesturesAllowed, 2048),
+// else of the views it is in, up while they return nil. Battleship turns a
+// ship so (its viewClickScript drags it, then returns nil).
+DefGlobalVar('turner, nil);
+DefGlobalVar('plain, nil);
+DefGlobalVar('taker, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 150},
+  stepChildren: [
+    {viewClass: 74, viewFlags: 1 + 512 + 2048, viewFormat: 0x151,
+     viewBounds: {left: 10, top: 10, right: 60, bottom: 40},
+     viewSetupDoneScript: func() turner := self,
+     viewClickScript: func(unit) begin :Drag(unit, nil); nil end,
+     viewGestureScript: func(unit, gesture) begin Print(["turner's gesture", gesture]); true end},
+    {viewClass: 74, viewFlags: 1 + 2048, viewFormat: 0x151,
+     viewBounds: {left: 70, top: 10, right: 120, bottom: 40},
+     viewGestureScript: func(unit, gesture) begin Print(["the parent's gesture", gesture]); true end,
+     stepChildren: [
+       {viewClass: 74, viewFlags: 1 + 512, viewBounds: {left: 5, top: 5, right: 25, bottom: 25},
+        viewSetupDoneScript: func() plain := self,
+        viewClickScript: func(unit) nil}]},
+    {viewClass: 74, viewFlags: 1 + 512 + 2048, viewFormat: 0x151,
+     viewBounds: {left: 130, top: 10, right: 180, bottom: 40},
+     viewSetupDoneScript: func() taker := self,
+     viewClickScript: func(unit) true,
+     viewGestureScript: func(unit, gesture) begin Print(["taker's gesture?", gesture]); true end}]}));
+app:Open();
+TestTap(turner, nil);               // a tap: the gesture (after Drag, which didn't move it)
+TestLater(func() DefGlobalVar('before, turner:GlobalBox()));
+TestDrag(turner, 30, 20);           // a drag: moved, no gesture
+TestLater(func() Print(["dragged by", turner:GlobalBox().left - before.left, turner:GlobalBox().top - before.top]));
+TestTap(plain, nil);                // no gestures there: its parent's
+TestTap(taker, nil);                // its viewClickScript took the pen: nothing
+TestLater(func() app:Close());
