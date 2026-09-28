@@ -318,7 +318,9 @@ protected:
   {
     // a text view that wraps its lines (pen events, its viewFormat, what
     // scripts draw: as the other views)
-    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
+    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
+    view->TransferMode(IntSlot(fContext, "viewTransferMode"));
+    return view;
   }
   // its lines from the top, wrapped; left, centered or right (viewJustify)
   Fl_Align AlignFor(long inJustify) const override
@@ -348,7 +350,9 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
+    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
+    view->TransferMode(IntSlot(fContext, "viewTransferMode"));
+    return view;
   }
   void Update(RefArg inTag) override
   {

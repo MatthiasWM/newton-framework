@@ -763,7 +763,12 @@ Working on Battleship (the package: see 10.7):
         read), written whole to .tmp, fsync'd, renamed over the file; the
         first save of a run keeps the old file as .bak (.bak before as
         .bak2); a file that isn't whole is kept as .bad-<time> and the
-        backup used. Test test_store.py (9). See B26. (FontAscent and GetView: 10.7e;
+        backup used. Test test_store.py (9). See B26.
+        A text view draws in its viewTransferMode: XOR (2) white in the
+        difference blend mode (Battleship's messages: white on black).
+        A whole game runs to its end with the Release build (VSNewt's
+        newtc, now with FLTK: Matt/tools/build_vsnewt_newtc.sh), no stub
+        called (-stubs report: 0 of 945). (FontAscent and GetView: 10.7e;
         RelBounds and InkOff: 10.7b.)
   - [ ] 10.7g Hidden stubs: port functions that only print or return nil
         without NS_STUB (SetValue was one; `-stubs report` can't see them).

@@ -93,12 +93,16 @@ class TextView : public ViewWidget
 {
 public:
   TextView(int x, int y, int w, int h, const std::string & inText);
+  /** viewTransferMode: 2 (XOR) inverts what is under the text (white on
+      black, e.g. a message box); the others: black text. */
+  void TransferMode(long inMode) { fXor = inMode == 2; redraw(); }
   const std::string & Text() const { return fText; }
   void Text(const std::string & inText) { fText = inText; redraw(); }
 protected:
   void draw() override;
 private:
   std::string fText;
+  bool fXor = false;
 };
 
 /** A 1-bit bitmap from a Newton bitmap (an icon's bits): rows of rowBytes

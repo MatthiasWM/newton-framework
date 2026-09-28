@@ -1,8 +1,8 @@
 #!/bin/sh
 # Build the newtc that VSNewt bundles (macOS arm64) and copy it into the
-# extension: a Release build without sanitizers (their runtime libraries
-# come from the toolchain and aren't on other Macs), for macOS 13 (Ventura)
-# and later.
+# extension: a Release build with FLTK (Newton views in windows; linked
+# statically) and without sanitizers (their runtime libraries come from the
+# toolchain and aren't on other Macs), for macOS 13 (Ventura) and later.
 #
 #   Matt/tools/build_vsnewt_newtc.sh [path/to/vsnewt]
 #
@@ -16,7 +16,8 @@ cmake -S "$REPO" -B "$BUILD" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_OSX_ARCHITECTURES=arm64 \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
-  -DNEWTC_UBSAN=OFF
+  -DNEWTC_UBSAN=OFF \
+  -DNEWTC_USES_FLTK=ON
 cmake --build "$BUILD" --target newtc
 
 NEWTC="$BUILD/newtc"
