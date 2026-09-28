@@ -12,9 +12,14 @@
 	cursors, large binaries) stays Apple's.
 
 	In memory: a map from PSSId to the object's bytes. In a file (if one is
-	set, SetFile(); newtc -store): all objects, written to a temporary file
-	that then replaces the old one, whenever a transaction commits and when
-	newtc exits. Without a file the store starts empty every time.
+	set, SetFile(); newtc -store): all objects and a CRC-32, written to a
+	temporary file, flushed to the disk, that then replaces the old one in
+	one step (rename), whenever a transaction commits and when newtc exits.
+	The first save of a run keeps the file it replaces as <file>.bak (and
+	the .bak before as <file>.bak2). A
+	file that isn't a whole store (cut short, a changed byte) is kept aside
+	as <file>.bad-<date>-<time>, and the backup is used (else a new store).
+	Without a file the store starts empty every time.
 
 	Transactions (as CFlashStore): changes while the store is locked
 	(lockStore) belong to the transaction; the outermost unlockStore

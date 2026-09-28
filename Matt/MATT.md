@@ -243,5 +243,4 @@ https://github.com/crozynski/comicneue
 
 Apple's Espy Sans 12 : https://www.google.com/url?sa=i&source=web&rct=j&url=https://github.com/csyde/carthage-fonts
 
-336x224 44x46 26x26
-168x112 22x23 13x13
+"Nu" font family (Nu Casual / Nu Sans / Nu Serif / Nu Sans Mono) by Marty P. Pfeiffer / Scooter Graphics, copyright 2000

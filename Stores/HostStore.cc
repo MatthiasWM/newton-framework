@@ -12,6 +12,8 @@
 #include "OSErrors.h"
 
 #include <cstdio>
+#include <ctime>
+#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 
@@ -20,10 +22,11 @@
 #define kHostRootId		39
 
 // The file: "NEWTCSTO", a version, the root id, the next id, the number of
-// objects, then each object: its id, its size, its bytes. Numbers are 32
-// bits, little-endian.
+// objects, then each object: its id, its size, its bytes; then (version 2)
+// a CRC-32 of all that. Numbers are 32 bits, little-endian. Version 1 files
+// (no CRC) are read too.
 static const char	kFileMagic[8] = { 'N','E','W','T','C','S','T','O' };
-static const ULong	kFileVersion = 1;
+static const ULong	kFileVersion = 2;
 
 static std::string	gHostStoreFile;
 static CHostStore *	gHostStore = NULL;	// the one made, for SaveNow()
@@ -400,25 +403,47 @@ CHostStore::getStoreSize(size_t * outTotalSize, size_t * outUsedSize)
 	The file: the committed state (what a transaction changed, as it was).
 ----------------------------------------------------------------------------- */
 
+// CRC-32 (IEEE 802.3, as zlib's), bit by bit: the store is small.
+static ULong
+Crc32(const unsigned char * inData, size_t inSize)
+{
+	ULong crc = 0xFFFFFFFF;
+	for (size_t i = 0; i < inSize; ++i) {
+		crc ^= inData[i];
+		for (int bit = 0; bit < 8; ++bit)
+			crc = (crc >> 1) ^ (0xEDB88320 & (0 - (crc & 1)));
+	}
+	return ~crc;
+}
+
+
 static void
-PutLong(FILE * inFile, ULong inValue)
+PutLong(std::vector<unsigned char> & ioData, ULong inValue)
 {
-	unsigned char b[4] = { (unsigned char)inValue, (unsigned char)(inValue >> 8),
-								  (unsigned char)(inValue >> 16), (unsigned char)(inValue >> 24) };
-	fwrite(b, 1, 4, inFile);
+	for (int shift = 0; shift < 32; shift += 8)
+		ioData.push_back((unsigned char)(inValue >> shift));
 }
 
 
-static bool
-GetLong(FILE * inFile, ULong * outValue)
+static ULong
+GetLong(const unsigned char * inData)
 {
-	unsigned char b[4];
-	if (fread(b, 1, 4, inFile) != 4)
-		return false;
-	*outValue = b[0] | (b[1] << 8) | (b[2] << 16) | ((ULong)b[3] << 24);
-	return true;
+	return inData[0] | (inData[1] << 8) | (inData[2] << 16) | ((ULong)inData[3] << 24);
 }
 
+
+// Keep the file as it was when this run started as <file>.bak (once per
+// run, before the first save replaces it), and the one before as
+// <file>.bak2: a way back if a run leaves a store newtc can't open, or that
+// hangs an app (the run that hangs may have saved once: .bak2).
+static bool gBackedUp = false;
+
+
+/* ------------------------------------------------------------------------------
+	Save the committed state: all of it into <file>.tmp, flushed to the disk,
+	which then replaces the file in one step (rename). A crash leaves either
+	the old file or the new one, never half of one.
+------------------------------------------------------------------------------ */
 
 bool
 CHostStore::save(void)
@@ -436,61 +461,131 @@ CHostStore::save(void)
 			else
 				committed.erase(entry.first);
 		}
+	std::vector<unsigned char> data(kFileMagic, kFileMagic + sizeof(kFileMagic));
+	PutLong(data, kFileVersion);
+	PutLong(data, kHostRootId);
+	PutLong(data, fNextId);
+	PutLong(data, (ULong)committed.size());
+	for (auto & obj : committed) {
+		PutLong(data, obj.first);
+		PutLong(data, (ULong)obj.second->size());
+		data.insert(data.end(), obj.second->begin(), obj.second->end());
+	}
+	PutLong(data, Crc32(data.data(), data.size()));
+
 	std::string temp = gHostStoreFile + ".tmp";
 	FILE * file = fopen(temp.c_str(), "wb");
-	if (file == NULL) {
-		fprintf(stderr, "newtc: can't write the store %s\n", temp.c_str());
-		return false;
+	bool ok = file != NULL
+			 && fwrite(data.data(), 1, data.size(), file) == data.size()
+			 && fflush(file) == 0
+			 && fsync(fileno(file)) == 0;
+	if (file != NULL && fclose(file) != 0)
+		ok = false;
+	if (ok && !gBackedUp) {
+		gBackedUp = true;
+		if (access(gHostStoreFile.c_str(), F_OK) == 0) {
+			std::string backup = gHostStoreFile + ".bak";
+			rename(backup.c_str(), (backup + "2").c_str());
+			link(gHostStoreFile.c_str(), backup.c_str());		// the old file stays there
+		}
 	}
-	fwrite(kFileMagic, 1, sizeof(kFileMagic), file);
-	PutLong(file, kFileVersion);
-	PutLong(file, kHostRootId);
-	PutLong(file, fNextId);
-	PutLong(file, (ULong)committed.size());
-	for (auto & obj : committed) {
-		PutLong(file, obj.first);
-		PutLong(file, (ULong)obj.second->size());
-		fwrite(obj.second->data(), 1, obj.second->size(), file);
-	}
-	bool ok = fclose(file) == 0 && rename(temp.c_str(), gHostStoreFile.c_str()) == 0;
+	ok = ok && rename(temp.c_str(), gHostStoreFile.c_str()) == 0;
 	if (ok)
 		fDirty = false;
-	else
+	else {
 		fprintf(stderr, "newtc: can't write the store %s\n", gHostStoreFile.c_str());
+		unlink(temp.c_str());
+	}
 	return ok;
 }
 
+
+/* ------------------------------------------------------------------------------
+	Read a store file into outObjects: false if it isn't a whole, unharmed
+	newtc store (the magic, version, root id, every object inside the file,
+	nothing after them, and for version 2 the CRC).
+------------------------------------------------------------------------------ */
+
+static bool
+ReadStoreFile(const std::string & inPath, std::map<PSSId, std::vector<unsigned char>> * outObjects, ULong * outNextId)
+{
+	FILE * file = fopen(inPath.c_str(), "rb");
+	if (file == NULL)
+		return false;
+	std::vector<unsigned char> data;
+	unsigned char buffer[65536];
+	size_t n;
+	while ((n = fread(buffer, 1, sizeof(buffer), file)) > 0)
+		data.insert(data.end(), buffer, buffer + n);
+	bool readOK = !ferror(file);
+	fclose(file);
+	const size_t header = sizeof(kFileMagic) + 4 * 4;
+	if (!readOK || data.size() < header || memcmp(data.data(), kFileMagic, sizeof(kFileMagic)) != 0)
+		return false;
+	ULong version = GetLong(&data[8]);
+	if ((version != 1 && version != 2) || GetLong(&data[12]) != kHostRootId)
+		return false;
+	size_t end = data.size();
+	if (version == 2) {
+		if (end < header + 4 || Crc32(data.data(), end - 4) != GetLong(&data[end - 4]))
+			return false;
+		end -= 4;
+	}
+	ULong nextId = GetLong(&data[16]), count = GetLong(&data[20]);
+	std::map<PSSId, std::vector<unsigned char>> objects;
+	size_t at = header;
+	for (ULong i = 0; i < count; ++i) {
+		if (end - at < 8)
+			return false;
+		ULong id = GetLong(&data[at]), size = GetLong(&data[at + 4]);
+		at += 8;
+		if (end - at < size || id >= nextId || objects.count(id))
+			return false;
+		objects[id].assign(data.begin() + at, data.begin() + at + size);
+		at += size;
+	}
+	if (at != end)
+		return false;
+	outObjects->swap(objects);
+	*outNextId = nextId;
+	return true;
+}
+
+
+/* ------------------------------------------------------------------------------
+	Load the store file. One that isn't a whole store (a crash while it was
+	written elsewhere, a disk error, a bug) is kept aside, as
+	<file>.bad-<date>-<time>, for a look at it; then <file>.bak (the file as
+	it was when a run started) if it is whole, else a new store.
+------------------------------------------------------------------------------ */
 
 bool
 CHostStore::load(void)
 {
 	if (gHostStoreFile.empty())
 		return false;
-	FILE * file = fopen(gHostStoreFile.c_str(), "rb");
-	if (file == NULL)
+	if (access(gHostStoreFile.c_str(), F_OK) != 0)
 		return false;			// a new store
-	char magic[sizeof(kFileMagic)];
-	ULong version, rootId, nextId, count;
-	bool ok = fread(magic, 1, sizeof(magic), file) == sizeof(magic)
-			 && memcmp(magic, kFileMagic, sizeof(magic)) == 0
-			 && GetLong(file, &version) && version == kFileVersion
-			 && GetLong(file, &rootId) && rootId == kHostRootId
-			 && GetLong(file, &nextId) && GetLong(file, &count);
-	for (ULong i = 0; ok && i < count; ++i) {
-		ULong id, size;
-		ok = GetLong(file, &id) && GetLong(file, &size);
-		if (ok) {
-			Bytes & bytes = fObjects[id];
-			bytes.resize(size);
-			ok = fread(bytes.data(), 1, size, file) == size;
+	std::map<PSSId, std::vector<unsigned char>> objects;
+	ULong nextId;
+	if (!ReadStoreFile(gHostStoreFile, &objects, &nextId)) {
+		char stamp[32];
+		time_t now = time(NULL);
+		strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", localtime(&now));
+		std::string bad = gHostStoreFile + ".bad-" + stamp;
+		rename(gHostStoreFile.c_str(), bad.c_str());
+		fprintf(stderr, "newtc: %s is not a whole newtc store; kept as %s\n", gHostStoreFile.c_str(), bad.c_str());
+		std::string backup = gHostStoreFile + ".bak";
+		if (!ReadStoreFile(backup, &objects, &nextId)) {
+			fprintf(stderr, "newtc: starting a new store\n");
+			return false;
 		}
+		fprintf(stderr, "newtc: using the backup %s\n", backup.c_str());
+		gBackedUp = true;		// (keep the backup: the file is gone)
+		fDirty = true;			// written back as the file
 	}
-	fclose(file);
-	if (!ok) {
-		fprintf(stderr, "newtc: %s is not a newtc store; starting a new one\n", gHostStoreFile.c_str());
-		fObjects.clear();
-		return false;
-	}
+	for (auto & obj : objects)
+		fObjects[obj.first].assign(obj.second.begin(), obj.second.end());
 	fNextId = nextId;
 	return true;
 }

@@ -758,7 +758,12 @@ Working on Battleship (the package: see 10.7):
         (Reread; a Newton reads the slot when it draws: Battleship sets
         the ship's icon slot, then its parent's Dirty()). Test
         `fltk_gestures`. Other gestures (scrub, caret, lines), words and
-        shapes: not yet. (FontAscent and GetView: 10.7e;
+        shapes: not yet.
+        The store file (Stores/HostStore.cc): a CRC-32 (version 2; 1 is
+        read), written whole to .tmp, fsync'd, renamed over the file; the
+        first save of a run keeps the old file as .bak (.bak before as
+        .bak2); a file that isn't whole is kept as .bad-<time> and the
+        backup used. Test test_store.py (9). See B26. (FontAscent and GetView: 10.7e;
         RelBounds and InkOff: 10.7b.)
   - [ ] 10.7g Hidden stubs: port functions that only print or return nil
         without NS_STUB (SetValue was one; `-stubs report` can't see them).
@@ -833,6 +838,18 @@ Interpreter and runtime
   (it negates the out-of-range 2^61), like C does; `-2305843009213693951 - 1`
   works. And a 62-bit integer can't go into a package or NSOF file for a
   real Newton (30 bits): check what the writers do with one.
+
+Stores
+- [ ] B26 **A store that stops Battleship from starting** (Matt, 2026-09-28:
+  six times in his tests, build/Battleship.store had to be deleted before
+  the app launched again; it hung). No file kept yet. Likely a soup state
+  that sends Apple's index or cursor code (Stores/) into a loop, as B20 to
+  B22 were, rather than a damaged file. Since 2026-09-28 the store file
+  has a CRC and is written safely, a run keeps the file it found as
+  <file>.bak (the run before's as .bak2), and a damaged file is kept as
+  <file>.bad-<time> (HostStore.h). Next time: keep the .store (and .bak,
+  .bak2), and pause newtc in VS Code while it hangs (the stack shows the
+  NewtonScript that loops; lldb for C++).
 
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug

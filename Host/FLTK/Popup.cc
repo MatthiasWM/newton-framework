@@ -143,7 +143,7 @@ Ref DoPopup(RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext)
     // If one item gets a check box, indent all of them
     menu[i].flags = flags[i] | (any_checked ? FL_MENU_TOGGLE : 0);
     menu[i].labelfont_ = FL_HELVETICA_BOLD;
-    menu[i].labelsize_ = 9;
+    menu[i].labelsize_ = 11;
     menu[i].text = labels[i].c_str();
     // Handling icons is a bit more involved
     if (const Fl_Image * image = icons[i].get()) {
