@@ -80,10 +80,8 @@ void DrawFloaterFrame(int x, int y, int w, int h, Fl_Color c)
 {
   constexpr int ift = 5;
   constexpr int oft = 2;
-  constexpr int oft2 = oft/2;
-  constexpr int oftr = 3;
-  // -- inner frame
-  fl_color(FL_GRAY);
+  // -- inner frame (matte)
+  fl_color(FL_DARK1);
   // top
   fl_rectf(x+oft, y+oft, w-2*oft, ift);
   // bottom
@@ -102,6 +100,9 @@ void DrawFloaterBox(int x, int y, int w, int h, Fl_Color c)
   DrawFloaterFrame(x, y, w, h, FL_BLACK);
 }
 
+
+// VIEW_BOX: nothing (the widget draws its view's frame)
+void DrawNothing(int, int, int, int, Fl_Color) { }
 
 } // namespace
 
@@ -123,6 +124,7 @@ void RegisterBoxtypes()
   // Note: drawing the down box requires toggeling labelcolor!
   Fl::set_boxtype(UP_BOX, DrawUpBox, 4, 4, 8, 8);
   Fl::set_boxtype(DOWN_BOX, DrawDownBox, 4, 4, 8, 8);
+  Fl::set_boxtype(VIEW_BOX, DrawNothing, 0, 0, 0, 0);
 }
 
 } // namespace nfl

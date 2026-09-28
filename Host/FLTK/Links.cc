@@ -250,17 +250,34 @@ NewtonBitmap IconOf(RefArg inContext)
   return ToNewtonBitmap(GetProtoVariable(inContext, SYMA(icon)));
 }
 
-// How far a view's frame reaches out of its bounds (viewFormat): a dragger
-// frame (protoFloater, protoFloatNGo) kDraggerBorderWidth, another frame
-// its pen width and inset. (Not yet: the shadow, right and bottom.)
+// How far a view's frame reaches out of its bounds (viewFormat), as the
+// ROM's CView::outerBounds: only a view with a pen has a frame; it reaches
+// out inset + pen (the pen only with a frame color), on every side. A
+// dragger or matte frame (protoFloater, protoFloatNGo, an app's base view):
+// kDraggerBorderWidth, for Matt's FLOATER_BOX (not parametrized yet).
+// Measured on a Newton (Screenshot1, nBattleship's Play button: 48 by 13,
+// pen 2): 52 by 17, nothing more. (Not yet: the ROM's 3 more above and
+// below the default button, for its keyboard indicator.)
 int FrameOutset(long inViewFormat)
 {
   long frame = (inViewFormat & vfFrameMask) >> vfFrameShift;
-  if (frame == vfDragger || frame == vfMatte)   // a floater's frame (Matt's FLOATER_BOX)
+  if (frame == vfDragger || frame == vfMatte)
     return kDraggerBorderWidth;
-  if (frame == vfNone)
+  long pen = (inViewFormat & vfPenMask) >> vfPenShift;
+  if (pen == 0)
     return 0;
-  return int(((inViewFormat & vfPenMask) >> vfPenShift) + ((inViewFormat & vfInsetMask) >> vfInsetShift));
+  long inset = (inViewFormat & vfInsetMask) >> vfInsetShift;
+  return int(inset + (frame ? pen : 0));
+}
+
+// A view's shadow (viewFormat): that much more at the right and the bottom,
+// outside its frame (CView::outerBounds; only a view with a pen has one).
+int FrameShadow(long inViewFormat)
+{
+  long frame = (inViewFormat & vfFrameMask) >> vfFrameShift;
+  if (frame == vfDragger || frame == vfMatte || (inViewFormat & vfPenMask) == 0)
+    return 0;
+  return int((inViewFormat & vfShadowMask) >> vfShadowShift);
 }
 
 // The ROM's image for a view's icon slot, if it is one of the ROM's (a
@@ -321,9 +338,7 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    Group * group = NewWidget<Group>(WidgetX(), WidgetY(), WidgetW(), WidgetH());
-    group->Format(IntSlot(fContext, "viewFormat"));
-    return group;
+    return NewWidget<Group>(WidgetX(), WidgetY(), WidgetW(), WidgetH());
   }
 };
 
@@ -341,14 +356,8 @@ protected:
     Fl_Font font;
     Fl_Fontsize size;
     FontOf(fContext, &font, &size);
-    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
-                                          Text(), font, size, Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP));
-    Fl_Color color;
-    long viewFormat = IntSlot(fContext, "viewFormat");
-    view->box(BoxForFormat(viewFormat, &color));
-    view->color(color);
-    view->FrameInset(fOutset);
-    return view;
+    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
+                               Text(), font, size, Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP));
   }
   void Update(RefArg inTag) override
   {
@@ -376,16 +385,8 @@ protected:
     Fl_Font font;
     Fl_Fontsize size;
     FontFromSpec(GetVariable(fContext, SYMA(viewFont)), &font, &size);
-    TextView * view = NewWidget<TextView>(WidgetX(), WidgetY(),
-                                          WidgetW(), WidgetH(),
-                                          Text(), font, size,
-                                          AlignOf(IntSlot(fContext, "viewJustify")));
-    Fl_Color color;
-    long viewFormat = IntSlot(fContext, "viewFormat");
-    view->box(BoxForFormat(viewFormat, &color));
-    view->color(color);
-    view->FrameInset(fOutset);
-    return view;
+    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
+                               Text(), font, size, AlignOf(IntSlot(fContext, "viewJustify")));
   }
   void Update(RefArg inTag) override
   {
@@ -420,11 +421,7 @@ protected:
     else
       view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
                                     IconOf(fContext), align);
-    view->FrameInset(fOutset);
     view->TransferMode(IntSlot(fContext, "viewTransferMode"));
-    Fl_Color color;
-    view->box(BoxForFormat(IntSlot(fContext, "viewFormat"), &color));
-    view->color(color);
     return view;
   }
   void Update(RefArg inTag) override
@@ -464,16 +461,8 @@ protected:
     if (title.empty())
       title = "Newton";
     // the frame (fOutset) is outside the view's bounds (as on a Newton)
-    long viewFormat = IntSlot(fContext, "viewFormat");
     FloatNGo * window = NewWidget<FloatNGo>(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
-                                            int(fBounds.Width() + 2 * fOutset), int(fBounds.Height() + 2 * fOutset),
-                                            title.c_str(), this);
-    long frame = (viewFormat & vfFrameMask) >> vfFrameShift;
-    if (frame != vfDragger && frame != vfMatte) {
-      Fl_Color color;   // not a floater: e.g. an alert
-      window->box(BoxForFormat(viewFormat, &color));
-      window->color(color);
-    }
+                                            WidgetW(), WidgetH(), title.c_str(), this);
     if (IntSlot(fContext, "viewClass") == clPictureView)
       if (Fl_Image * picture = RomIconOf(fContext))   // an alert: its frame
         window->Picture(picture, fOutset, fOutset);
@@ -752,12 +741,38 @@ void Link::Update(RefArg inTag)
   if (EQ(inTag, SYMA(viewBounds)) || EQ(inTag, SYMA(viewJustify))) {
     fBounds = JustifiedBounds();
     if (fParent) {   // a window keeps its place (the user may have moved it)
-      fWidget->resize(WidgetX(), WidgetY(), WidgetW(), WidgetH());
+      Layout();
       if (Fl_Group * parent = fWidget->parent())
         parent->redraw();
     }
+  } else if (EQ(inTag, SYMA(viewFormat))) {
+    fViewFormat = IntSlot(fContext, "viewFormat");
+    int outset = FrameOutset(fViewFormat), shadow = FrameShadow(fViewFormat);
+    if (outset != fOutset || shadow != fShadow) {   // the frame reaches out more (or less)
+      fOutset = outset;
+      fShadow = shadow;
+      Layout();
+    }
+    if (Fl_Group * parent = fWidget->parent())
+      parent->redraw();   // the old frame was outside the view
   }
   fWidget->redraw();
+}
+
+
+// The widget at its place and size (fBounds, fOutset), and the children's
+// at theirs (they are relative to the window, and a group that resizes
+// scales its children). A window stays where it is on the screen, its
+// frame around it.
+void Link::Layout()
+{
+  if (fParent)
+    fWidget->resize(WidgetX(), WidgetY(), WidgetW(), WidgetH());
+  else
+    fWidget->resize(int(kDesktopLeft + fBounds.left - fOutset), int(kDesktopTop + fBounds.top - fOutset),
+                    WidgetW(), WidgetH());
+  for (Link * child : fChildren)
+    child->Layout();
 }
 
 
@@ -765,8 +780,8 @@ void Link::UpdatePosition(Fl_Window * inWindow)
 {
   fBounds.left = inWindow->x() - kDesktopLeft + fOutset;
   fBounds.top = inWindow->y() - kDesktopTop + fOutset;
-  fBounds.right = inWindow->x() + inWindow->w() - kDesktopLeft - fOutset;
-  fBounds.bottom = inWindow->y() + inWindow->h() - kDesktopTop - fOutset;
+  fBounds.right = inWindow->x() + inWindow->w() - kDesktopLeft - fOutset - fShadow;
+  fBounds.bottom = inWindow->y() + inWindow->h() - kDesktopTop - fOutset - fShadow;
 }
 
 
@@ -788,10 +803,18 @@ void Link::SetHilite(bool inOn)
 }
 
 
+Group::Group(int x, int y, int w, int h)
+: Fl_Group(x, y, w, h)
+{
+  box(VIEW_BOX);
+}
+
+
 void Group::draw()
 {
-  if (fFormat)
-    DrawViewFormat(x(), y(), w(), h(), fFormat);
+  // (a group doesn't show hiliting yet: the ROM inverts it, children too)
+  if (Link * link = static_cast<Link *>(user_data()))
+    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), false);
   RunDrawScript(this);
   draw_children();
   DrawOverlay(this);
@@ -845,7 +868,9 @@ Link * Build(RefArg inContext, Link * inParent)
     if (IsSymbol(declareSelf))
       SetFrameSlot(inContext, declareSelf, inContext);
 
-    link->fOutset = FrameOutset(IntSlot(inContext, "viewFormat"));
+    link->fViewFormat = IntSlot(inContext, "viewFormat");
+    link->fOutset = FrameOutset(link->fViewFormat);
+    link->fShadow = FrameShadow(link->fViewFormat);
     link->fWidget = link->MakeWidget();
     link->fWidget->user_data(link);
     if (inParent) {

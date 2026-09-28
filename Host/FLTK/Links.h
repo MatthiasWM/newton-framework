@@ -51,8 +51,12 @@
  is inside, and returns true if the pen came up inside; then the script
  sends buttonClickScript() and Hilite(nil).
 
- Not yet: reflow, drawing by viewFormat for all views,
- buttonPressedScript, the click sound, strokes and gestures.
+ Every view widget draws its fill and frame itself, first thing in its
+ draw(): DrawViewFormat (Widgets.h) with the viewFormat its link keeps
+ (Link::ViewFormat(); SetValue updates it); its box is VIEW_BOX
+ (Boxtypes.h), which draws nothing.
+
+ Not yet: reflow, buttonPressedScript, the click sound, strokes and gestures.
  */
 
 #ifndef HOST_FLTK_LINKS_H
@@ -96,6 +100,13 @@ public:
   /** How far its frame reaches out of its bounds (its widget is that much
       bigger all around). */
   int Outset() const { return fOutset; }
+  /** How much more its shadow takes at the right and the bottom (its
+      widget is that much wider and higher). */
+  int Shadow() const { return fShadow; }
+  /** Its viewFormat (fill, frame, pen, inset, roundness, ...), kept here
+      for the widget's draw() (DrawViewFormat, Widgets.h): read when the
+      view opens, again when SetValue changes it. */
+  long ViewFormat() const { return fViewFormat; }
 
   /** The user closed the view's window: view:Close(), as an event. */
   void SendClose();
@@ -147,11 +158,12 @@ protected:
   /** Where the widget goes in its window (FLTK's window coordinates): the
       view's bounds relative to the window's content (which is the window's
       fOutset in from its edges), and around them the view's frame (its own
-      fOutset): NewtonOS draws a view's frame outside its bounds. */
+      fOutset; and fShadow more at the right and the bottom): NewtonOS
+      draws a view's frame outside its bounds. */
   int WidgetX();
   int WidgetY();
-  int WidgetW() const { return int(fBounds.Width() + 2 * fOutset); }
-  int WidgetH() const { return int(fBounds.Height() + 2 * fOutset); }
+  int WidgetW() const { return int(fBounds.Width() + 2 * fOutset + fShadow); }
+  int WidgetH() const { return int(fBounds.Height() + 2 * fOutset + fShadow); }
 
   RefStruct fContext;
   Link * fParent;
@@ -159,6 +171,8 @@ protected:
   Bounds fBounds;
   Fl_Widget * fWidget = nullptr;
   int fOutset = 0;             // its frame, around the view's bounds
+  int fShadow = 0;             // its shadow, right and bottom (Shadow())
+  long fViewFormat = 0;        // its viewFormat (ViewFormat())
   bool fInSetupForm = false;   // viewSetupFormScript runs (fBounds not set yet)
   bool fHidden = false;        // Hide()
   bool fHilited = false;       // Hilite(), TrackHilite()
@@ -170,6 +184,7 @@ protected:
   PenPoint PenAt(Fl_Widget * inWidget);
   void OffsetBounds(long inDX, long inDY);
   void Place();
+  void Layout();
   void ShowOutsideChildren(bool inShow);   // see HideView
   Stroke * fStroke = nullptr;  // the stroke of the pen down on the view
   Fl_Image_Surface * fCanvas = nullptr;   // what scripts drew (Drawing.h),
@@ -215,20 +230,17 @@ protected:
 class Group : public Fl_Group
 {
 public:
-  Group(int x, int y, int w, int h) : Fl_Group(x, y, w, h) { }
+  Group(int x, int y, int w, int h);
   // clear() here, not only in ~Fl_Group(): there, the object is an Fl_Group
   // already, and clear() would call Fl_Group::delete_child() (which deletes)
   ~Group() override { clear(); }
-  /** Its fill and frame (viewFormat), its viewDrawScript, its children,
-      then what scripts drew (Drawing.h). */
+  /** Its fill and frame (DrawViewFormat), its viewDrawScript, its
+      children, then what scripts drew (Drawing.h). */
   void draw() override;
-  void Format(long inViewFormat) { fFormat = inViewFormat; }
   /** Pen events the children don't take go to the view (Link::HandlePen). */
   int handle(int inEvent) override;
 protected:
   int delete_child(int inIndex) override { return GroupLink::RemoveChild(this, inIndex); }
-private:
-  long fFormat = 0;
 };
 
 /** view:_Open() (FOpenX): open the view (and its children) if it isn't

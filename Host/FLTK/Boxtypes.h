@@ -24,12 +24,17 @@ enum : int {
   FLOATER_BOX_ = FL_FREE_BOXTYPE,   // the frame of a floating view (protoFloater)
   FLOATER_DOWN_BOX_, // not used
   UP_BOX_, DOWN_BOX_,
+  VIEW_BOX_,         // a view's widget: it draws its frame itself (DrawViewFormat)
   LAST_BOX_
 };
 
 const Fl_Boxtype FLOATER_BOX = Fl_Boxtype(FLOATER_BOX_);
 const Fl_Boxtype UP_BOX = Fl_Boxtype(UP_BOX_);
 const Fl_Boxtype DOWN_BOX = Fl_Boxtype(DOWN_BOX_);
+/** The box of a view's widget: FLTK draws nothing, the widget's draw()
+    draws the view's fill and frame from its viewFormat (DrawViewFormat,
+    Widgets.h). Not FL_NO_BOX: FLTK treats that one specially. */
+const Fl_Boxtype VIEW_BOX = Fl_Boxtype(VIEW_BOX_);
 
 /** Register the box types with FLTK (only the first call does). */
 void RegisterBoxtypes();

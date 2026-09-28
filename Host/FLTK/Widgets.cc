@@ -15,6 +15,7 @@
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Drawing.h"
 #include "Host/Pict.h"
+#include "ViewFlags.h"
 
 #include "Frames/Frames.h"
 #include "Frames/Globals.h"
@@ -28,51 +29,105 @@ namespace {
 Fl_Color NewtonColor(long inColor)
 {
   switch (inColor) {
-    case 1: return FL_WHITE;                   // vfWhite
-    case 2: return fl_rgb_color(192, 192, 192); // vfLtGray
-    case 3: return fl_rgb_color(128, 128, 128); // vfGray
-    case 4: return fl_rgb_color(64, 64, 64);   // vfDkGray
-    default: return FL_BLACK;                  // vfBlack, custom, matte
+    case 1: return FL_WHITE;    // vfWhite
+    case 2: return fl_rgb_color(192, 192, 192);   // vfLtGray
+    case 3: return fl_rgb_color(128, 128, 128);    // vfGray
+    case 4: return fl_rgb_color(64, 64, 64);    // vfDkGray
+    default: return FL_BLACK;   // vfBlack, custom, matte
   }
 }
 
 } // namespace
 
 
-Fl_Boxtype BoxForFormat(long inViewFormat, Fl_Color * outColor)
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited)
 {
-  long fill = inViewFormat & 0x0F;             // vfFillMask
-  long frame = (inViewFormat >> 4) & 0x0F;     // vfFrameMask
-  long round = (inViewFormat >> 24) & 0x0F;    // vfRoundMask
-  *outColor = fill ? NewtonColor(fill) : FL_WHITE;
-  if (frame && round)
-    return nfl::UP_BOX;       // the NewtonOS button (Boxtypes.cc)
-  if (frame)
-    return FL_BORDER_BOX;
-  if (fill)
-    return FL_FLAT_BOX;
-  return FL_NO_BOX;
+  // Color of inner fill or 0, or custom
+  uint32_t fill = (inViewFormat & vfFillMask) >> vfFillShift;         // 4 bits
+  // Color of outer frame or 0, or custom, or dragger, or matte
+  uint32_t frame = (inViewFormat & vfFrameMask) >> vfFrameShift;      // 4 bits
+  // Width in pixels of the frame, at the widget's edge (outside the view's bounds)
+  uint32_t pen = (inViewFormat & vfPenMask) >> vfPenShift;            // 4 bits
+  // Lines is used in text views to draw horizontal guides
+  //uint32_t lines = (inViewFormat & vfLinesMask) >> vfLineShift;       // 4 bits
+  // Space between the view's bounds and the inside of the frame
+  uint32_t inset = (inViewFormat & vfInsetMask) >> vfInsetShift;      // 2 bits
+  // Gray lines this wide at the bottom and the right, outside the frame
+  uint32_t shadow = (inViewFormat & vfShadowMask) >> vfShadowShift;   // 2 bits
+  // invert or bullet(?) or trienagle(?) - can;t be selected in NTK
+  uint32_t hilite = (inViewFormat & vfHiliteMask) >> vfHiliteShift;   // 4 bits
+  // Radius for the infill corners. The outer corners are affected by the roundness of the frame.
+  uint32_t round = (inViewFormat & vfRoundMask) >> vfRoundShift;      // 4 bits
+
+  // TODO: vfMatte: Thick gray frame bordered by a black frame, giving a matte effect.
+  // TODO: vfDragge: Similar effect to vfFrameMatte, plus a small control nub in the
+  //       top portion of the frame at the center.
+  // The ROM (CView::postDraw): the frame pen wide in the frame's pattern (the
+  // matte), then a black one 2 wide (4 on the view with the caret) on top,
+  // same rounding; a dragger then its hook (ROM picture @691) centered at
+  // the frame's top + 2.
+  Fl_Color fillColor = fill ? NewtonColor(fill) : FL_WHITE;
+  if (frame == vfDragger || frame == vfMatte) {   // a floater
+    fl_draw_box(FLOATER_BOX, x, y, w, h, fillColor);
+    return;
+  }
+
+  // The widget is the ROM's outer bounds (CView::outerBounds): the view's
+  // bounds, inset + pen around them (only a view with a pen has a frame),
+  // and the shadow at the right and the bottom. The frame's bounds (the
+  // ROM's frameBounds) are all of it but the shadow; the frame is at their
+  // edge, pen wide, the inset between it and the view's bounds.
+  (void)inset;   // it is only in the widget's size (FrameOutset, Links.cc)
+  if (!pen)
+    shadow = 0;
+  int fw = w - shadow, fh = h - shadow;
+  // where fl_rect() goes so that the pen covers the outer pen pixels: a
+  // line p wide at column c covers c - (p-1)/2 ... c + p/2
+  int d = (frame && pen) ? (pen-1)/2 : 0;
+  int dd = (frame && pen) ? pen-1 : 0;
+  // Draw the shadow at the bottom right of the widget first.
+  if (shadow && frame) {
+    int ds = shadow - (shadow-1)/2;   // so that the line covers the last shadow pixels
+    fl_color(fl_rgb_color(128, 128, 128));
+    fl_line_style(0, shadow);
+    fl_xyline(x+shadow+round, y+h-ds, x+w-ds, y+shadow+round);
+    fl_line_style(0, 1);
+  }
+  // Draw the inside first
+  if (fill || inHilited) {
+    if (inHilited) { // Invert inner area to highlight it
+      if ((fill>vfGray) && (fill <= vfBlack)) {
+        fillColor = FL_WHITE;
+      } else {
+        fillColor = FL_BLACK;
+      }
+    }
+    fl_color(fillColor);
+    if (round)
+      fl_rounded_rectf(x+d, y+d, fw-dd, fh-dd, round);
+    else
+      fl_rectf(x+d, y+d, fw-dd, fh-dd);
+  }
+  // Draw the frame. The outer lines of the frame touch the widget outline (plus shadow)
+  if (frame && pen) {
+    fl_color(NewtonColor(frame));
+    fl_line_style(0, pen);
+    if (round)
+      fl_rounded_rect(x+d, y+d, fw-dd, fh-dd, round);
+    else
+      fl_rect(x+d, y+d, fw-dd, fh-dd);
+    fl_line_style(0, 0);
+  }
+  // Great indicatore for true widget sizes:
+  // fl_color(FL_RED);
+  // fl_focus_rect(x, y, w, h);
 }
 
 
-void DrawViewFormat(int x, int y, int w, int h, long inViewFormat)
+ViewWidget::ViewWidget(int x, int y, int w, int h)
+: Fl_Widget(x, y, w, h)
 {
-  long fill = inViewFormat & 0x0F;             // vfFillMask
-  long frame = (inViewFormat >> 4) & 0x0F;     // vfFrameMask
-  int pen = int((inViewFormat >> 8) & 0x0F);   // vfPenMask
-  int round = int((inViewFormat >> 24) & 0x0F);
-  if (fill) {
-    fl_color(NewtonColor(fill));
-    if (round) fl_rounded_rectf(x, y, w, h, round);
-    else fl_rectf(x, y, w, h);
-  }
-  if (frame && pen > 0) {   // outside the bounds: the widget's edge, pen wide
-    fl_color(NewtonColor(frame));
-    for (int i = 0; i < pen && 2 * i < std::min(w, h); ++i) {
-      if (round) fl_rounded_rect(x + i, y + i, w - 2 * i, h - 2 * i, round);
-      else fl_rect(x + i, y + i, w - 2 * i, h - 2 * i);
-    }
-  }
+  box(VIEW_BOX);
 }
 
 
@@ -98,15 +153,24 @@ bool ViewWidget::Hilited() const
 }
 
 
-// The ROM inverts a hilited view. A button's box has its own look for that.
-void ViewWidget::DrawBox()
+void ViewWidget::DrawFormat()
 {
-  if (!Hilited())
-    draw_box();
-  else if (box() == FL_UP_BOX)
-    draw_box(FL_DOWN_BOX, color());
-  else
-    fl_rectf(x(), y(), w(), h(), FL_BLACK);
+  if (Link * link = static_cast<Link *>(user_data()))
+    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), link->Hilited());
+}
+
+
+int ViewWidget::Inset() const
+{
+  Link * link = static_cast<Link *>(user_data());
+  return link ? link->Outset() : 0;
+}
+
+
+int ViewWidget::Shadow() const
+{
+  Link * link = static_cast<Link *>(user_data());
+  return link ? link->Shadow() : 0;
 }
 
 
@@ -118,12 +182,13 @@ TextView::TextView(int x, int y, int w, int h, const std::string & inText,
 
 void TextView::draw()
 {
-  DrawBox();
+  DrawFormat();
+  int inset = Inset(), shadow = Shadow();
   fl_font(fFont, fSize);
   fl_color(Hilited() ? FL_WHITE : FL_BLACK);
   fl_push_clip(x(), y(), w(), h());
   // in the view's bounds, inside its frame; draw_symbols 0: '@' is just a character
-  fl_draw(fText.c_str(), x() + fInset, y() + fInset, w() - 2 * fInset, h() - 2 * fInset,
+  fl_draw(fText.c_str(), x() + inset, y() + inset, w() - 2 * inset - shadow, h() - 2 * inset - shadow,
           fAlign | FL_ALIGN_INSIDE, nullptr, 0);
   fl_pop_clip();
   RunDrawScript(this);
@@ -209,7 +274,7 @@ Fl_Bitmap * ToFlImage(const NewtonBitmap & inBitmap)
 
 void PictureView::draw()
 {
-  DrawBox();
+  DrawFormat();
   if (fImage)
     DrawImage();
   RunDrawScript(this);
@@ -220,7 +285,8 @@ void PictureView::draw()
 void PictureView::DrawImage()
 {
   // in the view's bounds, inside its frame
-  int bx = x() + fInset, by = y() + fInset, bw = w() - 2 * fInset, bh = h() - 2 * fInset;
+  int inset = Inset(), shadow = Shadow();
+  int bx = x() + inset, by = y() + inset, bw = w() - 2 * inset - shadow, bh = h() - 2 * inset - shadow;
   int px = bx + (bw - fImage->w()) / 2, py = by + (bh - fImage->h()) / 2;
   if (fAlign & FL_ALIGN_LEFT)
     px = bx;

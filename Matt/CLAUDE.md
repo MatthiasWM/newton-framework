@@ -663,6 +663,22 @@ Working on Battleship (the package: see 10.7):
         its bits, or a PICT) and ToFlImage (Widgets.h), used by pictures,
         drawing and menus. TestMenuSnapshot(path): the next menu shows for
         real, saved as a PNG, then cancelled.
+        Frames (Matt's design): the link keeps the viewFormat
+        (Link::ViewFormat(), read at open, updated by SetValue: a new frame
+        width re-lays out the widget and its children, Link::Layout());
+        every view widget (Group, TextView, PictureView, FloatNGo) calls
+        DrawViewFormat(x, y, w, h, viewFormat, hilited) first in draw();
+        their box is VIEW_BOX, a box type that draws nothing (not
+        FL_NO_BOX, which FLTK treats specially). BoxForFormat is gone.
+        Geometry as the ROM's CView::outerBounds (Matt's drawing): the
+        widget is the bounds, inset + pen around them (only with a pen; the
+        pen only with a frame color: FrameOutset), and the shadow at the
+        right and the bottom (FrameShadow, Link::Shadow()). The frame is at
+        the widget's edge, the inset between it and the bounds; fill under
+        it; hilite inverts the fill (black without one). No extra pixels:
+        Screenshot1's Play button (48 by 13, pen 2) is 52 by 17 on a
+        Newton. The ROM's +3 above and below is only for the default
+        button (its keyboard indicator; not yet). Test `fltk_view_format`.
         Open: MoveBehind; the floater's dragger (a bump at the top center;
         Matt's box); the handwriting font of the pickers' values (Matt's);
         the status bar's clock overlaps the info button a little.

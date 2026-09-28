@@ -4,15 +4,17 @@
  The widgets of views that draw something themselves (see Links.h for the
  link classes that make them):
 
-   nfl::TextView     clTextView (protoTextButton): its text in one font, in
-                     the box its viewFormat asks for (Boxtypes.h).
+   nfl::TextView     clTextView (protoTextButton), clParagraphView: its
+                     text in one font, in the fill and frame its viewFormat
+                     asks for (DrawViewFormat).
    nfl::PictureView  clPictureView (protoPictureButton, protoClosebox): its
                      icon, a Newton bitmap.
 
  Both draw hilited (Hilite(true), TrackHilite) as the ROM does: inverted.
  Pen events go to the view's link (user_data(), Link::HandlePen()), which
  runs the view's scripts. The widgets hold no NewtonScript objects: they
- get what they draw when they are made.
+ get what they draw when they are made, or from their link (its
+ viewFormat, its frame's width, whether it is hilited).
  */
 
 #ifndef HOST_FLTK_WIDGETS_H
@@ -30,34 +32,38 @@
 
 namespace nfl {
 
-/** The box for a view's viewFormat (fill, frame, pen, roundness): FL_UP_BOX
-    for a rounded black frame (a button), FL_FLAT_BOX for a fill only,
-    FL_BORDER_BOX for a square frame, FL_NO_BOX for neither. *outColor: the
-    fill color. */
-Fl_Boxtype BoxForFormat(long inViewFormat, Fl_Color * outColor);
-
-/** A view's fill and frame (viewFormat: fill, frame colors, pen width,
-    roundness) in x, y, w, h (the view's bounds and its frame around them:
-    the frame is outside the bounds, as on a Newton). Grays are solid (a
-    Newton's are patterns). */
-void DrawViewFormat(int x, int y, int w, int h, long inViewFormat);
+/** A view's fill and frame, as its viewFormat asks (fill and frame
+    colors, frame type, pen width, inset, shadow, roundness), in x, y, w, h:
+    the ROM's outer bounds (CView::outerBounds): the view's bounds, its
+    frame around them (Link::Outset(): inset + pen), and its shadow at the
+    right and the bottom (Link::Shadow()). Every view widget's draw() calls
+    it first (its box is VIEW_BOX, which draws nothing); the view's link
+    keeps its viewFormat (Link::ViewFormat()). inHilited: draw it hilited;
+    each widget decides whether it shows hiliting that way.
+      a dragger or matte frame (protoFloater, an app's base view): Matt's
+        FLOATER_BOX;
+      else the shadow (gray), the fill (inverted if hilited: black, or
+        white on a dark fill; black without a fill), and the frame, pen
+        wide at the edge, round corners if round; the inset is the space
+        between the frame and the view's bounds.
+    Grays are solid (a Newton's are patterns). */
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited);
 
 /** A widget that sends its pen events to its view's link. */
 class ViewWidget : public Fl_Widget
 {
 public:
-  ViewWidget(int x, int y, int w, int h) : Fl_Widget(x, y, w, h) { }
+  ViewWidget(int x, int y, int w, int h);
   int handle(int inEvent) override;
-  /** The widget is the view's bounds and its frame around them (a
-      NewtonOS frame is outside the bounds): the frame's width. What the
-      view shows goes inside. */
-  void FrameInset(int inPixels) { fInset = inPixels; }
 protected:
   bool Hilited() const;
-  /** The box, hilited if the view is: FL_DOWN_BOX for FL_UP_BOX, else
-      filled black. */
-  void DrawBox();
-  int fInset = 0;
+  /** The view's fill and frame (DrawViewFormat), hilited if it is. */
+  void DrawFormat();
+  /** The widget is the view's bounds and its frame around them: the
+      frame's width (Link::Outset()). What the view shows goes inside. */
+  int Inset() const;
+  /** ... and the shadow's, at the right and the bottom (Link::Shadow()). */
+  int Shadow() const;
 };
 
 /** clTextView: one line (or more) of text in one font. */

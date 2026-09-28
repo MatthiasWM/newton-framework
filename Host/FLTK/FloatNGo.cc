@@ -4,8 +4,11 @@
  A desktop window for a window-like Newton view. See FloatNGo.h.
  */
 
+#include <FL/fl_draw.H>
+
 #include "Host/FLTK/FloatNGo.h"
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Widgets.h"
 #include "Host/FLTK/Boxtypes.h"
 #include "Host/FLTK/Drawing.h"
 
@@ -17,7 +20,7 @@ FloatNGo::FloatNGo(int x, int y, int w, int h, const char * inTitle, Link * inLi
   copy_label(inTitle);
   user_data(inLink);
   color(FL_WHITE); // NewtonOS background color
-  box(FLOATER_BOX);
+  box(VIEW_BOX);   // draw() draws the view's frame
   // closing the window closes the view: view:Close(), from the event loop
   // (no link: the view is closed already)
   callback([](Fl_Widget * w, void *) {
@@ -59,7 +62,10 @@ void FloatNGo::resize(int X, int Y, int W, int H)
 
 void FloatNGo::draw()
 {
-  draw_box(box(), 0, 0, w(), h(), color());   // a window's own coordinates
+  // a window's own coordinates; its every pixel: white under the frame
+  fl_rectf(0, 0, w(), h(), color());
+  if (Link * link = static_cast<Link *>(user_data()))
+    DrawViewFormat(0, 0, w(), h(), link->ViewFormat(), false);
   if (fPicture)
     fPicture->draw(fPictureX, fPictureY);
   RunDrawScript(this);

@@ -1,0 +1,20 @@
+// 10.7e (needs FLTK): a view's frame and fill from its viewFormat
+// (DrawViewFormat, Widgets.h), in the ROM's geometry (CView::outerBounds):
+// the frame is outside the view's bounds, pen wide, inset from them; the
+// shadow (gray) is outside the frame at the right and the bottom. TestPixel
+// reads relative to the view's bounds (-1: just outside).
+DefGlobalVar('va, nil); DefGlobalVar('vb, nil); DefGlobalVar('vc, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 190},
+  stepChildren: [
+    {viewClass: 74, viewFlags: 1, viewFormat: 0x151, viewBounds: {left: 20, top: 20, right: 60, bottom: 40}, viewSetupDoneScript: func() va := self},
+    {viewClass: 74, viewFlags: 1, viewFormat: 0x10350, viewBounds: {left: 100, top: 20, right: 140, bottom: 40}, viewSetupDoneScript: func() vb := self},
+    {viewClass: 74, viewFlags: 1, viewFormat: 0x80150, viewBounds: {left: 20, top: 70, right: 60, bottom: 90}, viewSetupDoneScript: func() vc := self}]}));
+app:Open();
+func Row(v, xs, y) begin local r := []; foreach x in xs do AddArraySlot(r, TestPixel(v, x, y)); r end;
+TestLater(func() begin
+  Print(["pen 1: x -2..1, 38..41", Row(va, [-2,-1,0,1,38,39,40,41], 10), "y -1, 20", TestPixel(va, 10, -1), TestPixel(va, 10, 20)]);
+  Print(["pen 3 inset 1: x -5..0, 39..44", Row(vb, [-5,-4,-3,-2,-1,0,39,40,41,42,43,44], 10), "y -4,-1, 23,20", TestPixel(vb,10,-4), TestPixel(vb,10,-1), TestPixel(vb,10,23), TestPixel(vb,10,20)]);
+  Print(["shadow 2: x 39..43 at y 10", Row(vc, [39,40,41,42,43], 10), "y 20..23 at x 10", TestPixel(vc,10,20), TestPixel(vc,10,21), TestPixel(vc,10,22), TestPixel(vc,10,23)]);
+  app:Close();
+end);

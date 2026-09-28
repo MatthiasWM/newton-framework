@@ -5,9 +5,12 @@
 // can't hold widgets, so its children's are in the window: they hide and
 // show with it. DrawXBitmap(bounds, strip, index, mode) draws on self the index-th
 // bounds-sized cell of a strip (the status bar's clock: its hands).
+// A view's link keeps its viewFormat for drawing: SetValue changes it
+// (and the frame, outside the bounds, may make the widget bigger).
 DefGlobalVar('check, nil);
 DefGlobalVar('para, nil);
 DefGlobalVar('canvasView, nil);
+DefGlobalVar('boxed, nil);
 DefGlobalVar('strip, {bounds: {left: 0, top: 0, right: 16, bottom: 8},
   bits: MakeBinaryFromHex("0000000000020000000000000008001000FF00FF00FF00FF00FF00FF00FF00FF", 'bits)});
 DefGlobalVar('app, BuildContext({
@@ -27,7 +30,9 @@ DefGlobalVar('app, BuildContext({
        :DrawShape(MakeRect(10, 0, 40, 8), {fillPattern: 5});
        DrawXBitmap({left: 10, top: 0, right: 18, bottom: 8}, strip, 0, nil);  // copy: white
        DrawXBitmap({left: 20, top: 0, right: 28, bottom: 8}, strip, 0, 1);    // or: nothing
-     end}]}));
+     end},
+    {viewClass: 74, viewFlags: 1, viewFormat: 0, viewBounds: {left: 160, top: 70, right: 200, bottom: 90},
+     viewSetupDoneScript: func() boxed := self}]}));
 app:Open();
 
 func Blacks(view, left, top, right, bottom) begin
@@ -43,12 +48,16 @@ TestLater(func() begin
   Print(["label", Blacks(check, 16, 7, 60, 8) > 0]);
   Print(["DrawXBitmap", TestPixel(canvasView, 4, 4), TestPixel(canvasView, 14, 4), TestPixel(canvasView, 24, 4)]);
   Print(["paragraph's child", TestPixel(para, 1, 1)]);
+  Print(["no viewFormat", TestPixel(boxed, 10, 10), TestPixel(boxed, -1, 10)]);
+  SetValue(boxed, 'viewFormat, 0x255);   // fill black, frame black, pen 2
   para:Hide();
   check:SetCheck(nil);
 end);
 TestLater(func() begin
   Print(["unchecked has fewer black pixels", Blacks(check, 7, 0, 14, 4) < checked]);
   Print(["hidden with it", TestPixel(para, 1, 1)]);
+  Print(["viewFormat set: fill, frame outside", TestPixel(boxed, 10, 10), TestPixel(boxed, -1, 10),
+         TestPixel(boxed, -2, 10), "beyond", TestPixel(boxed, -3, 10)]);
   para:Show();
 end);
 TestLater(func() begin

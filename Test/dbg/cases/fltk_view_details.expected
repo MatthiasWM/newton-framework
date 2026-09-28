@@ -1,6 +1,8 @@
 ["label", true]
 ["DrawXBitmap", 0, 255, 0]
 ["paragraph's child", 0]
+["no viewFormat", 255, 255]
 ["unchecked has fewer black pixels", true]
 ["hidden with it", 255]
+["viewFormat set: fill, frame outside", 0, 0, 0, "beyond", 255]
 ["shown with it", 0]
