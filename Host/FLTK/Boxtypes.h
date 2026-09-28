@@ -22,10 +22,14 @@ namespace nfl {
 /** The box types, from FLTK's first free one on. */
 enum : int {
   FLOATER_BOX_ = FL_FREE_BOXTYPE,   // the frame of a floating view (protoFloater)
+  FLOATER_DOWN_BOX_, // not used
+  UP_BOX_, DOWN_BOX_,
   LAST_BOX_
 };
 
 const Fl_Boxtype FLOATER_BOX = Fl_Boxtype(FLOATER_BOX_);
+const Fl_Boxtype UP_BOX = Fl_Boxtype(UP_BOX_);
+const Fl_Boxtype DOWN_BOX = Fl_Boxtype(DOWN_BOX_);
 
 /** Register the box types with FLTK (only the first call does). */
 void RegisterBoxtypes();

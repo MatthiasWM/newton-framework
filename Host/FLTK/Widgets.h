@@ -22,6 +22,8 @@
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Bitmap.H>
 
+#include "Frames/Objects.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -83,6 +85,19 @@ struct NewtonBitmap
   std::vector<unsigned char> bits;
 };
 
+/** An image of NewtonScript's as a NewtonBitmap: a bitmap frame (an icon,
+    what GetPictAsBits gives: {bits, bounds, mask}; the mask is left out),
+    its bits alone (a binary: 4 bytes, rowBytes, 2 bytes, then top, left,
+    bottom, right, then the rows; all 16-bit big-endian), or a PICT of
+    bitmaps (a binary of class 'picture, Host/Pict.h). Empty (width 0) for
+    anything else. */
+NewtonBitmap ToNewtonBitmap(RefArg inImage);
+
+/** A NewtonBitmap as an FLTK image: an Fl_Bitmap that owns its data (its 1
+    bits drawn in the current color, its 0 bits not drawn). nullptr if the
+    bitmap is empty. The caller deletes it. */
+Fl_Bitmap * ToFlImage(const NewtonBitmap & inBitmap);
+
 /** clPictureView: its icon, placed by inAlign (viewJustify): an image of
     the ROM's (RomImages.h; shared, with an inverted one for hiliting), or
     a Newton bitmap (from a package; drawn black, white when hilited). */
@@ -104,8 +119,7 @@ private:
   bool fCopy = true;
   Fl_Image * fImage = nullptr;
   Fl_Image * fHilitedImage = nullptr;
-  std::vector<unsigned char> fXbm;    // Fl_Bitmap doesn't copy its data
-  std::unique_ptr<Fl_Bitmap> fBitmap;
+  std::unique_ptr<Fl_Bitmap> fBitmap;   // from a Newton bitmap
   Fl_Align fAlign;
 };
 

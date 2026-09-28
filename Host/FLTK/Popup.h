@@ -30,6 +30,10 @@ Ref DoPopup(RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext);
     showing it; one answer per menu, in order. */
 void TestPick(RefArg inEntry);
 
+/** For tests (TestMenuSnapshot): the next DoPopup shows its menu, saves a
+    PNG of it at inPath, and closes it (cancelled). */
+void TestMenuSnapshot(RefArg inPath);
+
 } // namespace nfl
 
 #endif // HOST_FLTK_POPUP_H

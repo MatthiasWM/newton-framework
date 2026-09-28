@@ -12,6 +12,7 @@
 
 #include "Host/FLTK/Drawing.h"
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Widgets.h"
 #include "Host/Shapes.h"
 #include "Host/Pict.h"
 #include "Matt/EventLoop.h"
@@ -119,51 +120,6 @@ Fl_Color Gray(int inGray)
   return fl_rgb_color(uchar(inGray), uchar(inGray), uchar(inGray));
 }
 
-// Rows of 1-bit pixels (the leftmost in the high bit, 1 black) as an
-// Fl_Bitmap that owns its data.
-Fl_Bitmap * NewBitmap(const unsigned char * inRows, int rowBytes, int w, int h)
-{
-  int xbmRow = (w + 7) / 8;
-  uchar * xbm = new uchar[size_t(xbmRow) * h];
-  for (int y = 0; y < h; ++y)
-    for (int i = 0; i < xbmRow; ++i) {
-      unsigned char b = inRows[y * rowBytes + i], r = 0;
-      for (int bit = 0; bit < 8; ++bit)
-        if (b & (0x80 >> bit))
-          r |= 1 << bit;
-      xbm[y * xbmRow + i] = r;
-    }
-  Fl_Bitmap * bitmap = new Fl_Bitmap(xbm, w, h);
-  bitmap->alloc_array = 1;
-  return bitmap;
-}
-
-// A Newton bitmap (an icon's bits: a 16-byte header, then the rows).
-Fl_Bitmap * NewBitmap(RefArg inBits)
-{
-  if (!IsBinary(inBits) || Length(inBits) < 16)
-    return nullptr;
-  const unsigned char * data = (const unsigned char *)BinaryData(inBits);
-  auto word = [data](int at) { return int(short((data[at] << 8) | data[at + 1])); };
-  int rowBytes = word(4), top = word(8), left = word(10), bottom = word(12), right = word(14);
-  int w = right - left, h = bottom - top;
-  if (rowBytes <= 0 || w <= 0 || h <= 0 || Length(inBits) < ArrayIndex(16 + rowBytes * h))
-    return nullptr;
-  return NewBitmap(data + 16, rowBytes, w, h);
-}
-
-// A PICT of bitmaps (Host/Pict.h).
-Fl_Bitmap * NewPictBitmap(RefArg inPict)
-{
-  if (!IsBinary(inPict))
-    return nullptr;
-  int w, h, rowBytes;
-  std::vector<unsigned char> rows;
-  if (!pict::Decode((const unsigned char *)BinaryData(inPict), Length(inPict), &w, &h, &rowBytes, &rows))
-    return nullptr;
-  return NewBitmap(rows.data(), rowBytes, w, h);
-}
-
 // A bitmap at x, y: in copy mode its zero bits white, else only its one bits.
 void DrawBitmap(Fl_Bitmap * inBitmap, int x, int y, int w, int h, int inMode)
 {
@@ -245,7 +201,13 @@ void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
     }
   } else if (EQ(cls, SYMA(bitmap)) || EQ(cls, SYMA(picture))) {
     RefVar data(GetProtoVariable(inShape, SYMA(data)));
-    std::unique_ptr<Fl_Bitmap> bitmap(EQ(cls, SYMA(bitmap)) ? NewBitmap(data) : NewPictBitmap(data));
+    NewtonBitmap bits;   // a picture's data: a PICT, whatever its class
+    if (EQ(cls, SYMA(bitmap)))
+      bits = ToNewtonBitmap(data);
+    else if (IsBinary(data) && !pict::Decode((const unsigned char *)BinaryData(data), Length(data),
+                                             &bits.width, &bits.height, &bits.rowBytes, &bits.bits))
+      bits = NewtonBitmap();
+    std::unique_ptr<Fl_Bitmap> bitmap(ToFlImage(bits));
     if (bitmap) {
       bitmap->scale(w, h, 0, 1);   // drawn at the shape's bounds
       DrawBitmap(bitmap.get(), x, y, w, h, style.mode);
@@ -321,15 +283,18 @@ Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inInd
       || Length(bits) < ArrayIndex(16 + rowBytes * stripH))
     return NILREF;
   // the cell: w by h pixels at cellX of the strip
-  int cellRowBytes = (w + 7) / 8;
-  std::vector<unsigned char> rows(size_t(cellRowBytes) * h, 0);
+  NewtonBitmap cell;
+  cell.width = w;
+  cell.height = h;
+  cell.rowBytes = (w + 7) / 8;
+  cell.bits.assign(size_t(cell.rowBytes) * h, 0);
   for (int y = 0; y < h; ++y)
     for (int x = 0; x < w; ++x) {
       int from = cellX + x;
       if (data[16 + y * rowBytes + (from >> 3)] & (0x80 >> (from & 7)))
-        rows[size_t(y) * cellRowBytes + (x >> 3)] |= (0x80 >> (x & 7));
+        cell.bits[size_t(y) * cell.rowBytes + (x >> 3)] |= (0x80 >> (x & 7));
     }
-  std::unique_ptr<Fl_Bitmap> bitmap(NewBitmap(rows.data(), cellRowBytes, w, h));
+  std::unique_ptr<Fl_Bitmap> bitmap(ToFlImage(cell));
   int mode = ISINT(inMode) ? int(RINT(inMode)) : kModeCopy;
   DrawOnView(link, [&](long ox, long oy, bool inMask) {
     gMask = inMask;

@@ -9,10 +9,16 @@
 #include <FL/fl_draw.H>
 
 #include "Host/FLTK/Widgets.h"
+#include "Host/FLTK/Boxtypes.h"
 
 #include <algorithm>
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Drawing.h"
+#include "Host/Pict.h"
+
+#include "Frames/Frames.h"
+#include "Frames/Globals.h"
+#include "ROMResources.h"
 
 namespace nfl {
 
@@ -40,7 +46,7 @@ Fl_Boxtype BoxForFormat(long inViewFormat, Fl_Color * outColor)
   long round = (inViewFormat >> 24) & 0x0F;    // vfRoundMask
   *outColor = fill ? NewtonColor(fill) : FL_WHITE;
   if (frame && round)
-    return FL_UP_BOX;       // the NewtonOS button (Boxtypes.cc)
+    return nfl::UP_BOX;       // the NewtonOS button (Boxtypes.cc)
   if (frame)
     return FL_BORDER_BOX;
   if (fill)
@@ -140,7 +146,6 @@ PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon
 void PictureView::Images(Fl_Image * inImage, Fl_Image * inHilited)
 {
   fBitmap.reset();
-  fXbm.clear();
   fImage = inImage;
   fHilitedImage = inHilited;
   redraw();
@@ -150,22 +155,55 @@ void PictureView::Images(Fl_Image * inImage, Fl_Image * inHilited)
 void PictureView::Icon(const NewtonBitmap & inIcon)
 {
   Images(nullptr, nullptr);
-  if (inIcon.width <= 0 || inIcon.height <= 0)
-    return;
+  fBitmap.reset(ToFlImage(inIcon));
+  fImage = fBitmap.get();
+}
+
+
+NewtonBitmap ToNewtonBitmap(RefArg inImage)
+{
+  NewtonBitmap bitmap;
+  if (IsBinary(inImage) && EQ(ClassOf(inImage), SYMA(picture))) {   // a PICT
+    if (!pict::Decode((const unsigned char *)BinaryData(inImage), Length(inImage),
+                      &bitmap.width, &bitmap.height, &bitmap.rowBytes, &bitmap.bits))
+      bitmap = NewtonBitmap();
+    return bitmap;
+  }
+  RefVar bits(IsFrame(inImage) ? GetFrameSlot(inImage, SYMA(bits)) : (Ref)inImage);
+  if (!IsBinary(bits) || Length(bits) < 16)
+    return bitmap;
+  const unsigned char * data = (const unsigned char *)BinaryData(bits);
+  auto word = [data](int offset) { return int(short((data[offset] << 8) | data[offset + 1])); };
+  int rowBytes = word(4), top = word(8), left = word(10), bottom = word(12), right = word(14);
+  if (rowBytes <= 0 || right <= left || bottom <= top
+   || Length(bits) < ArrayIndex(16 + rowBytes * (bottom - top)))
+    return bitmap;
+  bitmap.width = right - left;
+  bitmap.height = bottom - top;
+  bitmap.rowBytes = rowBytes;
+  bitmap.bits.assign(data + 16, data + 16 + rowBytes * bitmap.height);
+  return bitmap;
+}
+
+
+Fl_Bitmap * ToFlImage(const NewtonBitmap & inBitmap)
+{
+  if (inBitmap.width <= 0 || inBitmap.height <= 0)
+    return nullptr;
   // XBM, as Fl_Bitmap wants it: the leftmost pixel in the low bit
-  int xbmRowBytes = (inIcon.width + 7) / 8;
-  fXbm.resize(size_t(xbmRowBytes) * inIcon.height);
-  for (int row = 0; row < inIcon.height; ++row) {
+  int xbmRowBytes = (inBitmap.width + 7) / 8;
+  uchar * xbm = new uchar[size_t(xbmRowBytes) * inBitmap.height];
+  for (int row = 0; row < inBitmap.height; ++row)
     for (int i = 0; i < xbmRowBytes; ++i) {
-      unsigned char b = inIcon.bits[size_t(row) * inIcon.rowBytes + i], r = 0;
+      unsigned char b = inBitmap.bits[size_t(row) * inBitmap.rowBytes + i], r = 0;
       for (int bit = 0; bit < 8; ++bit)
         if (b & (0x80 >> bit))
           r |= 1 << bit;
-      fXbm[size_t(row) * xbmRowBytes + i] = r;
+      xbm[size_t(row) * xbmRowBytes + i] = r;
     }
-  }
-  fBitmap = std::make_unique<Fl_Bitmap>(fXbm.data(), inIcon.width, inIcon.height);
-  fImage = fBitmap.get();
+  Fl_Bitmap * image = new Fl_Bitmap(xbm, inBitmap.width, inBitmap.height);
+  image->alloc_array = 1;   // deletes xbm
+  return image;
 }
 
 

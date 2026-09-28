@@ -50,6 +50,12 @@ int FloatNGo::handle(int inEvent)
   return Fl_Double_Window::handle(inEvent);
 }
 
+void FloatNGo::resize(int X, int Y, int W, int H)
+{
+  Fl_Double_Window::resize(X, Y, W, H);
+  if (Link * link = static_cast<Link *>(user_data()))
+    link->UpdatePosition(this);
+}
 
 void FloatNGo::draw()
 {

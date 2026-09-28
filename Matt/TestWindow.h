@@ -42,6 +42,9 @@
        not counted; nil: cancelled) without showing it: an FLTK menu runs
        its own event loop, which taps can't reach. One answer per menu,
        in order.
+   TestMenuSnapshot(path) -> nil
+       the next popup menu (DoPopup) shows for real: newtc saves a PNG of
+       it at path and closes it (cancelled), to see how menus look.
    TestSnapshot(view, path) -> nil
        from the event loop, after the taps before it: save the view's
        window as a PNG file at path,
@@ -64,6 +67,7 @@ extern "C" Ref FTestDrag(RefArg rcvr, RefArg inView, RefArg inDX, RefArg inDY);
 extern "C" Ref FTestPen(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY, RefArg inDX, RefArg inDY);
 extern "C" Ref FTestLater(RefArg rcvr, RefArg inFunction);
 extern "C" Ref FTestPick(RefArg rcvr, RefArg inEntry);
+extern "C" Ref FTestMenuSnapshot(RefArg rcvr, RefArg inPath);
 extern "C" Ref FTestPixel(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY);
 extern "C" Ref FTestSnapshot(RefArg rcvr, RefArg inView, RefArg inPath);
 #endif

@@ -40,6 +40,9 @@ public:
       dragger: DragWindow, Link::HandlePen). */
   int handle(int inEvent) override;
 
+  /** Use this to keep the link position in sync with the window */
+  void resize(int X, int Y, int W, int H) override;
+
 protected:
   int delete_child(int inIndex) override;
   void draw() override;

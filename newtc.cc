@@ -189,6 +189,7 @@ bool init()
   defGlobalCFunction("TestPen", (void*)FTestPen, 5);
   defGlobalCFunction("TestLater", (void*)FTestLater, 1);
   defGlobalCFunction("TestPick", (void*)FTestPick, 1);
+  defGlobalCFunction("TestMenuSnapshot", (void*)FTestMenuSnapshot, 1);
   defGlobalCFunction("TestPixel", (void*)FTestPixel, 3);
   defGlobalCFunction("TestSnapshot", (void*)FTestSnapshot, 2);
 #endif

@@ -386,4 +386,10 @@ Ref FTestPick(RefArg rcvr, RefArg inEntry)
   return NILREF;
 }
 
+Ref FTestMenuSnapshot(RefArg rcvr, RefArg inPath)
+{
+  nfl::TestMenuSnapshot(inPath);
+  return NILREF;
+}
+
 #endif // NEWTC_USES_FLTK

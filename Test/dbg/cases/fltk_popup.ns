@@ -2,7 +2,8 @@
 // items as an FLTK menu; the pick goes to the context after the current
 // script: pickActionScript(index in items; separators count there), or
 // pickCancelledScript. protoLabelPicker (@190) opens its labelCommands
-// with the current one marked, and shows the pick. TestPick answers the
+// with the current one marked, and shows the pick. An item can have an
+// icon (a bitmap frame). TestPick answers the
 // next menu (entries without separators), since taps can't reach FLTK's
 // menu loop.
 DefGlobalVar('picker, nil);
@@ -18,7 +19,7 @@ DefGlobalVar('app, BuildContext({
      viewSetupDoneScript: func() picker := self},
     {_proto: @226, text: "i", viewBounds: {left: 10, top: 60, right: 30, bottom: 75},
      buttonClickScript: func() begin
-       DoPopup(["About", "Help", 'pickSeparator, "New Game"], :GlobalBox().right + 3, :GlobalBox().top, self);
+       DoPopup(["About", "Help", 'pickSeparator, {item: "New Game", icon: @334}], :GlobalBox().right + 3, :GlobalBox().top, self);
        Print("DoPopup returned");
      end,
      pickActionScript: func(index) Print(["info menu", index]),

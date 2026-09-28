@@ -59,7 +59,7 @@
 #define HOST_FLTK_LINKS_H
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
-#include <FL/Fl_Group.H>
+#include <FL/Fl_Window.H>
 
 #include "Frames/Objects.h"
 #include "Host/FLTK/Pen.h"
@@ -130,6 +130,10 @@ public:
 
   /** Hilite(), TrackHilite(): the widget draws the view hilited. */
   bool Hilited() const { return fHilited; }
+
+  /** The view's window moved or resized: keep the link's position in sync
+      (fBounds: Newton global coordinates, inside the frame). */
+  void UpdatePosition(Fl_Window * inWindow);
 
 protected:
   Link(RefArg inContext, Link * inParent);

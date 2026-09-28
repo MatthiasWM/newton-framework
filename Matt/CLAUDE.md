@@ -654,10 +654,18 @@ Working on Battleship (the package: see 10.7):
         24 cells of 17 by 17). DrawShape and DrawXBitmap share DrawOnView
         (onto the widget in a viewDrawScript, else canvas and mask).
         Test `fltk_view_details`.
+        Matt: Newton frames and boxes are box types of their own (nfl::UP_BOX,
+        FL_UP_BOX stays FLTK's); DoPopup's place under the view; menu
+        styles closer to a Newton's; check marks through FLTK; an item's
+        icon (a bitmap frame, GetPictAsBits) through an Fl_Multi_Label; a
+        floater's link follows its window (FloatNGo::resize,
+        Link::UpdatePosition). Helpers: ToNewtonBitmap (a bitmap frame,
+        its bits, or a PICT) and ToFlImage (Widgets.h), used by pictures,
+        drawing and menus. TestMenuSnapshot(path): the next menu shows for
+        real, saved as a PNG, then cancelled.
         Open: MoveBehind; the floater's dragger (a bump at the top center;
         Matt's box); the handwriting font of the pickers' values (Matt's);
-        icons in menus (Fl_Menu_Item can have them); the status bar's
-        clock overlaps the info button a little.
+        the status bar's clock overlaps the info button a little.
   - [ ] 10.7f The rest: keys (SetKeyView, SendKeyMessage, MatchKeyMessage,
         RestoreKeyView), AddUndoAction (protoCheckbox's ToggleCheck calls
         it), TableLookup, SyncView. (FontAscent and GetView: 10.7e;

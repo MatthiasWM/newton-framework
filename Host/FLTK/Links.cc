@@ -244,36 +244,10 @@ Fl_Align AlignOf(long inJustify)
   return align;
 }
 
-// A view's icon slot: a frame with a Newton bitmap in its bits slot (a
-// binary: 4 bytes, rowBytes, 2 bytes, then top, left, bottom, right, then
-// the rows; all 16-bit big-endian; the leftmost pixel in the high bit).
-// Empty if there is none.
+// A view's icon slot (see ToNewtonBitmap). Empty if there is none.
 NewtonBitmap IconOf(RefArg inContext)
 {
-  NewtonBitmap icon;
-  RefVar frame(GetProtoVariable(inContext, SYMA(icon)));
-  if (IsBinary(frame) && EQ(ClassOf(frame), SYMA(picture))) {   // a PICT (Host/Pict.h)
-    if (!pict::Decode((const unsigned char *)BinaryData(frame), Length(frame),
-                      &icon.width, &icon.height, &icon.rowBytes, &icon.bits))
-      icon = NewtonBitmap();
-    return icon;
-  }
-  if (!IsFrame(frame))
-    return icon;
-  RefVar bits(GetFrameSlot(frame, SYMA(bits)));
-  if (!IsBinary(bits) || Length(bits) < 16)
-    return icon;
-  const unsigned char * data = (const unsigned char *)BinaryData(bits);
-  auto word = [data](int offset) { return int(short((data[offset] << 8) | data[offset + 1])); };
-  int rowBytes = word(4), top = word(8), left = word(10), bottom = word(12), right = word(14);
-  if (rowBytes <= 0 || right <= left || bottom <= top
-   || Length(bits) < ArrayIndex(16 + rowBytes * (bottom - top)))
-    return icon;
-  icon.width = right - left;
-  icon.height = bottom - top;
-  icon.rowBytes = rowBytes;
-  icon.bits.assign(data + 16, data + 16 + rowBytes * icon.height);
-  return icon;
+  return ToNewtonBitmap(GetProtoVariable(inContext, SYMA(icon)));
 }
 
 // How far a view's frame reaches out of its bounds (viewFormat): a dragger
@@ -784,6 +758,15 @@ void Link::Update(RefArg inTag)
     }
   }
   fWidget->redraw();
+}
+
+
+void Link::UpdatePosition(Fl_Window * inWindow)
+{
+  fBounds.left = inWindow->x() - kDesktopLeft + fOutset;
+  fBounds.top = inWindow->y() - kDesktopTop + fOutset;
+  fBounds.right = inWindow->x() + inWindow->w() - kDesktopLeft - fOutset;
+  fBounds.bottom = inWindow->y() + inWindow->h() - kDesktopTop - fOutset;
 }
 
 

@@ -121,8 +121,8 @@ void RegisterBoxtypes()
   //       We will have to think about that when it actually occurs. Our drawing
   //       Code is parametric, so we can change that later.
   // Note: drawing the down box requires toggeling labelcolor!
-  Fl::set_boxtype(FL_UP_BOX, DrawUpBox, 4, 4, 8, 8);
-  Fl::set_boxtype(FL_DOWN_BOX, DrawDownBox, 4, 4, 8, 8);
+  Fl::set_boxtype(UP_BOX, DrawUpBox, 4, 4, 8, 8);
+  Fl::set_boxtype(DOWN_BOX, DrawDownBox, 4, 4, 8, 8);
 }
 
 } // namespace nfl
