@@ -1,0 +1,45 @@
+// 10.7e (needs FLTK, and macOS's fonts): Newton's font families (Fonts.h):
+// System (Espy Sans: Geneva, bold Verdana), Fancy (New York: Times New
+// Roman), Simple (Geneva), Handwriting (Casual: Apple Casual). A view's
+// link keeps its viewFont and viewJustify for the widget (labelfont,
+// labelsize, align); SetValue changes them. On a Newton "Turn Speed" is 55
+// wide in Espy Sans 10, 63 in bold, 56 in bold 9 (@100); bold is drawn as
+// Verdana Bold one size up (its capitals and "Difficulty" match), which
+// makes "Turn Speed" wider.
+Print(["System 10, bold 10, bold 9 (@100)",
+       StrFontWidth("Turn Speed", {family: 'espy, face: 0, size: 10}),
+       StrFontWidth("Turn Speed", {family: 'espy, face: 1, size: 10}),
+       StrFontWidth("Turn Speed", @100)]);
+Print(["Fancy, Simple, Handwriting (as specs)",
+       StrFontWidth("Turn Speed", 1 + 10 * 1024),
+       StrFontWidth("Turn Speed", {family: 'geneva, face: 0, size: 10}),
+       StrFontWidth("Turn Speed", 3 + 10 * 1024)]);
+// Apple Casual is drawn and measured bigger than asked (14 for 10: as the
+// Newton's Casual 10, "Medium" 45 wide), its height is as asked
+Print(["Handwriting 10: Medium, height", StrFontWidth("Medium", 3 + 10 * 1024), FontHeight(3 + 10 * 1024)]);
+DefGlobalVar('label, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 50, right: 200, bottom: 120},
+  stepChildren: [
+    {viewClass: 81, viewFlags: 1, text: "WWW", viewFont: {family: 'espy, face: 1, size: 12},
+     viewJustify: 0, viewBounds: {left: 10, top: 10, right: 150, bottom: 30},
+     viewSetupDoneScript: func() label := self}]}));
+app:Open();
+func Ink(view, left, right) begin
+  local n := 0;
+  for x := left to right do if TestPixel(view, x, 8) < 128 then n := n + 1;
+  n > 0
+end;
+TestLater(func() begin
+  Print(["left: ink at the left, at the right", Ink(label, 0, 20), Ink(label, 120, 139)]);
+  SetValue(label, 'viewJustify, 1);   // vjRightH
+end);
+TestLater(func() begin
+  Print(["right: ink at the left, at the right", Ink(label, 0, 20), Ink(label, 120, 139)]);
+  SetValue(label, 'viewFont, {family: 'espy, face: 1, size: 9});
+  SetValue(label, 'viewJustify, 0);
+end);
+TestLater(func() begin
+  Print(["smaller font: ink at 20..40", Ink(label, 20, 40)]);
+  app:Close();
+end);

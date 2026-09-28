@@ -5,11 +5,13 @@
 // (gray: 0 black, 255 white), in TestLater, once the window is up. Views
 // draw their viewFormat (fill, and the frame outside their bounds); a
 // picture view draws its icon in its viewTransferMode (copy by default:
-// the icon's 0 bits white).
+// the icon's 0 bits white). XOR (transferMode 2) inverts what is under the
+// shape (macOS: Quartz's difference blend mode); drawn twice, it is gone.
 DefGlobalVar('canvasView, nil);
 DefGlobalVar('scripted, nil);
 DefGlobalVar('framed, nil);
 DefGlobalVar('picture, nil);
+DefGlobalVar('xorView, nil);
 DefGlobalVar('app, BuildContext({
   _proto: @180, viewBounds: {left: 0, top: 30, right: 220, bottom: 225},
   stepChildren: [
@@ -21,7 +23,13 @@ DefGlobalVar('app, BuildContext({
     {viewClass: 74, viewFlags: 1, viewFormat: 565, viewBounds: {left: 10, top: 165, right: 50, bottom: 185},
      viewSetupDoneScript: func() framed := self},
     {viewClass: 76, viewFlags: 1, viewFormat: 5, icon: @334, viewBounds: {left: 60, top: 165, right: 73, bottom: 178},
-     viewSetupDoneScript: func() picture := self}]}));
+     viewSetupDoneScript: func() picture := self},
+    {viewClass: 74, viewFlags: 1, viewBounds: {left: 150, top: 165, right: 190, bottom: 185},
+     viewSetupDoneScript: func() xorView := self,
+     viewDrawScript: func() begin
+       :DrawShape(MakeRect(0, 0, 20, 10), {fillPattern: 5});
+       :DrawShape(MakeRect(10, 0, 30, 10), {transferMode: 2, fillPattern: 5});
+     end}]}));
 app:Open();
 canvasView:DoDrawing('DrawShape, [MakeRect(0, 0, 40, 30), {fillPattern: 5}]);
 canvasView:DrawShape(MakeRect(45, 0, 85, 30), {fillPattern: 3, penSize: 3});
@@ -38,6 +46,16 @@ TestLater(func() begin
   Print(["viewDrawScript", TestPixel(scripted, 0, 0), TestPixel(scripted, 100, 25)]);
   Print(["viewFormat fill", TestPixel(framed, 20, 10), "frame outside", TestPixel(framed, -1, 10),
          "icon: a 0 bit, a 1 bit", TestPixel(picture, 0, 0), TestPixel(picture, 5, 1)]);
+  Print(["XOR in a viewDrawScript: black, inverted black, inverted white", TestPixel(xorView, 5, 5),
+         TestPixel(xorView, 15, 5), TestPixel(xorView, 25, 5)]);
+  xorView:DrawShape(MakeRect(0, 12, 20, 20), {transferMode: 2, fillPattern: 5});
+end);
+TestLater(func() begin
+  Print(["XOR on the canvas once", TestPixel(xorView, 5, 15)]);
+  xorView:DrawShape(MakeRect(0, 12, 20, 20), {transferMode: 2, fillPattern: 5});
+end);
+TestLater(func() begin
+  Print(["... twice", TestPixel(xorView, 5, 15)]);
   canvasView:Dirty();   // drawn anew: what was drawn is gone
 end);
 TestLater(func() Print(["after Dirty", TestPixel(canvasView, 20, 15)]));

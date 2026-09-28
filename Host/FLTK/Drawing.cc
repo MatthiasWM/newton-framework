@@ -6,11 +6,13 @@
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl.H>
+#include <FL/Fl_Graphics_Driver.H>
 #include <FL/Fl_Bitmap.H>
 #include <FL/Fl_Image_Surface.H>
 #include <FL/fl_draw.H>
 
 #include "Host/FLTK/Drawing.h"
+#include "Host/FLTK/Fonts.h"
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Widgets.h"
 #include "Host/Shapes.h"
@@ -23,6 +25,10 @@
 #include "Frames/Lookup.h"
 #include "Frames/Globals.h"
 #include "ROMResources.h"
+
+#if defined(__APPLE__)
+#include <CoreGraphics/CoreGraphics.h>
+#endif
 
 #include <algorithm>
 #include <functional>
@@ -46,7 +52,7 @@ struct Style
   int fillGray = 255;
   int mode = kModeCopy;
   long dx = 0, dy = 0;
-  Fl_Font font = FL_HELVETICA;
+  Fl_Font font = FONT_SYSTEM;   // Fonts.h
   Fl_Fontsize size = 10;
   Fl_Align align = FL_ALIGN_TOP_LEFT;
 };
@@ -111,29 +117,52 @@ void Apply(Style & ioStyle, RefArg inFrame)
   }
 }
 
-bool gMask = false;   // drawing a mask (Draw)
+// Where Draw() draws (DrawOnView): straight onto the widget (in its
+// viewDrawScript), or onto the view's canvas, its mask (every pixel drawn
+// black) or its invert layer (what XOR shapes cover, white).
+enum Target { kDirect, kCanvas, kMask, kInvert };
+Target gTarget = kDirect;
+bool gInverting = false;   // drawing an XOR shape (Gray: white)
 
 Fl_Color Gray(int inGray)
 {
-  if (gMask)
+  if (gTarget == kMask)
     return FL_BLACK;
+  if (gInverting)
+    return FL_WHITE;
   return fl_rgb_color(uchar(inGray), uchar(inGray), uchar(inGray));
+}
+
+// Whether a shape in transfer mode inMode goes where Draw() draws now: XOR
+// only to the invert layer (and straight onto a widget), the others not.
+bool DrawsHere(int inMode)
+{
+  if (gTarget == kDirect)
+    return true;
+  return (inMode == kModeXor) == (gTarget == kInvert);
 }
 
 // A bitmap at x, y: in copy mode its zero bits white, else only its one bits.
 void DrawBitmap(Fl_Bitmap * inBitmap, int x, int y, int w, int h, int inMode)
 {
+  if (!DrawsHere(inMode))
+    return;
+  bool inverting = inMode == kModeXor;
   if (inMode == kModeCopy) {
-    fl_color(gMask ? FL_BLACK : FL_WHITE);
+    fl_color(gTarget == kMask ? FL_BLACK : FL_WHITE);
     fl_rectf(x, y, w, h);
   }
-  fl_color(FL_BLACK);
+  fl_color(gTarget == kMask ? FL_BLACK : inverting ? FL_WHITE : FL_BLACK);
+  if (inverting)
+    BlendInvert(true);
   inBitmap->draw(x, y);
+  if (inverting)
+    BlendInvert(false);
 }
 
 // One shape (or a list) at origin ox, oy (where the view's 0, 0 is).
-// inMask: the mask of what is drawn: every pixel drawn is black.
-void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
+// Where: gTarget (DrawOnView).
+void Draw(RefArg inShape, Style style, long ox, long oy)
 {
   if (IsArray(inShape)) {
     for (ArrayIndex i = 0, n = Length(inShape); i < n; ++i) {
@@ -141,16 +170,21 @@ void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
       if (shapes::IsStyleFrame(item))
         Apply(style, item);   // for the shapes after it
       else if (NOTNIL(item))
-        Draw(item, style, ox, oy, inMask);
+        Draw(item, style, ox, oy);
     }
     return;
   }
   if (!shapes::IsPrimShape(inShape))
     return;
-  gMask = inMask;
+  RefVar cls(ClassOf(inShape));
+  bool bitmapShape = EQ(cls, SYMA(bitmap)) || EQ(cls, SYMA(picture));
+  if (!bitmapShape && !DrawsHere(style.mode))   // (DrawBitmap decides for itself)
+    return;
+  gInverting = !bitmapShape && style.mode == kModeXor;
+  if (gInverting)
+    BlendInvert(true);
   ox += style.dx;
   oy += style.dy;
-  RefVar cls(ClassOf(inShape));
   shapes::Box b = shapes::Bounds(inShape);
   int x = int(ox + b.left), y = int(oy + b.top), w = int(b.right - b.left), h = int(b.bottom - b.top);
   int p = std::max(style.penSize, 0);
@@ -214,7 +248,9 @@ void Draw(RefArg inShape, Style style, long ox, long oy, bool inMask)
     }
   }
   fl_line_style(0);
-  gMask = false;
+  if (gInverting)
+    BlendInvert(false);
+  gInverting = false;
 }
 
 Link * LinkOfWidget(Fl_Widget * inWidget)
@@ -225,10 +261,27 @@ Link * LinkOfWidget(Fl_Widget * inWidget)
 } // namespace
 
 
+// What follows inverts what is under it, drawn in white (a Newton's XOR with
+// black): the difference blend mode, |white - D| = 1 - D. XOR shapes go to
+// the invert layer (Link::fInvert: drawn twice, a shape is gone again),
+// which DrawOverlay draws so; in a viewDrawScript onto the widget.
+void BlendInvert(bool inOn)
+{
+#if defined(__APPLE__)
+  if (CGContextRef gc = (CGContextRef)fl_graphics_driver->gc())
+    CGContextSetBlendMode(gc, inOn ? kCGBlendModeDifference : kCGBlendModeNormal);
+#else
+  // FLTK has no blend mode (an issue is open at github.com/fltk/fltk): until
+  // it does, XOR (transferMode 2) is macOS only
+#error "BlendInvert(): XOR drawing needs a difference blend mode in FLTK"
+#endif
+}
+
+
 // Draws on a view: straight onto its widget in its viewDrawScript, else onto
-// its canvas and its mask (Drawing.h). inDraw(ox, oy, mask) draws with the
-// view's 0, 0 at ox, oy.
-void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw);
+// its canvas, its mask and its invert layer (Drawing.h; gTarget says which).
+// inDraw(ox, oy) draws with the view's 0, 0 at ox, oy.
+void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw);
 
 
 Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle)
@@ -238,28 +291,34 @@ Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle)
     ThrowMsg("nil view");
   Style style;
   Apply(style, inStyle);
-  DrawOnView(link, [&](long ox, long oy, bool inMask) { Draw(inShape, style, ox, oy, inMask); });
+  DrawOnView(link, [&](long ox, long oy) { Draw(inShape, style, ox, oy); });
   return NILREF;
 }
 
 
-void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw)
+void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw)
 {
   Fl_Widget * widget = inLink->Widget();
   int inset = inLink->Outset();
   if (gDirect == widget) {   // in its viewDrawScript
-    inDraw(widget->x() + inset, widget->y() + inset, false);
+    gTarget = kDirect;
+    inDraw(widget->x() + inset, widget->y() + inset);
     return;
   }
   inLink->Canvas();   // made if it has none
-  Fl_Surface_Device::push_current(inLink->fCanvas);
-  inDraw(inset, inset, false);
-  Fl_Surface_Device::pop_current();
-  Fl_Surface_Device::push_current(inLink->fMask);
-  inDraw(inset, inset, true);
-  Fl_Surface_Device::pop_current();
+  const std::pair<Fl_Image_Surface *, Target> passes[] = {
+    { inLink->fCanvas, kCanvas }, { inLink->fMask, kMask }, { inLink->fInvert, kInvert } };
+  for (const auto & pass : passes) {
+    Fl_Surface_Device::push_current(pass.first);
+    gTarget = pass.second;
+    inDraw(inset, inset);
+    Fl_Surface_Device::pop_current();
+  }
+  gTarget = kDirect;
   delete inLink->fOverlay;   // made anew when drawn
   inLink->fOverlay = nullptr;
+  delete inLink->fInvertOverlay;
+  inLink->fInvertOverlay = nullptr;
   widget->redraw();
 }
 
@@ -296,10 +355,8 @@ Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inInd
     }
   std::unique_ptr<Fl_Bitmap> bitmap(ToFlImage(cell));
   int mode = ISINT(inMode) ? int(RINT(inMode)) : kModeCopy;
-  DrawOnView(link, [&](long ox, long oy, bool inMask) {
-    gMask = inMask;
+  DrawOnView(link, [&](long ox, long oy) {
     DrawBitmap(bitmap.get(), int(ox + left), int(oy + top), w, h, mode);
-    gMask = false;
   });
   return NILREF;
 }
@@ -339,7 +396,33 @@ void DrawOverlay(Fl_Widget * inWidget)
     link->fOverlay->alloc_array = 1;
     link->fOverlay->scale(inWidget->w(), inWidget->h(), 0, 1);
   }
-  link->fOverlay->draw(inWidget->as_window() ? 0 : inWidget->x(), inWidget->as_window() ? 0 : inWidget->y());
+  int x = inWidget->as_window() ? 0 : inWidget->x(), y = inWidget->as_window() ? 0 : inWidget->y();
+  link->fOverlay->draw(x, y);
+  // what XOR shapes cover: inverted (white, in the difference blend mode)
+  if (link->fInvertOverlay == nullptr) {
+    std::unique_ptr<Fl_RGB_Image> invert(link->fInvert->image());
+    int w = invert->data_w(), h = invert->data_h(), d = invert->d();
+    int ld = invert->ld() ? invert->ld() : w * d;
+    const uchar * c = (const uchar *)invert->data()[0];
+    bool any = false;
+    uchar * rgba = new uchar[size_t(w) * h * 4];
+    for (int yy = 0; yy < h; ++yy)
+      for (int xx = 0; xx < w; ++xx) {
+        uchar * p = rgba + (size_t(yy) * w + xx) * 4;
+        p[0] = p[1] = p[2] = 255;
+        p[3] = c[yy * ld + xx * d] >= 128 ? 255 : 0;   // white: inverted
+        any = any || p[3];
+      }
+    link->fInvertOverlay = new Fl_RGB_Image(rgba, w, h, 4);
+    link->fInvertOverlay->alloc_array = 1;
+    link->fInvertOverlay->scale(inWidget->w(), inWidget->h(), 0, 1);
+    link->fInverts = any;
+  }
+  if (link->fInverts) {
+    BlendInvert(true);
+    link->fInvertOverlay->draw(x, y);
+    BlendInvert(false);
+  }
 }
 
 
@@ -379,9 +462,10 @@ Fl_Image_Surface * Link::Canvas()
   if (fCanvas == nullptr) {
     fCanvas = new Fl_Image_Surface(fWidget->w(), fWidget->h(), 1);
     fMask = new Fl_Image_Surface(fWidget->w(), fWidget->h(), 1);
-    for (Fl_Image_Surface * surface : { fCanvas, fMask }) {
+    fInvert = new Fl_Image_Surface(fWidget->w(), fWidget->h(), 1);
+    for (Fl_Image_Surface * surface : { fCanvas, fMask, fInvert }) {
       Fl_Surface_Device::push_current(surface);
-      fl_color(FL_WHITE);
+      fl_color(surface == fInvert ? FL_BLACK : FL_WHITE);   // nothing inverted
       fl_rectf(0, 0, fWidget->w(), fWidget->h());
       Fl_Surface_Device::pop_current();
     }
@@ -390,17 +474,47 @@ Fl_Image_Surface * Link::Canvas()
 }
 
 
+// The view's canvas goes (the view is drawn anew); in the views it is in,
+// what scripts drew where its widget is (as a Newton draws the view's area
+// anew, not more: a picker's XOR hilite on its label stays when its value
+// changes).
 void Link::DropCanvas()
 {
-  for (Link * link = this; link != nullptr; link = link->fParent)
+  for (Link * link = fParent; link != nullptr && fWidget != nullptr; link = link->fParent)
     if (link->fCanvas) {
-      delete link->fCanvas;
-      delete link->fMask;
-      delete link->fOverlay;
-      link->fCanvas = link->fMask = nullptr;
-      link->fOverlay = nullptr;
+      // the area in the canvas' coordinates (a window's are its own)
+      Fl_Widget * canvasWidget = link->fWidget;
+      int x = fWidget->x(), y = fWidget->y();
+      if (fWidget->as_window())
+        x = y = 0;
+      if (!canvasWidget->as_window()) {
+        x -= canvasWidget->x();
+        y -= canvasWidget->y();
+      }
+      const std::pair<Fl_Image_Surface *, Fl_Color> surfaces[] = {
+        { link->fCanvas, FL_WHITE }, { link->fMask, FL_WHITE }, { link->fInvert, FL_BLACK } };
+      for (const auto & surface : surfaces) {
+        Fl_Surface_Device::push_current(surface.first);
+        fl_color(surface.second);
+        fl_rectf(x, y, fWidget->w(), fWidget->h());
+        Fl_Surface_Device::pop_current();
+      }
+      delete link->fOverlay;   // made anew when drawn
+      delete link->fInvertOverlay;
+      link->fOverlay = link->fInvertOverlay = nullptr;
       link->fWidget->redraw();
     }
+  if (fCanvas) {
+    delete fCanvas;
+    delete fMask;
+    delete fInvert;
+    delete fOverlay;
+    delete fInvertOverlay;
+    fCanvas = fMask = fInvert = nullptr;
+    fOverlay = fInvertOverlay = nullptr;
+    fInverts = false;
+    fWidget->redraw();
+  }
 }
 
 } // namespace nfl

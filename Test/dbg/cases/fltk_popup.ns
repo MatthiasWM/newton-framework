@@ -27,8 +27,38 @@ DefGlobalVar('app, BuildContext({
      viewSetupDoneScript: func() info := self}]}));
 app:Open();
 Print(picker.entryLine.text);
+// Hilite runs the picker's viewHiliteScript: it hilites its label only, an
+// XOR round rect (drawn twice, it is gone: unhiliting), and the value stays
+// (a redraw draws all the views in the changed area). XOR inverts (macOS:
+// Quartz's difference blend mode): the label's ink white, its paper black.
+func Ink(view, left, right, y) begin
+  local n := 0;
+  for x := left to right do if TestPixel(view, x, y) < 128 then n := n + 1;
+  n
+end;
+func FindPixel(view, left, right, y, dark) begin
+  local found := nil;
+  for x := left to right do if not found and (TestPixel(view, x, y) < 128) = dark then found := x;
+  found
+end;
+TestLater(func() begin
+  DefGlobalVar('valueInk, Ink(picker, picker.indent + 2, picker.indent + 40, 8));
+  DefGlobalVar('inkX, FindPixel(picker, 12, picker.indent - 4, 8, true));
+  DefGlobalVar('paperX, FindPixel(picker, 12, picker.indent - 4, 8, nil));
+  picker:Hilite(true);
+end);
+TestLater(func() begin
+  Print(["hilited: ink white, paper black, value as before", TestPixel(picker, inkX, 8) > 128,
+         TestPixel(picker, paperX, 8) < 128, Ink(picker, picker.indent + 2, picker.indent + 40, 8) = valueInk]);
+  picker:Hilite(nil);
+end);
+TestLater(func() Print(["unhilited: ink black, paper white, value as before", TestPixel(picker, inkX, 8) < 128,
+                        TestPixel(picker, paperX, 8) > 128, Ink(picker, picker.indent + 2, picker.indent + 40, 8) = valueInk]));
 TestPick(2);
 TestTap(picker, nil);        // opens its menu: "Fast"
+// the pick: its value changes (SetValue), then it unhilites: the XOR that
+// hilited the label is undone (a change of the value leaves it)
+TestLater(func() TestLater(func() Print(["after the pick: label paper white", TestPixel(picker, paperX, 8) > 128])));
 TestPick(2);
 TestTap("i", nil);           // "New Game": index 3 in the items
 TestPick(nil);

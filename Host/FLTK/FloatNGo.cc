@@ -64,12 +64,21 @@ void FloatNGo::draw()
 {
   // a window's own coordinates; its every pixel: white under the frame
   fl_rectf(0, 0, w(), h(), color());
-  if (Link * link = static_cast<Link *>(user_data()))
-    DrawViewFormat(0, 0, w(), h(), link->ViewFormat(), false);
+  Link * link = static_cast<Link *>(user_data());
+  if (link)
+    DrawViewFormat(0, 0, w(), h(), link->ViewFormat(), false, kViewFill);
   if (fPicture)
     fPicture->draw(fPictureX, fPictureY);
   RunDrawScript(this);
-  draw_children();
+  // all the children, not only the changed ones: FLTK draws a changed
+  // widget with the window clipped to it, and white under it (above); the
+  // views under and over it there must be drawn again too (views are
+  // transparent where they have no fill: a picker's value is a widget over
+  // its label's)
+  for (int i = 0; i < children(); ++i)
+    draw_child(*child(i));
+  if (link)   // as the ROM: the frame over the children (protoTitle reaches into it)
+    DrawViewFormat(0, 0, w(), h(), link->ViewFormat(), false, kViewFrame);
   DrawOverlay(this);
 }
 

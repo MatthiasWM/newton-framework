@@ -190,55 +190,20 @@ std::string TextSlot(RefArg inContext, const char * inSlot)
   return IsString(text) ? DisplayText(UTF8FromString(text)) : std::string();
 }
 
-// The FLTK font for a font spec (a viewFont): a font frame ({family, face, size})
-// or a font spec (an integer: family, size, face in bits, tsFamilyMask ...).
-// newtc has no Newton fonts yet: Helvetica for Espy and Geneva, Times for
-// New York. The face bits (bold 1, italic 2) are FLTK's.
-} // namespace
-
-
-void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize)
-{
-  RefVar viewFont(inSpec);
-  long family = 0, face = 0, size = 12;
-  if (IsFrame(viewFont)) {
-    RefVar name(GetFrameSlot(viewFont, SYMA(family)));
-    if (EQ(name, MakeSymbol("newYork")))
-      family = 1;
-    face = IntSlot(viewFont, "face");
-    if (long s = IntSlot(viewFont, "size"))
-      size = s;
-  } else if (ISINT(viewFont)) {
-    long spec = RINT(viewFont);
-    family = (spec & tsFamilyMask) >> tsFamilyShift;
-    face = (spec & tsFaceMask) >> tsFaceShift;
-    if (long s = (spec & tsSizeMask) >> tsSizeShift)
-      size = s;
-  }
-  *outFont = (family == 1 ? FL_TIMES : FL_HELVETICA) + Fl_Font(face & 3);
-  *outSize = Fl_Fontsize(size);
-}
-
-namespace {
-
-// The font of a view (viewFont).
-void FontOf(RefArg inContext, Fl_Font * outFont, Fl_Fontsize * outSize)
-{
-  RefVar viewFont(GetProtoVariable(inContext, SYMA(viewFont)));
-  FontFromSpec(viewFont, outFont, outSize);
-}
-
 // FLTK's alignment for the H and V bits of a viewJustify (how a view places
-// its text or picture: vjLeftH, vjCenterV, ...).
+// its text or picture: vjLeftH, vjCenterV, ...). FLTK can't justify text
+// (vjFullH, vjFullV): left, top.
 Fl_Align AlignOf(long inJustify)
 {
   Fl_Align align = FL_ALIGN_CENTER;
   switch (inJustify & vjHMask) {
-    case vjLeftH:  align |= FL_ALIGN_LEFT; break;
+    case vjLeftH:
+    case vjFullH:  align |= FL_ALIGN_LEFT; break;
     case vjRightH: align |= FL_ALIGN_RIGHT; break;
   }
   switch (inJustify & vjVMask) {
-    case vjTopV:    align |= FL_ALIGN_TOP; break;
+    case vjTopV:
+    case vjFullV:   align |= FL_ALIGN_TOP; break;
     case vjBottomV: align |= FL_ALIGN_BOTTOM; break;
   }
   return align;
@@ -353,11 +318,12 @@ protected:
   {
     // a text view that wraps its lines (pen events, its viewFormat, what
     // scripts draw: as the other views)
-    Fl_Font font;
-    Fl_Fontsize size;
-    FontOf(fContext, &font, &size);
-    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
-                               Text(), font, size, Fl_Align(FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP));
+    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
+  }
+  // its lines from the top, wrapped; left, centered or right (viewJustify)
+  Fl_Align AlignFor(long inJustify) const override
+  {
+    return Fl_Align((Link::AlignFor(inJustify) & (FL_ALIGN_LEFT | FL_ALIGN_RIGHT)) | FL_ALIGN_TOP | FL_ALIGN_WRAP);
   }
   void Update(RefArg inTag) override
   {
@@ -382,11 +348,7 @@ public:
 protected:
   Fl_Widget * MakeWidget() override
   {
-    Fl_Font font;
-    Fl_Fontsize size;
-    FontFromSpec(GetVariable(fContext, SYMA(viewFont)), &font, &size);
-    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
-                               Text(), font, size, AlignOf(IntSlot(fContext, "viewJustify")));
+    return NewWidget<TextView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), Text());
   }
   void Update(RefArg inTag) override
   {
@@ -395,8 +357,8 @@ protected:
     Link::Update(inTag);
   }
 private:
-  // text and viewFont as NewtonScript finds them: in the view's protos, else
-  // in its parents' (protoCheckbox's clTextView child shows the checkbox's)
+  // text as NewtonScript finds it: in the view's protos, else in its
+  // parents' (protoCheckbox's clTextView child shows the checkbox's)
   std::string Text()
   {
     RefVar text(GetVariable(fContext, SYMA(text)));
@@ -414,13 +376,11 @@ protected:
   Fl_Widget * MakeWidget() override
   {
     PictureView * view;
-    Fl_Align align = AlignOf(IntSlot(fContext, "viewJustify"));
     if (Fl_Image * image = RomIconOf(fContext))
-      view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
-                                    image, RomIconOf(fContext, true), align);
+      view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(), image);
     else
       view = NewWidget<PictureView>(WidgetX(), WidgetY(), WidgetW(), WidgetH(),
-                                    IconOf(fContext), align);
+                                    IconOf(fContext));
     view->TransferMode(IntSlot(fContext, "viewTransferMode"));
     return view;
   }
@@ -429,6 +389,14 @@ protected:
     if (EQ(inTag, SYMA(icon)))
       LoadIcon();
     Link::Update(inTag);
+  }
+  // as the ROM's CPictureView: a view without a viewJustify (not 0: none)
+  // centers its icon (protoInfoButton)
+  Fl_Align AlignFor(long inJustify) const override
+  {
+    if ((inJustify & vjEverything) == 0 && ISNIL(GetProtoVariable(fContext, SYMA(viewJustify))))
+      return FL_ALIGN_CENTER;
+    return Link::AlignFor(inJustify);
   }
   void Dirty() override
   {
@@ -440,7 +408,7 @@ private:
   {
     PictureView * view = static_cast<PictureView *>(fWidget);
     if (Fl_Image * image = RomIconOf(fContext))
-      view->Images(image, RomIconOf(fContext, true));
+      view->Image(image);
     else
       view->Icon(IconOf(fContext));
   }
@@ -492,7 +460,8 @@ Link * NewLink(RefArg inContext, Link * inParent)
 std::string DisplayText(std::string inText)
 {
   static const struct { const char * newton, * unicode; } kChars[] = {
-    { "\xEF\xB0\x81", "\xE2\x97\x86" },   // U+FC01 -> U+25C6 (the picker diamond)
+  //{ "\xEF\xB0\x81", "\xE2\x97\x86" },   // U+FC01 -> U+25C6 (the picker diamond)
+    { "\xEF\xB0\x81", "\xE2\xAC\xA5" },   // Trying a bigger diamond
     { "\xEF\xB0\x8B", "\xE2\x9C\x93" },   // U+FC0B -> U+2713 (the check mark)
   };
   for (const auto & c : kChars)
@@ -521,6 +490,8 @@ Link::~Link()
   delete fCanvas;
   delete fMask;
   delete fOverlay;
+  delete fInvert;
+  delete fInvertOverlay;
   Fl::remove_timeout(IdleTimeout, this);
   if (fParent) {
     auto & siblings = fParent->fChildren;
@@ -739,12 +710,24 @@ void Link::Update(RefArg inTag)
 {
   DropCanvas();
   if (EQ(inTag, SYMA(viewBounds)) || EQ(inTag, SYMA(viewJustify))) {
+    ReadStyle();
+    ApplyStyle();
     fBounds = JustifiedBounds();
     if (fParent) {   // a window keeps its place (the user may have moved it)
       Layout();
       if (Fl_Group * parent = fWidget->parent())
         parent->redraw();
     }
+  } else if (EQ(inTag, SYMA(viewFont))) {
+    // the view's, and its children's that have none of their own
+    std::function<void(Link *)> restyle = [&](Link * inLink) {
+      inLink->ReadStyle();
+      inLink->ApplyStyle();
+      inLink->fWidget->redraw();
+      for (Link * child : inLink->fChildren)
+        restyle(child);
+    };
+    restyle(this);
   } else if (EQ(inTag, SYMA(viewFormat))) {
     fViewFormat = IntSlot(fContext, "viewFormat");
     int outset = FrameOutset(fViewFormat), shadow = FrameShadow(fViewFormat);
@@ -776,6 +759,27 @@ void Link::Layout()
 }
 
 
+void Link::ReadStyle()
+{
+  FontFromSpec(GetVariable(fContext, SYMA(viewFont)), &fFont, &fFontSize);
+  fViewJustify = IntSlot(fContext, "viewJustify");
+}
+
+
+void Link::ApplyStyle()
+{
+  fWidget->labelfont(fFont);
+  fWidget->labelsize(fFontSize);
+  fWidget->align(AlignFor(fViewJustify));
+}
+
+
+Fl_Align Link::AlignFor(long inJustify) const
+{
+  return AlignOf(inJustify);
+}
+
+
 void Link::UpdatePosition(Fl_Window * inWindow)
 {
   fBounds.left = inWindow->x() - kDesktopLeft + fOutset;
@@ -792,12 +796,39 @@ void Link::Dirty()
 }
 
 
+// As the ROM's CView::hilite: a view with a viewHiliteScript hilites
+// itself: the script runs with the new state (true or nil), and if it
+// returns non-nil it has done the hiliting (protoLabelPicker: an XOR round
+// rectangle over its label only; unhiliting, the same XOR again undoes it);
+// else the widget draws the view inverted.
 void Link::SetHilite(bool inOn)
 {
   if (fHilited == inOn)
     return;
-  DropCanvas();
   fHilited = inOn;
+  RefVar script(MakeSymbol("viewHiliteScript"));
+  if (NOTNIL(GetProtoVariable(fContext, script))) {
+    RefVar args(MakeArray(1));
+    SetArraySlot(args, 0, inOn ? TRUEREF : NILREF);
+    RefVar done;
+    newton_try
+    {
+      // called from a script (Hilite) or while one waits (TrackHilite)
+      done = DoMessage(fContext, script, args);
+    }
+    newton_catch_all
+    { }
+    end_try;
+    if (inOn && NOTNIL(done)) {
+      fScriptHilited = true;   // the script's drawing is the hilite
+      return;
+    }
+    if (!inOn && fScriptHilited) {
+      fScriptHilited = false;
+      return;
+    }
+  }
+  DropCanvas();
   if (fWidget)
     fWidget->redraw();
 }
@@ -813,11 +844,17 @@ Group::Group(int x, int y, int w, int h)
 void Group::draw()
 {
   // (a group doesn't show hiliting yet: the ROM inverts it, children too)
-  if (Link * link = static_cast<Link *>(user_data()))
-    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), false);
+  Link * link = static_cast<Link *>(user_data());
+  if (link)
+    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), false, kViewFill);
   RunDrawScript(this);
-  draw_children();
+  for (int i = 0; i < children(); ++i)   // all of them (FloatNGo::draw)
+    draw_child(*child(i));
+  if (link)   // as the ROM: the frame over the children
+    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), false, kViewFrame);
   DrawOverlay(this);
+  if (link && link->Hilited())   // inverted, its children too
+    DrawHilite(x(), y(), w(), h(), link->ViewFormat());
 }
 
 
@@ -871,13 +908,12 @@ Link * Build(RefArg inContext, Link * inParent)
     link->fViewFormat = IntSlot(inContext, "viewFormat");
     link->fOutset = FrameOutset(link->fViewFormat);
     link->fShadow = FrameShadow(link->fViewFormat);
+    link->ReadStyle();
     link->fWidget = link->MakeWidget();
     link->fWidget->user_data(link);
+    link->ApplyStyle();
     if (inParent) {
-      Fl_Group * group = inParent->Widget()->as_group();
-      if (group == nullptr)   // a parent that can't hold widgets: the window
-        group = inParent->Window()->Widget()->as_group();
-      group->add(link->fWidget);
+      inParent->Widget()->as_group()->add(link->fWidget);   // (every view's widget is a group)
       inParent->DropCanvas();
     }
 
@@ -955,6 +991,7 @@ Ref OpenView(RefArg inContext, bool inModal)
   if (Link::Of(inContext))
     return TRUEREF;   // open already
   RegisterBoxtypes();   // before the first window is shown (only once)
+  RegisterFonts();
   RefVar parent(GetProtoVariable(inContext, SYMA(_parent)));
   Link * parentLink = Link::Of(parent);
   if (parentLink == nullptr && !EQ(parent, RootView()))
@@ -1009,23 +1046,6 @@ Ref ChildViewFrames(RefArg inContext)
 }
 
 
-// A view that can't hold widgets (a paragraph) has its children's widgets in
-// the window (see Build): they hide and show with it. Children in the view's
-// own group do that anyway.
-void Link::ShowOutsideChildren(bool inShow)
-{
-  for (Link * child : fChildren) {
-    if (child->fWidget->parent() == fWidget)
-      continue;
-    if (inShow && !child->fHidden)
-      child->fWidget->show();
-    else
-      child->fWidget->hide();
-    child->ShowOutsideChildren(inShow && !child->fHidden);
-  }
-}
-
-
 Ref HideView(RefArg inContext)
 {
   Link * link = OpenLink(inContext);
@@ -1033,7 +1053,6 @@ Ref HideView(RefArg inContext)
     link->fHidden = true;
     link->DropCanvas();
     link->Widget()->hide();
-    link->ShowOutsideChildren(false);
     if (Fl_Group * parent = link->Widget()->parent())
       parent->redraw();
     RunScript(inContext, "viewHideScript");
@@ -1049,7 +1068,6 @@ Ref ShowView(RefArg inContext)
     link->fHidden = false;
     link->DropCanvas();
     link->Widget()->show();
-    link->ShowOutsideChildren(true);
     RunScript(inContext, "viewShowScript");
   }
   return NILREF;
@@ -1128,7 +1146,7 @@ Ref FontMetric(RefArg inFontSpec, int inWhich)
 {
   Fl_Font font;
   Fl_Fontsize size;
-  FontFromSpec(inFontSpec, &font, &size);
+  FontFromSpec(inFontSpec, &font, &size, true);   // the size asked for
   fl_open_display();
   fl_font(font, size);
   switch (inWhich) {
@@ -1143,7 +1161,7 @@ Ref FontHeight(RefArg inFontSpec)
 {
   Fl_Font font;
   Fl_Fontsize size;
-  FontFromSpec(inFontSpec, &font, &size);
+  FontFromSpec(inFontSpec, &font, &size, true);   // the size asked for
   fl_open_display();
   fl_font(font, size);
   return MAKEINT(fl_height());

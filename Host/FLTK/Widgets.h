@@ -21,7 +21,7 @@
 #define HOST_FLTK_WIDGETS_H
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
-#include <FL/Fl_Widget.H>
+#include <FL/Fl_Group.H>
 #include <FL/Fl_Bitmap.H>
 
 #include "Frames/Objects.h"
@@ -46,19 +46,39 @@ namespace nfl {
         white on a dark fill; black without a fill), and the frame, pen
         wide at the edge, round corners if round; the inset is the space
         between the frame and the view's bounds.
+    inParts: the fill (kViewFill: first), the frame and shadow (kViewFrame:
+    after the view's content and children, as the ROM's CView::draw:
+    preDraw, content, children, postDraw; a child reaching out of its
+    parent, as protoTitle does, is under the parent's frame), or both.
     Grays are solid (a Newton's are patterns). */
-void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited);
+enum { kViewFill = 1, kViewFrame = 2, kViewFormat = 3 };
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited, int inParts = kViewFormat);
 
-/** A widget that sends its pen events to its view's link. */
-class ViewWidget : public Fl_Widget
+/** A view hilited with no viewHiliteScript (the ROM's CView::hilite): its
+    bounds grown by its inset (inside its frame) inverted, rounded as its
+    frame (less the pen), over all it shows, its children too (Drawing.h's
+    difference blend mode). x, y, w, h: its widget, as DrawViewFormat's. */
+void DrawHilite(int x, int y, int w, int h, long inViewFormat);
+
+/** A view that draws something itself (its text, its icon). A group, as any
+    view can have children: their widgets are in it, drawn after what the
+    view shows (DrawChildrenAndFrame). Its pen events go to its view's link
+    when its children don't take them. */
+class ViewWidget : public Fl_Group
 {
 public:
   ViewWidget(int x, int y, int w, int h);
+  // clear() here: its children's links delete them (see Group, Links.h)
+  ~ViewWidget() override { clear(); }
   int handle(int inEvent) override;
 protected:
+  int delete_child(int inIndex) override;
   bool Hilited() const;
-  /** The view's fill and frame (DrawViewFormat), hilited if it is. */
-  void DrawFormat();
+  /** The view's fill or frame (DrawViewFormat). */
+  void DrawFormat(int inParts);
+  /** After what the view shows, as the ROM's CView::draw: its children,
+      its frame, what scripts drew (DrawOverlay), and its hilite. */
+  void DrawChildrenAndFrame();
   /** The widget is the view's bounds and its frame around them: the
       frame's width (Link::Outset()). What the view shows goes inside. */
   int Inset() const;
@@ -66,21 +86,19 @@ protected:
   int Shadow() const;
 };
 
-/** clTextView: one line (or more) of text in one font. */
+/** clTextView, clParagraphView: its text, in its labelfont() and
+    labelsize() (the view's viewFont), placed by its align() (its
+    viewJustify; Link::ApplyStyle()). */
 class TextView : public ViewWidget
 {
 public:
-  TextView(int x, int y, int w, int h, const std::string & inText,
-           Fl_Font inFont, Fl_Fontsize inSize, Fl_Align inAlign);
+  TextView(int x, int y, int w, int h, const std::string & inText);
   const std::string & Text() const { return fText; }
   void Text(const std::string & inText) { fText = inText; redraw(); }
 protected:
   void draw() override;
 private:
   std::string fText;
-  Fl_Font fFont;
-  Fl_Fontsize fSize;
-  Fl_Align fAlign;
 };
 
 /** A 1-bit bitmap from a Newton bitmap (an icon's bits): rows of rowBytes
@@ -104,16 +122,16 @@ NewtonBitmap ToNewtonBitmap(RefArg inImage);
     bitmap is empty. The caller deletes it. */
 Fl_Bitmap * ToFlImage(const NewtonBitmap & inBitmap);
 
-/** clPictureView: its icon, placed by inAlign (viewJustify): an image of
-    the ROM's (RomImages.h; shared, with an inverted one for hiliting), or
-    a Newton bitmap (from a package; drawn black, white when hilited). */
+/** clPictureView: its icon, placed by its align() (viewJustify): an image of
+    the ROM's (RomImages.h; shared), or a Newton bitmap (from a package;
+    drawn black). Hilited, it is inverted (DrawHilite). */
 class PictureView : public ViewWidget
 {
 public:
-  PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign);
-  PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign);
-  /** A new picture: an image (and its hilited version), or a Newton bitmap. */
-  void Images(Fl_Image * inImage, Fl_Image * inHilited);
+  PictureView(int x, int y, int w, int h, Fl_Image * inImage);
+  PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon);
+  /** A new picture: an image, or a Newton bitmap. */
+  void Image(Fl_Image * inImage);
   void Icon(const NewtonBitmap & inIcon);
   /** viewTransferMode: 0 copy (the icon's 0 bits white: the default), 1 or
       (only its 1 bits); the others as copy (FLTK has no raster ops). */
@@ -124,9 +142,7 @@ private:
   void DrawImage();
   bool fCopy = true;
   Fl_Image * fImage = nullptr;
-  Fl_Image * fHilitedImage = nullptr;
   std::unique_ptr<Fl_Bitmap> fBitmap;   // from a Newton bitmap
-  Fl_Align fAlign;
 };
 
 } // namespace nfl

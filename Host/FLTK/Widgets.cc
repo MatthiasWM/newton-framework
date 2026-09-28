@@ -40,7 +40,7 @@ Fl_Color NewtonColor(long inColor)
 } // namespace
 
 
-void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited)
+void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilited, int inParts)
 {
   // Color of inner fill or 0, or custom
   uint32_t fill = (inViewFormat & vfFillMask) >> vfFillShift;         // 4 bits
@@ -68,7 +68,12 @@ void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilite
   // the frame's top + 2.
   Fl_Color fillColor = fill ? NewtonColor(fill) : FL_WHITE;
   if (frame == vfDragger || frame == vfMatte) {   // a floater
-    fl_draw_box(FLOATER_BOX, x, y, w, h, fillColor);
+    if (inParts & kViewFill) {
+      fl_color(fillColor);
+      fl_rectf(x, y, w, h);
+    }
+    if (inParts & kViewFrame)
+      fl_draw_box(FLOATER_FRAME, x, y, w, h, fillColor);
     return;
   }
 
@@ -86,7 +91,7 @@ void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilite
   int d = (frame && pen) ? (pen-1)/2 : 0;
   int dd = (frame && pen) ? pen-1 : 0;
   // Draw the shadow at the bottom right of the widget first.
-  if (shadow && frame) {
+  if ((inParts & kViewFrame) && shadow && frame) {
     int ds = shadow - (shadow-1)/2;   // so that the line covers the last shadow pixels
     fl_color(fl_rgb_color(128, 128, 128));
     fl_line_style(0, shadow);
@@ -94,7 +99,7 @@ void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilite
     fl_line_style(0, 1);
   }
   // Draw the inside first
-  if (fill || inHilited) {
+  if ((inParts & kViewFill) && (fill || inHilited)) {
     if (inHilited) { // Invert inner area to highlight it
       if ((fill>vfGray) && (fill <= vfBlack)) {
         fillColor = FL_WHITE;
@@ -109,7 +114,7 @@ void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilite
       fl_rectf(x+d, y+d, fw-dd, fh-dd);
   }
   // Draw the frame. The outer lines of the frame touch the widget outline (plus shadow)
-  if (frame && pen) {
+  if ((inParts & kViewFrame) && frame && pen) {
     fl_color(NewtonColor(frame));
     fl_line_style(0, pen);
     if (round)
@@ -124,9 +129,37 @@ void DrawViewFormat(int x, int y, int w, int h, long inViewFormat, bool inHilite
 }
 
 
-ViewWidget::ViewWidget(int x, int y, int w, int h)
-: Fl_Widget(x, y, w, h)
+void DrawHilite(int x, int y, int w, int h, long inViewFormat)
 {
+  long frame = (inViewFormat & vfFrameMask) >> vfFrameShift;
+  int pen = int((inViewFormat & vfPenMask) >> vfPenShift);
+  int shadow = pen ? int((inViewFormat & vfShadowMask) >> vfShadowShift) : 0;
+  int round = int((inViewFormat & vfRoundMask) >> vfRoundShift);
+  int frameWidth = (frame && pen) ? pen : 0;
+  if (frame == vfDragger || frame == vfMatte)
+    frameWidth = 0;   // (a floater isn't hilited)
+  if (pen > 1)
+    round = std::max(0, round - (pen - 1));
+  x += frameWidth;
+  y += frameWidth;
+  w -= 2 * frameWidth + shadow;
+  h -= 2 * frameWidth + shadow;
+  if (w <= 0 || h <= 0)
+    return;
+  fl_color(FL_WHITE);
+  BlendInvert(true);
+  if (round)   // (fl_rounded_rectf() fills a pixel less at the left and the top than fl_rectf())
+    fl_rounded_rectf(x - 1, y - 1, w + 1, h + 1, round);
+  else
+    fl_rectf(x, y, w, h);
+  BlendInvert(false);
+}
+
+
+ViewWidget::ViewWidget(int x, int y, int w, int h)
+: Fl_Group(x, y, w, h)
+{
+  end();
   box(VIEW_BOX);
 }
 
@@ -136,13 +169,23 @@ int ViewWidget::handle(int inEvent)
   Link * link = static_cast<Link *>(user_data());
   switch (inEvent) {
     case FL_PUSH:
+      if (Fl_Group::handle(inEvent))
+        return 1;   // a child took it
+      return link ? link->HandlePen(this, inEvent) : 0;
     case FL_DRAG:
     case FL_RELEASE:
-      if (link)
-        return link->HandlePen(this, inEvent);
+      // the view's own pen (FLTK clears Fl::pushed() before FL_RELEASE)
+      if (link && link->HandlePen(this, inEvent))
+        return 1;
       break;
   }
-  return Fl_Widget::handle(inEvent);
+  return Fl_Group::handle(inEvent);
+}
+
+
+int ViewWidget::delete_child(int inIndex)
+{
+  return GroupLink::RemoveChild(this, inIndex);
 }
 
 
@@ -153,10 +196,23 @@ bool ViewWidget::Hilited() const
 }
 
 
-void ViewWidget::DrawFormat()
+void ViewWidget::DrawFormat(int inParts)
 {
+  // (hilited: inverted at the end, DrawHilite)
   if (Link * link = static_cast<Link *>(user_data()))
-    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), link->Hilited());
+    DrawViewFormat(x(), y(), w(), h(), link->ViewFormat(), false, inParts);
+}
+
+
+void ViewWidget::DrawChildrenAndFrame()
+{
+  for (int i = 0; i < children(); ++i)   // all of them (FloatNGo::draw)
+    draw_child(*child(i));
+  DrawFormat(kViewFrame);
+  DrawOverlay(this);
+  Link * link = static_cast<Link *>(user_data());
+  if (link && link->Hilited())
+    DrawHilite(x(), y(), w(), h(), link->ViewFormat());
 }
 
 
@@ -174,52 +230,50 @@ int ViewWidget::Shadow() const
 }
 
 
-TextView::TextView(int x, int y, int w, int h, const std::string & inText,
-                   Fl_Font inFont, Fl_Fontsize inSize, Fl_Align inAlign)
-: ViewWidget(x, y, w, h), fText(inText), fFont(inFont), fSize(inSize), fAlign(inAlign)
+TextView::TextView(int x, int y, int w, int h, const std::string & inText)
+: ViewWidget(x, y, w, h), fText(inText)
 { }
 
 
 void TextView::draw()
 {
-  DrawFormat();
+  DrawFormat(kViewFill);
   int inset = Inset(), shadow = Shadow();
-  fl_font(fFont, fSize);
-  fl_color(Hilited() ? FL_WHITE : FL_BLACK);
+  fl_font(labelfont(), labelsize());
+  fl_color(FL_BLACK);
   fl_push_clip(x(), y(), w(), h());
   // in the view's bounds, inside its frame; draw_symbols 0: '@' is just a character
   fl_draw(fText.c_str(), x() + inset, y() + inset, w() - 2 * inset - shadow, h() - 2 * inset - shadow,
-          fAlign | FL_ALIGN_INSIDE, nullptr, 0);
+          align() | FL_ALIGN_INSIDE, nullptr, 0);
   fl_pop_clip();
   RunDrawScript(this);
-  DrawOverlay(this);
+  DrawChildrenAndFrame();
 }
 
 
-PictureView::PictureView(int x, int y, int w, int h, Fl_Image * inImage, Fl_Image * inHilited, Fl_Align inAlign)
-: ViewWidget(x, y, w, h), fImage(inImage), fHilitedImage(inHilited), fAlign(inAlign)
+PictureView::PictureView(int x, int y, int w, int h, Fl_Image * inImage)
+: ViewWidget(x, y, w, h), fImage(inImage)
 { }
 
 
-PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon, Fl_Align inAlign)
-: ViewWidget(x, y, w, h), fAlign(inAlign)
+PictureView::PictureView(int x, int y, int w, int h, const NewtonBitmap & inIcon)
+: ViewWidget(x, y, w, h)
 {
   Icon(inIcon);
 }
 
 
-void PictureView::Images(Fl_Image * inImage, Fl_Image * inHilited)
+void PictureView::Image(Fl_Image * inImage)
 {
   fBitmap.reset();
   fImage = inImage;
-  fHilitedImage = inHilited;
   redraw();
 }
 
 
 void PictureView::Icon(const NewtonBitmap & inIcon)
 {
-  Images(nullptr, nullptr);
+  Image(nullptr);
   fBitmap.reset(ToFlImage(inIcon));
   fImage = fBitmap.get();
 }
@@ -274,11 +328,11 @@ Fl_Bitmap * ToFlImage(const NewtonBitmap & inBitmap)
 
 void PictureView::draw()
 {
-  DrawFormat();
+  DrawFormat(kViewFill);
   if (fImage)
     DrawImage();
   RunDrawScript(this);
-  DrawOverlay(this);
+  DrawChildrenAndFrame();
 }
 
 
@@ -288,22 +342,20 @@ void PictureView::DrawImage()
   int inset = Inset(), shadow = Shadow();
   int bx = x() + inset, by = y() + inset, bw = w() - 2 * inset - shadow, bh = h() - 2 * inset - shadow;
   int px = bx + (bw - fImage->w()) / 2, py = by + (bh - fImage->h()) / 2;
-  if (fAlign & FL_ALIGN_LEFT)
+  if (align() & FL_ALIGN_LEFT)
     px = bx;
-  else if (fAlign & FL_ALIGN_RIGHT)
+  else if (align() & FL_ALIGN_RIGHT)
     px = bx + bw - fImage->w();
-  if (fAlign & FL_ALIGN_TOP)
+  if (align() & FL_ALIGN_TOP)
     py = by;
-  else if (fAlign & FL_ALIGN_BOTTOM)
+  else if (align() & FL_ALIGN_BOTTOM)
     py = by + bh - fImage->h();
-  bool hilited = Hilited();
-  Fl_Image * image = (hilited && fHilitedImage) ? fHilitedImage : fImage;
-  if (fCopy) {   // copy: the icon's 0 bits too (white, black when hilited)
-    fl_color(hilited ? FL_BLACK : FL_WHITE);
-    fl_rectf(px, py, image->w(), image->h());
+  if (fCopy) {   // copy: the icon's 0 bits too (white)
+    fl_color(FL_WHITE);
+    fl_rectf(px, py, fImage->w(), fImage->h());
   }
-  fl_color(hilited ? FL_WHITE : FL_BLACK);   // a bitmap's color
-  image->draw(px, py);
+  fl_color(FL_BLACK);   // a bitmap's color
+  fImage->draw(px, py);
 }
 
 } // namespace nfl

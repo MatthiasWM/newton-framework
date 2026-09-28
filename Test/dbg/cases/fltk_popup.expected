@@ -1,6 +1,9 @@
 "Normal"
-"DoPopup returned"
-"DoPopup returned"
-"info menu cancelled"
+["hilited: ink white, paper black, value as before", true, true, true]
+["unhilited: ink black, paper white, value as before", true, true, true]
 ["picked", 2, "Fast"]
+"DoPopup returned"
+"DoPopup returned"
+["after the pick: label paper white", true]
+"info menu cancelled"
 ["info menu", 3]

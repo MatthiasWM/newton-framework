@@ -125,6 +125,7 @@ void RegisterBoxtypes()
   Fl::set_boxtype(UP_BOX, DrawUpBox, 4, 4, 8, 8);
   Fl::set_boxtype(DOWN_BOX, DrawDownBox, 4, 4, 8, 8);
   Fl::set_boxtype(VIEW_BOX, DrawNothing, 0, 0, 0, 0);
+  Fl::set_boxtype(FLOATER_FRAME, DrawFloaterFrame, 8, 8, 16, 16);
 }
 
 } // namespace nfl

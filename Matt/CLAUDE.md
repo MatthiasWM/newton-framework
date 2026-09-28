@@ -679,6 +679,68 @@ Working on Battleship (the package: see 10.7):
         Screenshot1's Play button (48 by 13, pen 2) is 52 by 17 on a
         Newton. The ROM's +3 above and below is only for the default
         button (its keyboard indicator; not yet). Test `fltk_view_format`.
+        Fonts (Host/FLTK/Fonts.{h,cc}): the four families as FLTK fonts
+        (FONT_SYSTEM ... FONT_HANDWRITING, four faces each): System (Espy
+        Sans) and Simple (Geneva): Geneva, bold and italic Verdana (Geneva
+        10 and Verdana Bold 10 measure as Espy Sans' bitmaps: "Turn Speed"
+        55 and 64, Newton 55 and 63); Fancy (New York, which macOS keeps
+        for its UI): Times New Roman; Handwriting (Casual): Apple Casual.
+        Elsewhere FLTK's Helvetica and Times. FontFromSpec knows 'espy,
+        'newYork, 'geneva, 'handwriting and integer specs. The link keeps
+        viewFont (through the parents, as the ROM's getVar) and
+        viewJustify, and gives them to the widget: labelfont, labelsize,
+        align (paragraphs: top, wrapped); SetValue changes them (viewFont
+        also for the children that inherit it). vjFullH/V: left, top.
+        /Library/Fonts/Espy Sans on Matt's Mac is the Newton's bitmap font
+        (NFNT 9 to 16, plain and bold): the exact pixels, some day.
+        The Newton's Casual 10 is Apple Casual 14 in size (Screenshot1,
+        ink: "Medium" 45, "Yes" 19, "Normal" 41; ours now 43, 19, 41):
+        Handwriting is drawn and measured 1.4 times its size
+        (kSizeScale); FontHeight, FontAscent, FontDescent answer for the
+        size asked. System and Simple bold (Verdana Bold) 1.1 times: Espy
+        Sans Bold 9 (bitmaps) has capitals 7 high and "Difficulty" 50 wide,
+        Verdana Bold 10 7.3 and 51 (9: 6.6 and 46), so Play sits in its
+        button as on a Newton; "Turn Speed" gets wider (64, Newton 56).
+        A picture view without a viewJustify centers its icon (ROM's
+        CPictureView; protoInfoButton).
+        Drawing order as the ROM's CView::draw: fill (preDraw), content,
+        viewDrawScript, children, then the frame (postDraw):
+        DrawViewFormat(..., kViewFill / kViewFrame); FLOATER_FRAME is
+        FLOATER_BOX without its fill. protoTitle reaches 3 pixels into the
+        app's frame (bounds top -3); the frame now covers it, as on a
+        Newton.
+        Hilite as the ROM's CView::hilite: a view with a viewHiliteScript
+        runs it (true / nil); if it returns non-nil it did the hiliting
+        (protoLabelPicker: an XOR round rect over its label only, from -2
+        to indent; the second XOR undoes it), else the widget is drawn
+        inverted. The picker's bounds are 150 wide
+        on a Newton too (its value, entryLine, is inside them); before,
+        the default inversion blackened all of it.
+        FLTK draws a changed widget with the window clipped to it: our
+        window cleared that area and redrew only the changed widgets, so
+        views overlapping it (a picker's value over its label) were
+        erased. FloatNGo and Group now draw all their children (the clip
+        keeps it cheap), as the ROM redraws every view in a dirty area.
+        XOR (transferMode 2): Quartz's kCGBlendModeDifference with white
+        inverts (kCGBlendModeXOR is Porter-Duff, on alpha: no use); the
+        canvas has an invert layer (Link::fInvert, toggled by XOR shapes)
+        drawn last in that mode (DrawOverlay); in a viewDrawScript straight
+        onto the widget. macOS only: BlendInvert() has an #error for the
+        other platforms until FLTK has a blend mode (Matt opens an issue).
+        Every view widget is a group now (ViewWidget: Fl_Group): a view's
+        children are in its widget, drawn after what it shows, then its
+        frame, what scripts drew, and its hilite (the widgets outside in
+        the window, ShowOutsideChildren, are gone). The default hilite is
+        the ROM's inversion of the bounds grown by the inset, on top of all
+        (DrawHilite, difference blend mode): protoCheckbox's label (a child)
+        white on black; buttons as before; DrawViewFormat gets no hilite
+        from the widgets any more. fl_rounded_rectf() fills a pixel less at
+        the left and top than fl_rectf() (FLTK: vertices on x .. x+w-1);
+        DrawHilite makes up for it.
+        A change of a view drops its own canvas, but in the views it is in
+        only clears its area (DropCanvas): a picker's pick sets its value,
+        then unhilites; its XOR on the label stays until then. Open: the popup menus' font (Matt's Helvetica Bold 9).
+        Test `fltk_fonts`.
         Open: MoveBehind; the floater's dragger (a bump at the top center;
         Matt's box); the handwriting font of the pickers' values (Matt's);
         the status bar's clock overlaps the info button a little.

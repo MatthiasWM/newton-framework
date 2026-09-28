@@ -2,4 +2,7 @@
 ["list: style, then a nested one", 128, 0, "transform", 0]
 ["viewDrawScript", 0, 255]
 ["viewFormat fill", 0, "frame outside", 128, "icon: a 0 bit, a 1 bit", 255, 0]
+["XOR in a viewDrawScript: black, inverted black, inverted white", 0, 255, 0]
+["XOR on the canvas once", 0]
+["... twice", 255]
 ["after Dirty", 255]

@@ -1,0 +1,6 @@
+["System 10, bold 10, bold 9 (@100)", 55, 70, 64]
+["Fancy, Simple, Handwriting (as specs)", 46, 55, 69]
+["Handwriting 10: Medium, height", 44, 10]
+["left: ink at the left, at the right", true, nil]
+["right: ink at the left, at the right", nil, true]
+["smaller font: ink at 20..40", true]

@@ -5,4 +5,6 @@
 ["unchecked has fewer black pixels", true]
 ["hidden with it", 255]
 ["viewFormat set: fill, frame outside", 0, 0, 0, "beyond", 255]
+["hilited: the label's ink white", true]
+["unhilited: black again", true]
 ["shown with it", 0]

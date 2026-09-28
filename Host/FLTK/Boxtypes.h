@@ -25,6 +25,7 @@ enum : int {
   FLOATER_DOWN_BOX_, // not used
   UP_BOX_, DOWN_BOX_,
   VIEW_BOX_,         // a view's widget: it draws its frame itself (DrawViewFormat)
+  FLOATER_FRAME_,    // FLOATER_BOX's frame alone (no fill)
   LAST_BOX_
 };
 
@@ -35,6 +36,9 @@ const Fl_Boxtype DOWN_BOX = Fl_Boxtype(DOWN_BOX_);
     draws the view's fill and frame from its viewFormat (DrawViewFormat,
     Widgets.h). Not FL_NO_BOX: FLTK treats that one specially. */
 const Fl_Boxtype VIEW_BOX = Fl_Boxtype(VIEW_BOX_);
+/** FLOATER_BOX's frame without its fill: drawn after the view's children,
+    as the ROM draws a view's frame (DrawViewFormat). */
+const Fl_Boxtype FLOATER_FRAME = Fl_Boxtype(FLOATER_FRAME_);
 
 /** Register the box types with FLTK (only the first call does). */
 void RegisterBoxtypes();

@@ -12,8 +12,9 @@
 
  Every link owns its widget and deletes it when the view closes, children
  before their parent. So a widget that holds the children's widgets (a
- GroupLink's) must not delete them itself, as an Fl_Group normally does:
- nfl::Group and nfl::FloatNGo only take them out (delete_child(), see
+ GroupLink's, and every view widget: any view can have children) must not
+ delete them itself, as an Fl_Group normally does: nfl::Group,
+ nfl::ViewWidget and nfl::FloatNGo only take them out (delete_child(), see
  GroupLink::RemoveChild).
 
  The link class follows the view: a child of the root view is window-like
@@ -23,8 +24,9 @@
  widgets sit 8 pixels in from the window's edges; a clParagraphView
  shows its text (ParagraphLink), a clTextView too (TextLink, nfl::TextView,
  a protoTextButton), a clPictureView its icon (PictureLink,
- nfl::PictureView, a protoClosebox); any other view is a group for its
- children (ViewLink, nfl::Group) for now.
+ nfl::PictureView, a protoClosebox); any other view is a group (ViewLink,
+ nfl::Group) for now. Each widget holds its children's widgets and draws
+ them after what it shows, then the view's frame over them (as the ROM).
 
  Opening (FOpenX, the ROM's view:_Open(); CView::init): the view frames of
  children its scripts use early (allocateContext, stepAllocateContext;
@@ -66,6 +68,7 @@
 #include <FL/Fl_Window.H>
 
 #include "Frames/Objects.h"
+#include "Host/FLTK/Fonts.h"
 #include "Host/FLTK/Pen.h"
 
 class Fl_Image_Surface;
@@ -107,6 +110,13 @@ public:
       for the widget's draw() (DrawViewFormat, Widgets.h): read when the
       view opens, again when SetValue changes it. */
   long ViewFormat() const { return fViewFormat; }
+  /** Its viewFont (FLTK's font and size) and viewJustify, kept here as
+      viewFormat is, and given to the widget: labelfont(), labelsize(),
+      align() (AlignFor()). The viewFont as NewtonScript finds it: in the
+      view's protos, else its parents' (the ROM's getVar). */
+  Fl_Font Font() const { return fFont; }
+  Fl_Fontsize FontSize() const { return fFontSize; }
+  long ViewJustify() const { return fViewJustify; }
 
   /** The user closed the view's window: view:Close(), as an event. */
   void SendClose();
@@ -139,8 +149,9 @@ public:
   bool HasCanvas() const { return fCanvas != nullptr; }
   void DropCanvas();
 
-  /** Hilite(), TrackHilite(): the widget draws the view hilited. */
-  bool Hilited() const { return fHilited; }
+  /** Hilite(), TrackHilite(): the widget draws the view hilited (not if
+      its viewHiliteScript did: SetHilite). */
+  bool Hilited() const { return fHilited && !fScriptHilited; }
 
   /** The view's window moved or resized: keep the link's position in sync
       (fBounds: Newton global coordinates, inside the frame). */
@@ -173,9 +184,19 @@ protected:
   int fOutset = 0;             // its frame, around the view's bounds
   int fShadow = 0;             // its shadow, right and bottom (Shadow())
   long fViewFormat = 0;        // its viewFormat (ViewFormat())
+  Fl_Font fFont = FL_HELVETICA;   // its viewFont (Font(), FontSize())
+  Fl_Fontsize fFontSize = 12;
+  long fViewJustify = 0;       // its viewJustify (ViewJustify())
+  /** Read viewFont and viewJustify (ReadStyle), give them to the widget
+      (ApplyStyle). */
+  void ReadStyle();
+  void ApplyStyle();
+  /** The widget's align() for a viewJustify: its H and V bits. */
+  virtual Fl_Align AlignFor(long inJustify) const;
   bool fInSetupForm = false;   // viewSetupFormScript runs (fBounds not set yet)
   bool fHidden = false;        // Hide()
   bool fHilited = false;       // Hilite(), TrackHilite()
+  bool fScriptHilited = false; // ... and its viewHiliteScript did it (SetHilite)
   bool fPenDown = false;       // a pen down on the view, not up yet
   bool fPenInside = false;     // ... and the pen is inside it
   bool fTracking = false;      // TrackHilite() waits for the pen to come up
@@ -185,12 +206,14 @@ protected:
   void OffsetBounds(long inDX, long inDY);
   void Place();
   void Layout();
-  void ShowOutsideChildren(bool inShow);   // see HideView
   Stroke * fStroke = nullptr;  // the stroke of the pen down on the view
   Fl_Image_Surface * fCanvas = nullptr;   // what scripts drew (Drawing.h),
   Fl_Image_Surface * fMask = nullptr;     // which pixels they drew,
-  Fl_RGB_Image * fOverlay = nullptr;      // and both, to draw on top
-  friend void DrawOnView(Link * inLink, const std::function<void(long, long, bool)> & inDraw);
+  Fl_RGB_Image * fOverlay = nullptr;      // and both, to draw on top;
+  Fl_Image_Surface * fInvert = nullptr;   // what XOR shapes cover (white),
+  Fl_RGB_Image * fInvertOverlay = nullptr;   // to invert on top
+  bool fInverts = false;                  // ... if they cover anything
+  friend void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw);
   friend void DrawOverlay(Fl_Widget * inWidget);
   void SetupIdle(long inMilliseconds);
   static void IdleTimeout(void * inLink);
@@ -316,9 +339,6 @@ Ref FontMetric(RefArg inFontSpec, int inWhich);
 /** Text for FLTK (UTF-8) with Newton's own characters (U+FC01 the picker
     diamond, U+FC0B the check mark, ...) as Unicode shows them. */
 std::string DisplayText(std::string inText);
-
-/** The FLTK font for a font spec (a font frame or a packed integer). */
-void FontFromSpec(RefArg inSpec, Fl_Font * outFont, Fl_Fontsize * outSize);
 
 } // namespace nfl
 

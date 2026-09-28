@@ -195,8 +195,9 @@ const int kDragSteps = 4;
 Fl_Widget * FindText(Fl_Widget * inWidget, const std::string & inText)
 {
   if (auto * text = dynamic_cast<nfl::TextView *>(inWidget))
-    return text->Text() == inText ? text : nullptr;
-  if (Fl_Group * group = inWidget->as_group())
+    if (text->Text() == inText)
+      return text;
+  if (Fl_Group * group = inWidget->as_group())   // (a text view too: its children)
     for (int i = 0; i < group->children(); ++i)
       if (Fl_Widget * found = FindText(group->child(i), inText))
         return found;

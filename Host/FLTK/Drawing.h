@@ -22,9 +22,15 @@
  draws views there too.
 
  Style: penSize, penPattern, fillPattern (vfWhite ... vfBlack, or an 8 by
- 8 pattern, drawn as its gray), transferMode (copy and or; xor and the
- others: not yet, drawn as copy), transform ([dx, dy]; scaling: not yet),
- font, justification. A style frame in a list of shapes applies to the
+ 8 pattern, drawn as its gray), transferMode (copy, or, xor; the others:
+ not yet, drawn as copy), transform ([dx, dy]; scaling: not yet), font,
+ justification.
+
+ XOR inverts what is under a shape (a Newton's XOR with black): the shape
+ in white in Quartz's difference blend mode (|white - D| = 1 - D; macOS
+ only: FLTK has no blend mode yet, other platforms stop at an #error in
+ BlendInvert()). On the canvas, XOR shapes go to a layer of their own (the
+ invert layer: drawn twice, a shape is gone), drawn last in that mode. A style frame in a list of shapes applies to the
  shapes after it in the list.
  */
 
@@ -47,6 +53,10 @@ Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle);
     strip of bounds-sized cells (a clock's hands, digits, ...) at bounds.
     mode: as a style's transferMode (nil: copy). */
 Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
+
+/** What follows inverts what is under it, drawn in white (XOR with black):
+    the difference blend mode (macOS; see Drawing.cc). */
+void BlendInvert(bool inOn);
 
 /** view:DoDrawing(method, args): view:method(args...), drawing on the view. */
 Ref DoDrawing(RefArg inContext, RefArg inMethod, RefArg inArgs);
