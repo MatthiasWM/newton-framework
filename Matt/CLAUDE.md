@@ -248,6 +248,11 @@ Directory and namespace (decided, Matt, 2026-09-27):
 
 ### Resume here (2026-09-28)
 
+VSNewt 0.2.0 is released (2026-09-28, github.com/MatthiasWM/VSNewt,
+tag v0.2.0): newtc with FLTK, built from 9ac9d0d by
+Matt/tools/build_vsnewt_newtc.sh (Release, FLTK on); VSNewt's tests with
+NEWTC set (11) and a whole Battleship game passed with that binary.
+
 Last commit 6f83ae5 (10.7e, most of it). Next: the rest of 10.7e (see its
 open items), then 10.7f and 10.7g. Builds: `build/VSCode` (FLTK, the
 default for the tests) and `build/Release` (no FLTK; pass the runner an
