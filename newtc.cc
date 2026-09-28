@@ -25,6 +25,11 @@
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
+#if defined(NEWTC_EMBEDDED_APP)
+#include "Matt/EmbeddedApp.h"
+#include <sys/stat.h>
+#include <vector>
+#endif
 
 #include <cstdio>
 #include <cstdint>
@@ -1232,7 +1237,49 @@ int handleArgs(int argc, char **argv)
  \todo Fix Package.Info read. We pick up stuff after the trailing 'nul'.
 
  */
+#if defined(NEWTC_EMBEDDED_APP)
+/**
+ \brief An app of its own (Matt/EmbeddedApp.h), started without arguments:
+ the arguments that run its package, which is written to the app's folder
+ in Application Support first; the store is kept there too. Empty if that
+ fails (then newtc says so and ends).
+ */
+static std::vector<std::string> embeddedAppArgs(const char * inProgram)
+{
+  const char * home = getenv("HOME");
+  if (home == nullptr)
+    return {};
+  std::string folder = std::string(home) + "/Library/Application Support/" + gEmbeddedAppName;
+  mkdir(folder.c_str(), 0755);   // (Application Support is there)
+  std::string pkg = folder + "/" + gEmbeddedAppName + ".pkg";
+  FILE * f = fopen(pkg.c_str(), "wb");
+  bool ok = f != nullptr && fwrite(gEmbeddedAppPackage, 1, gEmbeddedAppPackageSize, f) == gEmbeddedAppPackageSize;
+  if (f != nullptr && fclose(f) != 0)
+    ok = false;
+  if (!ok) {
+    fprintf(stderr, "%s: can't write %s\n", gEmbeddedAppName, pkg.c_str());
+    return {};
+  }
+  return { inProgram, "-store", folder + "/" + gEmbeddedAppName + ".store", "-pkg", pkg, "-run" };
+}
+#endif
+
 int main(int argc, char **argv) {
+#if defined(NEWTC_EMBEDDED_APP)
+  // a double click (macOS before 10.9 added -psn_...): run the app's package
+  std::vector<std::string> appArgs;
+  std::vector<char *> appArgv;
+  if (argc == 1 || (argc == 2 && strncmp(argv[1], "-psn_", 5) == 0)) {
+    appArgs = embeddedAppArgs(argv[0]);
+    if (appArgs.empty())
+      return 1;
+    for (std::string & arg : appArgs)
+      appArgv.push_back(&arg[0]);
+    appArgv.push_back(nullptr);
+    argc = int(appArgs.size());
+    argv = appArgv.data();
+  }
+#endif
   // -dap: stdout carries only DAP messages, also while the arguments before
   // -dap run (VSNewt's "args", e.g. -pkg ... -nsdbg ...)
   for (int i = 1; i < argc; ++i)

@@ -248,6 +248,14 @@ Directory and namespace (decided, Matt, 2026-09-27):
 
 ### Resume here (2026-09-28)
 
+A Newton package as a macOS app of its own (2026-09-28, for Adam Tow,
+nBattleship's author): Matt/tools/build_app.sh <app.pkg> [name] [version]
+builds build/App/<name>.app (target newtc_app, CMake -DNEWTC_APP_PKG=...:
+newtc with the package compiled in, Matt/EmbeddedApp.h), universal (arm64
+and x86_64, both tested with a whole game), macOS 13, signed ad hoc, and a
+zip of it. Double-clicked it runs the package with its store in
+~/Library/Application Support/<name>/; with arguments it is newtc.
+
 VSNewt 0.2.0 is released (2026-09-28, github.com/MatthiasWM/VSNewt,
 tag v0.2.0): newtc with FLTK, built from 9ac9d0d by
 Matt/tools/build_vsnewt_newtc.sh (Release, FLTK on); VSNewt's tests with
