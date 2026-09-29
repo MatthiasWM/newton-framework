@@ -6,6 +6,15 @@
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl.H>
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Menu_Button.H>
+#include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_Preferences.H>
+#include <FL/Fl_RGB_Image.H>
+#include <FL/Fl_Sys_Menu_Bar.H>
+#include <FL/fl_draw.H>
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/fl_ask.H>
 #include <FL/platform.H>   // fl_open_display()
@@ -23,6 +32,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <memory>
+
+#ifndef NEWTPLAY_VERSION
+#define NEWTPLAY_VERSION "0.1"
+#endif
 
 extern char ** environ;
 
@@ -121,8 +135,8 @@ std::string BundledPackage()
   return found.empty() ? std::string() : found.front();
 }
 
-// The user chooses a package (the splash window's Run, 11.3, will call
-// this too). Empty if cancelled.
+// The user chooses a package (the splash window's Run, File > Open). Empty
+// if cancelled.
 std::string ChoosePackage()
 {
   fl_open_display();
@@ -150,6 +164,262 @@ void Tell(const char * inText, const std::string & inPath)
   fl_alert("%s:\n%s", inText, file ? file + 1 : inPath.c_str());
 }
 
+// The app's folder (.../NewtPlay.app), or empty outside a bundle.
+std::string BundlePath()
+{
+  char exe[PATH_MAX], real[PATH_MAX];
+  uint32_t size = sizeof(exe);
+  if (_NSGetExecutablePath(exe, &size) != 0 || realpath(exe, real) == nullptr)
+    return {};
+  std::string program(real);
+  size_t macos = program.rfind("/Contents/MacOS/");
+  return macos == std::string::npos ? std::string() : program.substr(0, macos);
+}
+
+
+/* The history: the packages run, newest first, at most kRecent
+   (~/Library/Preferences/newton-framework.org/NewtPlay.prefs). */
+
+const int kRecent = 10;
+
+struct Recent
+{
+  std::string path, name;
+  unsigned long version = 0;
+};
+
+std::vector<Recent> ReadRecent()
+{
+  Fl_Preferences prefs(Fl_Preferences::USER_L, "newton-framework.org", "NewtPlay");
+  Fl_Preferences recent(prefs, "recent");
+  std::vector<Recent> list;
+  for (int i = 0; i < recent.groups(); ++i) {
+    Fl_Preferences entry(recent, recent.group(i));
+    char * path = nullptr, * name = nullptr;
+    int version = 0;
+    entry.get("path", path, "");
+    entry.get("name", name, "");
+    entry.get("version", version, 0);
+    if (path && *path)
+      list.push_back({ path, name ? name : "", (unsigned long)version });
+    free(path);
+    free(name);
+  }
+  return list;
+}
+
+void WriteRecent(const std::vector<Recent> & inList)
+{
+  Fl_Preferences prefs(Fl_Preferences::USER_L, "newton-framework.org", "NewtPlay");
+  prefs.delete_group("recent");
+  Fl_Preferences recent(prefs, "recent");
+  for (size_t i = 0; i < inList.size() && i < size_t(kRecent); ++i) {
+    char key[8];
+    snprintf(key, sizeof(key), "%02d", int(i));
+    Fl_Preferences entry(recent, key);
+    entry.set("path", inList[i].path.c_str());
+    entry.set("name", inList[i].name.c_str());
+    entry.set("version", int(inList[i].version));
+  }
+  prefs.flush();
+}
+
+void AddRecent(const Recent & inRecent)
+{
+  std::vector<Recent> list = ReadRecent();
+  list.erase(std::remove_if(list.begin(), list.end(),
+                            [&](const Recent & r) { return r.path == inRecent.path; }), list.end());
+  list.insert(list.begin(), inRecent);
+  WriteRecent(list);
+}
+
+void ForgetRecent(const std::string & inPath)
+{
+  std::vector<Recent> list = ReadRecent();
+  list.erase(std::remove_if(list.begin(), list.end(),
+                            [&](const Recent & r) { return r.path == inPath; }), list.end());
+  WriteRecent(list);
+}
+
+// A history entry as a menu item: "Battleship:ATOW (v8) - Battleship2.5.pkg"
+// (FLTK's menus take / as a submenu and & as a shortcut: escaped).
+std::string RecentLabel(const Recent & inRecent)
+{
+  const char * file = strrchr(inRecent.path.c_str(), '/');
+  std::string text = inRecent.name + " (v" + std::to_string(inRecent.version) + ") - "
+                   + (file ? file + 1 : inRecent.path.c_str());
+  std::string label;
+  for (char c : text) {
+    if (c == '/' || c == '\\' || c == '&' || c == '_')
+      label += '\\';
+    label += c;
+  }
+  return label;
+}
+
+
+/* Choosing a package: before one runs (the splash window), it is the one to
+   run (gChoice); while one runs (the menu bar), it gets a NewtPlay of its
+   own. */
+
+std::string gChoice;
+
+void Choose(const std::string & inPath)
+{
+  if (inPath.empty())
+    return;
+  if (!IsFile(inPath)) {
+    Tell("NewtPlay can't find this package any more", inPath);
+    ForgetRecent(inPath);
+    return;
+  }
+  if (gRunning)
+    RunInOtherNewtPlay(inPath);
+  else
+    gChoice = inPath;
+}
+
+void ChooseRecent(Fl_Widget *, void * inPath)
+{
+  Choose(*static_cast<std::string *>(inPath));
+}
+
+void ChooseFile(Fl_Widget * = nullptr, void * = nullptr)
+{
+  Choose(ChoosePackage());
+}
+
+// A history menu: its items (the paths kept for the callbacks).
+void FillRecentMenu(Fl_Menu_ * ioMenu, const char * inPrefix, std::vector<std::unique_ptr<std::string>> & ioPaths)
+{
+  ioPaths.clear();
+  for (const Recent & recent : ReadRecent()) {
+    ioPaths.push_back(std::make_unique<std::string>(recent.path));
+    ioMenu->add((std::string(inPrefix) + RecentLabel(recent)).c_str(), 0, ChooseRecent, ioPaths.back().get());
+  }
+}
+
+
+/* About NewtPlay: its version, and who made what it is built on. */
+
+const char * kCredits =
+  "NewtPlay runs packages for the Apple Newton. It is newtc, the NewtonScript "
+  "compiler and runtime of newton-framework, a reimplementation of the Newton "
+  "OS (Simon Bell), with the Newton views drawn by FLTK (fltk.org). NewtPlay "
+  "and newtc: Matthias Melcher. Newton and MessagePad are trademarks of Apple; "
+  "NewtPlay is not made by Apple.";
+
+void ShowAbout(Fl_Widget * = nullptr, void * = nullptr)
+{
+  fl_message_title("About NewtPlay");
+  fl_message("NewtPlay %s\n\n%s", NEWTPLAY_VERSION, kCredits);
+}
+
+
+/* The menu bar: File > Open... and Open Recent; NewtPlay > About NewtPlay. */
+
+Fl_Sys_Menu_Bar * gMenuBar = nullptr;
+std::vector<std::unique_ptr<std::string>> gMenuPaths;
+
+void UpdateMenuBar()
+{
+  if (gMenuBar == nullptr)
+    return;
+  gMenuBar->clear();
+  gMenuBar->add("&File/&Open a Package...", FL_COMMAND + 'o', ChooseFile);
+  FillRecentMenu(gMenuBar, "&File/Open &Recent/", gMenuPaths);
+  if (gMenuPaths.empty())
+    gMenuBar->add("&File/Open &Recent/(none)", 0, nullptr, nullptr, FL_MENU_INACTIVE);
+}
+
+void MakeMenuBar()
+{
+  if (gMenuBar)
+    return;
+  fl_open_display();
+  Fl_Group::current(nullptr);
+  gMenuBar = new Fl_Sys_Menu_Bar(0, 0, 0, 0);
+  fl_mac_set_about(ShowAbout, nullptr);
+  UpdateMenuBar();
+}
+
+
+/* The splash window: NewtPlay started without a package. */
+
+// NewtPlay's picture (Resources/NewtPlay.png in its bundle).
+Fl_Image * Logo()
+{
+  static std::unique_ptr<Fl_PNG_Image> logo;
+  if (!logo) {
+    std::string path = BundlePath() + "/Contents/Resources/NewtPlay.png";
+    if (IsFile(path))
+      logo = std::make_unique<Fl_PNG_Image>(path.c_str());
+  }
+  return (logo && logo->fail() == 0) ? logo.get() : nullptr;
+}
+
+// For tests (NEWTPLAY_TEST_SPLASH=<file.png>): a picture of the window, then
+// nothing chosen.
+void SnapshotSplash(Fl_Window * inWindow, const char * inPath)
+{
+  for (int i = 0; i < 20; ++i)
+    Fl::wait(0.05);
+  std::unique_ptr<Fl_RGB_Image> image(fl_capture_window(inWindow, 0, 0, inWindow->w(), inWindow->h()));
+  if (!image || fl_write_png(inPath, image.get()) != 0)
+    fprintf(stderr, "NewtPlay: can't save the splash window as %s\n", inPath);
+}
+
+// The package to run: chosen, from the history, or opened by the Finder
+// meanwhile (a drop on NewtPlay); empty: quit.
+std::string Splash()
+{
+  gChoice.clear();
+  Fl_Group::current(nullptr);
+  Fl_Double_Window window(460, 250, "NewtPlay");
+  window.color(FL_WHITE);
+  Fl_Box logo(24, 24, 96, 96);
+  logo.image(Logo());
+  Fl_Box title(140, 22, 300, 40, "NewtPlay");
+  title.labelsize(30);
+  title.labelfont(FL_HELVETICA_BOLD);
+  title.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+  std::string versionText = std::string("Version ") + NEWTPLAY_VERSION + ": plays Newton packages";
+  Fl_Box version(140, 60, 300, 20, versionText.c_str());
+  version.labelsize(13);
+  version.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+  Fl_Box hint(140, 82, 300, 40,
+              "Double-click a package (.nspkg, .newtonpkg), drop one on NewtPlay, or choose one here:");
+  hint.labelsize(12);
+  hint.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_WRAP);
+  Fl_Button run(140, 130, 150, 28, "Run a Package...");
+  run.callback(ChooseFile);
+  run.shortcut(FL_Enter);
+  Fl_Menu_Button recent(300, 130, 140, 28, "Recent");
+  std::vector<std::unique_ptr<std::string>> recentPaths;
+  FillRecentMenu(&recent, "", recentPaths);
+  if (recentPaths.empty())
+    recent.deactivate();
+  Fl_Box credits(24, 174, 416, 66, kCredits);
+  credits.labelsize(11);
+  credits.labelcolor(fl_rgb_color(96, 96, 96));
+  credits.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_WRAP);
+  window.end();
+  window.show();
+  if (const char * snapshot = getenv("NEWTPLAY_TEST_SPLASH")) {
+    SnapshotSplash(&window, snapshot);
+    return {};
+  }
+  while (window.shown() && gChoice.empty() && gOpened.empty())
+    Fl::wait();
+  window.hide();
+  if (gChoice.empty() && !gOpened.empty()) {
+    gChoice = gOpened.front();
+    gOpened.erase(gOpened.begin());
+  }
+  return gChoice;
+}
+
+
 // A package's arguments: newtc -store <its store> -pkg <file> -run
 std::vector<std::string> RunPackage(const char * inProgram, const std::string & inPath)
 {
@@ -168,6 +438,8 @@ std::vector<std::string> RunPackage(const char * inProgram, const std::string & 
   gPackagePath = inPath;
   gPackageName = name;
   gStorePath = store;
+  AddRecent({ inPath, name, version });
+  UpdateMenuBar();
   if (!store.empty()) {
     args.push_back("-store");
     args.push_back(store);
@@ -282,6 +554,7 @@ std::vector<std::string> Arguments(int argc, char ** argv)
   // a package given: NewtPlay game.pkg (also `open -a NewtPlay --args ...`)
   if (argc == 2 && argv[1][0] != '-' && IsFile(argv[1])) {
     fl_open_callback(Opened);   // (more from the Finder: NewtPlays of their own)
+    MakeMenuBar();
     std::vector<std::string> args = RunPackage(argv[0], argv[1]);
     gRunning = !args.empty();
     return args;
@@ -291,6 +564,7 @@ std::vector<std::string> Arguments(int argc, char ** argv)
   // bundle's package, else the user's choice
   if (argc == 1 || (argc == 2 && strncmp(argv[1], "-psn_", 5) == 0)) {
     fl_open_callback(Opened);
+    MakeMenuBar();
     for (int i = 0; i < 20 && gOpened.empty(); ++i)
       Fl::wait(0.05);
     std::string package;
@@ -300,8 +574,8 @@ std::vector<std::string> Arguments(int argc, char ** argv)
     }
     if (package.empty())
       package = BundledPackage();
-    if (package.empty())
-      package = ChoosePackage();
+    if (package.empty())   // (tests choose without the window)
+      package = getenv("NEWTPLAY_TEST_CHOICE") ? ChoosePackage() : Splash();
     if (package.empty())
       return {};
     std::vector<std::string> args = RunPackage(argv[0], package);

@@ -119,7 +119,7 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 (`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (10,
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (12,
 needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
@@ -220,9 +220,21 @@ Steps:
       folders> <dest>` copies packages as .nspkg without quarantine (unna2
       stays as it is). test_newtplay.py: 10 (3 through LaunchServices;
       --no-finder leaves them out).
-- [ ] 11.3 The splash window: Run (Fl_Native_File_Chooser), the history
+- [x] 11.3 The splash window: Run (Fl_Native_File_Chooser), the history
       (Fl_Preferences, a pulldown menu), About and credits; a File menu
       (Open, Open Recent).
+      Done (2026-09-29, Matt/NewtPlay.cc): started without a package,
+      NewtPlay shows its splash window (Matt's newt, from
+      Resources/NewtPlay.png in the bundle; the version; how packages get
+      in; Run a Package..., Recent; the credits, kCredits, a first
+      draft). A package dropped on it meanwhile runs too. The history: the
+      last 10 packages run (path, name, version),
+      ~/Library/Preferences/newton-framework.org/NewtPlay.prefs; a missing
+      one is dropped when chosen. The menu bar (Fl_Sys_Menu_Bar): File >
+      Open a Package... (Cmd-O), Open Recent; NewtPlay > About NewtPlay.
+      While a package runs they start a NewtPlay of their own. Make
+      Shortcut and Make App come with 11.4. NEWTPLAY_TEST_SPLASH saves a
+      picture of the window. test_newtplay.py: 12.
 - [ ] 11.4 Shortcuts and apps: Make Shortcut and Make App (from the splash
       window, and from the menu while a package runs): where to save
       (default `~/Applications`), the package's icon as the bundle's

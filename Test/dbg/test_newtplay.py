@@ -7,9 +7,11 @@
   ~/Library/Application Support/NewtPlay/<package name>/, one per version
   (<name>-v<version>.store; HOME is a temporary folder here);
 - started without arguments, it runs the package in its own bundle
-  (Contents/Resources/*.nspkg), or waits for the user to choose one (the
-  file chooser: it must show, not end at once: it did, before the app had
-  finished launching);
+  (Contents/Resources/*.nspkg), or shows its splash window and waits for
+  the user to choose one (it must not end at once: it did, before the app
+  had finished launching); NEWTPLAY_TEST_SPLASH saves a picture of it;
+- the packages run go into its history (Fl_Preferences:
+  ~/Library/Preferences/newton-framework.org/NewtPlay.prefs), newest first;
 - given a file that isn't a Newton package, it says so;
 - a package that stops while it starts: NewtPlay says so, and may start it
   again with new data (its store kept as .old-<time>; if it stops again, it
@@ -140,6 +142,14 @@ def main():
 
         _, err, ran_on = run(program, [], home, 3)
         checks.append(("no arguments, no package in the bundle: it waits for a choice", ran_on, err.strip()[:80]))
+        splash = tmp / "splash.png"
+        run(program, [], home, 20, {"NEWTPLAY_TEST_SPLASH": str(splash)})
+        checks.append(("... in its splash window (a picture of it)", splash.exists() and splash.stat().st_size > 1000,
+                       splash.exists()))
+        prefs = home / "Library" / "Preferences" / "newton-framework.org" / "NewtPlay.prefs"
+        text = prefs.read_text() if prefs.exists() else ""
+        checks.append(("the package run is in the history", "path:" in text and pkg.name in text.replace("\n+", ""),
+                       text[-200:]))
 
         fake = tmp / "fake.pkg"
         fake.write_text("not a package")
