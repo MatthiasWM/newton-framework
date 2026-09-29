@@ -15,8 +15,10 @@
    anything else                 newtc, as always
 
  A package runs as `newtc -store <store> -pkg <file> -run`, with its store
- in ~/Library/Application Support/NewtPlay/<package name>/, the same
- wherever the package comes from. A file that isn't a Newton package (it
+ in ~/Library/Application Support/NewtPlay/<package name>/, a store per
+ version of the package (the package's version number): the same wherever
+ the package comes from, and versions don't read each other's data
+ (nBattleship 2.5 saves settings 1.4 can't read; both are Battleship:ATOW). A file that isn't a Newton package (it
  starts with "package0" or "package1") gets a polite no.
  */
 
@@ -42,14 +44,16 @@ std::vector<std::string> Arguments(int argc, char ** argv);
     package runs (newtc) or a window is open. */
 void CheckStarted(const std::string & inError);
 
-/** Whether the file is a Newton package, and its name (the package's own,
-    e.g. "Battleship:ATOW"; empty if it has none). */
-bool ReadPackageName(const std::string & inPath, std::string * outName);
+/** Whether the file is a Newton package, its name (the package's own, e.g.
+    "Battleship:ATOW"; empty if it has none), and its version (the
+    header's version number: nBattleship 1.4 has 1, 2.5 has 8). */
+bool ReadPackageName(const std::string & inPath, std::string * outName, unsigned long * outVersion = nullptr);
 
-/** Where a package's store is: ~/Library/Application Support/NewtPlay/
-    <name>/<name>.store (the name made safe for a file name; the folder is
-    made). Empty if there is no home folder. */
-std::string StorePath(const std::string & inPackageName);
+/** Where a version of a package keeps its store:
+    ~/Library/Application Support/NewtPlay/<name>/<name>-v<version>.store
+    (the name made safe for a file name; the folder is made). Empty if there
+    is no home folder. */
+std::string StorePath(const std::string & inPackageName, unsigned long inVersion);
 
 } // namespace newtplay
 

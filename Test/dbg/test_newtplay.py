@@ -4,8 +4,8 @@
     test_newtplay.py [--app path/to/NewtPlay.app] [--pkg path/to/a.pkg]
 
 - given a package, it runs it, with its store in
-  ~/Library/Application Support/NewtPlay/<package name>/ (HOME is a temporary
-  folder here);
+  ~/Library/Application Support/NewtPlay/<package name>/, one per version
+  (<name>-v<version>.store; HOME is a temporary folder here);
 - started without arguments, it runs the package in its own bundle
   (Contents/Resources/*.nspkg), or waits for the user to choose one (the
   file chooser: it must show, not end at once: it did, before the app had
@@ -82,7 +82,8 @@ def main():
 
         _, err, ran_on = run(program, [str(pkg)], home, 4)
         made = sorted(p.relative_to(stores).as_posix() for p in stores.rglob("*.store")) if stores.exists() else []
-        checks.append(("a package given: it runs, its store in NewtPlay/<name>/", ran_on and len(made) == 1, made))
+        checks.append(("a package given: it runs, its store in NewtPlay/<name>/<name>-v<version>.store",
+                       ran_on and len(made) == 1 and "-v" in made[0], made))
 
         out, _, _ = run(program, ["-s", "Print(6 * 7);"], home, 20)
         checks.append(("anything else: newtc", out.strip().endswith("42"), out.strip()[-20:]))

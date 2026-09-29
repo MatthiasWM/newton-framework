@@ -244,3 +244,19 @@ https://github.com/crozynski/comicneue
 Apple's Espy Sans 12 : https://www.google.com/url?sa=i&source=web&rct=j&url=https://github.com/csyde/carthage-fonts
 
 "Nu" font family (Nu Casual / Nu Sans / Nu Serif / Nu Sans Mono) by Marty P. Pfeiffer / Scooter Graphics, copyright 2000
+
+https://fonts.google.com/specimen/Short+Stack?preview.script=Latn
+
+https://www.scootergraphics.com/nupack/index.html
+
+
+NewtPlay:
+- Play -> file chooser -> package
+- History -> list of previously run packages
+- Make Link
+- Make App
+- About, Credits, basic help
+- Learn NewtonScript
+- Give stars for Emulation, App Quality, Relevane, Playability?
+- Resources
+- Locate Soup in Finder

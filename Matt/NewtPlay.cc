@@ -106,7 +106,8 @@ void Tell(const char * inText, const std::string & inPath)
 std::vector<std::string> RunPackage(const char * inProgram, const std::string & inPath)
 {
   std::string name;
-  if (!ReadPackageName(inPath, &name)) {
+  unsigned long version = 0;
+  if (!ReadPackageName(inPath, &name, &version)) {
     Tell("This is not a Newton package", inPath);
     return {};
   }
@@ -115,7 +116,7 @@ std::vector<std::string> RunPackage(const char * inProgram, const std::string & 
     name = file ? file + 1 : inPath;
   }
   std::vector<std::string> args = { inProgram };
-  std::string store = StorePath(name);
+  std::string store = StorePath(name, version);
   gPackagePath = inPath;
   gPackageName = name;
   gStorePath = store;
@@ -172,9 +173,11 @@ void CheckStarted(const std::string & inError)
 }
 
 
-bool ReadPackageName(const std::string & inPath, std::string * outName)
+bool ReadPackageName(const std::string & inPath, std::string * outName, unsigned long * outVersion)
 {
   outName->clear();
+  if (outVersion)
+    *outVersion = 0;
   FILE * f = fopen(inPath.c_str(), "rb");
   if (f == nullptr)
     return false;
@@ -186,6 +189,8 @@ bool ReadPackageName(const std::string & inPath, std::string * outName)
     // the part entries (32 bytes each), in UTF-16
     auto word = [&](int at) { return (header[at] << 8) | header[at + 1]; };
     auto lword = [&](int at) { return (unsigned long)(word(at) << 16 | word(at + 2)); };
+    if (outVersion)
+      *outVersion = lword(16);   // the package's version number
     unsigned long numParts = lword(48);
     unsigned long offset = word(24), length = word(26);
     unsigned long at = 52 + numParts * 32 + offset;
@@ -205,7 +210,7 @@ bool ReadPackageName(const std::string & inPath, std::string * outName)
 }
 
 
-std::string StorePath(const std::string & inPackageName)
+std::string StorePath(const std::string & inPackageName, unsigned long inVersion)
 {
   const char * home = getenv("HOME");
   if (home == nullptr)
@@ -220,7 +225,7 @@ std::string StorePath(const std::string & inPackageName)
   mkdir(folder.c_str(), 0755);
   folder += "/" + name;
   mkdir(folder.c_str(), 0755);
-  return folder + "/" + name + ".store";
+  return folder + "/" + name + "-v" + std::to_string(inVersion) + ".store";
 }
 
 

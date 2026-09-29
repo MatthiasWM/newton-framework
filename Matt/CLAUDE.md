@@ -163,7 +163,10 @@ Decided:
 - **One package per process**: a package opened while one runs starts
   another NewtPlay. Each package has its store in
   `~/Library/Application Support/NewtPlay/<package name>/`, the same for
-  NewtPlay, its shortcut and its app.
+  NewtPlay, its shortcut and its app, one per version
+  (`<name>-v<version>.store`, the header's version number, Matt's idea:
+  nBattleship 1.4 is 1, 2.5 is 8, both Battleship:ATOW; 137 of the
+  corpus' 192 games have version 1). A new version starts with new data.
 - The program finds a package in its own bundle when it starts (replaces
   the compiled-in package: `newtc_app`, `NEWTC_APP_PKG`,
   `Matt/EmbeddedApp.h` go); with arguments it is newtc, as now.
@@ -196,7 +199,8 @@ Steps:
       as .old-<time>; a second stop only says so, NEWTPLAY_NEW_DATA). Found
       when Matt ran 1.4 on 2.5's store (B26). Test hooks:
       NEWTPLAY_TEST_CHOICE (the chooser's answer), NEWTPLAY_TEST_ANSWER
-      (the alert's). test_newtplay.py: 7.
+      (the alert's). test_newtplay.py: 7. A store per package version since
+      (2.5 and 1.4 run side by side).
 - [ ] 11.2 Opening packages: the document types and UTIs in the
       Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
       or the Dock icon, Open With), before and after the start; the
