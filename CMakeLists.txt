@@ -732,6 +732,48 @@ if (NEWTC_USES_FLTK)
   target_sources (newtc PRIVATE Host/FLTK/RomImages.cc Host/FLTK/RomImages.h "${rom_images_cc}")
 endif ()
 
+# A target with newtc's sources and settings (for the apps below), plus
+# more sources.
+function (newtc_like target)
+  get_target_property (sources newtc SOURCES)
+  add_executable (${target} MACOSX_BUNDLE EXCLUDE_FROM_ALL ${sources} ${ARGN})
+  foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPILE_FEATURES
+                    LINK_LIBRARIES LINK_OPTIONS CXX_STANDARD CXX_STANDARD_REQUIRED CXX_EXTENSIONS)
+    get_target_property (value newtc ${property})
+    if (value)
+      set_property (TARGET ${target} PROPERTY ${property} "${value}")
+    endif ()
+  endforeach ()
+endfunction ()
+
+# NewtPlay (Phase 11, Matt/NewtPlay.h): newtc as a Mac app that runs Newton
+# packages, NewtPlay.app. Built with FLTK on macOS, not by default:
+#   cmake --build <build> --target NewtPlay   (Matt/tools/build_newtplay.sh)
+set (NEWTPLAY_VERSION "0.1" CACHE STRING "NewtPlay's version")
+if (NEWTC_USES_FLTK AND APPLE)
+  set (newtplay_icns "${CMAKE_BINARY_DIR}/generated/NewtPlay.icns")
+  add_custom_command (
+    OUTPUT "${newtplay_icns}"
+    COMMAND ${CMAKE_COMMAND} -DIN=${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png -DOUT=${newtplay_icns}
+            -DWORK=${CMAKE_BINARY_DIR}/generated/NewtPlayIcon -P ${CMAKE_SOURCE_DIR}/cmake/MakeIcns.cmake
+    DEPENDS "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png" "${CMAKE_SOURCE_DIR}/cmake/MakeIcns.cmake"
+    COMMENT "NewtPlay's icon"
+  )
+  set_source_files_properties ("${newtplay_icns}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  newtc_like (NewtPlay Matt/NewtPlay.cc Matt/NewtPlay.h "${newtplay_icns}")
+  target_compile_definitions (NewtPlay PRIVATE NEWTC_NEWTPLAY=1)
+  set_target_properties (NewtPlay PROPERTIES
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/NewtPlayInfo.plist.in"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.newton-framework.NewtPlay"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${NEWTPLAY_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${NEWTPLAY_VERSION}"
+  )
+  add_custom_command (TARGET NewtPlay POST_BUILD
+    COMMAND codesign --force --sign - "$<TARGET_BUNDLE_DIR:NewtPlay>"
+    COMMENT "Signing NewtPlay.app (ad hoc)"
+  )
+endif ()
+
 # A Newton app as a macOS app of its own (Matt/EmbeddedApp.h): newtc with
 # the package compiled in, as a bundle (<name>.app) to double click. Only
 # if a package is given, and with FLTK:
@@ -758,15 +800,7 @@ if (NEWTC_APP_PKG)
     COMMENT "Embedding the package ${NEWTC_APP_PKG}"
   )
   # newtc's sources and settings, and the package
-  get_target_property (app_sources newtc SOURCES)
-  add_executable (newtc_app MACOSX_BUNDLE ${app_sources} Matt/EmbeddedApp.h "${app_package_cc}")
-  foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPILE_FEATURES
-                    LINK_LIBRARIES LINK_OPTIONS CXX_STANDARD CXX_STANDARD_REQUIRED CXX_EXTENSIONS)
-    get_target_property (value newtc ${property})
-    if (value)
-      set_property (TARGET newtc_app PROPERTY ${property} "${value}")
-    endif ()
-  endforeach ()
+  newtc_like (newtc_app Matt/EmbeddedApp.h "${app_package_cc}")
   target_compile_definitions (newtc_app PRIVATE NEWTC_EMBEDDED_APP=1)
   string (REGEX REPLACE "[^A-Za-z0-9.-]" "-" app_id "${app_name}")
   set_target_properties (newtc_app PROPERTIES

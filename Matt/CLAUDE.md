@@ -110,15 +110,17 @@ Phase 10 is done: newtc runs Newton apps in windows (FLTK); nBattleship 1.4
 plays to its end, also in the Release build and as a signed, notarized Mac
 app. VSNewt 0.2.0 is released (github.com/MatthiasWM/VSNewt, tag v0.2.0,
 newtc 9ac9d0d with FLTK) with `nBattleship-1.4-macOS.zip`, which comes down
-when NewtPlay is up (Phase 11). Next: 11.1.
+when NewtPlay is up (Phase 11). 11.1 is done; next: 11.2.
 
 Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 `build/Release` (no FLTK; give the runner an absolute `--newtc`),
 `build/VSNewt` (Release, FLTK: `Matt/tools/build_vsnewt_newtc.sh`),
-`build/App` (`Matt/tools/build_app.sh`). All suites:
+`build/App` (`Matt/tools/build_app.sh`), `build/NewtPlay`
+(`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9); VSNewt: `NEWTC=<newtc> npm
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (4,
+needs the NewtPlay target built); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
 Working on a package:
@@ -167,11 +169,24 @@ Decided:
   `Matt/EmbeddedApp.h` go); with arguments it is newtc, as now.
 
 Steps:
-- [ ] 11.1 The bundle: `NewtPlay.app`, universal, macOS 13, signed and
+- [x] 11.1 The bundle: `NewtPlay.app`, universal, macOS 13, signed and
       notarized (build script as build_app.sh's), a first icon (drawn in
       code: a MessagePad-like outline, a green screen, a one-bit pixel
       newt, until someone draws a better one). It runs a package given as
       an argument or found in its bundle; its stores as above.
+      Done (2026-09-29): target `NewtPlay` (CMake, with FLTK on macOS, not
+      built by default; `newtc_like()` copies newtc's sources and
+      settings), `Matt/NewtPlay.{h,cc}` (newtplay::Arguments() in main,
+      NEWTC_NEWTPLAY: one file argument: run it; none: the package in
+      Contents/Resources, else the file chooser (until 11.3); else newtc;
+      the package's name from its header; not a package: an alert),
+      `cmake/NewtPlayInfo.plist.in`, the icon from Matt's newt
+      (`Resources/NewtPlay.png`, 96 pixels, at 80% by
+      `cmake/MakeIcns.cmake`: sips, iconutil),
+      `Matt/tools/build_newtplay.sh [version]` (build/NewtPlay, signing and
+      notarizing as build_app.sh). Test `Test/dbg/test_newtplay.py` (4;
+      --app, --pkg). A whole game in NewtPlay, arm64 and x86_64. For 11.4:
+      a package copied into a bundle needs `xattr -cr` before codesign.
 - [ ] 11.2 Opening packages: the document types and UTIs in the
       Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
       or the Dock icon, Open With), before and after the start; the

@@ -25,6 +25,10 @@
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
+#if defined(NEWTC_NEWTPLAY)
+#include "Matt/NewtPlay.h"
+#include <vector>
+#endif
 #if defined(NEWTC_EMBEDDED_APP)
 #include "Matt/EmbeddedApp.h"
 #include <sys/stat.h>
@@ -1265,6 +1269,18 @@ static std::vector<std::string> embeddedAppArgs(const char * inProgram)
 #endif
 
 int main(int argc, char **argv) {
+#if defined(NEWTC_NEWTPLAY)
+  // NewtPlay: a package to run, or newtc (Matt/NewtPlay.h)
+  std::vector<std::string> playArgs = newtplay::Arguments(argc, argv);
+  std::vector<char *> playArgv;
+  if (playArgs.empty())
+    return 0;   // nothing to run (cancelled, or not a package: said so)
+  for (std::string & arg : playArgs)
+    playArgv.push_back(&arg[0]);
+  playArgv.push_back(nullptr);
+  argc = int(playArgs.size());
+  argv = playArgv.data();
+#endif
 #if defined(NEWTC_EMBEDDED_APP)
   // a double click (macOS before 10.9 added -psn_...): run the app's package
   std::vector<std::string> appArgs;
