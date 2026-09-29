@@ -260,3 +260,4 @@ NewtPlay:
 - Give stars for Emulation, App Quality, Relevane, Playability?
 - Resources
 - Locate Soup in Finder
+- Convert to .nspkg...

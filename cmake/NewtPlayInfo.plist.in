@@ -32,5 +32,60 @@
   <true/>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
+  <!-- Newton packages: .nspkg and .newtonpkg are NewtPlay's own (it opens
+       them on a double click); .pkg is Apple's installer packages: NewtPlay
+       only as an alternate (Open With, a drop on it), Installer stays theirs -->
+  <key>UTExportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.newton-framework.newton-package</string>
+      <key>UTTypeDescription</key>
+      <string>Newton Package</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeIconFile</key>
+      <string>NewtPlay</string>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>nspkg</string>
+          <string>newtonpkg</string>
+        </array>
+      </dict>
+    </dict>
+  </array>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>Newton Package</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Owner</string>
+      <key>CFBundleTypeIconFile</key>
+      <string>NewtPlay</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>org.newton-framework.newton-package</string>
+      </array>
+    </dict>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>Package (Newton or Installer)</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Alternate</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>com.apple.installer-package-archive</string>
+      </array>
+    </dict>
+  </array>
 </dict>
 </plist>

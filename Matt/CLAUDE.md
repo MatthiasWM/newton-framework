@@ -119,8 +119,8 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 (`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (7,
-needs the NewtPlay target built); VSNewt: `NEWTC=<newtc> npm
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (10,
+needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
 Working on a package:
@@ -201,10 +201,25 @@ Steps:
       NEWTPLAY_TEST_CHOICE (the chooser's answer), NEWTPLAY_TEST_ANSWER
       (the alert's). test_newtplay.py: 7. A store per package version since
       (2.5 and 1.4 run side by side).
-- [ ] 11.2 Opening packages: the document types and UTIs in the
+- [x] 11.2 Opening packages: the document types and UTIs in the
       Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
       or the Dock icon, Open With), before and after the start; the
       package check; a second package in a second process.
+      Done (2026-09-29): cmake/NewtPlayInfo.plist.in exports the UTI
+      org.newton-framework.newton-package (.nspkg, .newtonpkg; NewtPlay
+      its Owner) and takes com.apple.installer-package-archive (.pkg) as
+      Alternate. Started bare, NewtPlay waits up to a second for the
+      Finder's open event (fl_open_callback), then the bundle's package,
+      then the chooser; opened while a package runs: `open -n -a` a
+      NewtPlay of its own (HOME and the test hooks passed on).
+      **Quarantine**: a downloaded .pkg is quarantined, and the Finder has
+      Gatekeeper check it as an installer package before any app gets it
+      ("Apple could not verify ... is free of malware"): NewtPlay never
+      sees it. Fine: NewtPlay's own chooser, .nspkg/.newtonpkg (not
+      checked), a .pkg without quarantine. `Matt/tools/nspkg.sh <pkgs or
+      folders> <dest>` copies packages as .nspkg without quarantine (unna2
+      stays as it is). test_newtplay.py: 10 (3 through LaunchServices;
+      --no-finder leaves them out).
 - [ ] 11.3 The splash window: Run (Fl_Native_File_Chooser), the history
       (Fl_Preferences, a pulldown menu), About and credits; a File menu
       (Open, Open Recent).

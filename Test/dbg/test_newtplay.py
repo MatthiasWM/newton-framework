@@ -14,7 +14,12 @@
 - a package that stops while it starts: NewtPlay says so, and may start it
   again with new data (its store kept as .old-<time>; if it stops again, it
   only says so: NEWTPLAY_TEST_ANSWER answers the alert: 0 Quit, 1 New Data);
-- given anything else, it is newtc.
+- given anything else, it is newtc;
+- the Finder's way (LaunchServices, `open`; --no-finder leaves it out): a
+  .nspkg opened with it runs (the file comes as an event, not an argument),
+  a .newtonpkg opened while it runs gets a NewtPlay of its own, a .pkg
+  without quarantine opens with it too (Open With). No quarantined .pkg:
+  Gatekeeper would stop it before NewtPlay sees it.
 A running package keeps its window open: the test stops it after a while.
 Default app: build/VSCode/NewtPlay.app (cmake --build build/VSCode --target
 NewtPlay); default package: newtc's Hello app, written with newtc -hello.
@@ -60,10 +65,53 @@ def run(program, args, home, seconds, more_env=None):
         return out, err, True
 
 
+def finder_checks(app, program, pkg, tmp):
+    """Open packages as the Finder does (open -a), HOME a temporary folder."""
+    import time
+    def count():
+        p = subprocess.run(["pgrep", "-f", f"{app}/Contents/MacOS/NewtPlay"], capture_output=True, text=True)
+        return len(p.stdout.split())
+    def stores():
+        return sorted(p.name for p in (home / "Library" / "Application Support" / "NewtPlay").rglob("*.store"))
+    def wait(test, seconds=10):
+        end = time.time() + seconds
+        while time.time() < end and not test():
+            time.sleep(0.25)
+        return test()
+    home = tmp / "finder-home"
+    (home / "Library" / "Application Support").mkdir(parents=True)
+    first = tmp / "first.nspkg"
+    shutil.copy(pkg, first)
+    second = tmp / "second.newtonpkg"
+    subprocess.run([str(program), "-script", str(tmp / "failing.ns"), "-opkg", str(second)], capture_output=True)
+    subprocess.run([str(program), "-hello", "-opkg", str(tmp / "hello2.pkg")], capture_output=True)
+    plain = tmp / "plain.pkg"   # a .pkg without quarantine
+    shutil.copy(tmp / "hello2.pkg", plain)
+    subprocess.run(["xattr", "-c", str(first), str(second), str(plain)])
+    subprocess.run(["pkill", "-f", f"{app}/Contents/MacOS/NewtPlay"])
+    checks = []
+    env = ["--env", f"HOME={home}", "--env", "NEWTPLAY_TEST_ANSWER=0"]
+    subprocess.run(["open", "-n", "-a", str(app), *env, str(first)])
+    ok = wait(lambda: count() == 1 and len(stores()) == 1)
+    checks.append(("Finder: a .nspkg opened with NewtPlay runs", ok, (count(), stores())))
+    subprocess.run(["open", "-a", str(app), str(second)], capture_output=True)
+    ok = wait(lambda: len(stores()) == 2)
+    checks.append(("Finder: a .newtonpkg opened while one runs: a NewtPlay of its own (its store)", ok, stores()))
+    subprocess.run(["pkill", "-f", f"{app}/Contents/MacOS/NewtPlay"])
+    wait(lambda: count() == 0, 5)
+    shutil.rmtree(home / "Library" / "Application Support" / "NewtPlay", ignore_errors=True)
+    subprocess.run(["open", "-n", "-a", str(app), *env, str(plain)])
+    ok = wait(lambda: count() == 1 and len(stores()) == 1)
+    checks.append(("Finder: a .pkg without quarantine opened with NewtPlay runs", ok, (count(), stores())))
+    subprocess.run(["pkill", "-f", f"{app}/Contents/MacOS/NewtPlay"])
+    return checks
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--app", default=str(ROOT / "build" / "VSCode" / "NewtPlay.app"))
     ap.add_argument("--pkg")
+    ap.add_argument("--no-finder", action="store_true", help="leave out the tests through LaunchServices")
     args = ap.parse_args()
     app = Path(args.app)
     program = app / "Contents" / "MacOS" / "NewtPlay"
@@ -118,6 +166,8 @@ def main():
         _, err, ran_on = run(copy / "Contents" / "MacOS" / "NewtPlay", [], home, 4)
         made = sorted(p.name for p in stores.rglob("*.store")) if stores.exists() else []
         checks.append(("no arguments: the package in its bundle runs", ran_on and len(made) == 1, made))
+        if not args.no_finder:
+            checks += finder_checks(app, program, pkg, tmp)
     failed = 0
     for name, ok, detail in checks:
         print(("ok      " if ok else "FAIL    ") + name + ("" if ok else f"  ({detail})"))

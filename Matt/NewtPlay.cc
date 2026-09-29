@@ -15,6 +15,7 @@
 #include <mach-o/dyld.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <spawn.h>
 #include <climits>
 #include <ctime>
 #include <unistd.h>
@@ -23,12 +24,59 @@
 #include <cstring>
 #include <algorithm>
 
+extern char ** environ;
+
 namespace newtplay {
 
 namespace {
 
 // The package that runs (RunPackage), for CheckStarted.
 std::string gPackagePath, gPackageName, gStorePath;
+
+// Files the Finder opens with NewtPlay (a double click, a drop on the app or
+// its Dock icon, Open With): macOS starts the app, then sends them as
+// events (FLTK: fl_open_callback). Before a package runs they are the ones
+// to run (gOpened); after that each goes to a NewtPlay of its own.
+std::vector<std::string> gOpened;
+bool gRunning = false;
+
+// A NewtPlay of its own for a package (the same app: `open -n`; outside a
+// bundle, the program itself).
+void RunInOtherNewtPlay(const std::string & inPath)
+{
+  char exe[PATH_MAX], real[PATH_MAX];
+  uint32_t size = sizeof(exe);
+  if (_NSGetExecutablePath(exe, &size) != 0 || realpath(exe, real) == nullptr)
+    return;
+  std::string program(real);
+  size_t macos = program.rfind("/Contents/MacOS/");
+  std::vector<std::string> args;
+  if (macos != std::string::npos) {
+    // (open starts it without our environment: its HOME, for its stores)
+    args = { "/usr/bin/open", "-n", "-a", program.substr(0, macos) };
+    for (const char * name : { "HOME", "NEWTPLAY_TEST_ANSWER", "NEWTPLAY_TEST_CHOICE" })
+      if (const char * value = getenv(name))   // (the test hooks too)
+        args.insert(args.end(), { "--env", std::string(name) + "=" + value });
+    args.insert(args.end(), { "--args", inPath });
+  }
+  else
+    args = { program, inPath };
+  std::vector<char *> argv;
+  for (std::string & arg : args)
+    argv.push_back(&arg[0]);
+  argv.push_back(nullptr);
+  pid_t pid;
+  if (posix_spawn(&pid, argv[0], nullptr, nullptr, argv.data(), environ) != 0)
+    fprintf(stderr, "NewtPlay: can't start another NewtPlay for %s\n", inPath.c_str());
+}
+
+void Opened(const char * inPath)
+{
+  if (gRunning)
+    RunInOtherNewtPlay(inPath);
+  else
+    gOpened.push_back(inPath);
+}
 
 bool IsFile(const std::string & inPath)
 {
@@ -232,17 +280,36 @@ std::string StorePath(const std::string & inPackageName, unsigned long inVersion
 std::vector<std::string> Arguments(int argc, char ** argv)
 {
   // a package given: NewtPlay game.pkg (also `open -a NewtPlay --args ...`)
-  if (argc == 2 && argv[1][0] != '-' && IsFile(argv[1]))
-    return RunPackage(argv[0], argv[1]);
-  // from the Finder (older macOS added -psn_...): the bundle's package, or
-  // the user's choice
+  if (argc == 2 && argv[1][0] != '-' && IsFile(argv[1])) {
+    fl_open_callback(Opened);   // (more from the Finder: NewtPlays of their own)
+    std::vector<std::string> args = RunPackage(argv[0], argv[1]);
+    gRunning = !args.empty();
+    return args;
+  }
+  // from the Finder (older macOS added -psn_...): a package the Finder
+  // opens with NewtPlay (its event comes right after the start), else the
+  // bundle's package, else the user's choice
   if (argc == 1 || (argc == 2 && strncmp(argv[1], "-psn_", 5) == 0)) {
-    std::string package = BundledPackage();
+    fl_open_callback(Opened);
+    for (int i = 0; i < 20 && gOpened.empty(); ++i)
+      Fl::wait(0.05);
+    std::string package;
+    if (!gOpened.empty()) {
+      package = gOpened.front();
+      gOpened.erase(gOpened.begin());
+    }
+    if (package.empty())
+      package = BundledPackage();
     if (package.empty())
       package = ChoosePackage();
     if (package.empty())
       return {};
-    return RunPackage(argv[0], package);
+    std::vector<std::string> args = RunPackage(argv[0], package);
+    gRunning = !args.empty();
+    for (const std::string & more : gOpened)   // (several opened at once)
+      RunInOtherNewtPlay(more);
+    gOpened.clear();
+    return args;
   }
   // newtc
   return std::vector<std::string>(argv, argv + argc);
