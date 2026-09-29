@@ -387,6 +387,11 @@ FSetLCDContrast(RefArg inRcvr, RefArg inContrast)
 	Return:	error code
 ------------------------------------------------------------------------------*/
 
+// Without a screen driver (newtc on a desktop): the orientation, as set
+// (SetOrientation), portrait at first: a MessagePad 2x00's screen upright
+// (320 by 480; Matt, 2026-09-30).
+static int gHostOrientation = kPortrait;
+
 void
 SetGrafInfo(int inSelector, int inValue)
 {
@@ -403,6 +408,8 @@ SetGrafInfo(int inSelector, int inValue)
 	case kGrafOrientation:
 		if (gScreen.driver)
 			gScreen.driver->setFeature(4, inValue);
+		else
+			gHostOrientation = inValue;
 		SetupScreenPixelMap();
 		memset(PixelMapBits(&gScreenPixelMap), 0, (gScreenPixelMap.bounds.bottom - gScreenPixelMap.bounds.top) * gScreenPixelMap.rowBytes);
 		break;
@@ -455,10 +462,7 @@ GetGrafInfo(int inSelector, void * outInfo)
 		if (gScreen.driver)
 			*(int*)outInfo = gScreen.driver->getFeature(4);
 		else
-		{
-			*(int*)outInfo = 2;	// 1 in the original, but we prefer portrait
-			err = -1;
-		}
+			*(int*)outInfo = gHostOrientation;	// (1 in the original; 2, portrait flipped, in the port)
 		break;
 
 	case kGrafBacklight:

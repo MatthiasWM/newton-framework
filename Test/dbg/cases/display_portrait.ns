@@ -1,0 +1,6 @@
+// The display is portrait, as a MessagePad 2x00 held upright: 320 by 480,
+// the app area 320 by 434 above the button bar (displayParams, from the
+// ROM's GetRawDisplayParams(GetOrientation()) when newtc starts).
+Print(GetOrientation());
+Print([displayParams.scrWidth, displayParams.scrHeight, displayParams.buttonBarPosition]);
+Print([GetAppParams().appAreaWidth, GetAppParams().appAreaHeight, GetAppParams().appAreaBounds]);

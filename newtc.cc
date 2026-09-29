@@ -11,6 +11,7 @@
 #include "Matt/ObjectPrinter.h"
 #include "Utilities/DataStuffing.h"
 #include "Frames/Interpreter.h"
+#include "Frames/NewtonScript.h"
 #include "Frames/DebugAPI.h"
 #include "Matt/EmbeddedScript.h"
 #include "Matt/JSON.h"
@@ -1348,6 +1349,19 @@ int main(int argc, char **argv) {
   // can read the System soup; newtc prints whole arrays and frames (-dap
   // sets its own limits)
   DefGlobalVar(MakeSymbol("printLength"), NILREF);
+  // The display: portrait, as a MessagePad 2x00 held upright (320 by 480,
+  // the app area 320 by 434 above the button bar; Matt, 2026-09-30). The
+  // ROM's image has the landscape one; its CreateDisplayParams starts from
+  // GetRawDisplayParams(GetOrientation()) too (GetAppParams() reads it,
+  // and so does the placing of the root view's children, Host/FLTK/Links).
+  newton_try
+  {
+    RefVar orientation(NSCallGlobalFn(MakeSymbol("GetOrientation")));
+    DefGlobalVar(MakeSymbol("displayParams"), NSCallGlobalFn(MakeSymbol("GetRawDisplayParams"), orientation));
+  }
+  newton_catch_all
+  { }
+  end_try;
   if (const char * stubs = getenv("NEWTC_STUBS"))
     if (!SetStubOptions(stubs))
       fprintf(stderr, "newtc: NEWTC_STUBS: expected log, throw, quiet, or report.\n");

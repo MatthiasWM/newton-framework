@@ -27,7 +27,9 @@ Done so far (details in HISTORY.md):
 - Phase 10 (branch Add_fltk, `NEWTC_USES_FLTK`): Newton views on FLTK, the
   pen, drawing, fonts, popup menus, timers, soups in a store file;
   nBattleship 1.4 plays to its end; 2.5 too (offscreen bitmaps:
-  MakeBitmap, DrawIntoBitmap, ViewIntoBitmap; 1 bit deep so far).
+  MakeBitmap, DrawIntoBitmap, ViewIntoBitmap; 1 bit deep so far). The
+  display is portrait (2026-09-30): GetOrientation() 0, displayParams
+  the ROM's GetRawDisplayParams(0) (320 by 480, app area 320 by 434).
 
 ## How we work
 
@@ -119,7 +121,7 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 `build/VSNewt` (Release, FLTK: `Matt/tools/build_vsnewt_newtc.sh`),
 `build/App` (`Matt/tools/build_app.sh`), `build/NewtPlay`
 (`Matt/tools/build_newtplay.sh`). All suites:
-`python3 Test/dbg/run_dbg_tests.py` (101 with FLTK; 76 + 25 skipped
+`python3 Test/dbg/run_dbg_tests.py` (102 with FLTK; 77 + 25 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
 `test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (20,
 needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm
