@@ -113,7 +113,7 @@ def main():
     ap.add_argument("--pkg")
     ap.add_argument("--no-finder", action="store_true", help="leave out the tests through LaunchServices")
     args = ap.parse_args()
-    app = Path(args.app)
+    app = Path(args.app).resolve()   # (open -a wants a whole path)
     program = app / "Contents" / "MacOS" / "NewtPlay"
     if not program.exists():
         print(f"no {program} (cmake --build build/VSCode --target NewtPlay)")
