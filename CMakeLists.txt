@@ -761,7 +761,7 @@ if (NEWTC_USES_FLTK AND APPLE)
   )
   set_source_files_properties ("${newtplay_icns}" "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png"
                                PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  newtc_like (NewtPlay Matt/NewtPlay.cc Matt/NewtPlay.h "${newtplay_icns}" "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png")
+  newtc_like (NewtPlay Matt/NewtPlay.cc Matt/NewtPlayMake.cc Matt/NewtPlay.h "${newtplay_icns}" "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png")
   target_compile_definitions (NewtPlay PRIVATE NEWTC_NEWTPLAY=1 NEWTPLAY_VERSION="${NEWTPLAY_VERSION}")
   set_target_properties (NewtPlay PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/NewtPlayInfo.plist.in"

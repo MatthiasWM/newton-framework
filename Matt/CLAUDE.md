@@ -104,13 +104,14 @@ Done so far (details in HISTORY.md):
   the built-in functions changed, raise the version, CHANGELOG,
   `npm run package`, GitHub release with the VSIX.
 
-## Resume here (2026-09-29)
+## Resume here (2026-09-30)
 
 Phase 10 is done: newtc runs Newton apps in windows (FLTK); nBattleship 1.4
 plays to its end, also in the Release build and as a signed, notarized Mac
 app. VSNewt 0.2.0 is released (github.com/MatthiasWM/VSNewt, tag v0.2.0,
 newtc 9ac9d0d with FLTK) with `nBattleship-1.4-macOS.zip`, which comes down
-when NewtPlay is up (Phase 11). 11.1 is done; next: 11.2.
+when NewtPlay is up (Phase 11). 11.1 to 11.4 are done; next: 11.5
+(release).
 
 Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 `build/Release` (no FLTK; give the runner an absolute `--newtc`),
@@ -119,7 +120,7 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 (`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (12,
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (20,
 needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
@@ -235,11 +236,31 @@ Steps:
       While a package runs they start a NewtPlay of their own. Make
       Shortcut and Make App come with 11.4. NEWTPLAY_TEST_SPLASH saves a
       picture of the window. test_newtplay.py: 12.
-- [ ] 11.4 Shortcuts and apps: Make Shortcut and Make App (from the splash
-      window, and from the menu while a package runs): where to save
-      (default `~/Applications`), the package's icon as the bundle's
-      (make_app_icon.py's drawing, in C++, with the .icns written
-      directly), the bundle signed ad hoc.
+- [x] 11.4 Shortcuts and apps: Make Shortcut and Make App (from the splash
+      window, and from the menu while a package runs).
+      Done (2026-09-30, `Matt/NewtPlayMake.cc`, newtplay::MakeBundle):
+      `<package's folder>/<package file's name>.app`, next to the package
+      (Matt: the folder it was read from; for a package inside a shortcut
+      or an app, next to that bundle). A bundle there already (shortcut,
+      app, anything) is replaced after a warning (fl_choice; Cancel keeps
+      it). Both get the package as `<name>.nspkg`, an Info.plist of their
+      own (`org.newton-framework.shortcut.<name>` / `.app.<name>`, the
+      package's version), the package's icon (a child NewtPlay, as newtc,
+      prints the form part's icon; drawn as make_app_icon.py did, in C++,
+      fl_write_png, iconutil; no icon: the generic one), `xattr -cr`, an
+      ad hoc signature; the Finder shows it (`open -R`). A shortcut's
+      program is a script: `open -n -b org.newton-framework.NewtPlay
+      --env HOME=... --args <its package>` (no NewtPlay: an alert); an
+      app's is a copy of NewtPlay's (the package in its bundle runs).
+      Package and program are copied to /tmp first (made again from the
+      package in the bundle it replaces). The splash window has Make a
+      Shortcut... and Make an App... (they ask for the package); the File
+      menu has both (while a package runs: for it). `-make-shortcut
+      <pkg>`, `-make-app <pkg>` for tests (print the bundle's path).
+      StorePath makes ~/Library/Application Support if missing. The
+      splash window is taller (Matt's credits, 7 lines). Note:
+      LaunchServices may give a shortcut any NewtPlay it knows (build
+      folders, the Trash); all run a package given. test_newtplay.py: 20.
 - [ ] 11.5 Release: NewtPlay replaces `nBattleship-1.4-macOS.zip` on the
       VSNewt release (take it down), with a README section; the
       compiled-in package goes from the build.

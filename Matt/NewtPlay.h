@@ -7,11 +7,13 @@
  what it does:
 
    one argument, a file          run that package (`NewtPlay game.pkg`)
+   -make-shortcut <package>      make a shortcut or an app for it (see
+   -make-app <package>           MakeBundle(); prints its path)
    no arguments (the Finder)     run the package in its own bundle
-                                 (Contents/Resources/*.nspkg, .newtonpkg,
-                                 .pkg: a self-contained app, 11.4), else let
-                                 the user choose one (the file chooser; the
-                                 splash window comes in 11.3)
+                                 (its Contents/Resources: a .nspkg, .newtonpkg,
+                                 .pkg: an app made by MakeBundle), else the
+                                 splash window (run, make a shortcut or an
+                                 app, the history)
    anything else                 newtc, as always
 
  A package runs as `newtc -store <store> -pkg <file> -run`, with its store
@@ -54,6 +56,22 @@ bool ReadPackageName(const std::string & inPath, std::string * outName, unsigned
     (the name made safe for a file name; the folder is made). Empty if there
     is no home folder. */
 std::string StorePath(const std::string & inPackageName, unsigned long inVersion);
+
+/** A shortcut (inApp false) or an app (inApp true) for a package (11.4,
+    Matt/NewtPlayMake.cc): <package's folder>/<package file's name>.app,
+    next to the package (for a package in a shortcut or an app: next to
+    that). Both have the package (as .nspkg), its icon (the package's own,
+    drawn as nBattleship.app's), an Info.plist of their own, and an ad hoc
+    signature. A shortcut's program is a script that runs the package with
+    NewtPlay (`open -b org.newton-framework.NewtPlay`); an app's is a copy
+    of NewtPlay's, which runs the package in its bundle. A bundle there
+    already (a shortcut, an app, anything) is replaced if the user says so
+    (NEWTPLAY_TEST_ANSWER: 0 Cancel, 1 Replace). outBundle: its path;
+    false: not made, with outError why (empty: the user cancelled). */
+bool MakeBundle(const std::string & inPackage, bool inApp, std::string * outBundle, std::string * outError);
+
+/** Show a file in the Finder (`open -R`). */
+void ShowInFinder(const std::string & inPath);
 
 } // namespace newtplay
 

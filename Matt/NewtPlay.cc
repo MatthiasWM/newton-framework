@@ -135,9 +135,9 @@ std::string BundledPackage()
   return found.empty() ? std::string() : found.front();
 }
 
-// The user chooses a package (the splash window's Run, File > Open). Empty
-// if cancelled.
-std::string ChoosePackage()
+// The user chooses a package (the splash window's buttons, File > Open,
+// Make Shortcut, Make App). Empty if cancelled.
+std::string ChoosePackage(const char * inTitle = "Run a Newton Package")
 {
   fl_open_display();
   for (int i = 0; i < 5; ++i)
@@ -146,7 +146,7 @@ std::string ChoosePackage()
   if (const char * choice = getenv("NEWTPLAY_TEST_CHOICE"))
     return choice;
   Fl_Native_File_Chooser chooser;
-  chooser.title("Run a Newton Package");
+  chooser.title(inTitle);
   chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
   chooser.filter("Newton Packages\t*.{nspkg,newtonpkg,pkg}");
   if (chooser.show() != 0 || chooser.filename() == nullptr)
@@ -289,6 +289,32 @@ void ChooseFile(Fl_Widget * = nullptr, void * = nullptr)
   Choose(ChoosePackage());
 }
 
+// Make Shortcut, Make App (inApp): for the package that runs, else for one
+// the user chooses; the Finder shows it.
+void MakeFor(bool inApp)
+{
+  std::string package = gRunning ? gPackagePath
+                      : ChoosePackage(inApp ? "Make an App for a Newton Package"
+                                            : "Make a Shortcut for a Newton Package");
+  if (package.empty())
+    return;
+  std::string bundle, error;
+  if (MakeBundle(package, inApp, &bundle, &error))
+    ShowInFinder(bundle);
+  else if (!error.empty())
+    Tell(error.c_str(), package);
+}
+
+void MakeShortcut(Fl_Widget * = nullptr, void * = nullptr)
+{
+  MakeFor(false);
+}
+
+void MakeApp(Fl_Widget * = nullptr, void * = nullptr)
+{
+  MakeFor(true);
+}
+
 // A history menu: its items (the paths kept for the callbacks).
 void FillRecentMenu(Fl_Menu_ * ioMenu, const char * inPrefix, std::vector<std::unique_ptr<std::string>> & ioPaths)
 {
@@ -303,10 +329,12 @@ void FillRecentMenu(Fl_Menu_ * ioMenu, const char * inPrefix, std::vector<std::u
 /* About NewtPlay: its version, and who made what it is built on. */
 
 const char * kCredits =
-  "NewtPlay runs packages for the Apple Newton. It is newtc, the NewtonScript "
-  "compiler and runtime of newton-framework, a reimplementation of the Newton "
-  "OS (Simon Bell), with the Newton views drawn by FLTK (fltk.org). NewtPlay "
-  "and newtc: Matthias Melcher. Newton and MessagePad are trademarks of Apple; "
+  "NewtPlay runs packages for the Apple Newton. It is newtc,\n"
+  "the NewtonScript compiler and runtime of newton-framework,\n"
+  "a reimplementation of the Newton OS (Simon Bell), with the\n"
+  "Newton views drawn by FLTK (fltk.org).\n\n"
+  "NewtPlay and newtc: Matthias Melcher.\n"
+  "Newton and MessagePad are trademarks of Apple.\n"
   "NewtPlay is not made by Apple.";
 
 void ShowAbout(Fl_Widget * = nullptr, void * = nullptr)
@@ -316,7 +344,8 @@ void ShowAbout(Fl_Widget * = nullptr, void * = nullptr)
 }
 
 
-/* The menu bar: File > Open... and Open Recent; NewtPlay > About NewtPlay. */
+/* The menu bar: File > Open..., Open Recent, Make Shortcut..., Make App...;
+   NewtPlay > About NewtPlay. */
 
 Fl_Sys_Menu_Bar * gMenuBar = nullptr;
 std::vector<std::unique_ptr<std::string>> gMenuPaths;
@@ -330,6 +359,11 @@ void UpdateMenuBar()
   FillRecentMenu(gMenuBar, "&File/Open &Recent/", gMenuPaths);
   if (gMenuPaths.empty())
     gMenuBar->add("&File/Open &Recent/(none)", 0, nullptr, nullptr, FL_MENU_INACTIVE);
+  // (while a package runs: for it)
+  if (Fl_Menu_Item * recent = const_cast<Fl_Menu_Item *>(gMenuBar->find_item("&File/Open &Recent")))
+    recent->flags |= FL_MENU_DIVIDER;
+  gMenuBar->add("&File/Make &Shortcut...", 0, MakeShortcut);
+  gMenuBar->add("&File/Make &App...", 0, MakeApp);
 }
 
 void MakeMenuBar()
@@ -375,7 +409,7 @@ std::string Splash()
 {
   gChoice.clear();
   Fl_Group::current(nullptr);
-  Fl_Double_Window window(460, 250, "NewtPlay");
+  Fl_Double_Window window(460, 316, "NewtPlay");
   window.color(FL_WHITE);
   Fl_Box logo(24, 24, 96, 96);
   logo.image(Logo());
@@ -399,7 +433,13 @@ std::string Splash()
   FillRecentMenu(&recent, "", recentPaths);
   if (recentPaths.empty())
     recent.deactivate();
-  Fl_Box credits(24, 174, 416, 66, kCredits);
+  Fl_Button shortcut(140, 164, 150, 28, "Make a Shortcut...");
+  shortcut.callback(MakeShortcut);
+  shortcut.tooltip("A small app next to the package that runs it with NewtPlay");
+  Fl_Button app(300, 164, 140, 28, "Make an App...");
+  app.callback(MakeApp);
+  app.tooltip("An app next to the package that runs it by itself (NewtPlay inside)");
+  Fl_Box credits(24, 208, 416, 94, kCredits);
   credits.labelsize(11);
   credits.labelcolor(fl_rgb_color(96, 96, 96));
   credits.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT | FL_ALIGN_TOP | FL_ALIGN_WRAP);
@@ -541,8 +581,11 @@ std::string StorePath(const std::string & inPackageName, unsigned long inVersion
     name += (isalnum((unsigned char)c) || c == ' ' || c == '.' || c == '-' || c == '_') ? c : '_';
   if (name.empty() || name[0] == '.')
     name = "_" + name;
-  std::string folder = std::string(home) + "/Library/Application Support/NewtPlay";
-  mkdir(folder.c_str(), 0755);
+  std::string folder = std::string(home);
+  for (const char * sub : { "/Library", "/Application Support", "/NewtPlay" }) {
+    folder += sub;
+    mkdir(folder.c_str(), 0755);
+  }
   folder += "/" + name;
   mkdir(folder.c_str(), 0755);
   return folder + "/" + name + "-v" + std::to_string(inVersion) + ".store";
@@ -551,6 +594,15 @@ std::string StorePath(const std::string & inPackageName, unsigned long inVersion
 
 std::vector<std::string> Arguments(int argc, char ** argv)
 {
+  // a shortcut or an app for a package, from the command line (tests)
+  if (argc == 3 && (strcmp(argv[1], "-make-shortcut") == 0 || strcmp(argv[1], "-make-app") == 0)) {
+    std::string bundle, error;
+    if (MakeBundle(argv[2], strcmp(argv[1], "-make-app") == 0, &bundle, &error))
+      printf("%s\n", bundle.c_str());
+    else
+      fprintf(stderr, "NewtPlay: %s\n", error.empty() ? "cancelled" : error.c_str());
+    return {};
+  }
   // a package given: NewtPlay game.pkg (also `open -a NewtPlay --args ...`)
   if (argc == 2 && argv[1][0] != '-' && IsFile(argv[1])) {
     fl_open_callback(Opened);   // (more from the Finder: NewtPlays of their own)

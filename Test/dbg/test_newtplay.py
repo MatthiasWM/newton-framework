@@ -17,10 +17,17 @@
   again with new data (its store kept as .old-<time>; if it stops again, it
   only says so: NEWTPLAY_TEST_ANSWER answers the alert: 0 Quit, 1 New Data);
 - given anything else, it is newtc;
+- -make-shortcut and -make-app (the splash window's and the File menu's
+  Make Shortcut and Make App): <name>.app next to the package, with the
+  package, its icon, an Info.plist of its own, signed ad hoc; one replaces
+  the other if the user says so (NEWTPLAY_TEST_ANSWER: 0 Cancel, 1
+  Replace); made from the package in an app, it replaces that app; the app
+  runs its package;
 - the Finder's way (LaunchServices, `open`; --no-finder leaves it out): a
   .nspkg opened with it runs (the file comes as an event, not an argument),
   a .newtonpkg opened while it runs gets a NewtPlay of its own, a .pkg
-  without quarantine opens with it too (Open With). No quarantined .pkg:
+  without quarantine opens with it too (Open With), a shortcut runs its
+  package (with a NewtPlay LaunchServices knows). No quarantined .pkg:
   Gatekeeper would stop it before NewtPlay sees it.
 A running package keeps its window open: the test stops it after a while.
 Default app: build/VSCode/NewtPlay.app (cmake --build build/VSCode --target
@@ -51,6 +58,22 @@ FAILING = r'''
       theForm: {viewBounds: {left: 0, top: 50, right: 200, bottom: 120}, _proto: @180,
         appSymbol: '|failing:SIG|,
         viewSetupFormScript: func() [][1]},
+      installScript: func(part) nil}}]
+};
+'''
+
+# A package with an icon (8 by 8 pixels: a frame and a cross) and a window.
+ICON = r'''
+{
+  signature: 'package0, id: "xxxx", flags: {noCompression: true}, version: 3,
+  copyright: "", name: "icon:SIG", modifyDate: 0, info: "",
+  part: [{offset: 0, size: 0, type: "form", flags: {type: 'nos, Notify: true}, info: "",
+    data: {app: '|icon:SIG|, text: "Icon",
+      icon: {bounds: {left: 0, top: 0, right: 8, bottom: 8},
+        bits: MakeBinaryFromHex("0000000000040000000000000008000"
+          & "8" & "FF000000C3000000A500000099000000" & "99000000A5000000C3000000FF000000", 'bits)},
+      theForm: {viewBounds: {left: 0, top: 50, right: 200, bottom: 120}, _proto: @180,
+        appSymbol: '|icon:SIG|},
       installScript: func(part) nil}}]
 };
 '''
@@ -108,6 +131,65 @@ def finder_checks(app, program, pkg, tmp):
     ok = wait(lambda: count() == 1 and len(stores()) == 1)
     checks.append(("Finder: a .pkg without quarantine opened with NewtPlay runs", ok, (count(), stores())))
     subprocess.run(["pkill", "-f", f"{app}/Contents/MacOS/NewtPlay"])
+    # a shortcut: its script opens NewtPlay (-b: any LaunchServices knows)
+    shutil.rmtree(home / "Library" / "Application Support" / "NewtPlay", ignore_errors=True)
+    subprocess.run([str(program), "-make-shortcut", str(first)], capture_output=True)
+    shortcut = tmp / "first.app"
+    subprocess.run([str(shortcut / "Contents" / "MacOS" / "first")], env=dict(os.environ, HOME=str(home)))
+    ok = wait(lambda: len(stores()) == 1)
+    checks.append(("Finder: a shortcut runs its package with NewtPlay", ok, stores()))
+    subprocess.run(["pkill", "-f", str(shortcut)])
+    subprocess.run([LSREGISTER, "-u", str(shortcut)], capture_output=True)
+    return checks
+
+
+def make_checks(program, pkg, tmp, home):
+    """-make-shortcut, -make-app: the bundles, replacing, icons, running."""
+    checks = []
+    folder = tmp / "Made"
+    folder.mkdir()
+    source = folder / "Icon.nspkg"
+    (tmp / "icon.ns").write_text(ICON)
+    subprocess.run([str(program), "-script", str(tmp / "icon.ns"), "-opkg", str(source)], capture_output=True, check=True)
+    bundle = folder / "Icon.app"
+    def make(kind, package, answer="1"):
+        env = {"NEWTPLAY_TEST_ANSWER": answer}
+        out, err, _ = run(program, [f"-make-{kind}", str(package)], home, 60, env)
+        return out.strip(), err.strip()
+    def plist():
+        p = bundle / "Contents" / "Info.plist"
+        return p.read_text() if p.exists() else ""
+    def signed():
+        return subprocess.run(["codesign", "--verify", "--strict", str(bundle)], capture_output=True).returncode == 0
+    def program_of():
+        p = bundle / "Contents" / "MacOS" / "Icon"
+        return p.read_bytes()[:4] if p.exists() else b""
+
+    out, err = make("shortcut", source)
+    ok = (out == str(bundle) and (bundle / "Contents" / "Resources" / "Icon.nspkg").read_bytes() == source.read_bytes()
+          and "org.newton-framework.shortcut.Icon" in plist() and program_of() == b"#!/b" and signed())
+    checks.append(("-make-shortcut: <name>.app next to the package, a script, its own ID, signed", ok, (out, err)))
+    icns = bundle / "Contents" / "Resources" / "AppIcon.icns"
+    checks.append(("... the package's icon as its icon", icns.exists() and icns.stat().st_size > 1000
+                   and "AppIcon" in plist(), icns.exists()))
+    out, err = make("app", source, "0")
+    checks.append(("-make-app over a shortcut, cancelled: the shortcut stays", out == "" and program_of() == b"#!/b",
+                   (out, err)))
+    out, err = make("app", source, "1")
+    ok = (out == str(bundle) and program_of() == b"\xcf\xfa\xed\xfe" or program_of() == b"\xca\xfe\xba\xbe")
+    checks.append(("... replaced: an app (NewtPlay's program), its own ID, signed",
+                   ok and "org.newton-framework.app.Icon" in plist() and signed(), (out, err, program_of())))
+    shutil.rmtree(home / "Library" / "Application Support" / "NewtPlay", ignore_errors=True)
+    _, err, ran_on = run(bundle / "Contents" / "MacOS" / "Icon", [], home, 6)
+    made = sorted(p.name for p in (home / "Library").rglob("*.store"))
+    checks.append(("... the app runs its package", ran_on and made == ["icon_SIG-v3.store"], (made, err[-200:])))
+    out, err = make("shortcut", bundle / "Contents" / "Resources" / "Icon.nspkg")
+    checks.append(("made from the package in an app: it replaces the app",
+                   out == str(bundle) and program_of() == b"#!/b" and signed()
+                   and (bundle / "Contents" / "Resources" / "Icon.nspkg").read_bytes() == source.read_bytes(), (out, err)))
+    _, err = make("app", tmp / "failing.ns")
+    checks.append(("not a package: it says so", "not a Newton package" in err, err))
+    subprocess.run([LSREGISTER, "-u", str(bundle)], capture_output=True)
     return checks
 
 
@@ -180,6 +262,7 @@ def main():
         checks.append(("no arguments: the package in its bundle runs", ran_on and len(made) == 1, made))
         # (a copy that ran is registered with LaunchServices: not any more)
         subprocess.run([LSREGISTER, "-u", str(copy)], capture_output=True)
+        checks += make_checks(program, pkg, tmp, home)
         if not args.no_finder:
             checks += finder_checks(app, program, pkg, tmp)
     failed = 0
