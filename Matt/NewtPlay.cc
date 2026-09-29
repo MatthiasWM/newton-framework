@@ -73,6 +73,8 @@ std::string BundledPackage()
 std::string ChoosePackage()
 {
   fl_open_display();
+  for (int i = 0; i < 5; ++i)
+    Fl::wait(0.02);   // (let the app finish launching: before that, the panel doesn't show)
   Fl_Native_File_Chooser chooser;
   chooser.title("Run a Newton Package");
   chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);

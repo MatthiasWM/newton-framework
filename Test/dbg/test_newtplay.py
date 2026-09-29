@@ -7,7 +7,9 @@
   ~/Library/Application Support/NewtPlay/<package name>/ (HOME is a temporary
   folder here);
 - started without arguments, it runs the package in its own bundle
-  (Contents/Resources/*.nspkg);
+  (Contents/Resources/*.nspkg), or waits for the user to choose one (the
+  file chooser: it must show, not end at once: it did, before the app had
+  finished launching);
 - given a file that isn't a Newton package, it says so;
 - given anything else, it is newtc.
 A running package keeps its window open: the test stops it after a while.
@@ -65,6 +67,9 @@ def main():
 
         out, _, _ = run(program, ["-s", "Print(6 * 7);"], home, 20)
         checks.append(("anything else: newtc", out.strip().endswith("42"), out.strip()[-20:]))
+
+        _, err, ran_on = run(program, [], home, 3)
+        checks.append(("no arguments, no package in the bundle: it waits for a choice", ran_on, err.strip()[:80]))
 
         fake = tmp / "fake.pkg"
         fake.write_text("not a package")

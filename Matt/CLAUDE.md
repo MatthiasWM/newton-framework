@@ -119,7 +119,7 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 (`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (4,
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (5,
 needs the NewtPlay target built); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
@@ -184,8 +184,11 @@ Steps:
       (`Resources/NewtPlay.png`, 96 pixels, at 80% by
       `cmake/MakeIcns.cmake`: sips, iconutil),
       `Matt/tools/build_newtplay.sh [version]` (build/NewtPlay, signing and
-      notarizing as build_app.sh). Test `Test/dbg/test_newtplay.py` (4;
-      --app, --pkg). A whole game in NewtPlay, arm64 and x86_64. For 11.4:
+      notarizing as build_app.sh). Test `Test/dbg/test_newtplay.py` (5;
+      --app, --pkg). A whole game in NewtPlay, arm64 and x86_64. Fixed
+      after Matt tried it: the file chooser returned "cancelled" at once
+      (the app hadn't finished launching: Fl::wait first), so NewtPlay
+      ended and the Finder couldn't launch it (-10810). For 11.4:
       a package copied into a bundle needs `xattr -cr` before codesign.
 - [ ] 11.2 Opening packages: the document types and UTIs in the
       Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
