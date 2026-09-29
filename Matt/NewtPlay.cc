@@ -16,6 +16,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <climits>
+#include <ctime>
+#include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -24,6 +26,9 @@
 namespace newtplay {
 
 namespace {
+
+// The package that runs (RunPackage), for CheckStarted.
+std::string gPackagePath, gPackageName, gStorePath;
 
 bool IsFile(const std::string & inPath)
 {
@@ -75,6 +80,9 @@ std::string ChoosePackage()
   fl_open_display();
   for (int i = 0; i < 5; ++i)
     Fl::wait(0.02);   // (let the app finish launching: before that, the panel doesn't show)
+  // for tests: the choice, without the panel (all else as for a user)
+  if (const char * choice = getenv("NEWTPLAY_TEST_CHOICE"))
+    return choice;
   Fl_Native_File_Chooser chooser;
   chooser.title("Run a Newton Package");
   chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
@@ -108,6 +116,9 @@ std::vector<std::string> RunPackage(const char * inProgram, const std::string & 
   }
   std::vector<std::string> args = { inProgram };
   std::string store = StorePath(name);
+  gPackagePath = inPath;
+  gPackageName = name;
+  gStorePath = store;
   if (!store.empty()) {
     args.push_back("-store");
     args.push_back(store);
@@ -117,6 +128,48 @@ std::vector<std::string> RunPackage(const char * inProgram, const std::string & 
 }
 
 } // namespace
+
+
+void CheckStarted(const std::string & inError)
+{
+  if (gPackagePath.empty() || Fl::first_window() != nullptr)
+    return;
+  fl_message_title("NewtPlay");
+  // for tests: the button, without the alert (0 Quit, 1 Start with New Data)
+  const char * answer = getenv("NEWTPLAY_TEST_ANSWER");
+  if (inError.empty()) {
+    fprintf(stderr, "NewtPlay: %s has nothing to show\n", gPackageName.c_str());
+    if (answer == nullptr)
+      fl_alert("%s has nothing to show: it opens no app.", gPackageName.c_str());
+    return;
+  }
+  fprintf(stderr, "NewtPlay: %s stopped: %s\n", gPackageName.c_str(), inError.c_str());
+  if (getenv("NEWTPLAY_NEW_DATA")) {   // started again with new data: not the data, then
+    fprintf(stderr, "NewtPlay: %s stopped also with new data\n", gPackageName.c_str());
+    if (answer == nullptr)
+      fl_alert("%s stopped while it started, also with new data:\n%s", gPackageName.c_str(), inError.c_str());
+    return;
+  }
+  int choice = answer ? atoi(answer) : fl_choice("%s stopped while it started:\n%s\n\n"
+                         "Its saved data may come from another version of it. "
+                         "Start it with new data? (The old data is kept.)",
+                         "Quit", "Start with New Data", nullptr,
+                         gPackageName.c_str(), inError.c_str());
+  if (choice != 1 || gStorePath.empty())
+    return;
+  char stamp[32];
+  time_t now = time(nullptr);
+  strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", localtime(&now));
+  rename(gStorePath.c_str(), (gStorePath + ".old-" + stamp).c_str());
+  // again, with the package (not through atexit: the store as it is now
+  // mustn't be saved over the new one)
+  char program[PATH_MAX];
+  uint32_t size = sizeof(program);
+  setenv("NEWTPLAY_NEW_DATA", "1", 1);   // (if it stops again, it isn't its data)
+  if (_NSGetExecutablePath(program, &size) == 0)
+    execl(program, program, gPackagePath.c_str(), (char *)nullptr);
+  fprintf(stderr, "NewtPlay: can't start again\n");
+}
 
 
 bool ReadPackageName(const std::string & inPath, std::string * outName)

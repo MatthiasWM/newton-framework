@@ -70,6 +70,35 @@ extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
 
 int handleArgs(int argc, char **argv);
 
+extern "C" const char * GetFramesErrorString(NewtonErr inErr);
+
+// Why a package's app didn't open (installPackage; for NewtPlay's alert):
+// empty if it did, or if nothing went wrong.
+static std::string gAppOpenError;
+
+// An exception as a line of text for a user ("Index out of bounds (string
+// or array)"); the REP prints more.
+static std::string ExceptionText(Exception * inException)
+{
+  if (inException == nullptr)
+    return "an error";
+  if (Subexception(inException->name, exMessage) && inException->data)
+    return (const char *)inException->data;
+  if (Subexception(inException->name, exRefException) && inException->data) {
+    RefVar data(*(RefStruct *)inException->data);
+    if (IsFrame(data)) {
+      RefVar err(GetFrameSlot(data, SYMA(errorCode)));
+      if (ISINT(err)) {
+        const char * text = GetFramesErrorString(RINT(err));
+        if (text != nullptr && text[0] != '-')
+          return text;
+        return "error " + std::to_string(RINT(err));
+      }
+    }
+  }
+  return inException->name ? inException->name : "an error";
+}
+
 
 int numGlobalRefs = 0;
 std::string currentFileName = "<undefined>";
@@ -434,6 +463,7 @@ bool installPackage(RefArg package)
     newton_catch_all
     {
       gREPout->exceptionNotify(CurrentException());
+      gAppOpenError = ExceptionText(CurrentException());
     }
     end_try;
     break;
@@ -1332,6 +1362,9 @@ int main(int argc, char **argv) {
   }
 
   ret = handleArgs(argc, argv);
+#if defined(NEWTC_NEWTPLAY)
+  newtplay::CheckStarted(gAppOpenError);   // the package's app is up, or say why not
+#endif
   // a program opened a window: it runs on in its events (see Matt/EventLoop.h)
   RunEventLoop();
   return ret;

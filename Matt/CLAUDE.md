@@ -119,7 +119,7 @@ Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 (`Matt/tools/build_newtplay.sh`). All suites:
 `python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (5,
+`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (7,
 needs the NewtPlay target built); VSNewt: `NEWTC=<newtc> npm
 test` (11), `npm run test:grammar`.
 
@@ -190,6 +190,13 @@ Steps:
       (the app hadn't finished launching: Fl::wait first), so NewtPlay
       ended and the Finder couldn't launch it (-10810). For 11.4:
       a package copied into a bundle needs `xattr -cr` before codesign.
+      A package that stops while it starts (no window): NewtPlay says why
+      (CheckStarted; newtc's installPackage records the error,
+      gAppOpenError) and offers to start it with new data (the store kept
+      as .old-<time>; a second stop only says so, NEWTPLAY_NEW_DATA). Found
+      when Matt ran 1.4 on 2.5's store (B26). Test hooks:
+      NEWTPLAY_TEST_CHOICE (the chooser's answer), NEWTPLAY_TEST_ANSWER
+      (the alert's). test_newtplay.py: 7.
 - [ ] 11.2 Opening packages: the document types and UTIs in the
       Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
       or the Dock icon, Open With), before and after the start; the
@@ -218,7 +225,7 @@ Steps:
    pixel-exact text.
 4. **Platforms**: the FLTK layer as a library, Linux and Windows builds
    (VSNewt and NewtPlay there).
-5. **Debugger D1** (below), and the bugs below (B26, B14, B15, B7).
+5. **Debugger D1** (below), and the bugs below (B14, B15, B7).
 
 ## Backlog (left from Phase 10)
 
@@ -387,17 +394,6 @@ Interpreter and runtime
   works. And a 62-bit integer can't go into a package or NSOF file for a
   real Newton (30 bits): check what the writers do with one.
 
-Stores
-- [ ] B26 **A store that stops Battleship from starting** (Matt, 2026-09-28:
-  six times in his tests, build/Battleship.store had to be deleted before
-  the app launched again; it hung). No file kept yet. Likely a soup state
-  that sends Apple's index or cursor code (Stores/) into a loop, as B20 to
-  B22 were, rather than a damaged file. Since 2026-09-28 the store file
-  has a CRC and is written safely, a run keeps the file it found as
-  <file>.bak (the run before's as .bak2), and a damaged file is kept as
-  <file>.bad-<time> (HostStore.h). Next time: keep the .store (and .bak,
-  .bak2), and pause newtc in VS Code while it hangs (the stack shows the
-  NewtonScript that loops; lldb for C++).
 
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug

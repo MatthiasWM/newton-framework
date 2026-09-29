@@ -11,6 +11,9 @@
   file chooser: it must show, not end at once: it did, before the app had
   finished launching);
 - given a file that isn't a Newton package, it says so;
+- a package that stops while it starts: NewtPlay says so, and may start it
+  again with new data (its store kept as .old-<time>; if it stops again, it
+  only says so: NEWTPLAY_TEST_ANSWER answers the alert: 0 Quit, 1 New Data);
 - given anything else, it is newtc.
 A running package keeps its window open: the test stops it after a while.
 Default app: build/VSCode/NewtPlay.app (cmake --build build/VSCode --target
@@ -28,9 +31,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def run(program, args, home, seconds):
+# A package whose app stops while it opens (its viewSetupFormScript: an
+# index out of bounds, as nBattleship 1.4's with 2.5's settings).
+FAILING = r'''
+{
+  signature: 'package0, id: "xxxx", flags: {noCompression: true}, version: 1,
+  copyright: "", name: "failing:SIG", modifyDate: 0, info: "",
+  part: [{offset: 0, size: 0, type: "form", flags: {type: 'nos, Notify: true}, info: "",
+    data: {app: '|failing:SIG|, text: "Failing",
+      theForm: {viewBounds: {left: 0, top: 50, right: 200, bottom: 120}, _proto: @180,
+        appSymbol: '|failing:SIG|,
+        viewSetupFormScript: func() [][1]},
+      installScript: func(part) nil}}]
+};
+'''
+
+
+def run(program, args, home, seconds, more_env=None):
     """Run until it ends or for seconds; its stderr and whether it ran on."""
-    env = dict(os.environ, HOME=str(home))
+    env = dict(os.environ, HOME=str(home), **(more_env or {}))
     p = subprocess.Popen([str(program), *args], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
         out, err = p.communicate(timeout=seconds)
@@ -75,6 +94,19 @@ def main():
         fake.write_text("not a package")
         _, err, _ = run(program, [str(fake)], home, 3)
         checks.append(("not a Newton package: it says so", "not a Newton package" in err, err.strip()[:80]))
+
+        failing = tmp / "failing.ns"
+        failing.write_text(FAILING)
+        failing_pkg = tmp / "failing.pkg"
+        subprocess.run([str(program), "-script", str(failing), "-opkg", str(failing_pkg)], capture_output=True, check=True)
+        shutil.rmtree(stores, ignore_errors=True)
+        env_answer = {"NEWTPLAY_TEST_ANSWER": "0"}
+        _, err, ran_on = run(program, [str(failing_pkg)], home, 20, env_answer)
+        checks.append(("a package that stops: it says so (Quit)", "failing:SIG stopped: " in err and not ran_on, err.strip()[-100:]))
+        _, err, ran_on = run(program, [str(failing_pkg)], home, 20, {"NEWTPLAY_TEST_ANSWER": "1"})
+        old = sorted(p.name for p in stores.rglob("*.old-*")) if stores.exists() else []
+        checks.append(("... with new data: the store kept, started again, and then only said",
+                       len(old) == 1 and "stopped also with new data" in err and not ran_on, (old, err.strip()[-100:])))
 
         copy = tmp / "Copy" / "NewtPlay.app"
         shutil.copytree(app, copy, symlinks=True)

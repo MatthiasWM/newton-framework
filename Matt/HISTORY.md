@@ -1816,6 +1816,23 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B26 **A store that stops Battleship from starting** (Matt, 2026-09-28:
+  six times in his tests, build/Battleship.store had to be deleted before
+  the app launched again; it hung). No file kept yet. Likely a soup state
+  that sends Apple's index or cursor code (Stores/) into a loop, as B20 to
+  B22 were, rather than a damaged file. Since 2026-09-28 the store file
+  has a CRC and is written safely, a run keeps the file it found as
+  <file>.bak (the run before's as .bak2), and a damaged file is kept as
+  <file>.bad-<time> (HostStore.h). Next time: keep the .store (and .bak,
+  .bak2), and pause newtc in VS Code while it hangs (the stack shows the
+  NewtonScript that loops; lldb for C++).
+  Explained 2026-09-29 (NewtPlay, 11.1): nBattleship 2.5 has the same
+  package name, Battleship:ATOW, so it shares 1.4's store, and saves
+  settings 1.4 can't read (type: 1, a second Comm choice: 1.4's picker has
+  one, and its textSetup indexes past it: "Index out of bounds"). Not a
+  newtc bug: a Newton going back from 2.5 to 1.4 would stop the same way.
+  NewtPlay now says so and offers to start with new data (the store kept
+  as .old-<time>).
 - [x] B28 **Negative numbers and 0 are "too small" to print** (Locales.cc,
   NumberString: `inNum < DBL_MIN`, the smallest positive double, where
   the ROM means `-DBL_MAX`): `NumberStr(-2.25)` and `NumberStr(0.0)` gave
