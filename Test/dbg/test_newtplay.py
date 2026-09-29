@@ -34,6 +34,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+LSREGISTER = ("/System/Library/Frameworks/CoreServices.framework/Frameworks/"
+              "LaunchServices.framework/Support/lsregister")
 
 
 # A package whose app stops while it opens (its viewSetupFormScript: an
@@ -166,6 +168,8 @@ def main():
         _, err, ran_on = run(copy / "Contents" / "MacOS" / "NewtPlay", [], home, 4)
         made = sorted(p.name for p in stores.rglob("*.store")) if stores.exists() else []
         checks.append(("no arguments: the package in its bundle runs", ran_on and len(made) == 1, made))
+        # (a copy that ran is registered with LaunchServices: not any more)
+        subprocess.run([LSREGISTER, "-u", str(copy)], capture_output=True)
         if not args.no_finder:
             checks += finder_checks(app, program, pkg, tmp)
     failed = 0
