@@ -1855,8 +1855,12 @@ Interpreter and runtime
   top left (the view's frame came out a pixel in otherwise, B30), and
   drawn unsmoothed (DrawPixels: Quartz gave grays at their edges). The
   map is now the same before and after Deploy, screen pixel for pixel,
-  but for the ships (2.5's Save draws each at 0, 0 of its view; the view
-  centres its icon, 56 wide in 59, see "Ships" in CLAUDE.md) and B30.
+  but for the ships and B30. The ships move a pixel left at Deploy, but
+  the destroyer, on Einstein too (Matt): TPictureView::DrawUsingRect
+  centres an icon when viewJustify is 0 and there is no viewJustify slot
+  (justify 6), Justify halves the difference with integer division (the
+  PICTs are 56, 44, 32, 32, 22 wide in views 59, 47, 35, 35, 23: 1, 1,
+  1, 1, 0), and 2.5's Save draws each ship into its bitmap at 0.
 - [x] B28 **Negative numbers and 0 are "too small" to print** (Locales.cc,
   NumberString: `inNum < DBL_MIN`, the smallest positive double, where
   the ROM means `-DBL_MAX`): `NumberStr(-2.25)` and `NumberStr(0.0)` gave

@@ -457,18 +457,6 @@ Views and drawing
   an image surface it came out a pixel further in (ViewIntoBitmap reads
   pixels at their top left, which matches the screen). Check pens 1 to 4
   at 1, 1.5 and 2 times (Matt's wide-line work in FLTK).
-- [ ] **Ships** (open, 2026-09-30): on Einstein 2.5's ships don't move at
-  Deploy (Matt); here they move a pixel left (and up): before Deploy the
-  carrier's hull starts 2 pixels right of the grid line at x 11, after it
-  1. Our reading of the ROM gives the move: TPictureView::DrawUsingRect
-  centres (justify 6) when viewJustify is 0 and there is no viewJustify
-  slot; Justify gives (59 - 56) / 2 = 1 (the ships' PICTs are 56 wide,
-  their views 59, the PICT's first column white); at Deploy
-  SaveShipPositions calls each ship's Save (DrawIntoBitmap of its icon
-  at 0, 0 of a 59-wide bitmap, UpdateMap at col * 12 + 1 into the map,
-  drawn at -1) and closes the views. Something in that chain differs on
-  a Newton: compare pixel by pixel (Einstein, before and after Deploy).
-
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
   builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
