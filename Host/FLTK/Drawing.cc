@@ -354,15 +354,12 @@ void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw)
 {
   Fl_Widget * widget = inLink->Widget();
   int inset = inLink->Outset();
-  // clipped to the view's bounds, as on a Newton: not on its frame
-  // (nBattleship 2.5 draws a copy of a framed view at -1, -1: its frame
-  // falls outside)
-  int bw = widget->w() - 2 * inset - inLink->Shadow(), bh = widget->h() - 2 * inset - inLink->Shadow();
+  // (not clipped to the view's bounds: on a Newton what a view draws
+  // covers its frame too; Einstein, 2.5's map after Deploy: the copy's
+  // frame, drawn at -1, -1, over the inner pixel of the map's gray frame)
   if (gDirect == widget) {   // in its viewDrawScript
     gTarget = kDirect;
-    fl_push_clip(widget->x() + inset, widget->y() + inset, bw, bh);
     inDraw(widget->x() + inset, widget->y() + inset);
-    fl_pop_clip();
     return;
   }
   inLink->Canvas();   // made if it has none
@@ -371,9 +368,7 @@ void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw)
   for (const auto & pass : passes) {
     Fl_Surface_Device::push_current(pass.first);
     gTarget = pass.second;
-    fl_push_clip(inset, inset, bw, bh);
     inDraw(inset, inset);
-    fl_pop_clip();
     Fl_Surface_Device::pop_current();
   }
   gTarget = kDirect;
@@ -526,7 +521,7 @@ Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitma
   int inset = link->Outset();
   // (no srcRect, as the ROM's: the view's outer bounds, its frame and
   // shadow too: its whole widget; nBattleship 2.5 draws the copy of a
-  // framed picture at -1, -1)
+  // framed picture at -1, -1, its frame over the map's)
   shapes::Box src = RectOr(inSource, shapes::Box{-inset, -inset, widget->h() - inset, widget->w() - inset});
   RefVar pixels;
   shapes::PixelsInfo info;

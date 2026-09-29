@@ -5,8 +5,8 @@
 // a checkerboard). view:ViewIntoBitmap(srcRect, destRect, bitmap) copies
 // the view as it is on the screen (no srcRect: its outer bounds, frame
 // too; no destRect: the source's size, at the bitmap's top left). A view
-// draws the bitmap with DrawShape; what a view draws stays in its bounds
-// (not on its frame: 2.5 draws a copy of a framed view at -1, -1).
+// draws the bitmap with DrawShape; what a view draws covers its frame too
+// (Einstein: 2.5's copy of a framed view, drawn at -1, -1).
 DefGlobalVar('drawn, nil);
 DefGlobalVar('canvas, nil);
 DefGlobalVar('framed, nil);
@@ -61,6 +61,7 @@ TestLater(func() begin
   // (black, white, then the checkerboard: single pixels, gray at some scales)
   Print(["DrawShape(bitmap)", TestPixel(canvas, 3, 3) < 128, TestPixel(canvas, 7, 3) < 128,
          TestPixel(canvas, 10, 2) < 128, TestPixel(canvas, 11, 2) < 128]);
-  Print(["white over the frame: in the bounds only", TestPixel(framed, -1, 1) < 128, TestPixel(framed, 1, -1) < 128]);
+  Print(["white over the frame: black no more", TestPixel(framed, -1, 1) < 128, TestPixel(framed, 1, -1) < 128,
+         "beyond it", TestPixel(framed, -3, 1) < 128]);
   app:Close();
 end);

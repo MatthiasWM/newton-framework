@@ -38,4 +38,4 @@
 "############.."
 "############.."
 ["DrawShape(bitmap)", true, nil, true, nil]
-["white over the frame: in the bounds only", true, true]
+["white over the frame: black no more", nil, nil, "beyond it", nil]
