@@ -744,8 +744,7 @@ FCopyBits(RefArg inRcvr, RefArg inImage, RefArg inX, RefArg inY, RefArg inTransf
 
 
 NS_STUB(FGrayShrink, RefArg inRcvr, RefArg inArg1, RefArg inArg2)
-NS_STUB(FDrawIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
-NS_STUB(FViewIntoBitmap, RefArg inRcvr, RefArg inArg1, RefArg inArg2, RefArg inArg3)
+// DrawIntoBitmap, ViewIntoBitmap: Host/Graphics.cc, Host/ViewMethods.cc
 
 bool
 HitShape(RefArg inShape, Point inPt, RefArg ioPath)

@@ -8,6 +8,7 @@
 #include "Utilities/Unimplemented.h"
 #if NEWTC_USES_FLTK
 #include "Host/FLTK/Links.h"
+#include "Host/FLTK/Drawing.h"
 #endif
 
 #include "Frames/Frames.h"
@@ -61,12 +62,18 @@ Ref FFontHeight(RefArg rcvr, RefArg inFontSpec)
 Ref FFontAscent(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 1); }
 Ref FFontDescent(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 2); }
 Ref FFontLeading(RefArg rcvr, RefArg inFontSpec) { return nfl::FontMetric(inFontSpec, 3); }
+
+Ref FDrawIntoBitmap(RefArg rcvr, RefArg inShape, RefArg inStyle, RefArg inBitmap)
+{
+  return nfl::DrawIntoBitmap(inShape, inStyle, inBitmap);
+}
 #else
 NS_STUB(FStrFontWidth, RefArg rcvr, RefArg inString, RefArg inFontSpec)
 NS_STUB(FFontHeight, RefArg rcvr, RefArg inFontSpec)
 NS_STUB(FFontAscent, RefArg rcvr, RefArg inFontSpec)
 NS_STUB(FFontDescent, RefArg rcvr, RefArg inFontSpec)
 NS_STUB(FFontLeading, RefArg rcvr, RefArg inFontSpec)
+NS_STUB(FDrawIntoBitmap, RefArg rcvr, RefArg inShape, RefArg inStyle, RefArg inBitmap)
 #endif
 
 }

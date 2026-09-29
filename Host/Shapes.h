@@ -17,7 +17,11 @@
    'text: a frame (canonicalTextShape); bounds: a 'boundsRect; data: the
        string ('textData)
    'bitmap: a frame (canonicalBitmapShape); bounds: a 'boundsRect; data:
-       a copy of the icon's bits (a Newton bitmap); mask
+       a copy of the icon's bits (a Newton bitmap); mask. MakeBitmap's (as
+       the ROM's): data is 'pixels, a PixelMap (28 bytes: the offset of
+       the rows, rowBytes, 0, the bounds, flags (kPixMapOffset,
+       version 2, the depth), the resolution (72, 72), 0), then the rows;
+       white, 1 bit deep (other depths: not yet, 1 bit)
    'picture: a frame (canonicalPictureShape); bounds: a 'boundsRect (the
        picture's frame); data: the PICT (Host/Pict.h)
    an array: shapes, and style frames that apply to the shapes after them
@@ -25,7 +29,7 @@
  NewtonScript: MakeRect, MakeOval, MakeRoundRect(l, t, r, b, diameter),
  MakeWedge(l, t, r, b, start, arc), MakeLine(x1, y1, x2, y2),
  MakePolygon([x, y, ...]), MakeText(string, l, t, r, b), MakeShape(icon
- or polygon or picture), MakePict(shapes, style), OffsetShape(shape, dx,
+ or polygon or picture), MakeBitmap(width, height, options), MakePict(shapes, style), OffsetShape(shape, dx,
  dy), ShapeBounds(shape), IsPrimShape(obj), PointsToArray(polygon),
  ArrayToPoints(array).
 
@@ -56,6 +60,17 @@ Box Bounds(RefArg inShape);
 bool IsPrimShape(RefArg inObj);
 bool IsStyleFrame(RefArg inObj);
 
+/** Where a bitmap's pixels are: rows of rowBytes bytes (the leftmost pixel
+    in the high bit), 1 bit deep. */
+struct PixelsInfo { long offset = 0; int width = 0, height = 0, rowBytes = 0; };
+
+/** A bitmap's pixels: of a bitmap shape (its data: 'pixels as MakeBitmap
+    makes it, or an icon's bits), an icon ({bits, bounds}), or bits alone
+    (a binary: 4 bytes, rowBytes, 2 bytes, the bounds, the rows). The
+    binary goes to outBinary. False if it is none of these, or not 1 bit
+    deep. */
+bool GetPixels(RefArg inImage, RefVar & outBinary, PixelsInfo * outInfo);
+
 } // namespace shapes
 
 extern "C" {
@@ -67,6 +82,7 @@ Ref FMakeLine(RefArg rcvr, RefArg inX1, RefArg inY1, RefArg inX2, RefArg inY2);
 Ref FMakePolygon(RefArg rcvr, RefArg inPoints);
 Ref FMakeText(RefArg rcvr, RefArg inString, RefArg inLeft, RefArg inTop, RefArg inRight, RefArg inBottom);
 Ref FMakeShape(RefArg rcvr, RefArg inObject);
+Ref FMakeBitmap(RefArg rcvr, RefArg inWidth, RefArg inHeight, RefArg inOptions);
 Ref FMakePict(RefArg rcvr, RefArg inShapes, RefArg inStyle);
 Ref FOffsetShape(RefArg rcvr, RefArg ioShape, RefArg inDX, RefArg inDY);
 Ref FShapeBounds(RefArg rcvr, RefArg inShape);

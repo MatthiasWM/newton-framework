@@ -1833,6 +1833,18 @@ Interpreter and runtime
   newtc bug: a Newton going back from 2.5 to 1.4 would stop the same way.
   NewtPlay now says so and offers to start with new data (the store kept
   as .old-<time>).
+- [x] B29 **nBattleship 2.5 "hangs" after Deploy** (Matt, 2026-09-30):
+  its maps are offscreen bitmaps: MakeBitmap, DrawIntoBitmap and
+  view:ViewIntoBitmap, all stubs (nil), so after Deploy the ships were
+  gone and the target map stayed black; the game went on (a test played
+  it to its end), but nothing showed. Fixed 2026-09-30: MakeBitmap as the
+  ROM's (Host/Shapes.cc: a bitmap shape, data 'pixels: a PixelMap and the
+  rows, 1 bit deep; shapes::GetPixels reads it and icons' bits),
+  DrawIntoBitmap and ViewIntoBitmap drawn with FLTK into an image of the
+  bitmap's size and back (Host/FLTK/Drawing.cc; grays as the Newton's
+  patterns; the view at 1x, not the screen's pixels, whose shrinking gave
+  grays; no destRect: the source's size, as the ROM's FViewIntoBitmap).
+  Test `fltk_bitmaps`; 2.5 plays to its end.
 - [x] B28 **Negative numbers and 0 are "too small" to print** (Locales.cc,
   NumberString: `inNum < DBL_MIN`, the smallest positive double, where
   the ROM means `-DBL_MAX`): `NumberStr(-2.25)` and `NumberStr(0.0)` gave

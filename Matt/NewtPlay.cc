@@ -331,8 +331,13 @@ void FillRecentMenu(Fl_Menu_ * ioMenu, const char * inPrefix, std::vector<std::u
 const char * kCredits =
   "NewtPlay runs packages for the Apple Newton. It is newtc,\n"
   "the NewtonScript compiler and runtime of newton-framework,\n"
-  "a reimplementation of the Newton OS (Simon Bell), with the\n"
+#if 0 // TODO: ask Author if he wants to be mentioned!
+  "a reimplementation of the Newton OS (***Author***), with the\n"
   "Newton views drawn by FLTK (fltk.org).\n\n"
+#else
+  "a reimplementation of the Newton OS, with the Newton views\n"
+  "drawn by FLTK (fltk.org).\n\n"
+#endif
   "NewtPlay and newtc: Matthias Melcher.\n"
   "Newton and MessagePad are trademarks of Apple.\n"
   "NewtPlay is not made by Apple.";

@@ -115,7 +115,7 @@ struct NewtonBitmap
 
 /** An image of NewtonScript's as a NewtonBitmap: a bitmap frame (an icon,
     what GetPictAsBits gives: {bits, bounds, mask}; the mask is left out),
-    its bits alone (a binary: 4 bytes, rowBytes, 2 bytes, then top, left,
+    a bitmap shape (MakeShape, MakeBitmap: shapes::GetPixels), its bits alone (a binary: 4 bytes, rowBytes, 2 bytes, then top, left,
     bottom, right, then the rows; all 16-bit big-endian), or a PICT of
     bitmaps (a binary of class 'picture, Host/Pict.h). Empty (width 0) for
     anything else. */

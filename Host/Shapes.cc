@@ -14,6 +14,7 @@
 #include "Host/Pict.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 
 namespace shapes {
@@ -193,6 +194,37 @@ Box Bounds(RefArg inShape)
   return b;
 }
 
+
+bool GetPixels(RefArg inImage, RefVar & outBinary, PixelsInfo * outInfo)
+{
+  RefVar bits(inImage);
+  if (IsFrame(inImage))
+    bits = FrameHasSlot(inImage, SYMA(data)) ? GetFrameSlot(inImage, SYMA(data)) : GetFrameSlot(inImage, SYMA(bits));
+  if (!IsBinary(bits) || Length(bits) < 16)
+    return false;
+  PixelsInfo info;
+  info.offset = 16;   // an icon's bits
+  if (EQ(ClassOf(bits), SYMA(pixels))) {   // a PixelMap (MakeBitmap)
+    if (Length(bits) < 28)
+      return false;
+    const unsigned char * data = (const unsigned char *)BinaryData(bits);
+    unsigned long flags = (unsigned long)data[16] << 24 | data[17] << 16 | data[18] << 8 | data[19];
+    if ((flags & 0xFF) != 1 || !(flags & 0x80000000))   // 1 bit deep; the rows in the binary
+      return false;
+    info.offset = long((unsigned long)data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]);
+  }
+  Box b = GetBox(bits, 8);
+  info.rowBytes = int(GetShort(bits, 4) & 0x3FFF);
+  info.width = int(b.right - b.left);
+  info.height = int(b.bottom - b.top);
+  if (info.rowBytes <= 0 || info.width <= 0 || info.height <= 0 || info.rowBytes * 8 < info.width
+      || Length(bits) < ArrayIndex(info.offset + info.rowBytes * info.height))
+    return false;
+  outBinary = bits;
+  *outInfo = info;
+  return true;
+}
+
 } // namespace shapes
 
 using namespace shapes;
@@ -290,6 +322,77 @@ Ref FMakeShape(RefArg rcvr, RefArg inObject)
     return inObject;
   ThrowErr(exGraf, -8804);
   return NILREF;
+}
+
+
+// As the ROM's (the port's is in Graphics/Shapes.cc): a white bitmap shape,
+// its data a PixelMap and the rows ('pixels, see Shapes.h); the options'
+// other slots go into the shape. 1 bit deep only; a store, a compander:
+// not yet (the bitmap is in memory).
+Ref FMakeBitmap(RefArg rcvr, RefArg inWidth, RefArg inHeight, RefArg inOptions)
+{
+  long height = RINT(inHeight), width = RINT(inWidth);
+  if (height < 0)
+    ThrowErr(exGraf, -8805);
+  if (width < 0)
+    ThrowErr(exGraf, -8806);
+  long rowBytes = ((width + 31) / 32) * 4;
+  long resX = 72, resY = 72;
+  RefVar options;
+  if (IsFrame(inOptions)) {
+    options = Clone(inOptions);
+    if (FrameHasSlot(inOptions, SYMA(depth))) {
+      long depth = RINT(GetFrameSlot(inOptions, SYMA(depth)));
+      if (depth < 1 || (depth & (depth - 1)) != 0)
+        ThrowErr(exGraf, -8807);
+      if (depth != 1)
+        fprintf(stderr, "newtc: MakeBitmap: depth %ld is not implemented yet, 1 instead\n", depth);
+      RemoveSlot(options, SYMA(depth));
+    }
+    if (FrameHasSlot(inOptions, SYMA(rowBytes))) {
+      long bytes = RINT(GetFrameSlot(inOptions, SYMA(rowBytes)));
+      if (bytes % 4 != 0 || bytes < rowBytes)
+        ThrowErr(exGraf, -8808);
+      rowBytes = bytes;
+      RemoveSlot(options, SYMA(rowBytes));
+    }
+    if (FrameHasSlot(inOptions, SYMA(resolution))) {
+      RefVar resolution(GetFrameSlot(inOptions, SYMA(resolution)));
+      if (IsArray(resolution)) {
+        resX = RINT(GetArraySlot(resolution, 0));
+        resY = RINT(GetArraySlot(resolution, 1));
+      } else
+        resX = resY = RINT(resolution);
+      RemoveSlot(options, SYMA(resolution));
+    }
+    RemoveSlot(options, SYMA(store));
+    RemoveSlot(options, SYMA(companderName));
+    RemoveSlot(options, SYMA(companderData));
+  }
+  const long kHeader = 28;
+  RefVar pixels(AllocateBinary(SYMA(pixels), kHeader + rowBytes * height));
+  unsigned char * data = (unsigned char *)BinaryData(pixels);
+  memset(data, 0, kHeader + rowBytes * height);
+  data[3] = kHeader;   // baseAddr: an offset (kPixMapOffset)
+  SetShort(pixels, 4, rowBytes);
+  SetBox(pixels, Box{0, 0, height, width}, 8);
+  data = (unsigned char *)BinaryData(pixels);
+  data[16] = 0x80;     // kPixMapOffset
+  data[18] = 0x10;     // kPixMapVersion2
+  data[19] = 1;        // the depth
+  SetShort(pixels, 22, resX);   // deviceRes: v, h
+  SetShort(pixels, 20, resY);
+  // the bounds at 72 dpi
+  Box bounds{0, 0, resY != 72 && resY > 0 ? height * 72 / resY : height, resX != 72 && resX > 0 ? width * 72 / resX : width};
+  RefVar shape(Clone(RA(canonicalBitmapShape)));
+  SetFrameSlot(shape, SYMA(bounds), MakeBoxShape(SYMA(boundsRect), bounds));
+  SetFrameSlot(shape, SYMA(data), pixels);
+  if (NOTNIL(options)) {
+    CObjectIterator iter(options);
+    for ( ; !iter.done(); iter.next())
+      SetFrameSlot(shape, iter.tag(), iter.value());
+  }
+  return shape;
 }
 
 

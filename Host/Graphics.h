@@ -27,6 +27,8 @@ Ref FFontHeight(RefArg rcvr, RefArg inFontSpec);
 Ref FFontAscent(RefArg rcvr, RefArg inFontSpec);
 Ref FFontDescent(RefArg rcvr, RefArg inFontSpec);
 Ref FFontLeading(RefArg rcvr, RefArg inFontSpec);
+/** DrawIntoBitmap(shape, style, bitmap) (Host/FLTK/Drawing.h) */
+Ref FDrawIntoBitmap(RefArg rcvr, RefArg inShape, RefArg inStyle, RefArg inBitmap);
 }
 
 #endif // HOST_GRAPHICS_H

@@ -109,7 +109,6 @@ Ref FKeyboardConnected(RefArg rcvr);
 Ref FLayoutTableX(RefArg rcvr);
 Ref FLayoutVerticallyX(RefArg rcvr);
 Ref FLoadFontCache(RefArg rcvr);
-Ref FMakeBitmap(RefArg rcvr);
 Ref FMakeTextBox(RefArg rcvr);
 Ref FMakeTextLines(RefArg rcvr);
 Ref FMatchKeyMessage(RefArg rcvr);
@@ -284,7 +283,6 @@ NS_STUB(FKeyboardConnected, RefArg rcvr)
 NS_STUB(FLayoutTableX, RefArg rcvr)
 NS_STUB(FLayoutVerticallyX, RefArg rcvr)
 NS_STUB(FLoadFontCache, RefArg rcvr)
-NS_STUB(FMakeBitmap, RefArg rcvr)
 NS_STUB(FMakeTextBox, RefArg rcvr)
 NS_STUB(FMakeTextLines, RefArg rcvr)
 NS_STUB(FMatchKeyMessage, RefArg rcvr)

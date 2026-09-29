@@ -2,7 +2,8 @@
  File: Drawing.h
 
  Drawing shapes (Host/Shapes.h) on views: DrawShape(shape, style),
- DoDrawing(method, args), viewDrawScript.
+ DoDrawing(method, args), viewDrawScript; and into bitmaps (MakeBitmap):
+ DrawIntoBitmap, ViewIntoBitmap.
 
  On a Newton, a script draws straight onto the screen: the pixels stay
  until the view system draws that part again. Here each view can have a
@@ -63,6 +64,17 @@ void BlendInvert(bool inOn);
 /** Invert what inDraw draws in x, y, w, h (called with the area's top left,
     in black): for text, which the blend mode doesn't reach (CoreText). */
 void DrawInverted(int x, int y, int w, int h, const std::function<void(int, int)> & inDraw);
+
+/** DrawIntoBitmap(shape, style, bitmap): the shape drawn into a bitmap
+    (MakeBitmap's; an icon), as on a view; 1 bit deep, grays as the
+    Newton's patterns. */
+Ref DrawIntoBitmap(RefArg inShape, RefArg inStyle, RefArg inBitmap);
+
+/** view:ViewIntoBitmap(srcRect, destRect, bitmap): the view as it is on
+    the screen (with its children and what scripts drew), its srcRect
+    (nil: all of it) into the bitmap's destRect (nil, as the ROM's: the
+    source's size, at the bitmap's top left), scaled if they differ. Nothing if the view isn't open. */
+Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitmap);
 
 /** view:DoDrawing(method, args): view:method(args...), drawing on the view. */
 Ref DoDrawing(RefArg inContext, RefArg inMethod, RefArg inArgs);

@@ -31,6 +31,8 @@
 #endif
 
 #include <algorithm>
+#include <cstdlib>
+#include <vector>
 #include <functional>
 #include <memory>
 
@@ -391,6 +393,134 @@ Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inInd
   int mode = ISINT(inMode) ? int(RINT(inMode)) : kModeCopy;
   DrawOnView(link, [&](long ox, long oy) {
     DrawBitmap(bitmap.get(), int(ox + left), int(oy + top), w, h, mode);
+  });
+  return NILREF;
+}
+
+
+/* Offscreen bitmaps (MakeBitmap): drawn with FLTK into an image of the
+   bitmap's size, then back into its pixels, 1 bit deep: black where dark,
+   grays as the Newton's patterns (vfLtGray, vfGray, vfDkGray; from the
+   bitmap's top left), as a Newton draws them into a 1-bit bitmap. */
+
+namespace {
+
+// The rows of the Newton's gray patterns (8 by 8, repeating every 2 rows).
+const unsigned char kLtGray[2] = { 0x88, 0x22 }, kGray[2] = { 0xAA, 0x55 }, kDkGray[2] = { 0x77, 0xDD };
+
+bool BlackAt(int inGray, int x, int y)
+{
+  static const int kLevels[5] = { 0, 64, 128, 191, 255 };
+  int level = 0;
+  for (int i = 1; i < 5; ++i)
+    if (std::abs(inGray - kLevels[i]) < std::abs(inGray - kLevels[level]))
+      level = i;
+  const unsigned char * pattern = level == 1 ? kDkGray : level == 2 ? kGray : level == 3 ? kLtGray : nullptr;
+  if (pattern == nullptr)
+    return level == 0;
+  return (pattern[y & 1] & (0x80 >> (x & 7))) != 0;
+}
+
+// inDraw draws on the bitmap (its pixels as they are, in an image of its
+// size, 0, 0 its top left); then the image goes back into its pixels.
+void DrawOnBitmap(RefArg inBitmap, const std::function<void()> & inDraw)
+{
+  RefVar pixels;
+  shapes::PixelsInfo info;
+  if (!shapes::GetPixels(inBitmap, pixels, &info))
+    ThrowErr(exGraf, -8804);
+  int w = info.width, h = info.height;
+  std::unique_ptr<Fl_Bitmap> current(ToFlImage(ToNewtonBitmap(inBitmap)));
+  Fl_Image_Surface surface(w, h, 0);
+  Fl_Surface_Device::push_current(&surface);
+  fl_color(FL_WHITE);
+  fl_rectf(0, 0, w, h);
+  fl_color(FL_BLACK);
+  if (current)
+    current->draw(0, 0);
+  Target target = gTarget;
+  gTarget = kDirect;
+  inDraw();
+  gTarget = target;
+  Fl_Surface_Device::pop_current();
+  std::unique_ptr<Fl_RGB_Image> drawn(surface.image());
+  int dw = drawn->data_w(), dh = drawn->data_h(), d = drawn->d();
+  int ld = drawn->ld() ? drawn->ld() : dw * d;
+  const uchar * c = (const uchar *)drawn->data()[0];
+  std::vector<unsigned char> rows(size_t(info.rowBytes) * h, 0);
+  for (int y = 0; y < h; ++y)
+    for (int x = 0; x < w; ++x) {
+      int sx = std::min(dw - 1, (2 * x + 1) * dw / (2 * w)), sy = std::min(dh - 1, (2 * y + 1) * dh / (2 * h));
+      if (BlackAt(c[sy * ld + sx * d], x, y))
+        rows[size_t(y) * info.rowBytes + (x >> 3)] |= (0x80 >> (x & 7));
+    }
+  // (the pixels' rows keep the bytes after the width as they were)
+  unsigned char * data = (unsigned char *)BinaryData(pixels) + info.offset;
+  for (int y = 0; y < h; ++y)
+    for (int i = 0; i < (w + 7) / 8; ++i) {
+      unsigned char mask = (i + 1) * 8 <= w ? 0xFF : (unsigned char)(0xFF << (8 - (w & 7)));
+      unsigned char & byte = data[size_t(y) * info.rowBytes + i];
+      byte = (unsigned char)((byte & ~mask) | (rows[size_t(y) * info.rowBytes + i] & mask));
+    }
+}
+
+// A rect frame ({left, top, right, bottom}), or inDefault if it is nil.
+shapes::Box RectOr(RefArg inRect, const shapes::Box & inDefault)
+{
+  if (!IsFrame(inRect))
+    return inDefault;
+  return shapes::Box{RINT(GetProtoVariable(inRect, SYMA(top))), RINT(GetProtoVariable(inRect, SYMA(left))),
+                     RINT(GetProtoVariable(inRect, SYMA(bottom))), RINT(GetProtoVariable(inRect, SYMA(right)))};
+}
+
+} // namespace
+
+
+Ref DrawIntoBitmap(RefArg inShape, RefArg inStyle, RefArg inBitmap)
+{
+  Style style;
+  Apply(style, inStyle);
+  DrawOnBitmap(inBitmap, [&]() { Draw(inShape, style, 0, 0); });
+  return NILREF;
+}
+
+
+Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitmap)
+{
+  Link * link = Link::Of(inView);
+  if (link == nullptr || link->Widget() == nullptr)
+    return NILREF;   // not open: nothing to copy
+  Fl_Widget * widget = link->Widget();
+  int inset = link->Outset();
+  shapes::Box src = RectOr(inSource, shapes::Box{0, 0, widget->h() - 2 * inset, widget->w() - 2 * inset});
+  RefVar pixels;
+  shapes::PixelsInfo info;
+  if (!shapes::GetPixels(inBitmap, pixels, &info))
+    ThrowErr(exGraf, -8804);
+  long sw = src.right - src.left, sh = src.bottom - src.top;
+  // (the ROM's: no destRect, the source's size at the bitmap's top left)
+  shapes::Box dest = RectOr(inDest, shapes::Box{0, 0, sh, sw});
+  long dw = dest.right - dest.left, dh = dest.bottom - dest.top;
+  if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
+    return NILREF;
+  // the view as it is on the screen (its children, what scripts drew), in
+  // the Newton's pixels (high_res 0: w by h; not the screen's, whose
+  // pixels, shrunk, would give grays where lines are)
+  Fl_Image_Surface surface(widget->w(), widget->h(), 0);
+  Fl_Surface_Device::push_current(&surface);
+  fl_color(FL_WHITE);
+  fl_rectf(0, 0, widget->w(), widget->h());
+  surface.draw(widget, 0, 0);
+  Fl_Surface_Device::pop_current();
+  std::unique_ptr<Fl_RGB_Image> view(surface.image());
+  // its source rect onto the destination rect (scaled if they differ)
+  int iw = int(widget->w() * dw / sw), ih = int(widget->h() * dh / sh);
+  view->scale(iw, ih, 0, 1);
+  int x = int(dest.left - (src.left + inset) * dw / sw), y = int(dest.top - (src.top + inset) * dh / sh);
+  DrawOnBitmap(inBitmap, [&]() {
+    fl_push_clip(int(dest.left), int(dest.top), int(dw), int(dh));
+    view->draw(x, y);
+    fl_pop_clip();
   });
   return NILREF;
 }

@@ -61,6 +61,8 @@ Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs);
     is done). */
 Ref FRefreshViews(RefArg rcvr);
 Ref FDrawXBitmap(RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
+/** view:ViewIntoBitmap(srcRect, destRect, bitmap) (Host/FLTK/Drawing.h) */
+Ref FViewIntoBitmap(RefArg rcvr, RefArg inSource, RefArg inDest, RefArg inBitmap);
 Ref FParentX(RefArg rcvr);
 Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);
 Ref FGetFlags(RefArg rcvr, RefArg inView);

@@ -26,7 +26,8 @@ Done so far (details in HISTORY.md):
   found (`Test/hidden_stubs.py`).
 - Phase 10 (branch Add_fltk, `NEWTC_USES_FLTK`): Newton views on FLTK, the
   pen, drawing, fonts, popup menus, timers, soups in a store file;
-  nBattleship 1.4 plays to its end.
+  nBattleship 1.4 plays to its end; 2.5 too (offscreen bitmaps:
+  MakeBitmap, DrawIntoBitmap, ViewIntoBitmap; 1 bit deep so far).
 
 ## How we work
 
@@ -110,15 +111,15 @@ Phase 10 is done: newtc runs Newton apps in windows (FLTK); nBattleship 1.4
 plays to its end, also in the Release build and as a signed, notarized Mac
 app. VSNewt 0.2.0 is released (github.com/MatthiasWM/VSNewt, tag v0.2.0,
 newtc 9ac9d0d with FLTK) with `nBattleship-1.4-macOS.zip`, which comes down
-when NewtPlay is up (Phase 11). 11.1 to 11.4 are done; next: 11.5
-(release).
+when NewtPlay is up (Phase 11). 11.1 to 11.4 are done; nBattleship 2.5
+plays too (offscreen bitmaps, B29); next: 11.5 (release).
 
 Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
 `build/Release` (no FLTK; give the runner an absolute `--newtc`),
 `build/VSNewt` (Release, FLTK: `Matt/tools/build_vsnewt_newtc.sh`),
 `build/App` (`Matt/tools/build_app.sh`), `build/NewtPlay`
 (`Matt/tools/build_newtplay.sh`). All suites:
-`python3 Test/dbg/run_dbg_tests.py` (100 with FLTK; 76 + 24 skipped
+`python3 Test/dbg/run_dbg_tests.py` (101 with FLTK; 76 + 25 skipped
 without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
 `test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (20,
 needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm

@@ -9,6 +9,7 @@
 #include <FL/fl_draw.H>
 
 #include "Host/FLTK/Widgets.h"
+#include "Host/Shapes.h"
 #include "Host/FLTK/Boxtypes.h"
 
 #include <algorithm>
@@ -295,19 +296,15 @@ NewtonBitmap ToNewtonBitmap(RefArg inImage)
       bitmap = NewtonBitmap();
     return bitmap;
   }
-  RefVar bits(IsFrame(inImage) ? GetFrameSlot(inImage, SYMA(bits)) : (Ref)inImage);
-  if (!IsBinary(bits) || Length(bits) < 16)
+  RefVar bits;
+  shapes::PixelsInfo info;
+  if (!shapes::GetPixels(inImage, bits, &info))
     return bitmap;
-  const unsigned char * data = (const unsigned char *)BinaryData(bits);
-  auto word = [data](int offset) { return int(short((data[offset] << 8) | data[offset + 1])); };
-  int rowBytes = word(4), top = word(8), left = word(10), bottom = word(12), right = word(14);
-  if (rowBytes <= 0 || right <= left || bottom <= top
-   || Length(bits) < ArrayIndex(16 + rowBytes * (bottom - top)))
-    return bitmap;
-  bitmap.width = right - left;
-  bitmap.height = bottom - top;
-  bitmap.rowBytes = rowBytes;
-  bitmap.bits.assign(data + 16, data + 16 + rowBytes * bitmap.height);
+  const unsigned char * data = (const unsigned char *)BinaryData(bits) + info.offset;
+  bitmap.width = info.width;
+  bitmap.height = info.height;
+  bitmap.rowBytes = info.rowBytes;
+  bitmap.bits.assign(data, data + info.rowBytes * info.height);
   return bitmap;
 }
 

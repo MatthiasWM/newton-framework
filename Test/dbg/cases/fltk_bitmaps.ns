@@ -1,0 +1,54 @@
+// Offscreen bitmaps (needs FLTK; nBattleship 2.5 draws its maps so):
+// MakeBitmap(w, h, options) makes a white bitmap shape (as the ROM's: its
+// data 'pixels, a PixelMap and the rows; 1 bit deep). DrawIntoBitmap(shape,
+// style, bitmap) draws into it, the grays as the Newton's patterns (vfGray:
+// a checkerboard). view:ViewIntoBitmap(srcRect, destRect, bitmap) copies
+// the view as it is on the screen (no destRect: the source's size, at the
+// bitmap's top left). A view draws the bitmap with DrawShape.
+DefGlobalVar('drawn, nil);
+DefGlobalVar('canvas, nil);
+DefGlobalVar('app, BuildContext({
+  _proto: @180, viewBounds: {left: 0, top: 30, right: 220, bottom: 200},
+  stepChildren: [
+    {viewClass: 74, viewFlags: 1, viewBounds: {left: 10, top: 10, right: 30, bottom: 20},
+     viewSetupDoneScript: func() drawn := self,
+     viewDrawScript: func() :DrawShape(MakeRect(2, 2, 6, 6), {fillPattern: 5})},
+    {viewClass: 74, viewFlags: 1, viewBounds: {left: 10, top: 40, right: 40, bottom: 60},
+     viewSetupDoneScript: func() canvas := self}]}));
+app:Open();
+
+func Row(bm, y, n) begin
+  local d := bm.data;
+  local rb := ExtractByte(d, 4) * 256 + ExtractByte(d, 5);
+  local line := "";
+  for x := 0 to n - 1 do
+    line := line & (if BAnd(ExtractByte(d, 28 + y * rb + x div 8), 128 >> (x mod 8)) <> 0 then "#" else ".");
+  line
+end;
+
+DefGlobalVar('bm, MakeBitmap(20, 6, {name: "test"}));
+Print([ClassOf(bm), ShapeBounds(bm), ClassOf(bm.data), Length(bm.data), bm.name]);
+Print(["white", Row(bm, 0, 20)]);
+DrawIntoBitmap(MakeRect(0, 0, 4, 3), {fillPattern: 5}, bm);
+DrawIntoBitmap(MakeRect(8, 0, 16, 3), {fillPattern: 3, penPattern: 0}, bm);
+DrawIntoBitmap(MakeShape({bounds: {left: 0, top: 0, right: 8, bottom: 2},
+  bits: MakeBinaryFromHex("00000000000200000000000000020008F00FF00F", 'bits)}), {transform: [0, 4]}, bm);
+for y := 0 to 5 do Print(Row(bm, y, 20));
+
+TestLater(func() begin
+  local copy := MakeBitmap(24, 12, nil);
+  drawn:ViewIntoBitmap(nil, nil, copy);
+  Print("ViewIntoBitmap:");
+  for y := 0 to 7 do Print(Row(copy, y, 24));
+  local part := MakeBitmap(8, 8, nil);
+  drawn:ViewIntoBitmap({left: 2, top: 2, right: 6, bottom: 6}, {left: 1, top: 1, right: 5, bottom: 5}, part);
+  Print("a part of it, elsewhere:");
+  for y := 0 to 5 do Print(Row(part, y, 8));
+  canvas:DrawShape(bm, {transform: [2, 2]});
+end);
+TestLater(func() begin
+  // (black, white, then the checkerboard: single pixels, gray at some scales)
+  Print(["DrawShape(bitmap)", TestPixel(canvas, 3, 3) < 128, TestPixel(canvas, 7, 3) < 128,
+         TestPixel(canvas, 10, 2) < 128, TestPixel(canvas, 11, 2) < 128]);
+  app:Close();
+end);
