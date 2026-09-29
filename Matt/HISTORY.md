@@ -1755,6 +1755,143 @@ Working on Battleship (the package: see 10.7):
 - Later: move EventLoop/TestWindow into `Host/FLTK/`; the FLTK layer as a
   library; Windows and Linux.
 
+## Phase 11: NewtPlay (2026-09-29 to 2026-09-30)
+
+Users run packages themselves, in the simplest way, and make their own
+shortcuts or apps of the packages they like; we don't bundle other people's
+packages (nBattleship was a one-off, with its author's blessing).
+
+Decided:
+- **Name**: NewtPlay (not "Newton": Apple's name; "NewtC" is too close to
+  the newtc command).
+- **Files**: `.nspkg` is NewtPlay's own (a document type it is the default
+  for); `.newtonpkg` and `.pkg` it opens as an alternate (`.pkg` is Apple's
+  installer packages: Installer stays their default, NewtPlay is in "Open
+  With" and takes them dropped on it). A file is a Newton package if it
+  starts with `package0` or `package1`; anything else gets a polite no.
+- **Ways in**: a double click on a package, a package dropped on the app
+  or its Dock icon, "Open With", and the app itself: a splash window
+  (FLTK) with Run (the file chooser), Make Shortcut, Make App, the history
+  (a pulldown menu of the packages run before), About and credits.
+- **Shortcut**: a small app bundle with the package and its icon, that
+  runs it with NewtPlay (NewtPlay must be installed). **App**: the same
+  with a copy of NewtPlay's program in it (self-contained), signed ad hoc
+  on the user's Mac. Both are made there, so macOS doesn't block them.
+- **One package per process**: a package opened while one runs starts
+  another NewtPlay. Each package has its store in
+  `~/Library/Application Support/NewtPlay/<package name>/`, the same for
+  NewtPlay, its shortcut and its app, one per version
+  (`<name>-v<version>.store`, the header's version number, Matt's idea:
+  nBattleship 1.4 is 1, 2.5 is 8, both Battleship:ATOW; 137 of the
+  corpus' 192 games have version 1). A new version starts with new data.
+- The program finds a package in its own bundle when it starts (replaces
+  the compiled-in package: `newtc_app`, `NEWTC_APP_PKG`,
+  `Matt/EmbeddedApp.h` go); with arguments it is newtc, as now.
+
+Steps:
+- [x] 11.1 The bundle: `NewtPlay.app`, universal, macOS 13, signed and
+      notarized (build script as build_app.sh's), a first icon (drawn in
+      code: a MessagePad-like outline, a green screen, a one-bit pixel
+      newt, until someone draws a better one). It runs a package given as
+      an argument or found in its bundle; its stores as above.
+      Done (2026-09-29): target `NewtPlay` (CMake, with FLTK on macOS, not
+      built by default; `newtc_like()` copies newtc's sources and
+      settings), `Matt/NewtPlay.{h,cc}` (newtplay::Arguments() in main,
+      NEWTC_NEWTPLAY: one file argument: run it; none: the package in
+      Contents/Resources, else the file chooser (until 11.3); else newtc;
+      the package's name from its header; not a package: an alert),
+      `cmake/NewtPlayInfo.plist.in`, the icon from Matt's newt
+      (`Resources/NewtPlay.png`, 96 pixels, at 80% by
+      `cmake/MakeIcns.cmake`: sips, iconutil),
+      `Matt/tools/build_newtplay.sh [version]` (build/NewtPlay, signing and
+      notarizing as build_app.sh). Test `Test/dbg/test_newtplay.py` (5;
+      --app, --pkg). A whole game in NewtPlay, arm64 and x86_64. Fixed
+      after Matt tried it: the file chooser returned "cancelled" at once
+      (the app hadn't finished launching: Fl::wait first), so NewtPlay
+      ended and the Finder couldn't launch it (-10810). For 11.4:
+      a package copied into a bundle needs `xattr -cr` before codesign.
+      A package that stops while it starts (no window): NewtPlay says why
+      (CheckStarted; newtc's installPackage records the error,
+      gAppOpenError) and offers to start it with new data (the store kept
+      as .old-<time>; a second stop only says so, NEWTPLAY_NEW_DATA). Found
+      when Matt ran 1.4 on 2.5's store (B26). Test hooks:
+      NEWTPLAY_TEST_CHOICE (the chooser's answer), NEWTPLAY_TEST_ANSWER
+      (the alert's). test_newtplay.py: 7. A store per package version since
+      (2.5 and 1.4 run side by side).
+- [x] 11.2 Opening packages: the document types and UTIs in the
+      Info.plist; FLTK's `fl_open_callback` (double click, drop on the app
+      or the Dock icon, Open With), before and after the start; the
+      package check; a second package in a second process.
+      Done (2026-09-29): cmake/NewtPlayInfo.plist.in exports the UTI
+      org.newton-framework.newton-package (.nspkg, .newtonpkg; NewtPlay
+      its Owner) and takes com.apple.installer-package-archive (.pkg) as
+      Alternate. Started bare, NewtPlay waits up to a second for the
+      Finder's open event (fl_open_callback), then the bundle's package,
+      then the chooser; opened while a package runs: `open -n -a` a
+      NewtPlay of its own (HOME and the test hooks passed on).
+      **Quarantine**: a downloaded .pkg is quarantined, and the Finder has
+      Gatekeeper check it as an installer package before any app gets it
+      ("Apple could not verify ... is free of malware"): NewtPlay never
+      sees it. Fine: NewtPlay's own chooser, .nspkg/.newtonpkg (not
+      checked), a .pkg without quarantine. `Matt/tools/nspkg.sh <pkgs or
+      folders> <dest>` copies packages as .nspkg without quarantine (unna2
+      stays as it is). test_newtplay.py: 10 (3 through LaunchServices;
+      --no-finder leaves them out).
+- [x] 11.3 The splash window: Run (Fl_Native_File_Chooser), the history
+      (Fl_Preferences, a pulldown menu), About and credits; a File menu
+      (Open, Open Recent).
+      Done (2026-09-29, Matt/NewtPlay.cc): started without a package,
+      NewtPlay shows its splash window (Matt's newt, from
+      Resources/NewtPlay.png in the bundle; the version; how packages get
+      in; Run a Package..., Recent; the credits, kCredits, a first
+      draft). A package dropped on it meanwhile runs too. The history: the
+      last 10 packages run (path, name, version),
+      ~/Library/Preferences/newton-framework.org/NewtPlay.prefs; a missing
+      one is dropped when chosen. The menu bar (Fl_Sys_Menu_Bar): File >
+      Open a Package... (Cmd-O), Open Recent; NewtPlay > About NewtPlay.
+      While a package runs they start a NewtPlay of their own. Make
+      Shortcut and Make App come with 11.4. NEWTPLAY_TEST_SPLASH saves a
+      picture of the window. test_newtplay.py: 12.
+- [x] 11.4 Shortcuts and apps: Make Shortcut and Make App (from the splash
+      window, and from the menu while a package runs).
+      Done (2026-09-30, `Matt/NewtPlayMake.cc`, newtplay::MakeBundle):
+      `<package's folder>/<package file's name>.app`, next to the package
+      (Matt: the folder it was read from; for a package inside a shortcut
+      or an app, next to that bundle). A bundle there already (shortcut,
+      app, anything) is replaced after a warning (fl_choice; Cancel keeps
+      it). Both get the package as `<name>.nspkg`, an Info.plist of their
+      own (`org.newton-framework.shortcut.<name>` / `.app.<name>`, the
+      package's version), the package's icon (a child NewtPlay, as newtc,
+      prints the form part's icon; drawn as make_app_icon.py did, in C++,
+      fl_write_png, iconutil; no icon: the generic one), `xattr -cr`, an
+      ad hoc signature; the Finder shows it (`open -R`). A shortcut's
+      program is a script: `open -n -b org.newton-framework.NewtPlay
+      --env HOME=... --args <its package>` (no NewtPlay: an alert); an
+      app's is a copy of NewtPlay's (the package in its bundle runs).
+      Package and program are copied to /tmp first (made again from the
+      package in the bundle it replaces). The splash window has Make a
+      Shortcut... and Make an App... (they ask for the package); the File
+      menu has both (while a package runs: for it). `-make-shortcut
+      <pkg>`, `-make-app <pkg>` for tests (print the bundle's path).
+      StorePath makes ~/Library/Application Support if missing. The
+      splash window is taller (Matt's credits, 7 lines). Note:
+      LaunchServices may give a shortcut any NewtPlay it knows (build
+      folders, the Trash); all run a package given. test_newtplay.py: 20.
+- [x] 11.5 Release: NewtPlay replaces `nBattleship-1.4-macOS.zip` on the
+      VSNewt release (take it down), with a README section; the
+      compiled-in package goes from the build.
+      Done (2026-09-30): NewtPlay 0.1 (newton-framework ed41f10), signed
+      and notarized (build_newtplay.sh with SIGN_IDENTITY and
+      NOTARY_PROFILE), `NewtPlay-0.1-macOS.zip` on the VSNewt v0.2.0
+      release; nBattleship-1.4-macOS.zip taken down; the release notes and
+      VSNewt's README (b3897f6) have a NewtPlay section. Gone: target
+      newtc_app, NEWTC_APP_PKG, NEWTC_EMBEDDED_APP, Matt/EmbeddedApp.h,
+      cmake/EmbedPackage.cmake, AppInfo.plist.in, make_app_icon.py,
+      print_app_icon.ns, Matt/tools/build_app.sh (ed41f10). Between 11.4
+      and 11.5: nBattleship 2.5 plays (offscreen bitmaps, B29), the display
+      is portrait (320 by 480).
+
+
 ## Bugs fixed
 
 Moved here from the bug list in Matt/CLAUDE.md when fixed.
