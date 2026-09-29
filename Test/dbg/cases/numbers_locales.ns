@@ -1,0 +1,14 @@
+// 10.7g: what the hidden stub audit (Test/hidden_stubs.py) turned up.
+// NumberStr and FormattedNumberStr: negative numbers and 0 were "too small"
+// (B28: DBL_MIN for -DBL_MAX), and the number pattern "^0.^1" was garbled
+// (B27). SetLocale by title or symbol (FindLocaleBundleByName was empty; it
+// is the ROM's FindLocale now); unknown: nil. RefreshViews draws now.
+Print([NumberStr(3.5), NumberStr(-2.25), NumberStr(0.0), NumberStr(42)]);
+Print([FormattedNumberStr(1234.5, "%.2f"), FormattedNumberStr(-1234.5, "%.2f"), FormattedNumberStr(0.0, "%.1f")]);
+Print(GetLocale().title);
+Print(SetLocale("United Kingdom").title);
+Print(GetLocale().title);
+Print(SetLocale('USA).title);
+Print(SetLocale("Atlantis"));
+Print(GetLocale().title);
+Print(RefreshViews());

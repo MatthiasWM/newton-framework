@@ -57,6 +57,9 @@ Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle);
 Ref FDoPopup(RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext);
 Ref FGetView(RefArg rcvr, RefArg inView);
 Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs);
+/** RefreshViews(): draw the views that need it now (not when the script
+    is done). */
+Ref FRefreshViews(RefArg rcvr);
 Ref FDrawXBitmap(RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
 Ref FParentX(RefArg rcvr);
 Ref FSetValue(RefArg rcvr, RefArg inView, RefArg inTag, RefArg inValue);

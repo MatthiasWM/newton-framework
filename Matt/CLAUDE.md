@@ -790,8 +790,22 @@ Working on Battleship (the package: see 10.7):
         newtc, now with FLTK: Matt/tools/build_vsnewt_newtc.sh), no stub
         called (-stubs report: 0 of 945). (FontAscent and GetView: 10.7e;
         RelBounds and InkOff: 10.7b.)
-  - [ ] 10.7g Hidden stubs: port functions that only print or return nil
+  - [x] 10.7g Hidden stubs: port functions that only print or return nil
         without NS_STUB (SetValue was one; `-stubs report` can't see them).
+        Test/hidden_stubs.py reads every native newtc is built from (a C
+        function Ref F...(RefArg rcvr, ...); files from
+        build/VSCode/compile_commands.json) and lists those whose body only
+        returns a constant without its arguments, prints without them, or
+        says it isn't done; checked ones are in its REVIEWED list. Found
+        and done (2026-09-29): FDeinstallPackage an NS_STUB;
+        FRefreshViews draws now (Fl::flush, Host/ViewMethods.cc);
+        FindLocaleBundleByName was empty (SetLocale("United Kingdom") did
+        nothing): the ROM's FindLocale; which uncovered B27 and B28 (number
+        strings). FBatteryCount (one battery) and FSoundCheck (nothing in
+        the ROM either) are right. Now 0 of 501 natives; all 515 of
+        NS/plainC.txt are there. The script sees only the obvious ones: a
+        native that does part of its job still needs -stubs report and use.
+        Test `numbers_locales`.
 - Later: move EventLoop/TestWindow into `Host/FLTK/`; the FLTK layer as a
   library; Windows and Linux.
 
@@ -847,7 +861,8 @@ Interpreter and runtime
   Conventions, "Stubs"); `-stubs report` shows which ones real programs
   call, to choose what to implement next.
 - [ ] B15 **`SPrintObject` is half ported** (Frames/Strings.cc,
-  `MakeStringObject`): reals, nil, true, frames, arrays give `""`, a 62-bit
+  `MakeStringObject`): nil, true, frames, arrays give `""` (reals: fixed
+  with B28, 2026-09-29), a 62-bit
   integer is cut to 32 bits (`1152921504606846975` -> `"-1"`,
   `IntegerString(RINT(obj))`), and the function never copies into the
   result string in some branches. In the ROM it is the `&` conversion

@@ -157,11 +157,13 @@ SetCurrentLocale(RefArg inLocale)
 }
 
 
+// A locale bundle by its title (a string, "United Kingdom") or its symbol
+// in the locale table ('USA): as the ROM's NewtonScript FindLocale, which
+// does just that (international.locales, international.localeTable).
 Ref
 FindLocaleBundleByName(RefArg inLocale)
 {
-// INCOMPLETE
-	return NILREF;
+	return NSCallGlobalFn(SYMA(FindLocale), inLocale);
 }
 
 
@@ -170,16 +172,17 @@ PositiveNumberProtoStr(void)
 {
 	if (gPositiveNumProto == NULL)
 	{
+		// "^0" <decimal point> "^1" (the port copied the decimal point over
+		// the "^0" and kept a pointer past its start, which free() then got)
 		int			dpStrLen = Ustrlen(GetUString(gLocaleStrCache->decimalPoint));
 		UniChar *	str = (UniChar *)calloc(dpStrLen + 5, sizeof(UniChar));
 		if (str != NULL)
 		{
 			str[0] = '^';
 			str[1] = '0';
-			Ustrcpy(str, GetUString(gLocaleStrCache->decimalPoint));	// might have moved after calloc
-			str += dpStrLen;
-			str[2] = '^';
-			str[3] = '1';
+			Ustrcpy(str + 2, GetUString(gLocaleStrCache->decimalPoint));	// might have moved after calloc
+			str[2 + dpStrLen] = '^';
+			str[3 + dpStrLen] = '1';
 		}
 		gPositiveNumProto = str;
 	}
@@ -561,9 +564,11 @@ NumberString(double inNum, UniChar * outStr, ArrayIndex inStrLen, const char * i
 	NewtonErr	err = noErr;
 
 	*outStr = kEndOfString;
+	// (the port had DBL_MIN, the smallest positive double: every negative
+	// number and 0 were "too small")
 	if (inNum > DBL_MAX)
 		err = -2;
-	else if (inNum < DBL_MIN)
+	else if (inNum < -DBL_MAX)
 		err = -3;
 
 	else

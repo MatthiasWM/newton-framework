@@ -1161,6 +1161,19 @@ Interpreter and runtime
   also for parse errors ("syntax error -- read ..., but wanted ..."); this
   one no longer carries the parser's stale state, and its apostrophe is
   ASCII (the typographic one cut the message off). Test `for_closure`.
+- [x] B28 **Negative numbers and 0 are "too small" to print** (Locales.cc,
+  NumberString: `inNum < DBL_MIN`, the smallest positive double, where
+  the ROM means `-DBL_MAX`): `NumberStr(-2.25)` and `NumberStr(0.0)` gave
+  garbage, `FormattedNumberStr(-1234.5, "%.2f")` "Number too small".
+  Fixed 2026-09-29 (10.7g), with it B15's reals (`SPrintObject(3.5)`).
+  Test `numbers_locales`.
+- [x] B27 **The number pattern is garbled, and freed wrongly**
+  (Locales.cc, PositiveNumberProtoStr: the decimal point was copied over
+  the "^0", and the pointer kept was past the start of the string, which
+  free() got when the locale changed: AddressSanitizer). Found when
+  SetLocale("United Kingdom") began to work (FindLocaleBundleByName was
+  empty: now the ROM's FindLocale). Fixed 2026-09-29 (10.7g). Test
+  `numbers_locales`.
 - [x] B25 **Ticks are 50 a second** (ObjectSystem.cc, GetTicks: ms / 20); a
   Newton's are 60 (the ROM's procrastinated calls compute Ticks() + ms *
   60 div 1000). Found and fixed 2026-09-28 (10.7d); test `timers`.

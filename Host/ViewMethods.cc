@@ -11,6 +11,7 @@
 #include "Frames/Globals.h"
 #include "ROMResources.h"
 #if NEWTC_USES_FLTK
+#include <FL/Fl.H>
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/Drawing.h"
 #include "Host/FLTK/Popup.h"
@@ -50,6 +51,7 @@ Ref FDragX(RefArg rcvr, RefArg inUnit, RefArg inBounds) { return nfl::DragView(r
 Ref FDrawShape(RefArg rcvr, RefArg inShape, RefArg inStyle) { return nfl::DrawShape(rcvr, inShape, inStyle); }
 Ref FDrawXBitmap(RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode) { return nfl::DrawXBitmap(rcvr, inBounds, inBitmap, inIndex, inMode); }
 Ref FDoDrawing(RefArg rcvr, RefArg inMethod, RefArg inArgs) { return nfl::DoDrawing(rcvr, inMethod, inArgs); }
+Ref FRefreshViews(RefArg rcvr) { Fl::flush(); return TRUEREF; }
 Ref FDoPopup(RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext) { return nfl::DoPopup(inItems, inWhere, inTop, inContext); }
 Ref FGetView(RefArg rcvr, RefArg inView) { return IsFrame(inView) && nfl::Link::Of(inView) ? (Ref)inView : NILREF; }
 Ref FGetFlags(RefArg rcvr, RefArg inView) { return nfl::ViewFlags(inView); }
@@ -73,6 +75,7 @@ NS_STUB(FDragX, RefArg rcvr, RefArg inUnit, RefArg inBounds)
 NS_STUB(FDrawShape, RefArg rcvr, RefArg inShape, RefArg inStyle)
 NS_STUB(FDrawXBitmap, RefArg rcvr, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode)
 NS_STUB(FDoDrawing, RefArg rcvr, RefArg inMethod, RefArg inArgs)
+Ref FRefreshViews(RefArg rcvr) { return TRUEREF; }   // no views: nothing to draw
 NS_STUB(FDoPopup, RefArg rcvr, RefArg inItems, RefArg inWhere, RefArg inTop, RefArg inContext)
 Ref FGetView(RefArg rcvr, RefArg inView) { return NILREF; }   // no views open
 // no views open without FLTK

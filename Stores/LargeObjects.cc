@@ -19,6 +19,7 @@ inline			CUMonitor::CUMonitor(ObjectId id)  { }
 inline			CUMonitor::operator ObjectId()	const  { return 0; }
 
 #include "LargeObjects.h"
+#include "Unimplemented.h"
 #include "LargeBinaries.h"
 #include "PackageManager.h"
 #include "UStringUtils.h"
@@ -1253,7 +1254,6 @@ FInstallPackage(RefArg inRcvr, RefArg inPkg)
 }
 
 
-Ref
-FDeinstallPackage(RefArg inRcvr, RefArg inPkg)
-{ return NILREF; }
+// (removing a package: not yet)
+NS_STUB(FDeinstallPackage, RefArg inRcvr, RefArg inPkg)
 

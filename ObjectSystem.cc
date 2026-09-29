@@ -139,15 +139,7 @@ CRootView * gRootView;
 void		CRootView::update(Rect * inRect) { }
 
 
-extern "C" {
-Ref	FRefreshViews(RefArg inRcvr);
-}
-
-// FSetValue: Host/ViewMethods.cc
-
-Ref
-FRefreshViews(RefArg inRcvr)
-{ return TRUEREF; }
+// FSetValue, FRefreshViews: Host/ViewMethods.cc
 
 #endif
 #endif	// forFramework

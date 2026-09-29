@@ -240,6 +240,7 @@ FMinimumBatteryCheck(RefArg inRcvr)
 }
 
 
+// newtc: one battery, as a MessagePad (the others: NS_STUBs)
 Ref
 FBatteryCount(RefArg rcvr)
 { return MAKEINT(1); }
