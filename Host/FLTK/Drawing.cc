@@ -157,7 +157,7 @@ void DrawBitmap(Fl_Bitmap * inBitmap, int x, int y, int w, int h, int inMode)
   fl_color(gTarget == kMask ? FL_BLACK : inverting ? FL_WHITE : FL_BLACK);
   if (inverting)
     BlendInvert(true);
-  inBitmap->draw(x, y);
+  DrawPixels(inBitmap, x, y);
   if (inverting)
     BlendInvert(false);
 }
@@ -263,6 +263,24 @@ Link * LinkOfWidget(Fl_Widget * inWidget)
 } // namespace
 
 
+// Scaled to the screen's pixels, a Newton pixel stays a block of them:
+// Quartz would smooth the image (grays at the edges of black pixels).
+void DrawPixels(Fl_Image * inImage, int x, int y)
+{
+#if defined(__APPLE__)
+  CGContextRef gc = (CGContextRef)fl_graphics_driver->gc();
+  CGInterpolationQuality quality = gc ? CGContextGetInterpolationQuality(gc) : kCGInterpolationDefault;
+  if (gc)
+    CGContextSetInterpolationQuality(gc, kCGInterpolationNone);
+  inImage->draw(x, y);
+  if (gc)
+    CGContextSetInterpolationQuality(gc, quality);
+#else
+  inImage->draw(x, y);
+#endif
+}
+
+
 // What follows inverts what is under it, drawn in white (a Newton's XOR with
 // black): the difference blend mode, |white - D| = 1 - D. XOR shapes go to
 // the invert layer (Link::fInvert: drawn twice, a shape is gone again),
@@ -336,9 +354,15 @@ void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw)
 {
   Fl_Widget * widget = inLink->Widget();
   int inset = inLink->Outset();
+  // clipped to the view's bounds, as on a Newton: not on its frame
+  // (nBattleship 2.5 draws a copy of a framed view at -1, -1: its frame
+  // falls outside)
+  int bw = widget->w() - 2 * inset - inLink->Shadow(), bh = widget->h() - 2 * inset - inLink->Shadow();
   if (gDirect == widget) {   // in its viewDrawScript
     gTarget = kDirect;
+    fl_push_clip(widget->x() + inset, widget->y() + inset, bw, bh);
     inDraw(widget->x() + inset, widget->y() + inset);
+    fl_pop_clip();
     return;
   }
   inLink->Canvas();   // made if it has none
@@ -347,7 +371,9 @@ void DrawOnView(Link * inLink, const std::function<void(long, long)> & inDraw)
   for (const auto & pass : passes) {
     Fl_Surface_Device::push_current(pass.first);
     gTarget = pass.second;
+    fl_push_clip(inset, inset, bw, bh);
     inDraw(inset, inset);
+    fl_pop_clip();
     Fl_Surface_Device::pop_current();
   }
   gTarget = kDirect;
@@ -399,7 +425,9 @@ Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inInd
 
 
 /* Offscreen bitmaps (MakeBitmap): drawn with FLTK into an image of the
-   bitmap's size, then back into its pixels, 1 bit deep: black where dark,
+   bitmap's size at the screen's resolution (as the same drawing is on the
+   screen: FLTK places lines a little differently at other scales), then
+   back into its pixels (the top left of each), 1 bit deep: black where dark,
    grays as the Newton's patterns (vfLtGray, vfGray, vfDkGray; from the
    bitmap's top left), as a Newton draws them into a 1-bit bitmap. */
 
@@ -422,7 +450,8 @@ bool BlackAt(int inGray, int x, int y)
 }
 
 // inDraw draws on the bitmap (its pixels as they are, in an image of its
-// size, 0, 0 its top left); then the image goes back into its pixels.
+// size at the screen's resolution, 0, 0 its top left); then the image goes
+// back into its pixels.
 void DrawOnBitmap(RefArg inBitmap, const std::function<void()> & inDraw)
 {
   RefVar pixels;
@@ -431,13 +460,13 @@ void DrawOnBitmap(RefArg inBitmap, const std::function<void()> & inDraw)
     ThrowErr(exGraf, -8804);
   int w = info.width, h = info.height;
   std::unique_ptr<Fl_Bitmap> current(ToFlImage(ToNewtonBitmap(inBitmap)));
-  Fl_Image_Surface surface(w, h, 0);
+  Fl_Image_Surface surface(w, h, 1);
   Fl_Surface_Device::push_current(&surface);
   fl_color(FL_WHITE);
   fl_rectf(0, 0, w, h);
   fl_color(FL_BLACK);
   if (current)
-    current->draw(0, 0);
+    DrawPixels(current.get(), 0, 0);
   Target target = gTarget;
   gTarget = kDirect;
   inDraw();
@@ -450,7 +479,10 @@ void DrawOnBitmap(RefArg inBitmap, const std::function<void()> & inDraw)
   std::vector<unsigned char> rows(size_t(info.rowBytes) * h, 0);
   for (int y = 0; y < h; ++y)
     for (int x = 0; x < w; ++x) {
-      int sx = std::min(dw - 1, (2 * x + 1) * dw / (2 * w)), sy = std::min(dh - 1, (2 * y + 1) * dh / (2 * h));
+      // (a pixel's top left: FLTK draws a line 2 wide 2/3 of a pixel to the
+      // left at 1.5 times, and one more screen pixel wide; its middle would
+      // put a frame's right line a pixel further in than on the screen)
+      int sx = std::min(dw - 1, x * dw / w), sy = std::min(dh - 1, y * dh / h);
       if (BlackAt(c[sy * ld + sx * d], x, y))
         rows[size_t(y) * info.rowBytes + (x >> 3)] |= (0x80 >> (x & 7));
     }
@@ -492,7 +524,10 @@ Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitma
     return NILREF;   // not open: nothing to copy
   Fl_Widget * widget = link->Widget();
   int inset = link->Outset();
-  shapes::Box src = RectOr(inSource, shapes::Box{0, 0, widget->h() - 2 * inset, widget->w() - 2 * inset});
+  // (no srcRect, as the ROM's: the view's outer bounds, its frame and
+  // shadow too: its whole widget; nBattleship 2.5 draws the copy of a
+  // framed picture at -1, -1)
+  shapes::Box src = RectOr(inSource, shapes::Box{-inset, -inset, widget->h() - inset, widget->w() - inset});
   RefVar pixels;
   shapes::PixelsInfo info;
   if (!shapes::GetPixels(inBitmap, pixels, &info))
@@ -503,10 +538,11 @@ Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitma
   long dw = dest.right - dest.left, dh = dest.bottom - dest.top;
   if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
     return NILREF;
-  // the view as it is on the screen (its children, what scripts drew), in
-  // the Newton's pixels (high_res 0: w by h; not the screen's, whose
-  // pixels, shrunk, would give grays where lines are)
-  Fl_Image_Surface surface(widget->w(), widget->h(), 0);
+  // the view as it is on the screen (its children, what scripts drew),
+  // drawn at the screen's resolution (DrawOnBitmap takes its pixels'
+  // top left: as on the screen). (Not read back from the window: in the
+  // middle of a script it may not hold the view yet.)
+  Fl_Image_Surface surface(widget->w(), widget->h(), 1);
   Fl_Surface_Device::push_current(&surface);
   fl_color(FL_WHITE);
   fl_rectf(0, 0, widget->w(), widget->h());
@@ -519,7 +555,7 @@ Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitma
   int x = int(dest.left - (src.left + inset) * dw / sw), y = int(dest.top - (src.top + inset) * dh / sh);
   DrawOnBitmap(inBitmap, [&]() {
     fl_push_clip(int(dest.left), int(dest.top), int(dw), int(dh));
-    view->draw(x, y);
+    DrawPixels(view.get(), x, y);   // (pixel for pixel, when not scaled)
     fl_pop_clip();
   });
   return NILREF;

@@ -1845,6 +1845,17 @@ Interpreter and runtime
   patterns; the view at 1x, not the screen's pixels, whose shrinking gave
   grays; no destRect: the source's size, as the ROM's FViewIntoBitmap).
   Test `fltk_bitmaps`; 2.5 plays to its end.
+  Then (Matt, 2026-09-30: after Deploy the grid is a pixel up and left):
+  ViewIntoBitmap without srcRect copies the view's outer bounds, frame
+  too (as the ROM's; 2.5's map picture has a 1-pixel frame and its copy
+  is drawn at -1, -1), and what a view draws (DrawShape, viewDrawScript)
+  is clipped to its bounds, not its frame, so that frame falls outside.
+  Bitmaps are drawn at the screen's resolution and read at each pixel's
+  top left (the view's frame came out a pixel in otherwise, B30), and
+  drawn unsmoothed (DrawPixels: Quartz gave grays at their edges). The
+  map is now the same before and after Deploy, screen pixel for pixel,
+  but for the ships (2.5's Save draws each at 0, 0 of its view; the view
+  centres its icon, 56 wide in 59, see "ships" in CLAUDE.md) and B30.
 - [x] B28 **Negative numbers and 0 are "too small" to print** (Locales.cc,
   NumberString: `inNum < DBL_MIN`, the smallest positive double, where
   the ROM means `-DBL_MAX`): `NumberStr(-2.25)` and `NumberStr(0.0)` gave

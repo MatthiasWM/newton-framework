@@ -448,6 +448,21 @@ Interpreter and runtime
   real Newton (30 bits): check what the writers do with one.
 
 
+Views and drawing
+- [ ] B30 **A frame 2 wide is 2/3 of a pixel off** (found 2026-09-30 with
+  2.5's maps): at 1.5 times on a Retina screen (3 screen pixels a Newton
+  pixel), DrawViewFormat's frame (fl_rect, line width 2) covers 7 screen
+  pixels from 2 left of the widget's edge: it reaches 2 screen pixels
+  into the view at the right and the bottom (2.5's gray map frame). In
+  an image surface it came out a pixel further in (ViewIntoBitmap reads
+  pixels at their top left, which matches the screen). Check pens 1 to 4
+  at 1, 1.5 and 2 times (Matt's wide-line work in FLTK).
+- [ ] **Ships** (question, 2026-09-30): a clPictureView without a
+  viewJustify centres its icon here (as we read CPictureView,
+  protoInfoButton); 2.5's ships (icons 56 wide in 59-wide views) then
+  move a pixel left and up after Deploy, when 2.5 draws them into its
+  map bitmap at 0, 0. On Einstein: are they centred before Deploy?
+
 Decompiler
 - [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
   builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine

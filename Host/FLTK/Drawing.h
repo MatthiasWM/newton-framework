@@ -40,6 +40,7 @@
 
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl_Widget.H>
+#include <FL/Fl_Image.H>
 
 #include "Frames/Objects.h"
 
@@ -57,6 +58,10 @@ Ref DrawShape(RefArg inContext, RefArg inShape, RefArg inStyle);
     mode: as a style's transferMode (nil: copy). */
 Ref DrawXBitmap(RefArg inContext, RefArg inBounds, RefArg inBitmap, RefArg inIndex, RefArg inMode);
 
+/** An image (a Newton bitmap, a picture) at x, y, its pixels blocks of
+    the screen's (not smoothed when scaled). */
+void DrawPixels(Fl_Image * inImage, int x, int y);
+
 /** What follows inverts what is under it, drawn in white (XOR with black):
     the difference blend mode (macOS; see Drawing.cc). */
 void BlendInvert(bool inOn);
@@ -72,7 +77,7 @@ Ref DrawIntoBitmap(RefArg inShape, RefArg inStyle, RefArg inBitmap);
 
 /** view:ViewIntoBitmap(srcRect, destRect, bitmap): the view as it is on
     the screen (with its children and what scripts drew), its srcRect
-    (nil: all of it) into the bitmap's destRect (nil, as the ROM's: the
+    (nil, as the ROM's: its outer bounds, frame and shadow too) into the bitmap's destRect (nil, as the ROM's: the
     source's size, at the bitmap's top left), scaled if they differ. Nothing if the view isn't open. */
 Ref ViewIntoBitmap(RefArg inView, RefArg inSource, RefArg inDest, RefArg inBitmap);
 

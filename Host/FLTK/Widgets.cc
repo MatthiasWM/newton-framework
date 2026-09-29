@@ -359,7 +359,7 @@ void PictureView::DrawImage()
     fl_rectf(px, py, fImage->w(), fImage->h());
   }
   fl_color(FL_BLACK);   // a bitmap's color
-  fImage->draw(px, py);
+  DrawPixels(fImage, px, py);
 }
 
 } // namespace nfl
