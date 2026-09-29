@@ -129,9 +129,9 @@ std::string IdentifierPart(const std::string & inName)
 }
 
 
-/* The package's icon (a Newton bitmap), as NewtPlay's own apps have had it
-   since nBattleship.app (cmake/make_app_icon.py): its pixels, big and crisp,
-   on a rounded square of a Newton screen's green. */
+/* The package's icon (a Newton bitmap), as nBattleship.app had it (built
+   into newtc then, until NewtPlay, 11.5): its pixels, big and crisp, on a
+   rounded square of a Newton screen's green. */
 
 // The icon frame, as newtc prints it: a copy of NewtPlay run as newtc prints
 // the package's (its form part's) icon.

@@ -732,7 +732,7 @@ if (NEWTC_USES_FLTK)
   target_sources (newtc PRIVATE Host/FLTK/RomImages.cc Host/FLTK/RomImages.h "${rom_images_cc}")
 endif ()
 
-# A target with newtc's sources and settings (for the apps below), plus
+# A target with newtc's sources and settings (for NewtPlay below), plus
 # more sources.
 function (newtc_like target)
   get_target_property (sources newtc SOURCES)
@@ -774,60 +774,6 @@ if (NEWTC_USES_FLTK AND APPLE)
     COMMENT "Signing NewtPlay.app (ad hoc)"
   )
 endif ()
-
-# A Newton app as a macOS app of its own (Matt/EmbeddedApp.h): newtc with
-# the package compiled in, as a bundle (<name>.app) to double click. Only
-# if a package is given, and with FLTK:
-#   cmake ... -DNEWTC_USES_FLTK=ON -DNEWTC_APP_PKG=/path/to/app.pkg
-#             [-DNEWTC_APP_NAME=name] [-DNEWTC_APP_VERSION=1.0]
-# Matt/tools/build_app.sh builds one (for macOS 13, universal).
-set (NEWTC_APP_PKG "" CACHE FILEPATH "A Newton package to build as a macOS app (target newtc_app)")
-set (NEWTC_APP_NAME "" CACHE STRING "The app's name (default: the package's file name)")
-set (NEWTC_APP_VERSION "1.0" CACHE STRING "The app's version")
-if (NEWTC_APP_PKG)
-  if (NOT NEWTC_USES_FLTK)
-    message (FATAL_ERROR "NEWTC_APP_PKG needs NEWTC_USES_FLTK=ON (the app shows its views)")
-  endif ()
-  set (app_name "${NEWTC_APP_NAME}")
-  if (NOT app_name)
-    get_filename_component (app_name "${NEWTC_APP_PKG}" NAME_WE)
-  endif ()
-  set (app_package_cc "${CMAKE_BINARY_DIR}/generated/EmbeddedAppPackage.cc")
-  add_custom_command (
-    OUTPUT "${app_package_cc}"
-    COMMAND ${CMAKE_COMMAND} -DIN=${NEWTC_APP_PKG} -DOUT=${app_package_cc} -DNAME=${app_name}
-            -P ${CMAKE_SOURCE_DIR}/cmake/EmbedPackage.cmake
-    DEPENDS "${NEWTC_APP_PKG}" "${CMAKE_SOURCE_DIR}/cmake/EmbedPackage.cmake"
-    COMMENT "Embedding the package ${NEWTC_APP_PKG}"
-  )
-  # newtc's sources and settings, and the package
-  newtc_like (newtc_app Matt/EmbeddedApp.h "${app_package_cc}")
-  target_compile_definitions (newtc_app PRIVATE NEWTC_EMBEDDED_APP=1)
-  string (REGEX REPLACE "[^A-Za-z0-9.-]" "-" app_id "${app_name}")
-  set_target_properties (newtc_app PROPERTIES
-    OUTPUT_NAME "${app_name}"
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/AppInfo.plist.in"
-    MACOSX_BUNDLE_BUNDLE_NAME "${app_name}"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "org.newton-framework.app.${app_id}"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "${NEWTC_APP_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_VERSION "${NEWTC_APP_VERSION}"
-    MACOSX_BUNDLE_COPYRIGHT "${app_name} on newtc (newton-framework)"
-  )
-  # its icon: the package's own (cmake/make_app_icon.py), printed by the app
-  # itself (with arguments it is newtc); then signed (ad hoc) as a whole
-  find_package (Python3 COMPONENTS Interpreter REQUIRED)
-  set (app_icon_txt "${CMAKE_BINARY_DIR}/generated/AppIcon.txt")
-  add_custom_command (TARGET newtc_app POST_BUILD
-    COMMAND "$<TARGET_FILE:newtc_app>" -pkg "${NEWTC_APP_PKG}"
-            -script "${CMAKE_SOURCE_DIR}/cmake/print_app_icon.ns" > "${app_icon_txt}"
-    COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/cmake/make_app_icon.py" "${app_icon_txt}"
-            "$<TARGET_BUNDLE_CONTENT_DIR:newtc_app>/Resources/AppIcon.icns"
-    COMMAND codesign --force --sign - "$<TARGET_BUNDLE_DIR:newtc_app>"
-    COMMENT "The icon of ${app_name}.app, and signing it (ad hoc)"
-  )
-  message (STATUS "newtc: the app ${app_name}.app (target newtc_app) from ${NEWTC_APP_PKG}")
-endif ()
-
 
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
