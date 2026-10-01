@@ -52,8 +52,11 @@ doesn't know about it.
     options, gives its imports their slot (or own) addresses, links it so
     its functions land at their ROM addresses, compares each function with
     Apple's image up to the next symbol.
+  - `tools/romkinds.py <newtonos.s> <out>`: `kinds.bin`, a byte per ROM
+    word: an instruction, a data word, or not known (from the
+    disassembly; `NEWTONOS_S`, default the repository's `newtonos.s`).
   - `tools/romasm.py <rom> <out>`: the ROM as assembler source
-    (`build/romasm/`: `ro_NN.a`, `rw.a`, `zi.a`, `scatter.txt`,
+    (`build/romasm/`: `ro_NN.a`, `rw.a`, `zi.a`, `abs.a`, `scatter.txt`,
     `files.txt`, `link.txt`).
   - `tools/romlink.py`: assembles them (in parallel), links an AIF with the
     scatter file, compares with Apple's: header sizes, RO and RW, the
@@ -255,8 +258,20 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     counts, writes the misses to `build/shift/report.txt`. Verbatim, 16
     bytes before 0x188D38: 81,004 branches and 244,529 address candidates,
     none followed yet; 0 errors. Builds both in about 9 s.
-  - [ ] **R3c Calls and branches** that leave a function: `BL`/`B` to a
-    label (or to the jump-table slot).
+  - [x] **R3c Calls and branches** that leave a function. Done
+    (2026-10-02): a `B`/`BL` that is an instruction by newtonos.s
+    (`romkinds.py`) and in a code symbol by Apple's table, with its target
+    outside its own symbol, is written as the instruction to a label:
+    101,586 of them. Targets: a function's label; a jump-table slot as an
+    absolute symbol `|VEC_Name|` (14,243, in `abs.a`); 449 labels made
+    where a target has no symbol (`|L_0x1234|`). Every label is exported
+    now (a repeated name with its address: `|Name@0x1234|`). Identical to
+    Apple's; the shift test: every branch instruction that crosses the
+    padding follows (47,554 at 0x188D38, 88,354 at 0x3011C), no errors.
+    Branch-shaped data words in code symbols are listed apart (33,450: the
+    public jump table at 0x13000, real branches newtonos.s shows as
+    `.word`, for R3g; the rest data: the NewtonScript area, recogniser
+    tables).
   - [ ] **R3d Literal pools**: addresses loaded from a function's pool.
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).

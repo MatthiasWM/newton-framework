@@ -35,14 +35,24 @@ add_custom_command(
   DEPENDS "${CMAKE_SOURCE_DIR}/tools/romsyms.py" "${ROM_IMAGE}"
   COMMENT "The ROM's parts and symbols (tools/romsyms.py)"
   VERBATIM)
-add_custom_target(rom ALL DEPENDS "${ROM_DIR}/symbols.json")
+add_custom_target(rom ALL DEPENDS "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin")
+
+# R3c: which words are instructions, from the disassembly of the ROM
+set(NEWTONOS_S "${CMAKE_SOURCE_DIR}/../newtonos.s" CACHE FILEPATH
+    "newtonos.s, the ROM's disassembly (git-ignored, at the repository's top)")
+add_custom_command(
+  OUTPUT "${ROM_DIR}/kinds.bin"
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romkinds.py" "${NEWTONOS_S}" "${ROM_DIR}"
+  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romkinds.py" "${NEWTONOS_S}"
+  COMMENT "Instructions and data words (tools/romkinds.py)"
+  VERBATIM)
 
 # R2: the ROM as assembler source (generated), assembled and linked back
 set(ROMASM_DIR "${CMAKE_BINARY_DIR}/romasm")
 add_custom_command(
   OUTPUT "${ROMASM_DIR}/files.txt"
   COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}" "${ROMASM_DIR}"
-  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}/symbols.json"
+  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin"
   COMMENT "The ROM as assembler source (tools/romasm.py)"
   VERBATIM)
 add_custom_target(romasm ALL DEPENDS "${ROMASM_DIR}/files.txt")

@@ -9,7 +9,11 @@ moves by N; the read-write data runs where it did. Then, word by word (each
 word mapped to where it is in the padded image):
 
 - branches (B, BL) in code whose one end moved and the other did not (a
-  jump-table slot does not move): they must be encoded anew;
+  jump-table slot does not move): they must be encoded anew; an
+  instruction by newtonos.s (romkinds.py) is a branch, a data word with
+  a branch's bits is listed apart (the public jump table at 0x13000 is
+  such: real branches the disassembly shows as `.word`; the others are
+  data, e.g. in the NewtonScript area);
 - words whose value is an address in the part that moved: they must grow
   by N (some are data that only looks like an address: candidates);
 - anything else that changed: an error.
@@ -92,7 +96,9 @@ def main():
     def moves(addr):
         return P <= addr < ro_size
 
-    counts = {k: [0, 0] for k in ('branch', 'pointer')}
+    with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
+        kinds = f.read()
+    counts = {k: [0, 0] for k in ('branch', 'pointer', 'branch-like data')}
     errors = 0
     report = []
     total = len(base) // 4
@@ -104,6 +110,23 @@ def main():
         expected = None
         kind = None
         name, cls = where(a) if a < ro_size else ('(RW data)', 'data')
+        if a < ro_size and cls == 'code' and is_branch(w) and kinds[a // 4] != ord('i'):
+            t = branch_target(w, a)
+            if moves(a) != moves(t):
+                kind = 'branch-like data'
+                delta = (N if moves(t) else -N) // 4
+                expected = (w & 0xFF000000) | ((w + delta) & 0xFFFFFF)
+            if w2 != w and w2 != expected:
+                errors += 1
+                report.append('ERROR    0x%07X %-60s 0x%08X became 0x%08X' % (a, name, w, w2))
+                continue
+            if kind and w2 == w:
+                counts[kind][1] += 1
+                report.append('%-8s 0x%07X %-60s 0x%08X (a branch to 0x%X if it is one)'
+                              % ('bdata', a, name, w, t))
+            elif kind:
+                counts[kind][0] += 1
+            continue
         if a < ro_size and cls == 'code' and is_branch(w):
             t = branch_target(w, a)
             pc_moves, t_moves = moves(a), moves(t)
@@ -131,6 +154,8 @@ def main():
         f.write('\n'.join(report) + '\n')
     print('padding: %d bytes before 0x%X (%s)' % (N, P, where(P)[0]))
     print('branches that cross it:   %6d followed, %6d did not' % tuple(counts['branch']))
+    print('data words shaped so:     %6d followed, %6d did not (the public jump table, data)'
+          % tuple(counts['branch-like data']))
     print('addresses past it:        %6d followed, %6d did not (candidates)' % tuple(counts['pointer']))
     print('other changes (errors):   %6d' % errors)
     print('the ones that did not: %s' % os.path.join(args.out, 'report.txt'))
