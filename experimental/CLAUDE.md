@@ -244,8 +244,17 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     Apple's layout (the same header words, addressing type 0x120). The
     header's sizes, RO, RW and the linker's 10 own symbols in Apple's
     table are all Apple's.
-  - [ ] **R3b The shift test** as a tool: padding put in at a point, two
-    links compared, the words that should have moved and didn't listed.
+  - [x] **R3b The shift test.** Done (2026-10-02): `tools/shifttest.py`
+    (target `shift`): `romasm.py --pad ADDRESS:BYTES` puts zero bytes in
+    before a symbol; two builds, compared word by word (a word after the
+    padding looked up N bytes on). Branches in code (by Apple's symbol
+    classes) with one end moved and not the other (jump-table slots don't
+    move) must be encoded anew; words whose value is an address in the
+    moved part must grow by N (candidates: some are data, e.g. 0x00200000
+    in the MMU tables); anything else that changes is an error. Prints the
+    counts, writes the misses to `build/shift/report.txt`. Verbatim, 16
+    bytes before 0x188D38: 81,004 branches and 244,529 address candidates,
+    none followed yet; 0 errors. Builds both in about 9 s.
   - [ ] **R3c Calls and branches** that leave a function: `BL`/`B` to a
     label (or to the jump-table slot).
   - [ ] **R3d Literal pools**: addresses loaded from a function's pool.

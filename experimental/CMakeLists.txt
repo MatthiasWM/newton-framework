@@ -59,3 +59,11 @@ add_custom_target(check
   DEPENDS rom romasm
   COMMENT "The probes and the whole ROM against Apple's image"
   VERBATIM)
+
+# R3b: the shift test (padding put in, two links compared; see the tool)
+add_custom_target(shift
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/shifttest.py"
+          --bin "${TOOLS}" --rom "${ROM_DIR}" --out "${CMAKE_BINARY_DIR}/shift"
+  DEPENDS rom
+  COMMENT "The shift test (tools/shifttest.py)"
+  VERBATIM)

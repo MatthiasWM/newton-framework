@@ -27,25 +27,20 @@ def run(cmd):
     return p.returncode, (p.stdout + p.stderr).strip()
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--bin', required=True)
-    ap.add_argument('--src', required=True)
-    ap.add_argument('--rom', required=True)
-    ap.add_argument('--out', required=True)
-    args = ap.parse_args()
-    os.makedirs(args.out, exist_ok=True)
-    with open(os.path.join(args.src, 'files.txt')) as f:
+def build(bin_dir, src, out):
+    """Assemble and link src (romasm.py's output) into out; return the AIF's
+    bytes and the linker's symbols, or None (the errors printed)."""
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(src, 'files.txt')) as f:
         files = [l.strip() for l in f if l.strip()]
-    with open(os.path.join(args.src, 'link.txt')) as f:
-        options = [os.path.join(args.src, o) if o.endswith('.txt') else o for o in f.read().split()]
-
-    asm = os.path.join(args.bin, 'ARM6asm')
+    with open(os.path.join(src, 'link.txt')) as f:
+        options = [os.path.join(src, o) if o.endswith('.txt') else o for o in f.read().split()]
+    asm = os.path.join(bin_dir, 'ARM6asm')
     t = time.time()
 
     def assemble(name):
-        obj = os.path.join(args.out, os.path.splitext(name)[0] + '.o')
-        return name, obj, run([asm, '---text=utf8', '-bigend', os.path.join(args.src, name), obj])
+        obj = os.path.join(out, os.path.splitext(name)[0] + '.o')
+        return name, obj, run([asm, '---text=utf8', '-bigend', os.path.join(src, name), obj])
 
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
         results = list(pool.map(assemble, files))
@@ -53,25 +48,47 @@ def main():
     for n, msg in failed:
         print('%s does not assemble:\n%s' % (n, msg))
     if failed:
-        return 1
+        return None
     print('assembled %d files in %.1f s' % (len(files), time.time() - t))
-
     t = time.time()
-    image = os.path.join(args.out, 'rom.aif')
-    rc, msg = run([os.path.join(args.bin, 'ARMLink'), '---text=utf8'] + options
-                  + ['-Symbols', os.path.join(args.out, 'symbols.txt'), '-o', image]
-                  + [obj for _, obj, _ in results])
+    image = os.path.join(out, 'rom.aif')
+    listing = os.path.join(out, 'symbols.txt')
+    rc, msg = run([os.path.join(bin_dir, 'ARMLink'), '---text=utf8'] + options
+                  + ['-Symbols', listing, '-o', image] + [obj for _, obj, _ in results])
     if rc != 0:
         print('does not link:\n%s' % msg)
-        return 1
+        return None
     print('linked in %.1f s' % (time.time() - t))
-
     with open(image, 'rb') as f:
         aif = f.read()
-    e = '>'
-    (ro_size, rw_size, _, zi_size, _, image_base, _, _, data_base) = \
-        struct.unpack_from(e + '9I', aif, 0x14)
-    ours = aif[0x80:0x80 + ro_size + rw_size]
+    linked = {}
+    with open(listing, encoding='utf-8', errors='replace') as f:
+        for line in f:
+            m = re.match(r'^(\S+)\s+([0-9a-fA-F]+)\s*$', line)
+            if m:
+                linked[m.group(1)] = int(m.group(2), 16)
+    return aif, linked
+
+
+def image_parts(aif):
+    """An AIF's header numbers and its RO + RW bytes."""
+    (ro_size, rw_size, _, zi_size, _, image_base, _, _, data_base) = struct.unpack_from('>9I', aif, 0x14)
+    return (ro_size, rw_size, zi_size, image_base, data_base), aif[0x80:0x80 + ro_size + rw_size]
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
+    ap.add_argument('--bin', required=True)
+    ap.add_argument('--src', required=True)
+    ap.add_argument('--rom', required=True)
+    ap.add_argument('--out', required=True)
+    args = ap.parse_args()
+    built = build(args.bin, args.src, args.out)
+    if built is None:
+        return 1
+    aif, linked = built
+    header, ours = image_parts(aif)
+    ro_size, rw_size, zi_size, image_base, data_base = header
     with open(os.path.join(args.rom, 'ro.bin'), 'rb') as f:
         ro = f.read()
     with open(os.path.join(args.rom, 'rw.bin'), 'rb') as f:
@@ -96,12 +113,6 @@ def main():
         print('DIFFERENT: %d bytes, Apple\'s %d; first difference at 0x%X' % (len(ours), len(apple), first))
         ok = False
     # the linker's own symbols, against Apple's symbol table
-    linked = {}
-    with open(os.path.join(args.out, 'symbols.txt'), encoding='utf-8', errors='replace') as f:
-        for line in f:
-            m = re.match(r'^(\S+)\s+([0-9a-fA-F]+)\s*$', line)
-            if m:
-                linked[m.group(1)] = int(m.group(2), 16)
     apple_syms = {}
     for s in info['symbols']:
         apple_syms.setdefault(s['name'], set()).add(s['value'])
