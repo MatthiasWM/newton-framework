@@ -3,8 +3,8 @@
 
     romasm.py <rom-dir> <out-dir> [--chunk BYTES] [--pad ADDRESS:BYTES]
 
-From romsyms.py's and romkinds.py's output (ro.bin, rw.bin, symbols.json,
-kinds.bin), writes ARM6asm source that ARMLink turns back into Apple's
+From romsyms.py's and romcode.py's output (ro.bin, rw.bin, symbols.json,
+code.bin), writes ARM6asm source that ARMLink turns back into Apple's
 image:
 
     ro_NN.a      the read-only part in pieces of about --chunk bytes (cut at
@@ -28,10 +28,10 @@ addresses), other bytes as DCB, but where a word refers to an address
 (R3): then it is written as what it means, so that it follows when things
 move.
 
-- R3c: a branch (B, BL) in code to outside its own function (an
-  instruction by newtonos.s, in a code symbol by Apple's table) is written
-  as the instruction to a label: the function's, a jump-table slot's, or a
-  label made for the target (|L_0x1234|).
+- R3c: a branch (B, BL) in code to outside its own symbol (code by
+  romcode.py, which follows the code) is written as the instruction to a
+  label: the function's, a jump-table slot's, or a label made for the
+  target (|L_0x1234|); so is every vtable entry (romcode.py's 'v').
 """
 
 import argparse
@@ -113,16 +113,14 @@ class Source:
         """R3c: branches in code that leave their function."""
         for i in range(len(self.ro) // 4):
             a = 4 * i
-            if self.kinds[i] != ord('i'):
+            if self.kinds[i] not in (ord('c'), ord('n'), ord('v')):
                 continue
             w = struct.unpack_from('>I', self.ro, a)[0]
             if not is_branch(w):
                 continue
             start, end, cls = self.region(a)
-            if cls != 'code':
-                continue
             t = branch_target(w, a)
-            if start <= t < end:
+            if start <= t < end and self.kinds[i] != ord('v'):
                 continue
             label = self.label_for(t)
             op = ('BL' if w & 0x01000000 else 'B') + CONDITIONS[w >> 28]
@@ -222,7 +220,7 @@ def main():
         ro = f.read()
     with open(os.path.join(args.rom, 'rw.bin'), 'rb') as f:
         rw = f.read()
-    with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
+    with open(os.path.join(args.rom, 'code.bin'), 'rb') as f:
         kinds = f.read()
     with open(os.path.join(args.rom, 'symbols.json')) as f:
         info = json.load(f)

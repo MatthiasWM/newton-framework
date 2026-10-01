@@ -4,29 +4,42 @@
     romcode.py <rom-dir> [--compare kinds.bin]
 
 Starts at every function the jump table names (each slot's target), at
-every code symbol that looks like a function (below), and at the static
+every code symbol that looks like a function (below), at the static
 constructors and destructors (the pointers between C$$ctorvec$$Base and
-$$Limit, C$$dtorvec$$Base and $$Limit), and follows the
+$$Limit, C$$dtorvec$$Base and $$Limit), and at every compiler prologue not
+yet reached (`MOV ip, sp` then `STMDB sp!, {..., fp, ip, lr, pc}`:
+functions without a symbol), and follows the
 code from there; then again from what that found: function
 pointers (a literal whose value is where a code symbol starts) and the
 targets of vtables (runs of unconditional `B` not reached as code, each
 to a function or a jump-table slot), until nothing new turns up. Such a
 target counts only if it looks like a function: a mangled C++ function
-name, or the compiler's prologue (`MOV ip, sp`) as its first word (Apple's
+name, a native function's name (`F` and a capital: `FGetVariable`, which
+NewtonScript reaches through the native table), or the compiler's
+prologue (`MOV ip, sp`) as its first word (Apple's
 table calls data in code areas code too: parser tables, trigram data). Each
 instruction reached is code; a `BL`'s
 target is another function to follow; a `B`'s target is followed too
 (and, if unconditional, ends this path); a return (`MOV pc, ...`,
 `LDM ... {..., pc}`, `LDR pc, ...`) or any other unconditional write to
 pc ends it, except a switch (`ADD pc, pc, Rn, LSL #2`), whose table of
-branches follows it; so does an undefined instruction (a trap, as the jump
+branches follows it (the last case is not a branch but its code, right
+after the table); a write to pc right after `MOV lr, pc` is a call
+(virtual calls: `MOV lr, pc; ADD pc, r1, #n`, `LDR pc, ...`), so the path
+goes on after it; so does an undefined instruction (a trap, as the jump
 table's fillers have), and the start of the next symbol in Apple's table
 (compiled code never runs from one function into the next). A word a PC-relative `LDR` loads is a literal; an
 address an `ADR` (ADD/SUB Rd, pc, #n) makes is data the code refers to.
 
+With --compare, newtonos.s's instructions (romkinds.py) inside a function
+we followed, where we did not get to, are taken as code too ('n'): code
+after a return that no branch we know reaches (computed jumps, tables of
+addresses, callbacks); never in a symbol we did not follow as a function.
+
 Writes <rom-dir>/code.bin, a byte per word of the read-only part: 'c'
-code, 'l' a literal word, 'd' data the code points at (ADR, byte loads),
-'v' a vtable entry, 0 not reached. With --compare, lists where newtonos.s's marks
+code, 'n' code by newtonos.s inside a function, 'l' a literal word, 'd'
+data the code points at (ADR, byte loads), 'v' a vtable entry, 0 not
+reached. With --compare, lists where newtonos.s's marks
 (romkinds.py) disagree.
 """
 
@@ -80,6 +93,7 @@ def main():
                       and s['value'] % 4 == 0)
     slots = set(info['slots'].values())
     mangled = re.compile(r'__(Q\d+_)?(\d+[A-Za-z_]\w*?)*S?C?F')
+    native = re.compile(r'^F[A-Z][A-Za-z0-9]*$')
     name_at = {}
     for s_ in info['symbols']:
         name_at.setdefault(s_['value'], []).append(s_['name'])
@@ -87,7 +101,7 @@ def main():
     def looks_like_function(a):
         if a in seeds:
             return True
-        if any(mangled.search(n) for n in name_at.get(a, ())):
+        if any(mangled.search(n) or native.match(n) for n in name_at.get(a, ())):
             return True
         return 0 <= a < size and a % 4 == 0 and words[a // 4] == 0xE1A0C00D
 
@@ -115,11 +129,11 @@ def main():
                   counts['ended at a trap'] += 1
                   break
               mark[i] = C
-              always = cond == 0xE
+              # a write to pc right after MOV lr, pc is a call: the path goes on
+              always = cond == 0xE and not (i > 0 and words[i - 1] == 0xE1A0E00F and mark[i - 1] == C)
               op = (w >> 25) & 7
               if table and op != 5:
-                  mark[i] = 0                                # the table has ended
-                  break
+                  table = False      # the table's last case is its code, right after the branches
               if op == 5:                                    # B, BL
                   t = decode_target(w, pc)
                   if 0 <= t < size:
@@ -183,6 +197,11 @@ def main():
                 functions.add(f)
                 work.append(f)
                 counts['static constructors and destructors'] += 1
+    for i in range(nwords - 1):
+        if words[i] == 0xE1A0C00D and (words[i + 1] & 0xFFFFD800) == 0xE92DD800 and 4 * i not in functions:
+            functions.add(4 * i)
+            work.append(4 * i)
+            counts['prologues (functions without a symbol, or not yet found)'] += 1
     for a in sorted(code_starts):
         if a not in functions and looks_like_function(a):
             functions.add(a)
@@ -227,6 +246,20 @@ def main():
         follow()
     for k, v in found.items():
         print('  found by %s: %d' % (k, v))
+
+    if args.compare:
+        with open(args.compare, 'rb') as f:
+            kinds = f.read()
+        followed = sorted(a for a in functions if a in starts)
+        all_starts = sorted(starts)
+        import bisect
+        for i in range(nwords):
+            if mark[i] == 0 and kinds[i] == ord('i'):
+                a = 4 * i
+                k = bisect.bisect_right(all_starts, a) - 1
+                if k >= 0 and all_starts[k] in functions:
+                    mark[i] = ord('n')
+                    counts['code by newtonos.s inside a followed function'] += 1
 
     with open(os.path.join(args.rom, 'code.bin'), 'wb') as f:
         f.write(mark)

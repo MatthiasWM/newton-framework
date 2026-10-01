@@ -314,7 +314,25 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       vector, and code nothing branches to (after a switch's table in
       `TParagraphView::RealDoCommand`: dead, or reached in a way neither
       sees).
-    - [ ] **R3d.2 R3c from this**: branches from our code marks.
+    - [x] **R3d.2 R3c from this** (2026-10-02). Branches now come from
+      `code.bin`; vtable entries are written as `B |function|` too. Fixes
+      to the following on the way: the last case of a switch is its code
+      right after the table of branches; a write to pc right after `MOV
+      lr, pc` is a call (virtual calls: `MOV lr, pc; ADD pc, r1, #n`), so
+      the path goes on (this alone took the unreached instructions from
+      52,198 to 8,768); every compiler prologue (`MOV ip, sp`, `STMDB sp!,
+      {..., fp, ip, lr, pc}`) is a start (1,199 functions, some without a
+      symbol); native function names (`F` and a capital) look like
+      functions. Fallback: newtonos.s's instructions inside a function we
+      followed, where we did not get to, count as code ('n', 4,331 words:
+      code after a return that no known branch reaches). Now: 19,500-odd
+      functions, 838,058 code words, 13,633 literals; 2,983 of newtonos.s's
+      instructions not reached. 101,649 branches to labels; identical to
+      Apple's; the shift test: 47,545 crossing branches follow and 9 do
+      not at 0x188D38, 88,344 and 10 at 0x3011C: 7 in hand-written
+      assembler (`Reset`, `ROMBoot`, `DataAbortHandler`,
+      `ExitCPUFIQAtomic`, `DoSchedulerSWI`: R3h), 3 in code without symbol
+      or prologue after `C$$dtorvec$$Limit`.
     - [ ] **R3d.3 Literals**: the addresses in them as labels.
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
