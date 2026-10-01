@@ -55,6 +55,10 @@ doesn't know about it.
   - `tools/romkinds.py <newtonos.s> <out>`: `kinds.bin`, a byte per ROM
     word: an instruction, a data word, or not known (from the
     disassembly; `NEWTONOS_S`, default the repository's `newtonos.s`).
+  - `tools/romcode.py <rom> [--compare kinds.bin]`: `code.bin`, a byte
+    per word of the read-only part: code, a literal, data the code points
+    at, a vtable entry, or not reached; found by following the code
+    (R3d).
   - `tools/romasm.py <rom> <out>`: the ROM as assembler source
     (`build/romasm/`: `ro_NN.a`, `rw.a`, `zi.a`, `abs.a`, `scatter.txt`,
     `files.txt`, `link.txt`).
@@ -286,7 +290,32 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     until shown otherwise. Then R3c's branches come from this, not from
     newtonos.s (its instruction marks only as a cross-check, the
     disagreements listed), and literal-pool words that are addresses are
-    written as `DCD label+offset`.
+    written as `DCD label+offset`. In steps:
+    - [x] **R3d.1 Following the code** (2026-10-02, `tools/romcode.py`).
+      Starts: the 16,567 functions the jump table names, the code symbols
+      that look like functions (a mangled C++ function name, or `MOV ip,
+      sp` first: 2,166 more), the static constructors and destructors (36,
+      from `C$$ctorvec`/`C$$dtorvec`); then, until nothing new, function
+      pointers in literals (same test) and vtables (runs of unconditional
+      `B` to functions or slots: 8,746 entries). A path ends at a return,
+      an unconditional branch, a write to pc, an undefined instruction (the
+      jump table's fillers are traps), or where the next symbol starts; a
+      switch (`ADDLS pc, pc, Rn, LSL #2`) is followed by its table of
+      branches. The test for "looks like a function" matters: Apple's table
+      calls data in code areas code too (`yytable`, `bpWeight`, trigram
+      and NewtonScript data), and literals point at them. Result: 19,209
+      functions, 773,396 code words, 13,029 literals, 1,394 data words the
+      code points at. Against newtonos.s: 567,203 code in both, 12,971
+      literals its data, 5 words our code its data; 205,971 of our code it
+      has not classified; 54,413 of its instructions we don't reach:
+      computed jumps (`MOV pc, r6`, `ADD pc, r1, #n`, `LDR pc, [r0, r1, LSL
+      #2]` with a table of addresses), the floating-point emulator
+      (`FP_UndefHandlers_Start`, hand-written), code after the destructor
+      vector, and code nothing branches to (after a switch's table in
+      `TParagraphView::RealDoCommand`: dead, or reached in a way neither
+      sees).
+    - [ ] **R3d.2 R3c from this**: branches from our code marks.
+    - [ ] **R3d.3 Literals**: the addresses in them as labels.
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
   - [ ] **R3f The NewtonScript object area.**

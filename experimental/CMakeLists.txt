@@ -35,7 +35,16 @@ add_custom_command(
   DEPENDS "${CMAKE_SOURCE_DIR}/tools/romsyms.py" "${ROM_IMAGE}"
   COMMENT "The ROM's parts and symbols (tools/romsyms.py)"
   VERBATIM)
-add_custom_target(rom ALL DEPENDS "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin")
+add_custom_target(rom ALL DEPENDS "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin" "${ROM_DIR}/code.bin")
+
+# R3d: code and literals, found by following the code from the functions
+add_custom_command(
+  OUTPUT "${ROM_DIR}/code.bin"
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romcode.py" "${ROM_DIR}"
+          --compare "${ROM_DIR}/kinds.bin"
+  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romcode.py" "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin"
+  COMMENT "Code and literals (tools/romcode.py)"
+  VERBATIM)
 
 # R3c: which words are instructions, from the disassembly of the ROM
 set(NEWTONOS_S "${CMAKE_SOURCE_DIR}/../newtonos.s" CACHE FILEPATH
