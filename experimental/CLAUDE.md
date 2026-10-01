@@ -241,10 +241,12 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     its keyword, not a name: the linker then makes Apple's symbols
     `ROM$$Size`, `Image$$root$$Base`, `Image$$root$$Length`,
     `Load$$root$$Base`, `Image$$root$$ZI$$Base`, `...$$ZI$$Length`).
-    Linked as an AIF (`-AIF -NOZEROpad -Entry 0 -SCATTER`): with `-BIN` the
-    linker wants a folder per load region, and mosrun has no mkdir yet;
-    `-AIF` with a scatter file is a plain binary with an AIF header, in
-    Apple's layout (the same header words, addressing type 0x120). The
+    Linked as an AIF (`-AIF -NOZEROpad -Entry 0 -SCATTER`): a plain binary
+    with an AIF header, in Apple's layout (the same header words,
+    addressing type 0x120), so the header can be compared too. `-BIN` with
+    the scatter file works as well since mosrun has mkdir (2026-10-02): the
+    output is a folder with one file per load region, here `root`, which is
+    RO + RW, `ROM$$Size` bytes: the ROM below the ROM extension. The
     header's sizes, RO, RW and the linker's 10 own symbols in Apple's
     table are all Apple's.
   - [x] **R3b The shift test.** Done (2026-10-02): `tools/shifttest.py`
