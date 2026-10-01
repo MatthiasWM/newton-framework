@@ -32,6 +32,12 @@ move.
   romcode.py, which follows the code) is written as the instruction to a
   label: the function's, a jump-table slot's, or a label made for the
   target (|L_0x1234|); so is every vtable entry (romcode.py's 'v').
+- R3d.3: a literal (a word the code loads PC-relative, romcode.py's 'l')
+  whose value is an address is written as `DCD |label|+offset` (the
+  nearest label at or below it): an address in the read-only part from
+  0x10000 up (below, small numbers and the hand-written start of the ROM
+  look alike: R3h), in the RAM data (RW, zero-init), with or without a
+  NewtonScript tag (+1), or a jump-table slot (|VEC_Name|).
 """
 
 import argparse
@@ -108,6 +114,41 @@ class Source:
         name = 'A_0x%08X' % t
         self.absolute[name] = t
         return name
+
+    def literals(self, ram_labels, ram_low, ram_high):
+        """R3d.3: literals that are addresses, as label+offset."""
+        ro_points = sorted(self.ro_labels)
+        ram_points = sorted(ram_labels)
+
+        def near(points, labels, v):
+            k = bisect.bisect_right(points, v) - 1
+            if k < 0:
+                return None
+            p = points[k]
+            return labels[p][0], v - p
+
+        for i in range(len(self.ro) // 4):
+            if self.kinds[i] != ord('l'):
+                continue
+            a = 4 * i
+            v = struct.unpack_from('>I', self.ro, a)[0]
+            if v in self.slot_names:
+                ref = (self.label_for(v), 0)
+                kind = 'literals: jump-table slots'
+            elif 0x10000 <= v < len(self.ro):
+                ref = near(ro_points, self.ro_labels, v)
+                kind = 'literals: read-only addresses'
+            elif ram_low <= v < ram_high:
+                ref = near(ram_points, ram_labels, v)
+                kind = 'literals: RAM data addresses'
+            else:
+                continue
+            if ref is None:
+                continue
+            label, off = ref
+            expr = '|%s|' % label + ('+%d' % off if off else '')
+            self.lines[a] = ('        DCD      %s' % expr, label)
+            self.counts[kind] += 1
 
     def branches(self):
         """R3c: branches in code that leave their function."""
@@ -251,6 +292,15 @@ def main():
 
     src = Source(ro, kinds, symbols, info['slots'], ro_labels)
     src.branches()
+    rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
+    zi_base = rw_base + len(rw)
+    zi_size = info['image']['zi_size']
+    zi_labels = label_names(symbols, zi_base, zi_base + zi_size, count)
+    ram_labels = defaultdict(list)
+    for d in (rw_labels, zi_labels):
+        for k, v in d.items():
+            ram_labels[k] += v
+    src.literals(ram_labels, rw_base, zi_base + zi_size)
 
     files = []
     for i in range(len(cuts) - 1):
@@ -258,13 +308,9 @@ def main():
         write_area(os.path.join(args.out, name), 'ROM$$RO$$%02d' % i, 'CODE, READONLY',
                    ro, 0, ro_labels, cuts[i], cuts[i + 1], src.lines, pad)
         files.append(name)
-    rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
     write_area(os.path.join(args.out, 'rw.a'), 'ROM$$RW', 'DATA',
                rw, rw_base, rw_labels, rw_base, rw_base + len(rw), {})
     files.append('rw.a')
-    zi_base = rw_base + len(rw)
-    zi_size = info['image']['zi_size']
-    zi_labels = label_names(symbols, zi_base, zi_base + zi_size, count)
     write_zi(os.path.join(args.out, 'zi.a'), 'ROM$$ZI', zi_labels, zi_base, zi_base + zi_size)
     files.append('zi.a')
     write_absolute(os.path.join(args.out, 'abs.a'), src.absolute)
@@ -276,9 +322,11 @@ def main():
     with open(os.path.join(args.out, 'link.txt'), 'w') as f:
         f.write('-AIF -NOZEROpad -Entry 0x%X -SCATTER scatter.txt\n' % info['image']['ro_base'])
     nlabels = sum(len(v) for d in (ro_labels, rw_labels, zi_labels) for v in d.values())
-    print('%d files, %d labels (%d made for targets), %d absolute symbols; '
-          'branches to labels: %d'
-          % (len(files), nlabels, src.counts['labels made'], len(src.absolute), src.counts['branches']))
+    print('%d files, %d labels (%d made for targets), %d absolute symbols'
+          % (len(files), nlabels, src.counts['labels made'], len(src.absolute)))
+    for k in sorted(src.counts):
+        if k != 'labels made':
+            print('  %s: %d' % (k, src.counts[k]))
     return 0
 
 

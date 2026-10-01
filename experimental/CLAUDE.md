@@ -333,12 +333,26 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       assembler (`Reset`, `ROMBoot`, `DataAbortHandler`,
       `ExitCPUFIQAtomic`, `DoSchedulerSWI`: R3h), 3 in code without symbol
       or prologue after `C$$dtorvec$$Limit`.
-    - [ ] **R3d.3 Literals**: the addresses in them as labels.
+    - [x] **R3d.3 Literals** (2026-10-02). A literal whose value is an
+      address is written as `DCD |label|+offset` (the nearest label at or
+      below): read-only addresses from 0x10000 up (7,276; below, numbers
+      like 0x100 and the symbols at the ROM's hand-written start look
+      alike: R3h), RAM data (RW and zero-init, 3,472), with a NewtonScript
+      tag (+1) or without, jump-table slots (423, `|VEC_Name|`). Of 13,633
+      literals, the rest are numbers (hardware addresses such as
+      0x0F181800). Identical to Apple's; the shift test at 0x3011C: 6,666
+      address candidates follow; of the 274,352 that don't, 274,202 are in
+      words not reached as code (data: R3e, R3f), 113 in code, 37 in data
+      the code points at (to look at).
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
   - [ ] **R3f The NewtonScript object area.**
   - [ ] **R3g The jump table and the checksums**, built after the link.
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
+    Not the floating-point emulator (`FP_UndefHandlers_Start` 0x38D8DC on):
+    ARM's fallback for a CPU without floating point, likely a library
+    module linked in (Matt): it stays a block of bytes; check only that it
+    holds no absolute addresses of itself, so it can move.
 
   What each part covers:
   - **Code**: per function (its literal pool with it), disassembled: `BL`
