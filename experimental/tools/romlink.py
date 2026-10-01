@@ -4,13 +4,18 @@
     romlink.py --bin <tools> --src <romasm output> --rom <romsyms output> --out <dir>
 
 Assembles every file in files.txt with ARM6asm (in parallel), links them in
-that order with ARMLink (-BIN, the bases in link.txt), and compares the
-image with Apple's read-only and read-write parts (ro.bin + rw.bin). Exit
-status 0 if they are the same, byte for byte.
+that order with ARMLink (the options in link.txt: an AIF image, with the
+scatter file), and compares with Apple's AIF: its read-only and read-write
+parts (ro.bin + rw.bin), the header's sizes, and the linker's own symbols
+(ROM$$Size, Image$$root$$Base, _end, ...). Exit status 0 if all are the
+same.
 """
 
 import argparse
+import json
 import os
+import re
+import struct
 import subprocess
 import sys
 import time
@@ -33,7 +38,7 @@ def main():
     with open(os.path.join(args.src, 'files.txt')) as f:
         files = [l.strip() for l in f if l.strip()]
     with open(os.path.join(args.src, 'link.txt')) as f:
-        bases = f.read().split()
+        options = [os.path.join(args.src, o) if o.endswith('.txt') else o for o in f.read().split()]
 
     asm = os.path.join(args.bin, 'ARM6asm')
     t = time.time()
@@ -52,8 +57,8 @@ def main():
     print('assembled %d files in %.1f s' % (len(files), time.time() - t))
 
     t = time.time()
-    image = os.path.join(args.out, 'rom.bin')
-    rc, msg = run([os.path.join(args.bin, 'ARMLink'), '---text=utf8', '-BIN'] + bases
+    image = os.path.join(args.out, 'rom.aif')
+    rc, msg = run([os.path.join(args.bin, 'ARMLink'), '---text=utf8'] + options
                   + ['-Symbols', os.path.join(args.out, 'symbols.txt'), '-o', image]
                   + [obj for _, obj, _ in results])
     if rc != 0:
@@ -62,19 +67,51 @@ def main():
     print('linked in %.1f s' % (time.time() - t))
 
     with open(image, 'rb') as f:
-        ours = f.read()
+        aif = f.read()
+    e = '>'
+    (ro_size, rw_size, _, zi_size, _, image_base, _, _, data_base) = \
+        struct.unpack_from(e + '9I', aif, 0x14)
+    ours = aif[0x80:0x80 + ro_size + rw_size]
     with open(os.path.join(args.rom, 'ro.bin'), 'rb') as f:
         ro = f.read()
     with open(os.path.join(args.rom, 'rw.bin'), 'rb') as f:
         rw = f.read()
+    with open(os.path.join(args.rom, 'symbols.json')) as f:
+        info = json.load(f)
+    ok = True
+    im = info['image']
+    header = (ro_size, rw_size, zi_size, image_base, data_base)
+    apple_header = (im['ro_size'], im['rw_size'], im['zi_size'], im['ro_base'], im['rw_base'])
+    if header == apple_header:
+        print('AIF header: RO 0x%X, RW 0x%X, ZI 0x%X, base 0x%X, data base 0x%X, as Apple\'s' % header)
+    else:
+        print('AIF header DIFFERENT: %s, Apple\'s %s' % (header, apple_header))
+        ok = False
     apple = ro + rw
     if ours == apple:
         print('identical to Apple\'s image: RO 0x%X + RW 0x%X bytes' % (len(ro), len(rw)))
-        return 0
-    n = min(len(ours), len(apple))
-    first = next((i for i in range(n) if ours[i] != apple[i]), n)
-    print('DIFFERENT: %d bytes, Apple\'s %d; first difference at 0x%X' % (len(ours), len(apple), first))
-    return 1
+    else:
+        n = min(len(ours), len(apple))
+        first = next((i for i in range(n) if ours[i] != apple[i]), n)
+        print('DIFFERENT: %d bytes, Apple\'s %d; first difference at 0x%X' % (len(ours), len(apple), first))
+        ok = False
+    # the linker's own symbols, against Apple's symbol table
+    linked = {}
+    with open(os.path.join(args.out, 'symbols.txt'), encoding='utf-8', errors='replace') as f:
+        for line in f:
+            m = re.match(r'^(\S+)\s+([0-9a-fA-F]+)\s*$', line)
+            if m:
+                linked[m.group(1)] = int(m.group(2), 16)
+    apple_syms = {}
+    for s in info['symbols']:
+        apple_syms.setdefault(s['name'], set()).add(s['value'])
+    own = sorted(n for n in apple_syms if ('$$' in n or n in ('_etext', '_edata', '_end')) and n in linked)
+    wrong = [n for n in own if linked[n] not in apple_syms[n]]
+    print('the linker\'s own symbols in Apple\'s table: %d, at Apple\'s values: %d%s'
+          % (len(own), len(own) - len(wrong),
+             ''.join('\n  %s 0x%X, Apple\'s %s' % (n, linked[n], ', '.join('0x%X' % v for v in apple_syms[n]))
+                     for n in wrong)))
+    return 0 if ok and not wrong else 1
 
 
 if __name__ == '__main__':

@@ -53,9 +53,11 @@ doesn't know about it.
     its functions land at their ROM addresses, compares each function with
     Apple's image up to the next symbol.
   - `tools/romasm.py <rom> <out>`: the ROM as assembler source
-    (`build/romasm/`: `ro_NN.a`, `rw.a`, `files.txt`, `link.txt`).
-  - `tools/romlink.py`: assembles them (in parallel), links, compares with
-    Apple's RO and RW.
+    (`build/romasm/`: `ro_NN.a`, `rw.a`, `zi.a`, `scatter.txt`,
+    `files.txt`, `link.txt`).
+  - `tools/romlink.py`: assembles them (in parallel), links an AIF with the
+    scatter file, compares with Apple's: header sizes, RO and RW, the
+    linker's own symbols.
 - The ROM: **the target is Apple's linker output**, the AIF image `Senior
   CirrusNoDebug image` in newton-re (`DebugRom/MP2x00 US/`, 2.1 build
   717006; see "The target image"). `newtonos.s` (132 MB) is the disassembly
@@ -228,8 +230,32 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       Apple's (`Image$$root$$Base`, `Load$$root$$Base`, `_end`).
 - [ ] **R3 Every address a symbol.** The core: a word that holds an address
       becomes `DCD label+offset`, a branch to another function `BL label`
-      (or `BL VEC_label`). Unit by unit, each run of the shift test showing
-      what is left:
+      (or `BL VEC_label`). In parts, each its own commit (Matt: logical
+      parts he can follow):
+  - [x] **R3a Apple's link setup.** Done (2026-10-02): the zero-init area
+    (`zi.a`, `|ROM$$ZI|`, NOINIT, its 45 labels) and Apple's scatter file:
+    `ROOT 0x0` / `ROOT-DATA 0x0C100800` (ARMLink 5.04's format; `root` is
+    its keyword, not a name: the linker then makes Apple's symbols
+    `ROM$$Size`, `Image$$root$$Base`, `Image$$root$$Length`,
+    `Load$$root$$Base`, `Image$$root$$ZI$$Base`, `...$$ZI$$Length`).
+    Linked as an AIF (`-AIF -NOZEROpad -Entry 0 -SCATTER`): with `-BIN` the
+    linker wants a folder per load region, and mosrun has no mkdir yet;
+    `-AIF` with a scatter file is a plain binary with an AIF header, in
+    Apple's layout (the same header words, addressing type 0x120). The
+    header's sizes, RO, RW and the linker's 10 own symbols in Apple's
+    table are all Apple's.
+  - [ ] **R3b The shift test** as a tool: padding put in at a point, two
+    links compared, the words that should have moved and didn't listed.
+  - [ ] **R3c Calls and branches** that leave a function: `BL`/`B` to a
+    label (or to the jump-table slot).
+  - [ ] **R3d Literal pools**: addresses loaded from a function's pool.
+  - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
+    data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
+  - [ ] **R3f The NewtonScript object area.**
+  - [ ] **R3g The jump table and the checksums**, built after the link.
+  - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
+
+  What each part covers:
   - **Code**: per function (its literal pool with it), disassembled: `BL`
     and `B` that leave the function, literal-pool words that are addresses
     (`LDR rX, =addr`), switch tables; branches and `ADR`/`LDR` within the
