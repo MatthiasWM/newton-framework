@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_int64" kind="struct" language="C++" prot="public">
+    <compoundname>Int64</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_int64_1aa624ec85570230d26eb9c5fbecfe98a8" prot="public" static="no" mutable="no">
+        <type>SLong</type>
+        <definition>SLong Int64::hi</definition>
+        <argsstring></argsstring>
+        <name>hi</name>
+        <qualifiedname>Int64::hi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="111" column="6" bodyfile="NewtonTypes.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_int64_1aed2ae3374a5c0ac71ee25ae1c0151804" prot="public" static="no" mutable="no">
+        <type>ULong</type>
+        <definition>ULong Int64::lo</definition>
+        <argsstring></argsstring>
+        <name>lo</name>
+        <qualifiedname>Int64::lo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="112" column="6" bodyfile="NewtonTypes.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonTypes.h" line="109" column="1" bodyfile="NewtonTypes.h" bodystart="110" bodyend="113"/>
+    <listofallmembers>
+      <member refid="struct_int64_1aa624ec85570230d26eb9c5fbecfe98a8" prot="public" virt="non-virtual"><scope>Int64</scope><name>hi</name></member>
+      <member refid="struct_int64_1aed2ae3374a5c0ac71ee25ae1c0151804" prot="public" virt="non-virtual"><scope>Int64</scope><name>lo</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

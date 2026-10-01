@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="history_collector_m_a_c_r_o_8h" kind="file" language="C++">
+    <compoundname>historyCollectorMACRO.h</compoundname>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1a1812a2ea9e237f3e220da6f0a0108965" prot="public" static="no">
+        <name>BEGIN_TRACE_DECLARATIONS</name>
+        <param><defname>_strTRACE_NAME</defname></param>
+        <param><defname>_ulSIZEBUF</defname></param>
+        <param><defname>_ulNUMDESC</defname></param>
+        <param><defname>_pTeventcollectorRET</defname></param>
+        <param><defname>_parrSeventtracecausedescRET</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="84" column="9" bodyfile="historyCollectorMACRO.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1a6ea3518ff3a0de20d8e2573800914fa8" prot="public" static="no">
+        <name>END_TRACE_DECLARATIONS</name>
+        <param><defname>_xxx</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="85" column="9" bodyfile="historyCollectorMACRO.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1aeb6bf2f6bb95a34597cccb342017ed31" prot="public" static="no">
+        <name>TRACE_RELEASE</name>
+        <param><defname>_pTeventcollector2FREE</defname></param>
+        <param><defname>_parrTeventtracecausedesc2FREE</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="86" column="9" bodyfile="historyCollectorMACRO.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1a75d218d514a1a03623b46eba9b7eb35f" prot="public" static="no">
+        <name>DEFINE_TRACE_ENTRY</name>
+        <param><defname>_ubID</defname></param>
+        <param><defname>_strDESC</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="87" column="9" bodyfile="historyCollectorMACRO.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1ade8c7c791d6a2a03ac5dfed06f0569dd" prot="public" static="no">
+        <name>TRACE_MESSAGE</name>
+        <param><defname>_pTeventcollector_</defname></param>
+        <param><defname>_ubID</defname></param>
+        <param><defname>_ubBYTEDATUM</defname></param>
+        <param><defname>_usSHORTDATUM</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="88" column="9" bodyfile="historyCollectorMACRO.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="history_collector_m_a_c_r_o_8h_1abbf55b6d85205f10c5bdc5bb9ec99404" prot="public" static="no">
+        <name>TRACE_FUNCTION</name>
+        <param><defname>_pTeventcollector_</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="historyCollectorMACRO.h" line="89" column="9" bodyfile="historyCollectorMACRO.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/><sp/><sp/><sp/>File:<sp/><sp/><sp/><sp/><sp/><sp/><sp/>historyCollectorMACRO.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"></highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/><sp/><sp/><sp/>Contains:<sp/><sp/><sp/>interface<sp/>definitions<sp/>for<sp/>tracing<sp/>routines</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"></highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/><sp/><sp/><sp/>Copyright:<sp/><sp/>©<sp/>1992-1997<sp/>by<sp/>Apple<sp/>Computer,<sp/>Inc.,<sp/>all<sp/>rights<sp/>reserved.</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/><sp/><sp/><sp/>Derived<sp/>from<sp/>v3**<sp/>(3/21/97)<sp/>internal</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="10"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__HISTORYCOLLECTORMACRO_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>__HISTORYCOLLECTORMACRO_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>kDB__pHISTORYCOLLECT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__TRACEEVENTS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;TraceEvents.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>BEGIN_TRACE_DECLARATIONS(<sp/>_strTRACE_NAME,<sp/>_ulSIZEBUF,<sp/>_ulNUMDESC,<sp/>_pTeventcollectorRET<sp/>,<sp/>_parrSeventtracecausedescRET<sp/>)<sp/>\</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor">{<sp/>\</highlight></codeline>
+<codeline lineno="24"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>TEventCollector<sp/>*<sp/>_pTeventcollector_<sp/>;<sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="25"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>EventTraceCauseDesc<sp/>*_parrSeventtracecausedesc_<sp/>;<sp/><sp/>\</highlight></codeline>
+<codeline lineno="26"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>int<sp/>_ul_currDescIndex<sp/>=<sp/>0;<sp/><sp/>\</highlight></codeline>
+<codeline lineno="27"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="28"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_pTeventcollectorRET<sp/>=<sp/>nil;<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="29"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_parrSeventtracecausedescRET<sp/>=<sp/>nil;<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="30"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="31"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_parrSeventtracecausedesc_<sp/>=<sp/><sp/><sp/><sp/><sp/>new<sp/>EventTraceCauseDesc<sp/>[<sp/>_ulNUMDESC<sp/><sp/>];<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="32"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(<sp/>!<sp/>_parrSeventtracecausedesc_<sp/><sp/>)<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="33"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>lbl_beginFail;<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="34"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="35"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_pTeventcollector_<sp/>=<sp/><sp/>(TEventCollector<sp/>*)<sp/>NewByName<sp/>(<sp/>&quot;TEventCollector&quot;,<sp/>&quot;THistoryCollector&quot;);<sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="36"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(<sp/>!<sp/>_pTeventcollector_<sp/>)<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="37"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="38"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>delete<sp/>[<sp/><sp/>]<sp/>_parrSeventtracecausedesc_<sp/>;<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="39"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>lbl_beginFail;<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="40"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="41"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="42"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_pTeventcollectorRET<sp/>=<sp/>_pTeventcollector_;<sp/><sp/>\</highlight></codeline>
+<codeline lineno="43"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_parrSeventtracecausedescRET<sp/>=<sp/>_parrSeventtracecausedesc_;<sp/><sp/>\</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="45"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_pTeventcollector_<sp/>-&gt;Init<sp/>(sizeof(unsigned<sp/>long),<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="46"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;\t%bd:<sp/>\t0x%bx,<sp/>\t0x%hx&quot;<sp/>,<sp/>\</highlight></codeline>
+<codeline lineno="47"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(char<sp/>*)_strTRACE_NAME<sp/>,<sp/>_ulSIZEBUF,<sp/>eLockedBuffer);<sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>END_TRACE_DECLARATIONS(<sp/>_xxx<sp/><sp/>)<sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="52"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_pTeventcollector_-&gt;AddDescriptions<sp/>(<sp/>_parrSeventtracecausedesc_<sp/>,<sp/>_ul_currDescIndex<sp/><sp/>);<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="53"><highlight class="preprocessor">lbl_beginFail:<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="54"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="55"><highlight class="preprocessor">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="56"><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_RELEASE(<sp/><sp/>_pTeventcollector2FREE<sp/>,<sp/>_parrTeventtracecausedesc2FREE<sp/>)<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="59"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(<sp/>_pTeventcollector2FREE<sp/>)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="60"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="61"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_pTeventcollector2FREE<sp/>-&gt;<sp/>Delete();<sp/>\</highlight></codeline>
+<codeline lineno="62"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_pTeventcollector2FREE<sp/>=<sp/>nil;<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="63"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="64"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(<sp/>_parrTeventtracecausedesc2FREE<sp/>)<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="65"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>{<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="66"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>delete<sp/>[<sp/><sp/>]<sp/>_parrTeventtracecausedesc2FREE<sp/>;<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="67"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>_parrTeventtracecausedesc2FREE<sp/>=<sp/>nil;<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="68"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DEFINE_TRACE_ENTRY(<sp/><sp/><sp/>_ubID,<sp/><sp/>_strDESC<sp/>)<sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_parrSeventtracecausedesc_<sp/>[<sp/><sp/>_ul_currDescIndex<sp/>]<sp/><sp/>.<sp/>cause<sp/>=<sp/>_ubID;<sp/>\</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>_parrSeventtracecausedesc_<sp/>[<sp/><sp/>_ul_currDescIndex++<sp/>]<sp/><sp/>.<sp/>description<sp/>=<sp/><sp/>_strDESC;<sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/>----<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_MESSAGE(<sp/><sp/>_pTeventcollector_<sp/>,<sp/>_ubID,<sp/>_ubBYTEDATUM,<sp/>_usSHORTDATUM<sp/>)<sp/>\</highlight></codeline>
+<codeline lineno="77"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(_pTeventcollector_)<sp/>_pTeventcollector_<sp/>-&gt;<sp/>Add((ULong)<sp/>(((UChar)<sp/>(_ubID)<sp/>&lt;&lt;<sp/>24)<sp/>+<sp/>((UChar)<sp/>(_ubBYTEDATUM)<sp/>&lt;&lt;<sp/>16)<sp/>+<sp/>((UShort)<sp/>((_usSHORTDATUM)<sp/>&amp;<sp/>0xffff))));</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_FUNCTION(<sp/><sp/>_pTeventcollector_<sp/><sp/>)<sp/><sp/>if<sp/>(_pTeventcollector_)<sp/>_pTeventcollector_<sp/>-&gt;<sp/>AddAddress();</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="preprocessor">#else<sp/><sp/><sp/></highlight><highlight class="comment">//kDB__pHISTORYCOLLECT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>BEGIN_TRACE_DECLARATIONS(<sp/>_strTRACE_NAME,<sp/>_ulSIZEBUF,<sp/>_ulNUMDESC,<sp/>_pTeventcollectorRET<sp/>,<sp/>_parrSeventtracecausedescRET<sp/>)<sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>END_TRACE_DECLARATIONS(<sp/>_xxx<sp/><sp/>)<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_RELEASE(<sp/><sp/>_pTeventcollector2FREE<sp/>,<sp/>_parrTeventtracecausedesc2FREE<sp/>)<sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DEFINE_TRACE_ENTRY(<sp/><sp/><sp/>_ubID,<sp/><sp/>_strDESC<sp/>)<sp/><sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_MESSAGE(<sp/><sp/>_pTeventcollector_<sp/>,<sp/>_ubID,<sp/>_ubBYTEDATUM,<sp/>_usSHORTDATUM<sp/>)<sp/><sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TRACE_FUNCTION(<sp/><sp/>_pTeventcollector_<sp/><sp/>)<sp/><sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/><sp/></highlight><highlight class="comment">//kDB__pHISTORYCOLLECT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">//__HISTORYCOLLECTORMACRO_H</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="historyCollectorMACRO.h"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_exception_globals" kind="struct" language="C++" prot="public">
+    <compoundname>ExceptionGlobals</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_exception_globals_1a0583e5e1b5e1fb15be0d31d58ff1ec8d" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_catch_header" kindref="compound">CatchHeader</ref> *</type>
+        <definition>CatchHeader* ExceptionGlobals::firstCatch</definition>
+        <argsstring></argsstring>
+        <name>firstCatch</name>
+        <qualifiedname>ExceptionGlobals::firstCatch</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="759" column="12" bodyfile="NewtonExceptions.h" bodystart="759" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>CatchHeader</label>
+        <link refid="struct_catch_header"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ExceptionGlobals</label>
+        <link refid="struct_exception_globals"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>firstCatch</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="NewtonExceptions.h" line="757" column="1" bodyfile="NewtonExceptions.h" bodystart="758" bodyend="760"/>
+    <listofallmembers>
+      <member refid="struct_exception_globals_1a0583e5e1b5e1fb15be0d31d58ff1ec8d" prot="public" virt="non-virtual"><scope>ExceptionGlobals</scope><name>firstCatch</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

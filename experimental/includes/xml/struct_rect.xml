@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_rect" kind="struct" language="C++" prot="public">
+    <compoundname>Rect</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_rect_1a0111486fb58d96f8a16e2aaab1ea1758" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Rect::top</definition>
+        <argsstring></argsstring>
+        <name>top</name>
+        <qualifiedname>Rect::top</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="139" column="6" bodyfile="NewtonTypes.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_rect_1a0ad4abd83d24b8500bbd825aa6ab79c9" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Rect::left</definition>
+        <argsstring></argsstring>
+        <name>left</name>
+        <qualifiedname>Rect::left</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="140" column="6" bodyfile="NewtonTypes.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_rect_1a8eb6386bf172b3e75a5db1ec6b11240d" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Rect::bottom</definition>
+        <argsstring></argsstring>
+        <name>bottom</name>
+        <qualifiedname>Rect::bottom</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="141" column="6" bodyfile="NewtonTypes.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_rect_1af6213fa1159668865aa6007ce1a3b6f2" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Rect::right</definition>
+        <argsstring></argsstring>
+        <name>right</name>
+        <qualifiedname>Rect::right</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="142" column="6" bodyfile="NewtonTypes.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonTypes.h" line="137" column="1" bodyfile="NewtonTypes.h" bodystart="138" bodyend="143"/>
+    <listofallmembers>
+      <member refid="struct_rect_1a8eb6386bf172b3e75a5db1ec6b11240d" prot="public" virt="non-virtual"><scope>Rect</scope><name>bottom</name></member>
+      <member refid="struct_rect_1a0ad4abd83d24b8500bbd825aa6ab79c9" prot="public" virt="non-virtual"><scope>Rect</scope><name>left</name></member>
+      <member refid="struct_rect_1af6213fa1159668865aa6007ce1a3b6f2" prot="public" virt="non-virtual"><scope>Rect</scope><name>right</name></member>
+      <member refid="struct_rect_1a0111486fb58d96f8a16e2aaab1ea1758" prot="public" virt="non-virtual"><scope>Rect</scope><name>top</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_exception" kind="struct" language="C++" prot="public">
+    <compoundname>Exception</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_exception_1abfd2dce6a920210aab92658f0308e29b" prot="public" static="no" mutable="no">
+        <type>ExceptionNamePtr</type>
+        <definition>ExceptionNamePtr Exception::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <qualifiedname>Exception::name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="707" column="17" bodyfile="NewtonExceptions.h" bodystart="707" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_1ae8c4c9b73078f0179036c3e6b6cb6521" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* Exception::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>Exception::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="708" column="5" bodyfile="NewtonExceptions.h" bodystart="708" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_1a15e7c439692c942c4f8bf7e131ac05c2" prot="public" static="no" mutable="no">
+        <type>ExceptionDestructor</type>
+        <definition>ExceptionDestructor Exception::destructor</definition>
+        <argsstring></argsstring>
+        <name>destructor</name>
+        <qualifiedname>Exception::destructor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="709" column="20" bodyfile="NewtonExceptions.h" bodystart="709" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonExceptions.h" line="705" column="1" bodyfile="NewtonExceptions.h" bodystart="706" bodyend="710"/>
+    <listofallmembers>
+      <member refid="struct_exception_1ae8c4c9b73078f0179036c3e6b6cb6521" prot="public" virt="non-virtual"><scope>Exception</scope><name>data</name></member>
+      <member refid="struct_exception_1a15e7c439692c942c4f8bf7e131ac05c2" prot="public" virt="non-virtual"><scope>Exception</scope><name>destructor</name></member>
+      <member refid="struct_exception_1abfd2dce6a920210aab92658f0308e29b" prot="public" virt="non-virtual"><scope>Exception</scope><name>name</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

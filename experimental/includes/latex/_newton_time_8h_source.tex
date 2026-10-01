@@ -1,0 +1,242 @@
+\doxysection{Newton\+Time.\+h}
+\hypertarget{_newton_time_8h_source}{}\label{_newton_time_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonTime.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Timing\ gear\ for\ Newton\ build\ system}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1995\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v14\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTIME\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONTIME\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}NewtonTypes.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ \_\_COMPMATH\_H}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}CompMath.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \ \ \ \ kNoTimeout\ =\ 0,}
+\DoxyCodeLine{00027\ \ \ \ \ kTimeOutImmediate\ =\ -\/1}
+\DoxyCodeLine{00028\ \};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ firstPart\ \ \ time.lo}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ secondPart\ \ time.hi}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{//}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ NOTE:\ the\ maximum\ time\ that\ can\ be\ represented\ by\ a\ TTimeout\ is\ 14\ minutes.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ If\ you\ need\ to\ compute\ a\ future\ time\ that\ is\ a\ greater\ amount\ into\ the\ future,\ you}}
+\DoxyCodeLine{00039\ \textcolor{comment}{//\ must\ use\ a\ TTime\ and\ apply\ your\ own\ conversion\ beyond\ minutes.\ \ For\ example,\ if\ you}}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ wanted\ to\ get\ the\ time\ for\ one\ day\ you\ would:}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ TTime\ oneDay(1*24*60,kMinutes).\ (1\ day,\ 24\ hours\ in\ a\ day,\ 60\ minutes\ in\ an\ hour)}}
+\DoxyCodeLine{00042\ \textcolor{comment}{//}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{typedef}\ ULong\ \ \ TTimeout;}
+\DoxyCodeLine{00045\ \textcolor{keyword}{typedef}\ ULong\ \ \ THardwareTimeUnits;}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ ULong\ \ \ \ \ \ \ RealClockSeconds(\textcolor{keywordtype}{void});\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ gets\ seconds\ based\ realtime\ clock}}
+\DoxyCodeLine{00049\ ULong\ \ \ \ \ \ \ RealClock(\textcolor{keywordtype}{void});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ gets\ minutes\ based\ realtime\ clock}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#ifdef\ forARM}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ our\ base\ unit\ is\ 200ns}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{comment}{//\ if\ the\ hardware\ is\ different,\ a\ conversion\ must\ be\ done}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ \ \ \ \ \ Use\ TimeUnits\ enumeration\ to\ construct\ relative\ time\ values}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ \ \ \ \ \ These\ enumerations\ would\ be\ the\ second\ argument\ to\ the\ TTime}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ \ \ \ \ \ constructor\ that\ takes\ amount\ and\ units.\ For\ example\ a\ relative}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ \ \ \ \ \ TTime\ object\ that\ is\ 10\ seconds\ in\ length\ could\ be\ constructed\ as:}}
+\DoxyCodeLine{00061\ \textcolor{comment}{}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ TTime(10,\ kSeconds)}}
+\DoxyCodeLine{00063\ \textcolor{comment}{}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ \ \ \ \ \ Note\ that\ the\ send\ delayed\ call\ in\ ports\ takes\ an\ ABSOLUTE\ TTime}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ \ \ \ \ \ object.\ Such\ an\ object\ is\ created\ by\ getting\ the\ absolute\ time}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ \ \ \ \ \ from\ GetGlobalTime()\ +\ delta.}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ hasCirrus}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ New\ chipset\ has\ a\ different\ time\ base\ than\ old.\ We\ change\ it\ here.\ */}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ TimeUnits\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ kSystemTimeUnits\ =\ (1),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ to\ convert\ to\ (amount,\ units)}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ kMicroseconds\ \ \ =\ (4),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ clock\ ticks\ in\ a\ microsecond\ (3.6864Mhz\ clk)}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ kMilliseconds\ \ \ =\ (3686),}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ kMacTicks\ \ \ \ \ \ \ =\ (61440),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ for\ compatibility}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ kSeconds\ \ \ \ \ \ \ \ =\ (3686400),}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ kMinutes\ \ \ \ \ \ \ \ =\ (60*kSeconds)}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\ \ \ \ \#else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ hasRunt\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ TimeUnits\ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ kSystemTimeUnits\ =\ (1),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ to\ convert\ to\ (amount,\ units)}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ kMicroseconds\ \ \ =\ (5),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ 200ns\ units\ in\ a\ microsecond}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ kMilliseconds\ \ \ =\ (1000*kMicroseconds),}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ kMacTicks\ \ \ \ \ \ \ =\ (16667*kMicroseconds),\ \ \ \ \ \ \ \ \textcolor{comment}{//\ for\ compatibility}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ kSeconds\ \ \ \ \ \ \ \ =\ (1000*kMilliseconds),}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ kMinutes\ \ \ \ \ \ \ \ =\ (60*kSeconds)}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ ULong\ \ \ \ \ \ \ Ticks(\textcolor{keywordtype}{void});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ gets\ tick\ count}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ SetRealClock(ULong\ minutes);\ \ \ \ \ \ \ \ \textcolor{comment}{//\ sets\ realtime\ clock\ minutes\ -\/\ since\ 1/1/04\ 12:00am}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ SetRealClockSeconds(ULong\ seconds);\ \textcolor{comment}{//\ sets\ realtime\ clock\ seconds\ -\/\ since\ 1/1/04\ 12:00am}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ SleepTillTicks(ULong);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sleeps\ until\ ticks\ passes}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ Wait(ULong);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sleep\ for\ \#\ ticks\ (±1/2\ tick)}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{comment}{//\ TTime's\ are\ used\ to\ represent\ moments\ in\ time.\ \ For\ instance,\ if\ you\ want\ to\ send\ a}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//\ message\ a\ day\ from\ now,\ you\ find\ now\ and\ add\ in\ one\ day.}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ applec}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ avoid\ bogus\ MPW\ CFront\ warning}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BOGUSNESS\_FOR\_CFRONT(x)\ (((TTime*)this)-\/>x)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ BOGUSNESS\_FOR\_CFRONT(x)\ x}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \ \ \#define\ PRESERVE\_OLD\_PUBLIC\_JUMPTABLE\_ENTRY\_FOR\_TTIME\_CTOR\ 1}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{class\ }TTime\ \{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_int64}{Int64}}\ \ time;}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ low)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ time.lo\ =\ low;\ time.hi\ =\ 0L;\ \}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ low,\ SLong\ high)\ \ \ \ \ \ \{\ time.lo\ =\ low;\ time.hi\ =\ high;\ \}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ amount,\ TimeUnits\ units);}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ on\ most\ compilers\ 'fMyTime.Set(x,\ y)'\ will\ be\ more\ effcient\ than}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fMyTime\ =\ TTime(x,\ y)\ because\ the\ first\ won't\ use\ a\ temporary}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#ifndef\ ARM6C\_DOESNT\_NEED\_THIS\_ANYMORE}}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(\textcolor{keyword}{const}\ TTime\ \&x)\ \ \ \ \ \ \ \ \ \ \ \{\ time\ =\ x.time;\ \};}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ low)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ Set(low);\ \}}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ low,\ ULong\ high)\ \ \ \ \{\ Set(low,\ SLong(high));\ \}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ \ \ \#if\ PRESERVE\_OLD\_PUBLIC\_JUMPTABLE\_ENTRY\_FOR\_TTIME\_CTOR}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ amount,\ TimeUnits\ units);}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ amount,\ TimeUnits\ units)\ \{\ Set(amount,\ units);\ \}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{operator}\ \ \ \ ULong()\textcolor{keyword}{\ const\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ time.lo;\ \}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ TTime\ \ \ operator+\ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \{\ TTime\ ret(b);\ CompAdd(\&time,\ \&ret.time);\ \textcolor{keywordflow}{return}\ ret;\ \}}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ TTime\ \ \ operator-\/\ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \{\ TTime\ ret(*\textcolor{keyword}{this});\ CompSub(\&b.time,\ \&ret.time);\ \textcolor{keywordflow}{return}\ ret;\ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator<\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ <\ 0;\ \}}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator==\ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ ==\ 0;\ \}}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator!=\ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ !=\ 0;\ \}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator>\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ >\ 0;\ \}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator>=\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ >=\ 0;\ \}}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator<=\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\textcolor{keyword}{\ const\ \ }\{\ \textcolor{keywordflow}{return}\ CompCompare(\&BOGUSNESS\_FOR\_CFRONT(time),\ \&b.time)\ <=\ 0;\ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ ULong\ \ \ ConvertTo(TimeUnits\ units);}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ PrintObject(HammerIORef\ win,\ Boolean\ summary,\ \textcolor{keywordtype}{int}\ indent);}
+\DoxyCodeLine{00160\ \ \ \ \ \};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{comment}{//\ GetGlobalTime\ -\/}}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{comment}{//\ returns\ a\ TTime\ moment\ representing\ the\ current\ time.}}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ TTime\ \ \ \ GetGlobalTime(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{comment}{//\ GetTaskTime\ -\/}}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{comment}{//\ returns\ a\ TTime\ duration\ representing\ the\ time\ spent\ in\ the\ specified\ task.}}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ TTime\ \ \ \ GetTaskTime(TObjectId\ timeForTaskId\ =\ 0);}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{comment}{//\ TimeFromNow\ -\/}}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{comment}{//\ returns\ a\ TTime\ moment\ representing\ a\ time\ in\ the\ future.}}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{comment}{//\ NOTE:\ You\ can\ only\ specify\ a\ moment\ up\ to\ 14\ minutes\ into\ the\ future}}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{comment}{//\ using\ this\ method.\ \ If\ you\ need\ a\ longer\ distance\ into\ the\ future,}}
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{comment}{//\ simply\ add\ the\ future\ TTime\ duration\ to\ the\ current\ time\ from\ GetGlobalTime.\ \ For\ example,}}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{comment}{//\ TTime\ distantTime(}}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ TTime\ \ \ \ TimeFromNow(TTimeout\ deltaTime);}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ ULong\ \ \ \ \ \ \ TTimeToMilliseconds(TTime);}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ \#endif\ }\textcolor{comment}{/*\ \_\_cplusplus\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#elif\ defined(forWin32)}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keyword}{enum}\ TimeUnits\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ base\ unit\ of\ time\ is\ a\ millesecond\ */}}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ kMilliseconds\ \ \ =\ 1,}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ kCentiseconds\ \ \ =\ (10*kMilliseconds),}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ kSeconds\ \ \ \ \ \ \ \ =\ (1000*kMilliseconds),}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ kMinutes\ \ \ \ \ \ \ \ =\ (60*kSeconds),}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ kHours\ \ \ \ \ \ \ \ \ \ =\ (60*kMinutes),}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ kDays\ \ \ \ \ \ \ \ \ \ \ =\ (24*kHours),}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ kFortnights\ \ \ \ \ =\ (14*kDays)}
+\DoxyCodeLine{00194\ \ \ \ \ \};}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keyword}{class\ }TTime\ \{}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_int64}{Int64}}\ \ time;}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ low)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ time.lo\ =\ low;\ time.hi\ =\ 0L;\ \}}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ low,\ SLong\ high)\ \ \ \ \ \ \{\ time.lo\ =\ low;\ time.hi\ =\ high;\ \}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Set(ULong\ amount,\ TimeUnits\ units)\ \ \{\ CompMul(amount,\ (ULong)\ units,\ \&time);\ \}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ on\ most\ compilers\ 'fMyTime.Set(x,\ y)'\ will\ be\ more\ effcient\ than}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fMyTime\ =\ TTime(x,\ y)\ because\ the\ first\ won't\ use\ a\ temporary}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \}}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ low)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ Set(low);\ \}}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ low,\ ULong\ high)\ \ \ \ \{\ Set(low,\ SLong(high));\ \}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TTime(ULong\ amount,\ TimeUnits\ units)\ \{\ Set(amount,\ units);\ \}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{operator}\ \ \ \ ULong()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ time.lo;\ \}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ TTime\ \ \ operator+\ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \{\ TTime\ ret(b);\ CompAdd(\&time,\ \&ret.time);\ \textcolor{keywordflow}{return}\ ret;\ \}}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ TTime\ \ \ operator-\/\ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \{\ TTime\ ret(*\textcolor{keyword}{this});\ CompSub(\&b.time,\ \&ret.time);\ \textcolor{keywordflow}{return}\ ret;\ \}}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator<\ \ \ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ CompCompare(\&time,\ \&b.time)\ <\ 0;\ \}}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator==\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ CompCompare(\&time,\ \&b.time)\ ==\ 0;\ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator>\ \ \ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ CompCompare(\&time,\ \&b.time)\ >\ 0;\ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator>=\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ CompCompare(\&time,\ \&b.time)\ >=\ 0;\ \}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ Boolean\ operator<=\ \ (\textcolor{keyword}{const}\ TTime\&\ b)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ CompCompare(\&time,\ \&b.time)\ <=\ 0;\ \}}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ \ \ \ Milliseconds(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00227\ \ \ \ \ \};}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \ \ ULong\ \ \ \ \ \ \ Ticks(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ TickCount(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ GetDateTime(\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ *secs\ );}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_NEWTONTIME\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

@@ -1,0 +1,407 @@
+\doxysection{Newton\+Debug.\+h}
+\hypertarget{_newton_debug_8h_source}{}\label{_newton_debug_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonDebug.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Debug\ gear\ for\ Newton\ build\ system}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1995\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v16\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONDEBUG\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONDEBUG\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}NewtonTypes.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONEXCEPTIONS\_H}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}NewtonExceptions.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONMEMORY\_H}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}NewtonMemory.h"{}}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ \_\_stdio\_h}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}stdio.h"{}}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#undef\ Debugger}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#undef\ DebugStr}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#undef\ DebugCStr}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#undef\ DebugPrint}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#ifdef\ forDebug}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ Debugger(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ DebugStr(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*);}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \#define\ DebugCStr(s)\ DebugStr(s)}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ DebugPrint(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ ...);\ \ \ \ \ \ \ \textcolor{comment}{//\ like\ printf}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \#define\ Debugger()\ ((void)\ 0)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ \#define\ DebugStr(msg)\ ((void)\ 0)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \#define\ DebugCStr(msg)\ ((void)\ 0)}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \ \ \#define\ DebugPrint(msg)\ ((void)\ 0)}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ \ \ \ \ \ TAP\ file\ stuff}}
+\DoxyCodeLine{00072\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00075\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{long}\ TapFileCntl(\textcolor{keywordtype}{long}\ cmd,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ SendTestResult(\textcolor{keywordtype}{long}\ size,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ SendDebugLine(\textcolor{keywordtype}{int},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ ...);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ TAP\_REQUEST\ 0x01}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ TAP\_SEND\ \ \ \ 0x02}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ TAP\_SAVE\ \ \ \ 0x03}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ TAPOUT\_SIZE\ 0x04}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00092\ \textcolor{comment}{//\ \ \ \ \ \ Exception\ Macros}}
+\DoxyCodeLine{00093\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#define\ THROWIF(result,\ exception)\ \ \ \ \ \ \ \ \ \ do\ \{\ if\ (result)\ Throw((exception),\ (void*)\ (result));\ \}\ while\ (0)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ THROWNOT(expr,\ exception,\ result)\ \ \ do\ \{\ if\ (!(expr))\ Throw((exception),\ (void*)\ (result));\ \}\ while\ (0)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ CHECK(expr,\ msg)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ ThrowMsg(msg);\ \}\ while\ (0)}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ \ Philosophy\ Corner,\ with\ your\ host\ Rege\ LeCrispe}}
+\DoxyCodeLine{00101\ \textcolor{comment}{}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ \ The\ flag\ "{}debugLevel"{}\ is\ always\ defined\ by\ this\ file.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ \ Your\ code\ can\ use\ "{}\#if"{}\ or\ even\ "{}if"{}\ instead\ of\ "{}\#ifdef"{}}}
+\DoxyCodeLine{00104\ \textcolor{comment}{}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ \ debugLevel\ controls\ how\ much\ debugging\ gear\ is\ enabled:}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ \ \ \ \ \ debugLevel\ =\ 0:\ no\ gear\ is\ enabled}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ \ \ \ \ \ debugLevel\ =\ 1:\ minimum\ gear\ is\ enabled}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ \ \ \ \ \ debugLevel\ =\ 2:\ maximum\ gear\ is\ enabled}}
+\DoxyCodeLine{00109\ \textcolor{comment}{}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ \ debugLevel's\ value\ is\ set\ based\ on\ whether\ forDebug\ is\ defined.}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ \ If\ forDebug\ is\ not\ defined,\ debugLevel\ is\ defined\ to\ be\ 0\ (none)}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ \ If\ forDebug\ is\ defined,\ debugLevel\ is\ defined\ to\ be\ 1\ (minimum)}}
+\DoxyCodeLine{00113\ \textcolor{comment}{}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ \ You\ can\ override\ the\ default\ settings\ for\ debugLevel\ by\ defining}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ \ debugLevel\ before\ including\ this\ file,\ or\ in\ your\ local\ compiler}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ \ option\ line.}}
+\DoxyCodeLine{00117\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#ifndef\ debugLevel}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ forDebug}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ debugLevel\ 1}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ debugLevel\ 0}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{comment}{//\ ok\ to\ use\ \#if,\ since\ debugLevel\ is\ always\ defined}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#if\ debugLevel\ ==\ 0}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00132\ \textcolor{comment}{//\ \ \ \ \ \ No\ Debugging\ Gear}}
+\DoxyCodeLine{00133\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETPTRNAME(p,n)\ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETHANDLENAME(h,n)\ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGSTR(msg)\ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKDEBUGPRINT(args)\ \ \{\ \}}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGPRINT(args)\ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKPRINT(args)\ \ \ \ \ \ \ \{\ \}}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINT(args)\ \ \ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINTIF(expr,\ args)\ \ \ \ ((void)0)}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKFPRINT(args)\ \ \ \ \ \ \{\ \}}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINT(args)\ \ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINTIF(expr,\ args)\ \ \ ((void)0)}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKASSERTPRINT(expr,\ args)\ \ \ ((void)\ 0)}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTPRINT(expr,\ args)\ \ \ \ \ \ \ \ ((void)\ 0)}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERT(expr)\ \ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTNOT(expr)\ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTMSG(expr,\ msg)\ \ \ \ ((void)\ 0)}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTTHROW(expr)\ \ \ \ \ \ \ ((void)\ 0)}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE(expr,\ label)\ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ goto\ label;\ \}\ while\ (0)}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT(expr,\ label)\ \ \ \ do\ \{\ if\ (expr)\ goto\ label;\ \}\ while\ (0)}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE\_ACTION(expr,\ label,\ action)\ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ \{\ \{\ action\ \}\ goto\ label;\ \}\ \}\ while\ (0)}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT\_ACTION(expr,\ label,\ action)\ \ \ \ \ do\ \{\ if\ (expr)\ \{\ \{\ action\ \}\ goto\ label;\ \}\ \}\ while\ (0)}}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWERROR(result,\ msg)\ \ \ \ \ \ \ \ \ \ \ \ \ THROWIF(result,\ exNewtException)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWNIL(expr,\ result,\ msg)\ \ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ Throw(exNewtException,\ (void*)\ (result));\ \}\ while\ (0)}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#elif\ debugLevel\ ==\ 1}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ \ \ \ \ \ Minimum\ Debugging\ Gear}}
+\DoxyCodeLine{00172\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#ifdef\ forARM}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETPTRNAME(p,n)\ \ \ \ \ \ \ \ SetPtrName((Ptr)\ (p),\ (ULong)\ (n))}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETHANDLENAME(h,n)\ \ \ \ \ SetHandleName((Handle)\ (h),\ (ULong)\ (n))}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETPTRNAME(p,n)\ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETHANDLENAME(h,n)\ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGSTR(msg)\ \ \ \ \ \ \ \ \ \ Debugger()}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKDEBUGPRINT(args)\ \ \{\ \}}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGPRINT(args)\ \ \ \ \ \ \ Debugger()}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKPRINT(args)\ \ \ \ \ \ \ \{\ \}}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINT(args)\ \ \ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINTIF(expr,\ args)\ \ \ \ ((void)0)}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKFPRINT(args)\ \ \ \ \ \ \{\ \}}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINT(args)\ \ \ \ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINTIF(expr,\ args)\ \ \ ((void)0)}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKASSERTPRINT(expr,\ args)\ \ \ do\ \{\ if\ (!(expr))\ DebugCStr("{}ASSERTPRINT("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTPRINT(expr,\ args)\ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ DebugCStr("{}ASSERTPRINT("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERT(expr)\ \ \ \ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ DebugCStr("{}XASSERT("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTNOT(expr)\ \ \ \ \ \ \ \ do\ \{\ if\ (expr)\ DebugCStr("{}XASSERTNOT("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTMSG(expr,\ msg)\ \ \ \ do\ \{\ if\ (!(expr))\ ThrowMsg("{}ASSERTMSG("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTTHROW(expr)\ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ ThrowMsg("{}ASSERTMSG("{}\ \#expr\ "{})\ failed"{});\ \}\ while\ (0)}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE(expr,\ label)\ \(\backslash\)}}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (!(expr))\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugCStr("{}XREQUIRE("{}\ \#expr\ "{},\ "{}\ \#label\ "{})\ failed"{});\ \(\backslash\)}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT(expr,\ label)\ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (expr)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugCStr("{}XREQUIRENOT("{}\ \#expr\ "{},\ "{}\ \#label\ "{})\ failed"{});\ \(\backslash\)}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE\_ACTION(expr,\ label,\ action)\ \(\backslash\)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (!(expr))\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugCStr("{}XREQUIRE\_ACTION("{}\ \#expr\ "{},\ "{}\ \#label\ "{},\ "{}\ \#action\ "{})\ failed"{});\ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ action\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT\_ACTION(expr,\ label,\ action)\ \(\backslash\)}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (expr)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugCStr("{}XREQUIRENOT\_ACTION("{}\ \#expr\ "{},\ "{}\ \#label\ "{},\ "{}\ \#action\ "{})\ failed"{});\ \(\backslash\)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ action\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWERROR(result,\ msg)\ \ \ \ \ \ \ \ \ \ \ \ \ THROWIF(result,\ exNewtException)}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWNIL(expr,\ result,\ msg)\ \ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ Throw(exNewtException,\ (void*)\ (result));\ \}\ while\ (0)}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00245\ \textcolor{comment}{//\ \ \ \ \ \ Maximum\ Debugging\ Gear}}
+\DoxyCodeLine{00246\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{comment}{//\ fancy\ versions\ of\ DebugStr}}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{comment}{//\ defined\ in\ UtilityClasses:DebugMacros.c}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ xassert(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr);}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ xassertnot(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr,\ \textcolor{keywordtype}{int}\ val);}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ xrequire(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ label,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr);}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ xrequirenot(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ label,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr,\ \textcolor{keywordtype}{int}\ val);}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\#ifdef\ forARM}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETPTRNAME(p,n)\ \ \ \ \ \ \ \ SetPtrName((Ptr)\ (p),\ (ULong)\ (n))}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETHANDLENAME(h,n)\ \ \ \ \ SetHandleName((Handle)\ (h),\ (ULong)\ (n))}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETPTRNAME(p,n)\ \ \ \ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ \ \ \#define\ XSETHANDLENAME(h,n)\ \ \ \ \ ((void)0)}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGSTR(msg)\ \ \ \ \ \ \ \ \ \ DebugCStr(msg)}}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKDEBUGPRINT(args)\ \ \{\ DebugPrint\ args;\ \}}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\ \ \ \ \#define\ XDEBUGPRINT(args)\ \ \ \ \ \ \ do\ XBLOCKDEBUGPRINT(args)\ while\ (0)}}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKPRINT(args)\ \ \ \ \ \ \ \{\ printf\ args;\ \}}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINT(args)\ \ \ \ \ \ \ \ \ \ \ \ do\ XBLOCKPRINT(args)\ while\ (0)}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ \#define\ XPRINTIF(expr,\ args)\ \ \ \ do\ if\ (expr)\ XBLOCKPRINT(args)\ while\ (0)}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKFPRINT(args)\ \ \ \ \ \ \{\ fprintf\ args;\ \}}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINT(args)\ \ \ \ \ \ \ \ \ \ \ do\ XBLOCKFPRINT(args)\ while\ (0)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ \ \ \#define\ XFPRINTIF(expr,\ args)\ \ \ do\ if\ (expr)\ XBLOCKFPRINT(args)\ while\ (0)}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\ \ \ \ \#define\ XBLOCKASSERTPRINT(expr,\ args)\ \ \ \{\ if\ (!(expr))\ DebugPrint\ args;\ \}}}
+\DoxyCodeLine{00277\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTPRINT(expr,\ args)\ \ \ \ \ \ \ \ do\ XBLOCKASSERTPRINT(expr,\ args)\ while\ (0)}}
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERT(expr)\ \ \ \ \ \ \ \ \ \ \ do\ \{\ if\ (!(expr))\ xassert(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#expr);\ \}\ while\ (0)}}
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\ \ \ \ \#define\ XASSERTNOT(expr)\ \ \ \ \ \ \ \ do\ \{\ if\ (expr)\ xassertnot(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#expr,\ (int)(expr));\ \}\ while\ (0)}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTMSG(expr,\ msg)\ \ \ \ do\ \{\ if\ (!(expr))\ ThrowMsg((char*)\ \_\_FILE\_\_\ "{}:\ "{}\ msg);\ \}\ while\ (0)}}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\ \ \ \ \#define\ ASSERTTHROW(expr)\ \ \ \ \ \ \ ASSERTMSG(expr,\ "{}ASSERTION\ FAILED:\ "{}\ \#expr)}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE(expr,\ label)\ \(\backslash\)}}
+\DoxyCodeLine{00286\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (!(expr))\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xrequire(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#label,\ \#expr);\ \(\backslash\)}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT(expr,\ label)\ \(\backslash\)}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (expr)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xrequirenot(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#label,\ \#expr,\ (int)(expr));\ \(\backslash\)}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00299\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRE\_ACTION(expr,\ label,\ action)\ \(\backslash\)}}
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (!(expr))\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00304\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xrequire(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#label,\ \#expr);\ \(\backslash\)}}
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ action\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00306\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00307\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \textcolor{preprocessor}{\ \ \ \ \#define\ XREQUIRENOT\_ACTION(expr,\ label,\ action)\ \(\backslash\)}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (expr)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xrequirenot(\_\_FILE\_\_,\ \_\_LINE\_\_,\ \#label,\ \#expr,\ (int)(expr));\ \(\backslash\)}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ action\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ label;\ \(\backslash\)}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWERROR(result,\ msg)\ \(\backslash\)}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (result)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}throwing:\ \%s"{},\ msg);\ \(\backslash\)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(exNewtException,\ (void*)\ result);\ \(\backslash\)}}
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \textcolor{preprocessor}{\ \ \ \ \#define\ THROWNIL(expr,\ result,\ msg)\ \(\backslash\)}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (expr\ ==\ nil)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}nil:\ \%s"{},\ msg);\ \(\backslash\)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(exNewtException,\ (void*)\ result);\ \(\backslash\)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ debugLevel\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00338\ \textcolor{comment}{//\ \ \ \ \ \ Variants\ of\ XREQUIRE\ et\ al.}}
+\DoxyCodeLine{00339\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ \ OSErr\ f()}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ \ \ \ \{}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ \ \ \ \ \ \ \ OSErr\ err\ =\ noErr;}}
+\DoxyCodeLine{00345\ \textcolor{comment}{}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ \ \ \ \ \ \ XTRY}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00348\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ err\ =\ g();}}
+\DoxyCodeLine{00349\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ XFAIL(err);}}
+\DoxyCodeLine{00350\ \textcolor{comment}{}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ int\ y\ =\ g();}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ XFAILIF(\ y,\ err\ =\ kError;\ );}}
+\DoxyCodeLine{00353\ \textcolor{comment}{}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ char*\ x\ =\ malloc(64);}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ XFAILNOT(\ x,\ err\ =\ MemError();\ );}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ \ \ \ \ \ \ XENDTRY;}}
+\DoxyCodeLine{00358\ \textcolor{comment}{}}
+\DoxyCodeLine{00359\ \textcolor{comment}{\ \ \ \ \ \ \ \ XDOFAIL(err)}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00361\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ failure\ cleanup}}
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ \ \ \ \ \ XENDFAIL;}}
+\DoxyCodeLine{00364\ \textcolor{comment}{}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ \ \ \ \ \ \ return\ err;}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ \ \ \ \}}}
+\DoxyCodeLine{00367\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\#define\ XTRY\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do}}
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\#define\ XENDTRY\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ while(0)}}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#define\ XDOFAIL(expr)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (expr)\ do}}
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\#define\ XENDFAIL\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ while(0)}}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#define\ XFAIL(expr)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ if\ (expr)\ \{\ break;\ \}\ \}}}
+\DoxyCodeLine{00376\ \textcolor{preprocessor}{\#define\ XFAILIF(expr,\ action)\ \ \ \ \ \ \ \ \ \ \ \{\ if\ (expr)\ \{\ \{\ action\ \}\ break;\ \}\ \}}}
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\#define\ XFAILNOT(expr,\ action)\ \ \ \ \ \ \ \ \ \ \{\ if\ (!(expr))\ \{\ \{\ action\ \}\ break;\ \}\ \}}}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00380\ \textcolor{comment}{//\ \ \ \ \ \ Equivalent\ expressions\ for\ compatibility}}
+\DoxyCodeLine{00381\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\#define\ PRINT\ XPRINT}}
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\#define\ ASSERTPRINT\ XASSERTPRINT}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\#define\ DEBUGPTRNAME\ XSETPTRNAME}}
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\#define\ DEBUGHANDLENAME\ XSETHANDLENAME}}
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\#define\ ASSERTNOERROR\ XASSERTNOT}}
+\DoxyCodeLine{00388\ \textcolor{preprocessor}{\#define\ XASSERTNIL\ XASSERTNOT}}
+\DoxyCodeLine{00389\ \textcolor{preprocessor}{\#define\ XREQUIRENIL\ XREQUIRENOT}}
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\#define\ DebugString\ DebugCStr}}
+\DoxyCodeLine{00391\ \textcolor{preprocessor}{\#define\ BLOCKASSERT\ XASSERT}}
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\#define\ assert\ XASSERT}}
+\DoxyCodeLine{00393\ \textcolor{preprocessor}{\#define\ DASSERT\ XASSERT}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\#define\ DPRINT\ XPRINT}}
+\DoxyCodeLine{00395\ \textcolor{preprocessor}{\#define\ PRINTIF\ XPRINTIF}}
+\DoxyCodeLine{00396\ \textcolor{preprocessor}{\#define\ DBGASSERT\ XASSERT}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#define\ XDEBUGGER\ XDEBUGSTR}}
+\DoxyCodeLine{00398\ \textcolor{preprocessor}{\#define\ DEBUGGER\ XDEBUGSTR}}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \textcolor{preprocessor}{\#define\ ASSERT\ XASSERT}}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_NEWTONDEBUG\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

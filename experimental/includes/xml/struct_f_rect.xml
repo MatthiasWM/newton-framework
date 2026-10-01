@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_f_rect" kind="struct" language="C++" prot="public">
+    <compoundname>FRect</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_f_rect_1a2c25d57b69365eb66295117d062df348" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FRect::left</definition>
+        <argsstring></argsstring>
+        <name>left</name>
+        <qualifiedname>FRect::left</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="158" column="6" bodyfile="NewtonTypes.h" bodystart="158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_f_rect_1a075da987574b9ed525cf52fde3f860c5" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FRect::top</definition>
+        <argsstring></argsstring>
+        <name>top</name>
+        <qualifiedname>FRect::top</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="159" column="6" bodyfile="NewtonTypes.h" bodystart="159" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_f_rect_1a32aedf1395ff18e48f4a0401148c9b29" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FRect::right</definition>
+        <argsstring></argsstring>
+        <name>right</name>
+        <qualifiedname>FRect::right</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="160" column="6" bodyfile="NewtonTypes.h" bodystart="160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_f_rect_1ab0de570f865d4c2493969d50316530cd" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FRect::bottom</definition>
+        <argsstring></argsstring>
+        <name>bottom</name>
+        <qualifiedname>FRect::bottom</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="161" column="6" bodyfile="NewtonTypes.h" bodystart="161" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonTypes.h" line="156" column="1" bodyfile="NewtonTypes.h" bodystart="157" bodyend="162"/>
+    <listofallmembers>
+      <member refid="struct_f_rect_1ab0de570f865d4c2493969d50316530cd" prot="public" virt="non-virtual"><scope>FRect</scope><name>bottom</name></member>
+      <member refid="struct_f_rect_1a2c25d57b69365eb66295117d062df348" prot="public" virt="non-virtual"><scope>FRect</scope><name>left</name></member>
+      <member refid="struct_f_rect_1a32aedf1395ff18e48f4a0401148c9b29" prot="public" virt="non-virtual"><scope>FRect</scope><name>right</name></member>
+      <member refid="struct_f_rect_1a075da987574b9ed525cf52fde3f860c5" prot="public" virt="non-virtual"><scope>FRect</scope><name>top</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

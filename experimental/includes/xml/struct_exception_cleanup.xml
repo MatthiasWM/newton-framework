@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_exception_cleanup" kind="struct" language="C++" prot="public">
+    <compoundname>ExceptionCleanup</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_exception_cleanup_1aa6c385e2c9ff72f3ceb7f323c7477e11" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_catch_header" kindref="compound">CatchHeader</ref></type>
+        <definition>CatchHeader ExceptionCleanup::header</definition>
+        <argsstring></argsstring>
+        <name>header</name>
+        <qualifiedname>ExceptionCleanup::header</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="747" column="12" bodyfile="NewtonExceptions.h" bodystart="747" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_cleanup_1af87b13ad1df947648af466ec5248befb" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* ExceptionCleanup::object</definition>
+        <argsstring></argsstring>
+        <name>object</name>
+        <qualifiedname>ExceptionCleanup::object</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="748" column="5" bodyfile="NewtonExceptions.h" bodystart="748" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_cleanup_1a2c01cf2ca2725a5cd0977bdead7cf285" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* ExceptionCleanup::function) (void *)</definition>
+        <argsstring>)(void *)</argsstring>
+        <name>function</name>
+        <qualifiedname>ExceptionCleanup::function</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="749" column="1" bodyfile="NewtonExceptions.h" bodystart="749" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>CatchHeader</label>
+        <link refid="struct_catch_header"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>next</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ExceptionCleanup</label>
+        <link refid="struct_exception_cleanup"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>header</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="NewtonExceptions.h" line="745" column="1" bodyfile="NewtonExceptions.h" bodystart="746" bodyend="750"/>
+    <listofallmembers>
+      <member refid="struct_exception_cleanup_1a2c01cf2ca2725a5cd0977bdead7cf285" prot="public" virt="non-virtual"><scope>ExceptionCleanup</scope><name>function</name></member>
+      <member refid="struct_exception_cleanup_1aa6c385e2c9ff72f3ceb7f323c7477e11" prot="public" virt="non-virtual"><scope>ExceptionCleanup</scope><name>header</name></member>
+      <member refid="struct_exception_cleanup_1af87b13ad1df947648af466ec5248befb" prot="public" virt="non-virtual"><scope>ExceptionCleanup</scope><name>object</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

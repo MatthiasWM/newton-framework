@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_catch_header" kind="struct" language="C++" prot="public">
+    <compoundname>CatchHeader</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_catch_header_1ab1c7edce97e585dd71feaeacae1b7018" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CatchHeader::catchType</definition>
+        <argsstring></argsstring>
+        <name>catchType</name>
+        <qualifiedname>CatchHeader::catchType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="722" column="4" bodyfile="NewtonExceptions.h" bodystart="722" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_catch_header_1a9fdec63d2746cce98977ea6505306f59" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_catch_header" kindref="compound">CatchHeader</ref> *</type>
+        <definition>CatchHeader* CatchHeader::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <qualifiedname>CatchHeader::next</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="723" column="12" bodyfile="NewtonExceptions.h" bodystart="723" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>CatchHeader</label>
+        <link refid="struct_catch_header"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>next</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="NewtonExceptions.h" line="720" column="1" bodyfile="NewtonExceptions.h" bodystart="721" bodyend="724"/>
+    <listofallmembers>
+      <member refid="struct_catch_header_1ab1c7edce97e585dd71feaeacae1b7018" prot="public" virt="non-virtual"><scope>CatchHeader</scope><name>catchType</name></member>
+      <member refid="struct_catch_header_1a9fdec63d2746cce98977ea6505306f59" prot="public" virt="non-virtual"><scope>CatchHeader</scope><name>next</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

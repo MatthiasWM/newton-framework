@@ -1,0 +1,74 @@
+\doxysection{Newt\+Errors.\+h}
+\hypertarget{_newt_errors_8h_source}{}\label{_newt_errors_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtErrors.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ base\ values\ for\ error\ codes\ and\ common\ errors}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1995\ by\ Apple\ Computer,\ Inc.,\ all\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v5\ (8/27/96)\ internal\ of\ NewtErrorsExternal.h.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTERRORS\_H}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ \_\_NEWTERRORS\_H}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ \ \ \ \ \ \ Contains\ base\ error\ codes\ and\ common\ errors}}
+\DoxyCodeLine{00020\ \textcolor{comment}{}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ \ \ \ \ \ \ All\ error\ codes\ should\ run\ progressively\ negative\ off\ your\ base}}
+\DoxyCodeLine{00022\ \textcolor{comment}{}}
+\DoxyCodeLine{00023\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ \ Error\ bases… \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_COMMON\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/7000)\ \ \ \ \ }\textcolor{comment}{//\ Common\ errors\ \ \ \ \ \ \ \ (see\ below)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_NEWT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/8000)\ \ \ \ \ }\textcolor{comment}{//\ Newt\ errors}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_OS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/10000)\ \ \ \ }\textcolor{comment}{//\ OS\ errors}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_APPLETALK\ \ \ \ \ \ \ \ \ \ \ (-\/12000)\ \ \ \ }\textcolor{comment}{//\ AppleTalk\ errors}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_UTILITYCLASSES\ \ \ \ \ \ (-\/14000)\ \ \ \ }\textcolor{comment}{//\ UtilityClass\ errors}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_COMMTOOL\ \ \ \ \ \ \ \ \ \ \ \ (-\/16000)\ \ \ \ }\textcolor{comment}{//\ CommTool\ errors}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_SERIAL\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/18000)\ \ \ \ }\textcolor{comment}{//\ SerialTool\ errors}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_MNP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/20000)\ \ \ \ }\textcolor{comment}{//\ MNP\ errors}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_FAX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/22000)\ \ \ \ }\textcolor{comment}{//\ FAX\ errors}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_TAPI\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/23000)\ \ \ \ }\textcolor{comment}{//\ TAPI\ errors}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_MODEM\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/24000)\ \ \ \ }\textcolor{comment}{//\ Modem\ errors}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_COMMMGR\ \ \ \ \ \ \ \ \ \ \ \ \ (-\/26000)\ \ \ \ }\textcolor{comment}{//\ CommMgr\ errors}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_DOCKER\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/28000)\ \ \ \ }\textcolor{comment}{//\ Docker\ errors}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_SOUND\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/30000)\ \ \ \ }\textcolor{comment}{//\ Sound\ errors}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_COMPRESSION\ \ \ \ \ \ \ \ \ (-\/32000)\ \ \ \ }\textcolor{comment}{//\ Compression\ errors}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_MEMORY\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/34000)\ \ \ \ }\textcolor{comment}{//\ Memory\ errors}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_TRANSPORT\ \ \ \ \ \ \ \ \ \ \ (-\/36000)\ \ \ \ }\textcolor{comment}{//\ Transport\ errors}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_SHARPIR\ \ \ \ \ \ \ \ \ \ \ \ \ (-\/38000)\ \ \ \ }\textcolor{comment}{//\ Sharp\ IR\ errors}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_IRDA\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/38500)\ \ \ \ }\textcolor{comment}{//\ IrDA\ errors}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_ONLINESERVICES\ \ \ \ \ \ (-\/40000)\ \ \ \ }\textcolor{comment}{//\ Online\ service\ errs}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_EMAIL\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/42000)\ \ \ \ }\textcolor{comment}{//\ Online\ service\ errs}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_PRINTING\ \ \ \ \ \ \ \ \ \ \ \ (-\/44000)\ \ \ \ }\textcolor{comment}{//\ Printing\ errors}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_BLACKBIRD\ \ \ \ \ \ \ \ \ \ \ (-\/46000)\ \ \ \ }\textcolor{comment}{//\ TSI\ BlackBird\ errors\ (Obsolete)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_MESSAGINGENABLER\ \ \ \ (-\/46000)\ \ \ \ }\textcolor{comment}{//\ Messaging\ Enabler\ errors}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_FRAMES\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/48000)\ \ \ \ }\textcolor{comment}{//\ Frames\ errors}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_WIZARD\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/50000)\ \ \ \ }\textcolor{comment}{//\ Wizard\ errors}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_GRAPHICS\ \ \ \ \ \ \ \ \ \ \ \ (-\/52000)\ \ \ \ }\textcolor{comment}{//\ Graphics\ errors}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_COMMSCRIPT\ \ \ \ \ \ \ \ \ \ (-\/54000)\ \ \ \ }\textcolor{comment}{//\ CommScripting\ errors}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_TABLET\ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/56000)\ \ \ \ }\textcolor{comment}{//\ Tablet\ errors}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_PAGEDTSTORE\ \ \ \ \ \ \ \ \ (-\/58000)\ \ \ \ }\textcolor{comment}{//\ Alien\ store\ device\ errors}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_INET\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (-\/60000)\ \ \ \ }\textcolor{comment}{//\ InetTool/NIE\ errors}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ \ \ \ \ ERRBASE\_PRODUCTSPECIFIC\ \ \ \ \ (-\/1000000)\ \ }\textcolor{comment}{//\ Product\ specific\ errors\ (none-\/Apple\ errors)}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ -\/1000000\ -\/>\ -\/1999999}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ \ Common\ errors… \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ \ \ \ \ noErr\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#define\ \ \ \ \ kNoMemory\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (ERRBASE\_COMMON)}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_\_NEWTERRORS\_H}}
+\DoxyCodeLine{00069\ }
+
+\end{DoxyCode}

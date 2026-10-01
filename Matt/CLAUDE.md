@@ -109,6 +109,12 @@ Done so far (details in HISTORY.md):
   `Test/stub_census.py`, `Test/hidden_stubs.py`, `Test/nsdbg_check.py`,
   `Test/lines_invariant.py`, `Test/run_corpus.py` (the package corpus,
   `Test/corpus_results/latest_manifest.json`).
+- `experimental/`: a sub-project of decompiling, independent of newtc: the
+  ROM as source that Apple's own tools (`experimental/bin`, mosrun-wrapped
+  MPW tools) build byte for byte, with every address a symbol so it can be
+  patched and grow; its bytes replaced with C++ step by step. Uses
+  newton-re (`/Users/matt/dev/newton-re`, dparnell) for the debug ROM image
+  and its tools. Plan and findings: `experimental/CLAUDE.md`.
 - VSNewt: `/Users/matt/dev/VSNewt.git/vsnewt` (github MatthiasWM/VSNewt).
   Release: `Matt/tools/build_vsnewt_newtc.sh`, `scripts/make_grammar.py` if
   the built-in functions changed, raise the version, CHANGELOG,

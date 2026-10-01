@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_f_point" kind="struct" language="C++" prot="public">
+    <compoundname>FPoint</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_f_point_1adf99fc41032ba0fad0f9feb7f32017a3" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FPoint::x</definition>
+        <argsstring></argsstring>
+        <name>x</name>
+        <qualifiedname>FPoint::x</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="150" column="7" bodyfile="NewtonTypes.h" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_f_point_1a2ab0bbb835b7faefdb28c8c2e9b02a07" prot="public" static="no" mutable="no">
+        <type>Fixed</type>
+        <definition>Fixed FPoint::y</definition>
+        <argsstring></argsstring>
+        <name>y</name>
+        <qualifiedname>FPoint::y</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="151" column="6" bodyfile="NewtonTypes.h" bodystart="151" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonTypes.h" line="148" column="1" bodyfile="NewtonTypes.h" bodystart="149" bodyend="152"/>
+    <listofallmembers>
+      <member refid="struct_f_point_1adf99fc41032ba0fad0f9feb7f32017a3" prot="public" virt="non-virtual"><scope>FPoint</scope><name>x</name></member>
+      <member refid="struct_f_point_1a2ab0bbb835b7faefdb28c8c2e9b02a07" prot="public" virt="non-virtual"><scope>FPoint</scope><name>y</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

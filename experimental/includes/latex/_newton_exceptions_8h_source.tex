@@ -1,0 +1,845 @@
+\doxysection{Newton\+Exceptions.\+h}
+\hypertarget{_newton_exceptions_8h_source}{}\label{_newton_exceptions_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonExceptions.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Exception\ gear\ for\ Newton\ build\ system}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1996\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v13\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONEXCEPTIONS\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONEXCEPTIONS\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{comment}{/****************************************************************************************}}
+\DoxyCodeLine{00016\ \textcolor{comment}{}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ \ \ \ There\ are\ several\ kinds\ of\ exceptions\ we\ can\ support:}}
+\DoxyCodeLine{00018\ \textcolor{comment}{}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ \ \ newtonStyleExceptions}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...based\ on\ setjmp/longjmp,\ with\ the\ exceptions\ thrown\ being}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ \ \ \ \ \ \ "{}structured\ strings"{}.\ Can\ be\ used\ to\ build\ any\ standalone\ system}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ \ \ \ \ \ \ \ with\ a\ 2.1\ C++\ compiler.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ \ \ cppStyleExceptions}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...based\ on\ C++\ keywords,\ with\ the\ exceptions\ thrown\ being\ arbitrary}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ \ \ \ \ \ data\ types,\ usually\ objects\ of\ CNewtonException\ or\ a\ subclass.\ Can\ be}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ \ \ \ \ \ used\ to\ build\ any\ standalone\ system\ with\ a\ 3.0\ C++\ compiler.}}
+\DoxyCodeLine{00028\ \textcolor{comment}{}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ \ afxStyleExceptions}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...integrates\ with\ MFC's\ exception\ system,\ with\ the\ exceptions\ being}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ \ \ \ \ \ objects\ of\ CException\ or\ a\ subclass\ (of\ which\ CNewtonException\ is\ one).}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ \ \ \ \ \ If\ \_AFX\_OLD\_EXCEPTIONS\ is\ defined,\ use\ the\ variation\ of\ this\ that\ works}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ \ \ \ \ \ with\ setjmp/longjmp;\ else\ use\ the\ variation\ that\ works\ works\ with\ keywords.}}
+\DoxyCodeLine{00034\ \textcolor{comment}{}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ \ macappStyleExceptions}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...integrates\ with\ MacApp's\ exception\ system.\ Not\ yet\ implemented.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ \ sehStyleExceptions}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...based\ on\ Win32's\ Structured\ Exception\ Handling.\ (not\ yet\ implemented,\ if}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ \ \ \ \ \ ever).}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ \ \ \ \ \ }}
+\DoxyCodeLine{00042\ \textcolor{comment}{****************************************************************************************/}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{/****************************************************************************************}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ \ NOTE:\ Only\ the\ following\ macros\ and\ functions\ should\ be\ used\ directly\ by\ your\ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ code.\ The\ rest\ of\ this\ file\ should\ be\ considered\ private\ implementation\ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ details.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ \ \ \ \ \ DeclareException(name,super)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ \ \ \ \ \ DefineException(name,super,string)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ \ \ \ \ \ ExceptionDestructor\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ \ \ \ \ \ VOLATILE(x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ \ \ \ \ \ DECLARE\_VOLATILE(type,\ x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ \ \ \ \ \ DECLARE\_VOLATILE\_INIT(type,\ x,\ value)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ \ \ \ \ \ Subexception(ExceptionName\ sub,\ ExceptionName\ super)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ \ \ \ \ \ Throw(ExceptionName\ name,\ void*\ data\ =\ 0,\ ExceptionDestructor\ destructor\ =\ 0\ )\ \ *}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ \ \ \ \ \ ThrowMsg(char*\ msg)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ \ \ \ \ \ CurrentException()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *\ \ \ \ \ \ rethrow,\ throw1,\ throw2,\ throw3\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *\ \ \ \ \ \ newton\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ \ \ \ \ \ newton\_catch(what)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ \ \ \ \ \ cleanup\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *\ \ \ \ \ \ end\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ \ \ \ \ \ unwind\_protoect\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ *\ \ \ \ \ \ on\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ *\ \ \ \ \ \ end\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ *\ \ \ \ \ \ unwind\_failed()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ ****************************************************************************************/}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{comment}{/****************************************************************************************}}
+\DoxyCodeLine{00073\ \textcolor{comment}{}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ \ Exceptions\ are\ declared\ and\ defined\ using\ the\ DeclareException\ and}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ \ \ \ NewDefineException\ macros.\ Both\ macros\ take\ the\ exception\ name\ as\ the}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ \ first\ parameter\ and\ the\ exception's\ superclass\ as\ the\ second\ parameter.}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ \ NewDefineException\ also\ takes\ a\ "{}structured\ string"{}\ as\ a\ third}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ \ parameter\ to\ enforce\ a\ hierarchy\ under\ exception\ systems\ that\ can't}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ \ work\ with\ C++\ classes.}}
+\DoxyCodeLine{00080\ \textcolor{comment}{}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ \ \ \ \ \ DeclareException(exMyException,\ exRootException)}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ \ \ \ \ \ NewDefineException(exMyException,exRootException,evt.ex.myException)}}
+\DoxyCodeLine{00083\ \textcolor{comment}{}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ \ An\ exception\ is\ signalled\ with\ the\ throw1,\ throw2,\ and\ throw3\ macros.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ \ The\ throw1\ macro\ takes\ an\ exception\ name\ and\ throws\ it\ in\ the\ manner}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ \ appropriate\ to\ the\ underlying\ exception\ system\ being\ used.}}
+\DoxyCodeLine{00087\ \textcolor{comment}{}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ \ \ \ \ \ throw1(exMyException);}}
+\DoxyCodeLine{00089\ \textcolor{comment}{}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ \ The\ throw2\ macro\ takes\ an\ arbitrary\ data\ value\ as\ a\ second\ parameter.}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ \ This\ data\ can\ be\ used\ to\ aid\ in\ debugging.\ For\ instance,\ it\ could}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ \ contain\ an\ error\ code.}}
+\DoxyCodeLine{00093\ \textcolor{comment}{}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ \ \ \ \ \ throw2(exMyException,\ 1234);}}
+\DoxyCodeLine{00095\ \textcolor{comment}{}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ \ If\ the\ data\ you\ are\ throwing\ is\ heap\ data\ that\ needs\ to\ be\ disposed\ of}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ \ after\ the\ exception\ has\ been\ handled,\ you\ can\ use\ the\ throw3\ macro\ and}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ \ specify\ a\ destructor\ function.}}
+\DoxyCodeLine{00099\ \textcolor{comment}{}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ \ \ \ \ \ throw3(exMyException,\ myHeapData,\ DestroyHeapDataFn);}}
+\DoxyCodeLine{00101\ \textcolor{comment}{}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ \ There\ is\ a\ Throw\ function,\ which\ takes\ three\ arguments:\ an\ exception}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ \ name,\ a\ void*\ for\ accompanying\ data,\ and\ a\ pointer\ to\ a\ deallocation}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ \ function\ for\ the\ data\ (NULL\ for\ none).}}
+\DoxyCodeLine{00105\ \textcolor{comment}{}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ \ \ \ \ \ Throw(exMyException,\ (void*)\ 1234,\ 0);}}
+\DoxyCodeLine{00107\ \textcolor{comment}{}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ \ In\ C++.\ the\ second\ and\ third\ arguments\ default\ to\ zero,\ so\ you\ can\ just}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ \ say}}
+\DoxyCodeLine{00110\ \textcolor{comment}{}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ \ \ \ \ \ Throw(exMyException);}}
+\DoxyCodeLine{00112\ \textcolor{comment}{}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ \ WARNING:\ When\ running\ under\ a\ system\ that\ supports\ throwing\ and\ catching}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ \ exceptions\ based\ on\ data\ type,\ the\ Throw\ function\ will\ attempt\ to}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ \ convert\ the\ exception\ name\ (the\ first\ parameter,\ which\ is\ a\ string)\ to}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ \ an\ object\ of\ the\ appropriate\ type.\ It\ does\ this\ by\ comparing\ the}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ \ \ \ exception\ name\ against\ all\ known\ exception\ types.\ This\ process\ can\ make}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ \ \ \ the\ Throw\ function\ slow\ (because\ of\ the\ comparisons\ that\ are\ required)}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ \ \ \ or\ faulty\ (if\ the\ exception\ name\ doesn't\ correspond\ to\ \ any\ of\ the}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ \ known\ exception\ types).\ For\ these\ reasons,\ use\ of\ the\ Throw\ function\ is}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ \ discouraged.\ Instead,\ use\ the\ throw1,\ throw2,\ and\ throw3\ macros}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ \ whenever\ you\ can.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ \ There\ is\ ThrowMsg\ function\ that\ takes\ a\ char*\ and\ throws\ an}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ \ exMsgException\ with\ the\ given\ string\ as\ the\ data.\ \ This\ is\ good\ for}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ \ random\ debugging\ messages.}}
+\DoxyCodeLine{00127\ \textcolor{comment}{}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ \ \ \ \ \ ThrowMsg("{}Random\ debugging\ message"{});}}
+\DoxyCodeLine{00129\ \textcolor{comment}{}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ \ Exception\ handlers\ are\ introduced\ with\ newton\_try\ and\ ended\ with}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ \ end\_try.\ \ Within\ a\ handler\ are\ newton\_catch\ clauses\ that\ specify\ the}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ \ exception\ names\ they\ handle.\ A\ newton\_catch\ clause\ will\ catch\ the}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ \ specified\ exception\ or\ any\ of\ its\ subexceptions.\ \ Inside\ a\ newton\_catch}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ \ clause,\ the\ current\ exception\ can\ be\ accessed\ with\ CurrentException().}}
+\DoxyCodeLine{00135\ \textcolor{comment}{}}
+\DoxyCodeLine{00136\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00137\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ DoSomeStuff;}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\ (exBlahError)}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}Couldn't\ do\ stuff:\ \%s."{},\ CurrentException()-\/>name);}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00145\ \textcolor{comment}{}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ \ A\ newton\_catch\ clause\ can\ throw\ the\ current\ exception\ again\ using}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ \ the\ rethrow\ macro.}}
+\DoxyCodeLine{00148\ \textcolor{comment}{}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\ (exBlahError)}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ blahErrors++;}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ rethrow;}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00154\ \textcolor{comment}{}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ \ \ \ A\ newton\_catch\_all\ clause\ may\ appear\ after\ the\ newton\_catch\ clauses\ (if}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ \ any).\ If\ no\ newton\_catch\ clause\ matches\ the\ current\ exception,\ the}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ \ newton\_catch\_all\ clause\ will\ catch\ the\ exception.}}
+\DoxyCodeLine{00158\ \textcolor{comment}{}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ \ \ \ \ \ TSomething\ foo;}}
+\DoxyCodeLine{00160\ \textcolor{comment}{}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00163\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ DoSomeStuff;}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\ (exBlahError)}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}Couldn't\ do\ stuff:\ \%s."{},\ CurrentException()-\/>name);}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\_all}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ exception\_occurred\ =\ true;}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00174\ \textcolor{comment}{}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ \ A\ cleanup\ clause\ may\ appear\ after\ the\ newton\_catch\ clauses\ (if\ any).\ \ If}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ \ no\ newton\_catch\ clause\ matches\ the\ current\ exception,\ the\ cleanup}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ \ clause\ will\ be\ run\ before\ the\ next\ handler\ is\ tried.\ This\ makes\ cleanup}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ \ \ \ clauses\ identical\ to\ newton\_catch\_all\ clauses,\ except\ that\ cleanup}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ \ \ \ clauses\ implicitly\ rethrow\ the\ exception.}}
+\DoxyCodeLine{00180\ \textcolor{comment}{}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ \ \ \ \ \ \ \ TSomething\ foo;}}
+\DoxyCodeLine{00182\ \textcolor{comment}{}}
+\DoxyCodeLine{00183\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00184\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00185\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ DoSomeStuff;}}
+\DoxyCodeLine{00186\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00187\ \textcolor{comment}{\ \ \ \ \ \ \ \ cleanup}}
+\DoxyCodeLine{00188\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00189\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ foo.\string~TSomething();}}
+\DoxyCodeLine{00190\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00191\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00192\ \textcolor{comment}{}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ \ If\ the\ compiler\ being\ used\ doesn't\ provide\ the\ appropriate\ support,\ you}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ \ have\ to\ call\ destructors\ yourself\ in\ cases\ like\ the\ above.\ \ Of\ course,}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ \ this\ is\ error-\/prone.\ You\ can\ determine\ if\ the\ compiler\ you're\ using}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ \ destructs\ objects\ when\ unwinding\ the\ stack\ by\ using\ the}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ \ hasAutoDestructOnException\ preprocessor\ symbol.\ Thus,\ your\ exception}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ \ handling\ code\ could\ look\ like:}}
+\DoxyCodeLine{00199\ \textcolor{comment}{}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ \ \ \ \ \ TSomething\ foo;}}
+\DoxyCodeLine{00201\ \textcolor{comment}{}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ \ \#if\ !defined(hasAutoDestructOnException)}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ DoSomeStuff;}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00208\ \textcolor{comment}{\ \ \ \ \#if\ !defined(hasAutoDestructOnException)}}
+\DoxyCodeLine{00209\ \textcolor{comment}{\ \ \ \ \ \ \ \ cleanup}}
+\DoxyCodeLine{00210\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00211\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ foo.\string~TSomething();}}
+\DoxyCodeLine{00212\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00213\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00214\ \textcolor{comment}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00215\ \textcolor{comment}{}}
+\DoxyCodeLine{00216\ \textcolor{comment}{\ \ \ \ Finally,\ the\ unwind\_protect\ construct\ allows\ the\ specification\ of\ code}}
+\DoxyCodeLine{00217\ \textcolor{comment}{\ \ \ \ that\ must\ be\ run\ whether\ or\ not\ an\ exception\ occurs.}}
+\DoxyCodeLine{00218\ \textcolor{comment}{}}
+\DoxyCodeLine{00219\ \textcolor{comment}{\ \ \ \ \ \ \ \ unwind\_protect}}
+\DoxyCodeLine{00220\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00221\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ OpenAFile();}}
+\DoxyCodeLine{00222\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ DoSomethingWithTheFile();}}
+\DoxyCodeLine{00223\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00224\ \textcolor{comment}{\ \ \ \ \ \ \ \ on\_unwind}}
+\DoxyCodeLine{00225\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00226\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ CloseTheFile();}}
+\DoxyCodeLine{00227\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_unwind;}}
+\DoxyCodeLine{00229\ \textcolor{comment}{}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ \ \ Within\ an\ on\_unwind\ block,\ you\ can\ determine\ whether\ an\ exception}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ \ \ \ occurred\ by\ using\ unwind\_failed().\ If\ an\ exception\ occurred,\ it\ will}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ \ \ automatically\ be\ rethrown\ at\ the\ end\ of\ the\ on\_unwind\ clause.}}
+\DoxyCodeLine{00233\ \textcolor{comment}{}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ \ Sometimes\ you\ may\ need\ to\ combine\ unwind\_protect\ with\ try/catch:}}
+\DoxyCodeLine{00235\ \textcolor{comment}{}}
+\DoxyCodeLine{00236\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00237\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00238\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ unwind\_protect}}
+\DoxyCodeLine{00239\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00240\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OpenAFile();}}
+\DoxyCodeLine{00241\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DoSomethingWithTheFile();}}
+\DoxyCodeLine{00242\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00243\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ on\_unwind}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00245\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CloseTheFile();}}
+\DoxyCodeLine{00246\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00247\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ end\_unwind;}}
+\DoxyCodeLine{00248\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00249\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\ (exMyError)}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}Couldn't\ DoSomethingWithTheFile!"{});}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00254\ \textcolor{comment}{}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ \ \ \ CAUTION}}
+\DoxyCodeLine{00256\ \textcolor{comment}{}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ \ \ \ There\ is\ a\ subtle\ problem\ that\ can\ occur\ when\ the\ compiler\ assigns\ local}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ \ \ \ variables\ to\ registers.\ If\ you\ modify\ the\ variable\ inside\ of\ a\ try}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ \ \ \ block\ preceding\ code\ that\ could\ possibly\ throw\ an\ exception,\ and\ you}}
+\DoxyCodeLine{00260\ \textcolor{comment}{\ \ \ \ need\ to\ access\ that\ variable\ after\ the\ try\ block\ has\ exited,\ you\ must}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ \ \ \ declare\ that\ variable\ as\ volatile.\ Example:}}
+\DoxyCodeLine{00262\ \textcolor{comment}{}}
+\DoxyCodeLine{00263\ \textcolor{comment}{\ \ \ \ \ \ \ \ DECLARE\_VOLATILE(int,\ x);}}
+\DoxyCodeLine{00264\ \textcolor{comment}{\ \ \ \ \ \ \ \ x\ =\ 0;}}
+\DoxyCodeLine{00265\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00266\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00267\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ ...}}
+\DoxyCodeLine{00268\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ x\ =\ 1;}}
+\DoxyCodeLine{00269\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ ...\ exception\ thrown\ here\ ...}}
+\DoxyCodeLine{00270\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00271\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\ (exMyError)}}
+\DoxyCodeLine{00272\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00273\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ ...x...\ \ \ \ \ \ \ \ \ \ \ \ \ //\ x\ used\ here...}}
+\DoxyCodeLine{00274\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00275\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00276\ \textcolor{comment}{}}
+\DoxyCodeLine{00277\ \textcolor{comment}{\ \ \ \ \ \ \ \ ...x...\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ ...\ and/or\ x\ used\ here.}}
+\DoxyCodeLine{00278\ \textcolor{comment}{}}
+\DoxyCodeLine{00279\ \textcolor{comment}{}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ \ If\ you\ don't\ declare\ x\ as\ volatile,\ it\ might\ be\ kept\ in\ a\ register.\ When}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ \ \ \ the\ exception\ is\ thrown,\ the\ state\ of\ the\ register\ is\ restored\ to\ the}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ \ value\ it\ had\ when\ the\ try\ block\ was\ entered.\ Thus,\ x\ would\ hold\ 0\ instead}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ \ of\ 1\ like\ we\ expected.}}
+\DoxyCodeLine{00284\ \textcolor{comment}{}}
+\DoxyCodeLine{00285\ \textcolor{comment}{}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ \ USAGE\ NOTES\ FOR\ MACAPP\ CLIENTS:}}
+\DoxyCodeLine{00287\ \textcolor{comment}{}}
+\DoxyCodeLine{00288\ \textcolor{comment}{\ \ \ \ The\ newton\_try/newton\_throw/end\_try/etc.\ macros\ have\ been\ redefined\ in}}
+\DoxyCodeLine{00289\ \textcolor{comment}{\ \ \ \ terms\ of\ the\ MacApp\ functions\ the\ provide\ failure\ handling.\ This\ means}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ \ \ \ that\ Newton\ code\ that\ uses\ these\ macros\ will\ raise\ signals\ in\ the\ MacApp}}
+\DoxyCodeLine{00291\ \textcolor{comment}{\ \ \ \ style,\ and\ that\ Newton\ code\ and\ MacApp\ code\ will\ be\ speaking\ on\ the\ same}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ \ \ \ level.}}
+\DoxyCodeLine{00293\ \textcolor{comment}{}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ \ Normal\ MacApp\ failure\ handling\ looks\ like:}}
+\DoxyCodeLine{00295\ \textcolor{comment}{}}
+\DoxyCodeLine{00296\ \textcolor{comment}{\ \ \ \ \ \ \ \ FailInfo\ fi;}}
+\DoxyCodeLine{00297\ \textcolor{comment}{}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ \ \ \ \ \ Try(fi)}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Execute\ some\ code\ that\ might\ throw\ an\ exception.}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ fi.Success();}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ \ \ \ \ \ else}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00305\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Handle\ the\ exception\ here.}}
+\DoxyCodeLine{00306\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (fi.error\ ==\ kNewtonException)}}
+\DoxyCodeLine{00307\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00308\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Exception*\ e\ =\ (Exception*)\ fi.message;}}
+\DoxyCodeLine{00309\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}Couldn't\ do\ stuff:\ \%s."{},\ e-\/>name);}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ delete\ e;}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ else}}
+\DoxyCodeLine{00313\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00314\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ fi.ReSignal();\ \ //\ optional}}
+\DoxyCodeLine{00316\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00317\ \textcolor{comment}{}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ \ \ \ When\ a\ Newton\ exception\ reaches\ the\ "{}else"{}\ clause,\ fi.error\ will\ hold}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ \ \ kNewtonException\ and\ fi.message\ will\ hold\ a\ pointer\ to\ an\ Exception}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ \ record.\ Note\ that\ this\ record\ has\ been\ allocated\ dynamically\ on\ the}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ \ heap,\ so\ it's\ up\ to\ you\ to\ delete\ it.}}
+\DoxyCodeLine{00322\ \textcolor{comment}{}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ \ \ If\ you\ like,\ you\ could\ retrofit\ your\ MacApp\ code\ to\ use\ the\ Newton}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ \ macros.\ By\ doing\ this,\ you\ gain\ the\ following\ benefits:}}
+\DoxyCodeLine{00325\ \textcolor{comment}{}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ \ \ \ \ \ -\/\ Richer\ set\ of\ semantics\ (can\ use\ unwind\_protect\ and\ can\ catch}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ exceptions\ with\ newton\_catch\ or\ newton\_catch\_all.}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ \ \ \ \ \ \ -\/\ You\ won't\ have\ to\ remember\ to\ delete\ the\ Exception\ object.}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ \ \ \ \ \ -\/\ You\ don't\ have\ to\ create\ a\ FailInfo\ variable.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ \ Thus,\ you\ could\ perform\ exception\ handling\ as:}}
+\DoxyCodeLine{00332\ \textcolor{comment}{}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_try}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Execute\ some\ code\ that\ might\ throw\ an\ exception.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00337\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch(CNewtonException)}}
+\DoxyCodeLine{00338\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00339\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Catch\ all\ Newton\ exceptions\ here}}
+\DoxyCodeLine{00340\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Access\ Exception\ data\ with\ CurrentException()}}
+\DoxyCodeLine{00341\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ \ \ \ \ \ newton\_catch\_all}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Catch\ all\ MacApp\ errors\ here}}
+\DoxyCodeLine{00345\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Access\ "{}error"{}\ and\ "{}message"{}\ via\ hidden\ \_info\ variable.}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ \ \ \ \ \ \ end\_try;}}
+\DoxyCodeLine{00348\ \textcolor{comment}{}}
+\DoxyCodeLine{00349\ \textcolor{comment}{}}
+\DoxyCodeLine{00350\ \textcolor{comment}{\ \ \ \ USAGE\ NOTES\ FOR\ MFC\ CLIENTS:}}
+\DoxyCodeLine{00351\ \textcolor{comment}{}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ \ \ \ The\ newton\_try/newton\_throw/end\_try/etc.\ macros\ have\ been\ redefined\ in}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ \ \ \ terms\ of\ the\ MFC\ functions\ that\ provide\ exception\ support.\ This\ means}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ \ \ that\ Newton\ code\ that\ uses\ these\ macros\ will\ throw\ MFC-\/style}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ \ \ exceptions,\ and\ that\ Newton\ code\ and\ MFC\ code\ will\ be\ speaking\ on\ the}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ \ \ \ same\ level.\ The\ kinds\ of\ exceptions\ that\ Newton\ throws\ are\ implemented}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ \ \ as\ subclasses\ of\ CException,\ the\ base\ class\ for\ all\ exceptions\ thrown}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ \ \ \ in\ MFC.}}
+\DoxyCodeLine{00359\ \textcolor{comment}{}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ \ Normal\ MFC\ try/catch\ blocks\ look\ like\ this:}}
+\DoxyCodeLine{00361\ \textcolor{comment}{}}
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ \ \ \ \ \ \ TRY}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Execute\ some\ code\ that\ might\ throw\ an\ exception.}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ \ \ \ \ \ \ \ CATCH\ (CException,\ e)}}
+\DoxyCodeLine{00367\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00368\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Handle\ the\ exception\ here.}}
+\DoxyCodeLine{00369\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ "{}e"{}\ is\ a\ pointer\ to\ an\ exception\ of\ type\ CException.}}
+\DoxyCodeLine{00370\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ MFC\ will\ automatically\ take\ care\ of\ deleting\ the}}
+\DoxyCodeLine{00371\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ CException\ object\ if\ needed.}}
+\DoxyCodeLine{00372\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00373\ \textcolor{comment}{\ \ \ \ \ \ \ \ END\_CATCH\ \ \ //\ END\_CATCH\ will\ rethrow\ any\ uncaught\ exceptions;}}
+\DoxyCodeLine{00374\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ use\ END\_TRY\ to\ silently\ swallow\ them.}}
+\DoxyCodeLine{00375\ \textcolor{comment}{}}
+\DoxyCodeLine{00376\ \textcolor{comment}{\ \ \ \ Multiple\ exception\ catching\ looks\ like\ this:}}
+\DoxyCodeLine{00377\ \textcolor{comment}{}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ \ \ \ \ \ \ \ TRY}}
+\DoxyCodeLine{00379\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00380\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Execute\ some\ code\ that\ might\ throw\ an\ exception.}}
+\DoxyCodeLine{00381\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00382\ \textcolor{comment}{\ \ \ \ \ \ \ \ CATCH\ (CMemoryException,\ e)}}
+\DoxyCodeLine{00383\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00384\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ "{}e"{}\ is\ a\ pointer\ to\ an\ exception\ of\ type\ CMemoryException}}
+\DoxyCodeLine{00385\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00386\ \textcolor{comment}{\ \ \ \ \ \ \ \ AND\_CATCH\ (CFileException,\ e)}}
+\DoxyCodeLine{00387\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00388\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ "{}e"{}\ is\ a\ pointer\ to\ an\ exception\ of\ type\ CFileException}}
+\DoxyCodeLine{00389\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00390\ \textcolor{comment}{\ \ \ \ \ \ \ \ AND\_CATCH\ (CException,\ e)}}
+\DoxyCodeLine{00391\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00392\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ catch\ all\ exceptions}}
+\DoxyCodeLine{00393\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00394\ \textcolor{comment}{\ \ \ \ \ \ \ \ END\_CATCH}}
+\DoxyCodeLine{00395\ \textcolor{comment}{}}
+\DoxyCodeLine{00396\ \textcolor{comment}{\ \ \ \ Newton\ exceptions\ are\ implemented\ as\ sub-\/classes\ of\ CException.\ The\ name}}
+\DoxyCodeLine{00397\ \textcolor{comment}{\ \ \ \ of\ the\ subclass\ is\ the\ result\ of\ string-\/izing\ the\ exception\ name\ with}}
+\DoxyCodeLine{00398\ \textcolor{comment}{\ \ \ \ "{}Class"{}.\ Thus,\ to\ catch\ exMsgException:}}
+\DoxyCodeLine{00399\ \textcolor{comment}{}}
+\DoxyCodeLine{00400\ \textcolor{comment}{\ \ \ \ \ \ \ \ TRY}}
+\DoxyCodeLine{00401\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00402\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Execute\ some\ code\ that\ might\ throw\ an\ exception.}}
+\DoxyCodeLine{00403\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00404\ \textcolor{comment}{\ \ \ \ \ \ \ \ CATCH\ (exMsgExceptionClass,\ e)}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00406\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Print\ the\ message}}
+\DoxyCodeLine{00407\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}Exception\ message:\ \%s\(\backslash\)n"{},\ (char*)\ e-\/>fException.data)}}
+\DoxyCodeLine{00408\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00409\ \textcolor{comment}{\ \ \ \ \ \ \ \ AND\_CATCH\ (CException,\ e)}}
+\DoxyCodeLine{00410\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00411\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ catch\ any\ other\ exceptions}}
+\DoxyCodeLine{00412\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00413\ \textcolor{comment}{\ \ \ \ \ \ \ \ END\_CATCH}}
+\DoxyCodeLine{00414\ \textcolor{comment}{}}
+\DoxyCodeLine{00415\ \textcolor{comment}{\ \ \ \ All\ Newton\ exceptions\ are\ subclasses\ of\ CNewtonExceptionClass,\ which\ is}}
+\DoxyCodeLine{00416\ \textcolor{comment}{\ \ \ \ a\ subclass\ of\ CException.\ CNewtonExceptionClass\ contains\ a\ public}}
+\DoxyCodeLine{00417\ \textcolor{comment}{\ \ \ \ fException\ data\ member\ which\ is\ an\ Exception\ struct.\ You\ can\ therefore}}
+\DoxyCodeLine{00418\ \textcolor{comment}{\ \ \ \ access\ the\ name\ and/or\ data\ fields\ via\ fException.}}
+\DoxyCodeLine{00419\ \textcolor{comment}{}}
+\DoxyCodeLine{00420\ \textcolor{comment}{\ \ \ \ \ \ \ \ TRY}}
+\DoxyCodeLine{00421\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00422\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ //\ Call\ some\ Newton\ ROM\ code.}}
+\DoxyCodeLine{00423\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00424\ \textcolor{comment}{\ \ \ \ \ \ \ \ CATCH\ (CNewtonExceptionClass,\ e)}}
+\DoxyCodeLine{00425\ \textcolor{comment}{\ \ \ \ \ \ \ \ \{}}
+\DoxyCodeLine{00426\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}Couldn't\ do\ stuff:\ \%s."{},\ e-\/>fException.name);}}
+\DoxyCodeLine{00427\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00428\ \textcolor{comment}{\ \ \ \ \ \ \ \ END\_CATCH}}
+\DoxyCodeLine{00429\ \textcolor{comment}{}}
+\DoxyCodeLine{00430\ \textcolor{comment}{****************************************************************************************/}}
+\DoxyCodeLine{00431\ }
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00434\ \textcolor{comment}{**\ Some\ symbols\ that\ configure\ us\ for\ MFC\ (2.0\ or\ 3.0).}}
+\DoxyCodeLine{00435\ \textcolor{comment}{**\ Do\ this\ before\ \#including\ <afx.h>.}}
+\DoxyCodeLine{00436\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00437\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00438\ \textcolor{preprocessor}{\ \ \ \ \#pragma\ warning(disable:\ 4101)\ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ "{}Unreferenced\ local\ variable"{}\ Squelch\ warnings\ about\ unreferenced\ exceptions\ in\ catch\ blocks.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00439\ \textcolor{preprocessor}{\ \ \ \ \#if\ \_MSC\_VER\ >=\ 900}}
+\DoxyCodeLine{00440\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ hasCppExceptions\ 1\ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Says\ that\ we\ have\ the\ full\ baggage:\ keywords,\ stack\ unwinding,\ etc.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00441\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ hasAutoDestructOnException\ 1}}
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00443\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ \_AFX\_OLD\_EXCEPTIONS\ 1}}
+\DoxyCodeLine{00444\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00445\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00446\ }
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00449\ \textcolor{comment}{**\ Bring\ in\ any\ appropriate\ header\ files}}
+\DoxyCodeLine{00450\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00451\ \textcolor{preprocessor}{\#include\ "{}setjmp.h"{}}}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00454\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00455\ \textcolor{comment}{**\ Set\ hasVolatileKeyword}}
+\DoxyCodeLine{00456\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00457\ \textcolor{preprocessor}{\#if\ defined(\_\_arm)\ ||\ defined(\_MSC\_VER)\ ||\ defined(\_\_MWERKS\_\_)\ ||\ defined(\_\_SC\_\_)}}
+\DoxyCodeLine{00458\ \textcolor{preprocessor}{\ \ \ \ \#define\ hasVolatileKeyword\ 1}}
+\DoxyCodeLine{00459\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00463\ \textcolor{comment}{**\ Set\ hasAutoDestructOnException}}
+\DoxyCodeLine{00464\ \textcolor{comment}{**}}
+\DoxyCodeLine{00465\ \textcolor{comment}{**\ Newer\ Metrowerks\ compilers\ support\ C++\ exception\ handling,\ and\ automatic}}
+\DoxyCodeLine{00466\ \textcolor{comment}{**\ destruction\ of\ locals\ when\ an\ exception\ is\ thrown\ if\ the\ correct\ options}}
+\DoxyCodeLine{00467\ \textcolor{comment}{**\ are\ set.\ \ These\ options\ are\ only\ available\ in\ CodeWarrior6\ and\ later,\ so}}
+\DoxyCodeLine{00468\ \textcolor{comment}{**\ this\ header\ file\ will\ not\ work\ correctly\ in\ earlier\ versions\ of\ CodeWarrior.}}
+\DoxyCodeLine{00469\ \textcolor{comment}{**}}
+\DoxyCodeLine{00470\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00471\ \textcolor{preprocessor}{\#ifndef\ \_\_MWERKS\_\_}}
+\DoxyCodeLine{00472\ \textcolor{preprocessor}{\ \ \ \ \#define\ \_\_option(x)\ (x)}}
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\ \ \ \ \#define\ direct\_destruction\ 1}}
+\DoxyCodeLine{00474\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00475\ \textcolor{preprocessor}{\#if\ defined(cppStyleExceptions)\ \&\&\ !\_\_option(direct\_destruction)}}
+\DoxyCodeLine{00476\ \textcolor{preprocessor}{\ \ \ \ \#define\ hasAutoDestructOnException\ 1}}
+\DoxyCodeLine{00477\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ }
+\DoxyCodeLine{00480\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00481\ \textcolor{comment}{**\ Define\ the\ DeclareException,\ DefineException,\ and\ NewDefineException\ macros}}
+\DoxyCodeLine{00482\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00483\ \textcolor{preprocessor}{\#define\ DeclareException(name,\ super)\ extern\ const\ ExceptionName\ name}}
+\DoxyCodeLine{00484\ \textcolor{preprocessor}{\#define\ DefineException(name,\ string)\ const\ ExceptionName\ name\ =\ \#string}}
+\DoxyCodeLine{00485\ \textcolor{preprocessor}{\#define\ NewDefineException(name,\ super,\ string)\ const\ ExceptionName\ name\ =\ \#string}}
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \textcolor{preprocessor}{\#define\ DeclareBaseException(exname)\ DeclareException(exname,CNewtonException)}}
+\DoxyCodeLine{00488\ \textcolor{preprocessor}{\#define\ DefineBaseException(exname,\ string)\ NewDefineException(exname,CNewtonException,string)}}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ }
+\DoxyCodeLine{00491\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00492\ \textcolor{comment}{**\ Define\ the\ VOLATILE,\ DECLARE\_VOLATILE,\ and\ DECLARE\_VOLATILE\_INIT\ macros}}
+\DoxyCodeLine{00493\ \textcolor{comment}{**\ VOLATILE\ is\ obsolete\ for\ C++\ and\ C\ compilers\ with\ 'volatile'.}}
+\DoxyCodeLine{00494\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \textcolor{preprocessor}{\#ifndef\ VOLATILE}}
+\DoxyCodeLine{00497\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_arm}}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00499\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ if\ you\ remove\ the\ '(void)\&dummy\_volatile\_;'\ youÕll\ get\ warnings\ to\ help\ find\ all}}
+\DoxyCodeLine{00500\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ uses\ of\ this\ obsolete\ macro}}
+\DoxyCodeLine{00501\ \textcolor{comment}{\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00502\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ VOLATILE(x)\ do\ \{\ const\ void*\ dummy\_volatile\_\ =\ \&x;\ (void)\&dummy\_volatile\_;\ \}\ while\ (0)}}
+\DoxyCodeLine{00503\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ just\ the\ same\ as\ MacApp;\ this\ worked\ for\ the\ old\ ARM6C,\ too\ */}}
+\DoxyCodeLine{00505\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ VOLATILE(a)\ ((void)\ \&a)}}
+\DoxyCodeLine{00506\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00507\ }
+\DoxyCodeLine{00508\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ VOLATILE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \textcolor{preprocessor}{\#ifndef\ DECLARE\_VOLATILE}}
+\DoxyCodeLine{00511\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00512\ \textcolor{comment}{\ \ \ \ **\ \ This\ way\ is\ sometimes\ better.\ Usage:}}
+\DoxyCodeLine{00513\ \textcolor{comment}{\ \ \ \ **}}
+\DoxyCodeLine{00514\ \textcolor{comment}{\ \ \ \ **\ \ \ \ \ \ volatile\ int\ foo;}}
+\DoxyCodeLine{00515\ \textcolor{comment}{\ \ \ \ **}}
+\DoxyCodeLine{00516\ \textcolor{comment}{\ \ \ \ **\ \ becomes:}}
+\DoxyCodeLine{00517\ \textcolor{comment}{\ \ \ \ **}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ \ **\ \ \ \ \ \ DECLARE\_VOLATILE(int,\ foo);}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ \ **}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ \ **\ \ The\ advantage\ of\ DECLARE\_VOLATILE\ is\ that\ it\ allows\ you\ to\ use}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ \ **\ \ the\ volatile\ keyword\ if\ it\ exists.\ The\ disadvantage\ is\ that\ it}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ \ **\ \ can't\ be\ used\ in\ C\ code\ more\ than\ once\ in\ the\ same\ block\ on\ a}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ \ **\ \ compiler\ that\ doesn't\ have\ the\ volatile\ keyword.}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ \ **}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ \ **\ \ DECLARE\_VOLATILE\_INIT\ is\ a\ handy\ macro\ that\ will\ also\ initialize}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ \ **\ \ a\ variable\ when\ it's\ declared.}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00528\ }
+\DoxyCodeLine{00529\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ hasVolatileKeyword}}
+\DoxyCodeLine{00530\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DECLARE\_VOLATILE(type,\ var)\ type\ volatile\ var}}
+\DoxyCodeLine{00531\ }
+\DoxyCodeLine{00532\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00533\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DECLARE\_VOLATILE\_INIT(type,\ var,\ expr)\ type\ volatile\ var(expr)}}
+\DoxyCodeLine{00534\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#else}}
+\DoxyCodeLine{00535\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DECLARE\_VOLATILE\_INIT(type,\ var,\ expr)\ type\ volatile\ var\ =\ (expr)}}
+\DoxyCodeLine{00536\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00537\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00538\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DECLARE\_VOLATILE(type,\ var)\ type\ var;\ VOLATILE(var)}}
+\DoxyCodeLine{00539\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DECLARE\_VOLATILE\_INIT(type,\ var,\ expr)\ type\ var\ =\ expr;\ VOLATILE(var)}}
+\DoxyCodeLine{00540\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00541\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00542\ }
+\DoxyCodeLine{00543\ }
+\DoxyCodeLine{00544\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00545\ \textcolor{comment}{**\ undef\ to\ get\ rid\ of\ extraneous\ def's}}
+\DoxyCodeLine{00546\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00547\ \textcolor{preprocessor}{\#undef\ Throw}}
+\DoxyCodeLine{00548\ \textcolor{preprocessor}{\#undef\ Catch}}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ }
+\DoxyCodeLine{00551\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}*\ ExceptionName;}
+\DoxyCodeLine{00552\ \textcolor{keyword}{typedef}\ ExceptionName\ ExceptionNamePtr;}
+\DoxyCodeLine{00553\ \textcolor{keyword}{typedef}\ void\ (*ExceptionDestructor)(\textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{00554\ }
+\DoxyCodeLine{00555\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00556\ }
+\DoxyCodeLine{00557\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \ \textcolor{keywordtype}{void}\ \ \ \ Throw(ExceptionName\ name,\ \textcolor{keywordtype}{void}*\ data\ =\ NULL,\ ExceptionDestructor\ destructor\ =\ NULL);}
+\DoxyCodeLine{00558\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \ \textcolor{keywordtype}{void}\ \ \ \ ThrowMsg(\textcolor{keywordtype}{char}*\ msg);}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \ \textcolor{keywordtype}{int}\ \ \ \ \ Subexception(ExceptionName\ sub,\ ExceptionName\ super);}
+\DoxyCodeLine{00560\ }
+\DoxyCodeLine{00561\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ Throw(ExceptionName\ name,\ \textcolor{keywordtype}{void}*\ data,\ ExceptionDestructor\ destructor);}
+\DoxyCodeLine{00564\ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ ThrowMsg(\textcolor{keywordtype}{char}*\ msg);}
+\DoxyCodeLine{00565\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ Subexception(ExceptionName\ sub,\ ExceptionName\ super);}
+\DoxyCodeLine{00566\ }
+\DoxyCodeLine{00567\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00568\ }
+\DoxyCodeLine{00569\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \textcolor{preprocessor}{\ \ \ \ \#define\ CurrentException()\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\&\_info.exception)}}
+\DoxyCodeLine{00572\ \ \ \ \ }
+\DoxyCodeLine{00573\ \textcolor{preprocessor}{\ \ \ \ \#define\ rethrow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ::NextHandler(\&\_info)}}
+\DoxyCodeLine{00574\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw1(ex)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ::Throw(ex)}}
+\DoxyCodeLine{00575\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw2(ex,\ data)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ::Throw(ex,\ (void*)\ (data))}}
+\DoxyCodeLine{00576\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw3(ex,\ data,\ destructor)\ \ \ \ ::Throw(ex,\ (void*)\ (data),\ (ExceptionDestructor)\ destructor)}}
+\DoxyCodeLine{00577\ \ \ \ \ }
+\DoxyCodeLine{00578\ \textcolor{preprocessor}{\ \ \ \ \#define\ newton\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00579\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00580\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ ExceptionHandler\ \_info;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00581\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_info.header.catchType\ =\ kExceptionHandler;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00582\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (setjmp(\_info.state)\ ==\ 0\ \&\&\ (::AddExceptionHandler((CatchHeader*)\ \&\_info),\ 1))\ \ \(\backslash\)}}
+\DoxyCodeLine{00583\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00584\ \textcolor{preprocessor}{\ \ \ \ \#define\ newton\_catch(what)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00585\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ else\ if\ (::Subexception(\_info.exception.name,\ (what)))\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00586\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00587\ \textcolor{preprocessor}{\ \ \ \ \#define\ newton\_catch\_all\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00588\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ else\ if\ (1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00589\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00590\ \textcolor{preprocessor}{\ \ \ \ \#define\ cleanup\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00591\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ else\ if\ (1)\ for\ (;\ 1;\ rethrow)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00592\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00593\ \textcolor{preprocessor}{\ \ \ \ \#define\ end\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00594\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ else\ rethrow;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00595\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ ::ExitHandler(\&\_info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00596\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ while(0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00597\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00598\ \textcolor{preprocessor}{\ \ \ \ \#define\ unwind\_protect\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00599\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00600\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ ExceptionHandler\ \_info;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00601\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_info.header.catchType\ =\ kExceptionHandler;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00602\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ int\ \_failed\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00603\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (setjmp(\_info.state)\ ==\ 0\ \&\&\ (::AddExceptionHandler((CatchHeader*)\ \&\_info),\ 1))\ \{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00604\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00605\ \textcolor{preprocessor}{\ \ \ \ \#define\ on\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00606\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ::ExitHandler(\&\_info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00607\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00608\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ else\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00609\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_failed\ =\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00610\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00611\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00612\ \textcolor{preprocessor}{\ \ \ \ \#define\ end\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00613\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (unwind\_failed())\ rethrow;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00614\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ while\ (0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00615\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00616\ \textcolor{preprocessor}{\ \ \ \ \#define\ unwind\_failed()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00617\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ (\_failed\ !=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00618\ \textcolor{preprocessor}{\ \ \ \ }}
+\DoxyCodeLine{00619\ \textcolor{preprocessor}{\ \ \ \ \#ifndef\ hasCppExceptions}}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Get\ rid\ of\ these\ once\ everyone's\ using\ newton\_try,\ newton\_catch,\ rethrow\ */}}
+\DoxyCodeLine{00621\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ try\ newton\_try}}
+\DoxyCodeLine{00622\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ catch\ newton\_catch}}
+\DoxyCodeLine{00623\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ throw\ rethrow}}
+\DoxyCodeLine{00624\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00625\ }
+\DoxyCodeLine{00626\ \textcolor{preprocessor}{\#else\ \ \ }\textcolor{comment}{/*\ !\_\_cplusplus\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00629\ \textcolor{comment}{\ \ \ \ **\ This\ section\ appears\ to\ be\ identical\ to\ the\ newtonStyleExceptions}}
+\DoxyCodeLine{00630\ \textcolor{comment}{\ \ \ \ **\ section,\ except\ that\ global\ functions\ are\ not\ prefixed\ with\ "{}::"{}.}}
+\DoxyCodeLine{00631\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00632\ }
+\DoxyCodeLine{00633\ \textcolor{preprocessor}{\ \ \ \ \#define\ CurrentException()\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\&\_info.exception)}}
+\DoxyCodeLine{00634\ }
+\DoxyCodeLine{00635\ \textcolor{preprocessor}{\ \ \ \ \#define\ rethrow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NextHandler(\&\_info)}}
+\DoxyCodeLine{00636\ }
+\DoxyCodeLine{00637\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00638\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw1(ex)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(ex)}}
+\DoxyCodeLine{00639\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw2(ex,\ data)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(ex,\ (void*)\ (data))}}
+\DoxyCodeLine{00640\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw3(ex,\ data,\ destructor)\ \ \ \ Throw(ex,\ (void*)\ (data),\ (ExceptionDestructor)\ destructor)}}
+\DoxyCodeLine{00641\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00642\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw1(ex)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(ex,\ (void*)\ 0,\ \ \ \ \ \ \ \ (ExceptionDestructor)\ 0)}}
+\DoxyCodeLine{00643\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw2(ex,\ data)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Throw(ex,\ (void*)\ (data),\ \ \ (ExceptionDestructor)\ 0)}}
+\DoxyCodeLine{00644\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw3(ex,\ data,\ destructor)\ \ \ \ Throw(ex,\ (void*)\ (data),\ \ \ (ExceptionDestructor)\ destructor)}}
+\DoxyCodeLine{00645\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00646\ }
+\DoxyCodeLine{00647\ \textcolor{preprocessor}{\#define\ newton\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00648\ \textcolor{preprocessor}{\ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00649\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ExceptionHandler\ \_info;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00650\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_info.header.catchType\ =\ kExceptionHandler;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00651\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (setjmp(\_info.state)\ ==\ 0\ \&\&\ (AddExceptionHandler((CatchHeader*)\ \&\_info),\ 1))\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00652\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00653\ \textcolor{preprocessor}{\#define\ newton\_catch(what)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00654\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (Subexception(\_info.exception.name,\ (what)))\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00655\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00656\ \textcolor{preprocessor}{\#define\ newton\_catch\_all\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00657\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00658\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00659\ \textcolor{preprocessor}{\#define\ cleanup\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00660\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (1)\ for\ (;\ 1;\ rethrow)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00661\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00662\ \textcolor{preprocessor}{\#define\ end\_try\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00663\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ rethrow;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00664\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ExitHandler(\&\_info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00665\ \textcolor{preprocessor}{\ \ \ \ \}\ while(0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00666\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00667\ \textcolor{preprocessor}{\#define\ unwind\_protect\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00668\ \textcolor{preprocessor}{\ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00669\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ExceptionHandler\ \_info;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00670\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int\ \_failed\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00671\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_info.header.catchType\ =\ kExceptionHandler;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00672\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ VOLATILE(\_failed);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00673\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (setjmp(\_info.state)\ ==\ 0\ \&\&\ (AddExceptionHandler((CatchHeader*)\ \&\_info),\ 1))\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00674\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00675\ \textcolor{preprocessor}{\#define\ on\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00676\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00677\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_failed\ =\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00678\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00679\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00680\ \textcolor{preprocessor}{\#define\ end\_unwind\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00681\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (unwind\_failed())\ rethrow;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00682\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ExitHandler(\&\_info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00683\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00684\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00685\ \textcolor{preprocessor}{\#define\ unwind\_failed()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00686\ \textcolor{preprocessor}{\ \ \ \ (\_failed\ !=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00687\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00688\ \textcolor{preprocessor}{\#ifndef\ hasCppExceptions}}
+\DoxyCodeLine{00689\ \ \ \ \ \textcolor{comment}{/*\ Get\ rid\ of\ these\ once\ everyone's\ using\ newton\_try,\ newton\_catch,\ rethrow\ */}}
+\DoxyCodeLine{00690\ \textcolor{preprocessor}{\ \ \ \ \#define\ try\ newton\_try}}
+\DoxyCodeLine{00691\ \textcolor{preprocessor}{\ \ \ \ \#define\ catch\ newton\_catch}}
+\DoxyCodeLine{00692\ \textcolor{preprocessor}{\ \ \ \ \#define\ throw\ rethrow}}
+\DoxyCodeLine{00693\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00694\ }
+\DoxyCodeLine{00695\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00696\ }
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ }
+\DoxyCodeLine{00699\ \textcolor{preprocessor}{\#ifndef\ \_\_cplusplus}}
+\DoxyCodeLine{00700\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception}{Exception}}\ \mbox{\hyperlink{struct_exception}{Exception}};}
+\DoxyCodeLine{00701\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00702\ }
+\DoxyCodeLine{00703\ \textcolor{comment}{/*\ \ struct\ Exception\ cannot\ be\ changed\ because\ the\ ARM\ native\ NewtonScript\ compiler}}
+\DoxyCodeLine{00704\ \textcolor{comment}{\ \ \ \ generates\ code\ that\ knows\ its\ size\ and\ the\ positions\ of\ its\ members\ */}}
+\DoxyCodeLine{00705\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception}{Exception}}}
+\DoxyCodeLine{00706\ \{}
+\DoxyCodeLine{00707\ \ \ \ \ ExceptionNamePtr\ \ \ \ \ \ \ \ name;}
+\DoxyCodeLine{00708\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ data;}
+\DoxyCodeLine{00709\ \ \ \ \ ExceptionDestructor\ \ \ \ \ destructor;}
+\DoxyCodeLine{00710\ \};}
+\DoxyCodeLine{00711\ }
+\DoxyCodeLine{00712\ }
+\DoxyCodeLine{00713\ }
+\DoxyCodeLine{00714\ \textcolor{preprocessor}{\#ifndef\ \_\_cplusplus}}
+\DoxyCodeLine{00715\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_catch_header}{CatchHeader}}\ \mbox{\hyperlink{struct_catch_header}{CatchHeader}};}
+\DoxyCodeLine{00716\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00717\ }
+\DoxyCodeLine{00718\ \textcolor{comment}{/*\ \ struct\ CatchHeader\ cannot\ be\ changed\ because\ the\ ARM\ native\ NewtonScript\ compiler}}
+\DoxyCodeLine{00719\ \textcolor{comment}{\ \ \ \ generates\ code\ that\ knows\ its\ size\ and\ the\ positions\ of\ its\ members\ */}}
+\DoxyCodeLine{00720\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_catch_header}{CatchHeader}}}
+\DoxyCodeLine{00721\ \{}
+\DoxyCodeLine{00722\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ catchType;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ e.g.,\ kExceptionHandler\ */}}
+\DoxyCodeLine{00723\ \ \ \ \ \mbox{\hyperlink{struct_catch_header}{CatchHeader}}*\ next;}
+\DoxyCodeLine{00724\ \};}
+\DoxyCodeLine{00725\ }
+\DoxyCodeLine{00726\ }
+\DoxyCodeLine{00727\ \textcolor{preprocessor}{\#ifndef\ \_\_cplusplus}}
+\DoxyCodeLine{00728\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_handler}{ExceptionHandler}}\ \mbox{\hyperlink{struct_exception_handler}{ExceptionHandler}};}
+\DoxyCodeLine{00729\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00730\ }
+\DoxyCodeLine{00731\ \textcolor{comment}{/*\ \ struct\ ExceptionHandler\ cannot\ be\ changed\ because\ the\ ARM\ native\ NewtonScript\ compiler}}
+\DoxyCodeLine{00732\ \textcolor{comment}{\ \ \ \ generates\ code\ that\ knows\ its\ size\ and\ the\ positions\ of\ its\ members\ */}}
+\DoxyCodeLine{00733\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_handler}{ExceptionHandler}}}
+\DoxyCodeLine{00734\ \{}
+\DoxyCodeLine{00735\ \ \ \ \ \mbox{\hyperlink{struct_catch_header}{CatchHeader}}\ \ header;}
+\DoxyCodeLine{00736\ \ \ \ \ jmp\_buf\ \ \ \ \ state;}
+\DoxyCodeLine{00737\ \ \ \ \ \mbox{\hyperlink{struct_exception}{Exception}}\ \ exception;}
+\DoxyCodeLine{00738\ \};}
+\DoxyCodeLine{00739\ }
+\DoxyCodeLine{00740\ }
+\DoxyCodeLine{00741\ \textcolor{preprocessor}{\#ifndef\ \_\_cplusplus}}
+\DoxyCodeLine{00742\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_cleanup}{ExceptionCleanup}}\ \mbox{\hyperlink{struct_exception_cleanup}{ExceptionCleanup}};}
+\DoxyCodeLine{00743\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00744\ }
+\DoxyCodeLine{00745\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_cleanup}{ExceptionCleanup}}}
+\DoxyCodeLine{00746\ \{}
+\DoxyCodeLine{00747\ \ \ \ \ \mbox{\hyperlink{struct_catch_header}{CatchHeader}}\ \ \ \ \ \ header;}
+\DoxyCodeLine{00748\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ object;}
+\DoxyCodeLine{00749\ \ \ \ \ void\ \ \ \ \ \ \ \ \ \ \ \ (*function)(\textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{00750\ \};}
+\DoxyCodeLine{00751\ }
+\DoxyCodeLine{00752\ }
+\DoxyCodeLine{00753\ \textcolor{preprocessor}{\#ifndef\ \_\_cplusplus}}
+\DoxyCodeLine{00754\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_globals}{ExceptionGlobals}}\ \mbox{\hyperlink{struct_exception_globals}{ExceptionGlobals}};}
+\DoxyCodeLine{00755\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00756\ }
+\DoxyCodeLine{00757\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_exception_globals}{ExceptionGlobals}}}
+\DoxyCodeLine{00758\ \{}
+\DoxyCodeLine{00759\ \ \ \ \ \mbox{\hyperlink{struct_catch_header}{CatchHeader}}*\ firstCatch;}
+\DoxyCodeLine{00760\ \};}
+\DoxyCodeLine{00761\ }
+\DoxyCodeLine{00762\ }
+\DoxyCodeLine{00763\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00764\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00765\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00766\ }
+\DoxyCodeLine{00767\ \textcolor{keywordtype}{void}\ \ \ \ AddExceptionHandler(\mbox{\hyperlink{struct_catch_header}{CatchHeader}}\ *i);}
+\DoxyCodeLine{00768\ \textcolor{keywordtype}{void}\ \ \ \ ExitHandler(\mbox{\hyperlink{struct_exception_handler}{ExceptionHandler}}\ *i);}
+\DoxyCodeLine{00769\ \textcolor{keywordtype}{void}\ \ \ \ NextHandler(\mbox{\hyperlink{struct_exception_handler}{ExceptionHandler}}\ *i);}
+\DoxyCodeLine{00770\ }
+\DoxyCodeLine{00771\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00772\ \}}
+\DoxyCodeLine{00773\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00774\ }
+\DoxyCodeLine{00775\ }
+\DoxyCodeLine{00776\ }
+\DoxyCodeLine{00777\ \textcolor{comment}{/*\ ***\ Internal\ stuff\ after\ this\ point\ ***\ */}}
+\DoxyCodeLine{00778\ }
+\DoxyCodeLine{00779\ DeclareBaseException(evRootEvent);}
+\DoxyCodeLine{00780\ DeclareException(exRootException,\ evRootEvent);}
+\DoxyCodeLine{00781\ DeclareException(exSkia,\ exRootException);}
+\DoxyCodeLine{00782\ DeclareException(exMsgException,\ exRootException);}
+\DoxyCodeLine{00783\ DeclareException(exDivideByZero,\ exRootException);}
+\DoxyCodeLine{00784\ }
+\DoxyCodeLine{00785\ \textcolor{comment}{/*\ ARM\ aborts\ */}}
+\DoxyCodeLine{00786\ DeclareException(exAbort,\ exRootException);}
+\DoxyCodeLine{00787\ DeclareException(exBusError,\ exAbort);}
+\DoxyCodeLine{00788\ DeclareException(exAlignment,\ exAbort);}
+\DoxyCodeLine{00789\ DeclareException(exIllegalInstr,\ exAbort);}
+\DoxyCodeLine{00790\ DeclareException(exPermissionViolation,\ exAbort);}
+\DoxyCodeLine{00791\ DeclareException(exWriteProtected,\ exAbort);}
+\DoxyCodeLine{00792\ DeclareException(exOutOfStack,\ exAbort);}
+\DoxyCodeLine{00793\ }
+\DoxyCodeLine{00794\ }
+\DoxyCodeLine{00795\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00796\ \textcolor{comment}{\ *\ \ Kinds\ of\ cleanup\ handlers}}
+\DoxyCodeLine{00797\ \textcolor{comment}{\ *\ \ Assembly\ language\ depends\ on\ these\ enums.\ \ Step\ lightly.}}
+\DoxyCodeLine{00798\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00799\ }
+\DoxyCodeLine{00800\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00801\ \{}
+\DoxyCodeLine{00802\ \ \ \ \ \ kExceptionHandler\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 0,\ \ \ \ \textcolor{comment}{/*\ try\ ...\ */}}
+\DoxyCodeLine{00803\ \ \ \ \ \ kExceptionCleanup\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 1,\ \ \ \ \textcolor{comment}{/*\ unwind\_protect\ ...\ */}}
+\DoxyCodeLine{00804\ \ \ \ \ \ kExceptionCleanupDone\ \ \ \ \ \ \ \ \ \ =\ 2,\ \ \ \ \textcolor{comment}{/*\ unwind\_protect\ (already\ performed)\ */}}
+\DoxyCodeLine{00805\ \ \ \ \ \ kExceptionMonitorBoundary\ \ \ \ \ \ =\ 3,\ \ \ \ \textcolor{comment}{/*\ marks\ start\ of\ monitor\ stack\ */}}
+\DoxyCodeLine{00806\ \ \ \ \ \ kExceptionNonUserBoundary\ \ \ \ \ \ =\ 4\ \ \ \ \ \textcolor{comment}{/*\ unhandled\ exception\ in\ (e.g.)\ IRQ\ code\ */}}
+\DoxyCodeLine{00807\ \};}
+\DoxyCodeLine{00808\ }
+\DoxyCodeLine{00809\ }
+\DoxyCodeLine{00810\ \textcolor{preprocessor}{\#ifdef\ forARM}}
+\DoxyCodeLine{00811\ }
+\DoxyCodeLine{00812\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00813\ \ \ \ \ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \textcolor{keywordtype}{void}*\ GetGlobals(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00814\ \ \ \ \ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \textcolor{keywordtype}{void}\ SetGlobals(\textcolor{keywordtype}{void}*\ structure);}
+\DoxyCodeLine{00815\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00816\ \ \ \ \ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}*\ GetGlobals(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00817\ \ \ \ \ \ \ \ \ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ SetGlobals(\textcolor{keywordtype}{void}*\ structure);}
+\DoxyCodeLine{00818\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00819\ }
+\DoxyCodeLine{00820\ \textcolor{preprocessor}{\ \ \ \ \#define\ gFirstCatch\ \ \ \ \ \ \ \ \ (((ExceptionGlobals*)\ ((unsigned\ long)\ GetGlobals()\ -\/\ sizeof(ExceptionGlobals)))-\/>firstCatch)}}
+\DoxyCodeLine{00821\ }
+\DoxyCodeLine{00822\ \textcolor{preprocessor}{\#else\ \ \ }\textcolor{comment}{/*\ !forArm\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00823\ }
+\DoxyCodeLine{00824\ \ \ \ \ \textcolor{keyword}{extern}\ \mbox{\hyperlink{struct_catch_header}{CatchHeader}}*\ gFirstCatch;}
+\DoxyCodeLine{00825\ }
+\DoxyCodeLine{00826\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{/*\ forArm\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00827\ }
+\DoxyCodeLine{00828\ }
+\DoxyCodeLine{00829\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00830\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00831\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00832\ }
+\DoxyCodeLine{00833\ \textcolor{keywordtype}{void}\ \ \ \ RemoveExceptionHandler(\mbox{\hyperlink{struct_catch_header}{CatchHeader}}\ *i);}
+\DoxyCodeLine{00834\ \textcolor{keywordtype}{void}\ \ \ \ InitializeExceptionGlobals(\mbox{\hyperlink{struct_exception_globals}{ExceptionGlobals}}*\ globals);}
+\DoxyCodeLine{00835\ }
+\DoxyCodeLine{00836\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00837\ \}}
+\DoxyCodeLine{00838\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00839\ }
+\DoxyCodeLine{00840\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_NEWTONEXCEPTIONS\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

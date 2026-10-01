@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_exception_handler" kind="struct" language="C++" prot="public">
+    <compoundname>ExceptionHandler</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_exception_handler_1aa76166b2327c640f8309d66071b229f3" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_catch_header" kindref="compound">CatchHeader</ref></type>
+        <definition>CatchHeader ExceptionHandler::header</definition>
+        <argsstring></argsstring>
+        <name>header</name>
+        <qualifiedname>ExceptionHandler::header</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="735" column="12" bodyfile="NewtonExceptions.h" bodystart="735" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_handler_1ace8f9b3767b510f0521392bb50140f3f" prot="public" static="no" mutable="no">
+        <type>jmp_buf</type>
+        <definition>jmp_buf ExceptionHandler::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <qualifiedname>ExceptionHandler::state</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="736" column="8" bodyfile="NewtonExceptions.h" bodystart="736" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_exception_handler_1a1fae7fe3ff4f493d6128870aeddc1d68" prot="public" static="no" mutable="no">
+        <type><ref refid="struct_exception" kindref="compound">Exception</ref></type>
+        <definition>Exception ExceptionHandler::exception</definition>
+        <argsstring></argsstring>
+        <name>exception</name>
+        <qualifiedname>ExceptionHandler::exception</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonExceptions.h" line="737" column="10" bodyfile="NewtonExceptions.h" bodystart="737" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>CatchHeader</label>
+        <link refid="struct_catch_header"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>next</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>Exception</label>
+        <link refid="struct_exception"/>
+      </node>
+      <node id="1">
+        <label>ExceptionHandler</label>
+        <link refid="struct_exception_handler"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>header</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>exception</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="NewtonExceptions.h" line="733" column="1" bodyfile="NewtonExceptions.h" bodystart="734" bodyend="738"/>
+    <listofallmembers>
+      <member refid="struct_exception_handler_1a1fae7fe3ff4f493d6128870aeddc1d68" prot="public" virt="non-virtual"><scope>ExceptionHandler</scope><name>exception</name></member>
+      <member refid="struct_exception_handler_1aa76166b2327c640f8309d66071b229f3" prot="public" virt="non-virtual"><scope>ExceptionHandler</scope><name>header</name></member>
+      <member refid="struct_exception_handler_1ace8f9b3767b510f0521392bb50140f3f" prot="public" virt="non-virtual"><scope>ExceptionHandler</scope><name>state</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

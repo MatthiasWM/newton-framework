@@ -1,0 +1,1256 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="_newton_debug_8h" kind="file" language="C++">
+    <compoundname>NewtonDebug.h</compoundname>
+    <includes refid="_newton_types_8h" local="yes">NewtonTypes.h</includes>
+    <includes refid="_newton_exceptions_8h" local="yes">NewtonExceptions.h</includes>
+    <includes refid="_newton_memory_8h" local="yes">NewtonMemory.h</includes>
+    <includes local="yes">stdio.h</includes>
+    <includedby refid="_newton_8h" local="yes">Newton.h</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>ConfigGlobal.h</label>
+        <link refid="_config_global_8h_source"/>
+      </node>
+      <node id="1">
+        <label>NewtonDebug.h</label>
+        <link refid="_newton_debug_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>NewtonExceptions.h</label>
+        <link refid="_newton_exceptions_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>NewtonMemory.h</label>
+        <link refid="_newton_memory_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>NewtonTypes.h</label>
+        <link refid="_newton_types_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>setjmp.h</label>
+      </node>
+      <node id="4">
+        <label>stddef.h</label>
+      </node>
+      <node id="8">
+        <label>stdio.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="3">
+        <label>NewtTypes.h</label>
+        <link refid="_newt_types_8h_source"/>
+      </node>
+      <node id="2">
+        <label>Newton.h</label>
+        <link refid="_newton_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>NewtonDebug.h</label>
+        <link refid="_newton_debug_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="_newton_debug_8h_1a2e2387830345282e56af76535e6c0acb" prot="public" static="no">
+        <name>Debugger</name>
+        <param></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="63" column="10" bodyfile="NewtonDebug.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a6d0c13c8507cb77f3d999e0cf8d38c70" prot="public" static="no">
+        <name>DebugStr</name>
+        <param><defname>msg</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="64" column="10" bodyfile="NewtonDebug.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ad975cbc2c7ac468b4ac14c18393d985e" prot="public" static="no">
+        <name>DebugCStr</name>
+        <param><defname>msg</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="65" column="10" bodyfile="NewtonDebug.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ad2208bed147a7881e4e8babd1d6ca04c" prot="public" static="no">
+        <name>DebugPrint</name>
+        <param><defname>msg</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="66" column="10" bodyfile="NewtonDebug.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1afd62cdad9f0a14bc4457bd3f70fc4481" prot="public" static="no">
+        <name>TAP_REQUEST</name>
+        <initializer>0x01</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="86" column="9" bodyfile="NewtonDebug.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a368a927203189484c845628d06ac1f2e" prot="public" static="no">
+        <name>TAP_SEND</name>
+        <initializer>0x02</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="87" column="9" bodyfile="NewtonDebug.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a8f987ad7f4550b9c7a3f18a0d73e1841" prot="public" static="no">
+        <name>TAP_SAVE</name>
+        <initializer>0x03</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="88" column="9" bodyfile="NewtonDebug.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a86bfb43e78371128b72a49c2226c5fe3" prot="public" static="no">
+        <name>TAPOUT_SIZE</name>
+        <initializer>0x04</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="89" column="9" bodyfile="NewtonDebug.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a47db9e402a160ee64d861f4f2b645531" prot="public" static="no">
+        <name>THROWIF</name>
+        <param><defname>result</defname></param>
+        <param><defname>exception</defname></param>
+        <initializer>do { if (result) Throw((exception), (void*) (result)); } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="95" column="9" bodyfile="NewtonDebug.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ad89ac23b5f5e2e2ca3c26fb760636605" prot="public" static="no">
+        <name>THROWNOT</name>
+        <param><defname>expr</defname></param>
+        <param><defname>exception</defname></param>
+        <param><defname>result</defname></param>
+        <initializer>do { if (!(expr)) Throw((exception), (void*) (result)); } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="96" column="9" bodyfile="NewtonDebug.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1af58434b4741b839fc2fb8dcdc2e394a6" prot="public" static="no">
+        <name>CHECK</name>
+        <param><defname>expr</defname></param>
+        <param><defname>msg</defname></param>
+        <initializer>do { if (!(expr)) ThrowMsg(msg); } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="97" column="9" bodyfile="NewtonDebug.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a9fa6b9a6a4ccc30c03baf7ef2a2d2c23" prot="public" static="no">
+        <name>debugLevel</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="123" column="13" bodyfile="NewtonDebug.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a5f2f9e341cbc6410ffb9906f33c8348f" prot="public" static="no">
+        <name>XSETPTRNAME</name>
+        <param><defname>p</defname></param>
+        <param><defname>n</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="135" column="10" bodyfile="NewtonDebug.h" bodystart="135" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a27817817807a2e32bed26d1410a583e4" prot="public" static="no">
+        <name>XSETHANDLENAME</name>
+        <param><defname>h</defname></param>
+        <param><defname>n</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="136" column="10" bodyfile="NewtonDebug.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a463d5cf8d5dd54c9d5320be6e135bb4b" prot="public" static="no">
+        <name>XDEBUGSTR</name>
+        <param><defname>msg</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="138" column="10" bodyfile="NewtonDebug.h" bodystart="138" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a33cb825cf57c938c429dd86a8a5159f9" prot="public" static="no">
+        <name>XBLOCKDEBUGPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>{ }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="139" column="10" bodyfile="NewtonDebug.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a0f00b52e4c209e6c01f86868d89d3a4c" prot="public" static="no">
+        <name>XDEBUGPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="140" column="10" bodyfile="NewtonDebug.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a74f4a532c56bcf848e3269ebedf93adf" prot="public" static="no">
+        <name>XBLOCKPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>{ }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="142" column="10" bodyfile="NewtonDebug.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a93e62a4b33f0cbed5625c1423ecc3572" prot="public" static="no">
+        <name>XPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="143" column="10" bodyfile="NewtonDebug.h" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a496784841f44c13fe892f7fd52ec89a3" prot="public" static="no">
+        <name>XPRINTIF</name>
+        <param><defname>expr</defname></param>
+        <param><defname>args</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="144" column="10" bodyfile="NewtonDebug.h" bodystart="144" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ad1efaaa7cd944b5d8a0b9d392bb8a78b" prot="public" static="no">
+        <name>XBLOCKFPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>{ }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="146" column="10" bodyfile="NewtonDebug.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ae3d0addbb46d5ee3b2df7569d8f21cc3" prot="public" static="no">
+        <name>XFPRINT</name>
+        <param><defname>args</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="147" column="10" bodyfile="NewtonDebug.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1afc26b7b4ccd5a5e3e5cb510678566ab9" prot="public" static="no">
+        <name>XFPRINTIF</name>
+        <param><defname>expr</defname></param>
+        <param><defname>args</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="148" column="10" bodyfile="NewtonDebug.h" bodystart="148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a0268177c9e3e3788c8820d1db3ac5f82" prot="public" static="no">
+        <name>XBLOCKASSERTPRINT</name>
+        <param><defname>expr</defname></param>
+        <param><defname>args</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="150" column="10" bodyfile="NewtonDebug.h" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a042f706bed9a969e273726f6ef7842b3" prot="public" static="no">
+        <name>XASSERTPRINT</name>
+        <param><defname>expr</defname></param>
+        <param><defname>args</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="151" column="10" bodyfile="NewtonDebug.h" bodystart="151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1af5c647b0786db55f57452bfc26726bde" prot="public" static="no">
+        <name>XASSERT</name>
+        <param><defname>expr</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="153" column="10" bodyfile="NewtonDebug.h" bodystart="153" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a0f41f2dfb63488cc070960ad0f94292d" prot="public" static="no">
+        <name>XASSERTNOT</name>
+        <param><defname>expr</defname></param>
+        <initializer>((void)0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="154" column="10" bodyfile="NewtonDebug.h" bodystart="154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a47ca637277743eb021c57a895d7650c2" prot="public" static="no">
+        <name>ASSERTMSG</name>
+        <param><defname>expr</defname></param>
+        <param><defname>msg</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="156" column="10" bodyfile="NewtonDebug.h" bodystart="156" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1aa0dcd3c22d8aee85694839c52dc55a81" prot="public" static="no">
+        <name>ASSERTTHROW</name>
+        <param><defname>expr</defname></param>
+        <initializer>((void) 0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="157" column="10" bodyfile="NewtonDebug.h" bodystart="157" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a3d5eeed8acad72d03a65f1712f162667" prot="public" static="no">
+        <name>XREQUIRE</name>
+        <param><defname>expr</defname></param>
+        <param><defname>label</defname></param>
+        <initializer>do { if (!(expr)) goto label; } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="159" column="10" bodyfile="NewtonDebug.h" bodystart="159" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1aa5d0050d6d0f266e6807caa0f90e7068" prot="public" static="no">
+        <name>XREQUIRENOT</name>
+        <param><defname>expr</defname></param>
+        <param><defname>label</defname></param>
+        <initializer>do { if (expr) goto label; } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="160" column="10" bodyfile="NewtonDebug.h" bodystart="160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1aa5a583e25e2929854e2134fac00e7ccb" prot="public" static="no">
+        <name>XREQUIRE_ACTION</name>
+        <param><defname>expr</defname></param>
+        <param><defname>label</defname></param>
+        <param><defname>action</defname></param>
+        <initializer>do { if (!(expr)) { { action } goto label; } } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="162" column="10" bodyfile="NewtonDebug.h" bodystart="162" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a3667a22c7d35cadfe9a635e0c56ed78f" prot="public" static="no">
+        <name>XREQUIRENOT_ACTION</name>
+        <param><defname>expr</defname></param>
+        <param><defname>label</defname></param>
+        <param><defname>action</defname></param>
+        <initializer>do { if (expr) { { action } goto label; } } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="163" column="10" bodyfile="NewtonDebug.h" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a40ffc8809a8b80237c47d386101310e2" prot="public" static="no">
+        <name>THROWERROR</name>
+        <param><defname>result</defname></param>
+        <param><defname>msg</defname></param>
+        <initializer>THROWIF(result, exNewtException)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="165" column="10" bodyfile="NewtonDebug.h" bodystart="165" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a30dc2092d222f3ff132b8983e1a7c89c" prot="public" static="no">
+        <name>THROWNIL</name>
+        <param><defname>expr</defname></param>
+        <param><defname>result</defname></param>
+        <param><defname>msg</defname></param>
+        <initializer>do { if (!(expr)) Throw(exNewtException, (void*) (result)); } while (0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="166" column="10" bodyfile="NewtonDebug.h" bodystart="166" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a80e75c45d16ca391d081ab27b41034c8" prot="public" static="no">
+        <name>XTRY</name>
+        <initializer>do</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="369" column="9" bodyfile="NewtonDebug.h" bodystart="369" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1aa802cc89bd5cd5eae797d3a571312f65" prot="public" static="no">
+        <name>XENDTRY</name>
+        <initializer>while(0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="370" column="9" bodyfile="NewtonDebug.h" bodystart="370" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a4cf56a98fdd8f4747b5d455808316b4e" prot="public" static="no">
+        <name>XDOFAIL</name>
+        <param><defname>expr</defname></param>
+        <initializer>if (expr) do</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="372" column="9" bodyfile="NewtonDebug.h" bodystart="372" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a599259c7cda630b26110fe5d9e83f0f5" prot="public" static="no">
+        <name>XENDFAIL</name>
+        <initializer>while(0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="373" column="9" bodyfile="NewtonDebug.h" bodystart="373" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a99036f1f26d2d4afa2251f931efcefd5" prot="public" static="no">
+        <name>XFAIL</name>
+        <param><defname>expr</defname></param>
+        <initializer>{ if (expr) { break; } }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="375" column="9" bodyfile="NewtonDebug.h" bodystart="375" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a716ada9c406ae553bb78ea6e696f242e" prot="public" static="no">
+        <name>XFAILIF</name>
+        <param><defname>expr</defname></param>
+        <param><defname>action</defname></param>
+        <initializer>{ if (expr) { { action } break; } }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="376" column="9" bodyfile="NewtonDebug.h" bodystart="376" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a956f48146cca744ca46883eb5fe1d683" prot="public" static="no">
+        <name>XFAILNOT</name>
+        <param><defname>expr</defname></param>
+        <param><defname>action</defname></param>
+        <initializer>{ if (!(expr)) { { action } break; } }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="377" column="9" bodyfile="NewtonDebug.h" bodystart="377" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a8b43bafee90b30676faae508c21cb8d7" prot="public" static="no">
+        <name>PRINT</name>
+        <initializer>XPRINT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="383" column="9" bodyfile="NewtonDebug.h" bodystart="383" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a20f5fce0ee49a50e13418490e26938be" prot="public" static="no">
+        <name>ASSERTPRINT</name>
+        <initializer>XASSERTPRINT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="384" column="9" bodyfile="NewtonDebug.h" bodystart="384" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1adf760a35ef45ce9fbf610d6919270d8b" prot="public" static="no">
+        <name>DEBUGPTRNAME</name>
+        <initializer>XSETPTRNAME</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="385" column="9" bodyfile="NewtonDebug.h" bodystart="385" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ac550c859b844117008ab365b63023018" prot="public" static="no">
+        <name>DEBUGHANDLENAME</name>
+        <initializer>XSETHANDLENAME</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="386" column="9" bodyfile="NewtonDebug.h" bodystart="386" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a637eef72b42577b1233f93ebc84467eb" prot="public" static="no">
+        <name>ASSERTNOERROR</name>
+        <initializer>XASSERTNOT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="387" column="9" bodyfile="NewtonDebug.h" bodystart="387" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1aeb9f308d76deeb65149b591b72fc0510" prot="public" static="no">
+        <name>XASSERTNIL</name>
+        <initializer>XASSERTNOT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="388" column="9" bodyfile="NewtonDebug.h" bodystart="388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a1882895117d9767917cb98df90ded685" prot="public" static="no">
+        <name>XREQUIRENIL</name>
+        <initializer>XREQUIRENOT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="389" column="9" bodyfile="NewtonDebug.h" bodystart="389" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a29623417986facdfce2c0db233aa7a93" prot="public" static="no">
+        <name>DebugString</name>
+        <initializer>DebugCStr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="390" column="9" bodyfile="NewtonDebug.h" bodystart="390" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ae516fdc80ac51be6fe8e32909cb29dfe" prot="public" static="no">
+        <name>BLOCKASSERT</name>
+        <initializer>XASSERT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="391" column="9" bodyfile="NewtonDebug.h" bodystart="391" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ad92c940e7f2ef0d078d9326e942518e5" prot="public" static="no">
+        <name>assert</name>
+        <initializer>XASSERT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="392" column="9" bodyfile="NewtonDebug.h" bodystart="392" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a872322836da1a1ae586fd3b0a85b3aaa" prot="public" static="no">
+        <name>DASSERT</name>
+        <initializer>XASSERT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="393" column="9" bodyfile="NewtonDebug.h" bodystart="393" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a2971480882c2c8dd774bd1c375c5c73d" prot="public" static="no">
+        <name>DPRINT</name>
+        <initializer>XPRINT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="394" column="9" bodyfile="NewtonDebug.h" bodystart="394" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a17a2ec422194e60eec2bc3b7bb8b5b8e" prot="public" static="no">
+        <name>PRINTIF</name>
+        <initializer>XPRINTIF</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="395" column="9" bodyfile="NewtonDebug.h" bodystart="395" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1ae43ee89f991b3f9d47eb9368ffa4026e" prot="public" static="no">
+        <name>DBGASSERT</name>
+        <initializer>XASSERT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="396" column="9" bodyfile="NewtonDebug.h" bodystart="396" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a87457913d37897b4a15a37c4803030c1" prot="public" static="no">
+        <name>XDEBUGGER</name>
+        <initializer>XDEBUGSTR</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="397" column="9" bodyfile="NewtonDebug.h" bodystart="397" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1a1a79d68958390ef0582f82cd2272a3a1" prot="public" static="no">
+        <name>DEBUGGER</name>
+        <initializer>XDEBUGSTR</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="398" column="9" bodyfile="NewtonDebug.h" bodystart="398" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newton_debug_8h_1af343b20373ba49a92fce523e948f2ab3" prot="public" static="no">
+        <name>ASSERT</name>
+        <initializer>XASSERT</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="400" column="9" bodyfile="NewtonDebug.h" bodystart="400" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="_newton_debug_8h_1aae6f53f33646ec801584dea29a9abc58" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>long</type>
+        <definition>long TapFileCntl</definition>
+        <argsstring>(long cmd, void *)</argsstring>
+        <name>TapFileCntl</name>
+        <param>
+          <type>long</type>
+          <declname>cmd</declname>
+        </param>
+        <param>
+          <type>void *</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="78" column="6" declfile="NewtonDebug.h" declline="78" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="_newton_debug_8h_1a2816d67c23b7d50b350f061c964c7da2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SendTestResult</definition>
+        <argsstring>(long size, void *)</argsstring>
+        <name>SendTestResult</name>
+        <param>
+          <type>long</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>void *</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="79" column="6" declfile="NewtonDebug.h" declline="79" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="_newton_debug_8h_1a571a3d61b9b264dda491a19fb70fb93e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SendDebugLine</definition>
+        <argsstring>(int, const char *,...)</argsstring>
+        <name>SendDebugLine</name>
+        <param>
+          <type>int</type>
+        </param>
+        <param>
+          <type>const char *</type>
+        </param>
+        <param>
+          <type>...</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonDebug.h" line="80" column="6" declfile="NewtonDebug.h" declline="80" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/><sp/><sp/><sp/>File:<sp/><sp/><sp/><sp/><sp/><sp/><sp/>NewtonDebug.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"></highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/><sp/><sp/><sp/>Contains:<sp/><sp/><sp/>Debug<sp/>gear<sp/>for<sp/>Newton<sp/>build<sp/>system</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"></highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/><sp/><sp/><sp/>Copyright:<sp/><sp/>©<sp/>1992-1995<sp/>by<sp/>Apple<sp/>Computer,<sp/>Inc.<sp/><sp/>All<sp/>rights<sp/>reserved.</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"></highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/><sp/><sp/><sp/>Derived<sp/>from<sp/>v16<sp/>internal.</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"></highlight></codeline>
+<codeline lineno="10"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__NEWTONDEBUG_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>__NEWTONDEBUG_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__NEWTONTYPES_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;NewtonTypes.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__NEWTONEXCEPTIONS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;NewtonExceptions.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__NEWTONMEMORY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;NewtonMemory.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__stdio_h</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;stdio.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#undef<sp/>Debugger</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#undef<sp/>DebugStr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#undef<sp/>DebugCStr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#undef<sp/>DebugPrint</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>forDebug</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>Debugger(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>DebugStr(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>DebugCStr(s)<sp/>DebugStr(s)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>DebugPrint(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*,<sp/>...);<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>like<sp/>printf</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>Debugger()<sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>DebugStr(msg)<sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>DebugCStr(msg)<sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>DebugPrint(msg)<sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>TAP<sp/>file<sp/>stuff</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>TapFileCntl(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>cmd,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>SendTestResult(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>size,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>SendDebugLine(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*,<sp/>...);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TAP_REQUEST<sp/>0x01</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TAP_SEND<sp/><sp/><sp/><sp/>0x02</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TAP_SAVE<sp/><sp/><sp/><sp/>0x03</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TAPOUT_SIZE<sp/>0x04</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>Exception<sp/>Macros</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>THROWIF(result,<sp/>exception)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(result)<sp/>Throw((exception),<sp/>(void*)<sp/>(result));<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>THROWNOT(expr,<sp/>exception,<sp/>result)<sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>Throw((exception),<sp/>(void*)<sp/>(result));<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>CHECK(expr,<sp/>msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>ThrowMsg(msg);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="100"><highlight class="comment"><sp/><sp/><sp/><sp/>Philosophy<sp/>Corner,<sp/>with<sp/>your<sp/>host<sp/>Rege<sp/>LeCrispe</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"></highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/><sp/><sp/><sp/>The<sp/>flag<sp/>&quot;debugLevel&quot;<sp/>is<sp/>always<sp/>defined<sp/>by<sp/>this<sp/>file.</highlight></codeline>
+<codeline lineno="103"><highlight class="comment"><sp/><sp/><sp/><sp/>Your<sp/>code<sp/>can<sp/>use<sp/>&quot;#if&quot;<sp/>or<sp/>even<sp/>&quot;if&quot;<sp/>instead<sp/>of<sp/>&quot;#ifdef&quot;</highlight></codeline>
+<codeline lineno="104"><highlight class="comment"></highlight></codeline>
+<codeline lineno="105"><highlight class="comment"><sp/><sp/><sp/><sp/>debugLevel<sp/>controls<sp/>how<sp/>much<sp/>debugging<sp/>gear<sp/>is<sp/>enabled:</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>debugLevel<sp/>=<sp/>0:<sp/>no<sp/>gear<sp/>is<sp/>enabled</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>debugLevel<sp/>=<sp/>1:<sp/>minimum<sp/>gear<sp/>is<sp/>enabled</highlight></codeline>
+<codeline lineno="108"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>debugLevel<sp/>=<sp/>2:<sp/>maximum<sp/>gear<sp/>is<sp/>enabled</highlight></codeline>
+<codeline lineno="109"><highlight class="comment"></highlight></codeline>
+<codeline lineno="110"><highlight class="comment"><sp/><sp/><sp/><sp/>debugLevel&apos;s<sp/>value<sp/>is<sp/>set<sp/>based<sp/>on<sp/>whether<sp/>forDebug<sp/>is<sp/>defined.</highlight></codeline>
+<codeline lineno="111"><highlight class="comment"><sp/><sp/><sp/><sp/>If<sp/>forDebug<sp/>is<sp/>not<sp/>defined,<sp/>debugLevel<sp/>is<sp/>defined<sp/>to<sp/>be<sp/>0<sp/>(none)</highlight></codeline>
+<codeline lineno="112"><highlight class="comment"><sp/><sp/><sp/><sp/>If<sp/>forDebug<sp/>is<sp/>defined,<sp/>debugLevel<sp/>is<sp/>defined<sp/>to<sp/>be<sp/>1<sp/>(minimum)</highlight></codeline>
+<codeline lineno="113"><highlight class="comment"></highlight></codeline>
+<codeline lineno="114"><highlight class="comment"><sp/><sp/><sp/><sp/>You<sp/>can<sp/>override<sp/>the<sp/>default<sp/>settings<sp/>for<sp/>debugLevel<sp/>by<sp/>defining</highlight></codeline>
+<codeline lineno="115"><highlight class="comment"><sp/><sp/><sp/><sp/>debugLevel<sp/>before<sp/>including<sp/>this<sp/>file,<sp/>or<sp/>in<sp/>your<sp/>local<sp/>compiler</highlight></codeline>
+<codeline lineno="116"><highlight class="comment"><sp/><sp/><sp/><sp/>option<sp/>line.</highlight></codeline>
+<codeline lineno="117"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>debugLevel</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#ifdef<sp/>forDebug</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#define<sp/>debugLevel<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#define<sp/>debugLevel<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight><highlight class="comment">//<sp/>ok<sp/>to<sp/>use<sp/>#if,<sp/>since<sp/>debugLevel<sp/>is<sp/>always<sp/>defined</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>debugLevel<sp/>==<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>No<sp/>Debugging<sp/>Gear</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETPTRNAME(p,n)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETHANDLENAME(h,n)<sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGSTR(msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKDEBUGPRINT(args)<sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINTIF(expr,<sp/>args)<sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINTIF(expr,<sp/>args)<sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTNOT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTMSG(expr,<sp/>msg)<sp/><sp/><sp/><sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTTHROW(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)<sp/>0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE(expr,<sp/>label)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>goto<sp/>label;<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT(expr,<sp/>label)<sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(expr)<sp/>goto<sp/>label;<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE_ACTION(expr,<sp/>label,<sp/>action)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>{<sp/>{<sp/>action<sp/>}<sp/>goto<sp/>label;<sp/>}<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT_ACTION(expr,<sp/>label,<sp/>action)<sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(expr)<sp/>{<sp/>{<sp/>action<sp/>}<sp/>goto<sp/>label;<sp/>}<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWERROR(result,<sp/>msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>THROWIF(result,<sp/>exNewtException)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWNIL(expr,<sp/>result,<sp/>msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>Throw(exNewtException,<sp/>(void*)<sp/>(result));<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>debugLevel<sp/>==<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>Minimum<sp/>Debugging<sp/>Gear</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"></highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>forARM</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETPTRNAME(p,n)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SetPtrName((Ptr)<sp/>(p),<sp/>(ULong)<sp/>(n))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETHANDLENAME(h,n)<sp/><sp/><sp/><sp/><sp/>SetHandleName((Handle)<sp/>(h),<sp/>(ULong)<sp/>(n))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETPTRNAME(p,n)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETHANDLENAME(h,n)<sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGSTR(msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Debugger()</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKDEBUGPRINT(args)<sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Debugger()</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="189"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINTIF(expr,<sp/>args)<sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="190"><highlight class="normal"></highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINTIF(expr,<sp/>args)<sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>DebugCStr(&quot;ASSERTPRINT(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>DebugCStr(&quot;ASSERTPRINT(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>DebugCStr(&quot;XASSERT(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTNOT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(expr)<sp/>DebugCStr(&quot;XASSERTNOT(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTMSG(expr,<sp/>msg)<sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>ThrowMsg(&quot;ASSERTMSG(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTTHROW(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>ThrowMsg(&quot;ASSERTMSG(&quot;<sp/>#expr<sp/>&quot;)<sp/>failed&quot;);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"></highlight></codeline>
+<codeline lineno="204"><highlight class="normal"></highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE(expr,<sp/>label)<sp/>\</highlight></codeline>
+<codeline lineno="206"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="207"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!(expr))<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="208"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>DebugCStr(&quot;XREQUIRE(&quot;<sp/>#expr<sp/>&quot;,<sp/>&quot;<sp/>#label<sp/>&quot;)<sp/>failed&quot;);<sp/>\</highlight></codeline>
+<codeline lineno="209"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="210"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="211"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT(expr,<sp/>label)<sp/>\</highlight></codeline>
+<codeline lineno="214"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="215"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="216"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>DebugCStr(&quot;XREQUIRENOT(&quot;<sp/>#expr<sp/>&quot;,<sp/>&quot;<sp/>#label<sp/>&quot;)<sp/>failed&quot;);<sp/>\</highlight></codeline>
+<codeline lineno="217"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="218"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="219"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="220"><highlight class="normal"></highlight></codeline>
+<codeline lineno="221"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE_ACTION(expr,<sp/>label,<sp/>action)<sp/>\</highlight></codeline>
+<codeline lineno="222"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="223"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!(expr))<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="224"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>DebugCStr(&quot;XREQUIRE_ACTION(&quot;<sp/>#expr<sp/>&quot;,<sp/>&quot;<sp/>#label<sp/>&quot;,<sp/>&quot;<sp/>#action<sp/>&quot;)<sp/>failed&quot;);<sp/>\</highlight></codeline>
+<codeline lineno="225"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>action<sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="226"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="227"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="228"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"></highlight></codeline>
+<codeline lineno="230"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT_ACTION(expr,<sp/>label,<sp/>action)<sp/>\</highlight></codeline>
+<codeline lineno="231"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="232"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="233"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>DebugCStr(&quot;XREQUIRENOT_ACTION(&quot;<sp/>#expr<sp/>&quot;,<sp/>&quot;<sp/>#label<sp/>&quot;,<sp/>&quot;<sp/>#action<sp/>&quot;)<sp/>failed&quot;);<sp/>\</highlight></codeline>
+<codeline lineno="234"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>action<sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="235"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="236"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="237"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWERROR(result,<sp/>msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>THROWIF(result,<sp/>exNewtException)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWNIL(expr,<sp/>result,<sp/>msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>Throw(exNewtException,<sp/>(void*)<sp/>(result));<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight></codeline>
+<codeline lineno="242"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="243"><highlight class="normal"></highlight></codeline>
+<codeline lineno="244"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="245"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>Maximum<sp/>Debugging<sp/>Gear</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="246"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="247"><highlight class="normal"></highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>fancy<sp/>versions<sp/>of<sp/>DebugStr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>defined<sp/>in<sp/>UtilityClasses:DebugMacros.c</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250"><highlight class="normal"></highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>xassert(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>file,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>expr);</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>xassertnot(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>file,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>val);</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>xrequire(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>file,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>label,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>expr);</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>xrequirenot(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>file,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>line,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>label,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>expr,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>val);</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"></highlight></codeline>
+<codeline lineno="256"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>forARM</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="257"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETPTRNAME(p,n)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SetPtrName((Ptr)<sp/>(p),<sp/>(ULong)<sp/>(n))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="258"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETHANDLENAME(h,n)<sp/><sp/><sp/><sp/><sp/>SetHandleName((Handle)<sp/>(h),<sp/>(ULong)<sp/>(n))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="259"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETPTRNAME(p,n)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XSETHANDLENAME(h,n)<sp/><sp/><sp/><sp/><sp/>((void)0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="262"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGSTR(msg)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>DebugCStr(msg)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="265"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKDEBUGPRINT(args)<sp/><sp/>{<sp/>DebugPrint<sp/>args;<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="266"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XDEBUGPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>XBLOCKDEBUGPRINT(args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="267"><highlight class="normal"></highlight></codeline>
+<codeline lineno="268"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>printf<sp/>args;<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="269"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>XBLOCKPRINT(args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="270"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XPRINTIF(expr,<sp/>args)<sp/><sp/><sp/><sp/>do<sp/>if<sp/>(expr)<sp/>XBLOCKPRINT(args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="271"><highlight class="normal"></highlight></codeline>
+<codeline lineno="272"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>fprintf<sp/>args;<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="273"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINT(args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>XBLOCKFPRINT(args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="274"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XFPRINTIF(expr,<sp/>args)<sp/><sp/><sp/>do<sp/>if<sp/>(expr)<sp/>XBLOCKFPRINT(args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="275"><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XBLOCKASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/>{<sp/>if<sp/>(!(expr))<sp/>DebugPrint<sp/>args;<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="277"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTPRINT(expr,<sp/>args)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>XBLOCKASSERTPRINT(expr,<sp/>args)<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="278"><highlight class="normal"></highlight></codeline>
+<codeline lineno="279"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>xassert(__FILE__,<sp/>__LINE__,<sp/>#expr);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="280"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XASSERTNOT(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(expr)<sp/>xassertnot(__FILE__,<sp/>__LINE__,<sp/>#expr,<sp/>(int)(expr));<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="281"><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTMSG(expr,<sp/>msg)<sp/><sp/><sp/><sp/>do<sp/>{<sp/>if<sp/>(!(expr))<sp/>ThrowMsg((char*)<sp/>__FILE__<sp/>&quot;:<sp/>&quot;<sp/>msg);<sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>ASSERTTHROW(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>ASSERTMSG(expr,<sp/>&quot;ASSERTION<sp/>FAILED:<sp/>&quot;<sp/>#expr)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="284"><highlight class="normal"></highlight></codeline>
+<codeline lineno="285"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE(expr,<sp/>label)<sp/>\</highlight></codeline>
+<codeline lineno="286"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="287"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!(expr))<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="288"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>xrequire(__FILE__,<sp/>__LINE__,<sp/>#label,<sp/>#expr);<sp/>\</highlight></codeline>
+<codeline lineno="289"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="290"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="291"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="292"><highlight class="normal"></highlight></codeline>
+<codeline lineno="293"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT(expr,<sp/>label)<sp/>\</highlight></codeline>
+<codeline lineno="294"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="295"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="296"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>xrequirenot(__FILE__,<sp/>__LINE__,<sp/>#label,<sp/>#expr,<sp/>(int)(expr));<sp/>\</highlight></codeline>
+<codeline lineno="297"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="298"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="299"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="300"><highlight class="normal"></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRE_ACTION(expr,<sp/>label,<sp/>action)<sp/>\</highlight></codeline>
+<codeline lineno="302"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="303"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(!(expr))<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="304"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>xrequire(__FILE__,<sp/>__LINE__,<sp/>#label,<sp/>#expr);<sp/>\</highlight></codeline>
+<codeline lineno="305"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>action<sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="306"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="307"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="308"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>XREQUIRENOT_ACTION(expr,<sp/>label,<sp/>action)<sp/>\</highlight></codeline>
+<codeline lineno="311"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="312"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="313"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>xrequirenot(__FILE__,<sp/>__LINE__,<sp/>#label,<sp/>#expr,<sp/>(int)(expr));<sp/>\</highlight></codeline>
+<codeline lineno="314"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>action<sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="315"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>goto<sp/>label;<sp/>\</highlight></codeline>
+<codeline lineno="316"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="317"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWERROR(result,<sp/>msg)<sp/>\</highlight></codeline>
+<codeline lineno="320"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="321"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(result)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="322"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(&quot;throwing:<sp/>%s&quot;,<sp/>msg);<sp/>\</highlight></codeline>
+<codeline lineno="323"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Throw(exNewtException,<sp/>(void*)<sp/>result);<sp/>\</highlight></codeline>
+<codeline lineno="324"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="325"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="326"><highlight class="normal"></highlight></codeline>
+<codeline lineno="327"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#define<sp/>THROWNIL(expr,<sp/>result,<sp/>msg)<sp/>\</highlight></codeline>
+<codeline lineno="328"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="329"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr<sp/>==<sp/>nil)<sp/>{<sp/>\</highlight></codeline>
+<codeline lineno="330"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>printf(&quot;nil:<sp/>%s&quot;,<sp/>msg);<sp/>\</highlight></codeline>
+<codeline lineno="331"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Throw(exNewtException,<sp/>(void*)<sp/>result);<sp/>\</highlight></codeline>
+<codeline lineno="332"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>\</highlight></codeline>
+<codeline lineno="333"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="334"><highlight class="normal"></highlight></codeline>
+<codeline lineno="335"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>debugLevel<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="336"><highlight class="normal"></highlight></codeline>
+<codeline lineno="337"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="338"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>Variants<sp/>of<sp/>XREQUIRE<sp/>et<sp/>al.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="339"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="340"><highlight class="normal"></highlight></codeline>
+<codeline lineno="341"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="342"><highlight class="comment"><sp/><sp/><sp/><sp/>OSErr<sp/>f()</highlight></codeline>
+<codeline lineno="343"><highlight class="comment"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="344"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>OSErr<sp/>err<sp/>=<sp/>noErr;</highlight></codeline>
+<codeline lineno="345"><highlight class="comment"></highlight></codeline>
+<codeline lineno="346"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XTRY</highlight></codeline>
+<codeline lineno="347"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="348"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>err<sp/>=<sp/>g();</highlight></codeline>
+<codeline lineno="349"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XFAIL(err);</highlight></codeline>
+<codeline lineno="350"><highlight class="comment"></highlight></codeline>
+<codeline lineno="351"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int<sp/>y<sp/>=<sp/>g();</highlight></codeline>
+<codeline lineno="352"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XFAILIF(<sp/>y,<sp/>err<sp/>=<sp/>kError;<sp/>);</highlight></codeline>
+<codeline lineno="353"><highlight class="comment"></highlight></codeline>
+<codeline lineno="354"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>char*<sp/>x<sp/>=<sp/>malloc(64);</highlight></codeline>
+<codeline lineno="355"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XFAILNOT(<sp/>x,<sp/>err<sp/>=<sp/>MemError();<sp/>);</highlight></codeline>
+<codeline lineno="356"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="357"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XENDTRY;</highlight></codeline>
+<codeline lineno="358"><highlight class="comment"></highlight></codeline>
+<codeline lineno="359"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XDOFAIL(err)</highlight></codeline>
+<codeline lineno="360"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="361"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>failure<sp/>cleanup</highlight></codeline>
+<codeline lineno="362"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="363"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>XENDFAIL;</highlight></codeline>
+<codeline lineno="364"><highlight class="comment"></highlight></codeline>
+<codeline lineno="365"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>err;</highlight></codeline>
+<codeline lineno="366"><highlight class="comment"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="367"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="368"><highlight class="normal"></highlight></codeline>
+<codeline lineno="369"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XTRY<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>do</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="370"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XENDTRY<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>while(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="371"><highlight class="normal"></highlight></codeline>
+<codeline lineno="372"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XDOFAIL(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(expr)<sp/>do</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="373"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XENDFAIL<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>while(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="374"><highlight class="normal"></highlight></codeline>
+<codeline lineno="375"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XFAIL(expr)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>if<sp/>(expr)<sp/>{<sp/>break;<sp/>}<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="376"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XFAILIF(expr,<sp/>action)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>if<sp/>(expr)<sp/>{<sp/>{<sp/>action<sp/>}<sp/>break;<sp/>}<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="377"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XFAILNOT(expr,<sp/>action)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>if<sp/>(!(expr))<sp/>{<sp/>{<sp/>action<sp/>}<sp/>break;<sp/>}<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="378"><highlight class="normal"></highlight></codeline>
+<codeline lineno="379"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="380"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/><sp/><sp/>Equivalent<sp/>expressions<sp/>for<sp/>compatibility</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="381"><highlight class="normal"></highlight><highlight class="comment">//--------------------------------------------------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="382"><highlight class="normal"></highlight></codeline>
+<codeline lineno="383"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PRINT<sp/>XPRINT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="384"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ASSERTPRINT<sp/>XASSERTPRINT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="385"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DEBUGPTRNAME<sp/>XSETPTRNAME</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="386"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DEBUGHANDLENAME<sp/>XSETHANDLENAME</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="387"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ASSERTNOERROR<sp/>XASSERTNOT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="388"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XASSERTNIL<sp/>XASSERTNOT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="389"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XREQUIRENIL<sp/>XREQUIRENOT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="390"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DebugString<sp/>DebugCStr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="391"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>BLOCKASSERT<sp/>XASSERT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="392"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>assert<sp/>XASSERT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="393"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DASSERT<sp/>XASSERT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="394"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DPRINT<sp/>XPRINT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="395"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>PRINTIF<sp/>XPRINTIF</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DBGASSERT<sp/>XASSERT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="397"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>XDEBUGGER<sp/>XDEBUGSTR</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="398"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DEBUGGER<sp/>XDEBUGSTR</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="399"><highlight class="normal"></highlight></codeline>
+<codeline lineno="400"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ASSERT<sp/>XASSERT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="401"><highlight class="normal"></highlight></codeline>
+<codeline lineno="402"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__NEWTONDEBUG_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="NewtonDebug.h"/>
+  </compounddef>
+</doxygen>

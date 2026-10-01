@@ -1,0 +1,98 @@
+\doxysection{history\+Collector\+MACRO.\+h}
+\hypertarget{history_collector_m_a_c_r_o_8h_source}{}\label{history_collector_m_a_c_r_o_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ historyCollectorMACRO.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ interface\ definitions\ for\ tracing\ routines}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1997\ by\ Apple\ Computer,\ Inc.,\ all\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ \ \ \ }}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v3**\ (3/21/97)\ internal}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ \ \ \ \ \ \ \ }}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_HISTORYCOLLECTORMACRO\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_HISTORYCOLLECTORMACRO\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifdef\ kDB\_\_pHISTORYCOLLECT}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifndef\ \_\_TRACEEVENTS\_H}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}TraceEvents.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ }}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ BEGIN\_TRACE\_DECLARATIONS(\ \_strTRACE\_NAME,\ \_ulSIZEBUF,\ \_ulNUMDESC,\ \_pTeventcollectorRET\ ,\ \_parrSeventtracecausedescRET\ )\ \(\backslash\)}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\{\ \(\backslash\)}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \ \ TEventCollector\ *\ \_pTeventcollector\_\ ;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ EventTraceCauseDesc\ *\_parrSeventtracecausedesc\_\ ;\ \ \(\backslash\)}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ int\ \_ul\_currDescIndex\ =\ 0;\ \ \(\backslash\)}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \_pTeventcollectorRET\ =\ nil;\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \_parrSeventtracecausedescRET\ =\ nil;\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \_parrSeventtracecausedesc\_\ =\ \ \ \ \ new\ EventTraceCauseDesc\ [\ \_ulNUMDESC\ \ ];\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ \ \ if\ (\ !\ \_parrSeventtracecausedesc\_\ \ )\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ goto\ lbl\_beginFail;\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ \_pTeventcollector\_\ =\ \ (TEventCollector\ *)\ NewByName\ (\ "{}TEventCollector"{},\ "{}THistoryCollector"{});\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ if\ (\ !\ \_pTeventcollector\_\ )\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ delete\ [\ \ ]\ \_parrSeventtracecausedesc\_\ ;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ goto\ lbl\_beginFail;\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\ \ \ \ \_pTeventcollectorRET\ =\ \_pTeventcollector\_;\ \ \(\backslash\)}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\ \ \ \ \_parrSeventtracecausedescRET\ =\ \_parrSeventtracecausedesc\_;\ \ \(\backslash\)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ \_pTeventcollector\_\ -\/>Init\ (sizeof(unsigned\ long),\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}\(\backslash\)t\%bd:\ \(\backslash\)t0x\%bx,\ \(\backslash\)t0x\%hx"{}\ ,\ \(\backslash\)}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (char\ *)\_strTRACE\_NAME\ ,\ \_ulSIZEBUF,\ eLockedBuffer);\ \ \ }}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ }}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ END\_TRACE\_DECLARATIONS(\ \_xxx\ \ )\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pTeventcollector\_-\/>AddDescriptions\ (\ \_parrSeventtracecausedesc\_\ ,\ \_ul\_currDescIndex\ \ );\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{lbl\_beginFail:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ \ \ ;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ }}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ TRACE\_RELEASE(\ \ \_pTeventcollector2FREE\ ,\ \_parrTeventtracecausedesc2FREE\ )\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_pTeventcollector2FREE\ )\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pTeventcollector2FREE\ -\/>\ Delete();\ \(\backslash\)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pTeventcollector2FREE\ =\ nil;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_parrTeventtracecausedesc2FREE\ )\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ delete\ [\ \ ]\ \_parrTeventtracecausedesc2FREE\ ;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_parrTeventtracecausedesc2FREE\ =\ nil;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00069\ \ \ \ \ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//\ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ }}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ DEFINE\_TRACE\_ENTRY(\ \ \ \_ubID,\ \ \_strDESC\ )\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ \_parrSeventtracecausedesc\_\ [\ \ \_ul\_currDescIndex\ ]\ \ .\ cause\ =\ \_ubID;\ \(\backslash\)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ \ \ \_parrSeventtracecausedesc\_\ [\ \ \_ul\_currDescIndex++\ ]\ \ .\ description\ =\ \ \_strDESC;\ }}
+\DoxyCodeLine{00074\ \ \ \ \ }
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ -\/-\/-\/-\/\ \ \ \ }}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ TRACE\_MESSAGE(\ \ \_pTeventcollector\_\ ,\ \_ubID,\ \_ubBYTEDATUM,\ \_usSHORTDATUM\ )\ \(\backslash\)}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (\_pTeventcollector\_)\ \_pTeventcollector\_\ -\/>\ Add((ULong)\ (((UChar)\ (\_ubID)\ <<\ 24)\ +\ ((UChar)\ (\_ubBYTEDATUM)\ <<\ 16)\ +\ ((UShort)\ ((\_usSHORTDATUM)\ \&\ 0xffff))));}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ TRACE\_FUNCTION(\ \ \_pTeventcollector\_\ \ )\ \ if\ (\_pTeventcollector\_)\ \_pTeventcollector\_\ -\/>\ AddAddress();}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#else\ \ \ }\textcolor{comment}{//kDB\_\_pHISTORYCOLLECT}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#define\ BEGIN\_TRACE\_DECLARATIONS(\ \_strTRACE\_NAME,\ \_ulSIZEBUF,\ \_ulNUMDESC,\ \_pTeventcollectorRET\ ,\ \_parrSeventtracecausedescRET\ )\ }}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ END\_TRACE\_DECLARATIONS(\ \_xxx\ \ )\ \ \ \ \ }}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ TRACE\_RELEASE(\ \ \_pTeventcollector2FREE\ ,\ \_parrTeventtracecausedesc2FREE\ )\ \ \ }}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ DEFINE\_TRACE\_ENTRY(\ \ \ \_ubID,\ \ \_strDESC\ )\ \ \ \ }}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ TRACE\_MESSAGE(\ \ \_pTeventcollector\_\ ,\ \_ubID,\ \_ubBYTEDATUM,\ \_usSHORTDATUM\ )\ \ \ }}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ TRACE\_FUNCTION(\ \ \_pTeventcollector\_\ \ )\ \ }}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//kDB\_\_pHISTORYCOLLECT}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\_\_HISTORYCOLLECTORMACRO\_H}}
+
+\end{DoxyCode}

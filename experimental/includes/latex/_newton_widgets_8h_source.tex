@@ -1,0 +1,197 @@
+\doxysection{Newton\+Widgets.\+h}
+\hypertarget{_newton_widgets_8h_source}{}\label{_newton_widgets_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonWidgets.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Handy\ stuff}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1995\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v12\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONWIDGETS\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONWIDGETS\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}NewtonTypes.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ EOF}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ EOF\ (-\/1)}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifndef\ EOM}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ EOM\ (-\/2)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ UNUSED\_PARAM}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ UNUSED\_PARAM(x)\ (1\ ?\ (void)\ 0\ :\ (void)\ x)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keyword}{enum}\ PositionMode\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ kPosBeg\ =\ -\/1,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ kPosCur\ =\ 0,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ kPosEnd\ =\ 1}
+\DoxyCodeLine{00036\ \ \ \ \ \};}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#if\ !defined(qMacApp)\ ||\ defined(forDockerSubSystem)}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{typedef}\ Long\ ArrayIndex;}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{enum}\ IndexValues\ \{\ kEmptyIndex\ =\ -\/1\ \};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ \ \ \ \ \ Byte\ swapping}}
+\DoxyCodeLine{00049\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{//\ Watch\ out\ for\ these\ macros...they\ can\ silently\ turn\ your\ values\ into\ different\ types...}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ BYTE\_SWAP\_CHAR(n)\ (n)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ BYTE\_SWAP\_SHORT(n)\ (((n\ >>\ 8)\ \&\ 0x000000FF)\ |\ ((n\ <<\ 8)\ \&\ 0x0000FF00))}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ BYTE\_SWAP\_LONG(n)\ (((n\ <<\ 24)\ \&\ 0xFF000000)\ |\ ((n\ <<\ \ 8)\ \&\ 0x00FF0000)\ |\ ((n\ >>\ \ 8)\ \&\ 0x0000FF00)\ |\ ((n\ >>\ 24)\ \&\ 0x000000FF))}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ the\ following\ macros\ are\ for\ code\ with\ static\ data\ that}}
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ assumes\ ordering\ different\ from\ native\ ordering}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#ifdef\ hasByteSwapping}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_LONG\ BYTE\_SWAP\_LONG}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_SHORT\ BYTE\_SWAP\_SHORT}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_CHAR\ BYTE\_SWAP\_CHAR}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_LONG(n)\ (n)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_SHORT(n)\ (n)}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\ \ \ \ \#define\ CANONICAL\_CHAR(n)\ (n)}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ ByteSwap(\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ n)\ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char})\ \ \ \ \ \ BYTE\_SWAP\_CHAR(n);\ \}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ \ ByteSwap(\textcolor{keywordtype}{char}\ n)\ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{char})\ \ \ \ \ \ \ \ \ \ \ \ \ BYTE\_SWAP\_CHAR(n);\ \}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ \ ByteSwap(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ n)\ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char})\ \ \ \ BYTE\_SWAP\_CHAR(n);\ \}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{short}\ \ \ \ \ \ \ \ \ \ \ \ ByteSwap(\textcolor{keywordtype}{short}\ n)\ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{short})\ \ \ \ \ \ \ \ \ \ \ \ BYTE\_SWAP\_SHORT(n);\ \}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ \ \ ByteSwap(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ n)\ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short})\ \ \ BYTE\_SWAP\_SHORT(n);\ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ \ \ \ \ \ ByteSwap(\textcolor{keywordtype}{long}\ n)\ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{long})\ \ \ \ \ \ \ \ \ \ \ \ \ BYTE\_SWAP\_LONG(n);\ \}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \ \ \ ByteSwap(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ n)\ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long})\ \ \ \ BYTE\_SWAP\_LONG(n);\ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ Canonical(\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ n)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char})\ \ \ \ \ \ CANONICAL\_CHAR(n);\ \}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ \ Canonical(\textcolor{keywordtype}{char}\ n)\ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{char})\ \ \ \ \ \ \ \ \ \ \ \ \ CANONICAL\_CHAR(n);\ \}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ \ Canonical(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ n)\ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char})\ \ \ \ CANONICAL\_CHAR(n);\ \}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{short}\ \ \ \ \ \ \ \ \ \ \ \ Canonical(\textcolor{keywordtype}{short}\ n)\ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{short})\ \ \ \ \ \ \ \ \ \ \ \ CANONICAL\_SHORT(n);\ \}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ \ \ Canonical(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ n)\ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short})\ \ \ CANONICAL\_SHORT(n);\ \}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ \ \ \ \ \ Canonical(\textcolor{keywordtype}{long}\ n)\ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{long})\ \ \ \ \ \ \ \ \ \ \ \ \ CANONICAL\_LONG(n);\ \}}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \ \ \ Canonical(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ n)\ \ \{\ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long})\ \ \ \ CANONICAL\_LONG(n);\ \}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{keywordtype}{void}\ ByteSwap\ (\textcolor{keywordtype}{void}*\ p,\ \textcolor{keywordtype}{long}\ count,\ \textcolor{keywordtype}{long}\ swapSize);}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{comment}{//\ implementation\ of\ ByteSwap\ is\ in\ UtilityClasses:Widgets.c}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ \ \ \ \ \ Comparison\ Macros}}
+\DoxyCodeLine{00099\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#define\ ABS(a)\ \ \ \ (\ ((a)\ <\ 0)\ ?\ -\/(a)\ :\ (a)\ )}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ MAX(a,\ b)\ (\ ((a)\ >\ (b))\ ?\ (a)\ :\ (b)\ )}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#define\ MIN(a,\ b)\ (\ ((a)\ <\ (b))\ ?\ (a)\ :\ (b)\ )}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#define\ MINMAX(min,\ expr,\ max)\ (\ MIN(MAX(min,\ expr),\ max)\ )}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ ODD(x)\ \ \ \ (\ (x)\ \&\ 1\ )}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#define\ EVEN(x)\ \ \ (\ !((x)\ \&\ 1)\ )}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{inline}\ Boolean\ Odd(ULong\ x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (Boolean)\ (x\ \&\ 1);\ \}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keyword}{inline}\ Boolean\ Even(ULong\ x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (Boolean)\ !(x\ \&\ 1);\ \}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{inline}\ Long\ Abs(Long\ a)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (a\ <\ 0)\ ?\ -\/a\ :\ a;\ \}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#if\ !defined(qMacApp)\ ||\ defined(forDockerSubSystem)}}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keyword}{inline}\ Long\ Max(Long\ a,\ Long\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (a\ >\ b)\ ?\ a\ :\ b;\ \}}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{inline}\ Long\ Min(Long\ a,\ Long\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (a\ <\ b)\ ?\ a\ :\ b;\ \}}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{inline}\ Long\ MinMax(Long\ l,\ Long\ x,\ Long\ h)\ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ Min(Max(l,\ x),\ h);\ \}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ UMax(ULong\ a,\ ULong\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (a\ >\ b)\ ?\ a\ :\ b;\ \}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ UMin(ULong\ a,\ ULong\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ (a\ <\ b)\ ?\ a\ :\ b;\ \}}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ UMinMax(ULong\ l,\ ULong\ x,\ ULong\ h)\ \{\ \textcolor{keywordflow}{return}\ UMin(UMax(l,\ x),\ h);\ \}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ \ \ \ \ \ Bitwiddling\ Macros}}
+\DoxyCodeLine{00124\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{comment}{//\ \ BIT(N)\ \ \ \ \ \ the\ Nth\ bit\ set}}
+\DoxyCodeLine{00127\ \textcolor{comment}{//\ \ BITS(N,M)\ \ \ bits\ N\ through\ M\ set,\ inclusive.\ \ N\ >\ M\ \ (e.g.\ "{}BITS(31,0)"{}).}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ BIT(N)\ \ \ \ \ \ (1<<(N))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ bit\ N\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ BITS(N,M)\ \ \ ((BIT((M)-\/(N)+1)-\/1)<<(N))\ \ \ \ \ \ \ }\textcolor{comment}{/*\ bits\ N..M\ inclusive\ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ MASKTEST(data,\ mask)\ \ \ (\ (data)\ \&\ (mask)\ )}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ MASKSET(data,\ mask)\ \ \ \ (\ (data)\ |\ (mask)\ )}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ MASKCLEAR(data,\ mask)\ \ (\ (data)\ \&\ (\string~(mask))\ )}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ MASKTOGGLE(data,\ mask)\ (\ ((data)\ \&\ (mask))\ ?\ ((data)\ \&\ (\string~(mask)))\ :\ ((data)\ |\ (mask))\ )}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ MaskTest(ULong\ data,\ ULong\ mask)\ \ \ \{\ \textcolor{keywordflow}{return}\ data\ \&\ mask;\ \}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ MaskSet(ULong\ data,\ ULong\ mask)\ \ \ \ \{\ \textcolor{keywordflow}{return}\ data\ |\ mask;\ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ MaskClear(ULong\ data,ULong\ \ mask)\ \ \{\ \textcolor{keywordflow}{return}\ data\ \&\ (\string~mask);\ \}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keyword}{inline}\ ULong\ MaskToggle(ULong\ data,\ ULong\ mask)\ \{\ \textcolor{keywordflow}{return}\ (data\ \&\ mask)\ ?\ (data\ \&\ (\string~mask))\ :\ (data\ |\ mask);\ \}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00145\ \textcolor{comment}{//\ \ \ \ \ \ Alignment\ Macros}}
+\DoxyCodeLine{00146\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{comment}{//\ some\ useful\ sizes}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#define\ KByte\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (1024)}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#define\ MByte\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (1024*1024)}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{comment}{//\ \ ARM\ MMU\ Sizes}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\#define\ kSubPageSize\ \ \ \ \ \ \ \ \ \ \ \ KByte}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#define\ kSubPagesPerPage\ \ \ \ \ \ \ \ (4)}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#define\ kPageSize\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (4\ *\ KByte)}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#define\ kBigPageSize\ \ \ \ \ \ \ \ \ \ \ \ (64\ *\ KByte)}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ kBigSubPageSize\ \ \ \ \ \ \ \ \ (16\ *\ KByte)}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#define\ kSectionSize\ \ \ \ \ \ \ \ \ \ \ \ MByte}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ \ ALIGN(amount,\ boundary)\ \ \ \ \ round\ 'amount'\ up\ to\ nearest\ 'boundary'\ (which}}
+\DoxyCodeLine{00163\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ must\ be\ a\ power\ of\ two)}}
+\DoxyCodeLine{00164\ \textcolor{comment}{//}}
+\DoxyCodeLine{00165\ \textcolor{comment}{//\ \ WORDALIGN(amount)\ \ \ \ \ \ \ \ \ \ \ round\ 'amount'\ up\ to\ a\ multiple\ of\ two}}
+\DoxyCodeLine{00166\ \textcolor{comment}{//}}
+\DoxyCodeLine{00167\ \textcolor{comment}{//\ \ LONGALIGN(amount)\ \ \ \ \ \ \ \ \ \ \ round\ 'amount'\ up\ to\ a\ multiple\ of\ four}}
+\DoxyCodeLine{00168\ \textcolor{comment}{//}}
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ \ PAGEALIGN(amount)\ \ \ \ \ \ \ \ \ \ \ ditto,\ for\ 4K\ and\ 1K\ (ARM)}}
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ \ SUBPAGEALIGN(amount)}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#define\ \ \ \ \ ALIGN(N,B)\ \ \ \ \ \ \ \ \ \ ((((ULong)(N))+(B)-\/1)\&\string~(B-\/1))}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#define\ \ \ \ \ WORDALIGN(n)\ \ \ \ \ \ \ \ ALIGN((n),2)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#define\ \ \ \ \ LONGALIGN(n)\ \ \ \ \ \ \ \ ALIGN((n),4)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#define\ \ \ \ \ PAGEALIGN(n)\ \ \ \ \ \ \ \ ALIGN((n),kPageSize)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ \ \ \ \ SUBPAGEALIGN(n)\ \ \ \ \ ALIGN((n),kSubPageSize)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#define\ \ \ \ \ ALIGNED(n,B)\ \ \ \ \ \ \ \ (((ULong)(n))\ ==\ ALIGN(((ULong)(n)),B))}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#define\ \ \ \ \ TRUNC(N,B)\ \ \ \ \ \ \ \ \ \ (((ULong)(N))\ \&\ \string~((B)-\/1))}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00181\ \textcolor{comment}{//\ \ \ \ \ \ TProtocol\ support}}
+\DoxyCodeLine{00182\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#ifdef\ hasNoProtocols}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ \ \ \#define\ NEWPROTOCOL(var,\ type,\ name)\ \ \ \ \{\ var\ =\ (type*)\ new\ name;\ var-\/>New();\ \}}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ \ \ \#define\ DELETEPROTOCOL(var)\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ var-\/>Delete();\ delete\ var;\}}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ \ \ \#define\ NEWPROTOCOL(var,\ type,\ name)\ \ \ \ \{\ var\ =\ (type*)\ NewByName(\#type,\ \#name);\ \}}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ \ \ \#define\ DELETEPROTOCOL(var)\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ var-\/>Delete();\ \}}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{/*\ \_\_NEWTONWIDGETS\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

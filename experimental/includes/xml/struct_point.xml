@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="struct_point" kind="struct" language="C++" prot="public">
+    <compoundname>Point</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_point_1acc7b6a55ac00a798af2b81af42e99585" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Point::v</definition>
+        <argsstring></argsstring>
+        <name>v</name>
+        <qualifiedname>Point::v</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="130" column="7" bodyfile="NewtonTypes.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_point_1ac40b77c68f10df55264c8cfb7e7db912" prot="public" static="no" mutable="no">
+        <type>short</type>
+        <definition>short Point::h</definition>
+        <argsstring></argsstring>
+        <name>h</name>
+        <qualifiedname>Point::h</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtonTypes.h" line="131" column="7" bodyfile="NewtonTypes.h" bodystart="131" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="NewtonTypes.h" line="128" column="1" bodyfile="NewtonTypes.h" bodystart="129" bodyend="132"/>
+    <listofallmembers>
+      <member refid="struct_point_1ac40b77c68f10df55264c8cfb7e7db912" prot="public" virt="non-virtual"><scope>Point</scope><name>h</name></member>
+      <member refid="struct_point_1acc7b6a55ac00a798af2b81af42e99585" prot="public" virt="non-virtual"><scope>Point</scope><name>v</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

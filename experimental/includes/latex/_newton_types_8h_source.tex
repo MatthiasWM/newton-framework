@@ -1,0 +1,198 @@
+\doxysection{Newton\+Types.\+h}
+\hypertarget{_newton_types_8h_source}{}\label{_newton_types_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonTypes.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Global\ types\ for\ Newton\ build\ system}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1996\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v17\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ \_\_CONFIGGLOBAL\_H}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}ConfigGlobal.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#if\ defined(\_\_cplusplus)\ \&\&\ defined(applec)}}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{comment}{//\ MPW\ CFront\ has\ a\ bug}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\ \ \ \ \#define\ CALLVIRTUALDESTRUCTOR(obj,\ cl)\ (((cl*)obj)-\/>cl::\string~cl())}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \ \ \#define\ CALLVIRTUALDESTRUCTOR(obj,\ cl)\ (((cl*)obj)-\/>\string~cl())}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#if\ defined(\_\_cplusplus)\ \&\&\ !defined(SINGLEOBJECT)}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_\_SC\_\_)\ ||\ !defined(applec)}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ non-\/MPW\ CFront\ compilers\ (e.g.\ DOS)\ need\ this\ so\ our\ classes\ will\ compile\ */}}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }SingleObject\ \{\};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ SINGLEOBJECT\ }\textcolor{comment}{/*\ nothing\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ SINGLEOBJECT\ :\ public\ SingleObject}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{/*\ If\ we\ haven't\ already\ done\ so,\ pull\ in\ stddef.h\ for\ size\_t\ */}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#ifndef\ \_\_stddef\_h}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#include\ "{}stddef.h"{}}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{/*\ Base\ types\ */}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#ifndef\ \_\_boolean\_defined\_\_}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ Boolean;}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ Char;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ In\ ARM6\ C\ compiler\ char\ is\ unsigned\ char\ */}}
+\DoxyCodeLine{00058\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ \ \ \ \ SChar;}
+\DoxyCodeLine{00059\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ UChar;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#ifndef\ \_\_byte\_defined\_\_}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ \ \ \ \ Byte;}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ \ \ \ \ SByte;}
+\DoxyCodeLine{00066\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ UByte;}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{short}\ \ \ \ \ \ \ \ \ \ \ Short;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ In\ ANSI\ C\ short\ is\ signed\ short\ */}}
+\DoxyCodeLine{00069\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{short}\ \ \ \ SShort;}
+\DoxyCodeLine{00070\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ \ UShort;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ \ \ \ \ Long;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ In\ ANSI\ C\ long\ is\ signed\ long\ */}}
+\DoxyCodeLine{00073\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{long}\ \ \ \ \ SLong;}
+\DoxyCodeLine{00074\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \ \ ULong;}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{long}\ \ \ \ \ FastInt;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ FASTINT\_MIN\ \ \ \ \ (\string~0x7fffffff)\ \ \ }\textcolor{comment}{/*\ -\/2147483648\ and\ 0x80000000\ are\ unsigned\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ minimum\ value\ for\ an\ object\ of\ type\ FastInt\ */}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#define\ FASTINT\_MAX\ \ \ \ \ 0x7FFFFFFF\ \ \ \ \ \ }\textcolor{comment}{/*\ maximum\ value\ for\ an\ object\ of\ type\ FastInt\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#ifndef\ \_\_unichar\_defined\_\_}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ \ UniChar;}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{typedef}\ UniChar\ \ \ \ \ \ \ \ \ Character;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{/*\ Pointer\ types\ */}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#ifndef\ \_\_ptr\_defined\_\_}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ \ \ \ \ Ptr;}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#ifndef\ \_\_handle\_defined\_\_}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{typedef}\ Ptr*\ \ \ \ \ \ \ \ \ \ \ \ Handle;}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#ifndef\ \_\_procptr\_defined\_\_}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keyword}{typedef}\ long\ \ \ \ \ \ \ \ \ \ \ \ (*ProcPtr)();}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ NewtonErr;\ \ \ \ \ \textcolor{comment}{/*\ needs\ to\ hold\ error\ codes\ less\ than\ -\/32767\ */}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{comment}{/*\ Math\ types\ */}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_int64}{Int64}}}
+\DoxyCodeLine{00110\ \{}
+\DoxyCodeLine{00111\ \ \ \ \ SLong\ \ \ hi;}
+\DoxyCodeLine{00112\ \ \ \ \ ULong\ \ \ lo;}
+\DoxyCodeLine{00113\ \}\ \mbox{\hyperlink{struct_int64}{Int64}};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#ifndef\ \_\_fixed\_defined\_\_}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ Fixed;}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#ifndef\ \_\_fract\_defined\_\_}}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ Fract;}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{/*\ Graphics\ types\ */}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#ifndef\ \_\_point\_defined\_\_}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_point}{Point}}}
+\DoxyCodeLine{00129\ \ \ \ \ \{}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ v;}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ h;}
+\DoxyCodeLine{00132\ \ \ \ \ \};}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_point}{Point}}\ \mbox{\hyperlink{struct_point}{Point}};}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#ifndef\ \_\_rect\_defined\_\_}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_rect}{Rect}}}
+\DoxyCodeLine{00138\ \ \ \ \ \{}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ top;}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ left;}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ bottom;}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{short}\ \ \ right;}
+\DoxyCodeLine{00143\ \ \ \ \ \};}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_rect}{Rect}}\ \mbox{\hyperlink{struct_rect}{Rect}};}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_point}{FPoint}}}
+\DoxyCodeLine{00149\ \{}
+\DoxyCodeLine{00150\ \ \ \ \ Fixed\ \ \ x;}
+\DoxyCodeLine{00151\ \ \ \ \ Fixed\ \ \ y;}
+\DoxyCodeLine{00152\ \};}
+\DoxyCodeLine{00153\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_point}{FPoint}}\ \mbox{\hyperlink{struct_f_point}{FPoint}};}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_rect}{FRect}}}
+\DoxyCodeLine{00157\ \{}
+\DoxyCodeLine{00158\ \ \ \ \ Fixed\ \ \ left;}
+\DoxyCodeLine{00159\ \ \ \ \ Fixed\ \ \ top;}
+\DoxyCodeLine{00160\ \ \ \ \ Fixed\ \ \ right;}
+\DoxyCodeLine{00161\ \ \ \ \ Fixed\ \ \ bottom;}
+\DoxyCodeLine{00162\ \};}
+\DoxyCodeLine{00163\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_rect}{FRect}}\ \mbox{\hyperlink{struct_f_rect}{FRect}};}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{comment}{/*\ Constants\ */}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#ifndef\ nil}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\ \ \ \ \#define\ nil\ \ \ \ \ NULL}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#ifndef\ \_\_boolean\_defined\_\_}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\ \#if\ !defined(\_\_arm)\ ||\ !defined(\_\_cplusplus)\ }\textcolor{comment}{/*\ false\ and\ true\ are\ now\ C++\ keywords\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(\_\_arm)\ }\textcolor{comment}{/*\ ARM\ C\ compiler\ warns\ about\ using\ the\ tokens\ 'false'\ and\ 'true'\ so\ hide\ them\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ false\ false\_}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ true\ true\_}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keyword}{enum}\ \{\ \textcolor{keyword}{false},\ \textcolor{keyword}{true}\ \};}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \#endif}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{comment}{/*\ Newton\ memory\ architecture\ types\ */}}
+\DoxyCodeLine{00185\ \textcolor{keyword}{typedef}\ ULong\ \ \ VAddr;}
+\DoxyCodeLine{00186\ \textcolor{keyword}{typedef}\ ULong\ \ \ PAddr;}
+\DoxyCodeLine{00187\ \textcolor{keyword}{typedef}\ ULong\ \ \ LAddr;}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{comment}{/*\ Newton\ OS\ types\ */}}
+\DoxyCodeLine{00190\ \textcolor{keyword}{typedef}\ ULong\ \ \ TObjectId;}
+\DoxyCodeLine{00191\ \textcolor{keyword}{typedef}\ ULong\ \ \ HammerIORef;}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_NEWTONTYPES\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

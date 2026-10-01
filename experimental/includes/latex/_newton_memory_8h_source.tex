@@ -1,0 +1,460 @@
+\doxysection{Newton\+Memory.\+h}
+\hypertarget{_newton_memory_8h_source}{}\label{_newton_memory_8h_source}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ \ \ \ File:\ \ \ \ \ \ \ NewtonMemory.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ \ \ \ Contains:\ \ \ Memory\ interface\ for\ Newton\ build\ system}}
+\DoxyCodeLine{00005\ \textcolor{comment}{}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ \ \ \ Copyright:\ \ ©\ 1992-\/1995\ by\ Apple\ Computer,\ Inc.\ \ All\ rights\ reserved.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ \ \ \ Derived\ from\ v15\ internal.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONMEMORY\_H}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ \_\_NEWTONMEMORY\_H}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ \_\_NEWTONTYPES\_H}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}NewtonTypes.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ \ \ \ \ \ Newton\ PDA-\/specific\ stuff}}
+\DoxyCodeLine{00021\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ Size;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ memory\ debugging\ types,\ from\ KernelTypes.h}}
+\DoxyCodeLine{00026\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ HeapBlockType;}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00029\ \textcolor{comment}{**\ \ Opaque\ memory\ manager\ types}}
+\DoxyCodeLine{00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{00031\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{void}\ *\ \ Heap;}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \#define\ DEFAULT\_NIL\ =\ 0}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#define\ DEFAULT\_NIL}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00043\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00048\ \textcolor{comment}{**}}
+\DoxyCodeLine{00049\ \textcolor{comment}{**\ \ General\ operations}}
+\DoxyCodeLine{00050\ \textcolor{comment}{**}}
+\DoxyCodeLine{00051\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00052\ NewtonErr\ \ \ \ \ \ \ MemError(\textcolor{keywordtype}{void});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ per-\/task\ result\ of\ last\ memory\ mgr\ call\ */}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00056\ \textcolor{comment}{**}}
+\DoxyCodeLine{00057\ \textcolor{comment}{**\ \ "{}Ptr"{}\ operations}}
+\DoxyCodeLine{00058\ \textcolor{comment}{**}}
+\DoxyCodeLine{00059\ \textcolor{comment}{**\ \ \ \ \ \ Note\ that\ 'SetPtrSize'\ does\ not\ exist\ -\/-\/\ it\ is\ gone\ from\ the}}
+\DoxyCodeLine{00060\ \textcolor{comment}{**\ \ \ \ \ \ Macintosh\ suite\ (use\ ReallocPtr\ instead,\ which\ can\ move\ the\ Ptr}}
+\DoxyCodeLine{00061\ \textcolor{comment}{**\ \ \ \ \ \ block\ and\ is\ MUCH\ more\ effective\ than\ the\ Mac's\ SetPtrSize).}}
+\DoxyCodeLine{00062\ \textcolor{comment}{**}}
+\DoxyCodeLine{00063\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ Ptr\ \ \ \ \ \ \ \ \ \ \ \ \ NewPtr(Size\ size);}
+\DoxyCodeLine{00066\ Ptr\ \ \ \ \ \ \ \ \ \ \ \ \ NewNamedPtr(Size\ size,\ ULong\ name);}
+\DoxyCodeLine{00067\ Ptr\ \ \ \ \ \ \ \ \ \ \ \ \ NewPtrClear(Size\ byteCount);}
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ DisposPtr(Ptr\ p);}
+\DoxyCodeLine{00069\ Size\ \ \ \ \ \ \ \ \ \ \ \ GetPtrSize(Ptr\ p);}
+\DoxyCodeLine{00070\ Ptr\ \ \ \ \ \ \ \ \ \ \ \ \ ReallocPtr(Ptr,\ Size);\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ like\ realloc\ */}}
+\DoxyCodeLine{00071\ Heap\ \ \ \ \ \ \ \ \ \ \ \ PtrToHeap(Ptr);}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00075\ \textcolor{comment}{**}}
+\DoxyCodeLine{00076\ \textcolor{comment}{**\ \ \ \ \ \ "{}Locking"{}\ a\ Ptr\ has\ the\ following\ semantics:}}
+\DoxyCodeLine{00077\ \textcolor{comment}{**}}
+\DoxyCodeLine{00078\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ The\ Ptr's\ guts\ are\ accessible\ to\ interrupt\ code.\ \ (Since}}
+\DoxyCodeLine{00079\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ VM-\/heaps\ are\ possibly\ backed\ by\ compression\ or\ some\ actual}}
+\DoxyCodeLine{00080\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ storage\ device,\ it\ is\ unsafe\ to\ touch\ memory\ from\ interrupt}}
+\DoxyCodeLine{00081\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ code\ without\ locking\ it);}}
+\DoxyCodeLine{00082\ \textcolor{comment}{**}}
+\DoxyCodeLine{00083\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Note\ that\ handles\ cannot\ be\ locked.}}
+\DoxyCodeLine{00084\ \textcolor{comment}{**}}
+\DoxyCodeLine{00085\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ The\ Ptr\ is\ NOT\ gauranteed\ to\ be\ physically\ contiguous\ (it}}
+\DoxyCodeLine{00086\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ may\ cross\ a\ page\ boundary).\ \ It\ is\ unsafe\ to\ DMA\ into\ or}}
+\DoxyCodeLine{00087\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ out\ of\ it.\ \ Use\ NewWiredPtr\ if\ you\ want\ to\ use\ DMA;}}
+\DoxyCodeLine{00088\ \textcolor{comment}{**}}
+\DoxyCodeLine{00089\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ The\ Ptr\ is\ cacheable\ (or\ not),\ as\ determined\ by\ the\ heap}}
+\DoxyCodeLine{00090\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ creation\ parameters;}}
+\DoxyCodeLine{00091\ \textcolor{comment}{**}}
+\DoxyCodeLine{00092\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ If\ you\ lock\ a\ Ptr,\ you\ are\ responsible\ for\ unlocking\ it}}
+\DoxyCodeLine{00093\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ before\ you\ free\ it;}}
+\DoxyCodeLine{00094\ \textcolor{comment}{**}}
+\DoxyCodeLine{00095\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00096\ NewtonErr\ \ \ \ \ \ \ LockPtr(Ptr);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ lock\ down\ in\ virtual\ memory\ */}}
+\DoxyCodeLine{00097\ NewtonErr\ \ \ \ \ \ \ UnlockPtr(Ptr);}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00101\ \textcolor{comment}{**}}
+\DoxyCodeLine{00102\ \textcolor{comment}{**\ \ Wired\ Ptrs}}
+\DoxyCodeLine{00103\ \textcolor{comment}{**}}
+\DoxyCodeLine{00104\ \textcolor{comment}{**\ \ \ \ \ \ These\ are\ for\ use\ by\ DMA;\ a\ wired\ pointer\ block\ is\ g'teed\ to}}
+\DoxyCodeLine{00105\ \textcolor{comment}{**\ \ \ \ \ \ be\ contiguous\ in\ RAM,\ and\ will\ have\ a\ fixed\ physical\ address}}
+\DoxyCodeLine{00106\ \textcolor{comment}{**\ \ \ \ \ \ for\ its\ lifetime.}}
+\DoxyCodeLine{00107\ \textcolor{comment}{**}}
+\DoxyCodeLine{00108\ \textcolor{comment}{**\ \ \ \ \ \ Limitations\ are:}}
+\DoxyCodeLine{00109\ \textcolor{comment}{**}}
+\DoxyCodeLine{00110\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ Size\ limit\ of\ a\ smidgeon\ less\ than\ 4K\ (assume\ 32\ bytes}}
+\DoxyCodeLine{00111\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ less\ than\ 4K\ and\ you\ won't\ be\ disappointed);}}
+\DoxyCodeLine{00112\ \textcolor{comment}{**}}
+\DoxyCodeLine{00113\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ o\ \ \ The\ operations\ are\ limited\ to\ allocate/deallocate\ in}}
+\DoxyCodeLine{00114\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ order\ to\ keep\ the\ implementation\ flexible\ (e.g.\ you}}
+\DoxyCodeLine{00115\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ must\ keep\ track\ of\ size\ of\ wired\ ptrs\ yourself);}}
+\DoxyCodeLine{00116\ \textcolor{comment}{**}}
+\DoxyCodeLine{00117\ \textcolor{comment}{**\ \ \ \ \ \ Use\ wired\ pointers\ with\ care;\ they\ gum\ up\ the\ allocation\ of}}
+\DoxyCodeLine{00118\ \textcolor{comment}{**\ \ \ \ \ \ pages.}}
+\DoxyCodeLine{00119\ \textcolor{comment}{**}}
+\DoxyCodeLine{00120\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00121\ Ptr\ \ \ \ \ \ \ \ \ \ \ \ \ NewWiredPtr(Size\ size);}
+\DoxyCodeLine{00122\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ DisposeWiredPtr(Ptr);}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00126\ \textcolor{comment}{**}}
+\DoxyCodeLine{00127\ \textcolor{comment}{**\ \ Handle\ operations}}
+\DoxyCodeLine{00128\ \textcolor{comment}{**}}
+\DoxyCodeLine{00129\ \textcolor{comment}{**\ \ \ \ \ \ Note\ that\ HLock\ returns\ a\ pointer\ (which\ you\ should\ use).}}
+\DoxyCodeLine{00130\ \textcolor{comment}{**}}
+\DoxyCodeLine{00131\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00132\ Handle\ \ \ \ \ \ \ \ \ \ NewHandle(Size\ size);}
+\DoxyCodeLine{00133\ Handle\ \ \ \ \ \ \ \ \ \ NewNamedHandle(Size\ size,\ ULong\ name);}
+\DoxyCodeLine{00134\ Handle\ \ \ \ \ \ \ \ \ \ NewHandleClear(Size\ byteCount);}
+\DoxyCodeLine{00135\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ DisposHandle(Handle\ h);}
+\DoxyCodeLine{00136\ Size\ \ \ \ \ \ \ \ \ \ \ \ GetHandleSize(Handle\ h);}
+\DoxyCodeLine{00137\ NewtonErr\ \ \ \ \ \ \ SetHandleSize(Handle\ h,\ Size\ size);}
+\DoxyCodeLine{00138\ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ \ \ \ \ HLock(Handle\ h);}
+\DoxyCodeLine{00139\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ HUnlock(Handle\ h);}
+\DoxyCodeLine{00140\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ HSetState(Handle\ h,\ \textcolor{keywordtype}{char}\ savedCount);\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ deprecated\ */}}
+\DoxyCodeLine{00141\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ HGetState(Handle\ h);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ deprecated\ */}}
+\DoxyCodeLine{00142\ NewtonErr\ \ \ \ \ \ \ HandToHand(Handle\ *hPtr);}
+\DoxyCodeLine{00143\ Handle\ \ \ \ \ \ \ \ \ \ CopyHandle(Handle);}
+\DoxyCodeLine{00144\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ MoveHHi(Handle);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ NOP\ for\ now\ */}}
+\DoxyCodeLine{00145\ Heap\ \ \ \ \ \ \ \ \ \ \ \ HandleToHeap(Handle);}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00149\ \textcolor{comment}{**}}
+\DoxyCodeLine{00150\ \textcolor{comment}{**\ \ Fake\ handles\ (e.g.\ handles\ to\ things\ in\ ROM)}}
+\DoxyCodeLine{00151\ \textcolor{comment}{**}}
+\DoxyCodeLine{00152\ \textcolor{comment}{**\ \ \ \ \ \ DisposeHandle\ is\ allowed\ (destroys\ the\ handle);}}
+\DoxyCodeLine{00153\ \textcolor{comment}{**}}
+\DoxyCodeLine{00154\ \textcolor{comment}{**\ \ \ \ \ \ GetHandleSize\ returns\ specified\ size}}
+\DoxyCodeLine{00155\ \textcolor{comment}{**}}
+\DoxyCodeLine{00156\ \textcolor{comment}{**\ \ \ \ \ \ SetHandleSize\ returns\ -\/1}}
+\DoxyCodeLine{00157\ \textcolor{comment}{**}}
+\DoxyCodeLine{00158\ \textcolor{comment}{**\ \ \ \ \ \ HLock\ is\ a\ NOP\ (returns\ address)}}
+\DoxyCodeLine{00159\ \textcolor{comment}{**}}
+\DoxyCodeLine{00160\ \textcolor{comment}{**\ \ \ \ \ \ HUnlock,\ HSetState\ are\ NOPs}}
+\DoxyCodeLine{00161\ \textcolor{comment}{**}}
+\DoxyCodeLine{00162\ \textcolor{comment}{**\ \ \ \ \ \ HandToHand,\ CopyHandle\ will\ result\ in\ correct\ copies}}
+\DoxyCodeLine{00163\ \textcolor{comment}{**}}
+\DoxyCodeLine{00164\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00165\ Handle\ \ \ \ \ \ \ \ \ \ NewFakeHandle(\textcolor{keywordtype}{void}\ *\ address,\ Size\ size);}
+\DoxyCodeLine{00166\ Boolean\ \ \ \ \ \ \ \ \ IsFakeHandle(Handle);}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00170\ \textcolor{comment}{**}}
+\DoxyCodeLine{00171\ \textcolor{comment}{**\ \ Tagging\ and\ naming\ heap\ blocks}}
+\DoxyCodeLine{00172\ \textcolor{comment}{**}}
+\DoxyCodeLine{00173\ \textcolor{comment}{**\ \ \ \ \ \ Names\ and\ tags\ are\ mutually\ exclusive.\ \ If\ you\ assign\ a\ name}}
+\DoxyCodeLine{00174\ \textcolor{comment}{**\ \ \ \ \ \ to\ a\ block\ in\ a\ shared\ heap,\ that\ block\ will\ not\ be\ automatically}}
+\DoxyCodeLine{00175\ \textcolor{comment}{**\ \ \ \ \ \ freed\ when\ the\ owner\ task\ dies.}}
+\DoxyCodeLine{00176\ \textcolor{comment}{**}}
+\DoxyCodeLine{00177\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00178\ TObjectId\ \ \ \ \ \ \ GetPtrOwner(Ptr);}
+\DoxyCodeLine{00179\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetPtrOwner(Ptr,\ TObjectId);}
+\DoxyCodeLine{00180\ TObjectId\ \ \ \ \ \ \ GetHandleOwner(Handle);}
+\DoxyCodeLine{00181\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetHandleOwner(Handle,\ TObjectId);}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00185\ \textcolor{comment}{**}}
+\DoxyCodeLine{00186\ \textcolor{comment}{**\ \ Naming\ heap\ blocks}}
+\DoxyCodeLine{00187\ \textcolor{comment}{**}}
+\DoxyCodeLine{00188\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00189\ ULong\ \ \ \ \ \ \ \ \ \ \ GetPtrName(Ptr);}
+\DoxyCodeLine{00190\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetPtrName(Ptr,\ ULong);}
+\DoxyCodeLine{00191\ ULong\ \ \ \ \ \ \ \ \ \ \ GetHandleName(Handle);}
+\DoxyCodeLine{00192\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetHandleName(Handle,\ ULong);}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00196\ \textcolor{comment}{**}}
+\DoxyCodeLine{00197\ \textcolor{comment}{**\ \ Typing\ heap\ blocks}}
+\DoxyCodeLine{00198\ \textcolor{comment}{**}}
+\DoxyCodeLine{00199\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00200\ HeapBlockType\ \ \ GetPtrType(Ptr);}
+\DoxyCodeLine{00201\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetPtrType(Ptr,\ HeapBlockType);}
+\DoxyCodeLine{00202\ HeapBlockType\ \ \ GetHandleType(Handle);}
+\DoxyCodeLine{00203\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetHandleType(Handle,\ HeapBlockType);}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00207\ \textcolor{comment}{**}}
+\DoxyCodeLine{00208\ \textcolor{comment}{**\ \ Heap\ Operations}}
+\DoxyCodeLine{00209\ \textcolor{comment}{**}}
+\DoxyCodeLine{00210\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00211\ Heap\ \ \ \ \ \ \ \ \ \ \ \ GetHeap(\textcolor{keywordtype}{void});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ get\ the\ task's\ current\ heap\ */}}
+\DoxyCodeLine{00212\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetHeap(Heap);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ set\ the\ task's\ current\ heap\ */}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ NewtonErr\ \ \ \ \ \ \ NewSegregatedVMHeap(\ \ \ \ TObjectId\ \ \ defaultDomain,\ \ \ \ \ \ \textcolor{comment}{/*\ domain\ for\ heap\ (or\ zero\ for\ current\ env's\ default)\ */}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\ \ \ \ \ \ \ \ ptrSize,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ max\ size\ of\ Ptr\ allocation\ */}}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\ \ \ \ \ \ \ \ handleSize,\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ max\ size\ of\ handle\ allocation\ */}}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Heap\ *\ \ \ \ \ \ pResult,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ new\ heap\ */}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ options\ );\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ various\ options\ (see\ below)\ */}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ NewtonErr\ \ \ \ \ \ \ NewVMHeap(\ \ \ \ \ \ \ \ \ \ \ \ \ \ TObjectId\ \ \ defaultDomain,\ \ \ \ \ \ \textcolor{comment}{/*\ domain\ for\ heap\ (or\ zero\ for\ current\ env's\ default)\ */}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\ \ \ \ \ \ \ \ maxSize,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ max\ size\ of\ both\ Ptr\ and\ handle\ allocation\ */}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Heap\ *\ \ \ \ \ \ pResult,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ new\ heap\ */}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ options);\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ various\ options\ (see\ below)\ */}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ NewtonErr\ \ \ \ \ \ \ NewPersistentVMHeap(\ \ \ \ TObjectId\ \ \ domainId,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ domain\ (zero\ ==>\ default\ for\ caller's\ environment)}}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\ \ \ \ \ \ \ \ maxSize,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ max\ storage\ (not\ TOO\ huge,\ since\ there's\ static\ overhead)}}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Heap\ *\ \ \ \ \ \ pResult,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ out:\ the\ heap}}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ options,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ various\ options}}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ name);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ name\ for\ persistent\ heap}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ NewtonErr\ \ \ \ \ \ \ DeletePersistentVMHeap(\ ULong\ \ \ \ \ \ \ name);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ name\ for\ persistent\ heap}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00235\ \textcolor{comment}{**}}
+\DoxyCodeLine{00236\ \textcolor{comment}{**\ \ Options\ for\ heap\ creation}}
+\DoxyCodeLine{00237\ \textcolor{comment}{**}}
+\DoxyCodeLine{00238\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00239\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00240\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \ kHeapNotCacheable\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 0x00000001\ \ \ \ \ \ \ \ \textcolor{comment}{//\ don't\ cache\ heap}}
+\DoxyCodeLine{00242\ \ \ \ \ ,kPersistentHeap\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ 0x40000000\ \ \ \ \ \ \ \ \textcolor{comment}{//\ heap\ is\ recoverable}}
+\DoxyCodeLine{00243\ \};}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ NewtonErr\ \ \ \ \ \ \ NewHeapAt(\ \ \ \ \ \ \ \ \ \ \ \ \ \ VAddr,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ where\ heap\ is\ in\ VM\ */}}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ size\ of\ heap\ */}}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Heap\ *\ pResult);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ new\ heap\ */}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ NewtonErr\ \ \ \ \ \ \ ResurrectVMHeap(Heap\ oldHeap);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bring\ a\ heap\ at\ some\ vaddr\ back\ to\ life\ after\ a\ reboot\ */}}
+\DoxyCodeLine{00251\ NewtonErr\ \ \ \ \ \ \ DestroyVMHeap(Heap\ DEFAULT\_NIL);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ clobber\ a\ heap\ */}}
+\DoxyCodeLine{00252\ NewtonErr\ \ \ \ \ \ \ ShrinkHeapLeaving(Heap,\ Size\ amountLeftFree);\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ attempt\ to\ shrink\ a\ heap\ */}}
+\DoxyCodeLine{00253\ NewtonErr\ \ \ \ \ \ \ AddSemaphoreToHeap(Heap\ DEFAULT\_NIL);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ attach\ a\ semaphore\ to\ a\ heap\ */}}
+\DoxyCodeLine{00254\ NewtonErr\ \ \ \ \ \ \ ClobberHeapSemaphore(Heap\ DEFAULT\_NIL);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ clobber\ a\ heap's\ semaphore\ (careful!)\ */}}
+\DoxyCodeLine{00255\ NewtonErr\ \ \ \ \ \ \ ZapHeap(Heap,\ ULong\ verification,\ Boolean\ isPersistent);\textcolor{comment}{/*\ clobber\ the\ specified\ heap\ */}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\#define\ \ \ \ \ \ \ \ \ kZapHeapVerification\ \ \ \ '-\/><-\/'}}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ Size\ \ \ \ \ \ \ \ \ \ \ \ TotalFreeInHeap(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00259\ Size\ \ \ \ \ \ \ \ \ \ \ \ LargestFreeInHeap(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00260\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \ \ CountFreeBlocks(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00261\ Size\ \ \ \ \ \ \ \ \ \ \ \ TotalUsedInHeap(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00262\ Size\ \ \ \ \ \ \ \ \ \ \ \ MaxHeapSize(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00263\ Size\ \ \ \ \ \ \ \ \ \ \ \ GetHeapReleaseable(Heap\ DEFAULT\_NIL);}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00267\ \textcolor{comment}{**}}
+\DoxyCodeLine{00268\ \textcolor{comment}{**\ \ System\ memory\ availability\ information}}
+\DoxyCodeLine{00269\ \textcolor{comment}{**}}
+\DoxyCodeLine{00270\ \textcolor{comment}{**\ \ \ \ \ \ TotalSystemFree}}
+\DoxyCodeLine{00271\ \textcolor{comment}{**}}
+\DoxyCodeLine{00272\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ The\ number\ of\ bytes\ currently\ available\ for\ allocation.\ \ This\ does}}
+\DoxyCodeLine{00273\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ not\ include\ internal\ (e.g.\ 1-\/4K)\ fragmentation\ in\ heaps\ and\ stacks.}}
+\DoxyCodeLine{00274\ \textcolor{comment}{**}}
+\DoxyCodeLine{00275\ \textcolor{comment}{**\ \ \ \ \ \ MaxPossibleSystemFree}}
+\DoxyCodeLine{00276\ \textcolor{comment}{**}}
+\DoxyCodeLine{00277\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ An\ empirically\ determined\ number\ that\ is\ the\ maximum\ number\ of\ bytes}}
+\DoxyCodeLine{00278\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ available\ for\ allocation\ before\ the\ user\ has\ stored\ anything.}}
+\DoxyCodeLine{00279\ \textcolor{comment}{**}}
+\DoxyCodeLine{00280\ \textcolor{comment}{**\ \ \ \ \ \ SystemRAMSize}}
+\DoxyCodeLine{00281\ \textcolor{comment}{**}}
+\DoxyCodeLine{00282\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ e.g.\ 512K\ for\ original\ MessagePad}}
+\DoxyCodeLine{00283\ \textcolor{comment}{**}}
+\DoxyCodeLine{00284\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00285\ Size\ \ \ \ \ \ \ \ \ \ \ \ TotalSystemFree(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00286\ Size\ \ \ \ \ \ \ \ \ \ \ \ SystemRAMSize(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00290\ \textcolor{comment}{**}}
+\DoxyCodeLine{00291\ \textcolor{comment}{**\ \ Lightweight\ heap\ checking}}
+\DoxyCodeLine{00292\ \textcolor{comment}{**}}
+\DoxyCodeLine{00293\ \textcolor{comment}{**\ \ \ (This\ will\ always\ be\ available\ in\ the\ product\ -\/-\/\ it\ doesn't\ cost}}
+\DoxyCodeLine{00294\ \textcolor{comment}{**\ \ \ \ any\ RAM,\ and\ is\ fairly\ small\ codewise,\ and\ its\ utility\ is\ high...).}}
+\DoxyCodeLine{00295\ \textcolor{comment}{**}}
+\DoxyCodeLine{00296\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00297\ NewtonErr\ CheckHeap}
+\DoxyCodeLine{00298\ \ \ \ \ (}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ Heap\ \ \ \ \ \ \ \ opaque\_heap,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ heap\ to\ check\ (nil\ for\ current\ heap)\ */}}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ **\ \ \ \ \ whereSmashed\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ if\ non-\/nil\ and\ heap\ is\ smashed,\ address\ of\ accident\ */}}
+\DoxyCodeLine{00301\ \ \ \ \ );}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00305\ \textcolor{comment}{**}}
+\DoxyCodeLine{00306\ \textcolor{comment}{**\ \ Memory\ operations}}
+\DoxyCodeLine{00307\ \textcolor{comment}{**}}
+\DoxyCodeLine{00308\ \textcolor{comment}{**\ \ \ \ \ \ If\ you\ are\ in\ doubt\ as\ to\ what\ to\ call\ to\ shuffle\ large\ amounts}}
+\DoxyCodeLine{00309\ \textcolor{comment}{**\ \ \ \ \ \ of\ memory\ around,\ use\ BlockMove\ (which\ is\ actually\ the\ amazing}}
+\DoxyCodeLine{00310\ \textcolor{comment}{**\ \ \ \ \ \ ARM\ super-\/optimized\ memmove).\ \ DON'T\ invent\ your\ own\ memory-\/moving}}
+\DoxyCodeLine{00311\ \textcolor{comment}{**\ \ \ \ \ \ routines.}}
+\DoxyCodeLine{00312\ \textcolor{comment}{**}}
+\DoxyCodeLine{00313\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00314\ \textcolor{keywordtype}{void}\ BlockMove(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ srcPtr,\ \textcolor{keywordtype}{void}\ *\ destPtr,\ Size\ byteCount);}
+\DoxyCodeLine{00315\ \textcolor{keywordtype}{int}\ \ EqualBytes(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ Size);}
+\DoxyCodeLine{00316\ \textcolor{keywordtype}{void}\ FillBytes(\textcolor{keywordtype}{void}\ *,\ Size\ length,\ UChar\ pattern);}
+\DoxyCodeLine{00317\ \textcolor{keywordtype}{void}\ FillLongs(\textcolor{keywordtype}{void}\ *,\ Size\ length,\ ULong\ pattern);}
+\DoxyCodeLine{00318\ \textcolor{keywordtype}{void}\ ZeroBytes(\textcolor{keywordtype}{void}\ *,\ Size\ length);}
+\DoxyCodeLine{00319\ \textcolor{keywordtype}{void}\ XORBytes(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ src1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ src2,\ \textcolor{keywordtype}{void}\ *\ dest,\ Size\ size);}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00323\ \textcolor{comment}{**\ \ Task-\/safe\ heap\ walking}}
+\DoxyCodeLine{00324\ \textcolor{comment}{**}}
+\DoxyCodeLine{00325\ \textcolor{comment}{**\ \ \ \ \ \ Seed-\/based.\ \ Ask\ the\ heap\ for\ a\ seed,\ then\ pass\ the\ seed\ in\ on}}
+\DoxyCodeLine{00326\ \textcolor{comment}{**\ \ \ \ \ \ every\ operation.\ \ If\ the\ seed\ changes\ out\ from\ under\ you,\ get}}
+\DoxyCodeLine{00327\ \textcolor{comment}{**\ \ \ \ \ \ another\ seed\ and\ start\ over.}}
+\DoxyCodeLine{00328\ \textcolor{comment}{**}}
+\DoxyCodeLine{00329\ \textcolor{comment}{**\ \ \ \ \ \ Returns\ block\ type.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{**}}
+\DoxyCodeLine{00331\ \textcolor{comment}{**\ \ \ \ \ \ Returns\ 'kMM\_HeapEndBlock'\ at\ the\ end\ of\ the\ heap.}}
+\DoxyCodeLine{00332\ \textcolor{comment}{**}}
+\DoxyCodeLine{00333\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00334\ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ HeapSeed(Heap);}
+\DoxyCodeLine{00335\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ NextHeapBlock}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\ \ \ Heap\ \ \ \ \ \ \ \ \ \ \ \ opaque\_heap,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ heap\ to\ walk\ */}}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ \ \ \ \ \ \ \ \ \ \ \ seed,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ permission\ to\ walk\ heap\ \ */}}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ \ \ \ \ fromBlock,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ from\ block,\ nil\ for\ first\ block\ \ */}}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ **\ \ \ \ \ \ \ \ \ pFoundBlock,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out,\ next\ block\ */}}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ ***\ \ \ \ \ \ \ \ pFoundBlockHandle,\ \ \textcolor{comment}{/*\ out,\ block's\ handle,\ if\ any\ */}}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *\ \ \ \ \ \ \ \ \ \ \ pFoundBlockType,\ \ \ \ \textcolor{comment}{/*\ block's\ type\ (see\ below)\ */}}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\ \ \ \ \ \ \ \ \ \ pFoundBlockTag,\ \ \ \ \ \textcolor{comment}{/*\ block's\ tag\ */}}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\ *\ \ \ \ \ \ \ \ \ \ pFoundBlockSize,\ \ \ \ \textcolor{comment}{/*\ block's\ size\ (apparent\ size,\ not\ true\ size)\ \ */}}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TObjectId\ *\ \ \ \ \ pFoundBlockOwner\ \ \ \ \textcolor{comment}{/*\ block's\ owner\ \ \ \ */}}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00348\ \textcolor{comment}{**\ \ Block\ types\ returned\ by\ NextHeapBlock}}
+\DoxyCodeLine{00349\ \textcolor{comment}{**}}
+\DoxyCodeLine{00350\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00351\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00352\ \{}
+\DoxyCodeLine{00353\ \ \ \ \ \ kMM\_HeapSeedFailure\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ wups\ -\/-\/\ try\ again!\ \ \ */}}
+\DoxyCodeLine{00354\ \ \ \ \ ,kMM\_InternalBlock\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ internal\ block\ */}}
+\DoxyCodeLine{00355\ \ \ \ \ ,kMM\_HeapHeaderBlock\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ heap\ header\ \ */}}
+\DoxyCodeLine{00356\ \ \ \ \ ,kMM\_HeapPtrBlock\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Ptr\ block\ \ \ \ */}}
+\DoxyCodeLine{00357\ \ \ \ \ ,kMM\_HeapHandleBlock\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Handle\ block\ (result\ of\ NextHeapBlock\ is\ the\ handle)\ */}}
+\DoxyCodeLine{00358\ \ \ \ \ ,kMM\_HeapEndBlock\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ end-\/of-\/heap\ \ */}}
+\DoxyCodeLine{00359\ \ \ \ \ ,kMM\_HeapMPBlock\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ master-\/pointer\ block\ */}}
+\DoxyCodeLine{00360\ \ \ \ \ ,kMM\_HeapFreeBlock\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ free\ block\ \ \ */}}
+\DoxyCodeLine{00361\ \};}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ }
+\DoxyCodeLine{00364\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00365\ \textcolor{comment}{**}}
+\DoxyCodeLine{00366\ \textcolor{comment}{**\ \ SetMemMgrBreak\ \ -\/-\/\ \ Set\ a\ memory-\/manager\ break\ condition}}
+\DoxyCodeLine{00367\ \textcolor{comment}{**}}
+\DoxyCodeLine{00368\ \textcolor{comment}{**\ \ \ \ \ \ This\ is\ a\ little\ bit\ like\ a\ logic\ analyzer\ hooked\ up\ to\ the}}
+\DoxyCodeLine{00369\ \textcolor{comment}{**\ \ \ \ \ \ memory\ manager.\ \ When\ one\ of\ the\ conditions\ you\ set\ up\ here}}
+\DoxyCodeLine{00370\ \textcolor{comment}{**\ \ \ \ \ \ triggers,\ a\ DebugStr\ indicating\ the\ condition\ is\ hit.}}
+\DoxyCodeLine{00371\ \textcolor{comment}{**}}
+\DoxyCodeLine{00372\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ 0\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ reset\ all\ breaks}}
+\DoxyCodeLine{00373\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ 'tag!'\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ begin\ tagging\ allocated\ blocks\ with\ call-\/chain\ hashes}}
+\DoxyCodeLine{00374\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ 'tag?',\ hash\_value);\ \ \ \ //\ break\ on\ allocate\ when\ call-\/chain\ hash\ matches}}
+\DoxyCodeLine{00375\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ '<',\ size);\ \ \ \ \ \ \ \ \ \ \ \ \ //\ break\ on\ requests/resizes\ less\ than\ 'size'}}
+\DoxyCodeLine{00376\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ '>=',\ size);\ \ \ \ \ \ \ \ \ \ \ \ //\ break\ on\ requests/resizes\ >=\ 'size'}}
+\DoxyCodeLine{00377\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ '\#',\ Nth\ );\ \ \ \ \ \ \ \ \ \ \ \ \ //\ break\ on\ Nth\ memory\ manager\ call}}
+\DoxyCodeLine{00378\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ '\&',\ address);\ \ \ \ \ \ \ \ \ \ //\ break\ when\ address\ is\ passed\ into\ the\ memory\ manager}}
+\DoxyCodeLine{00379\ \textcolor{comment}{**\ \ \ \ \ \ SetMemMgrBreak(\ '\&out',\ address);\ \ \ \ \ \ \ //\ break\ when\ address\ is\ returned\ from\ the\ memory\ manager}}
+\DoxyCodeLine{00380\ \textcolor{comment}{**}}
+\DoxyCodeLine{00381\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00382\ \textcolor{keywordtype}{void}\ SetMemMgrBreak\ (\ \textcolor{keywordtype}{long}\ what,\ ...\ );}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00386\ \textcolor{comment}{**}}
+\DoxyCodeLine{00387\ \textcolor{comment}{**\ \ CountHeapBlocks\ \ -\/-\/\ \ Count\ blocks\ in\ a\ heap\ (of\ various\ types)}}
+\DoxyCodeLine{00388\ \textcolor{comment}{**}}
+\DoxyCodeLine{00389\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00390\ \textcolor{keywordtype}{void}\ CountHeapBlocks}
+\DoxyCodeLine{00391\ \ \ \ \ (}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ Size\ *\ \ \ \ \ \ pTotalSize,\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ size\ of\ all\ matching\ blocks\ */}}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ ULong\ *\ \ \ \ \ pFoundCount,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ out:\ number\ of\ matching\ blocks\ */}}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ Heap\ \ \ \ \ \ \ \ heap,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ in:\ heap\ to\ visit\ (nil\ for\ current\ heap)\ */}}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ blockType,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ in:\ block\ type\ filter\ (zero,\ kMM\_HeapPtrBlock\ or\ kMM\_HeapHandleBlock)\ */}}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ name,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ in:\ name\ to\ match\ (or\ zero)\ */}}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ ULong\ \ \ \ \ \ \ nameMask\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ in:\ mask\ of\ name\ (or\ zero)\ */}}
+\DoxyCodeLine{00398\ \ \ \ \ );}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00402\ \textcolor{comment}{**}}
+\DoxyCodeLine{00403\ \textcolor{comment}{**\ \ Heap\ Refcons\ and\ bases}}
+\DoxyCodeLine{00404\ \textcolor{comment}{**}}
+\DoxyCodeLine{00405\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00406\ \textcolor{keywordtype}{void}\ *\ \ GetHeapRefcon(Heap\ DEFAULT\_NIL);\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ snarf\ refcon\ */}}
+\DoxyCodeLine{00407\ \textcolor{keywordtype}{void}\ \ \ \ SetHeapRefcon(\textcolor{keywordtype}{void}\ *,\ Heap\ DEFAULT\_NIL);\ \ \ \ \textcolor{comment}{/*\ set\ refcon\ */}}
+\DoxyCodeLine{00408\ Heap\ \ \ \ VoidStarToHeap(\textcolor{keywordtype}{void}\ *);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ convert\ base\ addr\ to\ Heap\ */}}
+\DoxyCodeLine{00409\ \textcolor{keywordtype}{void}\ *\ \ HeaptoVoidStar(Heap);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ convert\ Heap\ to\ base\ addr\ */}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ }
+\DoxyCodeLine{00412\ \textcolor{preprocessor}{\#ifdef\ forDebug}}
+\DoxyCodeLine{00413\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00414\ \textcolor{comment}{**}}
+\DoxyCodeLine{00415\ \textcolor{comment}{**\ \ Heap\ operation\ tracing,\ heap\ tracking}}
+\DoxyCodeLine{00416\ \textcolor{comment}{**}}
+\DoxyCodeLine{00417\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00418\ \textcolor{keyword}{extern}\ Boolean\ gMemTraceOn;}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \textcolor{keywordtype}{void}\ MemTraceInit(ULong\ maxNum);}
+\DoxyCodeLine{00421\ \textcolor{keywordtype}{void}\ MemTraceOn(Boolean);}
+\DoxyCodeLine{00422\ ULong\ MemTraceCaptureStart(\textcolor{keywordtype}{int}\ op,\ ULong\ p1,\ ULong\ p2\ DEFAULT\_NIL);}
+\DoxyCodeLine{00423\ \textcolor{keywordtype}{void}\ MemTraceCaptureEnd(ULong,\ \textcolor{keywordtype}{int}\ markNested);}
+\DoxyCodeLine{00424\ \textcolor{keywordtype}{void}\ MemTraceDump(HammerIORef\ ref);}
+\DoxyCodeLine{00425\ Heap\ RememberedHeapAt(\textcolor{keywordtype}{int}\ n);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ return\ a\ heap\ we've\ (probably)\ remembered\ */}}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00429\ \textcolor{comment}{**}}
+\DoxyCodeLine{00430\ \textcolor{comment}{**\ \ Randomly\ return\ nil\ on\ allocations}}
+\DoxyCodeLine{00431\ \textcolor{comment}{**}}
+\DoxyCodeLine{00432\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00433\ \textcolor{keywordtype}{void}\ SetRandomNilReturns}
+\DoxyCodeLine{00434\ \ \ \ \ (}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ Heap\ \ \ \ h,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ heap\ to\ return\ nil\ on\ (nil\ for\ current\ heap)\ */}}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ ULong\ \ \ freq,\ \ \ \ \ \ \ \textcolor{comment}{/*\ frequency\ in\ 256-\/based\ percent\ zero\ -\/-\/>\ never,\ 256\ -\/-\/>\ always\ */}}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \ \ ULong\ \ \ delay,\ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ allocations\ to\ delay\ before\ turning\ on\ */}}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ ULong\ \ \ duration\ \ \ \ \textcolor{comment}{/*\ number\ of\ allocations\ to\ run\ before\ turning\ off\ */}}
+\DoxyCodeLine{00439\ \ \ \ \ );}
+\DoxyCodeLine{00440\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*forDebug*/}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00441\ }
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00443\ \}}
+\DoxyCodeLine{00444\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ }
+\DoxyCodeLine{00447\ \textcolor{comment}{/*\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00448\ \textcolor{comment}{**}}
+\DoxyCodeLine{00449\ \textcolor{comment}{**\ \ Everyone\ should\ use\ the\ full\ names}}
+\DoxyCodeLine{00450\ \textcolor{comment}{**}}
+\DoxyCodeLine{00451\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00452\ \textcolor{preprocessor}{\#define\ DisposeHandle\ DisposHandle}}
+\DoxyCodeLine{00453\ \textcolor{preprocessor}{\#define\ DisposePtr\ \ \ \ DisposPtr}}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_NEWTONMEMORY\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

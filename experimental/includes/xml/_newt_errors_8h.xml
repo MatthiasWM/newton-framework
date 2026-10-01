@@ -1,0 +1,458 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="_newt_errors_8h" kind="file" language="C++">
+    <compoundname>NewtErrors.h</compoundname>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="_newt_errors_8h_1ae2c4a451082cb82ebac3a6e0b2a40169" prot="public" static="no">
+        <name>ERRBASE_COMMON</name>
+        <initializer>(-7000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="28" column="10" bodyfile="NewtErrors.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1aa22f538228e6794b1c3f04daa2459cf5" prot="public" static="no">
+        <name>ERRBASE_NEWT</name>
+        <initializer>(-8000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="29" column="10" bodyfile="NewtErrors.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a0a586350b46f051553d88aed84cb1d63" prot="public" static="no">
+        <name>ERRBASE_OS</name>
+        <initializer>(-10000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="30" column="10" bodyfile="NewtErrors.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a743452acb0b1519a1ac5964bd243bb65" prot="public" static="no">
+        <name>ERRBASE_APPLETALK</name>
+        <initializer>(-12000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="31" column="10" bodyfile="NewtErrors.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a9014d65b59a62585c6ed8d6400a3b1af" prot="public" static="no">
+        <name>ERRBASE_UTILITYCLASSES</name>
+        <initializer>(-14000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="32" column="10" bodyfile="NewtErrors.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a8a8ad60b94b178b037d860da8156e536" prot="public" static="no">
+        <name>ERRBASE_COMMTOOL</name>
+        <initializer>(-16000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="33" column="10" bodyfile="NewtErrors.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a89384cabe57b1332583fa23e1a6077de" prot="public" static="no">
+        <name>ERRBASE_SERIAL</name>
+        <initializer>(-18000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="34" column="10" bodyfile="NewtErrors.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1ac8d2dfc41fde43d99f011d2bd7da0ff5" prot="public" static="no">
+        <name>ERRBASE_MNP</name>
+        <initializer>(-20000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="35" column="10" bodyfile="NewtErrors.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a783dacd9f6eb33eadf667e5258ff6b6d" prot="public" static="no">
+        <name>ERRBASE_FAX</name>
+        <initializer>(-22000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="36" column="10" bodyfile="NewtErrors.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a91b8b6fdca87ccee36c1d0a4d354078e" prot="public" static="no">
+        <name>ERRBASE_TAPI</name>
+        <initializer>(-23000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="37" column="10" bodyfile="NewtErrors.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a3096a317edf068910791a7597e920d25" prot="public" static="no">
+        <name>ERRBASE_MODEM</name>
+        <initializer>(-24000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="38" column="10" bodyfile="NewtErrors.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1af1001291cd7be4c4c464d8910f367b0e" prot="public" static="no">
+        <name>ERRBASE_COMMMGR</name>
+        <initializer>(-26000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="39" column="10" bodyfile="NewtErrors.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1ada42883a0f7999c0c94828c8f5cf9097" prot="public" static="no">
+        <name>ERRBASE_DOCKER</name>
+        <initializer>(-28000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="40" column="10" bodyfile="NewtErrors.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a1586673c4c95e25c4f2b431be60506c3" prot="public" static="no">
+        <name>ERRBASE_SOUND</name>
+        <initializer>(-30000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="41" column="10" bodyfile="NewtErrors.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a334f0066af3792f7d5b1d799c8bfede1" prot="public" static="no">
+        <name>ERRBASE_COMPRESSION</name>
+        <initializer>(-32000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="42" column="10" bodyfile="NewtErrors.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a95e2d2b0cf9384f2e5df6a2ae364164f" prot="public" static="no">
+        <name>ERRBASE_MEMORY</name>
+        <initializer>(-34000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="43" column="10" bodyfile="NewtErrors.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a06a45cd588d7c762f40ba6072ed53166" prot="public" static="no">
+        <name>ERRBASE_TRANSPORT</name>
+        <initializer>(-36000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="44" column="10" bodyfile="NewtErrors.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1aff9dbe0c3746edb777cd8ed95539fb5d" prot="public" static="no">
+        <name>ERRBASE_SHARPIR</name>
+        <initializer>(-38000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="45" column="10" bodyfile="NewtErrors.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1ac893094710023e95d9aeab467afe2693" prot="public" static="no">
+        <name>ERRBASE_IRDA</name>
+        <initializer>(-38500)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="46" column="10" bodyfile="NewtErrors.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a73ebee1337166ee38b64be9b0cf864e6" prot="public" static="no">
+        <name>ERRBASE_ONLINESERVICES</name>
+        <initializer>(-40000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="47" column="10" bodyfile="NewtErrors.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a8b4cb24aab8e73cfcc78cb3d8781479d" prot="public" static="no">
+        <name>ERRBASE_EMAIL</name>
+        <initializer>(-42000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="48" column="10" bodyfile="NewtErrors.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a8d96dcfc2e760b4bee4a3a89cd881c65" prot="public" static="no">
+        <name>ERRBASE_PRINTING</name>
+        <initializer>(-44000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="49" column="10" bodyfile="NewtErrors.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a8f107194c362005847dcd5637be47507" prot="public" static="no">
+        <name>ERRBASE_BLACKBIRD</name>
+        <initializer>(-46000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="50" column="10" bodyfile="NewtErrors.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a7fc21909e3f108d121b58691ecaf8bf0" prot="public" static="no">
+        <name>ERRBASE_MESSAGINGENABLER</name>
+        <initializer>(-46000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="51" column="10" bodyfile="NewtErrors.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a4763659604f825440edbcd105a787160" prot="public" static="no">
+        <name>ERRBASE_FRAMES</name>
+        <initializer>(-48000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="52" column="10" bodyfile="NewtErrors.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a22714406d96e5d84178d5694e6ddb171" prot="public" static="no">
+        <name>ERRBASE_WIZARD</name>
+        <initializer>(-50000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="53" column="10" bodyfile="NewtErrors.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a3aa146328eb34546b818f40aeca3ed6b" prot="public" static="no">
+        <name>ERRBASE_GRAPHICS</name>
+        <initializer>(-52000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="54" column="10" bodyfile="NewtErrors.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a1d4c40e5895260a07afd415856c7a9d7" prot="public" static="no">
+        <name>ERRBASE_COMMSCRIPT</name>
+        <initializer>(-54000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="55" column="10" bodyfile="NewtErrors.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a0df64732f8f85765ff273a22ef9c0d07" prot="public" static="no">
+        <name>ERRBASE_TABLET</name>
+        <initializer>(-56000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="56" column="10" bodyfile="NewtErrors.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1acd95cd44c64175159410d7b3bf1f2c4a" prot="public" static="no">
+        <name>ERRBASE_PAGEDTSTORE</name>
+        <initializer>(-58000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="57" column="10" bodyfile="NewtErrors.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a92091eba3c90521e339bb88270f321fc" prot="public" static="no">
+        <name>ERRBASE_INET</name>
+        <initializer>(-60000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="58" column="10" bodyfile="NewtErrors.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1abe1c35406a7e8827f4f97fd944b616bb" prot="public" static="no">
+        <name>ERRBASE_PRODUCTSPECIFIC</name>
+        <initializer>(-1000000)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="60" column="10" bodyfile="NewtErrors.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1a88808b181e635a40559395a4ace5b011" prot="public" static="no">
+        <name>noErr</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="65" column="10" bodyfile="NewtErrors.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="_newt_errors_8h_1ac0c4e177af4c276392caa4160b1281a6" prot="public" static="no">
+        <name>kNoMemory</name>
+        <initializer>(ERRBASE_COMMON)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="NewtErrors.h" line="66" column="10" bodyfile="NewtErrors.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/><sp/><sp/><sp/>File:<sp/><sp/><sp/><sp/><sp/><sp/><sp/>NewtErrors.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"></highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/><sp/><sp/><sp/>Contains:<sp/><sp/><sp/>base<sp/>values<sp/>for<sp/>error<sp/>codes<sp/>and<sp/>common<sp/>errors</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"></highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/><sp/><sp/><sp/>Copyright:<sp/><sp/>©<sp/>1992-1995<sp/>by<sp/>Apple<sp/>Computer,<sp/>Inc.,<sp/>all<sp/>rights<sp/>reserved.</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"></highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/><sp/><sp/><sp/>Derived<sp/>from<sp/>v5<sp/>(8/27/96)<sp/>internal<sp/>of<sp/>NewtErrorsExternal.h.</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"></highlight></codeline>
+<codeline lineno="10"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__NEWTERRORS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>__NEWTERRORS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Contains<sp/>base<sp/>error<sp/>codes<sp/>and<sp/>common<sp/>errors</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"></highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>All<sp/>error<sp/>codes<sp/>should<sp/>run<sp/>progressively<sp/>negative<sp/>off<sp/>your<sp/>base</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"></highlight></codeline>
+<codeline lineno="23"><highlight class="comment">*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="comment">//<sp/>---------------<sp/><sp/>Error<sp/>bases… <sp/>---------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_COMMON<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-7000)<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Common<sp/>errors<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(see<sp/>below)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_NEWT<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-8000)<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Newt<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_OS<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-10000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>OS<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_APPLETALK<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-12000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>AppleTalk<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_UTILITYCLASSES<sp/><sp/><sp/><sp/><sp/><sp/>(-14000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>UtilityClass<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_COMMTOOL<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-16000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>CommTool<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_SERIAL<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-18000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>SerialTool<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_MNP<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-20000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>MNP<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_FAX<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-22000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>FAX<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_TAPI<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-23000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TAPI<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_MODEM<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-24000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Modem<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_COMMMGR<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-26000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>CommMgr<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_DOCKER<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-28000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Docker<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_SOUND<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-30000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Sound<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_COMPRESSION<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-32000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Compression<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_MEMORY<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-34000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Memory<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_TRANSPORT<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-36000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Transport<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_SHARPIR<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-38000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Sharp<sp/>IR<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_IRDA<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-38500)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>IrDA<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_ONLINESERVICES<sp/><sp/><sp/><sp/><sp/><sp/>(-40000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Online<sp/>service<sp/>errs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_EMAIL<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-42000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Online<sp/>service<sp/>errs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_PRINTING<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-44000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Printing<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_BLACKBIRD<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-46000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>TSI<sp/>BlackBird<sp/>errors<sp/>(Obsolete)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_MESSAGINGENABLER<sp/><sp/><sp/><sp/>(-46000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Messaging<sp/>Enabler<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_FRAMES<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-48000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Frames<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_WIZARD<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-50000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Wizard<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_GRAPHICS<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-52000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Graphics<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_COMMSCRIPT<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-54000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>CommScripting<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_TABLET<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-56000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Tablet<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_PAGEDTSTORE<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-58000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Alien<sp/>store<sp/>device<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_INET<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(-60000)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>InetTool/NIE<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>ERRBASE_PRODUCTSPECIFIC<sp/><sp/><sp/><sp/><sp/>(-1000000)<sp/><sp/></highlight><highlight class="comment">//<sp/>Product<sp/>specific<sp/>errors<sp/>(none-Apple<sp/>errors)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>-1000000<sp/>-&gt;<sp/>-1999999</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="comment">//<sp/>---------------<sp/><sp/>Common<sp/>errors… <sp/>-------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>noErr<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/><sp/><sp/><sp/><sp/>kNoMemory<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(ERRBASE_COMMON)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">//<sp/>__NEWTERRORS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="NewtErrors.h"/>
+  </compounddef>
+</doxygen>

@@ -35,3 +35,7 @@ newtc.zip
 
 # Python
 __pycache__/
+
+# experimental/ (the ROM from source): Apple's tools (mosrun-wrapped) and the build
+experimental/bin/
+experimental/build/
