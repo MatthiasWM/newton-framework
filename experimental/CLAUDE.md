@@ -52,6 +52,10 @@ doesn't know about it.
     options, gives its imports their slot (or own) addresses, links it so
     its functions land at their ROM addresses, compares each function with
     Apple's image up to the next symbol.
+  - `tools/romasm.py <rom> <out>`: the ROM as assembler source
+    (`build/romasm/`: `ro_NN.a`, `rw.a`, `files.txt`, `link.txt`).
+  - `tools/romlink.py`: assembles them (in parallel), links, compares with
+    Apple's RO and RW.
 - The ROM: **the target is Apple's linker output**, the AIF image `Senior
   CirrusNoDebug image` in newton-re (`DebugRom/MP2x00 US/`, 2.1 build
   717006; see "The target image"). `newtonos.s` (132 MB) is the disassembly
@@ -209,11 +213,19 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       `gPhysROMAcsum`..`Hcsum`, computed by
       `OSCalibrationParameters::CalculateROMREXCheckSums` 0x1A71B8 per
       newton-re) are for the post-link step (R3).
-- [ ] **R2 The ROM as assembler, verbatim.** Generated `DCD` files, each
-      small enough for the assembler's cache (Matt), one label per symbol;
-      the RW data as its own area; a scatter file (RO at 0; `root` loaded
-      after RO, running at 0x0C100800; ZI). ARMLink makes the AIF's RO and
-      RW byte for byte. (Done once as one file: 19 s and 0.4 s.)
+- [x] **R2 The ROM as assembler, verbatim.** Done (2026-10-02):
+      `tools/romasm.py` writes 26 files of about 256 KB (cut at a symbol;
+      one area each, `|ROM$$RO$$NN|`, which the linker keeps in name order)
+      and `rw.a` (`|ROM$$RW|`, DATA); words as `DCD`, other bytes as `DCB`;
+      35,763 labels, a name the ROM has once exported, a repeated name
+      local as `|Name@0xADDR|`, the linker's `$$` symbols left out.
+      `tools/romlink.py`: assembled in 2.5 s (in parallel), linked in 0.7 s
+      (`-BIN -RO-base 0 -RW-base 0x0C100800`: the RW data follows RO in the
+      image), identical to Apple's RO + RW. Every exported label lands at
+      Apple's address (35,765; `_end` is the linker's: R2 has no zero-init
+      area, whose `-BIN` output would be zeros at the end). For R3: the
+      zero-init area and a scatter file, so the linker's symbols are
+      Apple's (`Image$$root$$Base`, `Load$$root$$Base`, `_end`).
 - [ ] **R3 Every address a symbol.** The core: a word that holds an address
       becomes `DCD label+offset`, a branch to another function `BL label`
       (or `BL VEC_label`). Unit by unit, each run of the shift test showing

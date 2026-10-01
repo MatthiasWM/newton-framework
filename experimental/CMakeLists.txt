@@ -2,9 +2,11 @@
 # Independent of newtc's build:
 #
 #   cmake -S experimental -B experimental/build
-#   cmake --build experimental/build            the ROM's parts and symbols
+#   cmake --build experimental/build            the ROM's parts, symbols and
+#                                               assembler source
 #   cmake --build experimental/build --target check
-#                                               the probes against the ROM
+#                                               the probes and the whole ROM
+#                                               against Apple's image
 #
 # Needs Python 3 and newton-re (dparnell's, for the debug ROM image and the
 # library that reads it; NEWTON_RE).
@@ -35,12 +37,25 @@ add_custom_command(
   VERBATIM)
 add_custom_target(rom ALL DEPENDS "${ROM_DIR}/symbols.json")
 
-# R0: the probes, compiled and compared with the ROM function by function
+# R2: the ROM as assembler source (generated), assembled and linked back
+set(ROMASM_DIR "${CMAKE_BINARY_DIR}/romasm")
+add_custom_command(
+  OUTPUT "${ROMASM_DIR}/files.txt"
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}" "${ROMASM_DIR}"
+  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}/symbols.json"
+  COMMENT "The ROM as assembler source (tools/romasm.py)"
+  VERBATIM)
+add_custom_target(romasm ALL DEPENDS "${ROMASM_DIR}/files.txt")
+
+# the checks: R0's probes, function by function; R2's whole image
 file(GLOB PROBES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/probes/*.cp")
 add_custom_target(check
   COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/probe.py"
           --bin "${TOOLS}" --includes "${INCLUDES}" --rom "${ROM_DIR}"
           --out "${CMAKE_BINARY_DIR}/probes" ${PROBES}
-  DEPENDS rom
-  COMMENT "The probes against the ROM (tools/probe.py)"
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romlink.py"
+          --bin "${TOOLS}" --src "${ROMASM_DIR}" --rom "${ROM_DIR}"
+          --out "${CMAKE_BINARY_DIR}/romlink"
+  DEPENDS rom romasm
+  COMMENT "The probes and the whole ROM against Apple's image"
   VERBATIM)
