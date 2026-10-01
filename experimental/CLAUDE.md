@@ -61,6 +61,11 @@ doesn't know about it.
   - `tools/romlink.py`: assembles them (in parallel), links an AIF with the
     scatter file, compares with Apple's: header sizes, RO and RW, the
     linker's own symbols.
+- **newtonos.s is an early reverse-engineering attempt** (Matt,
+  2026-10-02): its symbols and comments are not necessarily right or
+  complete, and many words are not classified (fonts, data, tables,
+  dictionaries). Use it as a cross-check, not as the truth; Apple's symbol
+  table (in the AIF) is the truth for names and addresses.
 - The ROM: **the target is Apple's linker output**, the AIF image `Senior
   CirrusNoDebug image` in newton-re (`DebugRom/MP2x00 US/`, 2.1 build
   717006; see "The target image"). `newtonos.s` (132 MB) is the disassembly
@@ -274,7 +279,14 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     public jump table at 0x13000, real branches newtonos.s shows as
     `.word`, for R3g; the rest data: the NewtonScript area, recogniser
     tables).
-  - [ ] **R3d Literal pools**: addresses loaded from a function's pool.
+  - [ ] **R3d Code and literal pools, our own way.** Follow the code from
+    every function entry in Apple's table (instruction by instruction,
+    along branches, until a return or a branch away): what is reached is
+    code, a word a PC-relative `LDR` loads is a literal, the rest is data
+    until shown otherwise. Then R3c's branches come from this, not from
+    newtonos.s (its instruction marks only as a cross-check, the
+    disagreements listed), and literal-pool words that are addresses are
+    written as `DCD label+offset`.
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
   - [ ] **R3f The NewtonScript object area.**
