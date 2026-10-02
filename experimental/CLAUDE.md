@@ -623,6 +623,15 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       `grayTable`, 28 bytes: now a standard option), and
       `TGestaltSystemInfo` has `fManufactureDate` at its end in the ROM (60
       bytes; the published header lacks it: added).
+      **Headers** (Matt: the published ones cover driver development
+      only, so most types and globals are missing): what is missing is
+      reconstructed in `src/`, at the port's header path (`src/Graphics/
+      Screen.h`, `src/Frames/NewtGlobals.h`, `src/Recognition/Tablet.h`),
+      with Apple's names (`TInterpreter`, not the port's `CInterpreter`;
+      globals as in Apple's table: `gGrafPort`, `screenWidth`), layouts as
+      the ROM uses them (`NewtGlobals.graf` at +0C), never a name that
+      Apple's `includes/` has. Sources compile with `-I includes -I src`;
+      no declarations in the `.cc` files.
       Next: more files. Find the original files' extents (function order,
       literal pools and strings, static data), start from the port's C++
       and newton-re's `src/` (both cite ROM addresses), turned into 32-bit

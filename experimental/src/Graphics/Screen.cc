@@ -11,39 +11,10 @@
 */
 
 #include "Frames/objects.h"
-#include "QD/NewtQD.h"
 #include "OS600/NewtonGestalt.h"
-
-enum
-{
-	kGrafPixelMap = 0,
-	kGrafOrientation = 4
-};
-
-enum
-{
-	kPortrait,
-	kLandscape,
-	kPortraitFlip,
-	kLandscapeFlip
-};
-
-struct NewtGlobals
-{
-	long		fReserved[3];
-	GrafPtr		graf;
-};
-
-long	GetGrafInfo(long inSelector, void * outInfo);
-long	SetGrafInfo(long inSelector, long inValue);
-void	TabSetOrientation(long inOrientation);
-void	InitPortRgns(GrafPtr inPort);
-void	SetOrientation(long inOrientation);
-
-extern GrafPort			gGrafPort;
-extern NewtGlobals *	gNewtGlobals;
-extern long				screenWidth;
-extern long				screenHeight;
+#include "Graphics/Screen.h"
+#include "Frames/NewtGlobals.h"
+#include "Recognition/Tablet.h"
 
 extern "C" {
 Ref		FGetOrientation(RefArg inRcvr);
