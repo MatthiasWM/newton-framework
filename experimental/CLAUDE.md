@@ -37,7 +37,11 @@ doesn't know about it.
   says `friend class`. None of this can change the code the compiler makes.
   One change does, to match the ROM (2026-10-02): `OS600/NewtonGestalt.h`'s
   `TGestaltSystemInfo` ends with `fManufactureDate` (the 2.1 ROM's is 60
-  bytes; the published header is older).
+  bytes; the published header is older). And `Frames/objects.h` was
+  published with the desktop's names `TFramesObjectPtr` and
+  `TBinaryDataPtr` (`ConfigFrames.h`'s `useTFramesObjectPtr`,
+  `useTBinaryDataPtr` rename them); on the Newton they are `TObjectPtr`
+  and `DataPtr`, as the ROM's symbols: put back unless those are defined.
   Not C: `Lantern/LanternNS.f.h`, `LanternNSEvents.f.h` (NewtonScript
   definitions, included by nothing). The html, latex and xml folders are
   Doxygen output.
@@ -789,7 +793,12 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       aligned to 4 and padded with zeros), in the order of the
       definitions; the ROM has the files' areas together (here after the
       sound gains, before `EXP_TABL`). Placed like a function: at its first
-      named table's address minus its offset. Tables whose layout the ROM
+      named table's address minus its offset; an area holding only
+      templates for local aggregates (`PrPageInfo info = {...}` is copied
+      from one) has no name: `aof.py`'s `referenced_areas` reads its
+      address off the ROM word where the code loads it (`x$constdata` plus
+      an offset; the address most references give, so a probe of code that
+      still differs is not misled). Tables whose layout the ROM
       shows are written from its bytes (generated once); `static` ones have
       no name in Apple's table. C++ `const` globals have internal linkage:
       declared `extern` in the header, so they keep Apple's names.
@@ -924,7 +933,30 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       assignments are stored right to left (`flip1 = min1Ref = min2Ref =
       flip2 = 0`). `probe.py` and `romasm.py` place static functions at a
       file's start before its first named function.
-      Next: `TFaxDriver` (0x20F044). `TController` (0x209E84..0x20C764,
+      **`src/Printing/FaxDriver.cc`** (2026-10-02): `TFaxDriver`, the fax
+      as a dot printer driver, and `TFaxDriverData`, its connection to the
+      fax tool (0x20F044..0x20FAE8, constant data 0x378C14): 17 of 19 in
+      place, all identical, 2,156 bytes (28,104 from 14); `Open` alone is
+      295 words. `GetPageInfo` and `ImageBand` `#if 0` (4 words each,
+      registers). Headers `Printing/FaxDriver.h`,
+      `Communications/Fax/FaxToolInterface.h` (its virtual functions in
+      vtable order; its 552 bytes of requests not spelled out),
+      `Communications/Fax/FaxOptions.h`, `Communications/ModemOptions.h`.
+      Lessons: a derived class's inline constructor that names its base's
+      arguments itself (`TFaxDriverData() : TFaxToolInterface('faxs',
+      'mods')`) gave the ROM's argument order and, with it, every register
+      of `Open`; `fData = new ...; if (fData == NULL)` (not the assignment
+      in the test); Apple's inline `AppendOption` evaluates the option's
+      address before the array (not `InsertOptionAt(GetArrayCount(),
+      ...)`); `DataPtr p = DataPtr(ref)` makes the ROM's temporary and
+      copy; a `MakeString(...)` passed straight to `SetFrameSlot` puts its
+      temporary `RefVar` in the buffer's stack segment; `result = false;
+      if (...) result = true;` returns a `Boolean` unmasked; a wait loop
+      with braces (`while (!x) { }`) is tested before the loop and at its
+      bottom; locals declared at the top in a certain order gave two
+      subtractions their registers. Bug: BUGS.md B11.
+      Next: the bilinear solver after it (`SolveEquations`, 0x20FAE8).
+      `TController` (0x209E84..0x20C764,
       about 60 functions) and
       `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) are
       left for when the recognition headers are further along. Zero-initialised data (`C$$zidata`) and vtables from

@@ -183,3 +183,21 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
 - Fix: clear `bands[0]` before the loop (and have `TryAllocBands` clear
   the entries it frees), or keep the result of `TryAllocBands` and test
   that.
+
+## B11 TFaxDriver::GetPageInfo: the wait for the session reads its flag once (harmless as called)
+
+- ROM: `TFaxDriver::GetPageInfo`, 0x20F4E8..0x20F5E4, at 0x20F560.
+- Source: `src/Printing/FaxDriver.cc`, `GetPageInfo` (the `while` before
+  the resolution test; written but `#if 0` for now).
+- What it does: it waits until the fax tool has answered the session
+  (`while (!fData->fSessionOpen) { }`), but the flag is not `volatile`:
+  the compiler loads the byte once before the loop, and the loop tests the
+  register (`teq r2, #0; beq` to itself).
+- Effect: reached with the flag clear, it spins for ever. As called it
+  is not: `TDotPrinter::Open` asks for the page only after the driver's
+  `Open` returned no error, and `Open` returns only after
+  `PrReleaseControl`, which `OpenSessionComplete` ends after setting the
+  flag (a cancel while waiting makes `Open` return
+  `kPR_ERR_UserCancel`).
+- Fix: declare `fSessionOpen` `volatile` (or read it through a volatile
+  pointer, or give the task time inside the loop).

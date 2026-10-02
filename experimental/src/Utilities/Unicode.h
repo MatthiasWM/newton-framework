@@ -16,6 +16,7 @@
 #define kMacRomanEncoding		1
 
 void	ConvertFromUnicode(const UniChar * inStr, void * outStr, long inEncoding, long inSize);
+void	ConvertToUnicode(const void * inStr, UniChar * outStr, long inEncoding, long inSize);
 
 extern "C"
 {
