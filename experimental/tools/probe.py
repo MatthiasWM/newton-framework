@@ -71,6 +71,18 @@ def link_symbols(listing):
     return syms
 
 
+def leading_static_areas(areas, known):
+    """Areas before the first one with a known place (static functions at
+    the start of a file, which Apple's table does not name) go right
+    before it. known: {area name: address or None}, filled in."""
+    first = next((k for k, a in enumerate(areas) if known[a.name] is not None), None)
+    if first:
+        at = known[areas[first].name]
+        for a in reversed(areas[:first]):
+            at -= (a.size + 3) & ~3
+            known[a.name] = at
+
+
 def probe(source, args, rom):
     base = os.path.splitext(os.path.basename(source))[0]
     out = os.path.join(args.out, base)
@@ -104,6 +116,29 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     the ROM; leave_out: code areas to drop first."""
     obj = base + '.o'
     aof = AOF.read(compiled)
+    # static functions (local symbols, no name in Apple's table): their
+    # addresses as the whole object lays out, so a function left out can
+    # still be called, and one kept can be placed and compared
+    code = [a for a in aof.areas if a.is_code and not a.attributes & AREA_COMMON_DEF]
+    known = {}
+    for a in code:
+        places = [rom.address(s.name) - s.value for s in aof.symbols
+                  if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+        known[a.name] = places[0] if places else None
+    leading_static_areas(code, known)
+    at = None
+    for a in code:
+        if known[a.name] is None and at is not None:
+            known[a.name] = at
+        if known[a.name] is not None:
+            at = known[a.name] + ((a.size + 3) & ~3)
+    statics = {s.name: known[s.area] + s.value for s in aof.symbols
+               if s.is_defined and not s.is_global and s.area in known and known[s.area] is not None
+               and not s.name.startswith(('x$', '$')) and s.area.startswith('C$$c_')}
+
+    def address(name):
+        a = rom.address(name)
+        return a if a is not None else statics.get(name)
     for name in leave_out:
         aof.drop_area(name)
     # every reference to a function with a jump-table slot goes to the slot
@@ -113,8 +148,8 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     places, at = {}, None
     for a in aof.areas:
         if a.is_code and not a.attributes & AREA_COMMON_DEF:
-            spots = [rom.address(s.name) - s.value for s in aof.symbols
-                     if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+            spots = [address(s.name) - s.value for s in aof.symbols
+                     if s.area == a.name and s.is_defined and s.is_global and address(s.name) is not None]
             if spots or at is not None:
                 places[a.name] = spots[0] if spots else at
                 at = places[a.name] + ((a.size + 3) & ~3)
@@ -125,13 +160,17 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     # area without a known function follows the one before it in the
     # object), with room between them where the source leaves a function
     # out (filler areas, below)
+    known = {}
+    code = [a for a in aof.areas if a.is_code]
+    for a in code:
+        places = [address(s.name) - s.value for s in aof.symbols
+                  if s.area == a.name and s.is_defined and s.is_global and address(s.name) is not None]
+        known[a.name] = places[0] if places else None
+    leading_static_areas(code, known)
     spot, at = {}, None
-    for a in aof.areas:
-        if a.is_code:
-            places = [rom.address(s.name) - s.value for s in aof.symbols
-                      if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
-            spot[a.name] = places[0] if places else (at or 0)
-            at = spot[a.name] + ((a.size + 3) & ~3)
+    for a in code:
+        spot[a.name] = known[a.name] if known[a.name] is not None else (at or 0)
+        at = spot[a.name] + ((a.size + 3) & ~3)
     gaps, at = [], None
     for j, a in enumerate(sorted(aof.areas, key=lambda a: (not a.is_code, spot.get(a.name, 0)))):
         if a.is_code:
@@ -143,21 +182,21 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     rw_base = []
     for a in aof.areas:
         if not a.is_code:
-            rw_base += [rom.address(s.name) - s.value for s in aof.symbols
-                        if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+            rw_base += [address(s.name) - s.value for s in aof.symbols
+                        if s.area == a.name and s.is_defined and s.is_global and address(s.name) is not None]
     rw_option = ['-RW-base', '0x%X' % rw_base[0]] if rw_base else []
     for s in list(aof.symbols):
         if s.is_global and s.name in rom.slots and s.name not in inline:
             aof.redirect(s.name, 'VEC_' + s.name)
     aof.prune()
     aof.write(obj)
-    defined = [s for s in aof.symbols if s.is_defined and s.is_global
+    defined = [s for s in aof.symbols if s.is_defined and (s.is_global or s.name in statics)
                and any(a.name == s.area and a.is_code for a in aof.areas)]
     # the imports at their addresses in the ROM, as absolute symbols
     lines = ['        AREA |ROM$$Absolute|, CODE, READONLY']
     missing = []
     for name in aof.imports():
-        a = rom.slots[name[4:]] if name.startswith('VEC_') and name[4:] in rom.slots else rom.address(name)
+        a = rom.slots[name[4:]] if name.startswith('VEC_') and name[4:] in rom.slots else address(name)
         a = inline.get(name, a)
         if a is None:
             missing.append(name)
@@ -187,7 +226,7 @@ def compare(source, compiled, base, args, rom, leave_out=()):
         return False
     linked = link_symbols(listing)
     first = defined[0].name
-    want = rom.address(first)
+    want = address(first)
     if want is None:
         print('%s: %s is not (once) in the ROM' % (source, first))
         return False
@@ -202,8 +241,8 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     with open(image, 'rb') as f:
         bytes_ = f.read()
     ok = True
-    for s in sorted(defined, key=lambda s: rom.address(s.name) or 0):     # in ROM order
-        at = rom.address(s.name)
+    for s in sorted(defined, key=lambda s: address(s.name) or 0):     # in ROM order
+        at = address(s.name)
         if at is None:
             print('  %-40s not (once) in the ROM' % s.name)
             ok = False

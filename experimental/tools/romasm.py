@@ -477,6 +477,20 @@ def place_object(path, names_once, slots, regions, ro):
             for a in [a for a in obj.areas if a.size == 0 and not any(s.area == a.name for s in obj.symbols)]:
                 obj.drop_area(a.name)        # -zo leaves empty areas at the end
         runs, at = [], {}
+        # static functions at the start of a file (no name in Apple's
+        # table) go right before the first area with a known place
+        code = [a for a in obj.areas if a.is_code and not a.attributes & AREA_COMMON_DEF]
+        lead = {}
+        for a in code:
+            spots = {names_once[s.name] - s.value for s in obj.symbols
+                     if s.is_defined and s.is_global and s.area == a.name and s.name in names_once}
+            if spots:
+                first = code.index(a)
+                back = min(spots)
+                for b in reversed(code[:first]):
+                    back -= (b.size + 3) & ~3
+                    lead[b.name] = back
+                break
         for a in obj.areas:
             if a.attributes & AREA_COMMON_DEF:
                 continue
@@ -490,6 +504,8 @@ def place_object(path, names_once, slots, regions, ro):
                                  % (path, a.name, sorted(hex(v) for v in spots)))
             if spots:
                 start = spots.pop()
+            elif a.name in lead:
+                start = lead[a.name]
             elif region in at:
                 start = at[region]
             else:
