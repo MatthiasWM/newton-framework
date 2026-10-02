@@ -10,7 +10,7 @@
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006), its data
 				0x0C104C48..0x0C104C58. Here so far: 0x20171C (FGetSerialNumber)
-				.. 0x201A0C (after FMinimumBatteryCheck), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
+				.. 0x201BFC (after FPowerOff), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
 */
@@ -32,6 +32,8 @@
 #include "SerialNumber.h"
 #include "Power.h"
 #include "Preference.h"
+#include "Frames/NewtonScript.h"
+#include "Recognition/Inker.h"
 
 /*------------------------------------------------------------------------------
 	D a t a
@@ -49,7 +51,9 @@ Ref		FGetSerialNumber(RefArg inRcvr);
 Ref		FSetRandomSeed(RefArg inRcvr, RefArg inSeed);
 Ref		FBatteryRawStatus(RefArg inRcvr, RefArg inWhich);
 Ref		FMinimumBatteryCheck(RefArg inRcvr);
+Ref		FBackLightStatus(RefArg inRcvr);
 Ref		FBackLight(RefArg inRcvr, RefArg inOnOff);
+Ref		FPowerOff(RefArg inRcvr);
 Ref		UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace);
 Ref		FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
 Ref		FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
@@ -210,6 +214,71 @@ FMinimumBatteryCheck(RefArg inRcvr)
 		}
 	}
 	return MAKEBOOLEAN(hadToWait);
+}
+
+
+/*------------------------------------------------------------------------------
+	The backlight.
+------------------------------------------------------------------------------*/
+
+Ref
+FBackLightStatus(RefArg inRcvr)
+{
+	long	state;
+	GetGrafInfo(kGrafBacklight, &state);
+	return MAKEBOOLEAN(state == 1);
+}
+
+
+/*------------------------------------------------------------------------------
+	Turn the backlight on or off.
+	Args:		inRcvr
+				inOnOff			non-nil: on
+	Return:		whether it was on
+------------------------------------------------------------------------------*/
+
+Ref
+FBackLight(RefArg inRcvr, RefArg inOnOff)
+{
+	long	turnOn = NOTNIL(inOnOff);
+	long	state;
+	GetGrafInfo(kGrafBacklight, &state);
+	Boolean	wasOn = (state == 1);
+	if (turnOn)
+	{
+		NSSendRootMessage(SYM(eventpause), TRUEREF);
+		SetGrafInfo(kGrafBacklight, 1);
+	}
+	else
+		SetGrafInfo(kGrafBacklight, 0);
+	return MAKEBOOLEAN(wasOn);
+}
+
+
+/*------------------------------------------------------------------------------
+	Power off, and on again.
+	Args:		inRcvr
+	Return:		what woke the Newton: 'serialGPI, 'alarm, 'user, 'cardLock,
+				'interconnect, or 'because
+------------------------------------------------------------------------------*/
+
+Ref
+FPowerOff(RefArg inRcvr)
+{
+	ULong	powerEvent = SleepUntilNextWakeup();
+	FMinimumBatteryCheck(RefVar(NILREF));
+	if (!EQRefArg(GetPreference(SYMA(blessedapp)), SYMA(setup)))
+		LoadInkerCalibration();
+	*(TTime *) &gLastWakeupTime = GetGlobalTime();
+	switch (powerEvent)
+	{
+	case 2:		return SYMA(serialgpi);
+	case 3:		return SYMA(alarm);
+	case 4:		return SYMA(user);
+	case 5:		return SYMA(cardlock);
+	case 7:		return SYMA(interconnect);
+	default:	return SYMA(because);
+	}
 }
 
 
