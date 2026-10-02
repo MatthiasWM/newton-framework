@@ -104,3 +104,31 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
 - Depends on: what the fax tool does with the result (it may find the
   page's end another way).
 - Fix: `tries >= 6 && outBytes == 0`, after checking the callers.
+
+## B6 TAgentReporter: the base class's destructor runs twice (harmless)
+
+- ROM: `TAgentReporter::~TAgentReporter`, 0x206898..0x2068D4.
+- Source: `src/Testing/AgentReporter.cc`, the destructor.
+- What it does: its body calls `TTestReporter::~TTestReporter()`
+  explicitly; the compiler then calls it again, as it does for every base
+  class at the end of a destructor.
+- Effect: none today: `TTestReporter`'s destructor (0x22B46C) does
+  nothing but free the object when asked to (flag 1), and both calls pass
+  0. It would free or release things twice if that destructor ever did
+  more.
+- Fix: leave the body empty.
+
+## B7 TAgentReporter::AgentReportStatus: copies 224 bytes from a string of any length (harmless)
+
+- ROM: `TAgentReporter::AgentReportStatus`, 0x206948..0x206B8C, the
+  default case.
+- Source: `src/Testing/AgentReporter.cc`, `BlockMove(name, buf, ...)`.
+- What it does: for a status it does not know, it sends the test's name
+  as the message, copied with `BlockMove(name, buf, 224)`: 224 bytes
+  whatever the name's length (the empty string "" when the name is
+  NULL).
+- Effect: it reads past the end of the name; the copy ends with the
+  name's terminating zero, so the message is right, unless the name is
+  longer than 223 characters (then it is not terminated) or lies within
+  224 bytes of the end of mapped memory.
+- Fix: `strncpy(buf, name, sizeof(buf) - 1)` and a terminating zero.

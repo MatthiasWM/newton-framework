@@ -733,6 +733,23 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       (`TWriteElement`) is destroyed through its vtable (`LDR pc, [sp]`);
       a class whose destructor calls a method inline (`~TWriteChain() {
       Destroy(); }`) shows the call at the end of the scope.
+      **`src/Communications/TAPIOptions.cc`** (2026-10-02): the 12
+      telephony options' constructors (`TCMOTAPIHold` .. `TCMOTAPIService`,
+      0x206494..0x20684C), all identical; each `TOption(kOptionType)`, then
+      `SetLabel('hold')`, `SetLength(sizeof(...) - sizeof(TOption))`, its
+      fields (header `Communications/TAPIOptions.h`).
+      **`src/Testing/AgentReporter.cc`** (2026-10-02): `TAgentReporter`
+      (0x20684C..0x206BF0), all 5 identical; the port's `CAgentReporter`
+      (Matt's) as the start, Apple's names (`TTestReporter`, `TDate` in
+      `src/Dates.h`, `ConvertFromUnicode` in `src/Utilities/Unicode.h`).
+      **String literals**: in the function's own area (`-zo`), at the
+      literal pools; MPW's compilers swap `\n` and `\r` (`\n` is 13), so
+      the ROM's carriage returns are `\n` in source. The destructor
+      calls the base destructor twice: the body calls it explicitly
+      (BUGS.md B6). A local copy of a parameter (`char * name =
+      inTestName;`) changed which of two registers each got.
+      `aof.py` keeps each symbol's string offset (the compiler can write
+      the same name twice in the string table).
       **Constant data** (`static const`, `const` tables) goes into an area
       of its own, `C$$cd_<file>` (read-only, Code attributes, objects
       aligned to 4 and padded with zeros), in the order of the
@@ -832,8 +849,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       Track how many bytes come from source (2026-10-02, after the fax
       codec: 12,708 bytes of code and constant data, 16 of RW data, from
       3 sources; after the ADSP connection: 16,444 bytes from 4 sources;
-      the whole image identical). Next file: the telephony options'
-      constructors (`TCMOTAPIHold` ..., 0x206494). Zero-initialised data (`C$$zidata`) and vtables from
+      after the telephony options and the agent reporter: 18,328 bytes from
+      6 sources; the whole image identical). Next file: `TArbiter`
+      (0x206BF0). Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
       check it matches), hand-written assembler with `ARM6asm`.
