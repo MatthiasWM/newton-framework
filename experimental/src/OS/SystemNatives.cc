@@ -10,7 +10,8 @@
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006), its data
 				0x0C104C48..0x0C104C58. Here so far: 0x203510 (FBatteryCount)
-				.. 0x2038A0 (after GetBatteryStatus) but SetBatteryType, 0x20171C (FGetSerialNumber)
+				.. 0x2038A0 (after GetBatteryStatus) but SetBatteryType,
+				0x203DB8 (FBatteryStatus) .. 0x203DE8, 0x20171C (FGetSerialNumber)
 				.. 0x201E0C (after ExtendedGestalt), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
@@ -72,6 +73,7 @@ Ref		FResetPowerStats(RefArg inRcvr);
 Ref		FGetHeapStats(RefArg inRcvr, RefArg inOptions);
 Ref		FBatteryCount(RefArg inRcvr);
 Ref		FSetBatteryType(RefArg inRcvr, RefArg inWhich, RefArg inType);
+Ref		FBatteryStatus(RefArg inRcvr, RefArg inWhich);
 }
 Ref		FBatteryLevel(RefArg inRcvr, RefArg inWhich);
 Ref		FSetLCDContrast(RefArg inRcvr, RefArg inContrast);
@@ -843,3 +845,119 @@ FGetHeapStats(RefArg inRcvr, RefArg inOptions)
 	return stats;
 }
 #endif
+
+
+/*------------------------------------------------------------------------------
+	A battery's status as a frame.
+	Args:		inWhich			the battery
+				inRaw			the raw values
+	Return:		a frame: batteryType, batteryVoltage, batteryCapacity, ...
+------------------------------------------------------------------------------*/
+
+#if 0
+/* Not yet: identical up to the first slot after the battery type and
+   voltage (0x2039EC). From there the ROM allocates 4 more bytes of stack
+   for each following if statement's temporary and keeps them all to the
+   end of the block (ADD sp, sp, #40); this reuses one. A statement after
+   a switch shares the switch's (the voltage, the charge rate) in both.
+   The form that gives a new allocation per statement is still to be
+   found. Until then BatteryStatusHelper stays generated assembler. */
+Ref
+BatteryStatusHelper(long inWhich, Boolean inRaw)
+{
+	RefVar				result(AllocateFrame());
+	PowerPlantStatus	status;
+	if (GetBatteryStatus(inWhich, &status, inRaw) == noErr)
+	{
+		result = Clone(RA(canonicalbatterystatus));
+		switch (status.fBatteryType)
+		{
+		case -1:
+			break;
+		case 1:
+			SetFrameSlot(result, SYMA(batterytype), SYMA(alkaline));
+			break;
+		case 2:
+			SetFrameSlot(result, SYMA(batterytype), SYMA(nicd));
+			break;
+		case 3:
+			SetFrameSlot(result, SYMA(batterytype), SYMA(nimh));
+			break;
+		case 4:
+			SetFrameSlot(result, SYMA(batterytype), SYMA(lithium));
+			break;
+		default:
+			SetFrameSlot(result, SYMA(batterytype), MAKEINT(status.fBatteryType));
+			break;
+		}
+		if (status.fBatteryVoltage != -1)
+			SetFrameSlot(result, SYMA(batteryvoltage), MakeReal(status.fBatteryVoltage / 65536.0f));
+		if (status.fBatteryCapacity != -1)
+			SetFrameSlot(result, SYMA(batterycapacity), MAKEINT(status.fBatteryCapacity));
+		if (status.fBatteryLow != -1)
+			SetFrameSlot(result, SYMA(batterylow), MAKEINT(status.fBatteryLow));
+		if (status.fBatteryDead != -1)
+			SetFrameSlot(result, SYMA(batterydead), MAKEINT(status.fBatteryDead));
+		if (status.fBatteryCurrent != -1)
+			SetFrameSlot(result, SYMA(batterycurrent), MakeReal(status.fBatteryCurrent / 65536.0f));
+		if (status.fChargeCurrent != -1)
+			SetFrameSlot(result, SYMA(chargecurrent), MakeReal(status.fChargeCurrent / 65536.0f));
+		if (status.fACPower == 0)
+			SetFrameSlot(result, SYMA(acpower), SYMA(no));
+		if (status.fACPower == 1)
+			SetFrameSlot(result, SYMA(acpower), SYMA(yes));
+		if (status.fACVoltage != -1)
+			SetFrameSlot(result, SYMA(acvoltage), MakeReal(status.fACVoltage / 65536.0f));
+		switch (status.fChargeState)
+		{
+		case -1:
+			break;
+		case 0:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(discharging));
+			break;
+		case 1:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(tricklecharging));
+			break;
+		case 2:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(fastcharging));
+			break;
+		case 3:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(fullycharged));
+			break;
+		case 4:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(preliminarycharge));
+			break;
+		case 5:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(tricklechargecontinuous));
+			break;
+		case 6:
+			SetFrameSlot(result, SYMA(chargestate), SYMA(deeptoast));
+			break;
+		default:
+			SetFrameSlot(result, SYMA(chargestate), MAKEINT(status.fChargeState));
+			break;
+		}
+		if (status.fChargeRate != -1)
+			SetFrameSlot(result, SYMA(chargerate), MakeReal(status.fChargeRate / 65536.0f));
+		if (status.fAmbientTemp != -1)
+			SetFrameSlot(result, SYMA(ambienttemp), MakeReal(status.fAmbientTemp / 65536.0f));
+		if (status.fBatteryTemp != -1)
+			SetFrameSlot(result, SYMA(batterytemp), MakeReal(status.fBatteryTemp / 65536.0f));
+	}
+	return result;
+}
+#endif
+
+
+/*------------------------------------------------------------------------------
+	A battery's status.
+	Args:		inRcvr
+				inWhich			the battery: an integer
+	Return:		see BatteryStatusHelper
+------------------------------------------------------------------------------*/
+
+Ref
+FBatteryStatus(RefArg inRcvr, RefArg inWhich)
+{
+	return BatteryStatusHelper(RINT(inWhich), false);
+}

@@ -632,9 +632,14 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the flash driver follows): NewtonScript natives for the system
       (serial number, batteries, power, backlight, Gestalt, contrast,
       orientation, tablet bypass, power and heap statistics; newton-re
-      calls it `SystemNatives`). Done: 0x20171C..0x201E0C and
-      0x2028E4..0x202FF4, 28 functions, 3,584 bytes, and the file's data (16 bytes at 0x0C104C48:
-      `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4 at +12).
+      calls it `SystemNatives`). Done (2026-10-02): 36 of its 41
+      functions, 4,368 bytes of code, and the file's data (16 bytes at
+      0x0C104C48: `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4
+      at +12). Left: `FGestalt` (0x201E0C, 2.7 KB, not tried), and three
+      written but `#if 0`, each with a note on what still differs:
+      `FGetHeapStats` (the order of two loads), `SetBatteryType` (r12/lr
+      swapped in a call's setup), `BatteryStatusHelper` (the ROM gives
+      each `if` statement new stack for its temporary; ours reuses).
       **Data**: Norcroft addresses a file's own globals from its data
       area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
       static at +12), so a function that uses them is only identical with

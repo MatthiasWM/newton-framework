@@ -4,8 +4,8 @@
 	Contains:	Batteries and power (reconstructed: not in the published
 				headers; the port has a Power.h). PowerPlantStatus's fields
 				are named after the slots Apple's BatteryStatusHelper makes
-				of them (batteryType, batteryVoltage, ...); the last ones
-				are less certain.
+				of them (batteryType, batteryVoltage, ...). A field of -1 is
+				not known.
 */
 
 #ifndef __POWER_H
@@ -33,8 +33,8 @@ struct PowerPlantStatus
 	long		fChargeState;		// +20
 	Fixed		fChargeRate;		// +24
 	Fixed		fChargeCurrent;		// +28
-	long		fAmbientTemp;		// +2C -1: not known
-	long		fBatteryTemp;		// +30 -1: not known
+	Fixed		fAmbientTemp;		// +2C
+	Fixed		fBatteryTemp;		// +30
 };
 
 /* Requests to the power manager (GetPowerPort), and its replies: an event
