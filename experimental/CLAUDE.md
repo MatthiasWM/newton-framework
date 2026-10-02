@@ -750,6 +750,23 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       inTestName;`) changed which of two registers each got.
       `aof.py` keeps each symbol's string offset (the compiler can write
       the same name twice in the string table).
+      **`src/Recognition/Array.cc`** (2026-10-02): `TArray`, the
+      recognizers' dynamic array in a Handle, and its iterator
+      (0x208E98..0x209654): 25 of 28 identical; `Add`, `Save`, `GetNext`
+      written but `#if 0` (1 to 3 words). Headers `Recognition/
+      RecObject.h` (`TRecObject`, `TArrayIterator`, `TArray`, `TDArray`),
+      `RecGlue.h` (the Handle glue at 0x11B858: `MakeHandle`,
+      `ResizeHandle`, ...), `Msg.h` (`TMsg`). The port's `CArray` was the
+      start; Apple's arrays keep a Handle and a reference count.
+      **Vtables decide virtual calls**: a virtual function is called by its
+      index, so a class's virtual functions must be declared in the order
+      of the ROM's vtable: `tools/vtable.py build/rom TArray` finds the
+      vtable the constructor stores and names its entries (the base
+      class's first; `TRecObject`: `Dispose`, `Dump`, `SizeInBytes`,
+      `CopyInto`, no virtual destructor). Calls through a slot: Apple's
+      `GetArraySlot(ARG, long)` inline (not `GetArraySlotRef` directly)
+      copies the index once more; a `goto` past a test the compiler
+      would otherwise not skip (`IArray`).
       **Constant data** (`static const`, `const` tables) goes into an area
       of its own, `C$$cd_<file>` (read-only, Code attributes, objects
       aligned to 4 and padded with zeros), in the order of the
@@ -850,8 +867,10 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       codec: 12,708 bytes of code and constant data, 16 of RW data, from
       3 sources; after the ADSP connection: 16,444 bytes from 4 sources;
       after the telephony options and the agent reporter: 18,328 bytes from
-      6 sources; the whole image identical). Next file: `TArbiter`
-      (0x206BF0). Zero-initialised data (`C$$zidata`) and vtables from
+      6 sources; after TArray: 19,920 bytes from 7; the whole image
+      identical). Next: `TCommServer` (0x209654), then `TController`;
+      `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) is
+      left for when the recognition headers are further along. Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
       check it matches), hand-written assembler with `ARM6asm`.
