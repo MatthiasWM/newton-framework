@@ -75,6 +75,7 @@ class Symbol:
     attributes: int
     value: int
     area: Optional[str]
+    name_offset: Optional[int] = None    # where its name was in the strings (they can repeat)
 
     @property
     def is_defined(self) -> bool:
@@ -131,7 +132,7 @@ class AOF:
             for i in range(num_symbols):
                 name, attr, value, area = struct.unpack_from(e + '4I', data, symt_off + 16 * i)
                 self.symbols.append(Symbol(self.string(name), attr, value,
-                                           self.string(area) if area else None))
+                                           self.string(area) if area else None, name))
 
         # the file's chunk layout, kept for writing
         _, self.max_chunks, _ = struct.unpack_from(e + '3I', data, 0)
@@ -276,7 +277,10 @@ class AOF:
                 body += struct.pack(e + '2I', *r)
         symt = bytearray()
         for s in self.symbols:
-            symt += struct.pack(e + '4I', self.offset(s.name), s.attributes, s.value,
+            at = s.name_offset         # the compiler can write a name twice: keep which
+            if at is None or at >= len(self.strings) or self.string(at) != s.name:
+                at = self.offset(s.name)
+            symt += struct.pack(e + '4I', at, s.attributes, s.value,
                                 self.offset(s.area) if s.area else 0)
         strt = bytes(self.strings)              # (after every offset() above)
         contents = {'OBJ_HEAD': bytes(head), 'OBJ_AREA': bytes(body), 'OBJ_IDFN': self.idfn,
