@@ -665,6 +665,26 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       constants decide code: `i < kMaxROMExtensions` (a `const ULong`) is
       an unsigned compare of a signed `long i`, `i < kMaxPatchCount` (a
       `#define`) a signed one.
+      **`src/Stores/T28F016_SA_SVDriver.cc`** (2026-10-02): the flash
+      driver for Intel's 28F016SA/SV and Sharp's chips, 0x203DE8..0x204698
+      (the fax line codec follows). 21 of its 24 functions, 1,576 bytes;
+      `InitializeDriverData`, `Write` and `ReportWriteEraseStatus` are
+      written but `#if 0` (registers). Its ClassInfo (0x384820) is
+      ProtocolGen's glue: generated. Reconstructed headers
+      `Stores/FlashDriver.h` (`SFlashChipInformation`), `Stores/
+      FlashRange.h` (`TMemoryAllocator`, `TFlashRange`: offsets as the
+      ROM's code uses them, from newton-re's findings, names ours),
+      `Stores/T28F016_SA_SVDriver.h` (the class, its 32-byte state).
+      Commands go to every byte lane: (command x 0x01010101) & lanes,
+      which the compiler makes as `BIC` of the complement. A virtual call
+      is `LDR pc, [obj]` for the first entry, `LDR r, [obj]; ADD pc, r,
+      #4n` for the others (the vtable is branches): the vtable pointer is
+      at +0. Lessons: a `switch`'s cases in ascending order of value
+      (the compiler's tests follow); `else if (a && b) ; else if (...)
+      return` chains where the ROM's code branches instead of using
+      conditional instructions; two variables initialised from the same
+      expression (`readArray = mask << shift; lanes = mask << shift`) where
+      the ROM computes it once and copies it twice.
       **Data**: Norcroft addresses a file's own globals from its data
       area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
       static at +12), so a function that uses them is only identical with
