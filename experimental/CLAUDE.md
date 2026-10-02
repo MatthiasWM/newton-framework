@@ -41,6 +41,9 @@ doesn't know about it.
   Not C: `Lantern/LanternNS.f.h`, `LanternNSEvents.f.h` (NewtonScript
   definitions, included by nothing). The html, latex and xml folders are
   Doxygen output.
+- `BUGS.md`: bugs found in Apple's code while rebuilding it (where, what
+  it does, what was probably meant, a fix): every one found goes there
+  (Matt, 2026-10-02), so they can be fixed later.
 - `src/`: the source tree we rebuild (R6): C++ compiled with Apple's
   compiler and put in place of its functions; the rest of the ROM is
   generated assembler.

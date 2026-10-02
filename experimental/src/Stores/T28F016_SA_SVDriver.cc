@@ -126,7 +126,7 @@ T28F016_SA_SVDriver::StartReadingArray(TFlashRange & inRange)
 	{
 		*address = lanes & 0xB0B0B0B0;			// suspend
 		WaitForDeviceWSMReady(address, lanes, data->fStatusOffset);
-		ULong	none = !lanes;
+		ULong	none = !lanes;				// always 0: a bug (BUGS.md B1)
 		if ((none & *address & lanes & 0x40404040) != 0)
 		{
 			data->fResumeTwice = true;

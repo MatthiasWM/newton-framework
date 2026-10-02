@@ -208,7 +208,7 @@ SleepUntilNextWakeup(void)
 
 Ref
 FMinimumBatteryCheck(RefArg inRcvr)
-{
+{												// (BUGS.md B3)
 	Boolean	hadToWait = false;
 	for ( ; ; )
 	{
@@ -324,7 +324,7 @@ ExtendedGestalt(RefArg inSpec)
 				{
 					gParmBlockSize = size;
 					free(parmBlock);
-					parmBlock = malloc(size);
+					parmBlock = malloc(size);			// not checked below (BUGS.md B2)
 					if (parmBlock != NULL)
 						err = gestalt.Gestalt(selector, parmBlock, &size);
 				}
