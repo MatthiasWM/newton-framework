@@ -108,10 +108,16 @@ with a frame pointer, as in the ROM.
 
 **Running the tools** (mosrun rebuilt by Matt, release build, 2026-10-01;
 every object the same as with the first tools).
-- **Standard compiler options**: `ARMCpp ---text=utf8 -c -bigend -fc
-  -DforARM -DforQ -DQD_Gray -I<experimental>/includes` (the probes: the
-  same objects as with `-bigend` alone; `QD_Gray`, the 2x00's gray
-  screen, since 2026-10-02: `PixelMap` has its `grayTable`, as the ROM). `forQ` is the MessagePad 2x00
+- **Standard compiler options**: `ARMCpp ---text=utf8 -c -bigend -fc -zo
+  -DforARM -DforQ -DQD_Gray -I<experimental>/includes -I<experimental>/src`
+  (the probes: the same objects as with `-bigend` alone; `QD_Gray`, the
+  2x00's gray screen, since 2026-10-02: `PixelMap` has its `grayTable`,
+  as the ROM). **`-zo`** (an AOF area per function; 2026-10-02): without
+  it the compiler loads a literal from the previous function's pool when
+  it is in range (`FResetPowerStats` took `gGlobalsThatLiveAcrossReboot`
+  from `FGetPowerStats`' pool, 4 bytes shorter); Apple's compiled code
+  never does (no compiled function in the ROM loads from another's pool),
+  and with `-zo` every function so far is identical. `forQ` is the MessagePad 2x00
   (`ConfigGlobal.h`: Voyager, ARM7, sound input, internal mic); `forARM`
   gives `TTime` and more. `-fc` (limited pcc compatibility) allows `$` in
   identifiers (`OS600/ROMExtension.h`: `ROM$$Size`, the linker's symbol)
@@ -617,7 +623,26 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       The check: the whole image identical to Apple's. Changing a source
       changes the image (tested: `return 77` instead of 76 in the probe:
       one word, at 0x188D38).
-      First file: `src/Graphics/Screen.cc`, `FGetOrientation`,
+      With `-zo` an object has an area per function (`C$$c_File`,
+      `C$$c_File_1`, ...): they go one after the other, renamed in order
+      (`ROM$$RO$$09$$01$$000`, `$$001`, ...); `probe.py` renames them so
+      too (by name, `_10` would sort before `_2`).
+      **`src/OS/SystemNatives.cc`** (2026-10-02): the file from
+      `FGetSerialNumber` (0x20171C) to `FBatteryStatus` (ends 0x203DE8,
+      the flash driver follows): NewtonScript natives for the system
+      (serial number, batteries, power, backlight, Gestalt, contrast,
+      orientation, tablet bypass, power and heap statistics; newton-re
+      calls it `SystemNatives`). Done: 0x202AE4..0x202F08, 12 functions,
+      1,060 bytes. `probe.py --includes includes --includes src --words
+      src/OS/SystemNatives.cc` compares function by function (every word
+      that differs). `tools/rsheaders.py` writes `src/Frames/RSSymbols.h`
+      and `src/Frames/ROMResources.h` from Apple's table: every RS constant
+      (`extern Ref * RSSYMname;`, 1,768 symbols, 1,099 other objects) and
+      `RA(name)`, `SYMA(name)` (the constant as a RefArg; names in lower
+      case, as in the ROM). `src/OS/VirtualMemory.h`:
+      `SGlobalsThatLiveAcrossReboot` only as far as the ROM shows it
+      (the port's layout differs: `fTimeAtColdBoot` is at +14C).
+      Before it: `src/Graphics/Screen.cc`, `FGetOrientation`,
       `FSetOrientation`, `SetOrientation` (0x202AE4..0x202C6C, 392
       bytes). What it took: `QD_Gray` defined (`PixelMap` has a
       `grayTable`, 28 bytes: now a standard option), and

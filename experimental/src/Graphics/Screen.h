@@ -37,6 +37,7 @@ enum ScreenOrientation
 long	GetGrafInfo(long inSelector, void * outInfo);
 long	SetGrafInfo(long inSelector, long inValue);
 void	SetOrientation(long inOrientation);
+void	SetScreenSize(long inWidth, long inHeight);
 
 /* QuickDraw (the port has it in Graphics/NewtQD.h) */
 void	InitPortRgns(GrafPtr inPort);

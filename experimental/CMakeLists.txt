@@ -69,7 +69,7 @@ foreach(source ${SOURCES})
   add_custom_command(
     OUTPUT "${object}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/src/${dir}"
-    COMMAND "${TOOLS}/ARMCpp" ---text=utf8 -c -bigend -fc -DforARM -DforQ -DQD_Gray
+    COMMAND "${TOOLS}/ARMCpp" ---text=utf8 -c -bigend -fc -zo -DforARM -DforQ -DQD_Gray
             -I "${INCLUDES}" -I "${CMAKE_SOURCE_DIR}/src" "${source}" -o "${object}"
     DEPENDS "${source}"
     COMMENT "ARMCpp src/${rel}"

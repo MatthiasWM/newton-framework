@@ -22,7 +22,8 @@ image:
     link.txt     the linker's options
 
 R6, compiled code in place (--object, an AOF object from ARMCpp): its
-code area goes where its functions are in the ROM (the address of a
+code areas (one per function with -zo, in order) go where its functions
+are in the ROM (the address of a
 function it defines in Apple's table, less its offset in the area); the
 generated source leaves those bytes and labels out, and the area is
 renamed to sort between the pieces around it (`ROM$$RO$$05`, then
@@ -449,23 +450,28 @@ def write_area(path, area, attrs, data, origin, labels, start, end, lines, pad=N
 
 def place_object(path, names_once, slots, size):
     """R6: read a compiled object for its place in the ROM: (start, end,
-    the AOF changed, its area's name, the names it defines, slots used)."""
+    the AOF changed, its code areas' names in order, the names it defines,
+    slots used). With -zo every function is an area of its own: they go
+    one after the other, in the object's order."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from aof import AOF, AREA_COMMON_DEF
     obj = AOF.read(path)
     for a in [a for a in obj.areas if a.attributes & AREA_COMMON_DEF]:
         obj.drop_area(a.name)
-    if len(obj.areas) != 1 or not obj.areas[0].is_code:
-        raise ValueError('%s: one code area expected, not %s' % (path, [a.name for a in obj.areas]))
-    area = obj.areas[0]
+    if not obj.areas or not all(a.is_code for a in obj.areas):
+        raise ValueError('%s: code areas only, not %s' % (path, [a.name for a in obj.areas]))
+    offset, at = {}, 0
+    for a in obj.areas:
+        offset[a.name] = at
+        at += (a.size + 3) & ~3
     starts = set()
     for s in obj.symbols:
-        if s.is_defined and s.is_global and s.name in names_once:
-            starts.add(names_once[s.name] - s.value)
+        if s.is_defined and s.is_global and s.name in names_once and s.area in offset:
+            starts.add(names_once[s.name] - offset[s.area] - s.value)
     if len(starts) != 1:
         raise ValueError('%s: no single place in the ROM (%s)' % (path, sorted(hex(a) for a in starts)))
     start = starts.pop()
-    if not 0 <= start and start + area.size <= size:
+    if not 0 <= start and start + at <= size:
         raise ValueError('%s: outside the read-only part' % path)
     defined = {s.name for s in obj.symbols if s.is_defined and s.is_global}
     used_slots = {}
@@ -474,7 +480,7 @@ def place_object(path, names_once, slots, size):
             used_slots['VEC_' + s.name] = slots[s.name]
             obj.redirect(s.name, 'VEC_' + s.name)
     obj.prune()
-    return start, start + area.size, obj, area.name, defined, used_slots
+    return start, start + at, obj, [a.name for a in obj.areas], defined, used_slots
 
 
 def write_zi(path, area, labels, start, end):
@@ -662,7 +668,7 @@ def main():
     names_once = {s['name']: s['value'] for s in symbols if count[s['name']] == 1 and s['value'] < len(ro)}
     placed = []
     for path in args.object:
-        start, end, obj, area, defined, used_slots = place_object(path, names_once, info['slots'], len(ro))
+        start, end, obj, areas, defined, used_slots = place_object(path, names_once, info['slots'], len(ro))
         for other in placed:
             if start < other[1] and other[0] < end:
                 print('%s overlaps %s' % (path, other[5]))
@@ -680,7 +686,7 @@ def main():
             print('%s: labels needed from outside but not defined: %s' % (path, ', '.join(sorted(needed))))
             return 2
         src.absolute.update(used_slots)
-        placed.append((start, end, obj, area, defined, path))
+        placed.append((start, end, obj, areas, defined, path))
         src.counts['compiled objects in place'] += 1
         src.counts['bytes from compiled objects'] += end - start
 
@@ -692,14 +698,16 @@ def main():
         data_end = aligned[cuts[i + 1]][1] if cuts[i + 1] in aligned else None
         # the pieces: generated source, compiled objects between
         pieces, a = [], cuts[i]
-        for start, end, obj, area, defined, path in sorted(p for p in placed if cuts[i] <= p[0] < cuts[i + 1]):
-            pieces += [('src', a, start), ('obj', obj, area)]
+        for start, end, obj, areas, defined, path in sorted((p for p in placed if cuts[i] <= p[0] < cuts[i + 1]),
+                                                             key=lambda p: p[0]):
+            pieces += [('src', a, start), ('obj', obj, areas)]
             a = end
         pieces.append(('src', a, cuts[i + 1]))
         for k, piece in enumerate(pieces):
             area_name = 'ROM$$RO$$%02d' % i + ('$$%02d' % k if k else '')
             if piece[0] == 'obj':
-                piece[1].rename_area(piece[2], area_name)
+                for j, old_name in enumerate(piece[2]):      # in order: ...$$01$$000, $$01$$001
+                    piece[1].rename_area(old_name, '%s$$%03d' % (area_name, j))
                 name = 'ro_%02d_%02d.o' % (i, k)
                 piece[1].write(os.path.join(args.out, name))
             else:

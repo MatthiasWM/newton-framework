@@ -8,6 +8,14 @@
 #ifndef __TABLET_H
 #define __TABLET_H
 
-void	TabSetOrientation(long inOrientation);
+#ifndef __NEWTONTYPES_H
+#include "NewtonTypes.h"
+#endif
+
+void		TabSetOrientation(long inOrientation);
+NewtonErr	StartBypassTablet(void);
+NewtonErr	StopBypassTablet(void);
+NewtonErr	InsertTabletSample(ULong inSample, ULong inTime);
+Boolean		TabletBufferEmpty(void);
 
 #endif	/* __TABLET_H */

@@ -6,7 +6,8 @@
 For each source: compile it with the standard options (Apple's ARMCpp, LF and
 UTF-8 read through mosrun's input filter), give every symbol it imports an
 address (its jump-table slot if it has one, else its own address in the
-ROM), link it so that its functions land at their ROM addresses, and compare
+ROM; references to its own functions with a slot go to the slot too, as
+in Apple's code), link it so that its functions land at their ROM addresses, and compare
 each function it defines with Apple's image (`ro.bin` from romsyms.py), from
 its address to the next symbol's. Exit status 0 if every function is
 identical.
@@ -21,9 +22,9 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from aof import AOF  # noqa: E402
+from aof import AOF, AREA_COMMON_DEF  # noqa: E402
 
-CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-DforARM', '-DforQ', '-DQD_Gray']
+CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-zo', '-DforARM', '-DforQ', '-DQD_Gray']
 
 
 def run(cmd):
@@ -75,18 +76,31 @@ def probe(source, args, rom):
     os.makedirs(out, exist_ok=True)
     obj = os.path.join(out, base + '.o')
     rc, msg = run([os.path.join(args.bin, 'ARMCpp')] + CXX_OPTIONS
-                  + ['-I' + args.includes, '-o', obj, source])
+                  + ['-I' + i for i in args.includes] + ['-o', obj, source])
     if rc != 0:
         print('%s: does not compile\n%s' % (source, msg))
         return False
+    if args.warnings:
+        print(msg.strip())
+    # every reference to a function with a jump-table slot goes to the slot
+    # (R5: Apple's code does so in its own file too)
     aof = AOF.read(obj)
+    for a in [a for a in aof.areas if a.attributes & AREA_COMMON_DEF]:
+        aof.drop_area(a.name)                  # vtables: not compared
+    for j, a in enumerate(list(aof.areas)):    # -zo: an area per function, kept in order
+        aof.rename_area(a.name, 'C$$probe$$%04d' % j)
+    for s in list(aof.symbols):
+        if s.is_global and s.name in rom.slots:
+            aof.redirect(s.name, 'VEC_' + s.name)
+    aof.prune()
+    aof.write(obj)
     defined = [s for s in aof.symbols if s.is_defined and s.is_global
                and any(a.name == s.area and a.is_code for a in aof.areas)]
     # the imports at their addresses in the ROM, as absolute symbols
     lines = ['        AREA |ROM$$Absolute|, CODE, READONLY']
     missing = []
     for name in aof.imports():
-        a = rom.call_address(name)
+        a = rom.slots[name[4:]] if name.startswith('VEC_') and name[4:] in rom.slots else rom.address(name)
         if a is None:
             missing.append(name)
             continue
@@ -144,8 +158,13 @@ def probe(source, args, rom):
         else:
             diff = next((i for i in range(0, min(len(ours), len(theirs)), 4)
                          if ours[i:i + 4] != theirs[i:i + 4]), min(len(ours), len(theirs)))
-            print('  %-40s 0x%06X..0x%06X DIFFERENT at 0x%06X: %s, ROM %s'
-                  % (s.name, at, end, at + diff, ours[diff:diff + 4].hex(), theirs[diff:diff + 4].hex()))
+            print('  %-40s 0x%06X..0x%06X DIFFERENT at 0x%06X: %s, ROM %s%s'
+                  % (s.name, at, end, at + diff, ours[diff:diff + 4].hex(), theirs[diff:diff + 4].hex(),
+                     '' if len(ours) == len(theirs) else ' (%d bytes, ROM %d)' % (len(ours), len(theirs))))
+            if args.words:
+                for i in range(0, max(len(ours), len(theirs)), 4):
+                    if ours[i:i + 4] != theirs[i:i + 4]:
+                        print('      0x%06X  ours %-8s  ROM %s' % (at + i, ours[i:i + 4].hex(), theirs[i:i + 4].hex()))
             ok = False
     return ok
 
@@ -153,7 +172,10 @@ def probe(source, args, rom):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--bin', required=True, help="Apple's tools (experimental/bin)")
-    ap.add_argument('--includes', required=True, help='the headers (experimental/includes)')
+    ap.add_argument('--includes', required=True, action='append',
+                    help='the headers (experimental/includes; again for src/)')
+    ap.add_argument('--words', action='store_true', help='list every word that differs')
+    ap.add_argument('--warnings', action='store_true', help="show the compiler's messages")
     ap.add_argument('--rom', required=True, help="romsyms.py's output (ro.bin, symbols.json)")
     ap.add_argument('--out', required=True, help='where objects and images go')
     ap.add_argument('sources', nargs='+')
