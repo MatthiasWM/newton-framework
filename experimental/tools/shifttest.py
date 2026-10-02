@@ -78,8 +78,18 @@ def main():
             return 1
         images[name] = image_parts(built[0])
     (base_header, base), (pad_header, padded) = images['base'], images['padded']
-    if pad_header[0] != base_header[0] + N:
-        print('the padded RO is 0x%X bytes, not 0x%X + %d' % (pad_header[0], base_header[0], N))
+    # an aligned symbol after the padding, with room in the zeros before it,
+    # takes the padding up (romasm.py's aligned.json): then only [P, G) moves
+    with open(os.path.join(args.out, 'base', 'src', 'aligned.json')) as f:
+        aligned = json.load(f)
+    G, Z = None, None
+    for g in aligned:
+        if g['symbol'] > P and g['symbol'] - g['zeros_from'] >= N:
+            G, Z = g['symbol'], g['zeros_from']
+            break
+    expected_size = base_header[0] + (0 if G else N)
+    if pad_header[0] != expected_size:
+        print('the padded RO is 0x%X bytes, not 0x%X' % (pad_header[0], expected_size))
         return 1
 
     # which symbol a word is in, and whether that is code
@@ -97,7 +107,10 @@ def main():
 
     def moves(addr):
         # in the read-only part, and its end: where the RW data is loaded,
-        # and the image's end (Load$$root$$Base, ROM$$Size)
+        # and the image's end (Load$$root$$Base, ROM$$Size); or, if an
+        # aligned symbol takes the padding up, only up to it
+        if G:
+            return P <= addr < G
         return P <= addr <= ro_size + rw_size
 
     with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
@@ -116,7 +129,9 @@ def main():
     total = len(base) // 4
     for i in range(total):
         a = i * 4                              # in the base image (RO, then RW)
-        a2 = a + N if a >= P else a            # in the padded image
+        if G and Z <= a < G:
+            continue                           # the zeros before the aligned symbol
+        a2 = a + N if (P <= a < G if G else a >= P) else a     # in the padded image
         w = struct.unpack_from('>I', base, a)[0]
         w2 = struct.unpack_from('>I', padded, a2)[0]
         expected = None
@@ -179,7 +194,8 @@ def main():
             report.append('ERROR    0x%07X %-60s 0x%08X became 0x%08X' % (a, name, w, w2))
     with open(os.path.join(args.out, 'report.txt'), 'w') as f:
         f.write('\n'.join(report) + '\n')
-    print('padding: %d bytes before 0x%X (%s)' % (N, P, where(P)[0]))
+    print('padding: %d bytes before 0x%X (%s)%s' % (N, P, where(P)[0],
+          ', taken up before 0x%X (%s)' % (G, where(G)[0]) if G else ''))
     print('branches that cross it:   %6d followed, %6d did not' % tuple(counts['branch']))
     print('data words shaped so:     %6d followed, %6d did not (data)'
           % tuple(counts['branch-like data']))

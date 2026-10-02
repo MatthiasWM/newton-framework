@@ -434,7 +434,31 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       Apple's; the shift test at 0x3011C: 5 crossing branches don't follow
       (3 in code without symbol or prologue after `C$$dtorvec$$Limit`, 2 in
       `ExitCPUFIQAtomic`, which nothing we follow reaches), no errors.
-    - [ ] **R3h.2** The rest of the first 64 KB (tables, literals below
+    - [x] **R3h.2a Alignment** (2026-10-02): a symbol at a multiple of
+      0x100 or more with at least 16 bytes of zeros before it starts an
+      area of its own with `ALIGN=n` (ARM6asm's area attribute; the linker
+      aligns and fills with zeros), the zeros left out: four of them,
+      `gROMPublicJumpTable` 0x13000, `gROMPatchTablePageTable` 0x16000,
+      `AsmTraceAddAddrEvent` 0x18400, `gROMMagicPointerTable` 0x3AF000
+      (2,676 bytes of zeros before it, right before the object area). So
+      padding put in between 0x18400 and 0x3AF000 (up to 2,676 bytes) is
+      taken up there, and the magic-pointer table, the object area, the
+      R/RS constants, the lexicons, the RW data, `ROM$$Size` and the ROM
+      extension stay where they are: a shifted ROM can keep the extension
+      as it is. `romasm.py` writes `aligned.json`; the shift test moves
+      only the window [padding, aligned symbol). Identical to Apple's; at
+      0x3011C: 88,349 crossing branches follow (5 not), all 16,919
+      jump-table entries right, 3,604 address candidates in the window
+      follow, no errors; what doesn't is numbers (object binaries 42,386,
+      slots 2,837, tables 5,714) and the RW data (2,450: character maps,
+      strings; perhaps a few real pointers into the middle of something:
+      `gPrintLiterals`, `gAlertGlyphPixMap+0xC`: R3e.2).
+      **For Einstein** (Matt): `build/romimage/shifted-16-at-0x3011C.image`,
+      16 bytes put in before `TAlertDialog::TAlertDialog` (0x3011C), so
+      nearly all code moves (914,491 words differ from the shipping
+      image); made with `shifttest.py --at 0x3011C` and `romimage.py --aif
+      build/shift_0x3011C/padded/obj/rom.aif`.
+    - [ ] **R3h.2b** The rest of the first 64 KB (tables, literals below
       0x10000 that are addresses), those 5 branches, and a check that the
       floating-point emulator holds no absolute addresses of itself.
     Not the floating-point emulator (`FP_UndefHandlers_Start` 0x38D8DC on):
