@@ -89,6 +89,13 @@ def probe(source, args, rom):
         aof.drop_area(a.name)                  # vtables: not compared
     for j, a in enumerate(list(aof.areas)):    # -zo: an area per function, kept in order
         aof.rename_area(a.name, 'C$$probe$$%04d' % j)
+    # the file's data where the ROM has it (its first global's address)
+    rw_base = []
+    for a in aof.areas:
+        if not a.is_code:
+            rw_base += [rom.address(s.name) - s.value for s in aof.symbols
+                        if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+    rw_option = ['-RW-base', '0x%X' % rw_base[0]] if rw_base else []
     for s in list(aof.symbols):
         if s.is_global and s.name in rom.slots:
             aof.redirect(s.name, 'VEC_' + s.name)
@@ -121,7 +128,7 @@ def probe(source, args, rom):
     image = os.path.join(out, base + '.bin')
     listing = os.path.join(out, base + '.symbols')
     link = [os.path.join(args.bin, 'ARMLink'), '-BIN', '-Symbols', listing, '-o', image, obj, absobj]
-    rc, msg = run(link[:2] + ['-RO-base', '0'] + link[2:])
+    rc, msg = run(link[:2] + ['-RO-base', '0'] + rw_option + link[2:])
     if rc != 0:
         print('%s: does not link\n%s' % (source, msg))
         return False
@@ -132,7 +139,7 @@ def probe(source, args, rom):
         print('%s: %s is not (once) in the ROM' % (source, first))
         return False
     ro_base = want - linked[first]
-    rc, msg = run(link[:2] + ['-RO-base', '0x%X' % ro_base] + link[2:])
+    rc, msg = run(link[:2] + ['-RO-base', '0x%X' % ro_base] + rw_option + link[2:])
     if rc != 0:
         print('%s: does not link at 0x%X\n%s' % (source, ro_base, msg))
         return False

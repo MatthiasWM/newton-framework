@@ -632,8 +632,21 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the flash driver follows): NewtonScript natives for the system
       (serial number, batteries, power, backlight, Gestalt, contrast,
       orientation, tablet bypass, power and heap statistics; newton-re
-      calls it `SystemNatives`). Done: 0x202AE4..0x202FF4, 13 functions,
-      1,296 bytes. `FGetHeapStats` (0x202FF4) is written but `#if 0`:
+      calls it `SystemNatives`). Done: 0x2028E4..0x202FF4, 17 functions,
+      1,808 bytes, and the file's data (16 bytes at 0x0C104C48:
+      `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4 at +12).
+      **Data**: Norcroft addresses a file's own globals from its data
+      area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
+      static at +12), so a function that uses them is only identical with
+      the globals defined in the file. `romasm.py` puts the object's data
+      area where its first global is in the RW data (`rw.a` is cut into
+      pieces like the read-only part); `probe.py` links it there
+      (`-RW-base`). The data comes in file order, as the code does (the
+      stroke file's globals before, `screenWidth` after: another file's).
+      A global with a constructor, even an empty one (`TTime`), makes a
+      static constructor (`C$$ctor`, `C$$ctorvec`) and a pointer to it at
+      the end of the data area; the ROM's block is 16 bytes, so here the
+      original had none: `gLastWakeupTime` is an `Int64`. `FGetHeapStats` (0x202FF4) is written but `#if 0`:
       identical but for 3 words, the order of two loads (see there).
       Each `-zo` area goes where its own function is, so a source file
       may leave a function out (it stays generated in between).

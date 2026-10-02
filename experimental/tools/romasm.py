@@ -24,7 +24,9 @@ image:
 R6, compiled code in place (--object, an AOF object from ARMCpp): its
 code areas (one per function with -zo) go where their functions are in
 the ROM, so a source file may leave out a function (it stays generated
-assembler between) (the address of a
+assembler between); its data area (the file's initialised globals) goes
+where they are in the read-write data, which is cut into pieces the same
+way (the address of a
 function it defines in Apple's table, less its offset in the area); the
 generated source leaves those bytes and labels out, and the area is
 renamed to sort between the pieces around it (`ROM$$RO$$05`, then
@@ -449,23 +451,28 @@ def write_area(path, area, attrs, data, origin, labels, start, end, lines, pad=N
         f.write('\n'.join(out))
 
 
-def place_object(path, names_once, slots, size):
+def place_object(path, names_once, slots, regions):
     """R6: read a compiled object for its place in the ROM: (runs, the AOF
-    changed, the names it defines, slots used); runs: [(start, end, [area
-    names])], areas that follow each other in the ROM. With -zo every
-    function is an area of its own and goes where its function is (Apple's
-    table): a source file may leave a function out (it stays generated in
-    between); an area without a function of a known name (a static one)
-    follows the area before it."""
+    changed, the names it defines, slots used); runs: [(region, start,
+    end, [area names])], areas that follow each other in the ROM; region
+    'ro' (code) or 'rw' (initialised data); regions: {region: (low, high)}.
+    With -zo every function is an area of its own and goes where its
+    function is (Apple's table): a source file may leave a function out
+    (it stays generated in between); an area without a symbol of a known
+    name (a static function) follows the area before it. A data area
+    (the file's globals) goes where its first global is."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from aof import AOF, AREA_COMMON_DEF
+    from aof import AOF, AREA_COMMON_DEF, AREA_ZERO_INIT
     obj = AOF.read(path)
     for a in [a for a in obj.areas if a.attributes & AREA_COMMON_DEF]:
         obj.drop_area(a.name)
-    if not obj.areas or not all(a.is_code for a in obj.areas):
-        raise ValueError('%s: code areas only, not %s' % (path, [a.name for a in obj.areas]))
-    runs, at = [], None
+    for a in [a for a in obj.areas if a.size == 0 and not any(s.area == a.name for s in obj.symbols)]:
+        obj.drop_area(a.name)                    # -zo leaves empty areas at the end
+    runs, at = [], {}
     for a in obj.areas:
+        if a.attributes & AREA_ZERO_INIT:
+            raise ValueError('%s: %s is zero-initialised data: not yet' % (path, a.name))
+        region = 'ro' if a.is_code else 'rw'
         places = {names_once[s.name] - s.value for s in obj.symbols
                   if s.is_defined and s.is_global and s.area == a.name and s.name in names_once}
         if len(places) > 1:
@@ -473,18 +480,20 @@ def place_object(path, names_once, slots, size):
                              % (path, a.name, sorted(hex(v) for v in places)))
         if places:
             start = places.pop()
-        elif at is not None:
-            start = at
+        elif region in at:
+            start = at[region]
         else:
-            raise ValueError('%s: %s has no function the ROM names' % (path, a.name))
-        if not 0 <= start and start + a.size <= size:
-            raise ValueError('%s: %s outside the read-only part' % (path, a.name))
-        if runs and runs[-1][1] == start:
-            runs[-1][1] = start + ((a.size + 3) & ~3)
-            runs[-1][2].append(a.name)
+            raise ValueError('%s: %s has no symbol the ROM names' % (path, a.name))
+        low, high = regions[region]
+        if not low <= start and start + a.size <= high:
+            raise ValueError('%s: %s at 0x%X is outside its part of the ROM' % (path, a.name, start))
+        end = start + ((a.size + 3) & ~3)
+        if runs and runs[-1][0] == region and runs[-1][2] == start:
+            runs[-1][2] = end
+            runs[-1][3].append(a.name)
         else:
-            runs.append([start, start + ((a.size + 3) & ~3), [a.name]])
-        at = start + ((a.size + 3) & ~3)
+            runs.append([region, start, end, [a.name]])
+        at[region] = end
     defined = {s.name for s in obj.symbols if s.is_defined and s.is_global}
     used_slots = {}
     for s in list(obj.symbols):
@@ -677,33 +686,48 @@ def main():
         f.write('\n'.join(report) + '\n')
 
     # R6: compiled objects in place
-    names_once = {s['name']: s['value'] for s in symbols if count[s['name']] == 1 and s['value'] < len(ro)}
-    placed = []                          # (start, end, AOF, [area names], path)
+    names_once = {s['name']: s['value'] for s in symbols if count[s['name']] == 1}
+    regions = {'ro': (0, len(ro)), 'rw': (rw_base, rw_base + len(rw))}
+    placed = []                          # (region, start, end, AOF, [area names], path)
     objects = []                         # (AOF, file name)
     for n, path in enumerate(args.object):
-        runs, obj, defined, used_slots = place_object(path, names_once, info['slots'], len(ro))
-        for start, end, areas in runs:
+        runs, obj, defined, used_slots = place_object(path, names_once, info['slots'], regions)
+        for region, start, end, areas in runs:
             for other in placed:
-                if start < other[1] and other[0] < end:
-                    print('%s overlaps %s at 0x%X' % (path, other[4], start))
+                if region == other[0] and start < other[2] and other[1] < end:
+                    print('%s overlaps %s at 0x%X' % (path, other[5], start))
                     return 2
-            if any(start < c < end for c in cuts):
-                print('%s: 0x%X..0x%X crosses a file boundary' % (path, start, end))
-                return 2
-            for a, t_, _ in refs:
-                if (start <= a < end) != (start <= t_ < end):
-                    print('%s: a PC-relative reference between 0x%X and 0x%X crosses its edge' % (path, a, t_))
+            if region == 'ro':
+                if any(start < c < end for c in cuts):
+                    print('%s: 0x%X..0x%X crosses a file boundary' % (path, start, end))
                     return 2
-            inside = {n_ for p in ro_labels if start <= p < end for n_ in ro_labels[p]}
-            needed = {lab for a, (_, lab) in src.lines.items() if not start <= a < end} & (inside - defined)
+                for a, t_, _ in refs:
+                    if (start <= a < end) != (start <= t_ < end):
+                        print('%s: a PC-relative reference between 0x%X and 0x%X crosses its edge'
+                              % (path, a, t_))
+                        return 2
+            labels = ro_labels if region == 'ro' else rw_labels
+            inside = {n_ for p in labels if start <= p < end for n_ in labels[p]}
+            outside = [lab for a, (_, lab) in src.lines.items() if region == 'rw' or not start <= a < end]
+            outside += [lab for a, (_, lab) in rw_lines.items() if region == 'ro' or not start <= a < end]
+            needed = set(outside) & (inside - defined)
             if needed:
                 print('%s: labels needed from outside but not defined: %s' % (path, ', '.join(sorted(needed))))
                 return 2
-            placed.append((start, end, obj, areas, path))
-            src.counts['bytes from compiled objects'] += end - start
+            placed.append((region, start, end, obj, areas, path))
+            src.counts['bytes from compiled objects' + ('' if region == 'ro' else ' (data)')] += end - start
         src.absolute.update(used_slots)
         objects.append((obj, 'obj_%02d.o' % n))
         src.counts['compiled objects in place'] += 1
+
+    def pieces_of(region, low, high):
+        """The pieces of [low, high): ('src', start, end) and ('obj', AOF, [areas])."""
+        pieces, a = [], low
+        for p in sorted((p for p in placed if p[0] == region and low <= p[1] < high), key=lambda p: p[1]):
+            pieces += [('src', a, p[1]), ('obj', p[3], p[4])]
+            a = p[2]
+        pieces.append(('src', a, high))
+        return pieces
 
     files = []
     for i in range(len(cuts) - 1):
@@ -712,12 +736,7 @@ def main():
             attrs = 'CODE, READONLY, ALIGN=%d' % (aligned[cuts[i]][0].bit_length() - 1)
         data_end = aligned[cuts[i + 1]][1] if cuts[i + 1] in aligned else None
         # the pieces: generated source, compiled code between
-        pieces, a = [], cuts[i]
-        for start, end, obj, areas, path in sorted((p for p in placed if cuts[i] <= p[0] < cuts[i + 1]),
-                                                   key=lambda p: p[0]):
-            pieces += [('src', a, start), ('obj', obj, areas)]
-            a = end
-        pieces.append(('src', a, cuts[i + 1]))
+        pieces = pieces_of('ro', cuts[i], cuts[i + 1])
         for k, piece in enumerate(pieces):
             area_name = 'ROM$$RO$$%02d' % i + ('$$%02d' % k if k else '')
             if piece[0] == 'obj':
@@ -730,12 +749,20 @@ def main():
                            ro, 0, ro_labels, piece[1], piece[2], src.lines, pad,
                            data_end if last else None)
                 files.append(name)
+    # the read-write data: generated, the compiled objects' data between
+    for k, piece in enumerate(pieces_of('rw', rw_base, rw_base + len(rw))):
+        area_name = 'ROM$$RW' + ('$$%02d' % k if k else '')
+        if piece[0] == 'obj':
+            for j, old_name in enumerate(piece[2]):
+                piece[1].rename_area(old_name, '%s$$%03d' % (area_name, j))
+        else:
+            name = 'rw.a' if not k else 'rw_%02d.a' % k
+            write_area(os.path.join(args.out, name), area_name, 'DATA',
+                       rw, rw_base, rw_labels, piece[1], piece[2], rw_lines)
+            files.append(name)
     for obj, name in objects:                    # each object once, its areas renamed into place
         obj.write(os.path.join(args.out, name))
         files.append(name)
-    write_area(os.path.join(args.out, 'rw.a'), 'ROM$$RW', 'DATA',
-               rw, rw_base, rw_labels, rw_base, rw_base + len(rw), rw_lines)
-    files.append('rw.a')
     write_zi(os.path.join(args.out, 'zi.a'), 'ROM$$ZI', zi_labels, zi_base, zi_base + zi_size)
     files.append('zi.a')
     write_absolute(os.path.join(args.out, 'abs.a'), src.absolute)

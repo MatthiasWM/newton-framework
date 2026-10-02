@@ -8,8 +8,8 @@
 				SystemNatives.)
 
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
-				FBatteryStatus), MP2x00 US 2.1 (717006). Here so far:
-				0x202AE4 (FGetOrientation) .. 0x202FF4 (after
+				FBatteryStatus), MP2x00 US 2.1 (717006), its data
+				0x0C104C48..0x0C104C58. Here so far: 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
 */
@@ -25,8 +25,22 @@
 #include "NewtonWidgets.h"
 #include "MemoryManager/MemMgr.h"
 #include "OS/RDM.h"
+#include "OS/Marshaling.h"
+#include "NewtonTime.h"
+
+/*------------------------------------------------------------------------------
+	D a t a
+------------------------------------------------------------------------------*/
+
+ULong			gLastBatteryLevel = 100;	// 0C104C48
+Int64			gLastWakeupTime;			// 0C104C4C (a TTime, without its constructor: the ROM has no static constructor here)
+static ULong	gParmBlockSize = 4;			// 0C104C54, the largest Gestalt parameter block
+
 
 extern "C" {
+Ref		UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace);
+Ref		FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
+Ref		FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
 Ref		FGetOrientation(RefArg inRcvr);
 Ref		FSetOrientation(RefArg inRcvr, RefArg inOrientation);
 Ref		FStartBypassTablet(RefArg inRcvr);
@@ -38,7 +52,82 @@ Ref		FGetPowerStats(RefArg inRcvr);
 Ref		FResetPowerStats(RefArg inRcvr);
 Ref		FGetHeapStats(RefArg inRcvr, RefArg inOptions);
 }
+Ref		FSetLCDContrast(RefArg inRcvr, RefArg inContrast);
 Ref		FGetLCDContrast(RefArg inRcvr);
+
+
+/*------------------------------------------------------------------------------
+	Register or replace a Gestalt selector's parameter block, made from
+	NewtonScript values.
+	Args:		inSelector		an integer
+				inArg2			an array of values
+				inArg3			an array of their types
+				inArg4			an integer: how many
+				inReplace		replace the selector's block, or register it
+	Return:		true if it worked
+------------------------------------------------------------------------------*/
+
+Ref
+UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace)
+{
+	TUGestalt	gestalt;
+	NewtonErr	err = 1;
+	if (ISINT(inSelector) && ISINT(inArg4) && IsArray(inArg2) && IsArray(inArg3))
+	{
+		void *	parmBlock;
+		ULong	parmSize;
+		if ((err = MarshalArgumentSize(inArg2, inArg3, &parmSize, RINT(inArg4))) == noErr)
+		{
+			if (parmSize > gParmBlockSize)
+				gParmBlockSize = parmSize;
+			if ((err = MarshalArguments(inArg2, inArg3, &parmBlock, RINT(inArg4))) == noErr)
+			{
+				ULong	selector = RINT(inSelector);
+				if (!inReplace)
+					err = gestalt.RegisterGestalt(selector, parmBlock, parmSize);
+				else
+					err = gestalt.ReplaceGestalt(selector, parmBlock, parmSize);
+			}
+		}
+	}
+	return MAKEBOOLEAN(err == noErr);
+}
+
+
+/*------------------------------------------------------------------------------
+	Set the screen's contrast.
+	Args:		inRcvr
+				inContrast		an integer
+	Return:		nil
+------------------------------------------------------------------------------*/
+
+Ref
+FSetLCDContrast(RefArg inRcvr, RefArg inContrast)
+{
+	SetGrafInfo(kGrafContrast, RINT(inContrast));
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	Register or replace a Gestalt selector's parameters.
+	Args:		inRcvr
+				inSelector, inArg2, inArg3, inArg4		see UpdateGestalt
+	Return:		see UpdateGestalt
+------------------------------------------------------------------------------*/
+
+Ref
+FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4)
+{
+	return UpdateGestalt(inSelector, inArg2, inArg3, inArg4, false);
+}
+
+
+Ref
+FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4)
+{
+	return UpdateGestalt(inSelector, inArg2, inArg3, inArg4, true);
+}
 
 
 /*------------------------------------------------------------------------------
