@@ -9,8 +9,9 @@
 
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006). Here so far:
-				0x202AE4 (FGetOrientation) .. 0x202F08 (after
-				FResetPowerStats); the rest is still generated assembler.
+				0x202AE4 (FGetOrientation) .. 0x202FF4 (after
+				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
+				not yet identical (see there); the rest is still generated assembler.
 */
 
 #include "Frames/objects.h"
@@ -18,8 +19,12 @@
 #include "Graphics/Screen.h"
 #include "Frames/NewtGlobals.h"
 #include "Recognition/Tablet.h"
-#include "OS/VirtualMemory.h"
+#include "OS600/VirtualMemory.h"
 #include "Frames/RSSymbols.h"
+#include "NewtonMemory.h"
+#include "NewtonWidgets.h"
+#include "MemoryManager/MemMgr.h"
+#include "OS/RDM.h"
 
 extern "C" {
 Ref		FGetOrientation(RefArg inRcvr);
@@ -31,6 +36,7 @@ Ref		FTabletBufferEmpty(RefArg inRcvr);
 Ref		FEnablePowerStats(RefArg inRcvr, RefArg inEnable);
 Ref		FGetPowerStats(RefArg inRcvr);
 Ref		FResetPowerStats(RefArg inRcvr);
+Ref		FGetHeapStats(RefArg inRcvr, RefArg inOptions);
 }
 Ref		FGetLCDContrast(RefArg inRcvr);
 
@@ -210,3 +216,144 @@ FResetPowerStats(RefArg inRcvr)
 	gGlobalsThatLiveAcrossReboot.fSoundOnTime = 0;
 	return NILREF;
 }
+
+
+/*------------------------------------------------------------------------------
+	Walk a heap: where it starts and ends, how many blocks it has, how much
+	of it is free. Starts over when the heap changes underway.
+	Args:		inHeap
+				outStart, outEnd	the first block, and the end of the last
+				outUsedBlocks		the number of blocks
+				outFreeSize			the free blocks' size
+	Return:		--
+------------------------------------------------------------------------------*/
+
+void
+GetActualHeapInfo(Heap inHeap, void ** outStart, void ** outEnd, long * outUsedBlocks, long * outFreeSize)
+{
+	void *	block;
+
+	for ( ; ; )
+	{
+		*outUsedBlocks = 0;
+		*outFreeSize = 0;
+		long	seed = HeapSeed(inHeap);
+		block = NULL;
+		Boolean	isFirst = true;
+		for ( ; ; )
+		{
+			TObjectId	blockOwner;
+			Size		blockSize;
+			int	blockType = NextHeapBlock(inHeap, seed, block, &block, NULL, NULL, NULL, &blockSize, &blockOwner);
+			if (blockType == kMM_HeapSeedFailure)
+				break;
+			if (blockType == kMM_HeapEndBlock)
+				goto done;
+			if (isFirst)
+			{
+				*outEnd = *outStart = block;
+				isFirst = false;
+			}
+			(*outUsedBlocks)++;
+			*outEnd = (char *) *outEnd + blockSize;
+			if (blockType == kMM_HeapFreeBlock)
+			{
+				long	freeSize = *outFreeSize;		// (as a variable: the ROM's registers)
+				*outFreeSize = freeSize + blockSize;
+			}
+		}
+	}
+done:
+	;
+}
+
+
+/*------------------------------------------------------------------------------
+	Heap statistics: the fixed (Ptr) heap, the relocatable (Handle) heap,
+	the NewtonScript frames heap, and the system's free memory.
+	Args:		inRcvr
+				inOptions		nil, or a frame: garbageCollectFrames (collect
+								before measuring the frames heap),
+								includeSystemReleasable (count releasable
+								memory and free ROM domain pages as free)
+	Return:		a frame
+------------------------------------------------------------------------------*/
+
+#if 0
+/* Not yet: identical but for three words (0x2032BC..0x2032C4). The ROM
+   loads framesHeapStart, then framesHeapEnd, for the subtraction; this
+   loads framesHeapEnd first and the two loads become one LDM. The order
+   is the register allocator's, and depends on the rest of the function
+   (removing one SetFrameSlot line flips it); the form of the source that
+   gives Apple's order is still to be found. Until then FGetHeapStats
+   stays generated assembler. */
+Ref
+FGetHeapStats(RefArg inRcvr, RefArg inOptions)
+{
+	RefVar	collectGarbage(NILREF);
+	RefVar	includeSystemReleasable(NILREF);
+	if (NOTNIL(inOptions))
+	{
+		collectGarbage = GetFrameSlotRefArg(inOptions, SYM(garbageCollectFrames));
+		includeSystemReleasable = GetFrameSlotRefArg(inOptions, SYM(includeSystemReleasable));
+	}
+
+	long	ptrUsedBlocks = 0;
+	long	handleUsedBlocks = 0;
+	long	ptrFreeSize = 0;
+	long	handleFreeSize = 0;
+	ULong	framesFreeSize = 0;
+	void *	handleHeapStart;
+	void *	handleHeapEnd;
+	void *	ptrHeapStart;
+	void *	ptrHeapEnd;
+	Ptr		framesHeapStart;
+	Ptr		framesHeapEnd;
+	ULong	framesLargestFree;
+	long	ptrHeapSize;
+	long	handleHeapSize;
+	long	systemFreeSize;
+	RefVar	stats(AllocateFrame());
+
+	// the Ptr heap and the Handle heap
+	Heap	heap = GetFixedHeap(GetHeap());
+	GetActualHeapInfo(heap, &ptrHeapStart, &ptrHeapEnd, &ptrUsedBlocks, &ptrFreeSize);
+	ptrHeapSize = (char *) ptrHeapEnd - (char *) ptrHeapStart;
+	SetFrameSlot(stats, SYM(ptrHeapStart), MAKEINT((ULong) ptrHeapStart >> 2));
+	SetFrameSlot(stats, SYM(ptrHeapSize), MAKEINT(ptrHeapSize));
+	SetFrameSlot(stats, SYM(ptrFreeSize), MAKEINT(ptrFreeSize));
+
+	heap = GetRelocHeap(GetHeap());
+	GetActualHeapInfo(heap, &handleHeapStart, &handleHeapEnd, &handleUsedBlocks, &handleFreeSize);
+	handleHeapSize = (char *) handleHeapEnd - (char *) handleHeapStart;
+	SetFrameSlot(stats, SYM(handleHeapStart), MAKEINT((ULong) handleHeapStart >> 2));
+	SetFrameSlot(stats, SYM(handleHeapSize), MAKEINT(handleHeapSize));
+	SetFrameSlot(stats, SYM(handleFreeSize), MAKEINT(handleFreeSize));
+
+	// the frames heap
+	long	framesHeapSize;
+	if (NOTNIL(collectGarbage))
+		GC();
+	HeapBounds(&framesHeapStart, &framesHeapEnd);
+	framesHeapSize = framesHeapEnd - framesHeapStart;
+	Statistics(&framesFreeSize, &framesLargestFree);
+	SetFrameSlot(stats, SYM(framesHeapStart), MAKEINT((ULong) framesHeapStart >> 2));
+	SetFrameSlot(stats, SYM(framesHeapSize), MAKEINT(framesHeapSize));
+	SetFrameSlot(stats, SYM(framesFreeSize), MAKEINT(framesFreeSize));
+
+	// the system
+	systemFreeSize = TotalSystemFree();
+	ULong	romPages;
+	if (NOTNIL(includeSystemReleasable))
+	{
+		ULong	releasable, stackSpaceUsed, pagesUsed;
+		GetSystemReleasable(&releasable, &stackSpaceUsed, &pagesUsed);
+		systemFreeSize += releasable;
+		romPages = ROMDomainManagerFreePageCount();
+		systemFreeSize += romPages * kPageSize;
+	}
+	SetFrameSlot(stats, SYM(systemFreeSize), MAKEINT(systemFreeSize));
+
+	return stats;
+}
+#endif

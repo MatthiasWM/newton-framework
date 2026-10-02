@@ -632,16 +632,35 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the flash driver follows): NewtonScript natives for the system
       (serial number, batteries, power, backlight, Gestalt, contrast,
       orientation, tablet bypass, power and heap statistics; newton-re
-      calls it `SystemNatives`). Done: 0x202AE4..0x202F08, 12 functions,
-      1,060 bytes. `probe.py --includes includes --includes src --words
+      calls it `SystemNatives`). Done: 0x202AE4..0x202FF4, 13 functions,
+      1,296 bytes. `FGetHeapStats` (0x202FF4) is written but `#if 0`:
+      identical but for 3 words, the order of two loads (see there).
+      Each `-zo` area goes where its own function is, so a source file
+      may leave a function out (it stays generated in between).
+      **How the compiler lays out the stack** (found on the way, from
+      `-S` listings): a declaration starts a segment, and the segment's
+      stack (its locals, and the temporaries of the statements up to the
+      next declaration: two RefVars per `SetFrameSlot(f, SYM(x),
+      MAKEINT(n))`) is allocated there, a declaration with an initialiser
+      before it is evaluated; later declarations get lower addresses;
+      zero-initialised locals are stored in declaration order. A block
+      (`{ }`) gets its own allocation and gives it back at its end (a
+      following block reuses it). So the `SUB sp, sp, #n` in the ROM's
+      code shows where the original declared things. Other lessons:
+      `RefVar x(NILREF)` (not `RefVar x;`) puts NILREF in a register for
+      both; a value used in a call's arguments is computed before them
+      only if it is in a variable; `goto` to the end, not `return`, gives
+      a branch around the epilogue; Apple's `includes/` has more than it
+      seems (`OS600/VirtualMemory.h` has `SGlobalsThatLiveAcrossReboot`
+      in full: search it first). `probe.py --includes includes --includes src --words
       src/OS/SystemNatives.cc` compares function by function (every word
       that differs). `tools/rsheaders.py` writes `src/Frames/RSSymbols.h`
       and `src/Frames/ROMResources.h` from Apple's table: every RS constant
       (`extern Ref * RSSYMname;`, 1,768 symbols, 1,099 other objects) and
       `RA(name)`, `SYMA(name)` (the constant as a RefArg; names in lower
-      case, as in the ROM). `src/OS/VirtualMemory.h`:
-      `SGlobalsThatLiveAcrossReboot` only as far as the ROM shows it
-      (the port's layout differs: `fTimeAtColdBoot` is at +14C).
+      case, as in the ROM). `src/OS/RDM.h`,
+      `src/MemoryManager/MemMgr.h` (the port's "Memory Manager", without
+      the space).
       Before it: `src/Graphics/Screen.cc`, `FGetOrientation`,
       `FSetOrientation`, `SetOrientation` (0x202AE4..0x202C6C, 392
       bytes). What it took: `QD_Gray` defined (`PixelMap` has a

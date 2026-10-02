@@ -22,8 +22,9 @@ image:
     link.txt     the linker's options
 
 R6, compiled code in place (--object, an AOF object from ARMCpp): its
-code areas (one per function with -zo, in order) go where its functions
-are in the ROM (the address of a
+code areas (one per function with -zo) go where their functions are in
+the ROM, so a source file may leave out a function (it stays generated
+assembler between) (the address of a
 function it defines in Apple's table, less its offset in the area); the
 generated source leaves those bytes and labels out, and the area is
 renamed to sort between the pieces around it (`ROM$$RO$$05`, then
@@ -449,10 +450,13 @@ def write_area(path, area, attrs, data, origin, labels, start, end, lines, pad=N
 
 
 def place_object(path, names_once, slots, size):
-    """R6: read a compiled object for its place in the ROM: (start, end,
-    the AOF changed, its code areas' names in order, the names it defines,
-    slots used). With -zo every function is an area of its own: they go
-    one after the other, in the object's order."""
+    """R6: read a compiled object for its place in the ROM: (runs, the AOF
+    changed, the names it defines, slots used); runs: [(start, end, [area
+    names])], areas that follow each other in the ROM. With -zo every
+    function is an area of its own and goes where its function is (Apple's
+    table): a source file may leave a function out (it stays generated in
+    between); an area without a function of a known name (a static one)
+    follows the area before it."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from aof import AOF, AREA_COMMON_DEF
     obj = AOF.read(path)
@@ -460,19 +464,27 @@ def place_object(path, names_once, slots, size):
         obj.drop_area(a.name)
     if not obj.areas or not all(a.is_code for a in obj.areas):
         raise ValueError('%s: code areas only, not %s' % (path, [a.name for a in obj.areas]))
-    offset, at = {}, 0
+    runs, at = [], None
     for a in obj.areas:
-        offset[a.name] = at
-        at += (a.size + 3) & ~3
-    starts = set()
-    for s in obj.symbols:
-        if s.is_defined and s.is_global and s.name in names_once and s.area in offset:
-            starts.add(names_once[s.name] - offset[s.area] - s.value)
-    if len(starts) != 1:
-        raise ValueError('%s: no single place in the ROM (%s)' % (path, sorted(hex(a) for a in starts)))
-    start = starts.pop()
-    if not 0 <= start and start + at <= size:
-        raise ValueError('%s: outside the read-only part' % path)
+        places = {names_once[s.name] - s.value for s in obj.symbols
+                  if s.is_defined and s.is_global and s.area == a.name and s.name in names_once}
+        if len(places) > 1:
+            raise ValueError('%s: %s has no single place in the ROM (%s)'
+                             % (path, a.name, sorted(hex(v) for v in places)))
+        if places:
+            start = places.pop()
+        elif at is not None:
+            start = at
+        else:
+            raise ValueError('%s: %s has no function the ROM names' % (path, a.name))
+        if not 0 <= start and start + a.size <= size:
+            raise ValueError('%s: %s outside the read-only part' % (path, a.name))
+        if runs and runs[-1][1] == start:
+            runs[-1][1] = start + ((a.size + 3) & ~3)
+            runs[-1][2].append(a.name)
+        else:
+            runs.append([start, start + ((a.size + 3) & ~3), [a.name]])
+        at = start + ((a.size + 3) & ~3)
     defined = {s.name for s in obj.symbols if s.is_defined and s.is_global}
     used_slots = {}
     for s in list(obj.symbols):
@@ -480,7 +492,7 @@ def place_object(path, names_once, slots, size):
             used_slots['VEC_' + s.name] = slots[s.name]
             obj.redirect(s.name, 'VEC_' + s.name)
     obj.prune()
-    return start, start + at, obj, [a.name for a in obj.areas], defined, used_slots
+    return [tuple(r) for r in runs], obj, defined, used_slots
 
 
 def write_zi(path, area, labels, start, end):
@@ -666,29 +678,32 @@ def main():
 
     # R6: compiled objects in place
     names_once = {s['name']: s['value'] for s in symbols if count[s['name']] == 1 and s['value'] < len(ro)}
-    placed = []
-    for path in args.object:
-        start, end, obj, areas, defined, used_slots = place_object(path, names_once, info['slots'], len(ro))
-        for other in placed:
-            if start < other[1] and other[0] < end:
-                print('%s overlaps %s' % (path, other[5]))
+    placed = []                          # (start, end, AOF, [area names], path)
+    objects = []                         # (AOF, file name)
+    for n, path in enumerate(args.object):
+        runs, obj, defined, used_slots = place_object(path, names_once, info['slots'], len(ro))
+        for start, end, areas in runs:
+            for other in placed:
+                if start < other[1] and other[0] < end:
+                    print('%s overlaps %s at 0x%X' % (path, other[4], start))
+                    return 2
+            if any(start < c < end for c in cuts):
+                print('%s: 0x%X..0x%X crosses a file boundary' % (path, start, end))
                 return 2
-        if any(start < c < end for c in cuts):
-            print('%s: 0x%X..0x%X crosses a file boundary' % (path, start, end))
-            return 2
-        for a, t_, _ in refs:
-            if (start <= a < end) != (start <= t_ < end):
-                print('%s: a PC-relative reference between 0x%X and 0x%X crosses its edge' % (path, a, t_))
+            for a, t_, _ in refs:
+                if (start <= a < end) != (start <= t_ < end):
+                    print('%s: a PC-relative reference between 0x%X and 0x%X crosses its edge' % (path, a, t_))
+                    return 2
+            inside = {n_ for p in ro_labels if start <= p < end for n_ in ro_labels[p]}
+            needed = {lab for a, (_, lab) in src.lines.items() if not start <= a < end} & (inside - defined)
+            if needed:
+                print('%s: labels needed from outside but not defined: %s' % (path, ', '.join(sorted(needed))))
                 return 2
-        inside = {n for p in ro_labels if start <= p < end for n in ro_labels[p]}
-        needed = {lab for a, (_, lab) in src.lines.items() if not start <= a < end} & (inside - defined)
-        if needed:
-            print('%s: labels needed from outside but not defined: %s' % (path, ', '.join(sorted(needed))))
-            return 2
+            placed.append((start, end, obj, areas, path))
+            src.counts['bytes from compiled objects'] += end - start
         src.absolute.update(used_slots)
-        placed.append((start, end, obj, areas, defined, path))
+        objects.append((obj, 'obj_%02d.o' % n))
         src.counts['compiled objects in place'] += 1
-        src.counts['bytes from compiled objects'] += end - start
 
     files = []
     for i in range(len(cuts) - 1):
@@ -696,10 +711,10 @@ def main():
         if cuts[i] in aligned:
             attrs = 'CODE, READONLY, ALIGN=%d' % (aligned[cuts[i]][0].bit_length() - 1)
         data_end = aligned[cuts[i + 1]][1] if cuts[i + 1] in aligned else None
-        # the pieces: generated source, compiled objects between
+        # the pieces: generated source, compiled code between
         pieces, a = [], cuts[i]
-        for start, end, obj, areas, defined, path in sorted((p for p in placed if cuts[i] <= p[0] < cuts[i + 1]),
-                                                             key=lambda p: p[0]):
+        for start, end, obj, areas, path in sorted((p for p in placed if cuts[i] <= p[0] < cuts[i + 1]),
+                                                   key=lambda p: p[0]):
             pieces += [('src', a, start), ('obj', obj, areas)]
             a = end
         pieces.append(('src', a, cuts[i + 1]))
@@ -708,15 +723,16 @@ def main():
             if piece[0] == 'obj':
                 for j, old_name in enumerate(piece[2]):      # in order: ...$$01$$000, $$01$$001
                     piece[1].rename_area(old_name, '%s$$%03d' % (area_name, j))
-                name = 'ro_%02d_%02d.o' % (i, k)
-                piece[1].write(os.path.join(args.out, name))
             else:
                 name = 'ro_%02d.a' % i if not k else 'ro_%02d_%02d.a' % (i, k)
                 last = k == len(pieces) - 1
                 write_area(os.path.join(args.out, name), area_name, attrs if not k else 'CODE, READONLY',
                            ro, 0, ro_labels, piece[1], piece[2], src.lines, pad,
                            data_end if last else None)
-            files.append(name)
+                files.append(name)
+    for obj, name in objects:                    # each object once, its areas renamed into place
+        obj.write(os.path.join(args.out, name))
+        files.append(name)
     write_area(os.path.join(args.out, 'rw.a'), 'ROM$$RW', 'DATA',
                rw, rw_base, rw_labels, rw_base, rw_base + len(rw), rw_lines)
     files.append('rw.a')
