@@ -9,7 +9,8 @@
 
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006), its data
-				0x0C104C48..0x0C104C58. Here so far: 0x20171C (FGetSerialNumber)
+				0x0C104C48..0x0C104C58. Here so far: 0x203510 (FBatteryCount)
+				.. 0x2038A0 (after GetBatteryStatus) but SetBatteryType, 0x20171C (FGetSerialNumber)
 				.. 0x201E0C (after ExtendedGestalt), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
@@ -34,6 +35,7 @@
 #include "Preference.h"
 #include "Frames/NewtonScript.h"
 #include "Recognition/Inker.h"
+#include "OS600/UserPorts.h"
 
 /*------------------------------------------------------------------------------
 	D a t a
@@ -68,6 +70,8 @@ Ref		FEnablePowerStats(RefArg inRcvr, RefArg inEnable);
 Ref		FGetPowerStats(RefArg inRcvr);
 Ref		FResetPowerStats(RefArg inRcvr);
 Ref		FGetHeapStats(RefArg inRcvr, RefArg inOptions);
+Ref		FBatteryCount(RefArg inRcvr);
+Ref		FSetBatteryType(RefArg inRcvr, RefArg inWhich, RefArg inType);
 }
 Ref		FBatteryLevel(RefArg inRcvr, RefArg inWhich);
 Ref		FSetLCDContrast(RefArg inRcvr, RefArg inContrast);
@@ -646,6 +650,120 @@ done:
 								memory and free ROM domain pages as free)
 	Return:		a frame
 ------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------
+	Batteries, through the power manager.
+------------------------------------------------------------------------------*/
+
+Ref
+FBatteryCount(RefArg inRcvr)
+{
+	RefVar				count(MAKEINT(0));
+	ULong				replySize;
+	TPowerPlantEvent	request;
+	TPowerPlantEvent	reply;
+	request.fAEventClass = 'newt';
+	request.fSelector = kPowerPlantBatteryCount;
+	request.fAEventID = 'pg&e';
+	if (GetPowerPort()->SendRPC(&replySize, &request, sizeof(request), &reply, sizeof(reply)) == noErr)
+		count = MAKEINT(reply.fValue);
+	return count;
+}
+
+
+#if 0
+/* Not yet: identical but for which of r12 and lr hold the port and a zero
+   while the call's arguments are set up (4 words); the same call in
+   FBatteryCount and GetBatteryStatus comes out as the ROM's. Until the
+   form is found, SetBatteryType stays generated assembler. */
+NewtonErr
+SetBatteryType(long inWhich, long inType)
+{
+	NewtonErr			err;
+	ULong				replySize;
+	TBatteryTypeEvent	request;
+	TBatteryTypeEvent	reply;
+	request.fAEventClass = 'newt';
+	request.fType = inType;
+	request.fSelector = kPowerPlantSetBatteryType;
+	request.fWhich = inWhich;
+	request.fAEventID = 'pg&e';
+	err = GetPowerPort()->SendRPC(&replySize, &request, sizeof(request), &reply, sizeof(reply));
+	if (err == noErr)
+		err = reply.fWhich;
+	return err;
+}
+#endif
+
+
+/*------------------------------------------------------------------------------
+	Set a battery's type.
+	Args:		inRcvr
+				inWhich			the battery: an integer
+				inType			'alkaline, 'nicd, 'nimh, 'lithium, an integer,
+								or nil
+	Return:		true if it worked, nil if not or the type is not known
+------------------------------------------------------------------------------*/
+
+Ref
+FSetBatteryType(RefArg inRcvr, RefArg inWhich, RefArg inType)
+{
+	long	type;
+	if (IsSymbol(inType))
+	{
+		if (EQRef(inType, SYMA(alkaline)))
+			type = 1;
+		else if (EQRef(inType, SYMA(nicd)))
+			type = 2;
+		else if (EQRef(inType, SYMA(nimh)))
+			type = 3;
+		else if (EQRef(inType, SYMA(lithium)))
+			type = 4;
+		else
+			return NILREF;
+	}
+	else if (ISNIL(inType))
+		type = -1;
+	else if (ISINT(inType))
+		type = RINT(inType);
+	else
+		return NILREF;
+	return MAKEBOOLEAN(SetBatteryType(RINT(inWhich), type) == noErr);
+}
+
+
+/*------------------------------------------------------------------------------
+	A battery's status, from the power manager.
+	Args:		inWhich			the battery
+				outStatus
+				inRaw			the raw values
+	Return:		an error code
+------------------------------------------------------------------------------*/
+
+NewtonErr
+GetBatteryStatus(long inWhich, PowerPlantStatus * outStatus, Boolean inRaw)
+{
+	NewtonErr	err;
+	if (outStatus != NULL)
+	{
+		ULong				replySize;
+		TBatteryStatusEvent	request;
+		TBatteryStatusEvent	reply;
+		request.fAEventClass = 'newt';
+		request.fSelector = inRaw ? kPowerPlantRawStatus : kPowerPlantStatus;
+		request.fWhich = inWhich;
+		request.fAEventID = 'pg&e';
+		err = GetPowerPort()->SendRPC(&replySize, &request, sizeof(request), &reply, sizeof(reply));
+		if (err == noErr)
+			err = reply.fSelector;
+		if (err == noErr)
+			BlockMove(&reply.fStatus, outStatus, sizeof(PowerPlantStatus));
+	}
+	else
+		err = -2;
+	return err;
+}
+
 
 #if 0
 /* Not yet: identical but for three words (0x2032BC..0x2032C4). The ROM

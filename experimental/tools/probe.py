@@ -158,7 +158,7 @@ def probe(source, args, rom):
     with open(image, 'rb') as f:
         bytes_ = f.read()
     ok = True
-    for s in defined:
+    for s in sorted(defined, key=lambda s: rom.address(s.name) or 0):     # in ROM order
         at = rom.address(s.name)
         if at is None:
             print('  %-40s not (once) in the ROM' % s.name)

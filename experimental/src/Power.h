@@ -14,6 +14,11 @@
 #ifndef __NEWTONTYPES_H
 #include "NewtonTypes.h"
 #endif
+#ifndef __AEVENTS_H
+#include "UtilityClasses/AEvents.h"
+#endif
+
+class TUPort;
 
 struct PowerPlantStatus
 {
@@ -32,7 +37,42 @@ struct PowerPlantStatus
 	long		fBatteryTemp;		// +30 -1: not known
 };
 
+/* Requests to the power manager (GetPowerPort), and its replies: an event
+   of class 'newt', id 'pg&e', a selector, then the selector's data */
+enum
+{
+	kPowerPlantStatus = 4,
+	kPowerPlantRawStatus = 5,
+	kPowerPlantBatteryCount = 6,
+	kPowerPlantSetBatteryType = 7
+};
+
+class TPowerPlantEvent : public TAEvent			// battery count
+{
+public:
+	ULong		fSelector;
+	long		fValue;
+};
+
+class TBatteryTypeEvent : public TAEvent		// set battery type
+{
+public:
+	ULong		fSelector;
+	long		fWhich;			// in the reply: the result
+	long		fType;
+};
+
+class TBatteryStatusEvent : public TAEvent		// battery status
+{
+public:
+	ULong		fSelector;		// in the reply: the result
+	long		fWhich;
+	PowerPlantStatus	fStatus;
+};
+
+TUPort *	GetPowerPort(void);
 NewtonErr	GetBatteryStatus(long inWhich, PowerPlantStatus * outStatus, Boolean inRaw);
+NewtonErr	SetBatteryType(long inWhich, long inType);
 ULong		CyclePower(void);
 ULong		TranslatePowerEvent(ULong inEvent);
 ULong		SleepUntilNextWakeup(void);
