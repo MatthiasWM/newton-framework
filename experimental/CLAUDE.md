@@ -636,8 +636,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       functions, 7,144 bytes of code, and the file's data (16 bytes at
       0x0C104C48: `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4
       at +12). Three are written but `#if 0`, each with a note on what
-      still differs: `FGetHeapStats` (the order of two loads),
-      `SetBatteryType` (r12/lr swapped in a call's setup),
+      still differs: `FGetHeapStats` (the order of two loads; a search
+      over 20 forms found none), `SetBatteryType` (r12/lr swapped in a
+      call's setup; a search over 96 forms found none),
       `BatteryStatusHelper` (the ROM gives each `if` statement new stack
       for its temporary; ours reuses).
       **Out-of-line copies of inline functions**: the compiler makes them
@@ -650,7 +651,11 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       so far); `romasm.py` labels that address `name@0xADDR` (the
       function itself is elsewhere, with a jump-table slot) and the object
       refers to the label; such a reference is never sent to the slot.
-      `probe.py` the same with absolute symbols.
+      `probe.py` the same with absolute symbols. `probe.py` lays an
+      object's areas out in ROM order, with filler for functions left out
+      (a source's functions out of ROM order showed as "lands at": a
+      search counting only differing words missed that; count every line
+      that is not "identical").
       **Finding the source form**: when only registers or the order of
       instructions differ, the choice is the whole function's (a change in
       one case moves registers in another), so trying the plausible forms

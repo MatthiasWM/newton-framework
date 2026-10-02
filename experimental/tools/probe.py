@@ -98,16 +98,23 @@ def probe(source, args, rom):
     inline = aof.inline_copies(rom.ro, places)
     for a in [a for a in aof.areas if a.attributes & AREA_COMMON_DEF]:
         aof.drop_area(a.name)                  # vtables, inline copies: not compared
-    # -zo: an area per function, kept in order, with room between them where
-    # the source leaves a function out (filler areas, below)
-    gaps, at = [], None
-    for j, a in enumerate(list(aof.areas)):
+    # -zo: an area per function, in ROM order (where its function is; an
+    # area without a known function follows the one before it in the
+    # object), with room between them where the source leaves a function
+    # out (filler areas, below)
+    spot, at = {}, None
+    for a in aof.areas:
         if a.is_code:
             places = [rom.address(s.name) - s.value for s in aof.symbols
                       if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
-            if places and at is not None and places[0] > at:
-                gaps.append(('C$$probe$$%04d' % j, places[0] - at))
-            at = (places[0] if places else at or 0) + ((a.size + 3) & ~3)
+            spot[a.name] = places[0] if places else (at or 0)
+            at = spot[a.name] + ((a.size + 3) & ~3)
+    gaps, at = [], None
+    for j, a in enumerate(sorted(aof.areas, key=lambda a: (not a.is_code, spot.get(a.name, 0)))):
+        if a.is_code:
+            if at is not None and spot[a.name] > at:
+                gaps.append(('C$$probe$$%04d' % j, spot[a.name] - at))
+            at = spot[a.name] + ((a.size + 3) & ~3)
         aof.rename_area(a.name, 'C$$probe$$%04d$$area' % j)
     # the file's data where the ROM has it (its first global's address)
     rw_base = []

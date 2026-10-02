@@ -801,6 +801,82 @@ done:
 	Return:		a frame
 ------------------------------------------------------------------------------*/
 
+#if 0
+/* Not yet: identical but for three words (0x2032BC..0x2032C4). The ROM
+   loads framesHeapStart, then framesHeapEnd, for the subtraction; this
+   loads framesHeapEnd first and the two loads become one LDM. The order
+   is the register allocator's: none of Ptr or void * frames bounds, one
+   or three size variables, the heap in a variable or not, nor three ways
+   to write the subtraction changes it. Until the form is found,
+   FGetHeapStats stays generated assembler. */
+Ref
+FGetHeapStats(RefArg inRcvr, RefArg inOptions)
+{
+	RefVar	collectGarbage(NILREF);
+	RefVar	includeSystemReleasable(NILREF);
+	if (NOTNIL(inOptions))
+	{
+		collectGarbage = GetFrameSlotRefArg(inOptions, SYM(garbageCollectFrames));
+		includeSystemReleasable = GetFrameSlotRefArg(inOptions, SYM(includeSystemReleasable));
+	}
+
+	long	ptrUsedBlocks = 0;
+	long	handleUsedBlocks = 0;
+	long	ptrFreeSize = 0;
+	long	handleFreeSize = 0;
+	ULong	framesFreeSize = 0;
+	void *	handleHeapStart;
+	void *	handleHeapEnd;
+	void *	ptrHeapStart;
+	void *	ptrHeapEnd;
+	Ptr		framesHeapStart;
+	Ptr		framesHeapEnd;
+	ULong	framesLargestFree;
+	long	heapSize;
+	long	systemFreeSize;
+	RefVar	stats(AllocateFrame());
+
+	Heap	heap = GetFixedHeap(GetHeap());
+	GetActualHeapInfo(heap, &ptrHeapStart, &ptrHeapEnd, &ptrUsedBlocks, &ptrFreeSize);
+	heapSize = (char *) ptrHeapEnd - (char *) ptrHeapStart;
+	SetFrameSlot(stats, SYM(ptrHeapStart), MAKEINT((ULong) ptrHeapStart >> 2));
+	SetFrameSlot(stats, SYM(ptrHeapSize), MAKEINT(heapSize));
+	SetFrameSlot(stats, SYM(ptrFreeSize), MAKEINT(ptrFreeSize));
+
+	heap = GetRelocHeap(GetHeap());
+	GetActualHeapInfo(heap, &handleHeapStart, &handleHeapEnd, &handleUsedBlocks, &handleFreeSize);
+	heapSize = (char *) handleHeapEnd - (char *) handleHeapStart;
+	SetFrameSlot(stats, SYM(handleHeapStart), MAKEINT((ULong) handleHeapStart >> 2));
+	SetFrameSlot(stats, SYM(handleHeapSize), MAKEINT(heapSize));
+	SetFrameSlot(stats, SYM(handleFreeSize), MAKEINT(handleFreeSize));
+
+	long	framesHeapSize;
+	if (NOTNIL(collectGarbage))
+		GC();
+	HeapBounds(&framesHeapStart, &framesHeapEnd);
+	framesHeapSize = framesHeapEnd - framesHeapStart;
+	Statistics(&framesFreeSize, &framesLargestFree);
+	SetFrameSlot(stats, SYM(framesHeapStart), MAKEINT((ULong) framesHeapStart >> 2));
+	SetFrameSlot(stats, SYM(framesHeapSize), MAKEINT(framesHeapSize));
+	SetFrameSlot(stats, SYM(framesFreeSize), MAKEINT(framesFreeSize));
+
+	systemFreeSize = TotalSystemFree();
+	ULong	romPages;
+	if (NOTNIL(includeSystemReleasable))
+	{
+		ULong	releasable, stackSpaceUsed, pagesUsed;
+		GetSystemReleasable(&releasable, &stackSpaceUsed, &pagesUsed);
+		systemFreeSize += releasable;
+		romPages = ROMDomainManagerFreePageCount();
+		systemFreeSize += romPages * kPageSize;
+	}
+	SetFrameSlot(stats, SYM(systemFreeSize), MAKEINT(systemFreeSize));
+
+	return stats;
+}
+#endif
+
+
 /*------------------------------------------------------------------------------
 	Batteries, through the power manager.
 ------------------------------------------------------------------------------*/
@@ -915,84 +991,6 @@ GetBatteryStatus(long inWhich, PowerPlantStatus * outStatus, Boolean inRaw)
 }
 
 
-#if 0
-/* Not yet: identical but for three words (0x2032BC..0x2032C4). The ROM
-   loads framesHeapStart, then framesHeapEnd, for the subtraction; this
-   loads framesHeapEnd first and the two loads become one LDM. The order
-   is the register allocator's, and depends on the rest of the function
-   (removing one SetFrameSlot line flips it); the form of the source that
-   gives Apple's order is still to be found. Until then FGetHeapStats
-   stays generated assembler. */
-Ref
-FGetHeapStats(RefArg inRcvr, RefArg inOptions)
-{
-	RefVar	collectGarbage(NILREF);
-	RefVar	includeSystemReleasable(NILREF);
-	if (NOTNIL(inOptions))
-	{
-		collectGarbage = GetFrameSlotRefArg(inOptions, SYM(garbageCollectFrames));
-		includeSystemReleasable = GetFrameSlotRefArg(inOptions, SYM(includeSystemReleasable));
-	}
-
-	long	ptrUsedBlocks = 0;
-	long	handleUsedBlocks = 0;
-	long	ptrFreeSize = 0;
-	long	handleFreeSize = 0;
-	ULong	framesFreeSize = 0;
-	void *	handleHeapStart;
-	void *	handleHeapEnd;
-	void *	ptrHeapStart;
-	void *	ptrHeapEnd;
-	Ptr		framesHeapStart;
-	Ptr		framesHeapEnd;
-	ULong	framesLargestFree;
-	long	ptrHeapSize;
-	long	handleHeapSize;
-	long	systemFreeSize;
-	RefVar	stats(AllocateFrame());
-
-	// the Ptr heap and the Handle heap
-	Heap	heap = GetFixedHeap(GetHeap());
-	GetActualHeapInfo(heap, &ptrHeapStart, &ptrHeapEnd, &ptrUsedBlocks, &ptrFreeSize);
-	ptrHeapSize = (char *) ptrHeapEnd - (char *) ptrHeapStart;
-	SetFrameSlot(stats, SYM(ptrHeapStart), MAKEINT((ULong) ptrHeapStart >> 2));
-	SetFrameSlot(stats, SYM(ptrHeapSize), MAKEINT(ptrHeapSize));
-	SetFrameSlot(stats, SYM(ptrFreeSize), MAKEINT(ptrFreeSize));
-
-	heap = GetRelocHeap(GetHeap());
-	GetActualHeapInfo(heap, &handleHeapStart, &handleHeapEnd, &handleUsedBlocks, &handleFreeSize);
-	handleHeapSize = (char *) handleHeapEnd - (char *) handleHeapStart;
-	SetFrameSlot(stats, SYM(handleHeapStart), MAKEINT((ULong) handleHeapStart >> 2));
-	SetFrameSlot(stats, SYM(handleHeapSize), MAKEINT(handleHeapSize));
-	SetFrameSlot(stats, SYM(handleFreeSize), MAKEINT(handleFreeSize));
-
-	// the frames heap
-	long	framesHeapSize;
-	if (NOTNIL(collectGarbage))
-		GC();
-	HeapBounds(&framesHeapStart, &framesHeapEnd);
-	framesHeapSize = framesHeapEnd - framesHeapStart;
-	Statistics(&framesFreeSize, &framesLargestFree);
-	SetFrameSlot(stats, SYM(framesHeapStart), MAKEINT((ULong) framesHeapStart >> 2));
-	SetFrameSlot(stats, SYM(framesHeapSize), MAKEINT(framesHeapSize));
-	SetFrameSlot(stats, SYM(framesFreeSize), MAKEINT(framesFreeSize));
-
-	// the system
-	systemFreeSize = TotalSystemFree();
-	ULong	romPages;
-	if (NOTNIL(includeSystemReleasable))
-	{
-		ULong	releasable, stackSpaceUsed, pagesUsed;
-		GetSystemReleasable(&releasable, &stackSpaceUsed, &pagesUsed);
-		systemFreeSize += releasable;
-		romPages = ROMDomainManagerFreePageCount();
-		systemFreeSize += romPages * kPageSize;
-	}
-	SetFrameSlot(stats, SYM(systemFreeSize), MAKEINT(systemFreeSize));
-
-	return stats;
-}
-#endif
 
 
 /*------------------------------------------------------------------------------
