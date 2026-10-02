@@ -690,6 +690,47 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       conditional instructions; two variables initialised from the same
       expression (`readArray = mask << shift; lanes = mask << shift`) where
       the ROM computes it once and copies it twice.
+      **`src/Communications/Fax/T4FaxLine.cc`** (2026-10-02): the fax
+      tool's T.4 (modified Huffman) line codec, 0x204698..0x205180:
+      `TT4FaxLine` (the decoder of received pages, a ring buffer read a bit
+      at a time) and `EncodeT4`, `T4AddRTC`, `writeCodeWord`, `outputRun`
+      (the encoder); and its tables, 0x377C0C..0x378410 (TADSPConnection
+      follows the code). 14 of its 17 functions, 1,936 bytes, and the
+      tables, 2,052 bytes; `GetNextBit` (one word: the order of a compare's
+      operands), `AppendTo` (registers), `EncodeT4` (three words,
+      registers) are written but `#if 0`. Reconstructed header
+      `Communications/Fax/T4FaxLine.h` (layout from the ROM's code and
+      newton-re's findings, names ours). Bugs: BUGS.md B4, B5.
+      **Constant data** (`static const`, `const` tables) goes into an area
+      of its own, `C$$cd_<file>` (read-only, Code attributes, objects
+      aligned to 4 and padded with zeros), in the order of the
+      definitions; the ROM has the files' areas together (here after the
+      sound gains, before `EXP_TABL`). Placed like a function: at its first
+      named table's address minus its offset. Tables whose layout the ROM
+      shows are written from its bytes (generated once); `static` ones have
+      no name in Apple's table. C++ `const` globals have internal linkage:
+      declared `extern` in the header, so they keep Apple's names.
+      **A class's vtable** (Common area `C$$__VTABLE__<class>`, a local
+      symbol): the ROM's have no names, so `aof.py`'s `inline_copies` reads
+      its address off the ROM word where the code loads it (the
+      constructor), as for inline copies.
+      **Declarations decide registers**: where only registers differ, the
+      order of declarations (and declaring a function's locals at its top,
+      C style) often changes them (`DoMHDecodeLine`: `int bytes, code, run,
+      next;` at the top made it identical; `EncodeT4`'s main loop came
+      right by reordering its first seven declarations). Also: a `while`
+      with the decrement in the body (`i--` before the `if`) where the ROM
+      decrements before the test at the bottom; a value computed into a
+      variable before a call (`code = table[...]; writeCodeWord(...,
+      code, ...)`) where the ROM computes it before pushing the stacked
+      arguments; `outBytes = outBytes + bytes` and `outBytes += bytes`
+      differ in registers.
+      **`probe.py --each`** compares one function at a time, the object's
+      other functions dropped (their names then imports at their ROM
+      addresses), so a function of the wrong size does not move the ones
+      after it; `--function PREFIX` only those, `--option` adds a compiler
+      option (to try: `-O`, `-Otime`, `-Ospace` changed nothing here).
+      `variants.py` uses `--each`.
       **Data**: Norcroft addresses a file's own globals from its data
       area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
       static at +12), so a function that uses them is only identical with
@@ -756,9 +797,11 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       literal pools and strings, static data), start from the port's C++
       and newton-re's `src/` (both cite ROM addresses), turned into 32-bit
       code with Apple's headers; missing headers reconstructed in `src/`.
-      Track how many bytes come from source. Static data (`C$$data`,
-      `C$$zidata` areas) and vtables from source: not yet (an object
-      must have one code area).
+      Track how many bytes come from source (2026-10-02, after the fax
+      codec: 12,708 bytes of code and constant data, 16 of RW data, from
+      3 sources; the whole image identical). Next file: `TADSPConnection`
+      (0x205180). Zero-initialised data (`C$$zidata`) and vtables from
+      source: not yet.
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
       check it matches), hand-written assembler with `ARM6asm`.
 - [ ] **R8 NewtonScript as source.** The object area from an editable tree

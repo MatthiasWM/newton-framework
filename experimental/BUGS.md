@@ -64,3 +64,43 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
 - Depends on: whether `GetBatteryStatus` can fail for long (the power
   manager not running, an RPC error).
 - Fix: leave the loop (or sleep) when the status cannot be read.
+
+## B4 Fax decoder: a byte is lost after the ring runs empty (confirmed)
+
+- ROM: `TT4FaxLine::GetNextBit`, 0x204940..0x204A00.
+- Source: `src/Communications/Fax/T4FaxLine.cc`, `GetNextBit`, the first
+  test (`fGet++`).
+- What it does: `fGet` is meant to point at the byte last read: before
+  reading, the decoder moves it on unless the ring is empty (`fGet ==
+  fPut` and the writer not a lap ahead), then throws
+  `exFaxBufOverrunException` if the ring is empty. But in two states
+  `fGet` points at a byte not yet read: after `Reset` (both at the
+  ring's start), and after an underflow (the reader moved onto `fPut`,
+  then threw). The next byte `AppendTo` puts there is then skipped: the
+  reader moves past it before reading.
+- Effect: the first byte received after `Init`/`Reset`, and the first
+  byte received after every underflow, are never decoded. After an
+  underflow `DecodeLine` (with `inCatchOverrun`) gives up the line and
+  `SkipPastEOL` looks for the next end of line, which hides most of it;
+  a lost byte at a page's start is likely in the leading end of line
+  or fill. A lost byte inside a line spoils that line.
+- Fix: keep `fGet` at the next byte to read (test for empty before
+  reading, move on after), or set a flag when `fGet` points at an unread
+  byte (after `Reset` and before throwing).
+
+## B5 Fax decoder: DecodeLine's end-of-page test can never be true (possible)
+
+- ROM: `TT4FaxLine::DecodeLine`, 0x204BC4..0x204CEC.
+- Source: `src/Communications/Fax/T4FaxLine.cc`, `DecodeLine`, the test
+  after the loop (`inLineBytes == 0`).
+- What it does: lines without pixels (an end of line right away) are
+  skipped, up to 7 in a row (`tries`). Afterwards, if the bytes decoded
+  are not the line's size, the result is `tries >= 6 && inLineBytes ==
+  0`: the size the caller passes, which is never 0, so the result is
+  always false there.
+- Probably meant: `outBytes == 0` (only empty lines: the end of the page,
+  RTC, six ends of line), so that the end of a page is told apart from a
+  bad line.
+- Depends on: what the fax tool does with the result (it may find the
+  page's end another way).
+- Fix: `tries >= 6 && outBytes == 0`, after checking the callers.
