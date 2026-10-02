@@ -55,6 +55,17 @@ move.
   offset (p % 32) * 0x80), so it is written as `B |function|-&D`, D its
   virtual minus its physical address (a constant: the linker then encodes
   it right wherever the function is).
+- R3e.1b: tables of code addresses. In a run of at least three data words
+  where at least one is already a pointer (R3e.1), or which starts where a
+  literal points (the code loads the table's address), every word that is the
+  address of an instruction (code by romcode.py, or by newtonos.s; in a
+  table whose start a literal holds, any aligned address in the read-only
+  part: the SWI table's hand-written handlers are code to neither) is
+  written as `DCD |label|` (a label made where there is none): the SWI
+  dispatch table, WarmBoot's `LDR pc, [pc, Rm, LSL #2]` table, handler
+  tables whose handlers have no symbol. The static constructors' and
+  destructors' tables (C$$ctorvec, C$$dtorvec) entirely: functions without
+  a symbol.
 - R3h: the linker's values at the ROM's start: gPackageStart (0x3C) is
   |ROM$$Size|; the DataAreaTable (0x40: "data", then the RAM data's load
   address, run address, zero-init address, lengths) is |Load$$root$$Base|,
@@ -78,6 +89,7 @@ move.
   0x006E0027 is a symbol's address). Not in tables of numbers either,
   whose words hit symbols by chance: the recogniser's dictionaries and
   lexicons (gLex8..., gEnum80..., gSymb80...), the parser's tables (yy...),
+  IrMaxTurnTimeTable, nbcut..., xr_type_merits (times, cut values, pairs),
   the DES S-boxes; nor in the R/RS block (R3f). data-pointers.txt lists
   them by the symbol they are in (single hits: to check).
 """
@@ -405,6 +417,8 @@ def main():
         rw = f.read()
     with open(os.path.join(args.rom, 'code.bin'), 'rb') as f:
         kinds = f.read()
+    with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
+        kinds_ns = f.read()
     with open(os.path.join(args.rom, 'symbols.json')) as f:
         info = json.load(f)
     symbols = info['symbols']
@@ -473,7 +487,7 @@ def main():
     src.literals(ram_labels, rw_base, zi_base + zi_size)
     report = ['; data words that are exactly a symbol\'s address, by the symbol they are in (R3e.1)']
 
-    numbers = re.compile(r'^(gLex8|gEnum80|gSymb80|yy|DESSBoxes)')
+    numbers = re.compile(r'^(gLex8|gEnum80|gSymb80|yy|DESSBoxes|IrMaxTurnTimeTable|nbcut|xr_type_merits)')
 
     def skip_ro(a):
         if kinds[a // 4] in (ord('c'), ord('n'), ord('l'), ord('v')) or soup_low <= a < dense_end:
@@ -485,6 +499,45 @@ def main():
     src.lines.update(src.data_pointers(ro, 0, ram_labels, rw_base, zi_base + zi_size, skip_ro, report, dense))
     rw_lines = src.data_pointers(rw, rw_base, ram_labels, rw_base, zi_base + zi_size, lambda a: False,
                                  report, dense)
+    # R3e.1b: tables of code addresses
+    def code_address(v):
+        return (0x10000 <= v < len(ro) and v % 4 == 0
+                and (kinds[v // 4] in (ord('c'), ord('n')) or kinds_ns[v // 4] == ord('i')))
+
+    loaded = set()                 # addresses the code's literals hold
+    for i in range(len(ro) // 4):
+        if kinds[i] == ord('l'):
+            loaded.add(struct.unpack_from('>I', ro, 4 * i)[0])
+    forced = set()
+    for t in ('C$$ctorvec', 'C$$dtorvec'):
+        forced.update(range(names[t + '$$Base'], names[t + '$$Limit'], 4))
+    i = 0
+    nwords = len(ro) // 4
+    while i < nwords:
+        a = 4 * i
+        if skip_ro(a) and a not in forced:
+            i += 1
+            continue
+        j = i
+        strong = 0
+        table = a in loaded
+        while j < nwords and (not skip_ro(4 * j) or 4 * j in forced):
+            b = 4 * j
+            v = struct.unpack_from('>I', ro, b)[0]
+            if b in src.lines:
+                strong += 1
+            elif not (code_address(v) or (table and 0x10000 <= v < len(ro) and v % 4 == 0)):
+                break
+            j += 1
+        if j - i >= 3 and (strong or a in forced or a in loaded):
+            for k in range(i, j):
+                b = 4 * k
+                if b not in src.lines:
+                    v = struct.unpack_from('>I', ro, b)[0]
+                    label = src.label_for(v)
+                    src.lines[b] = ('        DCD      |%s|' % label, label)
+                    src.counts['tables of code addresses'] += 1
+        i = max(j, i + 1)
     for a, n in linker_words.items():          # R3h, after R3e.1 (which saw some as RAM addresses)
         src.lines[a] = ('        DCD      |%s|' % n, n)
     with open(os.path.join(args.out, 'data-pointers.txt'), 'w') as f:

@@ -365,6 +365,23 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       candidates follow, no errors. Left: 236,225 in the object area,
       4,847 in the R/RS block (R3f), 28,287 in other read-only data (most
       numbers), 2,456 in the RW data.
+    - [x] **R3e.1b Tables of code addresses** (2026-10-02, after Einstein
+      hung on the first shifted ROM: PC 0x38D1F4, LR 0x38D1E8, i.e. by
+      `WarmBoot`, whose `LDR pc, [pc, r1, LSL #2]` table of 18 addresses
+      was still numbers). In a run of at least 3 data words with a pointer
+      from R3e.1 in it, or starting where a literal points (the code loads
+      the table's address), every word that is the address of an
+      instruction (romcode.py or newtonos.s; in a table a literal points at,
+      any aligned read-only address: the SWI handlers are code to neither)
+      becomes `DCD |label|` (labels made); the static constructors' and
+      destructors' tables (`C$$ctorvec`, `C$$dtorvec`: functions without a
+      symbol) entirely. 185 entries: WarmBoot's table, the SWI dispatch
+      table (`FlushEntireTLB+0x24`, 35 entries), the exception names
+      (`exRootException`.. pointers to their strings), `gRDPHandlers`,
+      `AAtables`. `romcode.py` writes `functions.json` (the functions it
+      followed: 687 without a symbol). More tables of numbers left out:
+      `IrMaxTurnTimeTable`, `nbcut...`, `xr_type_merits`. Identical to
+      Apple's; shift test: no errors.
     - [ ] **R3e.2 Table by table**: pointers inside symbols, where a
       table's layout says so (newton-re's tools know many tables).
   - [x] **R3f The NewtonScript object area.** Done (2026-10-02). Walked

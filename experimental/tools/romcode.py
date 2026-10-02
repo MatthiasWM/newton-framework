@@ -38,7 +38,8 @@ did not get to, are taken as code too ('n'): code
 after a return that no branch we know reaches (computed jumps, tables of
 addresses, callbacks); never in a symbol we did not follow as a function.
 
-Writes <rom-dir>/code.bin, a byte per word of the read-only part: 'c'
+Writes <rom-dir>/functions.json (where the functions we followed start)
+and <rom-dir>/code.bin, a byte per word of the read-only part: 'c'
 code, 'n' code by newtonos.s inside a function, 'l' a literal word, 'd'
 data the code points at (ADR, byte loads), 'v' a vtable entry, 0 not
 reached. With --compare, lists where newtonos.s's marks
@@ -264,6 +265,8 @@ def main():
                     mark[i] = ord('n')
                     counts['code by newtonos.s inside a followed function'] += 1
 
+    with open(os.path.join(args.rom, 'functions.json'), 'w') as f:
+        json.dump(sorted(a for a in functions if 0 <= a < size and mark[a // 4] == C), f)
     with open(os.path.join(args.rom, 'code.bin'), 'wb') as f:
         f.write(mark)
     n = Counter(mark)
