@@ -346,6 +346,27 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the code points at (to look at).
   - [ ] **R3e Data**: vtables, pointer tables, C++ static data, the RW
     data's pointers, the linker's symbols in the ROM (`DataAreaTable`).
+    - [x] **R3e.1 Strong evidence** (2026-10-02). A data word (read-only
+      outside code and the object area, or RW) whose value is exactly a
+      symbol's start (from 0x10000), a RAM symbol, or a jump-table slot is
+      written as `DCD |label|`: 2,997 (the magic-pointer table 873, `rat0`
+      ..`rat3` 1,024, `Functions`, `OpcodeProcs`, `gRDPHandlers`, the
+      recogniser grammars `BiGS...`/`BiSL...`, the patterns' `...Ptr`, RW
+      289). Not counted as evidence: a word pointing inside a symbol (as
+      often two 16-bit numbers: parser tables, dictionaries); a target in
+      the R/RS block after the object area (0x67FA44..0x6853DC, a symbol
+      every word: the dictionaries' UTF-16 pairs such as 0x006E0027 "hit"
+      it). Not looked in: tables of numbers that hit symbols by chance
+      (`gLex8...`, `gEnum80...`, `gSymb80...`, `yy...`, `DESSBoxes`) and
+      the R/RS block. `build/romasm/data-pointers.txt` lists them by symbol;
+      single hits to check when Einstein runs a shifted ROM
+      (`displayAngle`, `IrMaxTurnTimeTable`, `blackCompleteTbl`, ...).
+      Identical to Apple's; the shift test at 0x3011C: 9,203 address
+      candidates follow, no errors. Left: 236,225 in the object area,
+      4,847 in the R/RS block (R3f), 28,287 in other read-only data (most
+      numbers), 2,456 in the RW data.
+    - [ ] **R3e.2 Table by table**: pointers inside symbols, where a
+      table's layout says so (newton-re's tools know many tables).
   - [ ] **R3f The NewtonScript object area.**
   - [ ] **R3g The jump table and the checksums**, built after the link.
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).

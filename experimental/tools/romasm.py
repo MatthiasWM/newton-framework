@@ -38,12 +38,26 @@ move.
   0x10000 up (below, small numbers and the hand-written start of the ROM
   look alike: R3h), in the RAM data (RW, zero-init), with or without a
   NewtonScript tag (+1), or a jump-table slot (|VEC_Name|).
+- R3e.1: a data word (in the read-only part, not code and not in the
+  NewtonScript object area gROMSoupData..gROMSoupDataSize; or in the RW
+  data) whose value is exactly where a symbol starts (from 0x10000 up), a
+  RAM symbol, or a jump-table slot, is written as `DCD |label|`. Only this
+  strong evidence: a word pointing inside a symbol is as often two 16-bit
+  numbers (parser tables, dictionaries). Nor a target in the block of R
+  and RS constants after the object area (a symbol every word, so every
+  aligned value there "hits": the dictionaries' UTF-16 pairs did, as
+  0x006E0027 is a symbol's address). Not in tables of numbers either,
+  whose words hit symbols by chance: the recogniser's dictionaries and
+  lexicons (gLex8..., gEnum80..., gSymb80...), the parser's tables (yy...),
+  the DES S-boxes; nor in the R/RS block (R3f). data-pointers.txt lists
+  them by the symbol they are in (single hits: to check).
 """
 
 import argparse
 import bisect
 import json
 import os
+import re
 import struct
 import sys
 from collections import defaultdict
@@ -88,6 +102,10 @@ class Source:
         located = sorted((s['value'], s['class']) for s in symbols
                          if s['class'] != 'abs' and s['value'] < len(ro))
         self.starts = [v for v, _ in located]
+        self.start_names = {}
+        for s_ in symbols:
+            if s_['class'] != 'abs' and s_['value'] < len(ro):
+                self.start_names.setdefault(s_['value'], s_['name'])
         self.classes = [c for _, c in located]
         self.counts = defaultdict(int)
 
@@ -149,6 +167,33 @@ class Source:
             expr = '|%s|' % label + ('+%d' % off if off else '')
             self.lines[a] = ('        DCD      %s' % expr, label)
             self.counts[kind] += 1
+
+    def data_pointers(self, data, base, ram_labels, ram_low, ram_high, skip, report, dense=(0, 0)):
+        """R3e.1: data words that are exactly a symbol's address; base: data's
+        address; skip(a): leave this word alone. Returns {address: line}."""
+        lines = {}
+        by_symbol = defaultdict(int)
+        for i in range(len(data) // 4):
+            a = base + 4 * i
+            if skip(a):
+                continue
+            v = struct.unpack_from('>I', data, 4 * i)[0]
+            if v in self.slot_names:
+                label = self.label_for(v)
+            elif 0x10000 <= v < len(self.ro) and v in self.ro_labels and not dense[0] <= v < dense[1]:
+                label = self.ro_labels[v][0]
+            elif ram_low <= v < ram_high and v in ram_labels:
+                label = ram_labels[v][0]
+            else:
+                continue
+            lines[a] = ('        DCD      |%s|' % label, label)
+            k = bisect.bisect_right(self.starts, a) - 1 if a < len(self.ro) else -1
+            by_symbol['%s 0x%X' % (self.start_names.get(self.starts[k], '?'), self.starts[k]) if k >= 0
+                      else 'RW data'] += 1
+            self.counts['data pointers'] += 1
+        for name, n in sorted(by_symbol.items(), key=lambda x: -x[1]):
+            report.append('%6d  %s' % (n, name))
+        return lines
 
     def branches(self):
         """R3c: branches in code that leave their function."""
@@ -301,6 +346,27 @@ def main():
         for k, v in d.items():
             ram_labels[k] += v
     src.literals(ram_labels, rw_base, zi_base + zi_size)
+    names = {s['name']: s['value'] for s in symbols}
+    soup_low, soup_high = names['gROMSoupData'], names['gROMSoupDataSize']
+    report = ['; data words that are exactly a symbol\'s address, by the symbol they are in (R3e.1)']
+
+    numbers = re.compile(r'^(gLex8|gEnum80|gSymb80|yy|DESSBoxes)')
+
+    def skip_ro(a):
+        if kinds[a // 4] in (ord('c'), ord('n'), ord('l'), ord('v')) or soup_low <= a < dense_end:
+            return True
+        k = bisect.bisect_right(src.starts, a) - 1
+        return k >= 0 and bool(numbers.match(src.start_names.get(src.starts[k], '')))
+
+    # the R and RS constants: from gROMSoupDataSize to the first other name
+    r_names = sorted((s['value'], s['name']) for s in symbols if soup_high <= s['value'] < len(ro))
+    dense_end = next(v for v, n in r_names if v > soup_high and not (n[:1] == 'R' and len(n) > 1))
+    dense = (soup_high, dense_end)
+    src.lines.update(src.data_pointers(ro, 0, ram_labels, rw_base, zi_base + zi_size, skip_ro, report, dense))
+    rw_lines = src.data_pointers(rw, rw_base, ram_labels, rw_base, zi_base + zi_size, lambda a: False,
+                                 report, dense)
+    with open(os.path.join(args.out, 'data-pointers.txt'), 'w') as f:
+        f.write('\n'.join(report) + '\n')
 
     files = []
     for i in range(len(cuts) - 1):
@@ -309,7 +375,7 @@ def main():
                    ro, 0, ro_labels, cuts[i], cuts[i + 1], src.lines, pad)
         files.append(name)
     write_area(os.path.join(args.out, 'rw.a'), 'ROM$$RW', 'DATA',
-               rw, rw_base, rw_labels, rw_base, rw_base + len(rw), {})
+               rw, rw_base, rw_labels, rw_base, rw_base + len(rw), rw_lines)
     files.append('rw.a')
     write_zi(os.path.join(args.out, 'zi.a'), 'ROM$$ZI', zi_labels, zi_base, zi_base + zi_size)
     files.append('zi.a')
