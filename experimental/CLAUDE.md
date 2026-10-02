@@ -889,7 +889,14 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       identical): 22,396 from 9; after TDictChain
       (`src/Recognition/DictChain.cc`, all 9): 23,024 from 10; the whole
       image identical); after TDomain (`src/Recognition/RecDomain.cc`, all
-      21): 23,996 from 11. Next: `TDotPrinter` (0x20D0F0). Lesson from
+      21): 23,996 from 11; after TDotPrinter (`src/Printing/
+      DotPrinter.cc`, 10 of 14 in place: `Open`, `CalcMinBounds` `#if 0`,
+      `OpenPage` and `RepeatPage` (3 KB) not written yet; headers
+      `Printing/Printer.h` (`TPrinter`, `TDotPrinter`, layouts with
+      newton-re's findings), `QD/QDDrawing.h`): 24,636 from 12. A member
+      function hides a global one of the same name (`OpenPort`): call the
+      global as `::OpenPort`. Next: `TEdgeListDomain` and
+      `TEdgeListUnit` (0x20E3F8, an unnamed static function first). Lesson from
       TDictChain: writing `this->` before a call (`this->Delete(index)`)
       changes which registers the compiler uses (two functions came right
       so). `TController` (0x209E84..0x20C764, about 60

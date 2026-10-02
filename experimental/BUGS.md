@@ -163,3 +163,23 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
   growing.)
 - Fix: grow first, then take both pointers from the grown Handle (and
   compute `dst` without `GetEntry`'s range check).
+
+## B10 TDotPrinter::Open: band buffers may be freed or never set (confirmed)
+
+- ROM: `TDotPrinter::Open`, 0x20D474..0x20D764, the band allocation.
+- Source: `src/Printing/DotPrinter.cc`, `Open` (the loop around
+  `TryAllocBands`).
+- What it does: it tries to allocate the band buffers (2 or 3 plus the
+  mask and the pattern) at the driver's optimum band height, halving the
+  height while `TryAllocBands` fails and the height is not below the
+  driver's minimum. Then it tests `bands[0] == NULL` to see whether it
+  got them.
+- Effect: `TryAllocBands` frees what it allocated when a later buffer
+  fails, but sets only the failed entry to NULL: after the last failed
+  try, `bands[0]` still holds a freed pointer unless the very first
+  allocation failed, and `Open` goes on printing into freed memory. If
+  the minimum band is larger than the optimum one, the loop never runs and
+  `bands[0]` is whatever was on the stack.
+- Fix: clear `bands[0]` before the loop (and have `TryAllocBands` clear
+  the entries it frees), or keep the result of `TryAllocBands` and test
+  that.
