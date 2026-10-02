@@ -367,7 +367,26 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       numbers), 2,456 in the RW data.
     - [ ] **R3e.2 Table by table**: pointers inside symbols, where a
       table's layout says so (newton-re's tools know many tables).
-  - [ ] **R3f The NewtonScript object area.**
+  - [x] **R3f The NewtonScript object area.** Done (2026-10-02). Walked
+    object by object from `gROMSoupData` to `gROMSoupDataSize` (a header
+    word size << 8 | flags, bit 0 slotted, bit 1 frame; a GC word; class or
+    map; slots; padded to 4 with 0xBA): 46,538 objects, newton-re's census
+    exactly (12,838 frames, 16,506 arrays, 8,623 symbols, 8,571 binaries),
+    ending exactly at the area's end. Every object a label (its symbol, or
+    `|O_0x3AFDA8|`); every Ref to an object (address + 1; 168,891, all to
+    object starts, none outside the area) `DCD |label|+1`; slots holding a
+    native function: 219 its address (`DCD |label|`, a function start that
+    our analysis calls code), 1,143 its jump-table slot (`|VEC_Name|`).
+    After the area, the R and RS constants (0x67FA44..0x6853DC): R words a
+    Ref to an object (1,979) or a magic pointer (a number, 888); RS words
+    the address of an R word (2,867; labels made for R words without a
+    symbol). Identical to Apple's; the shift test at 0x3011C: 183,165
+    address candidates follow, no errors. What doesn't follow in the area
+    is numbers: bytes in binaries (55,372: strings, bitmaps, bytecode,
+    fonts, tables) and symbols (8,648), headers (81), NewtonScript integers
+    in slots (round values such as 0x40004, 0x300000: flags; none at a
+    function's start). Left elsewhere: 28,281 in other read-only data,
+    2,456 in the RW data (R3e.2).
   - [ ] **R3g The jump table and the checksums**, built after the link.
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
     Not the floating-point emulator (`FP_UndefHandlers_Start` 0x38D8DC on):

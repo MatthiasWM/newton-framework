@@ -38,6 +38,17 @@ move.
   0x10000 up (below, small numbers and the hand-written start of the ROM
   look alike: R3h), in the RAM data (RW, zero-init), with or without a
   NewtonScript tag (+1), or a jump-table slot (|VEC_Name|).
+- R3f: the NewtonScript object area (gROMSoupData..gROMSoupDataSize),
+  object by object (a header word: size << 8 | flags, bit 0 slotted, bit 1
+  a frame; a GC word; then the class or map, then the slots; each object
+  padded to 4 bytes): every object gets a label (its symbol, or
+  |O_0x3AFDA8|); a Ref to an object (its address + 1, in a slot or as a
+  binary's class) is written as `DCD |label|+1`; a slot whose value is the
+  start of a function or a jump-table slot (native functions' C code) as
+  `DCD |label|`. After the area, the R and RS constants (to the first
+  other name): an R word holds a Ref to an object (`DCD |label|+1`) or a
+  magic pointer (a number); an RS word the address of an R word (`DCD
+  |label|`, a label made where the word has no symbol).
 - R3e.1: a data word (in the read-only part, not code and not in the
   NewtonScript object area gROMSoupData..gROMSoupDataSize; or in the RW
   data) whose value is exactly where a symbol starts (from 0x10000 up), a
@@ -167,6 +178,54 @@ class Source:
             expr = '|%s|' % label + ('+%d' % off if off else '')
             self.lines[a] = ('        DCD      %s' % expr, label)
             self.counts[kind] += 1
+
+    def object_area(self, lo, hi):
+        """R3f: the NewtonScript objects in [lo, hi)."""
+        objects = []
+        a = lo
+        while a < hi:
+            w0 = struct.unpack_from('>I', self.ro, a)[0]
+            size = w0 >> 8
+            if size < 8:
+                raise ValueError('no object at 0x%X (0x%08X)' % (a, w0))
+            objects.append((a, size, w0 & 0xFF))
+            a += (size + 3) & ~3
+        starts = set(o for o, _, _ in objects)
+        for o, _, _ in objects:
+            if o not in self.ro_labels:
+                self.ro_labels[o].append('O_0x%X' % o)
+        for o, size, flags in objects:
+            words = range(o + 8, o + size - 3, 4) if flags & 1 else [o + 8]
+            for p in words:
+                v = struct.unpack_from('>I', self.ro, p)[0]
+                if v & 3 == 1 and (v - 1) in starts:
+                    label = self.ro_labels[v - 1][0]
+                    self.lines[p] = ('        DCD      |%s|+1' % label, label)
+                    self.counts['object area: references'] += 1
+                elif flags & 1 and v in self.slot_names:
+                    label = self.label_for(v)
+                    self.lines[p] = ('        DCD      |%s|' % label, label)
+                    self.counts['object area: native functions (slots)'] += 1
+                elif (flags & 1 and v & 3 == 0 and 0x10000 <= v < len(self.ro) and v in self.ro_labels
+                      and self.kinds[v // 4] in (ord('c'), ord('n'))):
+                    label = self.ro_labels[v][0]
+                    self.lines[p] = ('        DCD      |%s|' % label, label)
+                    self.counts['object area: native functions'] += 1
+        self.counts['object area: objects'] = len(objects)
+        return starts
+
+    def r_constants(self, lo, hi, objects):
+        """R3f: the R and RS constants in [lo, hi) after the object area."""
+        for p in range(lo, hi, 4):
+            v = struct.unpack_from('>I', self.ro, p)[0]
+            if v & 3 == 1 and (v - 1) in objects:
+                label = self.ro_labels[v - 1][0]
+                self.lines[p] = ('        DCD      |%s|+1' % label, label)
+                self.counts['R constants: references'] += 1
+            elif v & 3 == 0 and lo <= v < hi:
+                label = self.label_for(v)
+                self.lines[p] = ('        DCD      |%s|' % label, label)
+                self.counts['RS constants: addresses of R words'] += 1
 
     def data_pointers(self, data, base, ram_labels, ram_low, ram_high, skip, report, dense=(0, 0)):
         """R3e.1: data words that are exactly a symbol's address; base: data's
@@ -336,6 +395,12 @@ def main():
     cuts.append(len(ro))
 
     src = Source(ro, kinds, symbols, info['slots'], ro_labels)
+    names = {s['name']: s['value'] for s in symbols}
+    soup_low, soup_high = names['gROMSoupData'], names['gROMSoupDataSize']
+    objects = src.object_area(soup_low, soup_high)
+    r_names = sorted((s['value'], s['name']) for s in symbols if soup_high <= s['value'] < len(ro))
+    dense_end = next(v for v, n in r_names if v > soup_high and not (n[:1] == 'R' and len(n) > 1))
+    src.r_constants(soup_high + 4, dense_end, objects)
     src.branches()
     rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
     zi_base = rw_base + len(rw)
@@ -346,8 +411,6 @@ def main():
         for k, v in d.items():
             ram_labels[k] += v
     src.literals(ram_labels, rw_base, zi_base + zi_size)
-    names = {s['name']: s['value'] for s in symbols}
-    soup_low, soup_high = names['gROMSoupData'], names['gROMSoupDataSize']
     report = ['; data words that are exactly a symbol\'s address, by the symbol they are in (R3e.1)']
 
     numbers = re.compile(r'^(gLex8|gEnum80|gSymb80|yy|DESSBoxes)')
@@ -358,10 +421,7 @@ def main():
         k = bisect.bisect_right(src.starts, a) - 1
         return k >= 0 and bool(numbers.match(src.start_names.get(src.starts[k], '')))
 
-    # the R and RS constants: from gROMSoupDataSize to the first other name
-    r_names = sorted((s['value'], s['name']) for s in symbols if soup_high <= s['value'] < len(ro))
-    dense_end = next(v for v, n in r_names if v > soup_high and not (n[:1] == 'R' and len(n) > 1))
-    dense = (soup_high, dense_end)
+    dense = (soup_high, dense_end)     # the R and RS constants
     src.lines.update(src.data_pointers(ro, 0, ram_labels, rw_base, zi_base + zi_size, skip_ro, report, dense))
     rw_lines = src.data_pointers(rw, rw_base, ram_labels, rw_base, zi_base + zi_size, lambda a: False,
                                  report, dense)
