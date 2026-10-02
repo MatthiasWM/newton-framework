@@ -632,14 +632,34 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the flash driver follows): NewtonScript natives for the system
       (serial number, batteries, power, backlight, Gestalt, contrast,
       orientation, tablet bypass, power and heap statistics; newton-re
-      calls it `SystemNatives`). Done (2026-10-02): 36 of its 41
-      functions, 4,368 bytes of code, and the file's data (16 bytes at
+      calls it `SystemNatives`). Done (2026-10-02): 37 of its 41
+      functions, 7,144 bytes of code, and the file's data (16 bytes at
       0x0C104C48: `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4
-      at +12). Left: `FGestalt` (0x201E0C, 2.7 KB, not tried), and three
-      written but `#if 0`, each with a note on what still differs:
-      `FGetHeapStats` (the order of two loads), `SetBatteryType` (r12/lr
-      swapped in a call's setup), `BatteryStatusHelper` (the ROM gives
-      each `if` statement new stack for its temporary; ours reuses).
+      at +12). Three are written but `#if 0`, each with a note on what
+      still differs: `FGetHeapStats` (the order of two loads),
+      `SetBatteryType` (r12/lr swapped in a call's setup),
+      `BatteryStatusHelper` (the ROM gives each `if` statement new stack
+      for its temporary; ours reuses).
+      **Out-of-line copies of inline functions**: the compiler makes them
+      as Common areas `C$$i$<name>` (`RefVar`'s constructor and
+      destructor, for the vector constructor of a `RefVar` array); the
+      linker sorts them after `C$$dtorvec`, so the ROM has them there,
+      unnamed (the "code after C$$dtorvec$$Limit"), and two can have the
+      same bytes. `aof.py`'s `inline_copies` reads off where the ROM's code
+      refers to them (the ROM word where our relocation is: literal words
+      so far); `romasm.py` labels that address `name@0xADDR` (the
+      function itself is elsewhere, with a jump-table slot) and the object
+      refers to the label; such a reference is never sent to the slot.
+      `probe.py` the same with absolute symbols.
+      **Finding the source form**: when only registers or the order of
+      instructions differ, the choice is the whole function's (a change in
+      one case moves registers in another), so trying the plausible forms
+      together pays (`FGestalt`: two forms of a variable times four ways
+      to write `SetArraySlot` (Apple's `SetArraySlot(ARG...)`, the
+      `RefVar` method, `...RefArg`, `...Ref`) twice). The types of Apple's
+      constants decide code: `i < kMaxROMExtensions` (a `const ULong`) is
+      an unsigned compare of a signed `long i`, `i < kMaxPatchCount` (a
+      `#define`) a signed one.
       **Data**: Norcroft addresses a file's own globals from its data
       area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
       static at +12), so a function that uses them is only identical with

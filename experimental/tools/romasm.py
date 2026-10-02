@@ -451,7 +451,7 @@ def write_area(path, area, attrs, data, origin, labels, start, end, lines, pad=N
         f.write('\n'.join(out))
 
 
-def place_object(path, names_once, slots, regions):
+def place_object(path, names_once, slots, regions, ro):
     """R6: read a compiled object for its place in the ROM: (runs, the AOF
     changed, the names it defines, slots used); runs: [(region, start,
     end, [area names])], areas that follow each other in the ROM; region
@@ -464,44 +464,55 @@ def place_object(path, names_once, slots, regions):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from aof import AOF, AREA_COMMON_DEF, AREA_ZERO_INIT
     obj = AOF.read(path)
-    for a in [a for a in obj.areas if a.attributes & AREA_COMMON_DEF]:
-        obj.drop_area(a.name)
-    for a in [a for a in obj.areas if a.size == 0 and not any(s.area == a.name for s in obj.symbols)]:
-        obj.drop_area(a.name)                    # -zo leaves empty areas at the end
-    runs, at = [], {}
-    for a in obj.areas:
-        if a.attributes & AREA_ZERO_INIT:
-            raise ValueError('%s: %s is zero-initialised data: not yet' % (path, a.name))
-        region = 'ro' if a.is_code else 'rw'
-        places = {names_once[s.name] - s.value for s in obj.symbols
-                  if s.is_defined and s.is_global and s.area == a.name and s.name in names_once}
-        if len(places) > 1:
-            raise ValueError('%s: %s has no single place in the ROM (%s)'
-                             % (path, a.name, sorted(hex(v) for v in places)))
-        if places:
-            start = places.pop()
-        elif region in at:
-            start = at[region]
-        else:
-            raise ValueError('%s: %s has no symbol the ROM names' % (path, a.name))
-        low, high = regions[region]
-        if not low <= start and start + a.size <= high:
-            raise ValueError('%s: %s at 0x%X is outside its part of the ROM' % (path, a.name, start))
-        end = start + ((a.size + 3) & ~3)
-        if runs and runs[-1][0] == region and runs[-1][2] == start:
-            runs[-1][2] = end
-            runs[-1][3].append(a.name)
-        else:
-            runs.append([region, start, end, [a.name]])
-        at[region] = end
+    places = {}
+    for k in range(2):           # where its areas go; first to find the inline copies the code refers to
+        if k:
+            inline = obj.inline_copies(ro, places)
+            for a in [a for a in obj.areas if a.attributes & AREA_COMMON_DEF]:
+                obj.drop_area(a.name)        # vtables and inline copies: the generated source has the ROM's
+            for name, address in list(inline.items()):    # the copy's name with its address: the
+                del inline[name]                           # function itself is elsewhere
+                inline['%s@0x%X' % (name, address)] = address
+                obj.rename_symbol(name, '%s@0x%X' % (name, address))
+            for a in [a for a in obj.areas if a.size == 0 and not any(s.area == a.name for s in obj.symbols)]:
+                obj.drop_area(a.name)        # -zo leaves empty areas at the end
+        runs, at = [], {}
+        for a in obj.areas:
+            if a.attributes & AREA_COMMON_DEF:
+                continue
+            if a.attributes & AREA_ZERO_INIT:
+                raise ValueError('%s: %s is zero-initialised data: not yet' % (path, a.name))
+            region = 'ro' if a.is_code else 'rw'
+            spots = {names_once[s.name] - s.value for s in obj.symbols
+                     if s.is_defined and s.is_global and s.area == a.name and s.name in names_once}
+            if len(spots) > 1:
+                raise ValueError('%s: %s has no single place in the ROM (%s)'
+                                 % (path, a.name, sorted(hex(v) for v in spots)))
+            if spots:
+                start = spots.pop()
+            elif region in at:
+                start = at[region]
+            else:
+                raise ValueError('%s: %s has no symbol the ROM names' % (path, a.name))
+            low, high = regions[region]
+            if not low <= start and start + a.size <= high:
+                raise ValueError('%s: %s at 0x%X is outside its part of the ROM' % (path, a.name, start))
+            end = start + ((a.size + 3) & ~3)
+            places[a.name] = start
+            if runs and runs[-1][0] == region and runs[-1][2] == start:
+                runs[-1][2] = end
+                runs[-1][3].append(a.name)
+            else:
+                runs.append([region, start, end, [a.name]])
+            at[region] = end
     defined = {s.name for s in obj.symbols if s.is_defined and s.is_global}
     used_slots = {}
     for s in list(obj.symbols):
-        if s.is_global and s.name in slots:      # defined here or not: Apple's calls go through the slot
+        if s.is_global and s.name in slots and s.name not in inline:   # (an inline copy: the copy)
             used_slots['VEC_' + s.name] = slots[s.name]
             obj.redirect(s.name, 'VEC_' + s.name)
     obj.prune()
-    return [tuple(r) for r in runs], obj, defined, used_slots
+    return [tuple(r) for r in runs], obj, defined, used_slots, inline
 
 
 def write_zi(path, area, labels, start, end):
@@ -691,7 +702,10 @@ def main():
     placed = []                          # (region, start, end, AOF, [area names], path)
     objects = []                         # (AOF, file name)
     for n, path in enumerate(args.object):
-        runs, obj, defined, used_slots = place_object(path, names_once, info['slots'], regions)
+        runs, obj, defined, used_slots, inline = place_object(path, names_once, info['slots'], regions, ro)
+        for name, address in inline.items():         # the inline copies it uses: a label where the ROM has them
+            if name not in ro_labels.setdefault(address, []):
+                ro_labels[address].append(name)
         for region, start, end, areas in runs:
             for other in placed:
                 if region == other[0] and start < other[2] and other[1] < end:

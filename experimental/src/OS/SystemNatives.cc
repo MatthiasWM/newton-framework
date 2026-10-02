@@ -12,7 +12,7 @@
 				0x0C104C48..0x0C104C58. Here so far: 0x203510 (FBatteryCount)
 				.. 0x2038A0 (after GetBatteryStatus) but SetBatteryType,
 				0x203DB8 (FBatteryStatus) .. 0x203DE8, 0x20171C (FGetSerialNumber)
-				.. 0x201E0C (after ExtendedGestalt), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
+				.. 0x2028E4 (after FGestalt), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
 */
@@ -37,6 +37,9 @@
 #include "Frames/NewtonScript.h"
 #include "Recognition/Inker.h"
 #include "OS600/UserPorts.h"
+#include "Toolbox/FixedMath.h"
+#include "Frames/ObjectsPriv.h"
+#include "OS/Gestalt.h"
 
 /*------------------------------------------------------------------------------
 	D a t a
@@ -58,6 +61,7 @@ Ref		FBackLightStatus(RefArg inRcvr);
 Ref		FBackLight(RefArg inRcvr, RefArg inOnOff);
 Ref		FPowerOff(RefArg inRcvr);
 Ref		ExtendedGestalt(RefArg inSpec);
+Ref		FGestalt(RefArg inRcvr, RefArg inSelector);
 Ref		UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace);
 Ref		FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
 Ref		FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
@@ -337,6 +341,150 @@ ExtendedGestalt(RefArg inSpec)
 			}
 		}
 	}
+	return result;
+}
+
+
+/*------------------------------------------------------------------------------
+	Gestalt from NewtonScript.
+	Args:		inRcvr
+				inSelector		an integer selector, or an array (see
+								ExtendedGestalt)
+	Return:		a frame (an array for kGestalt_RexInfo), or nil
+------------------------------------------------------------------------------*/
+
+Ref
+FGestalt(RefArg inRcvr, RefArg inSelector)
+{
+	RefVar		result;
+	TUGestalt	gestalt;
+
+	if (ISINT(inSelector))
+	{
+		switch (RINT(inSelector))
+		{
+		case kGestalt_Version:
+			{
+				TGestaltVersion	info;
+				if (gestalt.Gestalt(kGestalt_Version, &info, sizeof(info)) == noErr)
+				{
+					result = Clone(RA(canonicalgestaltversion));
+					SetFrameSlot(result, SYMA(version), MAKEINT(info.fVersion));
+				}
+			}
+			break;
+
+		case kGestalt_SystemInfo:
+			{
+				TGestaltSystemInfo	info;
+				if (gestalt.Gestalt(kGestalt_SystemInfo, &info, sizeof(info)) == noErr)
+				{
+					result = Clone(RA(canonicalgestaltsysteminfo));
+					SetFrameSlot(result, SYMA(manufacturer), MAKEINT(info.fManufacturer));
+					SetFrameSlot(result, SYMA(machinetype), MAKEINT(info.fMachineType));
+					SetFrameSlot(result, SYMA(romstage), MAKEINT(info.fROMStage));
+					SetFrameSlot(result, SYMA(romversion), MAKEINT(info.fROMVersion));
+					SetFrameSlot(result, SYMA(ramsize), MAKEINT(info.fRAMSize));
+					SetFrameSlot(result, SYMA(screenwidth), MAKEINT(info.fScreenWidth));
+					SetFrameSlot(result, SYMA(screenheight), MAKEINT(info.fScreenHeight));
+					SetFrameSlot(result, SYMA(screenresolutionx), MAKEINT(info.fScreenResolution.h));
+					SetFrameSlot(result, SYMA(screenresolutiony), MAKEINT(info.fScreenResolution.v));
+					SetFrameSlot(result, SYMA(screendepth), MAKEINT(info.fScreenDepth));
+					SetFrameSlot(result, SYMA(patchversion), MAKEINT(info.fPatchVersion));
+					SetFrameSlot(result, SYMA(tabletresolutionx), MAKEINT(FixedRound(info.fTabletResX)));
+					SetFrameSlot(result, SYMA(tabletresolutiony), MAKEINT(FixedRound(info.fTabletResY)));
+					SetFrameSlot(result, SYMA(manufacturedate), MAKEINT(info.fManufactureDate / 60));
+					if (info.fCpuType == 3)
+						SetFrameSlot(result, SYMA(cputype), SYMA(strongarm));
+					if (info.fCpuType == 2)
+						SetFrameSlot(result, SYMA(cputype), SYMA(arm710a));
+					float	cpuSpeed;
+					if (info.fCpuType == 1)
+						SetFrameSlot(result, SYMA(cputype), SYMA(arm610a));
+					cpuSpeed = info.fCpuSpeed;
+					SetFrameSlot(result, SYMA(cpuspeed), MakeReal(cpuSpeed / 65536.0f));
+					UniChar	versionString[16];
+					VersionString(&info, versionString);
+					SetFrameSlot(result, SYMA(romversionstring), MakeString(versionString));
+				}
+			}
+			break;
+
+		case kGestalt_RebootInfo:
+			{
+				TGestaltRebootInfo	info;
+				if (gestalt.Gestalt(kGestalt_RebootInfo, &info, sizeof(info)) == noErr)
+				{
+					result = Clone(RA(canonicalgestaltrebootinfo));
+					SetFrameSlot(result, SYMA(rebootreason), MAKEINT(info.fRebootReason));
+					SetFrameSlot(result, SYMA(rebootcount), MAKEINT(info.fRebootCount));
+				}
+			}
+			break;
+
+		case kGestalt_NewtonScriptVersion:
+			{
+				TGestaltNewtonScriptVersion	info;
+				if (gestalt.Gestalt(kGestalt_NewtonScriptVersion, &info, sizeof(info)) == noErr)
+				{
+					result = Clone(RA(canonicalgestaltversion));
+					SetFrameSlot(result, SYMA(version), MAKEINT(info.fVersion));
+				}
+			}
+			break;
+
+		case kGestalt_PatchInfo:
+			{
+				TGestaltPatchInfo	info;
+				if (gestalt.Gestalt(kGestalt_PatchInfo, &info, sizeof(info)) == noErr)
+				{
+					result = Clone(RA(canonicalgestaltpatchinfo));
+					SetFrameSlot(result, SYMA(ftotalpatchpagecount), MAKEINT(info.fTotalPatchPageCount));
+					RefVar	patches(MakeArray(kMaxPatchCount));
+					RefVar	patch[kMaxPatchCount];
+					for (int i = 0; i < kMaxPatchCount; i++)
+					{
+						patch[i] = Clone(RA(canonicalgestaltpatchinfoarrayelement));
+						SetFrameSlot(patch[i], SYMA(fpatchchecksum), MAKEINT(info.fPatch[i].fPatchCheckSum));
+						SetFrameSlot(patch[i], SYMA(fpatchversion), MAKEINT(info.fPatch[i].fPatchVersion));
+						SetFrameSlot(patch[i], SYMA(fpatchpagecount), MAKEINT(info.fPatch[i].fPatchPageCount));
+						SetFrameSlot(patch[i], SYMA(fpatchfirstpageindex), MAKEINT(info.fPatch[i].fPatchFirstPageIndex));
+						patches.SetArraySlot(i, patch[i]);
+					}
+					SetFrameSlot(result, SYMA(fpatch), patches);
+				}
+			}
+			break;
+
+		case kGestalt_RexInfo:
+			{
+				TGestaltRexInfo	info;
+				if (gestalt.Gestalt(kGestalt_RexInfo, &info, sizeof(info)) == noErr)
+				{
+					result = MakeArray(kMaxROMExtensions);
+					RefVar	rex[kMaxROMExtensions];
+					for (long i = 0; i < kMaxROMExtensions; i++)
+					{
+						rex[i] = Clone(RA(canonicalgestaltrexinfoarrayelement));
+						SetFrameSlot(rex[i], SYMA(signaturea), MAKEINT(info.fRex[i].signatureA));
+						SetFrameSlot(rex[i], SYMA(signatureb), MAKEINT(info.fRex[i].signatureB));
+						SetFrameSlot(rex[i], SYMA(checksum), MAKEINT(info.fRex[i].checksum));
+						SetFrameSlot(rex[i], SYMA(headerversion), MAKEINT(info.fRex[i].headerVersion));
+						SetFrameSlot(rex[i], SYMA(manufacturer), MAKEINT(info.fRex[i].manufacturer));
+						SetFrameSlot(rex[i], SYMA(version), MAKEINT(info.fRex[i].version));
+						SetFrameSlot(rex[i], SYMA(length), MAKEINT(info.fRex[i].length));
+						SetFrameSlot(rex[i], SYMA(id), MAKEINT(info.fRex[i].id));
+						SetFrameSlot(rex[i], SYMA(start), MAKEINT(info.fRex[i].start));
+						SetFrameSlot(rex[i], SYMA(count), MAKEINT(info.fRex[i].count));
+						result.SetArraySlot(i, rex[i]);
+					}
+				}
+			}
+			break;
+		}
+	}
+	else if (IsArray(inSelector))
+		result = ExtendedGestalt(inSelector);
 	return result;
 }
 

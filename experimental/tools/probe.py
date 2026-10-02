@@ -85,8 +85,19 @@ def probe(source, args, rom):
     # every reference to a function with a jump-table slot goes to the slot
     # (R5: Apple's code does so in its own file too)
     aof = AOF.read(obj)
+    # the inline copies the code refers to (Common areas C$$i$...): where
+    # the ROM has them, read off where the code refers to them
+    places, at = {}, None
+    for a in aof.areas:
+        if a.is_code and not a.attributes & AREA_COMMON_DEF:
+            spots = [rom.address(s.name) - s.value for s in aof.symbols
+                     if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+            if spots or at is not None:
+                places[a.name] = spots[0] if spots else at
+                at = places[a.name] + ((a.size + 3) & ~3)
+    inline = aof.inline_copies(rom.ro, places)
     for a in [a for a in aof.areas if a.attributes & AREA_COMMON_DEF]:
-        aof.drop_area(a.name)                  # vtables: not compared
+        aof.drop_area(a.name)                  # vtables, inline copies: not compared
     # -zo: an area per function, kept in order, with room between them where
     # the source leaves a function out (filler areas, below)
     gaps, at = [], None
@@ -106,7 +117,7 @@ def probe(source, args, rom):
                         if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
     rw_option = ['-RW-base', '0x%X' % rw_base[0]] if rw_base else []
     for s in list(aof.symbols):
-        if s.is_global and s.name in rom.slots:
+        if s.is_global and s.name in rom.slots and s.name not in inline:
             aof.redirect(s.name, 'VEC_' + s.name)
     aof.prune()
     aof.write(obj)
@@ -117,6 +128,7 @@ def probe(source, args, rom):
     missing = []
     for name in aof.imports():
         a = rom.slots[name[4:]] if name.startswith('VEC_') and name[4:] in rom.slots else rom.address(name)
+        a = inline.get(name, a)
         if a is None:
             missing.append(name)
             continue

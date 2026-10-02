@@ -229,6 +229,35 @@ class AOF:
                              for o, w in a.relocations]
         self.symbols = [self.symbols[i] for i in keep]
 
+    def inline_copies(self, ro: bytes, places: dict) -> dict:
+        """The compiler's out-of-line copies of inline functions (Common
+        areas named C$$i$<name>: the linker puts them together after the
+        static destructors' table, as they sort after C$$dtorvec; Apple's
+        table names none of them, and two can have the same bytes): where
+        the ROM has each one the code refers to, read off the ROM where the
+        reference is. places: {code area: its address in the ROM}. Words
+        only, so far (a literal holding the function's address).
+        Returns {symbol: address}."""
+        inline = {i for i, s in enumerate(self.symbols)
+                  if s.area and s.area.startswith('C$$i$') and s.is_defined}
+        found = {}
+        for a in self.areas:
+            if a.name not in places:
+                continue
+            for offset, word in a.relocations:
+                k = word & REL_INDEX
+                if not word & REL_SYMBOL or k not in inline:
+                    continue
+                if (word >> 24) & 3 != 2 or word & 0x04000000:
+                    raise ValueError('%s+0x%X: only words so far' % (a.name, offset))
+                at = places[a.name] + offset
+                address = (struct.unpack_from('>I', ro, at)[0]
+                           - struct.unpack_from(self.e + 'I', a.data, offset)[0]) & 0xFFFFFFFF
+                name = self.symbols[k].name
+                if found.setdefault(name, address) != address:
+                    raise ValueError('%s: at 0x%X and 0x%X' % (name, found[name], address))
+        return found
+
     # writing
 
     def to_bytes(self) -> bytes:
