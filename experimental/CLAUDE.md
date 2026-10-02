@@ -405,6 +405,22 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       `OSCalibrationParameters::CalculateROMREXCheckSums` (0x1A71B8) does;
       with the ROM extension appended, the shipping ROM image.
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
+    - [x] **R3h.1 Vectors and the linker's values** (2026-10-02): the
+      exception vectors (0x00..0x1C) are starts for `romcode.py`; the
+      newtonos.s fallback also counts in symbols whose first word we reached
+      as code (`ROMBoot`, `DataAbortHandler`, `DoSchedulerSWI`, reached by
+      branches, not calls: 6,871 words now); `gPackageStart` (0x3C) is
+      `|ROM$$Size|`, the `DataAreaTable` (0x40) `|Load$$root$$Base|`,
+      `|Image$$root$$Base|`, `|Image$$root$$ZI$$Base|`,
+      `|Image$$root$$Length|`, `|Image$$root$$ZI$$Length|` (the linker's
+      own, imported). The shift test counts the RW data's load address and
+      the image's end as moving too (they grow with RO). Identical to
+      Apple's; the shift test at 0x3011C: 5 crossing branches don't follow
+      (3 in code without symbol or prologue after `C$$dtorvec$$Limit`, 2 in
+      `ExitCPUFIQAtomic`, which nothing we follow reaches), no errors.
+    - [ ] **R3h.2** The rest of the first 64 KB (tables, literals below
+      0x10000 that are addresses), those 5 branches, and a check that the
+      floating-point emulator holds no absolute addresses of itself.
     Not the floating-point emulator (`FP_UndefHandlers_Start` 0x38D8DC on):
     ARM's fallback for a CPU without floating point, likely a library
     module linked in (Matt): it stays a block of bytes; check only that it

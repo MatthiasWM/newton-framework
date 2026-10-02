@@ -55,6 +55,11 @@ move.
   offset (p % 32) * 0x80), so it is written as `B |function|-&D`, D its
   virtual minus its physical address (a constant: the linker then encodes
   it right wherever the function is).
+- R3h: the linker's values at the ROM's start: gPackageStart (0x3C) is
+  |ROM$$Size|; the DataAreaTable (0x40: "data", then the RAM data's load
+  address, run address, zero-init address, lengths) is |Load$$root$$Base|,
+  |Image$$root$$Base|, |Image$$root$$ZI$$Base|, |Image$$root$$Length|,
+  |Image$$root$$ZI$$Length| (imported: the linker makes them).
 - R3e.1: a data word (in the read-only part, not code and not in the
   NewtonScript object area gROMSoupData..gROMSoupDataSize; or in the RW
   data) whose value is exactly where a symbol starts (from 0x10000 up), a
@@ -422,6 +427,10 @@ def main():
     dense_end = next(v for v, n in r_names if v > soup_high and not (n[:1] == 'R' and len(n) > 1))
     src.r_constants(soup_high + 4, dense_end, objects)
     src.jump_table(info['jump_table']['rom_address'], info['jump_table']['count'])
+    linker_words = {names['gPackageStart']: 'ROM$$Size'}
+    for k, n in enumerate(('Load$$root$$Base', 'Image$$root$$Base', 'Image$$root$$ZI$$Base',
+                           'Image$$root$$Length', 'Image$$root$$ZI$$Length')):
+        linker_words[names['DataAreaTable'] + 4 + 4 * k] = n
     src.branches()
     rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
     zi_base = rw_base + len(rw)
@@ -446,6 +455,8 @@ def main():
     src.lines.update(src.data_pointers(ro, 0, ram_labels, rw_base, zi_base + zi_size, skip_ro, report, dense))
     rw_lines = src.data_pointers(rw, rw_base, ram_labels, rw_base, zi_base + zi_size, lambda a: False,
                                  report, dense)
+    for a, n in linker_words.items():          # R3h, after R3e.1 (which saw some as RAM addresses)
+        src.lines[a] = ('        DCD      |%s|' % n, n)
     with open(os.path.join(args.out, 'data-pointers.txt'), 'w') as f:
         f.write('\n'.join(report) + '\n')
 

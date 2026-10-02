@@ -93,8 +93,12 @@ def main():
         v, n, c = syms[i]
         return '%s+0x%X' % (n, a - v), c
 
+    rw_size = info['image']['rw_size']
+
     def moves(addr):
-        return P <= addr < ro_size
+        # in the read-only part, and its end: where the RW data is loaded,
+        # and the image's end (Load$$root$$Base, ROM$$Size)
+        return P <= addr <= ro_size + rw_size
 
     with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
         kinds = f.read()

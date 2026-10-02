@@ -3,7 +3,8 @@
 
     romcode.py <rom-dir> [--compare kinds.bin]
 
-Starts at every function the jump table names (each slot's target), at
+Starts at the exception vectors (0x00..0x1C: the CPU jumps there), at
+every function the jump table names (each slot's target), at
 every code symbol that looks like a function (below), at the static
 constructors and destructors (the pointers between C$$ctorvec$$Base and
 $$Limit, C$$dtorvec$$Base and $$Limit), and at every compiler prologue not
@@ -32,7 +33,8 @@ table's fillers have), and the start of the next symbol in Apple's table
 address an `ADR` (ADD/SUB Rd, pc, #n) makes is data the code refers to.
 
 With --compare, newtonos.s's instructions (romkinds.py) inside a function
-we followed, where we did not get to, are taken as code too ('n'): code
+we followed (or a symbol whose first word we reached as code), where we
+did not get to, are taken as code too ('n'): code
 after a return that no branch we know reaches (computed jumps, tables of
 addresses, callbacks); never in a symbol we did not follow as a function.
 
@@ -83,6 +85,7 @@ def main():
         for v in low.get(name, ()):
             if 0 <= v < size and v % 4 == 0:
                 seeds.add(v)
+    seeds |= set(range(0, 0x20, 4))      # the exception vectors
     work = sorted(seeds)
     functions = set(seeds)
     counts = Counter()
@@ -257,7 +260,7 @@ def main():
             if mark[i] == 0 and kinds[i] == ord('i'):
                 a = 4 * i
                 k = bisect.bisect_right(all_starts, a) - 1
-                if k >= 0 and all_starts[k] in functions:
+                if k >= 0 and (all_starts[k] in functions or mark[all_starts[k] // 4] == C):
                     mark[i] = ord('n')
                     counts['code by newtonos.s inside a followed function'] += 1
 
