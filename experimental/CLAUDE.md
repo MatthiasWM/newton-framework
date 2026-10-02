@@ -895,13 +895,38 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       `Printing/Printer.h` (`TPrinter`, `TDotPrinter`, layouts with
       newton-re's findings), `QD/QDDrawing.h`): 24,636 from 12. A member
       function hides a global one of the same name (`OpenPort`): call the
-      global as `::OpenPort`. Next: `TEdgeListDomain` and
-      `TEdgeListUnit` (0x20E3F8, an unnamed static function first). Lesson from
+      global as `::OpenPort`. Lesson from
       TDictChain: writing `this->` before a call (`this->Delete(index)`)
       changes which registers the compiler uses (two functions came right
-      so). `TController` (0x209E84..0x20C764, about 60
-      functions)
-      `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) is
+      so).
+      **`src/Recognition/EdgeList.cc`** (2026-10-02): the gesture domain,
+      `TEdgeListDomain` and `TEdgeListUnit` (0x20E3F8..0x20F044): 17 of 20
+      in place, all identical, 1,312 bytes (25,948 from 13). Headers
+      `Recognition/RecUnit.h` (`TUnit` with its 42 virtual functions in
+      vtable order, `TSIUnit`, `TStroke`, `TStrokeUnit`, `SamplePt`),
+      `Controller.h`, `EdgeList.h`. `#if 0`: the corner search (a static
+      function first in the file, 3 words: one subtraction's loads in the
+      other order), `FindCorners` (identical, but it calls the static
+      one, which has no name to call it by while it is generated), and
+      `Collapse2` (19 words, registers). Lessons: a local `ULong type =
+      kEdgeListDomainType;` passed on (not the constant) gave the ROM's
+      registers twice; the ROM calls `DoneUsingUnit`, not `Invalidate`
+      (count vtable entries from the base class's, `tools/vtable.py`
+      names them); a `goto` to the success path put the failure block
+      first; a local copy of the parameter used for some calls but not
+      others (`unit->SetInterpretation`, `inUnit->GetSub`); a stack slot
+      the code fills before an `if` and reads in both branches can be a
+      common subexpression (`&inPts[inFirst]`), not a variable; values
+      the ROM recomputes (`max1 - min1` after a call) are written out, not
+      kept in variables; `flip = !flip` stored unmasked is a `long`;
+      Apple's inline `Max` and `Abs` (`NewtonWidgets.h`) show as a 0
+      loaded into a register and `MOVGE` before `RSBLT`; chained
+      assignments are stored right to left (`flip1 = min1Ref = min2Ref =
+      flip2 = 0`). `probe.py` and `romasm.py` place static functions at a
+      file's start before its first named function.
+      Next: `TFaxDriver` (0x20F044). `TController` (0x209E84..0x20C764,
+      about 60 functions) and
+      `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) are
       left for when the recognition headers are further along. Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
