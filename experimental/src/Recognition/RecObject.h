@@ -124,7 +124,10 @@ public:
 class TDArray : public TArray
 {
 public:
+						TDArray();
+
 	static TDArray *	Make(ULong inElementSize, ULong inSize);
+	long				IDArray(ULong inElementSize, ULong inSize);
 
 	virtual long		Delete(ULong index);
 	virtual long		DeleteEntries(ULong index, ULong inCount);

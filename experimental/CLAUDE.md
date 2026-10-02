@@ -882,8 +882,10 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       3 sources; after the ADSP connection: 16,444 bytes from 4 sources;
       after the telephony options and the agent reporter: 18,328 bytes from
       6 sources; after TArray: 19,920 bytes from 7; after TCommServer:
-      21,552 from 8; the whole image identical). Next: `TController`
-      (0x209E84);
+      21,552 from 8; after TDArray (`src/Recognition/DArray.cc`, all 8
+      identical): 22,396 from 9; the whole image identical). Next:
+      `TDictChain` (0x20CAB0); `TController` (0x209E84..0x20C764, about 60
+      functions)
       `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) is
       left for when the recognition headers are further along. Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.

@@ -146,3 +146,20 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
   runs for testing only).
 - Fix: `if ((options = NewHandle(...)) == NULL) return -3;` as in the
   other branch.
+
+## B9 TDArray::InsertEntries: the destination is taken before the array grows (confirmed)
+
+- ROM: `TDArray::InsertEntries`, 0x20C9F8..0x20CAB0.
+- Source: `src/Recognition/DArray.cc`, `InsertEntries`.
+- What it does: to insert `count` entries at `index` it takes
+  `src = GetEntry(index)` and `dst = GetEntry(index + count)`, then grows
+  the Handle with `ResizeHandle`, then moves the entries from `index` up
+  to `dst` and copies the new ones to `src`.
+- Effect: `GetEntry` checks the index against the old size: when `index +
+  count` reaches past the last entry (inserting more entries than follow
+  `index`), `dst` is NULL and the move writes `(size - index)` entries to
+  address 0. And if `ResizeHandle` moves the Handle, both pointers point
+  into the old block. (`Insert`, for one entry, takes its pointers after
+  growing.)
+- Fix: grow first, then take both pointers from the grown Handle (and
+  compute `dst` without `GetEntry`'s range check).
