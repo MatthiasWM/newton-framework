@@ -934,8 +934,10 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
 Done: quiet output, speed (release build), the busy cursor (2026-10-01);
 text conversion by extension for input and output, binary files never
 touched, text files read into memory when opened (2026-10-02).
-Open (2026-10-02): `ARMCpp` crashes ("pc out of bounds: 0x73206572", text
-as a pc) after it has written the object, when its summary line `###
-"file": n warnings (+ m suppressed), ...` names a long path (an absolute
-Unix path, about 160 characters in all; the same file given as a relative
-path is fine). The CMake build now compiles with relative paths.
+None open. **Paths stay short** (Matt, 2026-10-02): classic Mac tools
+expect names of up to 64 characters, 255 where Pascal strings are
+involved; `ARMCpp` crashes ("pc out of bounds") after writing its object
+when its summary line `### "file": n warnings ...` names a long absolute
+path. So the tools are run with relative paths (the CMake build, like
+probe.py, compiles from `experimental/` with `-I includes -I src
+src/...`).
