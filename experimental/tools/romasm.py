@@ -464,7 +464,7 @@ def place_object(path, names_once, slots, regions, ro):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from aof import AOF, AREA_COMMON_DEF, AREA_ZERO_INIT
     obj = AOF.read(path)
-    places = {}
+    places, named = {}, {}
     for k in range(2):           # where its areas go; first to find the inline copies the code refers to
         if k:
             inline = obj.inline_copies(ro, places)
@@ -476,6 +476,9 @@ def place_object(path, names_once, slots, regions, ro):
                 obj.rename_symbol(name, '%s@0x%X' % (name, address))
             for a in [a for a in obj.areas if a.size == 0 and not any(s.area == a.name for s in obj.symbols)]:
                 obj.drop_area(a.name)        # -zo leaves empty areas at the end
+            referenced = obj.referenced_areas(ro, named)   # unnamed constant data
+        else:
+            referenced = {}
         runs, at = [], {}
         # static functions at the start of a file (no name in Apple's
         # table) go right before the first area with a known place
@@ -503,7 +506,9 @@ def place_object(path, names_once, slots, regions, ro):
                 raise ValueError('%s: %s has no single place in the ROM (%s)'
                                  % (path, a.name, sorted(hex(v) for v in spots)))
             if spots:
-                start = spots.pop()
+                start = named[a.name] = spots.pop()
+            elif a.name in referenced:
+                start = referenced[a.name]
             elif a.name in lead:
                 start = lead[a.name]
             elif region in at:

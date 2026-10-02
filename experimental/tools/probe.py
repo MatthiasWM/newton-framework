@@ -145,7 +145,7 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     # (R5: Apple's code does so in its own file too)
     # the inline copies the code refers to (Common areas C$$i$...): where
     # the ROM has them, read off where the code refers to them
-    places, at = {}, None
+    places, named, at = {}, {}, None
     for a in aof.areas:
         if a.is_code and not a.attributes & AREA_COMMON_DEF:
             spots = [address(s.name) - s.value for s in aof.symbols
@@ -153,9 +153,12 @@ def compare(source, compiled, base, args, rom, leave_out=()):
             if spots or at is not None:
                 places[a.name] = spots[0] if spots else at
                 at = places[a.name] + ((a.size + 3) & ~3)
+                if spots:
+                    named[a.name] = spots[0]
     inline = aof.inline_copies(rom.ro, places)
     for a in [a for a in aof.areas if a.attributes & AREA_COMMON_DEF]:
         aof.drop_area(a.name)                  # vtables, inline copies: not compared
+    referenced = aof.referenced_areas(rom.ro, named)    # unnamed constant data
     # -zo: an area per function, in ROM order (where its function is; an
     # area without a known function follows the one before it in the
     # object), with room between them where the source leaves a function
@@ -165,7 +168,7 @@ def compare(source, compiled, base, args, rom, leave_out=()):
     for a in code:
         places = [address(s.name) - s.value for s in aof.symbols
                   if s.area == a.name and s.is_defined and s.is_global and address(s.name) is not None]
-        known[a.name] = places[0] if places else None
+        known[a.name] = places[0] if places else referenced.get(a.name)
     leading_static_areas(code, known)
     spot, at = {}, None
     for a in code:

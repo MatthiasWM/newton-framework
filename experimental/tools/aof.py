@@ -261,6 +261,39 @@ class AOF:
                     raise ValueError('%s: at 0x%X and 0x%X' % (name, found[name], address))
         return found
 
+    def referenced_areas(self, ro: bytes, places: dict) -> dict:
+        """Areas without a name Apple's table has (a file's constant data,
+        C$$cd_<file>, holding only templates for local aggregates): where
+        the ROM has each, read off the ROM word where placed code refers to
+        it (a literal: the area's address plus an offset, through a local
+        symbol such as x$constdata or by area). places: {area: its address
+        in the ROM}. Where references disagree (code that differs from the
+        ROM's, in a probe), the address most of them give. Returns {area
+        name: address}."""
+        votes = {}
+        for a in self.areas:
+            if a.name not in places:
+                continue
+            for offset, word in a.relocations:
+                if (word >> 24) & 3 != 2 or word & 0x04000000:
+                    continue                    # words only, not branches
+                k = word & REL_INDEX
+                if word & REL_SYMBOL:
+                    s = self.symbols[k]
+                    if not s.is_defined or s.is_global or not s.area:
+                        continue
+                    target, value = s.area, s.value
+                else:
+                    target, value = self.areas[k].name, 0
+                if target in places:
+                    continue
+                at = places[a.name] + offset
+                address = (struct.unpack_from('>I', ro, at)[0] - value
+                           - struct.unpack_from(self.e + 'I', a.data, offset)[0]) & 0xFFFFFFFF
+                count = votes.setdefault(target, {})
+                count[address] = count.get(address, 0) + 1
+        return {target: max(count, key=count.get) for target, count in votes.items()}
+
     # writing
 
     def to_bytes(self) -> bytes:
