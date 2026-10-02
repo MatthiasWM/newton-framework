@@ -387,7 +387,23 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     in slots (round values such as 0x40004, 0x300000: flags; none at a
     function's start). Left elsewhere: 28,281 in other read-only data,
     2,456 in the RW data (R3e.2).
-  - [ ] **R3g The jump table and the checksums**, built after the link.
+  - [ ] **R3g The jump table and the checksums.**
+    - [x] **R3g.1 The jump table** (2026-10-02): entry i at 0x2000 + 4i is a
+      `B` encoded from its virtual address (0x01A00000 + page * 0x1000 +
+      (page % 32) * 0x80 + slot * 4, page = i / 32), so it is written as
+      `B |function|-&D` with D its virtual minus its physical address: a
+      branch to a label with a constant subtracted, which ARM6asm and
+      ARMLink take (tested), so the linker encodes it right wherever the
+      function is; no tool after the link. 16,919 entries; identical to
+      Apple's; the shift test: all 16,919 right in the shifted ROM. The
+      public jump table (`gROMPublicJumpTable` 0x13000..0x15E0C, entry i a
+      `B` from 0x01800000 + 4i to a slot of the first table) never
+      changes: both ends fixed; the shift test checks it stays so.
+    - [ ] **R3g.2 The checksums and the shipping image**: the checksum
+      block at 0x18420 (`gDiagType`, `gPhysROMAcsum`..`Hcsum`; placeholders
+      in the link, as in Apple's AIF) computed as
+      `OSCalibrationParameters::CalculateROMREXCheckSums` (0x1A71B8) does;
+      with the ROM extension appended, the shipping ROM image.
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
     Not the floating-point emulator (`FP_UndefHandlers_Start` 0x38D8DC on):
     ARM's fallback for a CPU without floating point, likely a library

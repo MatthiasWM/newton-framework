@@ -98,7 +98,15 @@ def main():
 
     with open(os.path.join(args.rom, 'kinds.bin'), 'rb') as f:
         kinds = f.read()
-    counts = {k: [0, 0] for k in ('branch', 'pointer', 'branch-like data')}
+    counts = {k: [0, 0] for k in ('branch', 'pointer', 'branch-like data', 'jump table')}
+    jt = info['jump_table']
+    jt_low, jt_high = jt['rom_address'], jt['rom_address'] + 4 * jt['count']
+    names = {s_['name']: s_['value'] for s_ in info['symbols']}
+    pjt_low, pjt_high = names['gROMPublicJumpTable'], names['gROMPublicJumpTableEnd']
+
+    def virtual(i):
+        page, slot = divmod(i, 32)
+        return 0x01A00000 + page * 0x1000 + (page % 32) * 0x80 + slot * 4
     errors = 0
     report = []
     total = len(base) // 4
@@ -110,6 +118,21 @@ def main():
         expected = None
         kind = None
         name, cls = where(a) if a < ro_size else ('(RW data)', 'data')
+        if jt_low <= a < jt_high:             # the jump table: from virtual addresses
+            t = branch_target(w, virtual((a - jt_low) // 4))
+            expected = (w & 0xFF000000) | ((w + (N // 4 if moves(t) else 0)) & 0xFFFFFF)
+            if w2 == expected:
+                counts['jump table'][0] += 1
+            else:
+                counts['jump table'][1] += 1
+                report.append('jtable   0x%07X %-60s 0x%08X became 0x%08X, should be 0x%08X'
+                              % (a, name, w, w2, expected))
+            continue
+        if pjt_low <= a < pjt_high:           # the public jump table: to slots, which stay
+            if w2 != w:
+                errors += 1
+                report.append('ERROR    0x%07X %-60s 0x%08X became 0x%08X' % (a, name, w, w2))
+            continue
         if a < ro_size and cls == 'code' and is_branch(w) and kinds[a // 4] != ord('i'):
             t = branch_target(w, a)
             if moves(a) != moves(t):
@@ -154,8 +177,9 @@ def main():
         f.write('\n'.join(report) + '\n')
     print('padding: %d bytes before 0x%X (%s)' % (N, P, where(P)[0]))
     print('branches that cross it:   %6d followed, %6d did not' % tuple(counts['branch']))
-    print('data words shaped so:     %6d followed, %6d did not (the public jump table, data)'
+    print('data words shaped so:     %6d followed, %6d did not (data)'
           % tuple(counts['branch-like data']))
+    print('jump-table entries:       %6d right,    %6d wrong' % tuple(counts['jump table']))
     print('addresses past it:        %6d followed, %6d did not (candidates)' % tuple(counts['pointer']))
     print('other changes (errors):   %6d' % errors)
     print('the ones that did not: %s' % os.path.join(args.out, 'report.txt'))

@@ -49,6 +49,12 @@ move.
   other name): an R word holds a Ref to an object (`DCD |label|+1`) or a
   magic pointer (a number); an RS word the address of an R word (`DCD
   |label|`, a label made where the word has no symbol).
+- R3g: the jump table (at the jump_table address, romsyms.py): entry i is
+  a `B function` encoded from its virtual address (the MMU shows the table
+  sparsely from 0x01A00000: 32 entries a 4 KB page, page p's entries at
+  offset (p % 32) * 0x80), so it is written as `B |function|-&D`, D its
+  virtual minus its physical address (a constant: the linker then encodes
+  it right wherever the function is).
 - R3e.1: a data word (in the read-only part, not code and not in the
   NewtonScript object area gROMSoupData..gROMSoupDataSize; or in the RW
   data) whose value is exactly where a symbol starts (from 0x10000 up), a
@@ -178,6 +184,20 @@ class Source:
             expr = '|%s|' % label + ('+%d' % off if off else '')
             self.lines[a] = ('        DCD      %s' % expr, label)
             self.counts[kind] += 1
+
+    def jump_table(self, rom_address, count):
+        """R3g: the jump table's entries, encoded from their virtual addresses."""
+        def virtual(i):
+            page, slot = divmod(i, 32)
+            return 0x01A00000 + page * 0x1000 + (page % 32) * 0x80 + slot * 4
+        for i in range(count):
+            p = rom_address + 4 * i
+            w = struct.unpack_from('>I', self.ro, p)[0]
+            v = virtual(i)
+            t = branch_target(w, v)
+            label = self.label_for(t)
+            self.lines[p] = ('        B        |%s|-&%X' % (label, v - p), label)
+            self.counts['jump table entries'] += 1
 
     def object_area(self, lo, hi):
         """R3f: the NewtonScript objects in [lo, hi)."""
@@ -401,6 +421,7 @@ def main():
     r_names = sorted((s['value'], s['name']) for s in symbols if soup_high <= s['value'] < len(ro))
     dense_end = next(v for v, n in r_names if v > soup_high and not (n[:1] == 'R' and len(n) > 1))
     src.r_constants(soup_high + 4, dense_end, objects)
+    src.jump_table(info['jump_table']['rom_address'], info['jump_table']['count'])
     src.branches()
     rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
     zi_base = rw_base + len(rw)
