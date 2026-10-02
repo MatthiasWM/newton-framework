@@ -16,6 +16,17 @@
 #include "Frames/ConfigFrames.h"
 #endif
 
+// On the Newton the classes below are TObjectPtr and DataPtr (the ROM's
+// names); ConfigFrames.h's useTFramesObjectPtr and useTBinaryDataPtr
+// rename them for the desktop. This header was published with the
+// desktop's names: put back for the Newton (experimental, 2026-10-02).
+#ifndef useTFramesObjectPtr
+	#define TFramesObjectPtr TObjectPtr
+#endif
+#ifndef useTBinaryDataPtr
+	#define TBinaryDataPtr DataPtr
+#endif
+
 // ---------------------------------------------------------------------------
 // A function that takes more than one argument cannot safely take any Ref
 // arguments, since it would be possible to invalidate a Ref argument in the
