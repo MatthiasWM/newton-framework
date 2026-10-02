@@ -3,7 +3,8 @@
 
     romlink.py --bin <tools> --src <romasm output> --rom <romsyms output> --out <dir>
 
-Assembles every file in files.txt with ARM6asm (in parallel), links them in
+Assembles every file in files.txt with ARM6asm (in parallel; objects, .o,
+are taken as they are), links them in
 that order with ARMLink (the options in link.txt: an AIF image, with the
 scatter file), and compares with Apple's AIF: its read-only and read-write
 parts (ro.bin + rw.bin), the header's sizes, and the linker's own symbols
@@ -39,6 +40,8 @@ def build(bin_dir, src, out):
     t = time.time()
 
     def assemble(name):
+        if name.endswith('.o'):                    # a compiled object, as it is (R6)
+            return name, os.path.join(src, name), (0, '')
         obj = os.path.join(out, os.path.splitext(name)[0] + '.o')
         return name, obj, run([asm, '---text=utf8', '-bigend', os.path.join(src, name), obj])
 

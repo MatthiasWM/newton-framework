@@ -99,6 +99,7 @@ class TGestaltSystemInfo
 		Fixed		fTabletResY;
 		ULong		fCpuType;
 		Fixed		fCpuSpeed;
+		ULong		fManufactureDate;	// (not in the published header: the 2.1 ROM has it, 60 bytes)
 };
 
 class TGestaltRebootInfo

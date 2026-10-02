@@ -35,10 +35,15 @@ doesn't know about it.
   `ConfigToolbox.h` (which reaches `NewtonTime.h`, whose inlines call them),
   `OS600/UserSemaphore.h` casts `(void**)&fSem`, `Packages/PartHandler.h`
   says `friend class`. None of this can change the code the compiler makes.
+  One change does, to match the ROM (2026-10-02): `OS600/NewtonGestalt.h`'s
+  `TGestaltSystemInfo` ends with `fManufactureDate` (the 2.1 ROM's is 60
+  bytes; the published header is older).
   Not C: `Lantern/LanternNS.f.h`, `LanternNSEvents.f.h` (NewtonScript
   definitions, included by nothing). The html, latex and xml folders are
   Doxygen output.
-- `src/`: the source tree we rebuild (empty so far).
+- `src/`: the source tree we rebuild (R6): C++ compiled with Apple's
+  compiler and put in place of its functions; the rest of the ROM is
+  generated assembler.
 - `CMakeLists.txt`, `tools/`, `probes/`: the build (below). `cmake -S
   experimental -B experimental/build`; `cmake --build experimental/build`
   writes the ROM's parts and symbols (`build/rom/`); `--target check` runs
@@ -104,8 +109,9 @@ with a frame pointer, as in the ROM.
 **Running the tools** (mosrun rebuilt by Matt, release build, 2026-10-01;
 every object the same as with the first tools).
 - **Standard compiler options**: `ARMCpp ---text=utf8 -c -bigend -fc
-  -DforARM -DforQ -I<experimental>/includes` (the probes: the same objects
-  as with `-bigend` alone). `forQ` is the MessagePad 2x00
+  -DforARM -DforQ -DQD_Gray -I<experimental>/includes` (the probes: the
+  same objects as with `-bigend` alone; `QD_Gray`, the 2x00's gray
+  screen, since 2026-10-02: `PixelMap` has its `grayTable`, as the ROM). `forQ` is the MessagePad 2x00
   (`ConfigGlobal.h`: Voyager, ARM7, sound input, internal mic); `forARM`
   gives `TTime` and more. `-fc` (limited pcc compatibility) allows `$` in
   identifiers (`OS600/ROMExtension.h`: `ROM$$Size`, the linker's symbol)
@@ -194,13 +200,14 @@ one `B function` per entry (16,723 in the German ROM); the MMU shows it at
 each owning a 128-byte slice), so a ROM extension can patch it a page at a
 time; each `B` is encoded relative to its **virtual** address. Apple's
 symbol table has every exported function **twice**, at its real address and
-at its slot, under the same name. That fits a link where a function's
-definition is local to its object and a jump-table object exports the name
-at the slot address: calls within a file stay direct (the 12 exceptions),
-every other reference gets the slot. For us: a callee still in the ROM's
-bytes is an absolute symbol at its `VEC_` address (that is how
-`FGetOrientation` came out identical); for our own objects the same trick
-(definitions made local, R5).
+at its slot, under the same name. **Every** reference to a function with
+an entry goes to the slot, in its own file too (`FSetOrientation` calls
+`SetOrientation`, right after it, through `VEC_SetOrientation__Fl`): only
+the 12 hand-written exceptions above call directly. The compiler makes a
+relocation for every call, even within a file (to a static function too),
+so the link can send them all to the slot (R5). For us: a reference to a
+function with a slot is to its absolute symbol `VEC_Name` (that is how
+`FGetOrientation` came out identical).
 
 ## Plan (revised 2026-10-02: relocatable)
 
@@ -578,22 +585,51 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
     are, so `VEC_` addresses are fixed.
   - **Hand-written assembler** (vectors, boot, SWI, atomic helpers, the
     parameter block at 0x1000) the same way, later as `ARM6asm` source.
-- [ ] **R4 AOF in Python.** `tools/aof.py`: read ARM Object Format (areas,
-      attributes, symbols, relocations), checked against `DumpAOF`; write
-      it, to change symbol attributes (R5).
-- [ ] **R5 The jump table for our own objects.** As Apple's: a function in
-      the table is local in its object, a jump-table object exports its
-      name at the slot, so other files call the slot and its own file calls
-      it directly. Test: two compiled functions, one calling the other.
-- [ ] **R6 C++ in place.** A function's compiled object replaces its
-      assembler unit (R3 makes that possible at any size; the same size
-      keeps the image identical). Vtables: a class's vtable comes from the
-      file with its functions (Common areas, so the generated one gives
-      way). Then whole source files: find the original files' extents
-      (function order, literal pools and strings, static data), start from
-      the port's C++ and newton-re's `src/` (both cite ROM addresses),
-      turned into 32-bit code with Apple's headers; missing headers
-      reconstructed in `src/`. Track how many bytes come from source.
+- [x] **R4 AOF in Python.** Done (2026-10-02): `tools/aof.py` reads and
+      writes AOF. Written back unchanged, every object comes out byte for
+      byte (the compiler's and the assembler's chunk orders differ: each
+      file's own is kept; `aof.py --check`, in the `check` target).
+      Changes: `rename_area`, `rename_symbol`, `redirect` (relocations to a
+      symbol sent to another, an import added), `drop_area` (its symbols
+      become imports; relocations by area index renumbered), `prune`
+      (imports nothing refers to left out). Apple's `DumpAOF` reads the
+      changed objects.
+- [x] **R5 The jump table for our own objects.** Done (2026-10-02), not as
+      planned: Apple's code calls through the slot in its own file too
+      (see "The jump table"), so `romasm.py` sends every relocation to a
+      global symbol with a slot to `VEC_Name` (an absolute symbol in
+      `abs.a`), defined in the object or not. Tested with
+      `SetOrientation`, called by `FSetOrientation` in the same file.
+- [ ] **R6 C++ in place.** Started (2026-10-02). `src/` holds the source
+      tree (folders as the port's; a file may cover part of an original
+      file, its header comment says which ROM range). CMake compiles each
+      `src/**/*.cc` (`*.cp`) with the standard options into
+      `build/src/`, and `romasm.py --object` puts each object in place: its
+      one code area goes where its functions are in Apple's table (the
+      generated source leaves those bytes and labels out), renamed to sort
+      between the generated pieces (`ROM$$RO$$09`, `ROM$$RO$$09$$01` the
+      object, `ROM$$RO$$09$$02`: the linker orders areas by name); its
+      vtables (Common areas) are dropped, the generated source has the
+      ROM's; references to slot functions go to the slot (R5). It stops if
+      something outside needs a label inside (a branch into the middle, a
+      PC-relative load across the edge) or the range crosses a file
+      boundary. `romlink.py` links `.o` files in `files.txt` as they are.
+      The check: the whole image identical to Apple's. Changing a source
+      changes the image (tested: `return 77` instead of 76 in the probe:
+      one word, at 0x188D38).
+      First file: `src/Graphics/Screen.cc`, `FGetOrientation`,
+      `FSetOrientation`, `SetOrientation` (0x202AE4..0x202C6C, 392
+      bytes). What it took: `QD_Gray` defined (`PixelMap` has a
+      `grayTable`, 28 bytes: now a standard option), and
+      `TGestaltSystemInfo` has `fManufactureDate` at its end in the ROM (60
+      bytes; the published header lacks it: added).
+      Next: more files. Find the original files' extents (function order,
+      literal pools and strings, static data), start from the port's C++
+      and newton-re's `src/` (both cite ROM addresses), turned into 32-bit
+      code with Apple's headers; missing headers reconstructed in `src/`.
+      Track how many bytes come from source. Static data (`C$$data`,
+      `C$$zidata` areas) and vtables from source: not yet (an object
+      must have one code area).
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
       check it matches), hand-written assembler with `ARM6asm`.
 - [ ] **R8 NewtonScript as source.** The object area from an editable tree

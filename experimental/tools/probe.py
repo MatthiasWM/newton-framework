@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aof import AOF  # noqa: E402
 
-CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-DforARM', '-DforQ']
+CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-DforARM', '-DforQ', '-DQD_Gray']
 
 
 def run(cmd):

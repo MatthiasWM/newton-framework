@@ -2,8 +2,8 @@
 # Independent of newtc's build:
 #
 #   cmake -S experimental -B experimental/build
-#   cmake --build experimental/build            the ROM's parts, symbols and
-#                                               assembler source
+#   cmake --build experimental/build            the ROM's parts, symbols,
+#                                               src/ compiled, assembler source
 #   cmake --build experimental/build --target check
 #                                               the probes and the whole ROM
 #                                               against Apple's image
@@ -56,17 +56,43 @@ add_custom_command(
   COMMENT "Instructions and data words (tools/romkinds.py)"
   VERBATIM)
 
-# R2: the ROM as assembler source (generated), assembled and linked back
+# R6: the source tree, compiled with Apple's compiler and the standard
+# options; each object goes in place of its functions (romasm.py --object)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.cc" "${CMAKE_SOURCE_DIR}/src/*.cp")
+set(OBJECTS)
+set(OBJECT_OPTIONS)
+foreach(source ${SOURCES})
+  file(RELATIVE_PATH rel "${CMAKE_SOURCE_DIR}/src" "${source}")
+  get_filename_component(dir "${rel}" DIRECTORY)
+  get_filename_component(stem "${rel}" NAME_WE)
+  set(object "${CMAKE_BINARY_DIR}/src/${dir}/${stem}.o")
+  add_custom_command(
+    OUTPUT "${object}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/src/${dir}"
+    COMMAND "${TOOLS}/ARMCpp" ---text=utf8 -c -bigend -fc -DforARM -DforQ -DQD_Gray
+            -I "${INCLUDES}" "${source}" -o "${object}"
+    DEPENDS "${source}"
+    COMMENT "ARMCpp src/${rel}"
+    VERBATIM)
+  list(APPEND OBJECTS "${object}")
+  list(APPEND OBJECT_OPTIONS --object "${object}")
+endforeach()
+
+# R2: the ROM as assembler source (generated), assembled and linked back,
+# with the compiled sources in place
 set(ROMASM_DIR "${CMAKE_BINARY_DIR}/romasm")
 add_custom_command(
   OUTPUT "${ROMASM_DIR}/files.txt"
   COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}" "${ROMASM_DIR}"
-  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin"
-  COMMENT "The ROM as assembler source (tools/romasm.py)"
+          ${OBJECT_OPTIONS}
+  DEPENDS "${CMAKE_SOURCE_DIR}/tools/romasm.py" "${CMAKE_SOURCE_DIR}/tools/aof.py"
+          "${ROM_DIR}/symbols.json" "${ROM_DIR}/kinds.bin" "${ROM_DIR}/code.bin" ${OBJECTS}
+  COMMENT "The ROM as assembler source, compiled sources in place (tools/romasm.py)"
   VERBATIM)
 add_custom_target(romasm ALL DEPENDS "${ROMASM_DIR}/files.txt")
 
-# the checks: R0's probes, function by function; R2's whole image
+# the checks: R0's probes, function by function; the whole image (R2, R6:
+# generated source and compiled sources)
 file(GLOB PROBES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/probes/*.cp")
 add_custom_target(check
   COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/probe.py"
@@ -75,6 +101,8 @@ add_custom_target(check
   COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romlink.py"
           --bin "${TOOLS}" --src "${ROMASM_DIR}" --rom "${ROM_DIR}"
           --out "${CMAKE_BINARY_DIR}/romlink"
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/aof.py" --check ${OBJECTS}
+          "${CMAKE_BINARY_DIR}/romlink/abs.o"
   DEPENDS rom romasm
   COMMENT "The probes and the whole ROM against Apple's image"
   VERBATIM)
