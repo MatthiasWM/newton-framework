@@ -632,8 +632,8 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       the flash driver follows): NewtonScript natives for the system
       (serial number, batteries, power, backlight, Gestalt, contrast,
       orientation, tablet bypass, power and heap statistics; newton-re
-      calls it `SystemNatives`). Done: 0x2028E4..0x202FF4, 17 functions,
-      1,808 bytes, and the file's data (16 bytes at 0x0C104C48:
+      calls it `SystemNatives`). Done: 0x20171C..0x201E0C and
+      0x2028E4..0x202FF4, 28 functions, 3,584 bytes, and the file's data (16 bytes at 0x0C104C48:
       `gLastBatteryLevel` 100, `gLastWakeupTime`, a static 4 at +12).
       **Data**: Norcroft addresses a file's own globals from its data
       area's base (`LDR r0, =gLastBatteryLevel; LDR r2, [r0, #12]` for the
@@ -659,7 +659,15 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       zero-initialised locals are stored in declaration order. A block
       (`{ }`) gets its own allocation and gives it back at its end (a
       following block reuses it). So the `SUB sp, sp, #n` in the ROM's
-      code shows where the original declared things. Other lessons:
+      code shows where the original declared things. An `if`, `while` or
+      `do` statement gets the stack for its temporaries itself and gives
+      it back at its end; a statement directly in a block shares the
+      block's (so a call kept to the end of the block is a block
+      statement with a `goto` around it: `ExtendedGestalt`). A value that
+      the ROM uses unmasked was an `int`/`long`, not a `Boolean` (which
+      gets `AND #255`). Implicit conversions (`MAKEINT(n)`, `TRUEREF` as a
+      RefArg) and explicit `RefVar(x)` temporaries come out in different
+      stack orders. Other lessons:
       `RefVar x(NILREF)` (not `RefVar x;`) puts NILREF in a register for
       both; a value used in a call's arguments is computed before them
       only if it is in a variable; `goto` to the end, not `return`, gives

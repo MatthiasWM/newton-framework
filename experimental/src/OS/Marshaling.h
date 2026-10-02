@@ -16,5 +16,6 @@
 NewtonErr	MarshalArgumentSize(RefArg inArgs, RefArg inTypes, ULong * outSize, int inCount);
 NewtonErr	MarshalArguments(RefArg inArgs, RefArg inTypes, void ** outBlock, int inCount);
 NewtonErr	MarshalArguments(RefArg inArgs, RefArg inTypes, void * ioBlock, ULong inSize, int inCount);
+Ref			ConstructReturnValue(void * inBlock, RefArg inSpec, long * outErr, int inEncoding);
 
 #endif	/* __MARSHALING_H */

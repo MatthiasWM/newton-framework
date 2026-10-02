@@ -10,7 +10,7 @@
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006), its data
 				0x0C104C48..0x0C104C58. Here so far: 0x20171C (FGetSerialNumber)
-				.. 0x201BFC (after FPowerOff), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
+				.. 0x201E0C (after ExtendedGestalt), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
 */
@@ -54,6 +54,7 @@ Ref		FMinimumBatteryCheck(RefArg inRcvr);
 Ref		FBackLightStatus(RefArg inRcvr);
 Ref		FBackLight(RefArg inRcvr, RefArg inOnOff);
 Ref		FPowerOff(RefArg inRcvr);
+Ref		ExtendedGestalt(RefArg inSpec);
 Ref		UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace);
 Ref		FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
 Ref		FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
@@ -279,6 +280,58 @@ FPowerOff(RefArg inRcvr)
 	case 7:		return SYMA(interconnect);
 	default:	return SYMA(because);
 	}
+}
+
+
+/*------------------------------------------------------------------------------
+	Gestalt for a selector outside the base range, its result described by
+	a NewtonScript spec.
+	Args:		inSpec			[selector, a structure spec array, encoding]
+	Return:		the result, or nil
+------------------------------------------------------------------------------*/
+
+Ref
+ExtendedGestalt(RefArg inSpec)
+{
+	RefVar		result(NILREF);
+	NewtonErr	err = noErr;
+	TUGestalt	gestalt;
+
+	if (ISINT(GetArraySlotRefArg(inSpec, 0)))
+	{
+		GestaltSelector	selector = RINT(GetArraySlotRefArg(inSpec, 0));
+		Boolean	isSpec = IsArray(GetArraySlotRefArg(inSpec, 1));
+		long	isEncoding = ISINT(GetArraySlotRefArg(inSpec, 2));
+		if (isSpec && isEncoding
+		&&  (selector < kGestalt_Base || selector >= kGestalt_Extended_Base))
+		{
+			ULong	size = gParmBlockSize;
+			void *	parmBlock = malloc(size);
+			if (parmBlock != NULL)
+			{
+				err = gestalt.Gestalt(selector, parmBlock, &size);
+				if (size > gParmBlockSize)
+				{
+					gParmBlockSize = size;
+					free(parmBlock);
+					parmBlock = malloc(size);
+					if (parmBlock != NULL)
+						err = gestalt.Gestalt(selector, parmBlock, &size);
+				}
+				{
+					if (err != noErr)
+						goto failed;
+					result = ConstructReturnValue(parmBlock, GetArraySlotRefArg(inSpec, 1), &err,
+														RINT(GetArraySlotRefArg(inSpec, 2)));
+				failed:
+					free(parmBlock);
+					if (err != noErr)
+						result = NILREF;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 
