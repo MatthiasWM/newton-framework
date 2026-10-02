@@ -9,7 +9,8 @@
 
 	ROM:		The file is 0x20171C (FGetSerialNumber) .. 0x203DE8 (after
 				FBatteryStatus), MP2x00 US 2.1 (717006), its data
-				0x0C104C48..0x0C104C58. Here so far: 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
+				0x0C104C48..0x0C104C58. Here so far: 0x20171C (FGetSerialNumber)
+				.. 0x201A0C (after FMinimumBatteryCheck), 0x2028E4 (UpdateGestalt) .. 0x202FF4 (after
 				GetActualHeapInfo); FGetHeapStats (0x202FF4..0x203510) is
 				not yet identical (see there); the rest is still generated assembler.
 */
@@ -27,6 +28,10 @@
 #include "OS/RDM.h"
 #include "OS/Marshaling.h"
 #include "NewtonTime.h"
+#include "CLibrary/stdlib.h"
+#include "SerialNumber.h"
+#include "Power.h"
+#include "Preference.h"
 
 /*------------------------------------------------------------------------------
 	D a t a
@@ -37,7 +42,14 @@ Int64			gLastWakeupTime;			// 0C104C4C (a TTime, without its constructor: the RO
 static ULong	gParmBlockSize = 4;			// 0C104C54, the largest Gestalt parameter block
 
 
+Ref		BatteryStatusHelper(long inWhich, Boolean inRaw);
+
 extern "C" {
+Ref		FGetSerialNumber(RefArg inRcvr);
+Ref		FSetRandomSeed(RefArg inRcvr, RefArg inSeed);
+Ref		FBatteryRawStatus(RefArg inRcvr, RefArg inWhich);
+Ref		FMinimumBatteryCheck(RefArg inRcvr);
+Ref		FBackLight(RefArg inRcvr, RefArg inOnOff);
 Ref		UpdateGestalt(RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4, long inReplace);
 Ref		FRegisterGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
 Ref		FReplaceGestalt(RefArg inRcvr, RefArg inSelector, RefArg inArg2, RefArg inArg3, RefArg inArg4);
@@ -52,8 +64,153 @@ Ref		FGetPowerStats(RefArg inRcvr);
 Ref		FResetPowerStats(RefArg inRcvr);
 Ref		FGetHeapStats(RefArg inRcvr, RefArg inOptions);
 }
+Ref		FBatteryLevel(RefArg inRcvr, RefArg inWhich);
 Ref		FSetLCDContrast(RefArg inRcvr, RefArg inContrast);
 Ref		FGetLCDContrast(RefArg inRcvr);
+
+
+/*------------------------------------------------------------------------------
+	Return the Newton's serial number.
+	Args:		inRcvr
+	Return:		an 8-byte binary of class 'serialNumber, or nil
+------------------------------------------------------------------------------*/
+
+Ref
+FGetSerialNumber(RefArg inRcvr)
+{
+	RefVar	rcvr(inRcvr);
+	RefVar	serialNumber(AllocateBinary(SYMA(serialnumber), 8));
+	if (GetSerialNumberROMObject()->GetSystemSerialNumber((ULong *) BinaryData(serialNumber)) == noErr)
+		return serialNumber;
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	Seed the random number generator.
+	Args:		inRcvr
+				inSeed			an integer
+	Return:		nil
+------------------------------------------------------------------------------*/
+
+Ref
+FSetRandomSeed(RefArg inRcvr, RefArg inSeed)
+{
+	srand(RINT(inSeed));
+	return NILREF;
+}
+
+
+/*------------------------------------------------------------------------------
+	A battery's status, raw.
+	Args:		inRcvr
+				inWhich			the battery: an integer
+	Return:		see BatteryStatusHelper
+------------------------------------------------------------------------------*/
+
+Ref
+FBatteryRawStatus(RefArg inRcvr, RefArg inWhich)
+{
+	return BatteryStatusHelper(RINT(inWhich), true);
+}
+
+
+/*------------------------------------------------------------------------------
+	A battery's level.
+	Args:		inRcvr
+				inWhich			0 the main battery, 2 its temperature, 3 the
+								main battery again
+	Return:		an integer: per cent (100 on AC power), or the temperature
+------------------------------------------------------------------------------*/
+
+Ref
+FBatteryLevel(RefArg inRcvr, RefArg inWhich)
+{
+	RefVar	level(MAKEINT(0));
+	Boolean	wantLevel = true;
+	long	which = RINT(inWhich);
+	if (which == 0)
+		level = MAKEINT(gLastBatteryLevel);
+	else if (which == 2)
+	{
+		which = 0;
+		wantLevel = false;
+	}
+	else if (which == 3)
+		which = 0;
+
+	PowerPlantStatus	status;
+	if (GetBatteryStatus(which, &status, false) == noErr)
+	{
+		if (which == 0)
+			gLastBatteryLevel = status.fBatteryCapacity;
+		if (wantLevel)
+		{
+			if (status.fACPower == 1 && which == 0)
+				level = MAKEINT(100);
+			else
+				level = MAKEINT(status.fBatteryCapacity);
+		}
+		else
+		{
+			if (status.fAmbientTemp != -1)
+				level = MAKEINT(status.fAmbientTemp);
+			else if (status.fBatteryTemp != -1)
+				level = MAKEINT(status.fBatteryTemp);
+		}
+	}
+	return level;
+}
+
+
+/*------------------------------------------------------------------------------
+	Sleep until something wakes the Newton: backlight off, power down;
+	afterwards the screen's contrast again.
+	Args:		--
+	Return:		what woke it (TranslatePowerEvent)
+------------------------------------------------------------------------------*/
+
+ULong
+SleepUntilNextWakeup(void)
+{
+	ULong	powerEvent;
+	FBackLight(RefVar(NILREF), RefVar(NILREF));
+	powerEvent = CyclePower();
+	{
+		if (powerEvent != 0)
+			ClearHardKeymap();
+		FSetLCDContrast(RefVar(NILREF), GetPreference(SYMA(lcdcontrast)));
+		return TranslatePowerEvent(powerEvent);
+	}
+}
+
+
+/*------------------------------------------------------------------------------
+	Wait, asleep, while the battery is too low to run on.
+	Args:		inRcvr
+	Return:		true if it had to wait
+------------------------------------------------------------------------------*/
+
+Ref
+FMinimumBatteryCheck(RefArg inRcvr)
+{
+	Boolean	hadToWait = false;
+	for ( ; ; )
+	{
+		PowerPlantStatus	status;
+		if (GetBatteryStatus(0, &status, false) == noErr)
+		{
+			if (status.fACPower != 1 && status.fBatteryCapacity <= status.fBatteryDead)
+			{
+				hadToWait = true;
+				SleepUntilNextWakeup();
+			}
+			else
+				break;
+		}
+	}
+	return MAKEBOOLEAN(hadToWait);
+}
 
 
 /*------------------------------------------------------------------------------

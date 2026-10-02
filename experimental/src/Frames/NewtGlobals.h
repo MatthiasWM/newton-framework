@@ -30,4 +30,6 @@ struct NewtGlobals
 
 extern NewtGlobals *	gNewtGlobals;	// 0C1054B0
 
+void	ClearHardKeymap(void);
+
 #endif	/* __NEWTGLOBALS_H */

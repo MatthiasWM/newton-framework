@@ -87,8 +87,17 @@ def probe(source, args, rom):
     aof = AOF.read(obj)
     for a in [a for a in aof.areas if a.attributes & AREA_COMMON_DEF]:
         aof.drop_area(a.name)                  # vtables: not compared
-    for j, a in enumerate(list(aof.areas)):    # -zo: an area per function, kept in order
-        aof.rename_area(a.name, 'C$$probe$$%04d' % j)
+    # -zo: an area per function, kept in order, with room between them where
+    # the source leaves a function out (filler areas, below)
+    gaps, at = [], None
+    for j, a in enumerate(list(aof.areas)):
+        if a.is_code:
+            places = [rom.address(s.name) - s.value for s in aof.symbols
+                      if s.area == a.name and s.is_defined and s.is_global and rom.address(s.name) is not None]
+            if places and at is not None and places[0] > at:
+                gaps.append(('C$$probe$$%04d' % j, places[0] - at))
+            at = (places[0] if places else at or 0) + ((a.size + 3) & ~3)
+        aof.rename_area(a.name, 'C$$probe$$%04d$$area' % j)
     # the file's data where the ROM has it (its first global's address)
     rw_base = []
     for a in aof.areas:
@@ -115,6 +124,8 @@ def probe(source, args, rom):
     if missing:
         print('%s: imports with no single address in the ROM: %s' % (source, ', '.join(missing)))
         return False
+    for name, size in gaps:
+        lines += ['        AREA |%s|, CODE, READONLY' % name, '        %% %d' % size]
     lines += ['        END', '']
     absolute = os.path.join(out, base + '-imports.s')
     with open(absolute, 'w') as f:
