@@ -656,7 +656,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       (a source's functions out of ROM order showed as "lands at": a
       search counting only differing words missed that; count every line
       that is not "identical").
-      **Finding the source form**: when only registers or the order of
+      **Finding the source form** (`tools/variants.py <source>
+      <variants>`: tries forms, keeps what lowers the differences): when
+      only registers or the order of
       instructions differ, the choice is the whole function's (a change in
       one case moves registers in another), so trying the plausible forms
       together pays (`FGestalt`: two forms of a variable times four ways
