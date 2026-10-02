@@ -71,7 +71,7 @@ foreach(source ${SOURCES})
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/src/${dir}"
     # relative paths: the compiler's summary line ("### file: n warnings")
     # with a long absolute path crashes it (pc out of bounds)
-    COMMAND "${TOOLS}/ARMCpp" ---text=utf8 -c -bigend -fc -zo -DforARM -DforQ -DQD_Gray
+    COMMAND "${TOOLS}/ARMCpp" ---text=utf8 -c -bigend -fc -fy -zo -DforARM -DforQ -DQD_Gray
             -I includes -I src "src/${rel}" -o "${object}"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     DEPENDS "${source}"

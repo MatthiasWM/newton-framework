@@ -25,7 +25,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aof import AOF, AREA_COMMON_DEF  # noqa: E402
 
-CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-zo', '-DforARM', '-DforQ', '-DQD_Gray']
+CXX_OPTIONS = ['---text=utf8', '-c', '-bigend', '-fc', '-fy', '-zo', '-DforARM', '-DforQ', '-DQD_Gray']
 
 
 def run(cmd):

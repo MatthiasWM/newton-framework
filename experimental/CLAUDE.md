@@ -111,8 +111,12 @@ with a frame pointer, as in the ROM.
 
 **Running the tools** (mosrun rebuilt by Matt, release build, 2026-10-01;
 every object the same as with the first tools).
-- **Standard compiler options**: `ARMCpp ---text=utf8 -c -bigend -fc -zo
+- **Standard compiler options**: `ARMCpp ---text=utf8 -c -bigend -fc -fy -zo
   -DforARM -DforQ -DQD_Gray -I<experimental>/includes -I<experimental>/src`
+  (**`-fy`** since 2026-10-02: enums are words; without it an enum whose
+  values fit in a byte is a byte, so `PrintConnect` came out 16 bytes, not
+  the ROM's 24, and a value converted to an enum got `AND #255`; every
+  source stayed identical with it)
   (the probes: the same objects as with `-bigend` alone; `QD_Gray`, the
   2x00's gray screen, since 2026-10-02: `PixelMap` has its `grayTable`,
   as the ROM). **`-zo`** (an AOF area per function; 2026-10-02): without
@@ -772,10 +776,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       0x209E84): 14 of 15 identical; `ConnectToTestServer` `#if 0` (4
       words). Headers `Frames/Pipes.h` (`CPipe`, its 15 virtual functions
       in vtable order), `Communications/Docker.h` (`TEzPipeProtocol`,
-      `TEzEndpointPipe`), `Testing/CommServer.h`. Lessons: **Norcroft makes
-      an enum whose values fit in a byte a byte** (a value converted to it
-      gets `AND #255`): the ROM's `ConnectionType` is a word, so the
-      enum has a large enumerator; a `UniChar` at an offset 2 mod 4 is read
+      `TEzEndpointPipe`), `Testing/CommServer.h`. Lessons: Norcroft makes an
+      enum whose values fit in a byte a byte unless `-fy` is given (now a
+      standard option: the ROM's enums are words); a `UniChar` at an offset 2 mod 4 is read
       with an unaligned `LDR` (the ARM rotates it) and `LSR #16`;
       `return 0` early (not a result variable) lets the compiler keep the
       0 in a register it also uses for the exception handler's

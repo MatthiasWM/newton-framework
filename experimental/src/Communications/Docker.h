@@ -19,15 +19,12 @@
 
 DeclareException(exPipeException, exRootException);
 
-/* The ROM passes it as a word: the enum is int-sized (Norcroft makes an enum
-   whose values fit in a byte a byte) */
 enum ConnectionType
 {
 	kNoConnection,
 	kADSPConnection,
 	kMNPSerialConnection,
-	kSerialConnection,
-	kConnectionTypeIsLong = 0x7FFFFFFF
+	kSerialConnection
 };
 
 /* An endpoint pipe made easy (TEndpointPipe, CBufferPipe in between) */
