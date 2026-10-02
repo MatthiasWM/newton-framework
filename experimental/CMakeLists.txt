@@ -86,3 +86,12 @@ add_custom_target(shift
   DEPENDS rom
   COMMENT "The shift test (tools/shifttest.py)"
   VERBATIM)
+
+# R3g.2: the shipping ROM image (8 MB: the link, the ROM extension, the
+# checksum block), from the AIF the check target links
+add_custom_target(image
+  COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/tools/romimage.py"
+          --aif "${CMAKE_BINARY_DIR}/romlink/rom.aif" --rom "${ROM_DIR}"
+          -o "${CMAKE_BINARY_DIR}/romimage/rom.image"
+  COMMENT "The shipping ROM image (tools/romimage.py; run the check target first)"
+  VERBATIM)

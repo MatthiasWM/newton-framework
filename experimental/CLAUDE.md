@@ -399,11 +399,27 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       public jump table (`gROMPublicJumpTable` 0x13000..0x15E0C, entry i a
       `B` from 0x01800000 + 4i to a slot of the first table) never
       changes: both ends fixed; the shift test checks it stays so.
-    - [ ] **R3g.2 The checksums and the shipping image**: the checksum
-      block at 0x18420 (`gDiagType`, `gPhysROMAcsum`..`Hcsum`; placeholders
-      in the link, as in Apple's AIF) computed as
-      `OSCalibrationParameters::CalculateROMREXCheckSums` (0x1A71B8) does;
-      with the ROM extension appended, the shipping ROM image.
+    - [x] **R3g.2 The checksums and the shipping image** (2026-10-02):
+      `tools/romimage.py` (target `image`): the link's RO + RW, the ROM
+      extension at `ROM$$Size`, 0xFF to 8 MB, and the block at 0x18420 as
+      Apple's tool filled it: `gDiagType` " Q  " (the product), 
+      `gPhysROMBcsum` the size 0x00800000, C..H 0, `gPhysROMAcsum` the sum of
+      all the image's 32-bit words with those filled in and A at 0
+      (0x87E01095: worked out from the shipping values). Nothing in the ROM
+      reads the block (no reference to it). Our image is the shipping ROM:
+      against `ROMData/rom.image` only the 15,698 words of the first 64 KB
+      differ, which a live dump gets wrong (the MMU pages them; Matt), and
+      which agree with newtonos.s and Apple's AIF.
+      **The ROM extension is position-dependent**: its header's `start`
+      (+0x20) is its own address (= `ROM$$Size`), some 40,000 references
+      inside it are absolute (NewtonScript objects, address + 1), and it
+      refers to the base ROM in about 300 places (106 Refs to base objects,
+      201 values exactly a base symbol, 19 jump-table slots). Moving it, or
+      moving what it refers to, needs its packages relocated (its
+      structure: newton-re's romsrc handles it; the Rex tool later, Matt);
+      a plain "add N" won't do (UTF-16 text pairs such as 0x00720065 fall
+      in its address range). So `romimage.py` stops if `ROM$$Size` moved.
+      This decides how to test a shifted ROM in Einstein (below).
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
     - [x] **R3h.1 Vectors and the linker's values** (2026-10-02): the
       exception vectors (0x00..0x1C) are starts for `romcode.py`; the
