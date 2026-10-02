@@ -236,10 +236,12 @@ class AOF:
         table names none of them, and two can have the same bytes): where
         the ROM has each one the code refers to, read off the ROM where the
         reference is. places: {code area: its address in the ROM}. Words
-        only, so far (a literal holding the function's address).
+        only, so far (a literal holding the function's address). Vtables
+        (Common areas C$$__VTABLE__<class>, local symbols) the same way:
+        the ROM has them together in its vtable area, without names.
         Returns {symbol: address}."""
         inline = {i for i, s in enumerate(self.symbols)
-                  if s.area and s.area.startswith('C$$i$') and s.is_defined}
+                  if s.area and s.area.startswith(('C$$i$', 'C$$__VTABLE__')) and s.is_defined}
         found = {}
         for a in self.areas:
             if a.name not in places:

@@ -10,7 +10,8 @@ ROM; references to its own functions with a slot go to the slot too, as
 in Apple's code), link it so that its functions land at their ROM addresses, and compare
 each function it defines with Apple's image (`ro.bin` from romsyms.py), from
 its address to the next symbol's. Exit status 0 if every function is
-identical.
+identical. With --each, one function at a time (the object's other
+functions left out, at their ROM addresses); --function picks some.
 """
 
 import argparse
@@ -74,17 +75,39 @@ def probe(source, args, rom):
     base = os.path.splitext(os.path.basename(source))[0]
     out = os.path.join(args.out, base)
     os.makedirs(out, exist_ok=True)
-    obj = os.path.join(out, base + '.o')
-    rc, msg = run([os.path.join(args.bin, 'ARMCpp')] + CXX_OPTIONS
-                  + ['-I' + i for i in args.includes] + ['-o', obj, source])
+    compiled = os.path.join(out, base + '-compiled.o')
+    rc, msg = run([os.path.join(args.bin, 'ARMCpp')] + CXX_OPTIONS + args.option
+                  + ['-I' + i for i in args.includes] + ['-o', compiled, source])
     if rc != 0:
         print('%s: does not compile\n%s' % (source, msg))
         return False
     if args.warnings:
         print(msg.strip())
+    if not args.each:
+        return compare(source, compiled, os.path.join(out, base), args, rom)
+    # one function at a time: the object's other functions left out (their
+    # names then imports, at their ROM addresses), so a function that
+    # differs in size does not move the ones after it
+    ok = True
+    obj = AOF.read(compiled)
+    functions = [a.name for a in obj.areas if a.name.startswith('C$$c_')]
+    for k, keep in enumerate(functions):
+        if args.function and not any(s.area == keep and s.name.startswith(args.function) for s in obj.symbols):
+            continue
+        ok &= compare(source, compiled, os.path.join(out, '%s-%02d' % (base, k)), args, rom,
+                      [f for f in functions if f != keep])
+    return ok
+
+
+def compare(source, compiled, base, args, rom, leave_out=()):
+    """Place the object compiled from source, link it and compare it with
+    the ROM; leave_out: code areas to drop first."""
+    obj = base + '.o'
+    aof = AOF.read(compiled)
+    for name in leave_out:
+        aof.drop_area(name)
     # every reference to a function with a jump-table slot goes to the slot
     # (R5: Apple's code does so in its own file too)
-    aof = AOF.read(obj)
     # the inline copies the code refers to (Common areas C$$i$...): where
     # the ROM has them, read off where the code refers to them
     places, at = {}, None
@@ -146,17 +169,17 @@ def probe(source, args, rom):
     for name, size in gaps:
         lines += ['        AREA |%s|, CODE, READONLY' % name, '        %% %d' % size]
     lines += ['        END', '']
-    absolute = os.path.join(out, base + '-imports.s')
+    absolute = base + '-imports.s'
     with open(absolute, 'w') as f:
         f.write('\n'.join(lines))
-    absobj = os.path.join(out, base + '-imports.o')
+    absobj = base + '-imports.o'
     rc, msg = run([os.path.join(args.bin, 'ARM6asm'), '---text=utf8', '-bigend', absolute, absobj])
     if rc != 0:
         print('%s: the imports do not assemble\n%s' % (source, msg))
         return False
     # link once to see where the functions land, then where they belong
-    image = os.path.join(out, base + '.bin')
-    listing = os.path.join(out, base + '.symbols')
+    image = base + '.bin'
+    listing = base + '.symbols'
     link = [os.path.join(args.bin, 'ARMLink'), '-BIN', '-Symbols', listing, '-o', image, obj, absobj]
     rc, msg = run(link[:2] + ['-RO-base', '0'] + rw_option + link[2:])
     if rc != 0:
@@ -174,6 +197,8 @@ def probe(source, args, rom):
         print('%s: does not link at 0x%X\n%s' % (source, ro_base, msg))
         return False
     linked = link_symbols(listing)
+    with open(base + '.ro-base', 'w') as f:      # where the image starts (to disassemble it)
+        f.write('0x%X\n' % ro_base)
     with open(image, 'rb') as f:
         bytes_ = f.read()
     ok = True
@@ -212,6 +237,10 @@ def main():
     ap.add_argument('--includes', required=True, action='append',
                     help='the headers (experimental/includes; again for src/)')
     ap.add_argument('--words', action='store_true', help='list every word that differs')
+    ap.add_argument('--each', action='store_true',
+                    help='one function at a time (the others at their ROM addresses)')
+    ap.add_argument('--function', help='with --each: only the functions whose name starts so')
+    ap.add_argument('--option', action='append', default=[], help='a compiler option more (to try)')
     ap.add_argument('--warnings', action='store_true', help="show the compiler's messages")
     ap.add_argument('--rom', required=True, help="romsyms.py's output (ro.bin, symbols.json)")
     ap.add_argument('--out', required=True, help='where objects and images go')

@@ -23,7 +23,7 @@ def score(src, text, func):
     with open(src, 'w') as f:
         f.write(text)
     out = subprocess.run([sys.executable, os.path.join(HERE, 'probe.py'), '--bin', 'bin', '--includes', 'includes',
-                          '--includes', 'src', '--rom', 'build/rom', '--out', '/tmp/variants', '--words', src],
+                          '--includes', 'src', '--rom', 'build/rom', '--out', '/tmp/variants', '--words', '--each', src],
                          capture_output=True, text=True).stdout
     if 'does not compile' in out:
         return 999, 999
