@@ -32,6 +32,12 @@ move.
   romcode.py, which follows the code) is written as the instruction to a
   label: the function's, a jump-table slot's, or a label made for the
   target (|L_0x1234|); so is every vtable entry (romcode.py's 'v').
+- R3h.3: a PC-relative load or store (LDR/STR(B) Rd, [pc, #n]) or ADR
+  (ADD/SUB Rd, pc, #n) in code whose target is in another symbol (hand-
+  written assembler shares literal pools across symbols; the compiler's
+  ClassInfo points at data before it) is written as `LDR Rd, |label|`
+  (`ADR Rd, |label|`): the assembler works out the offset, so padding
+  between them is fine; the files are never cut between the two.
 - R3d.3: a literal (a word the code loads PC-relative, romcode.py's 'l')
   whose value is an address is written as `DCD |label|+offset` (the
   nearest label at or below it): an address in the read-only part from
@@ -127,6 +133,42 @@ def branch_target(word, pc):
 
 def is_branch(word):
     return (word & 0x0E000000) == 0x0A000000 and (word >> 28) != 0xF
+
+
+def pc_relative(word, pc):
+    """(target, kind) of a PC-relative LDR/STR(B) with an immediate offset
+    ('ldr') or ADR, ADD/SUB Rd, pc, #imm ('adr'); else None."""
+    if word >> 28 == 0xF or (word >> 16) & 15 != 15:
+        return None
+    op = (word >> 25) & 7
+    if op == 2 and word & 0x01000000 and not word & 0x00200000:     # pre-indexed, no write-back
+        off = word & 0xFFF
+        return pc + 8 + (off if word & 0x00800000 else -off), 'ldr'
+    if op == 1 and (word >> 21) & 15 in (2, 4) and not word & 0x00100000:
+        imm, rot = word & 0xFF, ((word >> 8) & 15) * 2
+        imm = ((imm >> rot) | (imm << (32 - rot))) & 0xFFFFFFFF
+        return pc + 8 + (imm if (word >> 21) & 15 == 4 else -imm), 'adr'
+    return None
+
+
+def cross_references(ro, kinds, starts):
+    """R3h.3: PC-relative loads and ADRs in code whose target is in another
+    symbol (hand-written assembler sharing a literal pool; ClassInfo):
+    [(address, target, kind)]."""
+    out = []
+    for i in range(len(ro) // 4):
+        if kinds[i] not in (ord('c'), ord('n')):
+            continue
+        a = 4 * i
+        r = pc_relative(struct.unpack_from('>I', ro, a)[0], a)
+        if r is None or not 0 <= r[0] < len(ro):
+            continue
+        k = bisect.bisect_right(starts, a)
+        lo = starts[k - 1] if k else 0
+        hi = starts[k] if k < len(starts) else len(ro)
+        if not lo <= r[0] < hi:
+            out.append((a, r[0], r[1]))
+    return out
 
 
 class Source:
@@ -298,6 +340,22 @@ class Source:
             report.append('%6d  %s' % (n, name))
         return lines
 
+    def cross(self, refs):
+        """R3h.3: PC-relative loads and ADRs to another symbol, as
+        `LDR Rd, |label|` / `ADR Rd, |label|`: the assembler works out the
+        offset (both in one area: the cuts keep them so)."""
+        for a, t, kind in refs:
+            w = struct.unpack_from('>I', self.ro, a)[0]
+            label = self.label_for(t)
+            rd = 'r%d' % ((w >> 12) & 15)
+            cond = CONDITIONS[w >> 28]
+            if kind == 'ldr':
+                op = ('LDR' if w & 0x00100000 else 'STR') + cond + ('B' if w & 0x00400000 else '')
+            else:
+                op = 'ADR' + cond
+            self.lines[a] = ('        %-8s %s, |%s|' % (op, rd, label), label)
+            self.counts['PC-relative loads and ADRs to another symbol'] += 1
+
     def branches(self):
         """R3c: branches in code that leave their function."""
         for i in range(len(self.ro) // 4):
@@ -438,10 +496,16 @@ def main():
         return 2
     # the cuts between files, at symbols (before labels are made for targets)
     starts = sorted(a for a in ro_labels if a % 4 == 0)
+    sym_starts = sorted(set(s['value'] for s in symbols if s['class'] != 'abs' and s['value'] < len(ro)))
+    refs = cross_references(ro, kinds, sym_starts)
+    spanned = set()                       # symbols a cut would put between such a pair
+    for a, t_, _ in refs:
+        lo, hi = min(a, t_), max(a, t_)
+        spanned.update(sym_starts[bisect.bisect_right(sym_starts, lo):bisect.bisect_right(sym_starts, hi)])
     cuts = [0]
     target = args.chunk
     for a in starts:
-        if a >= target:
+        if a >= target and a not in spanned:
             cuts.append(a)
             target = a + args.chunk
     cuts.append(len(ro))
@@ -460,6 +524,9 @@ def main():
             if v - b >= 16:
                 aligned[v] = (al, b)
     cuts = sorted(set(cuts) | set(aligned))
+    if spanned & set(aligned):
+        print('an aligned area would cut a PC-relative reference: 0x%X' % min(spanned & set(aligned)))
+        return 2
     with open(os.path.join(args.out, 'aligned.json'), 'w') as f:
         json.dump([{'symbol': v, 'alignment': al, 'zeros_from': b} for v, (al, b) in sorted(aligned.items())], f)
 
@@ -476,6 +543,7 @@ def main():
                            'Image$$root$$Length', 'Image$$root$$ZI$$Length')):
         linker_words[names['DataAreaTable'] + 4 + 4 * k] = n
     src.branches()
+    src.cross(refs)
     rw_labels = label_names(symbols, rw_base, rw_base + len(rw), count)
     zi_base = rw_base + len(rw)
     zi_size = info['image']['zi_size']

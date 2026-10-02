@@ -480,6 +480,75 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       nearly all code moves (914,491 words differ from the shipping
       image); made with `shifttest.py --at 0x3011C` and `romimage.py --aif
       build/shift_0x3011C/padded/obj/rom.aif`.
+    - [ ] **R3i Booting shifted ROMs in Einstein** (2026-10-02; parked,
+      see "Where it stopped").
+      **Einstein patches this ROM at fixed addresses**: it knows it by
+      `gROMVersion`, `gROMStage`, `gHardwareType` (0x13DC, 0x13E0, 0x13EC)
+      and then writes its JIT patches (native calls for `DebugStr`,
+      `Debugger`, clock and date functions; logging injections; plain words:
+      `gDebuggerBits`, `gNewtConfig`, no calibration screen, no GeoPort
+      beacon, its time base) and the virtualised `__rt_udiv`, `__rt_sdiv`,
+      `symcmp` (5 words each). In a shifted ROM these land in the wrong
+      code: the first hangs were that. `romimage.py --einstein` makes an
+      image for Einstein: `gROMVersion` 0x00020102 (Einstein doesn't know
+      it, so it patches nothing; the ROM only reports it through Gestalt;
+      not `gROMStage`, which Einstein's own REx, `Drivers/Glue.s`, needs to
+      pick its machine: else "Unsupported platform"), and its plain
+      patches applied where their code is now (Apple's symbol + offset, in
+      the link's `symbols.txt`); `DebugStr` and `Debugger` (traps) return.
+      The native clock and date calls are left out (the ROM's code runs).
+      The unshifted image made so boots in Einstein like the original.
+      **Testing without Matt**: `/Applications/Einstein.app` (a debug
+      build: its monitor logs to `/tmp/Einstein_log.txt`) runs
+      `<image>.monitorrc` at start; `watch 0 ADDR` logs "Watch at ADDR"
+      each time and goes on, so a list of boot milestones (`ROMBoot`,
+      `UserInit__Fv`, `InitObjects__Fv`, `DrawSplashScreen__9TNotebookFv`,
+      `RunInitScripts__Fv`, ...) at their addresses in the link shows how
+      far a ROM gets. The ROM and flash paths are in
+      `~/Library/Preferences/robowerk.com/einstein.prefs`.
+      Shifted 16 at 0x3011C: gets to `UserInit__Fv`, not to `SleepTask`.
+      **Bisecting** (the padding moved later until the ROM boots: what
+      breaks lies between the last that fails and the first that boots;
+      about a minute per boot): 16 bytes before `PatchLoaderStub` boot,
+      before `_BadExit` (0x3AE158) not. `_BadExit` is one `B TaskKillSelf`
+      (a task's return address, `TTask::Init` loads it from a literal),
+      which `romcode.py` never reached: a function pointer counted only if
+      its target looks like a function. Now also when newtonos.s shows an
+      instruction there (only `_BadExit` more; 20 more branches). Then
+      before `_BadExit` boots too. Next: before `SWIBoot` (0x3AD698).
+      Two causes. (1) The SWI handlers (`EnterCPUIRQAtomic+0x48`, ...) are
+      entered only through the SWI table, so their code wasn't followed
+      and 8 branches into `SWIBoot` stayed numbers: `romcode.py` now takes
+      tables of code addresses as starts (a literal pointing at 3 or more
+      aligned addresses, 3 in 4 of them instructions, all within 128 KB:
+      the SWI table, `gRDPHandlers`; `AAtables`, `yydgoto`, `nbcut0`,
+      `IrMaxTurnTimeTable` are numbers). (2) **R3h.3** `SWIBoot` loads the
+      SWI table's address PC-relative from a literal before it (in
+      `FlushEntireTLB`): 280 PC-relative loads and ADRs reach into another
+      symbol (hand-written assembler shares literal pools: `ROMBoot` and
+      others use `ResetFromResetSwitch`'s; the compiler's `ClassInfo` ADRs
+      the data before it). `romasm.py` writes them `LDR Rd, |label|` /
+      `ADR Rd, |label|` (the assembler works out the offset; same bytes)
+      and never cuts files between such a pair. Then before `SWIBoot`
+      boots. Identical to Apple's throughout.
+      **Where it stopped** (Matt, 2026-10-02: the source comes first; the
+      remaining places that need labels will turn up while the source is
+      filled in, and growing code gets tested then): 16 bytes before
+      0x3011C get through `InitInterpreter__Fv`, not to the Notebook's
+      `InitToolbox`. Known left: Einstein's own REx calls
+      `PSoundDriver::OutputIntHandlerDispatcher` (0x1E60FC) and
+      `InputIntHandlerDispatcher` (0x1E6130) at their real addresses
+      (`Drivers/Glue.s`), so a shift before them breaks sound in Einstein
+      whatever the ROM does (Einstein would have to find them by name);
+      3 branches after `C$$dtorvec$$Limit`; R3e.2's tables; R3h.2b.
+      To go on: `tools/einstein/bisect.py 0x3011C 0x3AD698` (saves
+      nothing of Einstein's settings: copy `einstein.prefs` first, put it
+      back after).
+      Tools (`tools/einstein/`): `watch.py` (the milestones as a
+      `.monitorrc`), `run.sh` (boot one image, quit, print the milestones
+      reached; output in `build/einstein/`), `boot.sh ADDRESS` (build with
+      16 bytes before a symbol, make the Einstein image, boot it),
+      `bisect.py LOW HIGH`, `hits.py`.
     - [ ] **R3h.2b** The rest of the first 64 KB (tables, literals below
       0x10000 that are addresses), those 5 branches, and a check that the
       floating-point emulator holds no absolute addresses of itself.

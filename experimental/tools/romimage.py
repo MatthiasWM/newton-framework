@@ -22,6 +22,22 @@ to be relocated (the Rex tool's work, later), so this says so and stops.
 
 With --compare, compares with a ROM image (such as ROMData/rom.image,
 whose first 64 KB a live dump gets wrong: the MMU pages them).
+
+With --einstein, an image to test in the Einstein emulator. Einstein knows
+this ROM by a few words (gROMVersion, gROMStage, gHardwareType) and then
+patches it at fixed addresses (its JIT ROM patches, the virtualised
+__rt_udiv, __rt_sdiv and symcmp): in a ROM where code moved, those land in
+the wrong code. So gROMVersion gets a value Einstein doesn't know
+(0x00020102 for 0x00020002: the ROM only reports it, through Gestalt; not
+gROMStage, which Einstein's own ROM extension needs to find its machine),
+and the image gets
+Einstein's plain patches itself, each where its code is now (Apple's symbol
+plus offset, looked up in the link's symbols.txt next to the AIF): no
+debugger (gDebuggerBits 1; DebugStr and Debugger, traps, return), stdio on
+(gNewtConfig), no GeoPort beacon, no calibration screen, Einstein's time
+base, setting the time ignored. Einstein's native calls (the clock, time
+and date functions) and its logging injections are left out: the ROM's own
+code runs. The checksum is then not the shipping one.
 """
 
 import argparse
@@ -32,6 +48,39 @@ import sys
 
 SIZE = 0x800000
 
+MOV_PC_LR = 0xE1A0F00E
+# Einstein's plain patches for this ROM (its JIT/Generic/TJITGenericROMPatch.cpp),
+# by Apple's symbol and offset: (symbol, offset, word)
+EINSTEIN = [
+    ('gDebuggerBits', 0, 1),
+    ('gNewtConfig', 0, 0x00000002 | 0x00000200 | 0x00008000),
+    ('CheckTabletCalibration__Fv', 0x1C, 0xEA000009),
+    ('BeaconDetect__17TGeoPortDebugLinkFl', 0, 0xE3A00000),
+    ('BeaconDetect__17TGeoPortDebugLinkFl', 4, MOV_PC_LR),
+    ('DebugStr', 0, MOV_PC_LR),
+    ('Debugger', 0, MOV_PC_LR),
+    ('SYMordinal', 0x4DC, 218799360),
+    ('SYMordinal', 0x524, 218799360),
+    ('SYMoptionsslip', 0xBC, 218799360),
+    ('FSetSysAlarm', 0x19C, 3281990400),
+    ('FSetTimeInSeconds', 0, MOV_PC_LR),
+]
+
+
+def einstein(image, aif_path, names):
+    """Hide the ROM from Einstein's own patches, apply them where the code is."""
+    import re
+    linked = {}
+    with open(os.path.join(os.path.dirname(aif_path), 'symbols.txt'), errors='replace') as f:
+        for line in f:
+            m = re.match(r'^(\S+)\s+([0-9a-fA-F]+)\s*$', line)
+            if m:
+                linked[m.group(1)] = int(m.group(2), 16)
+    assert struct.unpack_from('>I', image, names['gROMVersion'])[0] == 0x00020002
+    struct.pack_into('>I', image, names['gROMVersion'], 0x00020102)
+    for name, offset, word in EINSTEIN:
+        struct.pack_into('>I', image, linked.get(name, names[name]) + offset, word)
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
@@ -39,6 +88,8 @@ def main():
     ap.add_argument('--rom', required=True)
     ap.add_argument('-o', '--out', required=True)
     ap.add_argument('--compare')
+    ap.add_argument('--einstein', action='store_true',
+                    help='an image to test in Einstein (see above)')
     args = ap.parse_args()
     with open(args.aif, 'rb') as f:
         aif = f.read()
@@ -56,6 +107,8 @@ def main():
         return 1
     image = bytearray(base + rex)
     image += b'\xff' * (SIZE - len(image))
+    if args.einstein:
+        einstein(image, args.aif, names)
     block = names['gDiagType']
     struct.pack_into('>9I', image, block, 0x20512020, 0, SIZE, 0, 0, 0, 0, 0, 0)
     total = sum(struct.unpack('>%dI' % (SIZE // 4), bytes(image))) & 0xFFFFFFFF

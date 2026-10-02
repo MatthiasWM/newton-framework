@@ -11,7 +11,10 @@ $$Limit, C$$dtorvec$$Base and $$Limit), and at every compiler prologue not
 yet reached (`MOV ip, sp` then `STMDB sp!, {..., fp, ip, lr, pc}`:
 functions without a symbol), and follows the
 code from there; then again from what that found: function
-pointers (a literal whose value is where a code symbol starts) and the
+pointers (a literal whose value is where a code symbol starts; with
+--compare also when newtonos.s shows an instruction there), tables of
+code addresses (a literal pointing at 3 or more addresses of instructions:
+each is a start) and the
 targets of vtables (runs of unconditional `B` not reached as code, each
 to a function or a jump-table slot), until nothing new turns up. Such a
 target counts only if it looks like a function: a mangled C++ function
@@ -211,17 +214,58 @@ def main():
             functions.add(a)
             work.append(a)
             counts['symbols that look like functions'] += 1
+    # with --compare: a function pointer to a code symbol whose first word
+    # newtonos.s shows as an instruction counts too (`_BadExit`, one `B
+    # TaskKillSelf`, a task's return address: found by booting a shifted ROM)
+    kinds = None
+    if args.compare:
+        with open(args.compare, 'rb') as f:
+            kinds = f.read()
+
+    def pointed_at_code(a):
+        return looks_like_function(a) or (kinds is not None and kinds[a // 4] == ord('i'))
+
     follow()
     found = Counter()
+    tables = {}
     while True:
         new = []
         # function pointers: literals that point at the start of a code symbol
         for i in range(nwords):
             if (mark[i] == L and words[i] in code_starts and words[i] not in functions
-                    and looks_like_function(words[i])):
+                    and pointed_at_code(words[i])):
                 functions.add(words[i])
                 new.append(words[i])
                 found['function pointers'] += 1
+        # tables of code addresses: a literal that points at a run of at
+        # least 3 aligned read-only addresses, not code itself, most of them
+        # (3 in 4) the address of an instruction (ours, or newtonos.s's),
+        # all within 128 KB (one module's handlers; tables of numbers, such
+        # as `yydgoto` or `nbcut0`, spread wide): each is a start (the SWI
+        # handlers, entered in the middle of `EnterCPUIRQAtomic` and others;
+        # `gRDPHandlers`)
+        def is_instruction(w):
+            return mark[w // 4] == C or (kinds is not None and kinds[w // 4] == ord('i'))
+        for i in range(nwords):
+            t = words[i]
+            if mark[i] != L or t % 4 or not 0x10000 <= t < size or mark[t // 4] in (C, L):
+                continue
+            run = []
+            k = t // 4
+            while k < nwords and mark[k] not in (C, L):
+                w = words[k]
+                if not (w % 4 == 0 and 0x10000 <= w < size):
+                    break
+                run.append(w)
+                k += 1
+            if (len(run) >= 3 and 4 * sum(map(is_instruction, run)) >= 3 * len(run)
+                    and max(run) - min(run) <= 0x20000):
+                for w in run:
+                    if w not in functions:
+                        functions.add(w)
+                        new.append(w)
+                        found['tables of code addresses (targets)'] += 1
+                        tables.setdefault(t, []).append(w)
         # vtables: runs of unconditional B, not code, to functions or slots
         i = 0
         while i < nwords:
@@ -250,6 +294,8 @@ def main():
         follow()
     for k, v in found.items():
         print('  found by %s: %d' % (k, v))
+    for t, targets in sorted(tables.items()):
+        print('    table at 0x%X: %d new starts' % (t, len(targets)))
 
     if args.compare:
         with open(args.compare, 'rb') as f:
