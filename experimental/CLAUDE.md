@@ -701,6 +701,38 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       registers) are written but `#if 0`. Reconstructed header
       `Communications/Fax/T4FaxLine.h` (layout from the ROM's code and
       newton-re's findings, names ours). Bugs: BUGS.md B4, B5.
+      **`src/Communications/AppleTalk/ADSPConnection.cc`** (2026-10-02):
+      `TADSPConnection`, an ADSP connection (open state machine, probe,
+      retry, send and forward-reset timers, control packets, data, acks),
+      0x205180..0x206494 (telephony option constructors follow). 31 of its
+      35 functions, 3,736 bytes; `Match`, `CheckSendData`,
+      `MatchFilterAddress`, `MatchAddress` are written but `#if 0`
+      (registers). No published header and nothing in newton-re: every
+      type reconstructed from the code, in `Communications/AppleTalk/
+      AppleTalk.h` (`TAddress`, `TWriteElement`, `TWriteChain`,
+      `TMessageTimer`, `TMemoryObject`, `TPacketMessage`, `TATAsyncMsg`,
+      `TAppWorld`, `TAppleTalkWorld`, `WriteSocket`) and
+      `ADSPConnection.h` (`ADSPHeader`, `ADSPOpenConnInfo`, `State`, the
+      events, the buffers, the class: 428 bytes, no vtable). Lessons:
+      **the ARM610 has no halfword loads**: a `UShort` field is `LDR` and a
+      shift; a halfword the ROM *writes* with a word read-modify-write
+      (`LDR`, `LSL #16`/`LSR #16`, `ORR`, `STR`) is a 16-bit bitfield (a
+      `UShort` is written as two `STRB`). Bitfields are allocated from the
+      most significant bit; consecutive constant assignments to bitfields
+      of one word are merged into one read-modify-write (9 flags set to 0:
+      `LSL #9; LSR #9`; two set: `ORR #&90000000`); a field the ROM reads
+      with `ASR #24` is a signed bitfield (`int descriptor : 8`). An inline
+      method shows as stores through a pointer register kept from the
+      constructor call (`TAddress::Clear`). Locals for values used twice
+      (`ULong sendSeq = fSendBuffer->fSendSeq;` in `PrepHeader`), a
+      local pointer and a local loaded before stores
+      (`ExecuteState`), a declaration apart from its assignment (`Read`),
+      `if (x) a = K; else a = 0;` (a conditional `ORR`) against `a = x ? K
+      : 0`, `if ((fSendWindow >>= 1) == 0)`: each made a function
+      identical. A local object with a virtual destructor
+      (`TWriteElement`) is destroyed through its vtable (`LDR pc, [sp]`);
+      a class whose destructor calls a method inline (`~TWriteChain() {
+      Destroy(); }`) shows the call at the end of the scope.
       **Constant data** (`static const`, `const` tables) goes into an area
       of its own, `C$$cd_<file>` (read-only, Code attributes, objects
       aligned to 4 and padded with zeros), in the order of the
@@ -799,8 +831,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       code with Apple's headers; missing headers reconstructed in `src/`.
       Track how many bytes come from source (2026-10-02, after the fax
       codec: 12,708 bytes of code and constant data, 16 of RW data, from
-      3 sources; the whole image identical). Next file: `TADSPConnection`
-      (0x205180). Zero-initialised data (`C$$zidata`) and vtables from
+      3 sources; after the ADSP connection: 16,444 bytes from 4 sources;
+      the whole image identical). Next file: the telephony options'
+      constructors (`TCMOTAPIHold` ..., 0x206494). Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.
 - [ ] **R7 C and assembler.** C files with `ARM6c` (older code generator:
       check it matches), hand-written assembler with `ARM6asm`.
@@ -831,4 +864,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
 
 Done: quiet output, speed (release build), the busy cursor (2026-10-01);
 text conversion by extension for input and output, binary files never
-touched, text files read into memory when opened (2026-10-02). None open.
+touched, text files read into memory when opened (2026-10-02).
+Open (2026-10-02): `ARMCpp` crashes ("pc out of bounds: 0x73206572", text
+as a pc) after it has written the object, when its summary line `###
+"file": n warnings (+ m suppressed), ...` names a long path (an absolute
+Unix path, about 160 characters in all; the same file given as a relative
+path is fine). The CMake build now compiles with relative paths.
