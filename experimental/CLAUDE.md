@@ -419,6 +419,11 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       structure: newton-re's romsrc handles it; the Rex tool later, Matt);
       a plain "add N" won't do (UTF-16 text pairs such as 0x00720065 fall
       in its address range). So `romimage.py` stops if `ROM$$Size` moved.
+      How it was made (Matt, 2026-10-02): the extension's packages were
+      `.pkg` files, relocated into place by Apple's `Rex` tool (in `bin/`).
+      So: un-relocate each back into its `.pkg`, and rebuild the extension
+      with a Rex script; then it can move with the core ROM. Later: the
+      core ROM has priority.
       This decides how to test a shifted ROM in Einstein (below).
   - [ ] **R3h The hand-written assembler** (vectors, boot, the first 64 KB).
     - [x] **R3h.1 Vectors and the linker's values** (2026-10-02): the
