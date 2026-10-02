@@ -17,4 +17,11 @@
 
 void	ConvertFromUnicode(const UniChar * inStr, void * outStr, long inEncoding, long inSize);
 
+extern "C"
+{
+UniChar *	Ustrcpy(UniChar * outStr, const UniChar * inStr);
+UniChar *	Ustrcat(UniChar * ioStr, const UniChar * inStr);
+long		Ustrlen(const UniChar * inStr);
+}
+
 #endif	/* __UNICODE_H */

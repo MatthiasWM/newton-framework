@@ -767,6 +767,20 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       `GetArraySlot(ARG, long)` inline (not `GetArraySlotRef` directly)
       copies the index once more; a `goto` past a test the compiler
       would otherwise not skip (`IArray`).
+      **`src/Testing/CommServer.cc`** (2026-10-02): `TCommServer`, the
+      test agent's connection to a desktop test server (0x209654..
+      0x209E84): 14 of 15 identical; `ConnectToTestServer` `#if 0` (4
+      words). Headers `Frames/Pipes.h` (`CPipe`, its 15 virtual functions
+      in vtable order), `Communications/Docker.h` (`TEzPipeProtocol`,
+      `TEzEndpointPipe`), `Testing/CommServer.h`. Lessons: **Norcroft makes
+      an enum whose values fit in a byte a byte** (a value converted to it
+      gets `AND #255`): the ROM's `ConnectionType` is a word, so the
+      enum has a large enumerator; a `UniChar` at an offset 2 mod 4 is read
+      with an unaligned `LDR` (the ARM rotates it) and `LSR #16`;
+      `return 0` early (not a result variable) lets the compiler keep the
+      0 in a register it also uses for the exception handler's
+      `catchType`; `*out = fEvtLength` after `fEvtLength = x` (not `*out =
+      x`) reuses the register.
       **Constant data** (`static const`, `const` tables) goes into an area
       of its own, `C$$cd_<file>` (read-only, Code attributes, objects
       aligned to 4 and padded with zeros), in the order of the
@@ -867,8 +881,9 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       codec: 12,708 bytes of code and constant data, 16 of RW data, from
       3 sources; after the ADSP connection: 16,444 bytes from 4 sources;
       after the telephony options and the agent reporter: 18,328 bytes from
-      6 sources; after TArray: 19,920 bytes from 7; the whole image
-      identical). Next: `TCommServer` (0x209654), then `TController`;
+      6 sources; after TArray: 19,920 bytes from 7; after TCommServer:
+      21,552 from 8; the whole image identical). Next: `TController`
+      (0x209E84);
       `TArbiter` (0x206BF0..0x208E98, recognition, 183 virtual calls) is
       left for when the recognition headers are further along. Zero-initialised data (`C$$zidata`) and vtables from
       source: not yet.

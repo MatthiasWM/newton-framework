@@ -132,3 +132,17 @@ Status: **confirmed** (the code cannot do what it seems meant to) or
   longer than 223 characters (then it is not terminated) or lies within
   224 bytes of the end of mapped memory.
 - Fix: `strncpy(buf, name, sizeof(buf) - 1)` and a terminating zero.
+
+## B8 TCommServer::ConnectToTestServer: a Handle used without a check (possible)
+
+- ROM: `TCommServer::ConnectToTestServer`, 0x209AD0..0x209CA0, the branch
+  for a serial connection (an entity "*" or "*n").
+- Source: `src/Testing/CommServer.cc`, `options = NewHandle(...)`.
+- What it does: it allocates the options' Handle (8 bytes) and writes a
+  zero through it without testing it; the AppleTalk branch tests its
+  Handle (and fails with -3). If `NewHandle` fails, the zero goes where
+  the master pointer at address 0 points.
+- Depends on: memory being that short when the test agent connects (it
+  runs for testing only).
+- Fix: `if ((options = NewHandle(...)) == NULL) return -3;` as in the
+  other branch.
