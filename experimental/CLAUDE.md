@@ -885,7 +885,8 @@ on the list to classify. Then (Matt) Einstein boots the shifted ROM.
       21,552 from 8; after TDArray (`src/Recognition/DArray.cc`, all 8
       identical): 22,396 from 9; after TDictChain
       (`src/Recognition/DictChain.cc`, all 9): 23,024 from 10; the whole
-      image identical). Next: `TDomain` (0x20CD24). Lesson from
+      image identical); after TDomain (`src/Recognition/RecDomain.cc`, all
+      21): 23,996 from 11. Next: `TDotPrinter` (0x20D0F0). Lesson from
       TDictChain: writing `this->` before a call (`this->Delete(index)`)
       changes which registers the compiler uses (two functions came right
       so). `TController` (0x209E84..0x20C764, about 60

@@ -14,6 +14,7 @@
 #include "NewtonMemory.h"
 #endif
 
+void		NamePtr(char * inPtr, ULong inName);
 long		MemoryError(void);
 void		MoveBlock(char * inFrom, char * inTo, long inSize);
 long		SaveResource(char ** inHandle, long inType, long inID, char * inName);

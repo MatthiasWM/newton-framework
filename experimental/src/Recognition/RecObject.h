@@ -136,4 +136,17 @@ public:
 	virtual long		InsertEntries(ULong index, char * inData, ULong inCount);
 };
 
+/*------------------------------------------------------------------------------
+	T T y p e L i s t
+------------------------------------------------------------------------------*/
+
+class TTypeList : public TDArray
+{
+public:
+	static TTypeList *	Make(void);
+
+	long				AddUnique(ULong inType);
+	ULong				GetType(ULong index);
+};
+
 #endif	/* __RECOBJECT_H */

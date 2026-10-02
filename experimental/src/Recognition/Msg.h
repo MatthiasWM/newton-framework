@@ -28,4 +28,7 @@ public:
 	void		MsgHex(ULong inNum, long inWidth);
 };
 
+/* Whether dumps say more */
+extern long		verbose;
+
 #endif	/* __MSG_H */
