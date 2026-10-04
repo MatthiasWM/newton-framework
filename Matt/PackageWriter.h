@@ -52,8 +52,10 @@ public:
 	NewtonPackageWriter();
 	~NewtonPackageWriter() = default;
 	void save(RefArg pkg, const std::string &filename);
+	std::string bytes(RefArg pkg);
 };
 
 void writePackageToFile(RefArg pkg, const std::string &filename);
+std::string writePackageToMemory(RefArg pkg);
 
 #endif	/* __NEWTONPACKAGEWRITER_H */

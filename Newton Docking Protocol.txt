@@ -1,0 +1,1837 @@
+Dante Connection Protocol ERS
+
+Overview
+
+The Connection protocol is used to communicate between the desktop and the Newton. 
+
+
+Protocol Description
+
+Protocol Overview
+
+Newton communicates with the desktop by exchanging newton event commands. The general command structure looks like this:
+
+'newt'
+'dock'
+'aaaa'		// The specific command
+length		// the length of the following command
+data		// data, if any
+
+In the commands below, all data is padded with nulls to 4 byte boundaries. The length associated with each command is the length (in bytes) of the data following the length field. All strings are C strings unless otherwise specified.
+
+
+
+2.0 Newton ROM Extensions
+
+_____________________________________________________
+
+Remote query
+
+All of the commands in this section are based on the NewtonScript query functions. Please see the Newton Programmer's Guide for details about the functions performed by the commands. The query command returns a long representing the queries cursor. Each of the other commands take this cursor as a parameter. Entries are returned with the kDEntry command.
+
+Newton -> Desktop Commands
+
+kDLongData				'ldta'
+kDRefResult				'ref '
+
+Desktop -> Newton
+
+kDQuery					'qury'
+kDCursorGotoKey			'goto'
+kDCursorMap				'cmap'
+kDCursorEntry			'crsr'
+kDCursorMove			'move'
+kDCursorNext			'next'
+kDCursorPrev			'prev'
+kDCursorReset			'rset'
+kDCursorResetToEnd		'rend'
+kDCursorCountEntries	'cnt '
+kDCursorWhichEnd		'whch'
+kDCursorFree			'cfre'
+
+
+Newton -> Desktop Detailed Commands
+
+kDLongData				5 longs
+
+	'ldta'
+	length
+	data
+
+Newton returns a long value. The interpretation of the data depends on the command which prompted the return of the long value.
+
+Desktop-> Newton Detailed Commands
+
+kDQuery					4 longs + query spec size of string size
+	
+	'qury'
+	length
+	parameter frame
+
+The parameter frame must contain a queryspec slot and may contain a soupname slot.
+
+Performs the specified query on the current store. The query spec is a full query spec including valid test, etc. functions. Soup name is a string that's used to find a soup in the current store to query. If the soup name is an empty string or a NILREF the query is done on the current soup. A kDLongData is returned with a cursor ID that should be used with the rest of the remote query commands.
+
+
+kDCursorGotoKey				5 longs + key size
+		'goto'
+		length
+		cursor id
+		key
+
+The entry at the specified key location is returned. Nil is returned if there is no entry with the specified key. 
+
+kDCursorEntry				5 longs
+		'crsr'
+		length
+		cursor id
+
+Returns the entry at the current cursor.
+
+kDCursorMap				5 longs + function size
+		'cmap'
+		length
+		cursor id
+		function
+
+Applies the specified function to each of the cursor's entries in turn and returns an array of the results. A kDRefResult is returned. See MapCursor in NPG. 
+
+kDCursorMove				6 longs
+		'move'
+		length
+		cursor id
+		count
+
+Moves the cursor forward count entries from its current position and returns that entry. Returns nil if the cursor is moved past the last entry.
+
+kDCursorNext				5 longs
+		'next'
+		length
+		cursor id
+
+Moves the cursor to the next entry in the set of entries referenced by the cursor and returns the entry. Returns nil if the cursor is moved past the last entry.
+
+kDCursorPrev				5 longs
+		'prev'
+		length
+		cursor id
+
+Moves the cursor to the previous entry in te set of entries referenced by the cursor and returns the entry. If the cursor is moved before the first entry nil is returned..
+
+kDCursorReset				5 longs
+		'rset'
+		length
+		cursor id
+
+Resets the cursor to its initial state. A kDRes of 0 is returned.
+
+kDCursorResetToEnd			5 longs
+		'rend'
+		length
+		cursor id
+
+Resets the cursor to the rightmost entry in the valid subset. A kDRes of 0 is returned.
+
+kDCursorCountEntries			5 longs
+		cnt 
+		length
+		cursor id
+
+Returns the count of the entries matching the query specification. A kDLongData is returned.
+
+kDCursorWhichEnd			5 longs
+		'whch'
+		length
+		cursor id
+
+Returns kDLongData with a 0 for unknown, 1 for start and 2 for end.
+        
+kDCursorFree				5 longs
+		'cfre'
+		length
+		cursor id
+
+Disposes the cursor and returns a kDRes with a 0 or error.
+
+Keyboard Passthrough
+
+Desktop -> Newton
+
+kDKeyboardChar			'kbdc'
+kDKeyboardString			'kbds'
+
+Dekktop -> Newton or Newton -> Desktop
+kDStartKeyboardPassthrough	'kybd'
+
+Desktop initiated keyboard passthrough would look like this:
+
+Desktop			Newton
+kDStartKeyboardPassthrough->
+					<- 	kDStartKeyboardPassthrough
+kDKeyboardString		->
+kDKeyboardString		->
+kDOperationCanceled		->			( from either side)
+					<-	kDOpCanceledAck
+
+Newton initiated keyboard passthrough would look like this:
+
+Desktop			Newton
+					<- 	kDStartKeyboardPassthrough
+kDKeyboardString		->
+kDKeyboardString		->
+					<-	kDOperationCanceled
+kDOpCanceledAck		->
+
+Desktop-> Newton Detailed Commands
+
+kDKeyboardChar			5 longs	
+		'kbdc'
+		length
+		char
+		state
+		
+This command sends 1 character to the Newton for processing. The char is a 2 byte unicode character + a 2 byte state. The state is defined as follows:
+
+	Bit 1 = command key down
+
+kDKeyboardString			4 longs + string len	
+		'kbds'
+		length
+		"string"
+		
+This command sends a string of characters to the newton for processing. The characters are 2 byte unicode characters. If there are an odd number of characters the command should be padded, as usual.
+
+Dekktop -> Newton or Newton -> Desktop Detailed Commands
+
+kDStartKeyboardPassthrough			4 longs
+		'kybd'
+		length
+
+This command is sent to enter keyboard passthrough mode. It can be followed by kDKeyboardChar, kDKeyboardString, kDHello and kDOperationComplete commands.
+
+
+
+Misc additions
+
+Newton -> Desktop Commands
+
+kDDefaultStore			'dfst'
+kDAppNames			'appn'
+kDImportParameterSlipResult 	'islr'
+kDPackageInfo 			'pinf'
+kDSetBaseID				'base'
+kDBackupIDs			'bids'
+kDBackupSoupDone 		'bsdn'
+kDSoupNotDirty			'ndir'
+kDSynchronize			'sync'
+kDCallResult			'cres'
+
+Desktop -> Newton
+
+kDRemovePackage			'rmvp'
+kDResultString			'ress'
+kDSourceVersion			'sver'
+kDAddEntryWithUniqueID	'auni'
+kDGetPackageInfo			'gpin'
+kDGetDefaultStore			'gdfs'
+kDCreateDefaultSoup		 'cdsp'
+kDGetAppNames			'gapp'
+kDRegProtocolExtension		'pext'
+kDRemoveProtocolExtension	'rpex'
+kDSetStoreSignature		'ssig'
+kDSetSoupSignature		'ssos'
+kDImportParametersSlip		'islp'
+kDGetPassword			'gpwd'
+kDSendSoup 			'snds'
+kDBackupSoup			'bksp'
+kDSetStoreName			'ssna'
+kDCallGlobalFunction 		 'cgfn'
+kDCallRootMethod		'crmd'
+	kDSetVBOCompression		 'cvbo'
+	kDRestorePatch			'rpat'
+
+
+Dekktop -> Newton or Newton -> Desktop
+
+kDOperationDone			'opdn'
+kDOperationCanceled		'opcn'
+kDOpCanceledAck			'ocaa'
+kDRefTest				'rtst'
+kDUnknownCommand		'unkn'
+
+Newton -> Desktop Detailed Commands
+
+kDDefaultStore				4 longs + frame size
+		'dfst'
+		length
+		store frame
+
+This command returns a store info frame describing the default store. This frame contains the same info returned for all stores by the kDStoreNames command except that it doesn't include the store info. It contains the name, signature, total size, used size and kind.
+
+kDAppNames				4 longs + frame size
+		'appn'
+		length
+		result frame
+
+This command returns the names of the applications present on the newton. It also, optionally, returns the names of the soups associated with each application. The array looks like this:
+
+[{name: "app name", soups: ["soup1", "soup2"]}, 
+ {name: "another app name", ...}, ...]
+
+Some built-in names are included. "System information" includes the system and directory soups. If there are packages installed, a "Packages" item is listed. If a card is present and has a backup there will be a "Card backup" item. If there are soups that don't have an associated application (or whose application I can't figure out) there's an "Other information" entry.
+
+The soup names are optionally returned depending on the value received with kDGetAppNames.
+			
+kDImportParameterSlipResult 		4 longs + result frame
+		'islr'
+		length
+		result
+
+This command is sent after the user closes the slip displayed by kDImportParametersSlip. The result is a frame containing the following three slots:
+
+{
+	AppList : Array of strings,  // contains the strings of the items selected 
+					// in the textlist of applications
+	Conflicts : "string",              // Text string of labelpicker entry line
+	Dates : Two element array of integers // The beginning and ending 								 // dates of the selected interval 							            // expressed in minutes 
+}
+If the user cancels, the result sent is a nil ref.
+
+kDPackageInfo 					4 longs + a ref
+		'pinf'
+		length
+		info ref
+
+This command is sent in response to a kDGetPackageInfo command. An array is returned that contains a frame for each package with the specified name (there may be more than one package with the same name but different package id). The returned frame looks like this:
+
+	{ name: "The name passed in",
+	packagesize: 		123,
+	packageid:		123,
+	packageversion:	1,
+	format:		1,
+	devicekind:		1,
+	devicenumber:	1,
+	deviceid:		1,
+	modtime:		123213213,
+	iscopyprotected:	true,
+	length:		123,
+	safetoremove: true}
+
+kDBackupIDs					4 longs + ids
+		'bids'
+		length = -1
+		ids
+
+This command is sent in response to a kDBackupSoup command--see that command for command sequence details. The length for this command is always set to -1 indicating that the length is unknown. The ids are specified as a compressed array of 16 bit numbers. Each id should be offset by any value specified by a previous kDSetBaseID command (this is how we can specify a 32 bit value in 15 bits). Each id is a number between 0 and 0x7FFF (32767). Negative numbers specify a count of the number of entries above the previous number before the next break (non-contiguous id). The sequence is ended by a 0x8000 word. So, if the newton contains ids 
+
+	0, 1, 2, 3, 4, 10, 20, 21, 30, 31, 32 
+
+the array would look like this:
+
+	0, -4, 10, 20, -1, 30, -2, 0x8000
+Thus we send 8 words instead of 11 longs. Is it worth it? If there are a lot of entries it should be.
+
+kDSetBaseID					5 longs
+		'base'
+		length
+		new base
+
+This command sets a new base id for the ids sent with subsequent kDBackupIDs commands. The new base is a long which should be added to every id in all kDBackupIDs commands until a kDBackupSoupDone command is received.
+
+kDBackupSoupDone 			4 longs
+		'bsdn'
+		length
+
+This command terminates the sequence of commands sent in response to a kDBackupSoup command.
+		
+kDSoupNotDirty				4 longs
+		'ndir'
+		length
+
+This command is sent in response to a kDBackupSoup command if the soup is unchanged from the last backup.
+
+kDSynchronize			4 longs
+		'sync'
+		length
+
+This command is sent to the desktop when the user taps the Synchronize button on the newton.
+
+			
+kDCallResult			4 longs + ref
+		'cres'
+		length
+		ref
+
+This command is sent in response to a kDCallGlobalfunction or kDCallRootMethod command. The ref is the return value from the function or method called.
+
+kDSetVBOCompression			5 longs
+		'cvbo'
+		length
+		what
+
+This command controls which VBOs are sent compressed to the desktop. VBO can always be sent compressed, never compressed or only package VBOs sent compressed.
+
+eUncompressedVBOs  = 0
+eCompressedPackagesOnly = 1
+eCompressedVBOs = 2
+
+	kDRestorePatch				4 longs + patch
+			'rpat'
+			length
+			patch
+
+This command is used to restore the patch backed up with kDGetPatches. The newton returns a kDResult of 0 (or an error if appropriate) if the patch wasn't installed. If the patch was installed the newton restarts.
+
+
+Desktop-> Newton Detailed Commands
+
+kDRemovePackage			4 longs + ref
+		'rmvp'
+		length
+		name ref
+
+This command tells the newton to delete a package. It can be used during selective restore or any other time.
+
+kDResultString				5 longs + string	
+		'ress'
+		length
+		errorNumber
+		errorStringRef
+
+Reports a desktop error to the Newton. The string is included since the Newton doesn't know how to decode all the desktop errors (especially since the Mac and Windows errors are different). ErrorString is a ref.
+
+
+kDSourceVersion				7 longs	
+		'sver'
+		length
+		vers
+		manufacturer
+		machineType
+
+enum eSourceVersion {eOnePointXData = 1, eTwoPointXData = 2};
+
+Tells the Newton the version that the subsequent data is from.  For example, if a 1.x data file is being restored the desktop would tell the Newton that version 1 data was comming. Same for importing a 1.x NTF file. Otherwise, it should indicate that 2.x data is comming. When the connection is first started the version defaults to 2.x. This information is necessary for the Newton to know whether or not it should run the conversion scripts. A kDRes command with value 0 is sent by the Newton in response to this command. This commands affects only data added to the Newton with kDAddEntry and kDAddEntryWithUniqueID commands. In particular, note that data returned by kDReturnEntry isn't converted if it's a different version than was set by this command.
+
+manufacturer and machinetype tell the Newton the type of newton that's the source of the data being restored. These are sent at the beginning of a connection as part of the Newtonname command.
+
+kDAddEntryWithUniqueID:		5 longs + entry data
+		'auni'
+		length	// length of data
+		data		// ref
+
+This command is sent when the PC wants to add an entry to the current soup. The entry is added with the ID specified in the data frame. If the id already exists an error is returned.
+
+Warning! This function should only be used during a restore operation. In other situations there's no way of knowing whether the entrie's id is unique. If an entry is added with this command and the entry isn't unique an error is returned.
+
+kDGetPackageInfo:			4 longs + ref len
+		'gpin'
+		length	// length of data
+		title ref
+
+The package info for the specified package is returned. See the kDPackageInfo command described below Note that multiple packages could be returned because there may be multiple packages with the same title but different package ids. Note that this finds packages only in the current store.
+
+kDGetDefaultStore:			4 longs
+		'gdfs'
+		length	// = 0
+
+This command returns info about the default store. This info is the same as the info returned by the kDGetStoreNames command (see kDStoreNames for details). The default store is the one used by LoadPackage.
+
+kDCreateDefaultSoup			4 longs + string
+		 'cdsp'
+		length
+		soup name (c string)
+
+This command creates a soup on the current store. It uses a registered soupdef to create the soup meaning that the indexes, etc. are determined by the ROM. If no soupdef exists for the specified soup an error is returned. A kDResult is returned.
+
+kDGetAppNames				5 longs
+		'gapp'
+		length	// = 4
+		return what
+
+This command asks the Newton to send information about the applications installed on the Newton. See the kDAppNames description above for details of the information returned. The return what parameter determine swhat information is returned. Here are the choices:
+		0: return names and soups for all stores
+		1: return names and soups for current store
+		2: return just names for all stores
+		3: return just names for current store
+
+kDRegProtocolExtension			5 longs + function
+		'pext'
+		length
+		command
+		function
+
+This command installs a protocol extension into the newton. The extension lasts for the length of the current connection (in other words, you have to install the extension every time you connect). The function is a newton script closure that would have to be compiled on the desktop. See the Dante Connection (ROM) API IU document for details. A kDResult with value 0 (or the error value if an error occurred) is sent to the desktop in response.
+
+kDRemoveProtocolExtension		5 longs
+		'prex'
+		length
+		command
+
+This command removes a previously installed protocol extension.
+
+kDSetStoreSignature			5 longs	
+		'ssig'
+		length
+		new signature
+
+This commands sets the signature of the current store to the specified value. A kDResult with value 0 (or the error value if an error occurred) is sent to the desktop in response.
+
+kDSetSoupSignature			5 longs	
+		'ssos'
+		length
+		new signature
+
+This commands sets the signature of the current soup to the specified value. A kDResult with value 0 (or the error value if an error occurred) is sent to the desktop in response.
+
+kDImportParametersSlip				4 longs + specification frame
+	'islp'
+	length
+	Frame containing info to display
+
+The following is a possible example of  what would be displayed on the Newton following the kDImportParametersSlip command:
+
+  
+
+The slip will, at minimum, display 2 text string fields corresponding to the slip title and a filename.  Up to 5 additional fields, plus the CloseBox, could be  displayed. While the slip is displayed, "helos" are sent to the desktop. When the user taps on the "Import" button or the CloseBox, a kDImportParameterSlipResult is sent to the desktop.  Each of the other 5 fields is shown if the slot defining it exists in the frame parameter.
+ 
+The frame contains the following slots used to configure the display of the slip:
+	
+	{ 
+	   SlipTitle: "string1",    	//this slot is required. Text string for slip title
+	   FileName: "string2", 	//this slot is required. Text of file name being 						 // imported
+	   AppListInfo: { Title: "string",  // Text string for title field above textlist.
+			   ListItems: Array of strings,  // array of strings corresponding 
+								to applications listed in textlist
+			   selected: Array of indexes}, // array in indexes of items in the 
+								listitems array to select. e.g. [1,3] 
+								would select 1st and 3rd items
+	  ConflictsInfo: { Text: "string",  // Text string for labelpicker label
+			      labelCommands :Array of strings },	// array of strings 											// corresponding  to 										// available choices in 										// picker list	
+	  DatesInfo: { Title: "string1", // Text string for title field above 								     // datedurationtextpicker
+		           Text: "string2",  // Text string for datedurationtextpicker label
+			startTime: num, // start time in minutes from 1/1/04 12:00 am
+			stopTime: num}, // stop time in minutes from 1/1/04 12:00 am
+
+			
+	  ImportInfo: { Title: "String" , // This slot is required. Text string for button	
+			ImportParametersDoneScript: function object } // function object 								// to call after button is tapped
+             }
+
+			
+kDGetPassword			4 longs + string
+		'gpwd'
+		length
+		string ref
+
+This command displays the password slip to let the user enter a password. The string is displayed as the title of the slip. A kDPassword command is returned.
+
+kDSendSoup 			4 longs		
+		'snds'
+		length
+		
+This command requests that all of the entries in a soup be returned to the desktop. The newton responds with a series of kDEntry commands for all the entries in the current soup followed by a kDBackupSoupDone command. All of the entries are sent without any request from the desktop (in other words, a series of commands is sent). The process can be interrupted by the desktop by sending a kDOperationCanceled command. The cancel will be detected between entries. The kDEntry commands are sent exactly as if they had been requested by a kDReturnEntry command (they are long padded).
+
+kDBackupSoup			4 longs
+		'bksp'
+		length		= 4
+		last unique id
+
+This command is used to backup a soup. The result is a series of commands that includes all entries changed since the last sync time (set by a previous command), all entries with a uniqeu ID greater than the one specified, and the unique ids of all other entries to be used to determine if any entries were deleted. The changed entries are sent with kDEntry commands. The unique ids are sent with a kDBackupIDs command. A kDBackupSoupDone command finishes the sequence. If there are any IDs > 0x7FFF there could also be a kDSetBaseID command. The changed entries and unique ids are sent in unique id sequence.  The newton checks for kDOperationCanceled commands occasionally.  If the soup hasn't been changed since the last backup a kDSoupNotDirty command is sent instead of the ids. A typical sequence could look like this:
+	Desktop			Newton
+	kDBackupSoup	->
+				<-	kDBackupIDs
+				<-	kDEntry 	
+				<-	kDEntry 
+				<-	kDBackupIDs
+				<-	kDEntry 
+				<-	kDSetBaseID
+				<-	kDBackupIDs
+				<-	kDBackupSoupDone 
+	
+	See the definition of the other commands for details.
+			
+kDSetStoreName			4 longs + ref	
+		'ssna'
+		length
+		name ref
+		
+This command requests that the name of the current store be set to the specified name.
+	 
+kDCallGlobalFunction 			4 longs + function name + args	
+		'cgfn'
+		length
+		function name symbol
+		args array
+		
+This command asks the newton to call the specified function and return it's result. This function must be a global function. The return value from the function is sent to the desktop with a kDCallResult command.
+
+		
+kDCallRootMethod			4 longs + method name + args	
+		'crmd'
+		length
+		method name symbol
+		args array
+		
+This command asks the newton to call the specified root method. The return value from the method is sent to the desktop with a kDCallResult command.
+
+
+Dekktop -> Newton or Newton -> Desktop Detailed Commands
+
+kDOperationDone				4 longs	
+		'opdn'
+		length		// = 0
+
+This command is sent when an operation is completed. It't only sent in situations where there might be some ambiguity. Currently, there are two situations where this is sent. When the desktop finishes a restore it sends this command. When a sync is finished and there are no sync results (conflicts) to send to the newton the desktop sends this command.
+
+kDOperationCanceled			4 longs
+		'opcn'
+		length		// = 0
+
+This command is sent when the user cancels an operation. Usually no action is required on the receivers part exept to return to the "ready" state.
+
+
+kDOpCanceledAck			4 longs
+		'ocaa'
+		length		// = 0
+
+This command is sent in response to a kDOperationCanceled.
+
+kDRefTest					4 longs + ref
+		'rtst'
+		length
+		object
+
+This command is first sent from the desktop to the Newton. The newton immediately echos the object back to the desktop. The object can be any newtonscript object (anything that can be sent through the object read/write).
+
+This command can also be sent with no ref attached. If the length is 0 the command is echoed back to the desktop with no ref included.
+
+kDUnknownCommand					4 longs + ref
+		'unkn'
+		length
+		bad command
+
+This command is sent when a message is received that is unknown. When the desktop receives this command it can either install a protocol extension and try again or return an error to the Newton. If the built-in Newton code receives this command it always signals an error. The bad command parameter is the 4 char command that wasn't recognized. The data is not returned.
+
+
+_____________________________________________________
+
+Starting a session
+
+2.0 Newton supports a new set of protocols to enhance the connection capabilities. However, since it's desirable to also support package downloading from NPI, NTK 1.0 and Connection 2.0 the ROMs will also support the old protocol for downloading packages. To make this work the 2.0 ROMs will pretend that they are talking the old protocol when they send the kDRequestToDock message. If a new connection (or other app) is on the other end the protocol will be negotiated up to the current version. Only package loading is supported with the old protocol.
+
+Newton -> Desktop Commands
+
+kDPassword	'pass'	// data = encrypted key
+kDNewtonName	'name'
+kDNewtonInfo	'ninf'
+
+Desktop -> Newton Commands
+
+kDInitiateDocking	'dock'	// Ask Newton to start docking process
+kDWhichIcons	'wicn'	// optional to define which icons are shown
+
+Examples
+
+When a 2.0 ROM Newton is communicating with a 3.0 Connection the session would start like this:
+	Desktop			Newton
+				<-	kDRequestToDock
+	kDInitiateDocking	->
+				<-	kDNewtonName
+	kDDesktopInfo	->
+				<-	kDNewtonInfo 
+	kDWhichIcons	->				// optional
+				<-	kDResult
+	kDSetTimeout	->
+				<-	kDPassword
+	kDPassword		->
+
+If the password sent from the Newton is wrong it would look like this instead. The password exchange can occurr up to 3 times before the desktop gives up.
+				<-	kDPassword
+	kDPWWrong	->
+				<-	kDPassword
+	kDPWWrong	->
+				<-	kDPassword
+	kDPassword		->
+
+If the password sent from the Desktop is wrong the Newton signals an error immediately.
+				<-	kDPassword
+	kDPassword		->
+				<-	kDResult
+
+If the desktop decides that the Newton has had enough guesses a kDResult can be sent instead of a kDPWWrong. A kDBadPassword error should be specified.
+
+No matter what the intent of the desktop or the Newton, these commands must always start a session (the desktop can substitute a kDResult for the kDSetTimeout if it doesn't want to set the timeout).
+
+If no password has been specied, the key is returned unencrypted.
+
+When a 2.0 ROM Newton is communicating with NPI 1.0, NTK 1.0 or 2.0 Connection the session would look like this:
+	Desktop			Newton
+				<-	kDRequestToDock
+	kDInitiateDocking	->		// session type must be loadpackage
+				<-	kDNewtonName
+	kDSetTimeout	->
+				<-	kDResult
+	kDLoadPackage	->
+				<-	kDResult
+	kDDisconnect	->
+
+
+Newton -> Desktop Detailed Commands
+
+kDPassword:		4 longs + key
+		'pass'
+		length
+		encrypted Key
+This command returns the key received in the initiateDocking message encrypted using the password. 
+
+kDNewtonInfo	1 long + key
+		'ninf'
+		length
+		protocol version
+		encrypted key	// 2 longs
+
+This command is used to negotiate the real protocol version. See kDDesktopInfo below for more info. The password key is used as part of the password verification.
+
+kDNewtonName		4 longs + version info + name
+		'name'
+		length
+		version info
+		name
+This command is sent in response to a correct kDInitiateDocking command from the docker. The Newton's name is used to locate the proper synchronize file. The version info includes things like machine type (e.g. J1), ROM version, etc. Here's the full list of what the version info includes (all are longs):
+
+	length of version info in bytes
+	newtonUniqueID - a number uniquely identifying the newton
+	manufacturer id
+	machine type
+	rom version
+	rom stage
+	ram size
+	screen height
+	screen width
+	system update version
+	Newton object system version
+	signature of internal store
+	vertical screen resolution
+	horizontal screen resolution
+	screen depth
+
+The version info is followed by the name of the Newton sent as a Unicode string including the terminating zeros at the end. The string is padded to an even 4 bytes by adding zeros as necessary (the padding bytes are not included in the length sent as part of the command header).
+
+Desktop-> Newton Detailed Commands
+
+kDDesktopInfo
+		'dinf'
+		length
+		protocol version
+		desktopType		// 0 for Mac, 1 for Windows
+		encrypted key	// 2 longs
+		session type
+		allowSelectiveSync // 0 = no, 1 = yes
+		desktopApps	// ref
+
+This command is used to negotiate the real protocol version. The protocol version sent with the kDRequestToDock command is now fixed at version 9 (the version used by the 1.0 ROMs) so we can support package loading with NPI 1.0, Connection 2.0 and NTK 1.0. Connection 3.0 will send this command with the real protocol version it wants to use to talk to the Newton. The Newton will respond with a number equal to or lower than the number sent to it by the desktop. The desktop can then decide whether it can talk the specified protocol or not. 
+
+The desktop type is a long that identifies the senderÐ0 for the Mac and 1 for Windows. The password key is used as part of the password verification.
+
+Session type will be the real session type and should override what was sent in kDInitiateDocking. In fact, it will either be the same as was sent in kDInitiateDocking or "settingUp" to indicate that altho the desktop has accepted a connection, the user has not yet specified an operation.
+
+AllowSelectivesync is a boolean. The desktop should say no when the user hasn't yet done a full sync and, therefore, can't do a selective sync.
+
+desktopApps is an array of frames that describes who the Newton is talking with. Each frame in the array looks like this:
+        {name: "Newton Backup Utility", id: 1, version: 1}
+There might be more than one item in the array if the Newton is connecting with a DIL app. The built-in Connection app expects 1 item in the array that has id:
+        1: NBU
+        2: NCU
+It won't allow connection with any other id. NCK 2.0, NTK and NPI use old revs of the protocol and aren't considered here.
+
+kDWhichIcons		5 longs
+		'wicn'
+		length
+		iconMask
+
+This command is used to customize the set of icons shown on the Newton. The iconMask is a long that indicates which icons should be shown. For example, to show all icons you would use this:
+
+kBackupIcon + kSyncIcon + kInstallIcon + kRestoreIcon + kImportIcon + kKeyboardIcon
+
+Where	kBackupIcon = 1
+		kRestoreIcon = 2
+		kInstallIcon = 4
+		kImportIcon = 8
+	  	kSyncIcon = 16
+		kKeyboardIcon = 32
+
+_____________________________________________________
+
+Sync and Selective Sync
+
+Newton -> Desktop Commands
+
+kDRequestToSync			'ssyn'
+kDSyncOptions			'sopt'
+
+Desktop -> Newton Commands
+
+kDGetSyncOptions			'gsyn'
+kDSyncResults			'sres'
+kDSetStoreGetNames		'ssgn'
+kDSetSoupGetInfo			'ssgi'
+kDGetChangedIndex		'cidx'
+kDGetChangedInfo			'cinf'
+
+Examples
+
+After the session is started (see above) these commands would be sent.
+
+	Desktop			Newton
+
+				<-	kDRequestToSync
+	kDGetSyncOptions ->
+				<-	kDSyncOptions
+	kDLastSyncTime	->	// This ones fake just to get the newton time
+				<-	kDCurrentTime	
+	kDSetCurrentStore	->
+				<-	kDResult
+	kDLastSyncTIme	->
+				<-	kDCurrentTime
+
+The following would appear only if syncing system info:
+	kDGetPatches	->
+				<-	kDPatches
+
+The following would appear only if syncing packages:
+	kDGetPackageIDs	->			
+				<-	kDPackageIDList
+	kDBackupPackages	->
+				<-	kDPackage
+	kDBackupPackages	->
+				<-	kDPackage
+	kDBackupPackages	->
+				<-	kDResult
+Note that the above only syncs 1.x style packages on locked 1.x cards. To complete the package sync the packages soup should also by synced.
+
+The sync would continue like this:
+	kDSetSoupGetInfo	->
+				<-	kDSoupInfo
+	kDLastSyncTIme	->
+				<-	kDCurrentTime
+	kDGetSoupIDs	->
+				<-	kDSoupIDs
+	kdGetChangedIDs 	->
+				<-	kDChangedIDs
+	kDDeleteEntries	->
+				<-	kDResult
+	kDAddEntry		->
+				<-	kDAddedID
+	kDReturnEntry	->
+				<-	kDEntry
+Repeat the above for each store and soup followed by:
+	kDOperationComplete ->
+
+Optionally the desktop could send this instead of the operation complete:
+	kDSyncResults	->
+
+Newton -> Desktop Detailed Commands
+
+kDRequestToSync		4 longs
+		'ssyn'
+		length	// = 0
+
+This command is sent when the Newton wants to start a sync operation. 
+
+kDSyncOptions		4 longs + frame length
+		'ssyn'
+		length	// length of data
+		frame of info
+
+This command is sent whenever the user on the Newton has selected selective sync. The frame sent completely specifies which information is to be snychrnoized.
+{	packages: TRUEREF, 
+	syncAll: TRUEREF,
+	stores: [{store info}, {store info}]}
+
+Each store frame in the stores array contains the same information returned by the kDStoreNames command with the addition of soup information. It looks like this:
+
+{Name: "", 
+	signature: 1234, 
+	totalsize: 1234,
+	usedsize: 1234, 
+	kind: "", 
+	soups: [soup names],
+	signatures: [soup signatures]
+	info: {store info frame},
+}
+
+If the user has specified to sync all information the frame will look the same except there won't be a soups slot--all soups are assumed.
+
+Note that the user can specify which stores to sync while specifying that all soups should be synced.
+
+If the user specifies that packages should be synced the packages flag will be true and the packages soup will be specified in the store frame(s).
+
+Desktop-> Newton Detailed Commands
+
+kDGetSyncOptions 		4 longs
+		'gsyn'
+		length	// = 0
+
+This command is sent when the desktop wants to get the selective sync or selective restore info from the Newton.
+
+kDSyncResults			4 longs + array
+		'sres'
+		length
+		results array
+
+This command can optionally be sent at the end of synchronization. If it is sent, the results are displayed on the Newton. The array looks like this:
+
+[["store name", restored, "soup name", count, "soup name" count], 
+ ["store name", restored, ...]]
+
+Restored is true if the desktop detected that the newton had been restore to since the last sync. Count is the number of conflicting entries that were found for each soup. Soups are only in the list if they had a conflict. When a conflict is detected, the newton version is saved and the desktop version is moved to the archive file.
+	
+kDSetStoreGetNames			4 longs + frame
+		'ssgn'
+		length
+		store frame
+
+This command is the same as kDSetCurrentStore except that it returns the names of the soups on the stores as if you'd send a kDGetSoupNames command. It sets the current store on the Newton. A store frame is sent to uniquely identify the store to be set:
+
+	{name: "foo",
+	 kind: "bar",
+	 signature: 1234,
+	 info: {<info frame>}		// This one is optional
+	}
+A kDSoupNames is sent by the newton in response.
+			
+kDSetSoupGetInfo			4 longs + c string length
+		'ssgi'
+		length
+		soup name	// C string
+
+This command is like a combination of kDSetCurrentSoup and kDGetChangedInfo. It sets the current soup--see kDSetCurrentSoup for details. A kDSoupInfo or kDRes command is sent by the newton in response.
+
+kDGetChangedIndex		4 longs
+		'cidx'
+		length
+
+This command is like kDGetIndexDescription except that it only returns the index description if it has been changed since the time set by the kDLastSyncTIme command. If the index hasn't changed a kDRes with 0 is returned.
+
+kDGetChangedInfo			4 longs
+		'cinf'
+		length
+
+This command is like kDGetSoupInfo except that it only returns the soup info if it has been changed since the time set by the kDLastSyncTIme command. If the info hasn't changed a kDRes with 0 is returned.
+
+_____________________________________________________
+
+File browsing
+
+File browsing will use the same protocol described above with the following additions. For synchronize, the process is completely driven from the desktop side. For file browsing/importing, however, the process is driven from the Newton.
+
+Newton -> Desktop Commands
+
+kDRequestToBrowse		'rtbr'
+kDGetDevices			'gdev' // Windows only
+kDGetDefaultPath			'dpth' // Get the starting path
+kDGetFilesAndFolders		'gfil'	// Ask the desktop for files and folders
+kDSetPath				'spth'
+kDGetFileInfo			'gfin'
+kDInternalStore			'isto'
+kDResolveAlias			'rali'
+kDGetFilters				'gflt'	// Windows only
+kDSetFilter				'sflt'	// Windows only
+kDSetDrive				'sdrv' // Windows only
+
+Desktop -> Newton
+
+kDDevices				'devs'	// Windows only
+kDFilters				'filt'	// Windows only
+kDPath				'path'
+kDFilesAndFolders		'file'	// frame of info about files and folders
+kDFileInfo				'finf'
+kDGetInternalStore 		'gist'
+kDAliasResolved			'alir'
+
+Examples
+
+After the session has started (see above) these commands would be sent:
+
+Desktop			Newton
+			<-	kDRequestToBrowse
+kDGetInternalStore ->					// optional
+			<-	kDInternalStore		// optional
+kDResult		->
+			<-	kDGetDevices		// Only for Windows
+kDDevices		->					// Only for Windows
+		 	<-	kDGetFilters			// Windows only
+kDFilters		->					// Windows only
+			<-	kDGetDefaultPath
+kDPath		->
+			<-	kDGetFilesAndFolders
+kDFilesAndFolders->
+
+Note that we must start the transaction with a requestToDock to force 1.0 and 2.0 versions of Connection to display the correct message.
+
+When the user changes the path by tapping on a folder, picking a new level from the path popup, or picking a new drive on the drive popup:
+
+			<-	kDSetPath
+kDFilesAndFolders->
+
+When the user changes the drive by picking a drive on the drive popup (Windows only), the desktop will change the drive and set the directory to the current directory for that drive, and return the new path to the newton:
+
+			<-	kDSetDrive
+kDPath		->
+			<-	kDGetFilesAndFolders
+kDFilesAndFolders->
+
+
+If the folder is an alias, it's like this (Mac only):
+
+			<-	kDSetPath
+kDPath		->
+			<-	kDGetFilesAndFolders
+kDFilesAndFolders->
+
+When the user taps on the File Info button:
+
+			<- kDGetFileInfo
+kDFileInfo		->
+
+If the selected item is an alias (Mac only), before doing import, getfileinfo, or setpath:
+			<- kDResolveAlias		// name of alias
+kDAliasResolved	->				// 0 or 1, 0=can't resolve
+
+If the Windows user picks a new filter from the list:
+			<- kDSetFilter
+kDFilesAndFolders->
+
+Newton -> Desktop Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDRequestToBrowse		4 longs + length of file types
+		'rtbr'
+		length
+		file types
+
+This command is sent to a desktop that the Newton wishes to browse files on.  File types can be 'import, 'packages, 'syncFiles or an array of strings to use for filtering.
+
+kDGetDevices			4 longs
+		'gdev'
+		length	// 0
+
+This command asks the desktop system to return an array of device names. This is only used for the windows platform.
+
+kDGetDefaultPath		4 longs
+		'dpth'
+		length	// 0
+
+This commands requests the desktop system to return the default path. This is the list that goes in the folder popup for the Mac and in the directories list for Windows. 
+
+kDGetFilesAndFolders	4 longs
+		'gfil'
+		length	// 0
+
+This command requests that the desktop system return the files and folders necessary to open a standard file like dialog.
+
+kDSetPath			4 longs + array
+		'spth'
+		length
+		array of strings
+
+This command tells the desktop that the user has changed the path. The desktop responds with a new list of files and folders. The path is sent as an array of strings rather than an array of frames as all of the other commands are for performance reasons. For the Mac, the array would be something like:
+	["Desktop",{Name:"My hard disk", whichVol:0}, "Business"] 
+to set the path to "My hard disk:business:". "Desktop" will always be at the start of the list, since that's the way Standard File works. So if the user wanted to set the path to somewhere in the Desktop Folder he would send something like
+	["Desktop",{Name:"Business", whichVol:-1}]  to set the path to "My hard disk:Desktop Folder:business:"
+
+The second item in the array, will always be a frame instead of a string and will contain an additional slot "whichvol" to indicate to the desktop whether that item is a name of a volume or a folder in the Desktop Folder and if so it's volRefNum.
+
+For Windows the array would be something like:
+	["c:\", "business"]
+to set the path to "c:\business."
+
+kDSetDrive				4 longs + string
+		'sdrv'
+		length
+		drive string
+
+This command asks the desktop to change the drive on the desktop and set the directory to the current directory for that drive.  The string contains the drive letter followed by a colon e.g. "C:".
+
+kDGetFileInfo			4 longs + string
+		'gfin'
+		length
+		filename string
+
+This command asks the desktop to return info about the specified file. See kDFileInfo for info about what's returned.
+
+If the selected item is at the Desktop level, a frame {Name:"Business", whichVol:-1} will be sent instead of the string to indicate the volRefNum for the file.
+
+kDInternalStore		4 longs + frame
+		'isto'
+		length
+		store frame
+
+This command returns information about the internal store. The info is in the form of a frame that looks like this:
+
+{Name: "Internal", 
+	signature: 1234, 
+	totalsize: 1234,
+	usedsize: 1234, 
+	kind: "Internal", 
+}
+This is the same frame returned by kDStoreNames except that the store info isn't returned.
+
+kDResolveAlias			4 longs
+	'rali'
+	length	// = 0
+
+kDGetFilters				4 longs		
+	'gflt'
+	length 	// = 0
+
+This command asks the desktop to send a list of filters to display in the windows file browser. A kDFilters command is expected in response.
+
+kDSetFilter				5 longs
+	'sflt'
+	length
+	index
+
+This command changes the current filter being used. A kDFilesAndFolders command is expected in return. The index is a long indicating which item in the filters array sent from the desktop should be used as the current filter. Index is 0 based.
+
+Desktop-> Newton Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDDevices			4 longs + length of array
+		'devs'
+		length
+		array
+
+This command returns an array of frames describing devices. These are the devices which will appear in the devices popup in the Windows file browsing dialog. Each frame in the array should look like this:
+	{name: "c:mydisk",
+	 disktype: 1
+	}
+where (floppy = 0, hardDrive = 1, cdRom = 2, netDrive = 3)
+The icon is displayed in the popup. This may not be possible in which case this slot will be optional.
+
+kDFilters			4 longs + array length
+		'filt'
+		length
+		filter array
+
+This command returns an array of filters to the newton. It's sent in response to a kDGetFilters command. The filter should be an array of strings which are displayed in the filter popup. If the filter array is nil no popup is displayed.
+
+kDPath				4 longs + length of array
+		'path'
+		length
+		folder array
+
+This command returns the initial strings for the folder popup in the Mac version of the window and for the directories list in the Windows version. It is also returned after the user taps on a folder alias. In this case the path must be changed to reflect the new location. Each element of the array is a frame that takes this form:
+	{name: "my hard disk",
+	 type: disk,
+	disktype: harddrive,
+	whichVol: 0,			// Optional - see below
+	}
+
+The possible values for type are (desktop = 0, file = 1, folder = 2, disk = 3). If the type is disk, there is an additional slot disktype with the values (floppy = 0, hardDrive = 1, cdRom = 2, netDrive = 3).  Finally, for the second frame in the array i.e. the one after Desktop, there will be an additional slot whichvol, which will be a 0 if the item is disk or a volRefNum if the item is a folder on the desktop.
+
+For example, the Mac might send:
+	[{name: "desktop", type: desktop}, {name: "my hard disk", type: disk, disktype: harddrive, whichvol: 0}, {name: "business", type: folder}]
+
+or for some folder on the desktop it it might send:
+[{name: "desktop", type: desktop}, {name: "business", type: folder, whichvol: -1}, {name: "my folder", type: folder}]
+
+
+for Windows it might be:
+	[{name: "c:\", type: 'folder}, {name: "business", type: 'folder}]
+
+kDFilesAndFolders		4 longs + length of array
+		'file'
+		length
+		file/folder array	// array is described below
+
+This command returns an array of information that's used to display a standard file like dialog box on the Newton. Each element of the array is a frame describing one file, folder or device. The individual frame would look like this:
+	{name: "whatever",
+	 type: kFolder,
+	disktype: 0,		// optional if type = disk
+	whichVol: 0,		// optional if name is on the desktop
+	alias: nil,		// optional if it's an alias
+	}
+The possible values for type are  desktop, file, folder or disk (0, 1, 2, 3). The frames should be in the order in the array that they are to be displayed in on the Newton. For example, the array might look like this:
+	[{name: "Applications", type: kFolder}, 
+	 {name: "important info", type: kFile}, 
+	 {name: "System", type: kFolder}]
+
+If the type is a disk, then the frame will have an additional slot disktype with the values  (floppy = 0, hardDrive = 1, cdRom = 2, netDrive = 3). Also, if the current location is the desktop, there is an additional slot whichvol to indicate the location of the inidvidual files, folders and disks with the values 0 for disks and a negative number for the volRefNum for files and folders on the desktop.
+
+If the item is an alias there is an alias slot. The existence of this slot indicates that the item is an alias.
+
+kDFileInfo			4 longs + frame length
+		'finf'
+		length
+		frame of info
+
+This command is sent in response to a kDGetFileInfo command. It returns a frame that looks like this:
+
+	{kind: "Microsoft Word document", size:20480, created: 3921837, 
+	 modified: 3434923, icon: <binary object of icon>,
+	path: "hd:files:another folder:"}
+
+kind is a description of the file.
+size is the number of bytes (actual, not the amount used on the disk).
+create is the creation date in newton date format.
+modified is the modification date of the file.
+icon is an icon to display. This is optional.
+path is the "user understandable" path description
+
+kDGetInternalStore 		4 longs
+		'gist'
+		length		// = 0
+
+This command requests the newton to return info about the internal store. The result is described with the KDInternalStore command.
+
+kDAliasResolved			5 longs
+		'alir'
+		length		// = 4
+		0 or 1
+
+This command is sent by the desktop in response to the kDResolveAlias command. If the value is 0, the alias can't be resolved. If the data is 1 (or non-zero) the alias can be resolved.
+_____________________________________________________
+
+File importing
+
+File importing uses the file browsing interface described above. After the user taps the import button, the following commands are used.
+
+Newton -> Desktop Commands
+
+kDImportFile			'impt'
+kDSetTranslator			'tran'
+
+Desktop -> Newton
+
+kDTranslatorList			'trnl'
+kDImporting			'dimp'
+kDSoupsChanged			'schg'
+kDSetStoreToDefault		'sdef'
+
+Examples
+
+When the user taps the import button:
+Desktop			Newton
+
+			<-	kDImportFile
+
+When there's more than one translator available:
+
+kDTranslatorList	->
+			<-	kDSetTranslator
+kDImporting	->
+			<-	kDResult
+
+When there's only one translator available:
+
+kDImporting	->
+			<-	kDResult
+
+
+When the data is ready to be sent to the Newton:
+
+kDSetStoreToDefault ->
+			<-	kDResult
+kDSetCurrentSoup	->
+			<-	kDResult
+kDAddEntry		->
+			<-	kDAddedID
+kDAddEntry		->
+			<-	kDAddedID
+kDSoupsChanged	->
+
+Newton -> Desktop Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDImportFile			4 longs + string
+		'impt'
+		length
+		filename string
+
+This command asks the desktop to import the file specified by the last path command and the filename string. The response to this can be either a list of translators (if there is more than one applicable translator) or an indication that importing is in progress. If the selected item is at the Desktop level, a frame {Name:"Business", whichVol:-1} is sent. Otherwise, a string is sent.
+
+kDSetTranslator		5 longs
+		'tran'
+		length		= 4
+		translator index
+
+This command specifies which translator the desktop should use to import the file. The translator index is the index into the translator list sent by the desktop in the kDTranslatorList command. The desktop should acknowledg this command with an indication that the import is proceeding.
+
+Desktop-> Newton Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDTranslatorList		4 longs + length of array
+		'trnl'
+		length
+		array of strings
+
+This command returns an array of translators that can be used with the specified file. The list can include DataViz translators and tab templates. The array should be in the order that the translators should be displayed in the list.
+
+kDImporting			4 longs
+		'dimp'
+		length	// 0
+
+This command is sent to let the Newton know that an import operation is starting. The Newton will display an appropriate message after it gets this message.
+
+kDSoupsChanged		4 longs + array
+		'schg'
+		length
+		array
+
+This command returns information about what was imported into the Newton. Each array element specifies a soup and how many entries were added to it. There will typically be only one frame in the array. The frame will look like this:
+	[{soupName: "Notes", count: 7}, {soupName: "Names", count: 3}]
+
+kDSetStoreToDefault 		4 longs
+		'sdef'
+		length		// = 0
+
+This command can be used instead of kDSetCurrentStore. It sets the current store to the one the user has picked as the default store (internal or card). 
+
+_____________________________________________________
+
+Package loading
+
+Package loading uses the file browsing interface described above. After the user taps the load package button, the following commands are used.
+
+Newton -> Desktop Commands
+
+kDLoadPackageFile			'lpfl'
+
+Examples
+
+After the load package button is tapped:
+
+Desktop			Newton
+			<-	kDLoadPackageFile
+kDLoadPackage	->
+			<-	kDResult
+
+Newton -> Desktop Detailed Commands
+
+kDLoadPackageFile		4 longs + string
+		'impt'
+		length
+		filename string
+
+This command asks the desktop to load the package specified by the last path command and the filename string. If the selected item is at the Desktop level, a frame {Name:"Business", whichVol:-1} is sent. Otherwise, a string is sent.
+
+
+_____________________________________________________
+
+Restore originated on Newton
+
+Restore uses the file browsing interface described above. After the user taps the restore button, the following commands are used.
+
+Newton -> Desktop Commands
+
+kDRestoreFile			'rsfl'
+kDGetRestoreOptions		'grop'
+kDRestoreAll			'rall'
+
+Dekktop -> Newton or Newton -> Desktop
+
+kDRestoreOptions			'ropt'
+kDRestorePackage			'rpkg'
+
+Examples
+
+After the restore button is tapped:
+
+Desktop			Newton
+			<-	kDRestoreFile
+kDRes		->
+			<-	kDGetRestoreOptions
+kDRestoreOptions	->
+			<-	kDRestoreOptions
+kDSourceVersion	->
+
+Selective restore proceeds as a normal restore would except when it wants to restore a package. In this case it does this:
+
+kDRemovePackage->
+				kDResult
+kDRestorePackage	->
+			<-	kDResult
+
+
+If the user picks a full restore it proceeds like this:
+
+			<-	kDRestoreFile
+kDRes		->
+			<-	kDRestoreAll
+kDSourceVersion	->
+
+Newton -> Desktop Detailed Commands
+
+kDRestoreFile			4 longs + filename
+		'impt'
+		length
+		filename
+
+This command asks the desktop to restore the file specified by the last path command and the filename. If the selected item is at the Desktop level, a frame {Name:"Business", whichVol:-1} is sent. Otherwise, a string is sent.
+
+kDGetRestoreOptions		4 longs
+		'grop'
+		length
+
+This command is sent to the desktop if the user wants to do a selective restore. The desktop should return a kDRestoreOptions command.
+
+kDRestoreAll			5 longs
+		'rall'
+		length
+		merge
+
+This command is sent to the desktop if the user elects to restore all information. Merge is 0 to not merge, 1 to merge.
+
+Dekktop -> Newton or Newton -> Desktop
+
+kDRestoreOptions			4 longs + ref
+		'ropt'
+		length
+		restoreWhich
+
+This command is sent to the newton to specify which applications and packages can be restored. It is sent in response to a kDRestoreFile command from the Newton.  If the user elects to do a selective restore the Newton returns a similar command to the desktop indicating what should be restored.
+
+restoreWhich = {storeType: kRestoreToNewton , 
+		       packages: ["pkg1", ...], 
+		       applications: ["app1", ...]}
+
+storeType indicates whether the data will be restored to a card (kRestoreToCard = 1) or the newton (kRestoreToNewton = 0).
+
+
+kDRestorePackage			4 longs + ref
+		'rpkg'
+		length
+		package array
+
+This command sends all the entries associated with a package to the newton in a single array. Packages are made up of at least 2 entries: one for the package info and one for each part in the package. All of these entries must be restored at the same time to restore a working package. A kDResult is returned after the package has been successfully restored.
+
+_____________________________________________________
+
+
+Desktop Initiated Functions while connected
+
+With the advent of the new protocol, the Newton and the desktop can be connected, but with no command specified. A command can be requested by the user on either the Newton or the Desktop. Commands requested by the newton user are discussed above. This section describes the commands sent from the Desktop to the Newton in response to a user request on the desktop.
+
+Desktop  -> Newton Commands
+
+kDRequestToSync			'ssyn'
+kDRequestToRestore		'rrst'
+kDRequestToInstall		'rins'
+
+Desktop -> Newton Detailed Commands
+
+kDRequestToSync		4 longs
+		'ssyn'
+		length	// = 0
+
+This command is sent from the desktop when the desktop wants to start a sync operation, when both the newton and the desktop were waiting for the user to specify an operation. 
+
+kDRequestToRestore		4 longs
+		rrst
+		length	// = 0
+
+This command is sent from the desktop when the desktop wants to start a restore operation, when both the newton and the desktop were waiting for the user to specify an operation. 
+
+kDRequestToInstall		4 longs
+		rins
+		length	// = 0
+
+This command is sent from the desktop when the desktop wants to start a load package operation, when both the newton and the desktop were waiting for the user to specify an operation. 
+
+_____________________________________________________
+
+
+1.0 Newton ROM Support
+
+Newton -> Desktop Commands
+
+kDRequestToDock	'rtdk'	// Ask PC to start docking process
+kDNewtonName	'name'	// The name of the newton
+kDCurrentTime	'time'	// The current time on the Newton
+kDStoreNames	'stor'	// data = array of store names & signatures
+kDSoupNames	'soup'	// data =  array of soup names & signatures
+kDSoupIDs	'sids'	// data = array of ids for the soup
+kDChangedIDs	'cids'	// data = array of ids
+kDResult	'dres'	// data = command & result (error)
+kDAddedID	'adid'	// data = the id of the added entry
+kDEntry	'entr'	// data = entry being returned
+kDPackageIDList	'pids'	// data = list of package ids
+kDPackage	'apkg'	// data = package
+kDIndexDescription	'indx' 	// data = index description array
+kDInheritance	'dinh' 	// data = array of class, supperclass pairs
+kDPatches	'patc' 	// no data
+
+Desktop -> Newton
+
+kDInitiateDocking	'dock'	// data = session type
+kDLastSyncTIme	'stme'	// The time of the last sync
+kDGetStoreNames	'gsto'	// no data
+kDGetSoupNames	'gets'	// no data
+kDSetCurrentStore	'ssto'	// data = store frane
+kDSetCurrentSoup	'ssou'	// data = soup name
+kDGetSoupIDs	'gids'	// no data
+kdGetChangedIDs	'gcid'	// no date
+kDDeleteEntries	'dele'	// data = list of IDs
+kDAddEntry	'adde'	// data = flattened entry
+kDReturnEntry	'rete'	// data = ID to return
+kDReturnChangedEntry	'rcen'	// data = ID to return
+kDEmptySoup	'esou'	// no data
+kDDeleteSoup	'dsou'	// no data
+kDLoadPackage	'lpkg'	// data = package
+kDGetPackageIDs	'gpid'	// no data
+kDBackupPackages	'bpkg'	// no data
+kDDisconnect	'disc'	// no data
+kDDeleteAllPackages	'dpkg' 	// no data
+kDGetIndexDescription	'gind' 	// no data
+kDCreateSoup	'csop'	// data = name + index description
+kDGetInheritance	'ginh' 	// no data
+kDSetTimeout	'stim' 	// data = # of seconds
+kDGetPatches	'gpat' 	// no data
+kDDeletePkgDir	'dpkd' 	// no data
+kDGetSoupInfo	'gsin' 	// no data
+
+Desktop -> Newton or Newton -> Desktop
+
+kDChangedEntry	'cent'	// data = entry being returned
+kDTest	'test' 	// variable length data
+kDHello	'helo'	// no data
+kDSoupInfo	'sinf' 	// data = soup info frame
+
+Examples
+
+Every session starts like this:
+	Desktop			Newton
+				<-	kDRequestToDock
+	kDInitiateDocking	->
+				<-	kDNewtonName
+	kDSetTimeout	->
+				<-	kDResult
+No matter what the intent of the desktop or the Newton, these commands must always start a session (the desktop can substitute a kDResult for the kDSetTimeout if it doesn't want to set the timeout).
+
+A typical synchronize session might continue like this:
+
+	Desktop			Newton
+	kDGetStoreNames	->
+				<-	kDStoreNames
+	kDLastSyncTime	->	// This ones fake just to get the newton time
+				<-	kDCurrentTime	
+	kDSetCurrentStore	->
+				<-	kDResult
+	kDLastSyncTIme	->
+				<-	kDCurrentTime
+	kDGetPatches	->
+				<-	kDPatches
+	kDGetPackageIDs	->
+				<-	kDPackageIDList
+	kDBackupPackages	->
+				<-	kDPackage
+	kDBackupPackages	->
+				<-	kDPackage
+	kDBackupPackages	->
+				<-	kDResult
+	kDGetSoupNames	->
+				<-	kDSoupNames
+	kDGetInheritance	-> 
+				<- 	kDInheritance
+	kDSetCurrentSoup	->
+				<-	kDResult
+	kDGetSoupInfo	->
+				<-	kDSoupInfo
+	kDGetSoupIDs	->
+				<-	kDSoupIDs
+	kdGetChangedIDs 	->
+				<-	kDChangedIDs
+	kDDeleteEntries	->
+				<-	kDResult
+	kDAddEntry		->
+				<-	kDAddedID
+	kDReturnEntry	->
+				<-	kDEntry
+	kDDisconnect	->
+
+
+A restore session would look like this:
+	Desktop			Newton
+	kDGetStoreNames	->
+				<-	kDStoreNames
+	kDSetCurrentStore	->
+				<-	kDResult
+	kDDeleteAllPackages ->
+				<-	kDResult
+	kDGetSoupNames	->
+				<-	kDSoupNames
+	kDSetCurrentSoup	->
+				<-	kDResult
+	kDEmptySoup	->
+				<-	kDResult
+	kDAddEntry		->
+				<-	kDResult
+	kDDeletePkgDir	->
+				<-	kDResult
+	kDLoadPackage	->
+				<-	kDResult
+	kDDisconnect	->
+
+
+A load package session would look like this:
+	Desktop			Newton
+	kDLoadPackage	->
+				<-	kDResult
+	kDDisconnect	->
+
+Newton -> Desktop Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDRequestToDock:		4 longs
+		'rtdk'
+		length
+		protocol version
+This command is sent to a docker that the junior wishes to connect with (on the network, serial, etc.). The Newt expects a kDInitiateDocking command in response. The protocol version is the version of the messaging protocol that's being used
+
+kDSetTimeout
+		'stim' 
+		length
+		timeout in seconds
+This command sets the timeout for the connection (the time the Newton will wait to receive data for it disconnects). This time is usually set to 30 seconds.
+
+kDNewtonName		4 longs + version info + name
+		'name'
+		length
+		version info
+		name
+This command is sent in response to a correct kDInitiateDocking command from the docker. The Newton's name is used to locate the proper synchronize file. The version info includes things like machine type (e.g. J1), ROM version, etc.
+
+kDStoreNames:			4 longs + names array
+		'stor'
+		length
+		array of frames
+This command is sent in response to a kDGetStoreNames command. It returns information about all the stores on the Newton. Each array slot contains the following information about a store:
+
+{Name: "", 
+	signature: 1234, 
+	totalsize: 1234,
+	usedsize: 1234, 
+	kind: "", 
+	info: {store info frame},
+	readOnly: true,
+	defaultStore: true,		// only for the defaultstore
+	storePassword: password  // only if a store password has been set
+}
+
+kDSoupNames:			5 longs + names array
+		'soup'
+		length
+		[names]	// array of strings
+		[signatures/	// array of corresponding soup signatures
+This command is sent in response to a kDGetSoupNames command. It returns the names and signatures of all the soups in the current store.
+
+kDIndexDescription			4 longs + index description
+		'didx'
+		length
+		indexes
+This command specifies the indexes that should be created for the current soup.
+
+
+kDSoupIDs:			5 longs + array length
+		'sids'
+		length
+		count		// count of elements in the ids array
+		[ids]		// array of ids for the soup
+This command is sent in response to a kDGetSoupIDs command. It returns all the IDs from the current soup.
+
+kDChangedIDs:			5 longs + array length
+		'cids'
+		length
+		count		// count of elements in the ids array
+		[ids]		// array of ids for the soup
+This command is sent in response to a kDGetChangedIDs command. It returns all the ids with mod time > the last sync time. If the last sync time is 0, no changed entries are returned (this would happen on the first sync).
+
+kDResult:			5 longs
+		'dres'
+		length	// = 4
+		error code	// A long
+This command is sent in response to any of the commands from the PC that don't request data. It lets the PC know that things are still proceeding OK.
+
+kDAddedID:			5 longs
+		'adid'
+		length	// = 4
+		ID		// a long
+This command is sent in response to a kDAddEntry command from the PC. It returns the ID that the entry was given when it was added to the current soup.
+
+kDEntry:				4 longs + data
+		'entr'
+		length	// Length of flattened entry data
+		entry		// binary data
+This command is sent in response to a KDReturnEntry command. The entry in the current soup specified by the ID in the KDReturnEntry command is returned.
+
+kDPackageIDList:		5 longs + data
+		'pids'
+		length	// Length of package id list
+		count		// the number of packages
+		package info
+This command sends a list of package frames to the desktop. For each package the information sent is this:
+
+		ULong	packageSize;
+		ULong	packageId;
+		ULong	packageVersion;
+		ULong 	format;
+		ULong 	deviceKind;
+		ULong 	deviceNumber;
+		ULong 	deviceId;
+		ULong 	modifyDate;
+		ULong 	isCopyProtected;
+		ULong	length;
+		Character	name;		// length bytes of unicode string	
+
+Note that this is not sent as an array! It's sent as binary data.  Note that this finds packages only in the current store.
+
+
+kDPackage:			5 longs + data
+		'apkg'
+		length	// Length of package
+		package ID
+		entry		// package data
+This command sends a package to the pc. It's issued repeatedly in response to a kDBackupPackages message.
+
+Desktop-> Newton Detailed Commands
+
+All commands begin with 'newt', 'dock' so that's not shown below.
+
+kDInitiateDocking: 		5 longs
+		'dock'
+		length	// 4
+		session type
+This command is sent to the newt in response to a kDRequestToDock command. Session type can be one of {none, settingUp, synchronize, restore, loadPackage, testComm, loadPatch, updatingStores}.
+	
+kDGetSoupNames:		3 longs
+		'gets'		// no data
+		length	// = 0
+This command is sent when a list of soup names is needed. It expects to receive a kDSoupNames command in response.
+
+kDSetCurrentStore		4 longs + frame length
+		'ssto'
+		length
+		store frame
+This command sets the current store on the Newton. A store frame is sent to uniquely identify the store to be set:
+
+	{name: "foo",
+	 kind: "bar",
+	 signature: 1234,
+	 info: {<info frame>}		// This one is optional
+	}
+
+kDSetCurrentSoup		4 longs + soup name
+		'ssou'
+		length
+		soup name	// C string
+This command sets the current soup. Most of the other commands pertain to this soup so this command must preceed any command that uses the current soup. If the soup doesn't exist a kDSoupNotFound error is returned but the connection is left alive so the desktop can create the soup if necessary. Soup names must be < 25 characters.
+
+kDGetIndexDescription	4 longs
+		'gidx'
+		length 	// = 0
+This command requests the definition of the indexes that should be created for the current soup.
+
+kDGetSoupIDs			3 longs
+		'gids'
+		length	// = 0
+This command is sent to request a list of entry IDs for the current soup. It expects to receive a kDSoupIDs command in response.
+
+kDGetChangedIDs		3 longs
+		'gids'
+		length	// = 0
+This command is sent to request a list of changed IDs for the current soup. It expects to receive a kDChangedIDs command in response.
+
+kDDeleteEntries:		5 longs + array length
+		'dele'
+		length
+		count of ids in the array
+		[ids]				// IDs to delete
+This command is sent to delete one or more entries from the current soup.
+
+kDAddEntry:			4 longs + entry data
+		'adde'
+		length	// length of data
+		data		// entry ref
+This command is sent when the PC wants to add an entry to the current soup.
+
+kDReturnEntry:			4 longs
+		'rete'
+		length	// = 4
+		id		// ID of the entry to return
+This command is sent when the PC wants to retrieve an entry from the current soup.
+
+kDReturnChangedEntry:	4 longs
+		'rcen'
+		length	// = 4
+		id		// ID of the entry to return
+This command is sent when the PC wants to retrieve a changed entry from the current soup.
+
+kDEmptySoup:			4 longs + soup name
+		'dsou'
+		length
+		soup name	// C string
+This command is used by restore to remove all entries from a soup before the soup data is restored.
+
+kDDeleteSoup:			4 longs + soup name
+		'dsou'
+		length
+		soup name	// C string
+This command is used by restore to delete a soup if it exists on the Newton but not on the PC.
+
+kDLoadPackage:			4 longs + package
+		'lpkg'
+		length
+		package data	// binary data
+This command will load a package into the Newton's RAM. The package data should be padded to an even multiple of 4 by adding zero bytes to the end of the package data.
+
+kDGetPackageIDs		4 longs
+		'gpid'
+		length	// = 0
+	This command is sent to request a list of package ids. This list is used to remove any packages from the PC that have been deleted on the Newt.
+	
+kDBackupPackages		 4 longs
+		'bpkg'
+		length	// = 0
+	This command is sent to backup any packages that are installed on the Newton. It expects a kDPackage command or a kDResponse with an error of 0 (to indicate that there are no more packages) in response.
+
+kDDisconnect:			3 longs
+		'disc'
+		length	// = 0
+	This command is sent to the Newton when the docking operation is complete.
+
+
+Desktop -> Newton or Newton -> Desktop Detailed Commands
+
+kDChangedEntry:		4 longs + data
+		'cent'
+		length	// Length of flattened entry data
+		entry		// binary data
+This command is sent by the newton in response to a KDReturnChangedEntry command from the desktop. It can also be sent by the desktop.
+
+kDHello:				 4 longs
+		'helo'
+		length	// 0
+This command is sent during long operations to let the newton or desktop know that the connection hasn't been dropped.
+
+kDSoupInfo		4 longs + soup info frame
+		'sinf' 
+		length	// 0
+		soup info frame
+
+This command is used to send a soup info frame. When received the info for the current soup is set to the specified frame.
+	
+
+Compatibility
+
+The protocol described above for 2.0 is a superset of the 1.0 protocol. However, the protocol version has been incremented so old versions of Newton Connection will no longer work with this version. The reason for this is that, although the protocol itself is upwardly compatable, the data structures in other parts of the 2.0 newton have changed to such a degree that old versions of Newton Connection will no longer work.
+
+Testing Requirements
+
+
+

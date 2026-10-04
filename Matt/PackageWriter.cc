@@ -138,24 +138,33 @@ NewtonPackageWriter::NewtonPackageWriter()
  */
 void NewtonPackageWriter::save(RefArg pkg, const std::string &filename)
 {
+  std::string package = bytes(pkg);
+  std::ofstream out(filename, std::ios_base::out | std::ios_base::binary);
+  if (out.bad()) ThrowMsg("Failed to open file for writing");
+  out << package;
+}
+
+/**
+  \brief The package's bytes, as save() writes them to a file.
+ */
+std::string NewtonPackageWriter::bytes(RefArg pkg)
+{
   // Create all required streams.
   openStreams(pkg);
 
   // Write to all streams.
   writePackage(pkg);
 
-  // Assemble and save the final package file.
-  std::ofstream out(filename, std::ios_base::out | std::ios_base::binary);
-  if (out.bad()) ThrowMsg("Failed to open file for writing");
-
-  out << header_->str();
+  // Assemble the package.
+  std::string out = header_->str();
   for (const auto &dir : dir_) {
-    out << dir->str();
+    out += dir->str();
   }
-  out << varData_->str();
+  out += varData_->str();
   for (const auto &part : part_) {
-    out << part->str();
+    out += part->str();
   }
+  return out;
 }
 
 /**
@@ -650,6 +659,12 @@ uint32_t NewtonPackageWriter::writeRef(BinaryOutStream *out, Ref ref)
   return pos;
 }
 
+
+std::string writePackageToMemory(RefArg pkg)
+{
+  NewtonPackageWriter writer;
+  return writer.bytes(pkg);
+}
 
 void writePackageToFile(RefArg pkg, const std::string &filename) {
   NewtonPackageWriter out;

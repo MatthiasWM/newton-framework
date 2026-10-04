@@ -1,0 +1,64 @@
+# Step 1.5, capture 2: Print, 0x33 bytes, BreakLoop by compile flavour.
+# Run: Test/ntk/ntk_probe.py Test/ntk/capture2.ntk --log ... --outdir ...
+# then tap Toolkit > Connect Inspector on the Newton.
+
+wait 2
+src breakOnThrows := nil
+waitfor rslt 10
+wait 1
+
+# Print: NOS 2 function, NOS 1 'CodeBlock, with -g
+src Print("Hello A")
+wait 2
+src1 Print("Hello B")
+wait 2
+srcg Print("Hello C")
+wait 2
+src begin Write("Write D"); Write($\n); nil end
+wait 2
+
+# 0x33 bytes: does the string come back unchanged? ("3" = 00 33 in UTF-16)
+csrc "x3y"
+waitfor code 10
+csrc "3333"
+waitfor code 10
+csrc 'sym3
+
+waitfor code 10
+
+# a throw caught inside a code block: the result comes back as data
+csrc try NoSuchFunctionProbe() onexception |evt.ex| do CurrentException()
+waitfor code 10
+
+# BreakLoop with -nos1 (like NTK): eext? then code and fstk while stopped
+src1 BreakLoop()
+waitfor eext 10
+csrc 6*7
+waitfor code 10
+src1 StackTrace()
+wait 3
+src1 ExitBreakLoop()
+waitfor bext 10
+wait 1
+
+# the same with -g
+srcg BreakLoop()
+waitfor eext 10
+srcg ExitBreakLoop()
+waitfor bext 10
+wait 1
+
+# and the plain NOS 2 function (failed in capture 1 with "Expected a string")
+src BreakLoop()
+wait 3
+src ExitBreakLoop()
+wait 3
+
+pkgx NoSuchPackage:probe
+waitfor rslt 10
+
+# quiet for 8 s: keep-alive only
+wait 8
+
+term
+wait 3

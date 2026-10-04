@@ -1,0 +1,58 @@
+// Agent.ns: newtc's agent package for the remote debugger, compiled on the
+// desktop and installed on the Newton (Remote.ns, NTKRemote:EnsureAgent).
+// Embedded in newtc as gAgentScript; running it defines the global
+// DAPAgentPackage, the package as a frame (written with NTKMakePackage).
+//
+// An auto part: the ROM's InstallAutoPart calls partFrame:InstallScript(
+// partFrame); what it returns is the remove frame, and RemoveAutoPart calls
+// removeFrame:?removeScript(removeFrame). Symbols and frames that stay in
+// RAM go through EnsureInternal: the package's own objects are read-only and
+// gone once it is removed.
+//
+// Version 1: the version, and on Einstein a Write that takes any object
+// (Einstein's NS Runtime replaces Write with |Einstein:Log|, which only takes
+// strings, and NS Debug Tools write characters, numbers, functions; Toolkit
+// Protocol.md 7.1). Stack, variables, and stepping come in plan step 3.7.
+
+DefGlobalVar('DAPAgentPackage, {
+  signature: 'package0,
+  id: "xxxx",
+  flags: { noCompression: true },
+  version: 1,
+  copyright: "newtc",
+  name: "DAPAgent:newtc",
+  modifyDate: 0,
+  info: "newtc's agent for remote debugging",
+  part: [
+    {
+      offset: 0,
+      size: 0,
+      type: "auto",
+      flags: { type: 'nos, Notify: true },
+      info: "newtc",
+      data: {
+        agentVersion: 1,
+
+        InstallScript: func(partFrame)
+        begin
+          local removeFrame := EnsureInternal({ removeScript: partFrame.RemoveScript });
+          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 1);
+          if HasPath(functions, '|Einstein:Log|) then
+          begin
+            removeFrame.(EnsureInternal('originalWrite)) := functions.Write;
+            DefGlobalFn('Write, func(what)
+              |Einstein:Log|(if IsString(what) then what else SPrintObject(what)));
+          end;
+          return removeFrame;
+        end,
+
+        RemoveScript: func(removeFrame)
+        begin
+          if HasSlot(removeFrame, 'originalWrite) then
+            DefGlobalFn('Write, removeFrame.originalWrite);
+          RemoveSlot(functions, '|DAPAgent:Version|);
+        end
+      }
+    }
+  ]
+});

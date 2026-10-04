@@ -576,10 +576,12 @@ function (embed_newtonscript target nsfile name)
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
 
-target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/NTKTransport.cc Matt/NTKTransport.h Matt/MNP.cc Matt/MNP.h Matt/NTKInspector.cc Matt/NTKInspector.h Matt/NTKDevice.cc Matt/NTKDevice.h Matt/NTKRemote.cc Matt/NTKRemote.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Agent.ns gAgentScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Remote.ns gRemoteScript)
 
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'

@@ -1,521 +1,340 @@
-# newtc: NewtonScript in VS Code, and a Newton on the desktop
 
-Working notes for Matt and Claude: the goal, how we work, where things are,
-the plan, the open bugs, and reference material. Keep it current and short:
-finished steps move to **Matt/HISTORY.md** (the original brief, phases 0 to
-10 in detail, fixed bugs, early decisions). Step and bug numbers ("5.3",
-"B8") refer to the entries there.
+
+# A New Task
+
+We are going back to debugging, but this time we will debug an application
+running on Einstein or even a real MP2x00 connected via the serial port, using
+the NTK Inspector?Toolbox protocol.
+
+## Tools
+
+NTK comes with a .pkg file that can be installed on the device:
+'~/Azureus/unna2/apple/development/NTK/macntk/NTK 1.6.4b3/NTK 1.6.4b3/Toolkit.pkg'
+
+NTK itself has an Inspector window that mainly runs NewtoScript code on the
+remote machine to - erm - inspect data structures, set breakpoints, etc. .
+
+## Protocol
+
+Toolbox.pkg provides the debugger protocol. Some of it is documented in
+"Newton Docking Protocol.txt", some was reverse engineered in
+"~/dev/DyneE5/DyneTK/fltk/Flio_Inspector.cxx".
+
+I may be able to find other resources if needed.
 
 ## Goal
 
-One self-contained VS Code extension (VSNewt) with everything to edit,
-compile, run, and debug NewtonScript programs and packages with their GUI,
-and NewtPlay, a Mac app that runs Newton packages for anyone. newtc does
-all the work (compiler, runtime, debugger, the Newton views on FLTK); the
-extension and NewtPlay only start it.
+Source code level debugging app on remote devices
 
-Done so far (details in HISTORY.md):
-- Debugger: ROM breakpoints and Apple's NS Debug Tools (`-dbg`); DAP for VS
-  Code (`-dap`, `-dap-server`, `-dap-log`): breakpoints and stepping in the
-  source, variables, watch/evaluate, exceptions, pause, bytecode listings,
-  the Disassembly view. Line tables (`-g`), debug maps for decompiled
-  packages (`-odecompile`, `-nsdbg`; launch "program" can be a `.pkg`).
-- VSNewt 0.1.0 and 0.2.0 released on GitHub (macOS arm64): highlighting,
-  run and debug, compile commands; 0.2.0 with Newton apps in windows.
-- Phase 11: NewtPlay 0.1, a Mac app that runs packages (on the VSNewt
-  v0.2.0 release, signed and notarized; universal, macOS 13): double
-  click, drop, Open With (.nspkg its own, .newtonpkg, .pkg), a splash
-  window with the history, a store per package version, Make a Shortcut
-  and Make an App (next to the package, signed ad hoc on the user's Mac).
-- Stubs say so when called (`-stubs log|throw|quiet|report`); hidden stubs
-  found (`Test/hidden_stubs.py`).
-- Phase 10 (branch Add_fltk, `NEWTC_USES_FLTK`): Newton views on FLTK, the
-  pen, drawing, fonts, popup menus, timers, soups in a store file;
-  nBattleship 1.4 plays to its end; 2.5 too (offscreen bitmaps:
-  MakeBitmap, DrawIntoBitmap, ViewIntoBitmap; 1 bit deep so far). The
-  display is portrait (2026-09-30): GetOrientation() 0, displayParams
-  the ROM's GetRawDisplayParams(0) (320 by 480, app area 320 by 434).
+## STeps
 
-## How we work
+### 1. Protocol Analysis
 
-- One small step at a time. Every step ends with something Matt can run and
-  see, and a test that keeps it working. Commit and push only when Matt says
-  so.
-- Stick with Apple's API, and with their implementation where it makes
-  sense. The ROM is the reference: `newtonos.s` for C++ (see Reference) and
-  the ROM's own NewtonScript, which newtc can decompile (see "Reading the
-  ROM's NewtonScript").
-- No debugger logic in TypeScript (VSNewt stays thin), no cppdap, no
-  external dependency except the optional FLTK (fetched and linked
-  statically).
-- Every bug found goes into the bug list below until it is fixed; fixed
-  ones are checked off and moved to HISTORY.md, never deleted.
-- Everything newtc writes uses LF; input accepts CR, LF, and CRLF.
+Collect information about the Inspector/Toolbox protocol and document your
+findings in an .md text file, so we can use that as a base to write the
+DAP extension.
 
-## Where things are
+### 2. Evaluate Remote tools
 
-- `newtc.cc`: command line, the native functions it registers, `-dap`,
-  `installPackage()`.
-- `Matt/`: newtc's additions. `DAP.{h,cc}` (the protocol in C++: framing,
-  translators, polling) and `Debugger/DAP.ns` (the requests, NewtonScript);
-  `Debugger/NSDebugTools.ns`, `NSDShortCuts.ns` (Apple's tools, embedded);
-  `JSON`, `LineTables` (line tables, stepping, debug maps), `EventLoop` and
-  `TestWindow` (FLTK), `EmbeddedScript`; `ObjectPrinter`, `Decompiler`,
-  `AST*` (the decompiler); `tools/` (`rom_jumptable.py`,
-  `build_vsnewt_newtc.sh`).
-- `Utilities/Unimplemented.{h,cc}`: `NS_STUB` and `-stubs`.
-- `Host/`: newtc as a Newton on the desktop, not FLTK-specific: `Root`
-  (the root view), `ViewMethods` and `Graphics` (the natives, stubs
-  without FLTK), `Shapes` (shapes in the ROM's formats), `Pict` (PICT
-  bitmaps), `Pen` (stroke natives), `Timers` (delayed and deferred calls).
-- `Host/FLTK/`: the FLTK layer, namespace `nfl` (design: "The FLTK layer"
-  below). `Links` (a Link per open
-  view: the link slot is `viewCObject`; Build/Dispose, pen, hide/show,
-  bounds, fonts), `Widgets` (ViewWidget, TextView, PictureView,
-  DrawViewFormat), `FloatNGo` (a window), `Boxtypes` (Matt's boxes:
-  FLOATER_BOX, buttons), `Drawing` (DrawShape, DrawXBitmap, canvases, XOR,
-  viewDrawScript), `Pen` (strokes), `Popup` (DoPopup), `Fonts` (the Newton
-  font families on Mac fonts), `RomImages` and
-  `Images/` (the ROM's pictures as PNGs, embedded by
-  cmake/EmbedImages.cmake).
-- `Stores/HostStore.{h,cc}`: the store in a file (`-store`), under Apple's
-  soup code (CRC, safe writes, backups).
-- NewtPlay: `Matt/NewtPlay.{h,cc}` (how it starts, the splash window,
-  the history, the menu bar, CheckStarted), `Matt/NewtPlayMake.cc`
-  (shortcuts and apps), `cmake/NewtPlayInfo.plist.in`,
-  `cmake/MakeIcns.cmake`, `Resources/NewtPlay.png` (Matt's newt),
-  `Matt/tools/build_newtplay.sh [version]` (signing:
-  `SIGN_IDENTITY="Developer ID Application: Matthias Melcher
-  (BK4ST6N599)"`, `NOTARY_PROFILE=notary`), `Matt/tools/nspkg.sh`
-  (packages copied as .nspkg). Test `Test/dbg/test_newtplay.py`.
-- `Frames/Interpreter.{h,cc}`: the debugger hooks (not in ROM):
-  `gBreakLoopReason`, `gDebuggerPoll`, `DebuggerPollNow()`,
-  `gDebuggerStep`.
-- `Views/` (CView, CRootView, ...) and `Packages/` (package manager): the
-  ported NewtonOS code. newtc compiles neither (only MessagePad does, which
-  we don't pursue); they are the reference for what views and packages do.
-  Source files are ASCII with LF line endings (the CR-only files were
-  converted, 2026-09-27; the last MacRoman characters too, 2026-09-27: 132
-  files). In comments, plain ASCII (' " * ... (c)); a character with a
-  meaning keeps it as an escape: NewtonScript "\u201C\u" and $\u2019 (its
-  strings are UTF-16), C/C++ '\xNN'. Curly quotes are gone too (they
-  stood in for \" in messages): straight quotes, escaped in strings. What
-  is still UTF-8 is harmless: a few symbols in comments (degrees, dashes),
-  the .md files, and test outputs that show Newton strings.
-- Tests: `Test/dbg/` (`run_dbg_tests.py` with `cases/`: `.ns` plus `.in`,
-  `.dap`, `.args`, `.after`, `.expected`; cases named `fltk_*` need
-  FLTK and are skipped without; `dap_client.py`; `test_dap_extras.py`,
-  `test_terminal.py`, `test_nsdbg.py`, `test_store.py`),
-  `Test/stub_census.py`, `Test/hidden_stubs.py`, `Test/nsdbg_check.py`,
-  `Test/lines_invariant.py`, `Test/run_corpus.py` (the package corpus,
-  `Test/corpus_results/latest_manifest.json`).
-- `experimental/`: a sub-project of decompiling, independent of newtc: the
-  ROM as source that Apple's own tools (`experimental/bin`, mosrun-wrapped
-  MPW tools) build byte for byte, with every address a symbol so it can be
-  patched and grow; its bytes replaced with C++ step by step. Uses
-  newton-re (`/Users/matt/dev/newton-re`, dparnell) for the debug ROM image
-  and its tools. Plan and findings: `experimental/CLAUDE.md`.
-- VSNewt: `/Users/matt/dev/VSNewt.git/vsnewt` (github MatthiasWM/VSNewt).
-  Release: `Matt/tools/build_vsnewt_newtc.sh`, `scripts/make_grammar.py` if
-  the built-in functions changed, raise the version, CHANGELOG,
-  `npm run package`, GitHub release with the VSIX.
+As you know already, '/Users/matt/Azureus/unna2/apple/development/NTK/macntk/NTK 1.6.4b3/NTK 1.6.4b3/Newton Debug Tools 2.2/NS Debug Tools.pkg' adds more debugginf features
+to a stock Newton.
 
-## Resume here (2026-09-30)
+Other tools in that directory are DebugHashToName.pkg, Exception Printer.pkg
+HeapShow.pkg Snarf.pkg, and vFlags.pkg which may help us on the way.
 
-Phases 10 and 11 are done: newtc runs Newton apps in windows (FLTK),
-nBattleship 1.4 and 2.5 play to their end, and NewtPlay 0.1 is released
-(VSNewt v0.2.0 release, `NewtPlay-0.1-macOS.zip`, from ed41f10; the
-nBattleship zip is down). Next: Phase 12, to be decided with Matt (below).
+### 3. DAP Extension and protocol implementation
 
-Builds: `build/VSCode` (Debug, FLTK: the default for the tests),
-`build/Release` (no FLTK; give the runner an absolute `--newtc`),
-`build/VSNewt` (Release, FLTK: `Matt/tools/build_vsnewt_newtc.sh`),
-`build/NewtPlay` (`Matt/tools/build_newtplay.sh`). All suites:
-`python3 Test/dbg/run_dbg_tests.py` (102 with FLTK; 77 + 25 skipped
-without), then `test_nsdbg.py` (14), `test_dap_extras.py` (7),
-`test_terminal.py` (5), `test_store.py` (9), `test_newtplay.py` (20,
-needs the NewtPlay target built; opens NewtPlay windows); VSNewt: `NEWTC=<newtc> npm
-test` (11), `npm run test:grammar`.
+Expand "newtc" in DAP mode, so it can connect to a device, upload packages, and
+debug them with the symbolic debugger right on the device. This shall work
+for existing packages where we create the source code by decompiling, and for
+source code written on the host, compiled into a package, and uploaded to the
+MP.
 
-Working on a package:
-- `newtc -pkg app.pkg -odecompile app.ns`: its source, to read.
-- A `-script` after `-pkg ... -run` runs once the app is open: walk
-  `GetRoot().|App:SIG|:ChildViewFrames()` and print text, viewJustify,
-  `:GlobalBox()`; `TestSnapshot(view, "x.png")` saves a picture;
-  `TestTap`, `TestPen`, `TestPick` play it (see Matt/TestWindow.h).
-  Top-level `local`s don't carry over between statements, and a global
-  `func Name()` is a function, not a variable: use DefGlobalVar('name,
-  func ...) for callbacks. An uncaught exception leaves the window open
-  (newtc then waits): run with a timeout.
-- A ROM function's literals (`fn.literals`) tell which natives it calls;
-  `newtc -s "@190.viewClickScript" -decompile` shows a ROM function.
-- `-stubs throw` or `-stubs report` for the stubs a run calls;
-  `Test/stub_census.py` for a package's needs without running it.
+---
 
-## Phase 12 (to be decided)
+# The plan (Claude, 2026-10-04)
 
-1. **The next apps**: the stub census over the package corpus
-   (`Test/run_corpus.py`, `Test/stub_census.py`), and 3 to 5 apps chosen by
-   which natives unlock the most.
-2. **Text input**: edit views and `protoInputLine` with the Mac keyboard,
-   key views, the caret (handwriting recognition is far off).
-3. **Fonts**: embedded fonts (Matt's FLTK work), maybe Espy Sans' own
-   bitmaps (NFNT, `/Library/Fonts/Espy Sans` on Matt's Mac) for
-   pixel-exact text.
-4. **Platforms**: the FLTK layer as a library, Linux and Windows builds
-   (VSNewt and NewtPlay there).
-5. **Debugger D1** (below), and the bugs below (B14, B15, B7).
+Branch `dap_to_toolbox`. The previous plan is in `Matt/CLAUDE-bak.md`
+(conventions, where things are, ROM reading tips); finished work goes to
+`Matt/HISTORY.md` as before. Same rules: one small step at a time, every
+step ends with something Matt can run and a test that keeps it working;
+Apple's API and implementation first; no debugger logic in TypeScript.
 
-## Backlog (left from Phase 10)
+## What we already have (found while planning)
 
-- 10.7e: MoveBehind; the floater's dragger nub (ROM picture @691, Matt's
-  box); the status bar's clock overlaps the info button a little; the
-  popup menus' font (Matt's Helvetica Bold 9; NewtonFont(tsSystem,
-  kBoldFace) would be the Newton's).
-- 10.7f: keys (SetKeyView, SendKeyMessage, MatchKeyMessage,
-  RestoreKeyView), AddUndoAction (protoCheckbox's ToggleCheck calls it),
-  TableLookup, SyncView; gestures other than taps (scrub, caret, lines),
-  words and shapes.
-- FLTK (Matt's issues): a blend mode for XOR on all platforms
-  (`BlendInvert()` has an `#error` off macOS); `fl_rounded_rectf()` fills
-  a pixel less at the left and top than `fl_rectf()` (DrawHilite makes up
-  for it).
-- Move EventLoop/TestWindow into `Host/FLTK/`; the FLTK layer as a library.
+- **The device side is in the ROM, and ported here.** `NTK/NTK.cc` has
+  `PNTKInTranslator`/`PNTKOutTranslator` (ROM 0x129EF4 ff.), `NTKListener`,
+  `NTKDownload`, `NTKSend`, `NTKAlive`, `NTKStackTrace`; the commands are in
+  `NTK/NTKProtocol.h`. Toolkit.pkg on the Newton mostly opens the
+  connection and installs these translators. So the device's half of the
+  protocol can be *read*, not guessed.
+- **Packets** (same framing as the dock): `'newt' 'ntp ' <cmd> <length>
+  <data>`. Newton -> host: `cnnt` connect, `text` output, `rslt` result,
+  `eext`/`bext` enter/exit break loop, `eerr`/`estr`/`eref` exceptions,
+  `fobj` an object (NSOF; what `NTKSend(obj)` sends), `dpkg`. Host ->
+  Newton: `okln`, `lscb` (NSOF code block, compiled on the host, run by the
+  REP), `pkg ` / `pkgX` load / delete a package, `stou` timeout, `term`.
+  `fobj`/`code`/`term` go both ways.
+- **The wire is MNP** (LR/LA/LT/LD frames, CRC-16), for a real MP2x00 on a
+  serial port and for Einstein alike. Einstein offers its serial port as
+  named pipes (`~/Library/Application Support/Einstein Emulator/
+  ExtrSerPortSend|Recv`) or as a TCP client (`TSerialPortDriverTcpClient`,
+  Einstein connects to us). MNP implementations to learn from: DyneTK
+  `Flio_MNP4_Protocol.cxx` (Matt's), NTX `MNPSerialEndpoint.m`, unixnpi
+  `newtmnp.c`.
+- **Host-side references:** DyneTK `Flio_Inspector.cxx` (Matt's,
+  reverse engineered), NTX (`~/dev/newton-toolkit`, Simon Bell:
+  `NTX/Comms/Protocol/NTKProtocol.h`, `Session.mm`), NTK 1.6.4 itself
+  (`~/dev/NTK.ghidra`).
+- **newtc already has** the ROM compiler (bytecode exactly as the Newton
+  runs it), NSOF in and out (`Frames/RefIO`), packages (`PackageWriter`),
+  line tables in functions (`lineTable` slot, travels into packages and is
+  ignored by the Newton), `.nsdbg` maps for decompiled packages (functions
+  found by an FNV hash of `instructions`), a NewtonScript DAP layer
+  (`Debugger/DAP.ns`), and the NS Debug Tools.
 
-## The FLTK layer (Phase 10, 2026-09-27 to 2026-09-29; the steps in HISTORY.md)
+## Design (confirmed by Matt, 2026-10-05)
 
-Newton views are FLTK widgets: a link per open view (Links.h) makes its
-widget, every view widget is a group (its children's widgets inside), and
-draws as the ROM's CView::draw: fill, content, viewDrawScript, children,
-frame (DrawViewFormat, from the viewFormat the link keeps), what scripts
-drew (a canvas per view, with an invert layer for XOR), the hilite (an
-inversion, or the view's viewHiliteScript). Frames follow the ROM's
-outerBounds; fonts the Newton's families on Mac fonts (Fonts.h), sized to
-match; windows are 1.5 times FLTK's scale. The pen is the mouse (Pen.h),
-taps are recognized (viewGestureScript); popup menus, timers, soups (a
-store file) work.
+```
+VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
+                 DAP.ns + DAPRemote.ns              ROM REP + NTK translators
+                 compiler, line tables, .nsdbg      Toolkit.pkg (connection)
+                 NTK packets / NSOF   --MNP-->      NS Debug Tools.pkg
+                 transport: tty | pipe | TCP        DAP agent .pkg (ours)
+```
 
-### Design (decided with Matt, 2026-09-27)
+- newtc stays the debug adapter: it keeps the sources, line tables, and
+  maps, and compiles everything it sends. The device runs the program and
+  Apple's NS Debug Tools.
+- **A small "DAP agent" package** (NewtonScript, compiled by newtc from
+  `Matt/Debugger/`, uploaded automatically) answers each request in one
+  round trip: stack, scopes, variables, evaluate, breakpoints. Serial is
+  slow (38400 bps); round trips must be few.
+  Refined by steps 1 and 2 (Toolkit Protocol.md 6, 7.3): requests that
+  return data go as `code` (the result comes back as NSOF, also while
+  stopped), each wrapped in `try`; REP-like actions (`Step()`,
+  `ExitBreakLoop()`) as `lscb`; the stop itself is pushed by the agent's
+  `NSDBreakLoopEntry` hook with `NTKSend` (`fobj`). The agent builds on
+  NSDT's functions (`InstallBreakPoint`, `GetAllNamedVars(level)`, ...),
+  which work remotely (7.1). On Einstein the agent installs a `Write`
+  that accepts any object until Einstein's NS Runtime is fixed.
+- **Host layering in C++:** transport -> MNP -> NTK packets -> NSOF, then
+  NS natives (`NTKConnect`, `NTKSend`, `NTKReceive`, `NTKLoadPackage`, ...)
+  so the remote logic is NewtonScript like the rest of DAP: a new
+  `DAPRemote.ns` with `{_parent: DAPRequests}` overriding the requests,
+  so local `-dap` and its tests stay untouched.
+- **newtc stays running (Matt, 2026-10-05).** Real debugging is many
+  edit-compile-debug rounds; the Newton link must survive them. So the
+  remote debugger is a background server: `newtc -dap-server <port>
+  -ntk <target>` keeps the link to the Newton open and serves one VS Code
+  session after the other (VS Code connects with `"debugServer"`), instead
+  of exiting after the first session. The link lives in its own I/O
+  thread (transport + MNP: acks, retransmits, keep-alives), independent of
+  NewtonScript and of DAP sessions; the main thread gets whole Toolkit
+  packets through a pipe it can poll like the DAP fd.
+- **Our own connection tool (Matt, 2026-10-05)**, maybe instead of
+  Toolkit.pkg: our agent package can open the link itself
+  (`NTKListener` with an options frame: 57600 bps), stay connected, and
+  reconnect.
+- **Functions across the link** are identified like the .nsdbg map does:
+  by the hash of their `instructions`, cached on the host per device ref
+  (NSDT's `NSDRefToHexString`). One mechanism for decompiled packages and
+  for packages newtc compiled with `-g`.
+- **Line stepping** can't use the C++ `gDebuggerStep` on a Newton. Plan:
+  the host sends the agent a step plan (the statement start PCs of the
+  function, depth, kind) and the agent's break loop hook keeps stepping
+  with NSDT on the device until the rules of `StepCheck` say stop: no
+  round trip per instruction.
+- **Testing without hardware:** newtc can play the Newton itself
+  (`-ntk-device <port>`: its own interpreter, NTK translators, NSDT, agent;
+  raw packets over TCP, optionally MNP). Then remote sessions run in
+  `run_dbg_tests.py` like the local ones; Einstein and the real MP2x00 are
+  checked by hand at the milestones.
 
-Decided or leaning (Matt, 2026-09-27):
-- **Link classes**: a hierarchy of link classes connects each Newton view to
-  an FLTK widget; one per view class (clView, clParagraphView,
-  clPictureView, clEditView, ...), and one for the root view. The view
-  frame refers to its link in its `viewCObject` slot (decided, see above),
-  the widget refers to it with `user_data()`.
-- **Ownership** (decided, 2026-09-27): each link owns its widget and
-  deletes it when the view closes, children before their parent. A widget
-  that holds the children's widgets (a GroupLink's: nfl::Group,
-  nfl::FloatNGo) must not delete them as an Fl_Group does: it overrides
-  delete_child() to only take the child out (GroupLink::RemoveChild), and
-  calls clear() in its own destructor (in ~Fl_Group the object is an
-  Fl_Group again, and clear() would call Fl_Group::delete_child()).
-  Widgets are deleted right away, also from their own callback (FLTK 1.4:
-  Fl_Widget_Tracker); Fl::delete_widget() is legacy, not used.
-- **Refs in C++**: links keep the objects they need as `RefStruct` members
-  (never `RefVar`, see 10.1 in HISTORY.md); `TestWindow`'s `MessageButton`
-  is the pattern.
-- **The link in the view frame**: a CObject binary
-  (`AllocateCObjectBinary` with a destructor, like `NSDMakeNSDebugAPI`),
-  so that the garbage collector can tell us when a view frame is gone.
-- **Look and feel**: the NewtonOS look (graphics for frames and other
-  elements, the Newton fonts) is implemented here, in `Host/FLTK/`. FLTK
-  itself gets inline fonts (fonts compiled into the program; Matt's PR,
-  https://github.com/fltk/fltk/pull/1617), which the Newton fonts will use.
-- **The root view** (decided, 2026-09-27): only what programs need, when
-  they need it. NewtonOS's root view has much more before any package is
-  opened (the Extras drawer, notifications, memory set aside so it can
-  still show an out-of-memory alert, ...). No window of its own: no
-  Newton screen; each window-like Newton view (an app's base view, a
-  floating view, ...) gets an FLTK window of its own.
-- **Scripts from events**: only through `SendEventMessage()`, one at a time,
-  exceptions caught there (the 10.1 rules, summarized under Reference).
-- **Telling the user** (agreed, 2026-09-27): what NewtonOS shows in a
-  notification goes through `GetRoot():Notify` (the ROM's own code does it,
-  e.g. for install errors), and so will an exception that escapes a
-  callback (the ROM's behaviour; to change in SendEventMessage when we get
-  there). Notify decides how to show it: printed while developing (-dap,
-  terminal; a modal alert would get in the way, and the debugger already
-  stopped at the throw), a Newton-style FLTK alert later for someone just
-  running a package (an option, or when no debugger is attached). Our texts
-  can say more than the ROM's bare error numbers ("Undefined variable:
-  'foo", the number in small print).
-  Modal dialogs open a nested event loop whose events may run scripts inside
-  the one that opened the dialog, as in NewtonOS.
+## Steps
 
-Directory and namespace (decided, Matt, 2026-09-27):
-- **`Host/FLTK/`** for everything that ties NewtonOS to FLTK: the links
-  (`Host/FLTK/Links/`), root and app windows, alerts, and later the event
-  loop and the test window (now in `Matt/`). "Host" as in the host
-  platform: next to the NewtonOS components (`Views/`, `Graphics/`, ...),
-  not mixed into them, and not named `FLTK/` (FLTK's own sources are in the
-  build tree, `build/*/_deps/fltk-src`). CMake adds `Host/FLTK/*.cc` only with
-  `NEWTC_USES_FLTK` (in the `if` block), so these files need no `#if`.
-  Parts that don't depend on FLTK (the root view frame, `BuildContext`,
-  `GetRoot`) go elsewhere, so that `-dap` without FLTK can still install
-  packages. Later the folder can become a library target of its own
-  without moving files.
-- **Namespace `nfl`** ("Newton on FLTK") for the new classes:
-  `nfl::Link`, `nfl::ViewLink`, `nfl::RootLink`, ... The framework has no
-  namespaces and many general names; FLTK owns `Fl_`/`fl_`; a short
-  namespace keeps us out of both and marks the layer. Native functions stay
-  `extern "C"` at global scope (`FGetRoot`, ...): the ROM's function table
-  finds them by their C names. Include FLTK's headers before the
-  framework's (the framework `#define`s `OVERRIDE`, `INVISIBLE`, ...).
+### 1. Protocol analysis -> `Matt/Toolkit Protocol.md`
+- [x] 1.1 Packets from the device side: read `NTK/NTK.cc` against the ROM
+      (`newtonos.s`, PNTK*Translator, NTKInit, FNTKListener, the nub):
+      every command, its payload, who sends it when, error codes, timeouts,
+      padding/alignment.
+- [x] 1.2 Toolkit.pkg: decompile it (`newtc -pkg Toolkit.pkg -decompile`),
+      note what it adds on top of the ROM (connect UI, ADSP vs serial,
+      package download, auto-connect).
+- [x] 1.3 The host side: DyneTK, NTX `ToolkitProtocolController.mm`,
+      NewtonInspector (Jake Borden), NTK's strings (Ghidra not needed):
+      the connect handshake, evaluating (`lscb`/`code`), what NTK sends,
+      download/delete package, break loop handling. Open points (padding,
+      `code` in a break loop, the 1 s pause) go to the capture in 1.5.
+- [x] 1.4 MNP: the subset we need (LR negotiation, LT/LA windows, LD,
+      CRC, escapes), with sources compared; the dock's
+      "Newton Docking Protocol.txt" for what is shared.
+- [x] 1.5 Captures with Einstein: our own desktop side,
+      `Test/ntk/ntk_probe.py` (MNP + Toolkit packets in Python, full byte
+      log, commands from a script or a named pipe `--fifo`), sessions in
+      `Test/ntk/captures/`. Connect, `lscb`, `code`, exceptions, break
+      loop, `fstk`, package upload/delete all confirmed (.md section 6).
+      Found: NS Debug Tools break `BreakLoop()` from `lscb` (step 2), and
+      Einstein's environment sends `Print`/`Write` to Einstein's log.
 
-## Debugger tasks
+### 2. Evaluate the remote tools -> section in the same .md
+- [x] 2.1 NS Debug Tools on Einstein (ROM 2.1), driven by the probe:
+      breakpoint, `code` inspection while stopped (PC, temporaries, named
+      variables from newtc's `-g`), Step, StepOut, all work (.md 7.1).
+      Einstein's NS Runtime replaces `Write`/`Print` with a string-only
+      logger, which breaks NSDT's BreakLoop: Matt to fix in Einstein
+      (workaround per session in 7.1).
+- [x] 2.2 Decompile and summarize DebugHashToName, Exception Printer,
+      HeapShow, Snarf, vFlags: what each gives a debugger (exception text
+      for `stopped`, names for hashed symbols, view flag names for
+      variables, heap info), which we use, which we skip.
+- [x] 2.3 What the agent package needs from them, and what the ROM alone
+      can't do (e.g. stack access without NSDT's natives).
 
-- [ ] D1 ROM functions as source, on demand. When the debugger meets a ROM
-      NewtonScript function (a stack frame, a step into it, the Disassembly
-      view), newtc decompiles just that function (fast) into a virtual
-      source (a DAP sourceReference, like the bytecode listings of 6.1),
-      with its line table from the decompiler (as for debug maps, 9.1),
-      registered for the session (RegisterLineTable). VS Code then shows
-      the ROM's code as readable NewtonScript, with breakpoints and stepping
-      by line, instead of bytecode. Decided (Matt, 2026-09-27): one function
-      at a time, when it is entered, instead of decompiling the whole ROM
-      into one huge (about 32 MB) source file.
+### 3. newtc: remote DAP (details refined after 1 and 2)
+- [x] 3.0 Agree on the design above with Matt (2026-10-05; plus: newtc
+      keeps running in the background, our own connection tool).
+- [x] 3.1 Transports (`Matt/NTKTransport.{h,cc}`): TCP server on
+      127.0.0.1:3679 for Einstein's TCP client (accepts again after a
+      disconnect), serial tty (termios, 57600); `newtc -ntk-dump <target>`
+      just prints what arrives, in hex. Targets `tcp`, `tcp:<port>`,
+      `serial:<device>[@<bps>]` (38400 unless given). Non-blocking, no
+      thread: the user polls `fd()` and calls `handleReadable()` (events
+      kConnected, kData, kDisconnected). Test `Test/ntk/test_transport.py`
+      (Einstein over TCP twice, a pty as the serial port, bad targets).
+- [x] 3.2 MNP in C++ (`Matt/MNP.{h,cc}`) in the link's I/O thread:
+      connect, send, receive, ack, retransmit, keep-alive. Framing
+      (`MNPEncodeFrame`, `MNPDecoder`, byte by byte: Einstein sends one
+      byte per TCP packet), `MNPLink` (the thread: answers every LR,
+      one LT in flight, resent after 1 s, up to 10 times, LA keep-alive
+      after 3 s, LD both ways; events kConnected, kLinkUp, kData,
+      kLinkDown through `notifyFd()`/`nextEvent()`; `send()` never
+      blocks). `newtc -ntk-mnp <target>`: events and data on stdout,
+      frames on stderr, hex lines from stdin are sent. Test
+      `Test/ntk/test_mnp.py` (a fake Newton: handshake, resent LR and LT,
+      bad CRC, DLE bytes, 256-byte LTs, retransmission, keep-alive, LD,
+      relink, reconnect, end).
+- [x] 3.3 NTK packets + NSOF (`Matt/NTKInspector.{h,cc}`):
+      `NTKPacketReader` (the length rules from the captures: `code` by
+      its size word, `eerr` +4, `estr`/`eref` +8), NSOF in memory
+      (`NTKFlatten`/`NTKUnflatten`), `NTKInspector` (answers `cnnt`
+      with `okln`; `evaluate()` = `lscb`, `call()` = `code`,
+      `loadPackage()`, `deletePackage()`, `terminate()`; a listener gets
+      text (MacRoman -> UTF-8, CR -> LF), results, objects, exceptions as
+      C++ `Exception`s, break loop entry/exit). `newtc -ntk <target>`: a
+      terminal Inspector; each stdin line is compiled here and sent with
+      `lscb` (`=` first: `code`, the result is printed); lines typed
+      early wait for the Newton; at the end of stdin a last `code` call
+      as a sync, then `term`. Exceptions print like the local REPL.
+      `NEWTC_NTK_TRACE=1` shows the MNP frames. Test
+      `Test/ntk/test_inspector.py` (a fake Newton with captured replies).
+      Waiting uses `select()`, never `poll()`: on macOS poll() doesn't
+      support devices (serial ports) and misses a FIFO's end.
+- [x] 3.4 `-ntk-device`: newtc as the Newton side, for automated tests.
+  - [x] 3.4a `Matt/NTKDevice.{h,cc}`, `newtc -ntk-device <target>`: a
+        TCP client transport (`tcp-client:<port>`, like Einstein),
+        `MNPLink` in the Newton's role (`setRole(kNewton)`: Einstein's LR,
+        resent every second, given up after four; the desktop's LR
+        confirmed with LA 0), the nub as in the ROM (`cnnt`, `okln` with
+        length 0, Toolkit.pkg's `'dante` fobj; `lscb` -> a frame for the
+        REP and `rslt 0`; `code` -> `rslt 0`, then the result with the
+        request's length, an exception ends the connection; `pkgX`,
+        `stou`, `term`), translators `PNTKDeviceIn/OutTranslator` (text
+        in 255-byte packets at CR, exceptions as `estr`/`eref`/`eerr`,
+        `eext`/`bext`), newtc's REP idling (`REPIdle`) until `term`.
+        Test `Test/ntk/test_device.py` (newtc -ntk against newtc
+        -ntk-device, no Einstein).
+  - [x] 3.4b Break loops and debugging on the device: `fstk` for
+        StackTrace (`StackFrameInfoFrame`s as in the ROM's
+        NTKStackTrace: newest first, `CodeBlock` "functions.<name>" or
+        nil, pc -1 for natives); `newtc -dbg -ntk-device` is a Newton with
+        NS Debug Tools (loaded, breakpoints enabled), plain `-ntk-device` a
+        stock one. Test: the session of Toolkit Protocol.md 7.1
+        (breakpoint, `code` inspection while stopped, Step, `fstk`,
+        ExitBreakLoop) gives the same answers as Einstein, down to NSDT's
+        BreakLoop at pc 409 in `fstk`.
+  - [x] 3.4c Packages on the device: `pkg ` installs (from memory,
+        `installPackage(package, false, &parts)`: DoNotInstall, the ROM's
+        InstallPart, not opened, as on a Newton; the same name again:
+        -10402), `pkgX` removes (the ROM's RemovePart with each part's
+        install info and remove frame). `installPackage()` got the two
+        optional arguments (open the app; the parts). The terminal
+        Inspector: `:pkg <file>`, `:pkgx <name>`.
+- [x] 3.5 Packages: upload (`pkg `), delete (`pkgX`), replace on rebuild;
+      upload NSDT and the agent when missing.
+  - [x] 3.5a The bridge for NewtonScript (`Matt/NTKRemote.{h,cc}`):
+        `NTKOpen(target)`, `NTKWaitConnected(s)`, `NTKIsConnected()`,
+        `NTKCall(fn)` (waits for the result, `ntkTimeout` seconds,
+        throws `evt.ex.msg` when the connection is gone),
+        `NTKEvaluate(fn)`, `NTKInstallPackage(binary)` and
+        `NTKDeletePackage(name)` (wait for the Newton's `rslt`),
+        `NTKPoll(s)`, `NTKSetHandler(frame)` (Connected, Disconnected,
+        Text, Exception(name, data), BreakLoop(entered), Object, Result),
+        `NTKClose()`; NTK's `LoadDataFile(fileName, class)`.
+        `NTKInspector` now tells which command a `rslt` answers.
+        Test `Test/ntk/test_remote.py` (a `-script` drives
+        `-ntk-device`).
+  - [x] 3.5b Deploying (`Matt/Debugger/Remote.ns`, the global
+        `NTKRemote` from `NTKLibrary()`): `InstallPackage(binary)`
+        replaces by name (`pkgX` + `pkg `), `EnsureDebugTools()` uploads
+        `debugToolsPackage` (env `NEWTC_NSDT_PACKAGE`, else NTK 1.6.4's
+        folder) when `NSDOriginalBreakLoop` is missing, `EnsureAgent()`
+        installs `Matt/Debugger/Agent.ns` (version 1: `|DAPAgent:Version|`,
+        on Einstein a `Write` that takes any object) unless that version
+        is there. Natives `NTKMakePackage(frame)`, `NTKPackageName(binary)`;
+        `writePackageToMemory()` in PackageWriter. Test
+        `Test/ntk/test_deploy.py`.
+- [ ] 3.6 DAP launch on a target (VSNewt attributes `target`,
+      `port`, `baud`; no logic in TS): output events, `eext` -> `stopped`,
+      continue, exceptions.
+- [ ] 3.7 Stack trace, scopes, variables, evaluate through the agent.
+- [ ] 3.8 Breakpoints: file:line -> (function hash, pc) -> device
+      function -> NSDT InstallBreakPoint; pending until the package is
+      there.
+- [ ] 3.9 Stepping: instruction steps (NSDT), then line steps (step plan
+      in the agent).
+- [ ] 3.10 Source-compiled packages: build with -g, upload, debug.
+      Decompiled packages: `-odecompile` + .nsdbg, upload the original
+      package unchanged, debug in the decompiled source.
+- [ ] 3.11 The real MP2x00 on the serial port (57600, timeouts,
+      reconnects).
+- [ ] 3.12 Later: attach to a package that is already installed/running.
+- [ ] 3.13 The background server: `-dap-server` with `-ntk` serves session
+      after session over one Newton link.
+- [ ] 3.14 Our own connection tool in the agent package (instead of
+      Toolkit.pkg; 57600 bps; reconnect).
 
-## Open items from earlier phases
-
-- 3.3 Verify the Apple API one group per step (Where, QuickStackTrace,
-  breakpoints, Step, StepIn, StepOut, RunUntil, named and temp variables,
-  Disasm).
-- 4.1, 4.2 (low priority): gdb-style bare-word commands in the terminal
-  break loop; less noise in the REPL output.
-- 9.2 ROM code (with Einstein).
-- LSP mode (`-lsp`) for VSNewt: diagnostics, completion.
+## Answers (Matt, 2026-10-04)
+- Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
+  client to 127.0.0.1:3679 (newtc listens there). If that is buggy, Matt
+  fixes Einstein first.
+- MP2x00: USB-C serial adapter, aiming for 57600 bps reliably (the
+  adapter's source exists, timing can be adjusted).
+- `-ntk-device` (newtc plays the Newton) for automated tests: yes.
+- "launch" first; "attach" is nice to have, later.
+- Einstein: /Applications/Einstein.app, or build from `~/dev/Einstein.git`.
+  The serial port selector is `~/dev/Einstein/EinsteinPrefs` (buggy; one
+  of the first apps to debug with this tool).
+- DyneTK's protocol was sniffed from a live connection long ago; its
+  details are not documented anywhere else.
 
 ## Known bugs (to fix)
 
 Every bug found goes here until it is fixed; then check it off and move it
-to HISTORY.md ("Bugs fixed"), never delete it.
+to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
+...) are in `Matt/CLAUDE-bak.md`.
 
-Interpreter and runtime
-- [ ] B3 **Stubs**: `Stubs.cc` has many built-ins that just return nil.
-  Replaced so far because the debugger needs them: `GetGlobals`, `ArrayPos`,
-  `Display`; in 5.3 `Abs`, `Ceiling`, `Floor`, `Signum`, `SubStr` (the real
-  code existed with other capitals, see 5.3). Go through the list and
-  implement the ones a script can reasonably call (compare with the ROM).
-  Still to check from the capitals scan: `FSetupTetheredListener` is a stub
-  while `FSetUpTetheredListener` exists (NTK); `Fmin`/`Fmax` are stubs and
-  `FMin`/`FMax` real, and the ROM has both spellings (which one is 'Min?).
-  Stubs whose name the ROM doesn't know are unused (`Farray`, `Fdebug`,
-  `FhasVariable`, `Fisa`, `FmodalState`, `FntkDownload`, `FntkListener`,
-  `ForigPhrase`, `Freal`, `Fstats`, `FGetSortID`): delete them. Also check
-  against the ROM: `Floor` returns a real, `Ceiling` an integer (>= 1).
-  First pass done (2026-09-26): the eleven stubs the ROM doesn't know are
-  deleted (nothing referenced them). `Floor` and `Ceiling` follow the ROM
-  (FFloor/FCeiling): an integer if the result fits (the ROM: 30 bits; here
-  kRefValueBits), else a real; the port's Floor always made a real and
-  Ceiling an integer only from 1 up. Test `floor_ceiling`. `Min`/`Max`
-  work. Still open: the tethered-listener spelling, and the other stubs one
-  by one as the GUI work needs them.
-  Strategy (2026-09-26): every stub now says so when called (see
-  Conventions, "Stubs"); `-stubs report` shows which ones real programs
-  call, to choose what to implement next.
-- [ ] B15 **`SPrintObject` is half ported** (Frames/Strings.cc,
-  `MakeStringObject`): nil, true, frames, arrays give `""` (reals: fixed
-  with B28, 2026-09-29), a 62-bit
-  integer is cut to 32 bits (`1152921504606846975` -> `"-1"`,
-  `IntegerString(RINT(obj))`), and the function never copies into the
-  result string in some branches. In the ROM it is the `&` conversion
-  (strings, numbers, symbols, characters), not the printer. DAP uses its
-  own `DAPPrintObject`.
-  2026-09-26: `"" & 1.5 & " " & 1152921504606846975 & " " & $a & " " & 'sym`
-  gives the right string now; check the other callers before closing.
-- [ ] B14 **Integers overflow silently**: integers have 62 bits on a 64-bit
-  host (`kRefValueBits`), but arithmetic wraps without notice:
-  `1152921504606846975 * 4` gives `-4` (e.g. Interpreter.cc
-  `MAKEINT(RINT(a) + RINT(b))`). Check what the ROM does (throw, or convert
-  to a real?). Also: the compiler rejects the literal `-2305843009213693952`
-  (it negates the out-of-range 2^61), like C does; `-2305843009213693951 - 1`
-  works. And a 62-bit integer can't go into a package or NSOF file for a
-  real Newton (30 bits): check what the writers do with one.
-
-
-Views and drawing
-- [ ] B30 **A frame 2 wide is 2/3 of a pixel off** (found 2026-09-30 with
-  2.5's maps): at 1.5 times on a Retina screen (3 screen pixels a Newton
-  pixel), DrawViewFormat's frame (fl_rect, line width 2) covers 7 screen
-  pixels from 2 left of the widget's edge: it reaches 2 screen pixels
-  into the view at the right and the bottom (2.5's gray map frame). In
-  an image surface it came out a pixel further in (ViewIntoBitmap reads
-  pixels at their top left, which matches the screen). Check pens 1 to 4
-  at 1, 1.5 and 2 times (Matt's wide-line work in FLTK).
-Decompiler
-- [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
-  builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
-  without ASan (Debug or Release) but fail with it: 11 recurse without end (stack
-  overflow; with a bigger stack they run out of NewtonScript memory instead),
-  `Tymnet-MCI_1.1.pkg` hits `assert(IsSymbol(ref))` in `PrintTag`
-  (Matt/ObjectPrinter.cc:125), and `mobilem1.pkg` throws
-  `evt.ex.fr.type;type.ref.frame`. ASan reports no memory error. Ruled out:
-  ASan's malloc fill, its fake stack, uninitialized locals
-  (`-ftrivial-auto-var-init=zero` changes nothing). Also broken at commit
-  b003eaf, so not caused by the debugger work. Lead:
-  `std::map<Ref, Node> map` in Matt/ObjectPrinter.h:69 is ordered by object
-  address, so the printer (and its cycle handling, "Fix 6") visits objects in
-  a different order when the allocator changes. Totals with ASan: 1909 CLEAN,
-  371 UNRESOLVED, 69 CRASHED.
-- [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
-  the first 30 manifest packages, with the binary from before 1.1 too.
-- [ ] B12 **ASCII only characters**: make sure that the decompiler outputs only
-  ASCII characters and that characters that were originally non-ASCII UTF-16
-  are output a escaped sequences - eventually we have to decide if NewtonScript
-  shall go all UTF-8.
-
-## Reference
-
-### The event loop (10.1)
-
-- After the program returns, `RunEventLoop()` (Matt/EventLoop.h) waits for
-  FLTK events while a window is open (-script, -run, -dap); it ends when the
-  last window closes or the DAP client is gone.
-- Host events run NewtonScript only through `SendEventMessage()`: only while
-  no NewtonScript runs (the interpreter's control stack is where the loop
-  started), one at a time; exceptions are caught and reported there.
-- DAP requests come in through `Fl::add_fd`; a pause while idle stops at
-  the first instruction of the next callback (`DebuggerPollNow`); stepping
-  out of a callback cancels the step.
-- Stopped in a break loop, windows don't repaint (as with any native app in
-  a debugger).
-
-### Debugging newtc while it serves DAP
-1. In the newtc window, start "newtc: -dap-server 4711" (lldb). newtc waits
-   for a client ("newtc: waiting for a DAP client on port 4711").
-2. In the VSNewt test window (Extension Development Host), run a
-   NewtonScript configuration with `"debugServer": 4711` (snippet
-   "NewtonScript: Connect to newtc -dap-server"). Breakpoints in newtc's
-   C++ stop in the newtc window; one session, then newtc exits.
-3. The traffic: `-dap-log <file>` (the configuration above writes
-   /tmp/newtc-dap.log), or `"log": "<file>"` in a VSNewt configuration.
-4. Most adapter work needs no VS Code at all: the .dap cases and
-   `Test/dbg/dap_client.py script.dap PROGRAM=...`.
-Not done (not needed so far): CodeLLDB attach with "waitFor" plus an
-environment variable that makes newtc wait for the debugger.
-VSNewt stays a thin shell (its existing TypeScript; no debugger logic in
-it): `contributes.debuggers` (type `newtonscript`) with a
-DebugAdapterExecutable `newtc -dap`, `languages` for .ns, and
-`breakpoints: [{language: "newtonscript"}]`; the setting
-`vsnewt.newtcPath` for a development build of newtc.
-
-
-### Reading the ROM's NewtonScript
-
-newtc has 481 of the ROM's NewtonScript functions (the built-in function
-frame, magic pointer `@4098`). To read one, decompile it:
-`printf "GetGlobalFn('InstallFormPart);\n" > x.ns; newtc -stubs quiet
--script x.ns -decompile`. Its C++ side is in `newtonos.s` (below).
-
-### The ROM source
-
-**ROM source** is in `./newtonos.s` (132 MB, git-ignored, ARM
-   disassembly with labels). Apple's class names are `Txxx`; this port renamed
-   them to `Cxxx` (`TInterpreter` → `CInterpreter`, `TNSDebugAPI` →
-   `CNSDebugAPI`, `TDictionary` → `CDictionary`). Useful labels:
-   `SlowRun__12TInterpreterFl` (line ~941591),
-   `HandleBreakPoints__12TInterpreterFv` (~903964),
-   `SetBreakPoints__12TInterpreterFRC6RefVar`, `EnableBreakPoints__12TInterpreterFUc`,
-   `TNSDebugAPI::*` (~901908), `FBreakLoop` (~871677). Search with `grep -n`;
-   never read the whole file.
-
-### Embedding a .ns file in newtc
-
-To build a NewtonScript file into newtc (no runtime dependency, and the .ns
-file stays the one to edit):
-1. In CMakeLists.txt: `embed_newtonscript(newtc <path/file.ns> <cName>)`.
-   At build time `cmake/EmbedNewtonScript.cmake` writes
-   `<build>/embedded/<cName>.cc` defining `const EmbeddedScript <cName>`
-   (file name + text as a byte array); it is regenerated when the .ns changes.
-2. In C++: `extern const EmbeddedScript <cName>;` and
-   `RunEmbeddedScript(<cName>)` (Matt/EmbeddedScript.h). It compiles and runs
-   the top-level statements one by one like `-script`; an exception stops it
-   and is reported as `File "file.ns"; Line n` (n may be a line or two after
-   the actual error, as for -script).
-Top-level statements are compiled separately: use global constants/vars (e.g.
-`DefineGlobalConstant`) to share things between them, not locals.
-
-
-### How to read the ARM code in NS Debug Tools.pkg
-
-The natives are `BinCFunction`s: `{class: 'BinCFunction, code: <binary>,
-numargs:, offset:}`. The code binary is in the decompiled package
-(`newtc -pkg ".../NS Debug Tools.pkg" -decompile`, e.g. `Ref_299` for part
-NSDCPatch1, `Ref_334` for NSDCPatch2) as `MakeBinaryFromHex("...")`. The
-words are big-endian. To disassemble: extract the hex into a file, swap each
-4-byte word to little-endian, wrap it in `p.s` as
-`.text / .arm / _start: / .incbin "p.bin"`, then run
-`xcrun clang -target armv4t-none-eabi -c p.s -o p.o` and
-`xcrun llvm-objdump -d --triple=armv4t-none-eabi p.o`.
-
-**ROM calls go through the public jump table** (the MMU maps it, so ROM bugs
-can be patched later and packages have fixed entry points across ROM
-versions). `ldr pc, [pc, #-4]` followed by `0x018xxxxx` is such a call.
-Verified chain:
-1. entry i is at virtual `0x01800000 + 4*i`; the ROM stores it at
-   `gROMPublicJumpTable` (0x13000..0x15E0C) + 4*i. It is a `b` to a
-   `VEC_<name>` address (`.equ VEC_...` in newtonos.s).
-2. the MMU maps that VEC_ address to ROM
-   `(((a>>5) & 0xffffff80) | (a & 0x7f)) - 0xCE000` (Matt's formula,
-   verified): a patch table entry, a `b` to the real function.
-`Matt/tools/rom_jumptable.py <index or 0x018xxxxx address> ...` follows the
-chain and prints the names (reads newtonos.s, under a second). The original
-ROM calls through these tables almost everywhere; newtonos.s shows those
-calls already resolved by name (`bl VEC_Name`).
-Symbol lists (git-ignored, repo root): `symbols.txt` (address, name) and
-`Symbols_demangled_by_name.txt`.
-NSDCPatch1 uses entries 1978 `GetGInterpreter()`, 2045
-`TInterpreter::SetBreakPoints`, 2096 `TInterpreter::EnableBreakPoints`, and
-2339 `PublicFiller_1` (an unused slot: the code throws if a function's entry
-is the same as that filler entry, i.e. the ROM is too old).
-
-
-### Conventions
-
-- **Line endings**: CR (`\r`) is a leftover from classic Mac OS. Input must
-  treat CR, LF, and CRLF the same wherever it shows up, because existing
-  packages and sources still contain CR. Everything newtc *writes* for general
-  use should use LF (Unix/current macOS).
-  Done for the REPL (REP.cc): `PStdioOutTranslator::write()` turns CR and
-  CRLF into LF for everything written to stdout (`Write`, `Print`, results,
-  stack traces); `PStdioInTranslator::produceFrame()` ends a break loop line
-  at LF, CR, or CRLF. Test: `line_endings`. `ObjectPrinter` printing char
-  0x0D as `$\n` is correct NewtonScript and stays.
-
-- **NewtonOS 2.x is the default target.** newtc compiles for NOS 2
-  (`compilerCompatibility` 1; 2.1 uses the same code format). NOS 1 code is
-  generated only on request (`-nos1`, or `//! -nos1` as the decompiler writes it
-  for NOS 1 packages, so round trips still work).
-- **Why the original code looks the way it does**: NewtonOS was built for
-  low memory (`_proto` inheritance) and low battery use (deep sleep whenever
-  nothing happens); interpreter calls are short GUI-style callbacks to user
-  actions (plus timers for games). This explains many implementation choices.
-  It is *not* a goal for us: memory and battery hardly matter today, so don't
-  over-optimize; prefer clarity.
-
-- **Stubs** (built-in functions not implemented yet) are written
-  `NS_STUB(FName, RefArg rcvr, ...)` (Utilities/Unimplemented.h): the same
-  function (the ROM's built-in table in ROMData/*/RefData.s finds it by its
-  C name), registered at startup. A call logs once per stub
-  (`newtc: Fsin is not implemented yet (stub in Maths.cc:654), returns
-  nil.`, on stderr; in -dap mode in the Debug Console) and returns nil.
-  `-stubs throw` (or `NEWTC_STUBS=throw`) throws a NewtonScript exception
-  instead (evt.ex.msg), so a test or a debug session fails at the call;
-  `-stubs quiet` says nothing; `-stubs report` lists at the end which stubs
-  were called and how often (e.g. `throw,report`). Stubs called while newtc
-  starts are counted but not logged. `NS_STUB_NIL_OK` is for stubs whose nil
-  is fine for now (never logged or thrown; e.g. GetRoot until there is a
-  root view); `CXX_STUB()` marks a C++ function without a NewtonScript name
-  (logged only). 1043 stubs were converted mechanically (Stubs.cc,
-  NTKStubs.cc, Maths.cc, Power.cc, Dictionaries.cc, Packages.cc,
-  StoreWrapper.cc, DrawImage.cc, ObjectSystem.cc); newtc links 1004 of them.
-  The dbg test harness shows stub places and the total as `<file:line>`
-  and `<total>`. Tests: `stubs_log`, `stubs_throw`, `stubs_report`,
-  `dap_stubs`.
-
-- **Debug builds use AddressSanitizer** (CMakeLists.txt, all targets, via
-  `CMAKE_<LANG>_FLAGS_DEBUG`; UBSan was already on for newtc). A memory bug
-  aborts with a report showing where the memory was allocated, freed, and
-  misused. Release builds have neither.
-
+- [x] B31 `newtc -nsof x.nsof` can't read the NSOF of a bare nil (`02 0A`,
+  a `code` reply from the Newton): "Can't read NSOF". Found 2026-10-04
+  (Test/ntk/captures/capture3/obj006_code.nsof). Fixed 2026-10-05:
+  handleArgNsof took a nil result for a failed read (the reader throws
+  on a bad stream).
+- [ ] B33 Undefined global function: newtc's interpreter throws
+  `{errorCode: -48808, value: 'Foo}`, the ROM `{errorCode: -48808, symbol:
+  'Foo}` (Einstein, Toolkit Protocol.md 6.1). Check the other errors'
+  slot names against the ROM too. Found 2026-10-05 (test_remote.py
+  accepts both for now).
+- [ ] B32 `newtc -nsof` with a missing file or one that isn't NSOF ends in
+  "Unhandled exception evt.ex.pipe -- warm reboot!" (or evt.ex.fr.store)
+  with exit code 0, instead of an error message and exit code 1. (Before
+  B31's fix too.) Found 2026-10-05.

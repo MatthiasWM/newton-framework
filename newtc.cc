@@ -16,6 +16,11 @@
 #include "Matt/EmbeddedScript.h"
 #include "Matt/JSON.h"
 #include "Matt/DAP.h"
+#include "Matt/NTKTransport.h"
+#include "Matt/MNP.h"
+#include "Matt/NTKInspector.h"
+#include "Matt/NTKDevice.h"
+#include "Matt/NTKRemote.h"
 #include "Matt/LineTables.h"
 #include "Utilities/Unimplemented.h"
 #include "Stores/HostStore.h"
@@ -65,6 +70,7 @@ extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
 // EnsureInternal
 
 int handleArgs(int argc, char **argv);
+bool installPackage(RefArg package, bool inOpenApp = true, RefVar *outParts = nullptr);
 
 extern "C" const char * GetFramesErrorString(NewtonErr inErr);
 
@@ -206,6 +212,22 @@ bool init()
   defGlobalCFunction("DAPCaptureOutput", (void*)FDAPCaptureOutput, 1);
   defGlobalCFunction("DAPLoadPackage", (void*)FDAPLoadPackage, 2);
 
+  // A remote Newton (NTK's Toolkit protocol, see Matt/NTKRemote.h)
+  defGlobalCFunction("NTKOpen", (void*)FNTKOpen, 1);
+  defGlobalCFunction("NTKWaitConnected", (void*)FNTKWaitConnected, 1);
+  defGlobalCFunction("NTKIsConnected", (void*)FNTKIsConnected, 0);
+  defGlobalCFunction("NTKCall", (void*)FNTKCall, 1);
+  defGlobalCFunction("NTKEvaluate", (void*)FNTKEvaluate, 1);
+  defGlobalCFunction("NTKInstallPackage", (void*)FNTKInstallPackage, 1);
+  defGlobalCFunction("NTKDeletePackage", (void*)FNTKDeletePackage, 1);
+  defGlobalCFunction("NTKPoll", (void*)FNTKPoll, 1);
+  defGlobalCFunction("NTKSetHandler", (void*)FNTKSetHandler, 1);
+  defGlobalCFunction("NTKClose", (void*)FNTKClose, 0);
+  defGlobalCFunction("NTKMakePackage", (void*)FNTKMakePackage, 1);
+  defGlobalCFunction("NTKPackageName", (void*)FNTKPackageName, 1);
+  defGlobalCFunction("NTKLibrary", (void*)FNTKLibrary, 0);
+  defGlobalCFunction("LoadDataFile", (void*)FLoadDataFile, 2);
+
   // Source lines of functions compiled with -g (see Matt/LineTables.h)
   InstallLineTables();
   defGlobalCFunction("LineOfPC", (void*)FLineOfPC, 2);
@@ -297,10 +319,7 @@ void handleArgNsof(const std::string &filename)
   currentFileName = filename;
   CStdIOPipe inPipe(filename.c_str(), "rb");
   CObjectReader reader(inPipe);
-  RefVar ref = reader.read();
-  if (ref == NILREF) {
-    throw(std::runtime_error("Can't read NSOF."));
-  }
+  RefVar ref = reader.read();     // throws if the file isn't NSOF; nil is fine
   addGlobalRef(ref);
 }
 
@@ -388,10 +407,16 @@ static Ref partInstallInfo(RefArg package, RefArg part, ArrayIndex inPart, RefAr
  \brief Install a package like a Newton does (-run, and -dap with a package
  as the program); see above. Nothing is installed if a part's DoNotInstall()
  returns non-nil or throws.
+ \param inOpenApp open the form part's app (newtc runs one app); false for
+   a package downloaded by NTK (-ntk-device), which a Newton doesn't open.
+ \param outParts if given, gets an array of [installInfo, removeFrame], one
+   per installed part: what the ROM's RemovePart needs to remove it.
  \return false if `package` is no package.
  */
-bool installPackage(RefArg package)
+bool installPackage(RefArg package, bool inOpenApp, RefVar *outParts)
 {
+  if (outParts)
+    *outParts = MakeArray(0);
   if (!IsFrame(package))
     return false;
   RefVar parts(GetFrameSlot(package, MakeSymbol("part")));
@@ -436,9 +461,18 @@ bool installPackage(RefArg package)
     if (typeName != "form" && typeName != "auto")
       continue;
     RefVar args(MakeArray(1));
-    SetArraySlot(args, 0, partInstallInfo(package, part, i, MakeSymbol(typeName.c_str())));
-    DoBlock(installPart, args);   // reports its own errors (Notify)
+    RefVar info(partInstallInfo(package, part, i, MakeSymbol(typeName.c_str())));
+    SetArraySlot(args, 0, info);
+    RefVar removeFrame(DoBlock(installPart, args));   // reports its own errors (Notify)
+    if (outParts) {
+      RefVar entry(MakeArray(2));
+      SetArraySlot(entry, 0, info);
+      SetArraySlot(entry, 1, removeFrame);
+      AddArraySlot(*outParts, entry);
+    }
   }
+  if (!inOpenApp)
+    return true;
 
   // newtc runs one app and has no Extras drawer to tap: open the form
   // part's app right away, GetRoot().(app):Open()
@@ -1087,6 +1121,22 @@ the commands in the given order.
                           for running newtc itself in a debugger
   -dap-log <filename>     Write all DAP messages to this file (before -dap or
                           -dap-server)
+  -ntk-dump <target>      Wait for a Newton on <target> and print what arrives,
+                          in hex: tcp (Einstein: 127.0.0.1:3679), tcp:<port>,
+                          serial:<device>[@<bps>] (38400 bps unless given)
+  -ntk-mnp <target>       Bring an MNP link up with a Newton on <target>: print
+                          its events and the data that arrives, every frame on
+                          stderr, and send the lines of hex typed on stdin
+  -ntk <target>           A terminal Inspector (like NTK's) for a Newton on
+                          <target>: each line from stdin is NewtonScript,
+                          compiled here and run there ("=" first: the result
+                          comes back as an object; ":pkg <file>" uploads a
+                          package, ":pkgx <name>" deletes one); prints what
+                          the Newton sends. NEWTC_NTK_TRACE=1 shows the MNP
+                          frames
+  -ntk-device <target>    Play the Newton for a desktop (newtc -ntk, NTK):
+                          connect to <target> (tcp-client:<port>, like
+                          Einstein), run what it sends, until it ends
 
   Options
   -g                      Compile with debug information: variable names (DebuggerInfo)
@@ -1139,6 +1189,22 @@ int handleArgs(int argc, char **argv)
           throw(std::runtime_error("-dap-log: file name expected."));
         if (!DAPStartLog(argv[argi++]))
           throw(std::runtime_error("-dap-log: can't open the file."));
+      } else if (cmd == "-ntk-dump") {
+        if (argi>=argc)
+          throw(std::runtime_error("-ntk-dump: target expected (tcp, tcp:<port>, serial:<device>)."));
+        return NTKDump(argv[argi++]);
+      } else if (cmd == "-ntk") {
+        if (argi>=argc)
+          throw(std::runtime_error("-ntk: target expected (tcp, tcp:<port>, serial:<device>)."));
+        return NTKInspectorREPL(argv[argi++]);
+      } else if (cmd == "-ntk-device") {
+        if (argi>=argc)
+          throw(std::runtime_error("-ntk-device: target expected (tcp-client:<port>)."));
+        return NTKDeviceRun(argv[argi++]);
+      } else if (cmd == "-ntk-mnp") {
+        if (argi>=argc)
+          throw(std::runtime_error("-ntk-mnp: target expected (tcp, tcp:<port>, serial:<device>)."));
+        return NTKMNPDemo(argv[argi++]);
       } else if (cmd == "-g") {
         handleArgG();
       } else if (cmd == "-store") {

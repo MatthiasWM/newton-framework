@@ -1,0 +1,45 @@
+# Step 1.5, capture 1: the basic Toolkit exchanges with Einstein.
+# Run: Test/ntk/ntk_probe.py Test/ntk/capture1.ntk --log capture1.log
+# then tap Toolkit > Connect Inspector on the Newton.
+# (The probe answers 'cnnt' with 'okln' itself; the 'dante' fobj follows.)
+
+wait 2
+
+# lscb: REP input; text output. "3333" puts 0x33 bytes in the data (DyneTK's escape?)
+src Print("Hello from newtc 3333")
+waitfor rslt 10
+wait 1
+
+# code: the result comes back as NSOF. Two in a row, NSOF sizes odd and even.
+csrc 2+3
+waitfor code 10
+csrc "abc"
+waitfor code 10
+csrc "abcd"
+waitfor code 10
+
+# exceptions: with breakOnThrows off, an undefined function -> eref?
+src breakOnThrows := nil
+waitfor rslt 10
+src NoSuchFunctionProbe()
+wait 3
+
+# a break loop: eext, then code and lscb while stopped, fstk, and out again
+src BreakLoop()
+waitfor eext 10
+csrc 6*7
+waitfor code 10
+src StackTrace()
+wait 3
+src ExitBreakLoop()
+waitfor bext 10
+
+# delete a package that doesn't exist
+pkgx NoSuchPackage:probe
+waitfor rslt 10
+
+# quiet for 8 s: only keep-alive LAs (does the Newton send any?)
+wait 8
+
+term
+wait 3

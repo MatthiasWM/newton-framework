@@ -1,0 +1,61 @@
+// Remote.ns: getting packages onto a remote Newton for debugging (plan step
+// 3.5b), on top of the NTK... functions (Matt/NTKRemote.h). Embedded in newtc
+// as gRemoteScript; NTKLibrary() runs it (and Agent.ns) once and returns the
+// global NTKRemote.
+
+DefGlobalVar('NTKRemote, {
+
+  // Apple's NS Debug Tools.pkg (ARM code inside: newtc's embedded version
+  // can't stand in for it on a Newton). NTKLibrary() sets it from the
+  // environment variable NEWTC_NSDT_PACKAGE, else NTK 1.6.4's folder.
+  debugToolsPackage: nil,
+
+  // The agent version this newtc brings (Agent.ns).
+  agentVersion: 1,
+
+  // Install a package, replacing one with the same name (a rebuild): 'pkgX'
+  // first (no error if it isn't there), then 'pkg '. Returns the Newton's
+  // answer: 0, or an error code.
+  InstallPackage: func(package)
+  begin
+    NTKDeletePackage(NTKPackageName(package));
+    return NTKInstallPackage(package);
+  end,
+
+  // NS Debug Tools are installed when its BreakLoop replacement is.
+  HasDebugTools: func()
+    NTKCall(func() HasPath(functions, 'NSDOriginalBreakLoop)),
+
+  // Install NS Debug Tools if they are missing. Returns 0, or an error code,
+  // or a message if the package can't be read.
+  EnsureDebugTools: func()
+  begin
+    if :HasDebugTools() then
+      return 0;
+    if not debugToolsPackage then
+      return "NS Debug Tools are not installed, and no package for them is set";
+    local package;
+    try
+      package := LoadDataFile(debugToolsPackage, 'package);
+    onexception |evt.ex| do
+      return "Can't read NS Debug Tools: " & debugToolsPackage;
+    local error := :InstallPackage(package);
+    if error <> 0 then
+      return error;
+    return if :HasDebugTools() then 0 else "NS Debug Tools didn't install";
+  end,
+
+  // The agent's version on the Newton, nil if it isn't there.
+  InstalledAgentVersion: func()
+    NTKCall(func() if HasPath(functions, '|DAPAgent:Version|) then
+                     call functions.|DAPAgent:Version| with ()),
+
+  // Install (or replace) the agent unless this version is there. Returns 0,
+  // or an error code.
+  EnsureAgent: func()
+  begin
+    if :InstalledAgentVersion() = agentVersion then
+      return 0;
+    return :InstallPackage(NTKMakePackage(DAPAgentPackage));
+  end
+});

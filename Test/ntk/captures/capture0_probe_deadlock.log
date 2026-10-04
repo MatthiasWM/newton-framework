@@ -1,0 +1,31 @@
+   0.000 listening on 127.0.0.1:3679 (NSOF files in Test/ntk/captures/capture1)
+  45.174 connected from 127.0.0.1:60852
+  45.187 <- MNP LR 20 01 02 01 06 01 00 00 00 00 ff 02 01 02 03 01 08 04 02 40 00 08 01 03 09 01 01 0e 04 03 04 00 fa
+  45.187 -> MNP LR   [wire 16 10 02 17 01 02 01 06 01 00 00 00 00 ff 02 01 02 03 01 01 04 02 40 00 08 01 03 10 03 9a 1b]
+  45.216 <- MNP LA seq 0 credit 1
+  45.216    MNP link up
+  45.275 <- MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 63 6e 6e 74 00 00 00 00
+  45.277 -> MNP LA seq 1 credit 1   [wire 16 10 02 03 05 01 01 10 03 54 9d]
+  45.277 <- NTK cnnt length 0
+  45.277 -> NTK okln length 0
+  45.277 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  46.282    MNP no LA for LT 1, resending (1)
+  46.282 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  47.283    MNP no LA for LT 1, resending (2)
+  47.284 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  48.287    MNP no LA for LT 1, resending (3)
+  48.287 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  49.289    MNP no LA for LT 1, resending (4)
+  49.290 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  50.295    MNP no LA for LT 1, resending (5)
+  50.295 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  51.299    MNP no LA for LT 1, resending (6)
+  51.299 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  52.301    MNP no LA for LT 1, resending (7)
+  52.302 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  53.306    MNP no LA for LT 1, resending (8)
+  53.307 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  54.312    MNP no LA for LT 1, resending (9)
+  54.312 -> MNP LT seq 1, 16 bytes: 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00   [wire 16 10 02 02 04 01 6e 65 77 74 6e 74 70 20 6f 6b 6c 6e 00 00 00 00 10 03 fb af]
+  55.313    MNP no LA for LT 1, resending (10)
+  55.313 reader stopped: OSError('LT 1 never acknowledged')
