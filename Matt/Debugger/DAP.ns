@@ -714,7 +714,9 @@ DefGlobalVar('DAPRequests, {
     begin
       local loaded := DAPLoadPackage(program, if IsString(args.debugMap) then args.debugMap);
       package := loaded.package;
-      local text := if not loaded.map then
+      local text := if not loaded.map and loaded.found > 0 then
+          :FileName(program) & ": " & loaded.found & " functions with line tables (compiled with -g)."
+        else if not loaded.map then
           "No debug map for " & :FileName(program) & ": its functions show as bytecode."
         else if loaded.found = 0 then
           "Debug map " & loaded.map & ": none of its " & loaded.total

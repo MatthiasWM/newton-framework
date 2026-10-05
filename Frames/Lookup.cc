@@ -216,15 +216,22 @@ ICache::update(void)
 	{
 		if (p->value != INVALIDPTRREF)
 		{
+			// newtc: an entry whose receiver, slot symbol, or implementor
+			// died is dropped. Before, a dead slot became INVALIDPTRREF in
+			// an entry still valid, and the next lookup of a symbol with
+			// the same hash read it as a symbol (a crash, B34); a dead
+			// implementor turned the entry into "doesn't exist".
+			bool negative = (p->fr == INVALIDPTRREF);
 			p->value = DIYGCUpdate(p->value);
-			if (ISNIL(p->value))
-				p->value = INVALIDPTRREF;
 			p->slot = DIYGCUpdate(p->slot);
-			if (ISNIL(p->slot))
+			if (!negative)
+				p->fr = DIYGCUpdate(p->fr);
+			if (ISNIL(p->value) || ISNIL(p->slot) || (!negative && ISNIL(p->fr)))
+			{
+				p->value = INVALIDPTRREF;
 				p->slot = INVALIDPTRREF;
-			p->fr = DIYGCUpdate(p->fr);
-			if (ISNIL(p->fr))
 				p->fr = INVALIDPTRREF;
+			}
 		}
 	}
 }

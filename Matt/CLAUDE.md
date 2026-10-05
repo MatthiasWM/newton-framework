@@ -308,7 +308,7 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       `Test/ntk/remote_demo.ns`. Tried in VS Code with Einstein by
       Matt (2026-10-05): output, stop, Debug Console, continue,
       exception stop, end.
-- [ ] 3.7 Stack trace, scopes, variables, evaluate through the agent.
+- [x] 3.7 Stack trace, scopes, variables, evaluate through the agent.
   - [x] 3.7a The stack. Agent v4 (needs NS Debug Tools): an
         NSDBreakLoopEntry hook that enters the break loop itself (no NSDT
         location text), `|DAPAgent:Stack|(exceptionStop)` -> [{name, pc,
@@ -330,19 +330,138 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
         Toolkit packet (`NTKInspector::tick()`), to be safe.
         Tried in VS Code with Einstein by Matt: Call Stack Inner, Outer,
         <program> with lines, continue, exception stop, clean end.
-  - [ ] 3.7b Scopes and variables (handles on the Newton).
-  - [ ] 3.7c Evaluate in a stopped frame.
-- [ ] 3.8 Breakpoints: file:line -> (function hash, pc) -> device
-      function -> NSDT InstallBreakPoint; pending until the package is
-      there.
-- [ ] 3.9 Stepping: instruction steps (NSDT), then line steps (step plan
-      in the agent).
-- [ ] 3.10 Source-compiled packages: build with -g, upload, debug.
-      Also: install the program's package without blocking (serving
-      requests), so breakOnThrows can stay on and an exception in its
-      InstallScript stops there (3.6 installs it with breakOnThrows off).
-      Decompiled packages: `-odecompile` + .nsdbg, upload the original
-      package unchanged, debug in the decompiled source.
+  - [x] 3.7b Scopes and variables (handles on the Newton). Agent v5:
+        `|DAPAgent:Scopes|(level)` -> {args, locals, receiver, temps}
+        (NSDT's GetAllNamedVars: the first GetFunctionArgCount are the
+        arguments; GetAllTempVars without 'bottom), and
+        `|DAPAgent:Expand|(handle, start, count)` -> [[name, value]].
+        Values travel described, not whole: simple ones as {value} (a
+        string over 500 characters cut, with its length), the others as
+        {kind, cls, count, preview (5 entries), handle}; the handle is an
+        index into a table on the Newton, emptied by each Stack call (a new
+        stop). DAP `scopes` (Arguments, Locals with self, Stack) and
+        `variables` (expand on request, arrays paged with start/count;
+        local values from evaluate as before) in DAPRemote.ns. The
+        program's frame hides NTKCompileFile's wrapper (its local and its
+        try's two stack values). Test: test_dap_remote.py (Inner's a, b, a
+        frame f with a nested array and a function, paging).
+  - [x] 3.7c Evaluate in a stopped frame. Agent v6:
+        `|DAPAgent:Evaluate|(level, fn, names, fresh)`. As DAP.ns's
+        EvaluateInFrame: the desktop compiles the expression as
+        `func(<the frame's variables>)` returning [result, the variables
+        afterwards] (names from the agent's Scopes, noted per stop); the
+        agent calls it with GetNamedVar's values and the frame's receiver
+        as self (a writable receiver: a temporary slot and Perform, so
+        assignments to its slots stay; a read-only one: a frame with it as
+        _proto), writes changed variables back with SetNamedVar, and
+        describes the result (previews and expansion as for variables; no
+        more `[#0x...]`). Without a frame (or not stopped): globally, the
+        handle table emptied when not stopped. breakOnThrows off meanwhile;
+        a syntax error is found here. Test: test_dap_remote.py (Inner's
+        variables, an assignment Inner returns, <program>'s globals, a
+        method's self and slot assignment). Not tested yet: a read-only
+        receiver, Apple's NSDT GetNamedVar/SetNamedVar (Einstein).
+- [x] 3.8 Breakpoints (.ns programs; packages in 3.10). NSDT breakpoints
+      are {instructions, programCounter}: they need the Newton's copy of
+      the function. So the program's block finds them: NTKCompileFile
+      puts the wrapper on line 0 (`CCompiler::setLineNo`; the file keeps
+      its line numbers) with a call of the agent's
+      `|DAPAgent:Begin|('|DAPAgent:program|, '|DAPAgent:breakpoints|)`;
+      before sending, DAPRemote replaces these literals with the block
+      itself and [[file, [[path, pc], ...]], ...]: CodeForLine(file, line)
+      gives the functions and PCs here, the new native `PathTo(root,
+      target)` where each is in the block (LineTables.cc); the agent (v7)
+      follows the paths in its copy and calls InstallBreakPoint (closures
+      share the template's instructions, so they stop too).
+      `|DAPAgent:SetBreakpoints|([file, places])` replaces a file's
+      breakpoints while stopped (changed while running: sent before
+      `continue`). Set before the program is compiled: pending, then a
+      "breakpoint" event (verified, the line used). The agent's stop hook
+      sends {|DAPAgent:Stop|: 'breakpoint} (fobj, before `eext`) when it
+      stops at one of its breakpoints: reason "breakpoint". newtc's
+      `-ntk-device` got real `NTKAlive`/`NTKSend` (stubs before, so the
+      agent's messages never left it). Test: test_dap_remote.py (lines 3
+      and 6 before compiling, top level and in a function, line 12 added
+      while stopped, cleared).
+- [x] 3.9 Stepping. Agent v8: `|DAPAgent:Step|(kind, instruction)`, kind
+      'over, 'into, 'out ('in is a reserved word). NSDT steps one
+      instruction (Step, StepIn, StepOut set a temporary breakpoint and
+      leave the break loop); the agent's stop hook applies the rules of
+      the local line step (LineTables.cc StepCheck: a new statement or back
+      at a statement start in the same frame, the caller once it returns,
+      a called function's first statement for 'into; code without lines
+      is left with StepOut) and, until then, takes the next NSDT step
+      itself, with ExitBreakLoop a no-op meanwhile (the hook returns nil:
+      no break loop), so the program runs on: no round trip per
+      instruction. The depth: two GetCurrentFunction probes (is there a
+      level depth - 1, a level depth?). A leftover temporary breakpoint at
+      a stop: something else stopped it (breakpoint, exception,
+      BreakLoop()): the step ends, the temporary goes. Stops send
+      {|DAPAgent:Stop|: 'step} (reason "step"); a step that can't go on
+      (e.g. out of the program, called by native code) sends
+      {|DAPAgent:Step|: message}: console "...; continuing.", it
+      continues (as DAP.ns). Without a line table, or granularity
+      "instruction": one instruction. DAP next/stepIn/stepOut in
+      DAPRemote.ns (`RemoteStep`, sent like continue). Test:
+      test_dap_remote.py (next over top-level statements and lines,
+      stepIn into Inner (onto a breakpoint) and into a method, next over
+      BreakLoop(), stepOut of a method and of the program). Found B34 on
+      the way.
+- [x] 3.10 Packages: compiled from source with -g, or decompiled, uploaded
+      unchanged and debugged in their source. Launch `"program": "x.pkg"`
+      (`newtc -g -script x.ns -opkg x.pkg`; or `-odecompile` and the
+      `.nsdbg`, `"debugMap"`).
+      - Desktop: DAPLoadPackage now also registers the package's own line
+        tables (`RememberLineTables`), so CodeForLine finds its
+        functions; a breakpoint's place is [path in the part's data, pc,
+        [package name, part index]] (`PathTo` per part).
+      - Agent v9: finds the installed package's parts with the ROM's
+        `GetPkgRefInfo(GetPkgRef(name, store)).parts` (checked in the ROM:
+        GetPkgInfoFromVAddr sets `parts`; GetPackages has none), the same
+        objects the package runs; `|DAPAgent:Reset|` at session start.
+        Agent v10, decompiled packages: their line tables stay here;
+        `|DAPAgent:Known|([[path, [name, part]], ...])` (from the new
+        native `MappedFunctions(root)`) tells the agent which functions
+        have one; its Stack gives such a frame `known` and `at`, and the
+        desktop finds the line (LineOfPC).
+      - Install without blocking (`NTKInstallPackageAsync`,
+        `NTKPackageResult`, serving requests meanwhile): with "All
+        Exceptions", an exception in the InstallScript stops there. After
+        the install the Newton is idle: evaluate works, and an evaluate
+        that runs into a breakpoint stops (RemoteEvaluate serves requests
+        until its answer comes; the response waits until the user
+        continues). Remote calls run with breakOnThrows off
+        (`vars.breakOnThrows`: the global may not exist).
+      - `NTKLeaveBreakLoop(fn)` for continue and steps: calls sent after it
+        run one level up; before, a reply could go to the wrong call when
+        the Newton's `bext` was late (seen with an evaluate right after
+        continue).
+      - newtc's `-ntk-device`: `GetPkgRef`/`GetPkgRefInfo` for its
+        packages, keeping the installed package frame (`packageRef()`
+        makes new objects each time).
+      - Test: test_dap_remote.py (a -g package: breakpoint, evaluate that
+        stops there, variables, step, continue, a second evaluate
+        meanwhile; a decompiled package: breakpoint in the decompiled
+        source, the stack's line from the map; an InstallScript that
+        throws stops there; the hello package: evaluate works when idle).
+        Found B35 on the way.
+      - Matt's first try on Einstein (hello2, 2026-10-06), fixed: an old
+        hello2.nsdbg next to the package was loaded (a package's own line
+        tables now win over a map found by name) and registered the
+        functions a second time, so each breakpoint was set twice ("WARNING:
+        Breakpoint already exists!"; `RememberFunctionOnce`); the app
+        didn't open (the ROM's install doesn't: now opened like a program,
+        RunBlock, so its scripts stop at breakpoints); the breakpoints
+        stayed after the session and froze Einstein when the app ran
+        without newtc: the session end (`EndSession`) resets the agent's
+        breakpoints and lets a stopped program go on, agent v11 doesn't stop
+        at its breakpoints or steps while no desktop is connected (removes
+        them), and its RemoveScript resets them (an upgrade). newtc
+        `-ntk-device` no longer runs the event loop of an opened app after
+        the session.
+      Not yet: breakpoints in an InstallScript (it runs during the
+      install, before the breakpoints are set), and code the ROM copies
+      when installing (a form part's InstallScript).
 - [ ] 3.11 The real MP2x00 on the serial port (57600, timeouts,
       reconnects).
 - [ ] 3.12 Later: attach to a package that is already installed/running.
@@ -376,6 +495,23 @@ to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
   (Test/ntk/captures/capture3/obj006_code.nsof). Fixed 2026-10-05:
   handleArgNsof took a nil result for a failed read (the reader throws
   on a bad stream).
+- [x] B35 The compiler's walker for closed-over variables (`WalkNodes`,
+  TOKENassign) skipped array element assignments (`a[i] := value`):
+  a local used only there (in the array, the index, or the value) inside
+  a closure wasn't closed over and was "Undefined variable" when the
+  closure ran. Like the `:` receiver fixed before (`closure_send`).
+  Found 2026-10-05 in the agent (`cache[1] := call packageParts with
+  (...)`); fixed in Frames/Compiler/Compiler.cc. Test `closure_aset`.
+- [x] B34 newtc -dap crashed (SEGV in `UnsafeSymbolEqual`, from
+  `ICache::lookup`) on a DAP request after a garbage collection. The
+  lookup caches are weak: `ICache::update` set a dead slot symbol to
+  INVALIDPTRREF but kept the entry valid when its receiver lived on (the
+  request's command symbol, from `Intern`, dies after the request; the
+  handler frame lives), and the next lookup of a symbol with the same
+  hash read INVALIDPTRREF as a symbol. A dead implementor likewise turned
+  an entry into "doesn't exist". Fixed 2026-10-05 (Frames/Lookup.cc): an
+  entry whose receiver, slot, or implementor died is dropped. Found by
+  the stepping test (a GC at the right moment).
 - [ ] B33 Undefined global function: newtc's interpreter throws
   `{errorCode: -48808, value: 'Foo}`, the ROM `{errorCode: -48808, symbol:
   'Foo}` (Einstein, Toolkit Protocol.md 6.1). Check the other errors'

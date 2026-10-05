@@ -32,6 +32,9 @@
 //       comes to the handler
 //   NTKInstallPackage(binary) -> 0, or the Newton's error ('pkg ')
 //   NTKDeletePackage(name) -> 0, or the Newton's error ('pkgX')
+//   NTKInstallPackageAsync(binary) -> nil: send 'pkg ' without waiting (its
+//       install script may stop in a break loop); NTKPackageResult() ->
+//       the Newton's answer (0 or an error) once it came, else nil
 //   NTKPoll(seconds) -> true if anything happened (handled), within seconds
 //   NTKSetHandler(frame) -> nil
 //   NTKClose() -> nil; 'term', and the link ends
@@ -42,20 +45,29 @@ Ref FNTKCall(RefArg rcvr, RefArg inFunction);
 Ref FNTKEvaluate(RefArg rcvr, RefArg inFunction);
 Ref FNTKInstallPackage(RefArg rcvr, RefArg inPackage);
 Ref FNTKDeletePackage(RefArg rcvr, RefArg inName);
+Ref FNTKInstallPackageAsync(RefArg rcvr, RefArg inPackage);
+Ref FNTKPackageResult(RefArg rcvr);
 Ref FNTKPoll(RefArg rcvr, RefArg inSeconds);
 Ref FNTKSetHandler(RefArg rcvr, RefArg inHandler);
 Ref FNTKClose(RefArg rcvr);
 
 //   NTKCallAsync(fn) -> a number: 'code' sent, not waited for;
 //   NTKCallResult(number) -> {value: result} once answered (taken), else nil
+//   NTKLeaveBreakLoop(fn) -> number: NTKCallAsync for a call that ends the
+//       break loop (ExitBreakLoop, a step): calls after it run one level up
+//       (for matching their replies), even before the Newton's 'bext' is here
 //   NTKWaitAny(seconds) -> 'dap (a DAP request waits), 'ntk (the Newton's
 //       events handled), nil (nothing within seconds)
 //   NTKCompileFile(path) -> [codeBlock]: the whole file compiled here as
 //       one top-level block inside a try (an exception is returned as
 //       {|DAP error|: ex}), to run with 'code'; throws on errors (printed
-//       like -script)
+//       like -script). First (on line 0, the file's lines keep their
+//       numbers) it calls the agent's |DAPAgent:Begin|('|DAPAgent:program|,
+//       '|DAPAgent:breakpoints|): the desktop replaces these two literals
+//       with the block itself and its breakpoints (DAPRemote.ns)
 Ref FNTKCallAsync(RefArg rcvr, RefArg inFunction);
 Ref FNTKCallResult(RefArg rcvr, RefArg inNumber);
+Ref FNTKLeaveBreakLoop(RefArg rcvr, RefArg inFunction);
 Ref FNTKWaitAny(RefArg rcvr, RefArg inSeconds);
 Ref FNTKCompileFile(RefArg rcvr, RefArg inPath);
 

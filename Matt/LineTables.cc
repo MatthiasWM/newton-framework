@@ -27,6 +27,19 @@ Ref gRegistered = NILREF;  // [[instructions, table], ...] from debug maps (GC r
 Ref gCacheInstructions = NILREF;  // the last registry lookup (GC roots)
 Ref gCacheTable = NILREF;
 
+// A function of a package (its own line table, or a debug map's): once, or
+// every breakpoint would be set twice. (Freshly compiled functions are
+// new: RememberFunction.)
+void RememberFunction(RefArg inFunction);
+void RememberFunctionOnce(RefArg inFunction)
+{
+  RefVar functions(gFunctions);
+  for (ArrayIndex i = 0, n = Length(functions); i < n; ++i)
+    if (EQ(GetArraySlot(functions, i), inFunction))
+      return;
+  RememberFunction(inFunction);
+}
+
 void RememberFunction(RefArg inFunction)
 {
   RefVar functions(gFunctions);
@@ -382,7 +395,7 @@ void RegisterLineTable(RefArg fn, RefArg table)
   RefVar registered(gRegistered);
   AddArraySlot(registered, pair);
   gRegistered = registered;
-  RememberFunction(fn);   // for CodeForLine
+  RememberFunctionOnce(fn);   // for CodeForLine
 }
 
 
@@ -469,6 +482,63 @@ std::string PathToObject(RefArg root, RefArg target)
       json += "null";
   }
   return json + "]";
+}
+
+
+int RememberLineTables(RefArg root)
+{
+  std::set<Ref> visited;
+  std::vector<RefVar> functions;
+  CollectFunctions(root, visited, functions);
+  int count = 0;
+  for (RefVar &fn : functions) {
+    Ref table = GetFrameSlot(fn, MakeSymbol("lineTable"));
+    if (IsArray(table) && Length(table) >= 3) {
+      RememberFunctionOnce(fn);
+      count++;
+    }
+  }
+  return count;
+}
+
+
+Ref MappedFunctions(RefArg root)
+{
+  std::set<Ref> visited;
+  std::vector<RefVar> functions;
+  CollectFunctions(root, visited, functions);
+  RefVar result(MakeArray(0));
+  for (RefVar &fn : functions) {
+    Ref own = GetFrameSlot(fn, MakeSymbol("lineTable"));
+    if (!(IsArray(own) && Length(own) >= 3) && NOTNIL(TableOf(fn)))
+      AddArraySlot(result, fn);
+  }
+  return result;
+}
+
+
+Ref FMappedFunctions(RefArg rcvr, RefArg inRoot)
+{
+  return MappedFunctions(inRoot);
+}
+
+
+Ref PathTo(RefArg root, RefArg target)
+{
+  std::set<Ref> visited;
+  std::vector<Ref> path;
+  if (!FindPath(root, target, visited, path))
+    return NILREF;
+  RefVar result(MakeArray(path.size()));
+  for (size_t i = 0; i < path.size(); ++i)
+    SetArraySlot(result, i, path[i]);
+  return result;
+}
+
+
+Ref FPathTo(RefArg rcvr, RefArg inRoot, RefArg inTarget)
+{
+  return PathTo(inRoot, inTarget);
 }
 
 

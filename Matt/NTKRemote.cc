@@ -75,6 +75,7 @@ public:
   int callsSent = 0;                    // 'code' calls, numbered from 1
   std::map<int, int> open;              // calls not answered: number -> break loop depth when sent
   int depth = 0;                        // the Newton's break loop depth ('eext' / 'bext')
+  int leaving = 0;                      // calls sent that leave a break loop, 'bext' not here yet
   std::map<int, RefStruct> results;     // replies nobody took yet
   int resultsAwaited = 0;               // 'rslt' for 'pkg '/'pkgX' wanted ...
   std::deque<long> results2;            // ... and got
@@ -96,6 +97,7 @@ public:
     connectionLost = false;
     callsSent = 0;
     depth = 0;
+    leaving = 0;
     open.clear();
     results.clear();
     RefVar args(MakeArray(1));
@@ -111,6 +113,7 @@ public:
     connectionLost = true;
     open.clear();
     depth = 0;
+    leaving = 0;
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, MakeStringFromCString(inReason.c_str()));
     if (!notify("Disconnected", args)) {
@@ -179,10 +182,15 @@ public:
     results[number] = RefStruct(inResult);
   }
 
-  int send(RefArg inFunction)
+  // A call made after one that leaves the break loop (ExitBreakLoop, a
+  // step) runs when the loop has ended: one level up, even if its 'bext'
+  // isn't here yet.
+  int send(RefArg inFunction, bool inLeaves = false)
   {
     int number = ++callsSent;
-    open[number] = depth;
+    open[number] = depth - leaving > 0 ? depth - leaving : 0;
+    if (inLeaves && depth - leaving > 0)
+      leaving++;
     inspector.call(inFunction);
     return number;
   }
@@ -210,8 +218,11 @@ public:
   {
     if (inEntered)
       depth++;
-    else if (depth > 0)
+    else if (depth > 0) {
       depth--;
+      if (leaving > 0)
+        leaving--;
+    }
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, inEntered ? TRUEREF : NILREF);
     if (!notify("BreakLoop", args)) {
@@ -360,6 +371,30 @@ Ref FNTKInstallPackage(RefArg rcvr, RefArg inPackage)
   const uint8_t *p = (const uint8_t *)BinaryData(inPackage);
   r.inspector.loadPackage(std::vector<uint8_t>(p, p + Length(inPackage)));
   return WaitForResult(r);
+}
+
+
+Ref FNTKInstallPackageAsync(RefArg rcvr, RefArg inPackage)
+{
+  Remote &r = R();
+  r.requireConnection();
+  if (!IsBinary(inPackage))
+    Fail("NTKInstallPackageAsync: the package's bytes expected (a binary)");
+  const uint8_t *p = (const uint8_t *)BinaryData(inPackage);
+  r.resultsAwaited++;
+  r.inspector.loadPackage(std::vector<uint8_t>(p, p + Length(inPackage)));
+  return NILREF;
+}
+
+
+Ref FNTKPackageResult(RefArg rcvr)
+{
+  Remote &r = R();
+  if (r.results2.empty())
+    return NILREF;
+  long error = r.results2.front();
+  r.results2.pop_front();
+  return MAKEINT(error);
 }
 
 
@@ -533,6 +568,16 @@ Ref FNTKCallAsync(RefArg rcvr, RefArg inFunction)
 }
 
 
+Ref FNTKLeaveBreakLoop(RefArg rcvr, RefArg inFunction)
+{
+  Remote &r = R();
+  r.requireConnection();
+  if (!IsFunction(inFunction))
+    Fail("NTKLeaveBreakLoop: a function expected");
+  return MAKEINT(r.send(inFunction, true));
+}
+
+
 Ref FNTKCallResult(RefArg rcvr, RefArg inNumber)
 {
   Remote &r = R();
@@ -589,7 +634,13 @@ Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
   FILE *file = fopen(path.c_str(), "rb");
   if (!file)
     Fail("Can't open the program \"" + path + "\"");
-  std::string text = "begin local |dap result|; try |dap result| := begin ";
+  // line 0 (the file starts on line 1): the wrapper, and the agent's
+  // Begin (breakpoints; the desktop puts the block itself and the
+  // breakpoints into these two literals before it sends the block)
+  std::string text = "begin local |dap result|; "
+                     "if HasPath(functions, '|DAPAgent:Begin|) then call functions.|DAPAgent:Begin| with "
+                     "('|DAPAgent:program|, '|DAPAgent:breakpoints|); "
+                     "try |dap result| := begin\n";
   char chunk[8192];
   size_t n;
   while ((n = fread(chunk, 1, sizeof(chunk), file)) > 0)
@@ -603,6 +654,7 @@ Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
   RefVar blocks(MakeArray(0));
   CStdioInputStream stream(fd, path.c_str());
   CCompiler compiler(&stream, true);
+  compiler.setLineNo(0);
   bool failed = false;
   newton_try
   {

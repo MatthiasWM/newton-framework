@@ -1,0 +1,24 @@
+// A closure that uses a local of its function only in an array element
+// assignment (a[i] := value): in the array, the index, or the value. The
+// compiler's walker for closed-over variables skipped these assignments
+// (WalkNodes, TOKENassign with '['; B35), so the local stayed on the stack
+// and the closure threw "Undefined variable". Found in the remote
+// debugger's agent: cache[1] := call packageParts with (name).
+global F()
+begin
+  local parts := func(name) [name];
+  local g := func(c) begin c[1] := call parts with ("pkg"); c end;
+  call g with ([nil, nil]);
+end;
+Print(F());
+
+global G()
+begin
+  local a := [0, 0, 0];
+  local i := 2;
+  local v := 7;
+  local set := func() a[i] := v;
+  call set with ();
+  a;
+end;
+Print(G());

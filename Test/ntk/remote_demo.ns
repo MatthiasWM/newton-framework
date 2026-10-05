@@ -1,9 +1,13 @@
 // A small program to try remote debugging in VS Code (plan steps 3.6, 3.7):
 // launch it with "target": "tcp" and tap "Connect Inspector" in Einstein's
 // Toolkit app. It prints, stops in BreakLoop() inside Inner, called by
-// Outer (see the Call Stack; try the Debug Console: x, x * 2,
-// GetPackages()[0].title), and, with "All Exceptions" on, stops at the
-// exception.
+// Outer (see the Call Stack; Variables: Inner's a, b, and the frame f,
+// expand it; Outer's n; try the Debug Console: x, x * 2,
+// GetPackages()[0].title, and in Inner's frame a + b, f.list, b := 1000:
+// then Outer(x) is 1000), and, with "All Exceptions" on, stops at the
+// exception. Breakpoints: e.g. on "local b := a * 2;" or the Print lines,
+// set before launching or while stopped. Stepping: Step Over, Into, Out
+// from any stop (Into on the Print("Outer(x) ...") line: Outer, then Inner).
 
 Print("Hello from the Newton");
 x := 6 * 7;
@@ -12,6 +16,8 @@ Print("x is " & x);
 DefGlobalFn('Inner, func(a)
 begin
   local b := a * 2;
+  local f := {name: "Newton", list: [1, 2, {deep: true}], when: Time(),
+              root: GetRoot(), fn: func(y) y * b};
   BreakLoop();
   b;
 end);

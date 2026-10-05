@@ -103,6 +103,7 @@ static std::string ExceptionText(Exception * inException)
 
 
 int numGlobalRefs = 0;
+static bool gNoEventLoop = false;   // -ntk-device: no event loop after the session
 std::string currentFileName = "<undefined>";
 
 static bool forceNOS_ { false };
@@ -213,6 +214,13 @@ bool init()
   defGlobalCFunction("DAPLoadPackage", (void*)FDAPLoadPackage, 2);
 
   // A remote Newton (NTK's Toolkit protocol, see Matt/NTKRemote.h)
+  defGlobalCFunction("NTKAlive", (void*)FNTKDeviceAlive, 0);   // -ntk-device (else stubs)
+  defGlobalCFunction("NTKSend", (void*)FNTKDeviceSend, 1);
+  defGlobalCFunction("GetPkgRef", (void*)FNTKDeviceGetPkgRef, 2);
+  defGlobalCFunction("GetPkgRefInfo", (void*)FNTKDeviceGetPkgRefInfo, 1);
+  defGlobalCFunction("NTKInstallPackageAsync", (void*)FNTKInstallPackageAsync, 1);
+  defGlobalCFunction("NTKPackageResult", (void*)FNTKPackageResult, 0);
+  defGlobalCFunction("NTKLeaveBreakLoop", (void*)FNTKLeaveBreakLoop, 1);
   defGlobalCFunction("NTKOpen", (void*)FNTKOpen, 1);
   defGlobalCFunction("NTKWaitConnected", (void*)FNTKWaitConnected, 1);
   defGlobalCFunction("NTKIsConnected", (void*)FNTKIsConnected, 0);
@@ -236,6 +244,8 @@ bool init()
   InstallLineTables();
   defGlobalCFunction("LineOfPC", (void*)FLineOfPC, 2);
   defGlobalCFunction("CodeForLine", (void*)FCodeForLine, 2);
+  defGlobalCFunction("PathTo", (void*)FPathTo, 2);
+  defGlobalCFunction("MappedFunctions", (void*)FMappedFunctions, 1);
   defGlobalCFunction("StartLineStep", (void*)FStartLineStep, 4);
 
 #if NEWTC_USES_FLTK
@@ -919,8 +929,14 @@ static Ref FDAPLoadPackage(RefArg rcvr, RefArg inPath, RefArg inMap)
   }
   RefVar package(getGlobalRef(0));
   int total = 0, found = 0;
+  int ownTables = RememberLineTables(package);   // compiled with -g
+  if (ownTables > 0 && !mapGiven)
+    mapPath.clear();     // its own line tables win over a map found by name (likely an older build's)
   if (!mapPath.empty())
     found = LoadDebugMap(package, json, &total);
+  if (mapPath.empty() && ownTables > 0) {
+    found = total = ownTables;
+  }
   RefVar result(AllocateFrame());
   SetFrameSlot(result, MakeSymbol("package"), package);
   SetFrameSlot(result, MakeSymbol("map"), mapPath.empty() ? NILREF : (Ref)MakeStringFromCString(mapPath.c_str()));
@@ -1210,6 +1226,7 @@ int handleArgs(int argc, char **argv)
       } else if (cmd == "-ntk-device") {
         if (argi>=argc)
           throw(std::runtime_error("-ntk-device: target expected (tcp-client:<port>)."));
+        gNoEventLoop = true;   // the session is over when the desktop ends it, apps open or not
         return NTKDeviceRun(argv[argi++]);
       } else if (cmd == "-ntk-mnp") {
         if (argi>=argc)
@@ -1410,7 +1427,8 @@ int main(int argc, char **argv) {
   newtplay::CheckStarted(gAppOpenError);   // the package's app is up, or say why not
 #endif
   // a program opened a window: it runs on in its events (see Matt/EventLoop.h)
-  RunEventLoop();
+  if (!gNoEventLoop)
+    RunEventLoop();
   return ret;
 }
 

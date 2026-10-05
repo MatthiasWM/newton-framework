@@ -11,7 +11,7 @@ DefGlobalVar('NTKRemote, {
   debugToolsPackage: nil,
 
   // The agent version this newtc brings (Agent.ns).
-  agentVersion: 4,
+  agentVersion: 11,
 
   // Install a package, replacing one with the same name (a rebuild): 'pkgX'
   // first (no error if it isn't there), then 'pkg '. Returns the Newton's

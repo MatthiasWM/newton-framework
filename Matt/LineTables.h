@@ -66,6 +66,21 @@ std::string InstructionsHash(RefArg fn);
     indexes ("null" if target isn't reachable, not counting magic pointers). */
 std::string PathToObject(RefArg root, RefArg target);
 
+/** Functions in root (e.g. a package read from a file) that carry their own
+    line table (compiled with -g): CodeForLine finds them from now on.
+    Returns how many. */
+int RememberLineTables(RefArg root);
+
+/** The functions in root whose line table comes from a debug map (none of
+    their own): a debugger tells the Newton about them, which only has the
+    functions (DAPRemote.ns, |DAPAgent:Known|). */
+Ref MappedFunctions(RefArg root);
+
+/** The same path as an array (slot symbols, array indexes), nil if target
+    isn't reachable: where to find the same object in a copy of root (e.g.
+    a function of a program sent to a Newton). */
+Ref PathTo(RefArg root, RefArg target);
+
 /** Use table as the line table of fn (and every function with the same
     instructions) without changing fn (package objects may be read-only). */
 void RegisterLineTable(RefArg fn, RefArg table);
@@ -86,10 +101,14 @@ int LoadDebugMap(RefArg root, const std::string &json, int *outTotal);
 // NewtonScript functions, registered in newtc.cc:
 //   LineOfPC(fn, pc) -> [file, line] or nil
 //   CodeForLine(file, line) -> {line:, code: [[fn, pc], ...]} or nil
+//   PathTo(root, target) -> [slot or index, ...] or nil
+//   MappedFunctions(root) -> [fn, ...] (line tables from a debug map)
 //   StartLineStep(kind, fn, pc, depth) -> true; kind 'over, 'in, 'out;
 //     resume the program (ExitBreakLoop) to run the step
 extern "C" Ref FLineOfPC(RefArg rcvr, RefArg inFn, RefArg inPC);
 extern "C" Ref FCodeForLine(RefArg rcvr, RefArg inFile, RefArg inLine);
+extern "C" Ref FPathTo(RefArg rcvr, RefArg inRoot, RefArg inTarget);
+extern "C" Ref FMappedFunctions(RefArg rcvr, RefArg inRoot);
 extern "C" Ref FStartLineStep(RefArg rcvr, RefArg inKind, RefArg inFn, RefArg inPC, RefArg inDepth);
 
 #endif // MATT_LINETABLES_H

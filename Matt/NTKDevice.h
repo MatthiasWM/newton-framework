@@ -21,4 +21,19 @@
     or the link ends. 0 then, 1 if no connection could be made. */
 int NTKDeviceRun(const std::string &inTarget);
 
+#include "Frames/Objects.h"
+
+/** The ROM's NTKAlive() and NTKSend(obj) (newtc has only stubs for them):
+    true while -ntk-device is connected; send obj to the desktop as 'fobj'
+    (nothing without a connection). */
+extern "C" Ref FNTKDeviceAlive(RefArg rcvr);
+extern "C" Ref FNTKDeviceSend(RefArg rcvr, RefArg inObject);
+
+/** The ROM's GetPkgRef(name, store) and GetPkgRefInfo(pkgRef) for the
+    packages -ntk-device installed (stubs in newtc otherwise): the ref is
+    the package's name here; the info frame has title, numParts, and parts
+    (each part's data, as the ROM gives for frame parts). nil for others. */
+extern "C" Ref FNTKDeviceGetPkgRef(RefArg rcvr, RefArg inName, RefArg inStore);
+extern "C" Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef);
+
 #endif // MATT_NTKDEVICE_H

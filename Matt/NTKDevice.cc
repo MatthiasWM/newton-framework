@@ -58,6 +58,7 @@ struct InstalledPackage {
   std::string name;
   NewtonPackage *package;
   RefStruct parts;              // [[installInfo, removeFrame], ...]
+  RefStruct frame;              // the package as installed (packageRef() makes a new one each time)
 };
 
 struct Nub {
@@ -276,7 +277,7 @@ long Nub::loadPackage(const std::vector<uint8_t> &inData)
   if (!ok)
     return kBadPackage;
   fprintf(stderr, "ntk-device: installed \"%s\"\n", name.c_str());
-  installed.push_back(InstalledPackage{ name, package, RefStruct(parts) });
+  installed.push_back(InstalledPackage{ name, package, RefStruct(parts), RefStruct(packageRef) });
   return 0;
 }
 
@@ -563,6 +564,56 @@ PNTKDeviceOutTranslator::exceptionNotify(Exception * inException)
 }
 
 } // namespace
+
+
+Ref FNTKDeviceAlive(RefArg rcvr)
+{
+  return MAKEBOOLEAN(gNub != nullptr && !gNub->ended);
+}
+
+
+Ref FNTKDeviceSend(RefArg rcvr, RefArg inObject)
+{
+  if (gNub != nullptr && !gNub->ended)
+    gNub->send(NTKCommand("fobj"), NTKFlatten(inObject));
+  return NILREF;
+}
+
+
+Ref FNTKDeviceGetPkgRef(RefArg rcvr, RefArg inName, RefArg inStore)
+{
+  if (gNub == nullptr || !IsString(inName))
+    return NILREF;
+  std::string name = UTF8FromString(inName);
+  for (const InstalledPackage &p : gNub->installed)
+    if (p.name == name)
+      return MakeStringFromCString(name.c_str());
+  return NILREF;
+}
+
+
+Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef)
+{
+  if (gNub == nullptr || !IsString(inRef))
+    return NILREF;
+  std::string name = UTF8FromString(inRef);
+  for (const InstalledPackage &p : gNub->installed) {
+    if (p.name != name)
+      continue;
+    RefVar package(p.frame);
+    RefVar partFrames(GetFrameSlot(package, MakeSymbol("part")));
+    ArrayIndex count = IsArray(partFrames) ? Length(partFrames) : 0;
+    RefVar parts(MakeArray(count));
+    for (ArrayIndex i = 0; i < count; i++)
+      SetArraySlot(parts, i, GetFrameSlot(GetArraySlot(partFrames, i), MakeSymbol("data")));
+    RefVar info(AllocateFrame());
+    SetFrameSlot(info, MakeSymbol("title"), MakeStringFromCString(name.c_str()));
+    SetFrameSlot(info, MakeSymbol("numParts"), MAKEINT(count));
+    SetFrameSlot(info, MakeSymbol("parts"), parts);
+    return info;
+  }
+  return NILREF;
+}
 
 
 int NTKDeviceRun(const std::string &inTarget)

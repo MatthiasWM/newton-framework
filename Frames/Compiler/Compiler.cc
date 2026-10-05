@@ -1637,8 +1637,12 @@ void	WalkNodes(RefArg inGraph, CCompiler * inContext, Trampoline inWalker, bool 
 				if (subType == TOKENsymbol)
 					WalkNodes(p2, inContext, inWalker, inPostProcessing);
 				else if (subType == '.'
-						|| subType == ':')
+						|| subType == ':'
+						|| subType == '[')
 				{
+					// newtc: '[' (array[index] := value) was missing, so a
+					// local used only there in a closure was not noted as
+					// closed over and was "undefined" in the closure (B35)
 					WalkNodes(GetArraySlot(p1, 1), inContext, inWalker, inPostProcessing);
 					WalkNodes(GetArraySlot(p1, 2), inContext, inWalker, inPostProcessing);
 					WalkNodes(p2, inContext, inWalker, inPostProcessing);

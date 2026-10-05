@@ -49,6 +49,7 @@ public:
 	ExprAST *	parse(void);	// FOR DEBUG
 
 	ArrayIndex	lineNo(void) const;
+	void			setLineNo(ArrayIndex inLine) { lineNumber = inLine; }	// newtc: code put before a file
 	void			error(NewtonErr inErr);
 	void			errorWithValue(NewtonErr inErr, RefArg inValue);
 

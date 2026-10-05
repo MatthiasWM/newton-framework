@@ -18,8 +18,8 @@
 //   4. what the Newton sends goes to the client: text as output, exceptions
 //      as stderr output, a break loop as "stopped"; "continue" sends
 //      ExitBreakLoop().
-// Stack traces, variables, breakpoints and stepping on the Newton come in
-// plan steps 3.7 to 3.9.
+// The stack, variables, breakpoints, and stepping go through newtc's agent
+// on the Newton (Agent.ns).
 
 DefGlobalVar('DAPRemote, {
   _parent: DAP,
@@ -29,6 +29,14 @@ DefGlobalVar('DAPRemote, {
   newtonGone: nil,      // the Newton disconnected (not "disconnected": symbols ignore case, and that is a method)
   exceptions: 0,        // exceptions that didn't stop (for the exit code)
   frames: nil,          // the stopped program's stack (agent), until it resumes
+  wrapped: nil,         // the program is a .ns file, run in NTKCompileFile's wrapper
+  frameNames: nil,      // per stack level: the frame's variable names (for evaluate), this stop
+  program: nil,         // the program's code block as compiled here (NTKCompileFile)
+  remotePackage: nil,   // or the package: {name, frame (as read here, DAP.package)}
+  knownFunctions: [],   // its functions with lines from a debug map (|DAPAgent:Known| order)
+  remoteBreakpoints: [],  // {id, path, line, verified, actualLine, places: [[path in program, pc], ...]}
+  unsentFiles: [],      // files whose breakpoints changed while the Newton was busy
+  stopKind: nil,        // what the agent said about the coming stop ('breakpoint)
 
   Console: func(text)
     :SendEvent("output", {category: "console", output: text & kLF}),
@@ -63,22 +71,31 @@ DefGlobalVar('DAPRemote, {
     begin
       depth := depth + 1;
       frames := nil;
-      :Stopped(if lastException then "exception" else "breakloop", lastException);
+      frameNames := nil;
+      :Stopped(if lastException then "exception"
+               else if stopKind = 'breakpoint then "breakpoint"
+               else if stopKind = 'step then "step"
+               else "breakloop", lastException);
       lastException := nil;
+      stopKind := nil;
     end
     else if depth > 0 then
       depth := depth - 1;
   end,
 
-  // Text from the agent's Write on Einstein; else e.g. Toolkit's 'dante
-  // hello (ignored)
+  // Text from the agent's Write on Einstein; why the agent stops (before
+  // the break loop starts); else e.g. Toolkit's 'dante hello (ignored)
   Object: func(command, object)
     if IsFrame(object) and HasSlot(object, '|DAPAgent:Write|) then
     begin
       local text := Clone(object.|DAPAgent:Write|);
       StrReplace(text, "\n", "" & kLF, nil);     // the Newton's CR ("\n") -> LF
       :SendEvent("output", {category: "stdout", output: text});
-    end,
+    end
+    else if IsFrame(object) and HasSlot(object, '|DAPAgent:Stop|) then
+      stopKind := object.|DAPAgent:Stop|
+    else if IsFrame(object) and HasSlot(object, '|DAPAgent:Step|) then
+      :Console(object.|DAPAgent:Step| & "; continuing."),
 
   Result: func(error, command)
     :Console("The Newton answered '" & command & "' with error " & error & "."),
@@ -106,10 +123,19 @@ DefGlobalVar('DAPRemote, {
   // there: an exception in a 'code' block would end the connection (as the
   // ROM does); here it throws evt.ex.msg with its text.
   RemoteCall: func(source)
+    :RemoteCallWith(source, nil),
+
+  // RemoteCall with data: the quoted symbol '|dap data| in source stands
+  // for it (compiled here: the literal is replaced).
+  RemoteCallWith: func(source, data)
   begin
-    local value := NTKCall(Compile("begin local |dap result|; try |dap result| := begin "
+    // breakOnThrows off meanwhile (when the Newton isn't stopped, it is on)
+    local block := Compile("begin local |dap result|; local |dap bot| := vars.breakOnThrows; "
+      & "breakOnThrows := nil; try |dap result| := begin "
       & source & kLF & " end onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
-      & "|dap result| end"));
+      & "vars.breakOnThrows := |dap bot|; |dap result| end");
+    :ReplaceLiteral(block, '|dap data|, data);
+    local value := NTKCall(block);
     if IsFrame(value) and HasSlot(value, '|DAP error|) then
       Throw('|evt.ex.msg|, :RemoteExceptionText(value.|DAP error|.name, value.|DAP error|.data));
     value;
@@ -126,7 +152,7 @@ DefGlobalVar('DAPRemote, {
       local msg := DAPReceive();
       if not msg then
       begin
-        NTKClose();
+        :EndSession();
         DAPExit(0);
       end;
       :Dispatch(msg);
@@ -155,7 +181,9 @@ DefGlobalVar('DAPRemote, {
     :RemoteCall("breakOnThrows := nil");
     local result := library:EnsureAgent();
     if result <> 0 then
-      :Console("Warning: newtc's agent package didn't install (" & result & ").");
+      :Console("Warning: newtc's agent package didn't install (" & result & ").")
+    else
+      :RemoteCall("if HasPath(functions, '|DAPAgent:Reset|) then call functions.|DAPAgent:Reset| with ()");
     result := library:EnsureDebugTools();
     if result <> 0 then
       :Console("Warning: NS Debug Tools: " & result)
@@ -170,24 +198,7 @@ DefGlobalVar('DAPRemote, {
     local program := args.program;
     local length := StrLen(program);
     if length > 4 and StrEqual(SubStr(program, length - 4, 4), ".pkg") then
-    begin
-      local package := LoadDataFile(program, 'package);
-      local name := NTKPackageName(package);
-      // (still without breakOnThrows: stopping in its InstallScript would
-      // need the install to run without waiting here, plan step 3.10)
-      result := library:InstallPackage(package);
-      if result <> 0 then
-      begin
-        :Console("The Newton couldn't install " & name & " (error " & result & ").");
-        return :Close(1);
-      end;
-      :Console("Installed " & name & " on the Newton.");
-      :ApplyExceptionFilter();
-      busy := true;
-      while not newtonGone do
-        :Serve(1);
-      return :Finish(0);
-    end;
+      return :RunPackage(program);
     local blocks;
     try
       blocks := NTKCompileFile(program);
@@ -197,10 +208,78 @@ DefGlobalVar('DAPRemote, {
       return :Close(1);
     end;
     :ApplyExceptionFilter();
+    wrapped := true;
+    :PrepareProgram(blocks[0]);
     foreach block in blocks do
       if newtonGone or not :RunBlock(block) then
         break;
     :Close(if exceptions > 0 then 1 else 0);
+  end,
+
+  // A package: install it there (replacing an older one) without waiting
+  // (an exception in its install script stops there with "All
+  // Exceptions"), set its breakpoints (in the functions of its parts,
+  // which -g gave line tables, or a debug map), then serve until the
+  // Newton or the client ends the session. The Newton answers requests
+  // when idle: evaluate can call the package's functions (and stop in them).
+  RunPackage: func(path)
+  begin
+    local binary := LoadDataFile(path, 'package);
+    local name := NTKPackageName(binary);
+    remotePackage := {name: name, frame: if IsFrame(package) then package else {}};
+    :ResolveBreakpoints();
+    NTKDeletePackage(name);         // a rebuild replaces it (no error if it isn't there)
+    :ApplyExceptionFilter();
+    busy := true;
+    NTKInstallPackageAsync(binary);
+    local result;
+    while not newtonGone and not (result := NTKPackageResult()) do
+      :Serve(1);
+    busy := nil;
+    if newtonGone then
+      return :Finish(0);
+    if result <> 0 then
+    begin
+      :Console("The Newton couldn't install " & name & " (error " & result & ").");
+      return :Close(1);
+    end;
+    :Console("Installed " & name & " on the Newton.");
+    // functions with lines from a debug map: the agent reports them in stacks
+    local entries := [];
+    knownFunctions := [];
+    if IsArray(remotePackage.frame.part) then
+      foreach i, part in remotePackage.frame.part do
+        foreach fn in MappedFunctions(part.data) do
+        begin
+          AddArraySlot(entries, [PathTo(part.data, fn), [name, i]]);
+          AddArraySlot(knownFunctions, fn);
+        end;
+    if Length(entries) > 0 then
+      try
+        :RemoteCallWith("if HasPath(functions, '|DAPAgent:Known|) then call functions.|DAPAgent:Known| with ('|dap data|)", entries);
+      onexception |evt.ex| do
+        :Console("Warning: " & :ExceptionText(CurrentException()));
+    foreach bp in remoteBreakpoints do
+      if not LSearch(unsentFiles, bp.path, 0, '|str=|, nil) then
+        AddArraySlot(unsentFiles, bp.path);
+    :SendBreakpoints();
+    // open its app, as the local debugger does (the ROM's install doesn't):
+    // like a program, so its scripts stop at breakpoints and exceptions
+    if IsArray(remotePackage.frame.part) then
+      foreach part in remotePackage.frame.part do
+        if IsString(part.type) and StrEqual(part.type, "form") and IsFrame(part.data)
+           and IsSymbol(part.data.app) and not newtonGone then
+        begin
+          local app := "|" & SymbolName(part.data.app) & "|";
+          if :RunBlock(Compile("begin local |dap result|; try |dap result| := begin "
+               & "if GetRoot().(EnsureInternal('" & app & ")) then GetRoot().(EnsureInternal('" & app & ")):Open() "
+               & "end onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
+               & "|dap result| end")) then
+            :Console("Opened " & SymbolName(part.data.app) & ".");
+        end;
+    while not newtonGone do
+      :Serve(1);
+    :Finish(0);
   end,
 
   // Run the program on the Newton ('code': the whole file in a try, see
@@ -256,6 +335,7 @@ DefGlobalVar('DAPRemote, {
       if IsArray(remote) then
         foreach level, info in remote do
         begin
+          local where;
           local name := info.name;
           if not name then
             name := if level = Length(remote) - 1 then "<program>" else "<function>";
@@ -268,6 +348,15 @@ DefGlobalVar('DAPRemote, {
             frame.line := info.line;
             frame.column := 1;
           end
+          else if IsInteger(info.known) and info.known < Length(knownFunctions)
+                  and (where := LineOfPC(knownFunctions[info.known], info.at))
+                  and :IsAbsolutePath(where[0]) then
+          begin
+            // a decompiled package: the line table is here (debug map)
+            frame.source := {name: :FileName(where[0]), path: where[0]};
+            frame.line := where[1];
+            frame.column := 1;
+          end
           else
             frame.name := name & ", pc " & info.pc;
           AddArraySlot(frames, frame);
@@ -276,11 +365,329 @@ DefGlobalVar('DAPRemote, {
     frames;
   end,
 
+  // Replace the literal `symbol` (a quoted symbol in the source) of a code
+  // block compiled here with `value`.
+  ReplaceLiteral: func(block, symbol, value)
+  begin
+    local literals := block.literals;
+    if IsArray(literals) then
+      for i := 0 to Length(literals) - 1 do
+        if IsSymbol(literals[i]) and literals[i] = symbol then
+          literals[i] := value;
+  end,
+
+  // -- Breakpoints (agent v7): set in the program's functions on the Newton
+
+  // Where bp's line is in the program: [path to the function in the
+  // program block, pc] for each function with code there (CodeForLine; a
+  // line without code moves to the next statement).
+  ResolveRemoteBreakpoint: func(bp)
+  begin
+    bp.verified := nil;
+    bp.places := [];
+    local found := if (program or remotePackage) and IsInteger(bp.line) then CodeForLine(bp.path, bp.line);
+    if found then
+      foreach place in found.code do
+      begin
+        local where := if program then PathTo(program, place[0]);
+        if where then
+          AddArraySlot(bp.places, [where, place[1]])
+        else if remotePackage and IsArray(remotePackage.frame.part) then
+          foreach i, part in remotePackage.frame.part do
+            if not where and (where := PathTo(part.data, place[0])) then
+              AddArraySlot(bp.places, [where, place[1], [remotePackage.name, i]]);
+      end;
+    if Length(bp.places) > 0 then
+    begin
+      bp.verified := true;
+      bp.actualLine := found.line;
+    end;
+  end,
+
+  RemoteBreakpointBody: func(bp)
+  begin
+    local body := {id: bp.id, verified: bp.verified,
+                   line: if bp.verified then bp.actualLine else bp.line};
+    if not bp.verified then
+      body.message := if program then "No code for this line in the program"
+                      else if remotePackage then "No code for this line in the package"
+                      else "Set when the program is compiled";
+    body;
+  end,
+
+  // [file, places] for the agent: all breakpoints of the file
+  BreakpointEntry: func(path)
+  begin
+    local places := [];
+    foreach bp in remoteBreakpoints do
+      if StrEqual(bp.path, path) then
+        foreach place in bp.places do
+          AddArraySlot(places, place);
+    [path, places];
+  end,
+
+  // The client set the breakpoints of a file: resolve them, tell the
+  // agent (if the Newton listens now: stopped or idle; else before it
+  // continues). Returns their DAP Breakpoints.
+  SetRemoteBreakpoints: func(path, requested)
+  begin
+    local all := [];
+    foreach bp in remoteBreakpoints do
+      if not StrEqual(bp.path, path) then
+        AddArraySlot(all, bp);
+    local bodies := [];
+    foreach wanted in requested do
+    begin
+      local bp := {id: nextBreakpointId, path: path, line: wanted.line,
+                   verified: nil, actualLine: nil, places: []};
+      nextBreakpointId := nextBreakpointId + 1;
+      :ResolveRemoteBreakpoint(bp);
+      AddArraySlot(all, bp);
+      AddArraySlot(bodies, :RemoteBreakpointBody(bp));
+    end;
+    remoteBreakpoints := all;
+    if program or remotePackage then
+    begin
+      if not LSearch(unsentFiles, path, 0, '|str=|, nil) then
+        AddArraySlot(unsentFiles, path);
+      :SendBreakpoints();
+    end;
+    bodies;
+  end,
+
+  // Tell the agent about the files whose breakpoints changed, if the
+  // Newton listens (stopped, or idle).
+  SendBreakpoints: func()
+  begin
+    if not (NTKIsConnected() and (depth > 0 or not busy)) then
+      return;
+    foreach path in unsentFiles do
+      try
+        :RemoteCallWith("call functions.|DAPAgent:SetBreakpoints| with ('|dap data|)",
+                        :BreakpointEntry(path));
+      onexception |evt.ex| do
+        :Console("Warning: breakpoints in " & path & ": " & :ExceptionText(CurrentException()));
+    unsentFiles := [];
+  end,
+
+  // The program is compiled: resolve the breakpoints (the client hears of
+  // the ones that change) and give the block its two literals for the
+  // agent's Begin: itself and the breakpoints.
+  PrepareProgram: func(block)
+  begin
+    program := block;
+    local entries := :ResolveBreakpoints();
+    :ReplaceLiteral(block, '|DAPAgent:program|, block);
+    :ReplaceLiteral(block, '|DAPAgent:breakpoints|, entries);
+  end,
+
+  // Resolve the breakpoints (now that the program or package is here); the
+  // client hears of the ones that change. Returns [[file, places], ...].
+  ResolveBreakpoints: func()
+  begin
+    local files := [];
+    foreach bp in remoteBreakpoints do
+    begin
+      local was := bp.verified;
+      :ResolveRemoteBreakpoint(bp);
+      if bp.verified or was then
+        :SendEvent("breakpoint", {reason: "changed", breakpoint: :RemoteBreakpointBody(bp)});
+      if not LSearch(files, bp.path, 0, '|str=|, nil) then
+        AddArraySlot(files, bp.path);
+    end;
+    local entries := [];
+    foreach path in files do
+      AddArraySlot(entries, :BreakpointEntry(path));
+    unsentFiles := [];
+    entries;
+  end,
+
+  // The scopes of the frame at level from the agent ({args, locals,
+  // receiver, temps}), nil without it. The program's frame without
+  // NTKCompileFile's wrapper (its local and its try's two stack values,
+  // the oldest). Notes the frame's variable names for evaluate.
+  RemoteScopes: func(level)
+  begin
+    if not (IsInteger(level) and level >= 0 and level < Length(:RemoteStackFrames())) then
+      return nil;
+    local remote;
+    try
+      remote := :RemoteCall("if HasPath(functions, '|DAPAgent:Scopes|) then "
+        & "call functions.|DAPAgent:Scopes| with (" & level & ")");
+    onexception |evt.ex| do
+      remote := nil;
+    if not IsFrame(remote) then
+      return nil;
+    if wrapped and level = Length(frames) - 1 then
+    begin
+      local mine := [];
+      foreach pair in remote.locals do
+        if pair[0] <> '|dap result| then
+          AddArraySlot(mine, pair);
+      remote.locals := mine;
+      remote.temps := if Length(remote.temps) > 2 then ArrayMunger(remote.temps, Length(remote.temps) - 2, 2, nil, 0, 0) else [];
+    end;
+    local names := [];
+    foreach group in [remote.args, remote.locals] do
+      foreach pair in group do
+        if IsSymbol(pair[0]) and :IsIdentifier(SymbolName(pair[0])) then
+          AddArraySlot(names, pair[0]);
+    if not frameNames then
+      frameNames := Array(Length(frames), nil);
+    frameNames[level] := names;
+    remote;
+  end,
+
+  // Evaluate an expression on the Newton (agent v6, |DAPAgent:Evaluate|):
+  // in the frame at level (its arguments and locals by name, self's slots;
+  // assignments to its variables stay), or globally (level nil). With
+  // breakOnThrows off meanwhile: an error throws evt.ex.msg here, it
+  // doesn't stop. Returns the described result.
+  RemoteEvaluate: func(expression, level)
+  begin
+    local names := [];
+    if level then
+    begin
+      if not (frameNames and frameNames[level]) then
+        :RemoteScopes(level);
+      if frameNames and frameNames[level] then
+        names := frameNames[level];
+    end;
+    local params := "";
+    local returned := "";
+    local symbols := "";
+    foreach name in names do
+    begin
+      params := params & (if StrLen(params) > 0 then ", " else "") & name;
+      returned := returned & ", " & name;
+      symbols := symbols & (if StrLen(symbols) > 0 then ", " else "") & name;
+    end;
+    // compiled here: a syntax error throws before anything is sent
+    local source := "func(" & params & ") begin local |dap result| := begin "
+                    & expression & kLF & " end; [|dap result|" & returned & "] end";
+    Compile(source);
+    local block := Compile("begin local |dap result|; local |dap bot| := vars.breakOnThrows; "
+      & "breakOnThrows := nil; try |dap result| := if HasPath(functions, '|DAPAgent:Evaluate|) then "
+      & "call functions.|DAPAgent:Evaluate| with (" & (if level then level else "nil") & ", "
+      & source & ", '[" & symbols & "], " & (if depth = 0 then "true" else "nil") & ") "
+      & "else {|DAP error|: {name: '|evt.ex.msg|, data: \"newtc's agent isn't on the Newton\"}}"
+      & " onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
+      & "vars.breakOnThrows := |dap bot|; |dap result| end");
+    // what it calls may stop at a breakpoint: serve requests until the
+    // answer comes (the response then waits until the user continues)
+    local pending := NTKCallAsync(block);
+    local wasBusy := busy;
+    busy := true;
+    local answer;
+    while not (answer := NTKCallResult(pending)) and not newtonGone do
+      :Serve(1);
+    busy := wasBusy;
+    if not answer then
+      Throw('|evt.ex.msg|, "The Newton disconnected");
+    local value := answer.value;
+    if IsFrame(value) and HasSlot(value, '|DAP error|) then
+      Throw('|evt.ex.msg|, :RemoteExceptionText(value.|DAP error|.name, value.|DAP error|.data));
+    value;
+  end,
+
+  // A DAP Variable for a value the agent described (Agent.ns, version 5):
+  // {value: v} is the value itself, else {kind, cls, count, preview,
+  // handle} stands for a frame, array, binary, or function on the Newton;
+  // frames and arrays expand with |DAPAgent:Expand|.
+  MakeRemoteVariable: func(name, described, path)
+  begin
+    if not HasSlot(described, 'kind) then
+    begin
+      local variable := :MakeVariable(name, described.value, path);
+      if described.length then        // a long string, cut
+        variable.value := variable.value & "... (length " & described.length & ")";
+      return variable;
+    end;
+    local variable := {name: if IsSymbol(name) then SymbolName(name) else name,
+                       value: :RemotePreview(described),
+                       type: if described.cls then SymbolName(described.cls) else SymbolName(described.kind),
+                       variablesReference: 0};
+    if path then
+      variable.evaluateName := path;
+    if described.kind = 'frame or described.kind = 'array then
+    begin
+      variable.variablesReference := :NewHandle({remote: described.handle, kind: described.kind,
+                                                 count: described.count, path: path});
+      if described.kind = 'array then
+        variable.indexedVariables := described.count;
+    end;
+    variable;
+  end,
+
+  // The one-line text for a described value: {a: 1, list: [...], ...},
+  // [1, 2, {...}], <function, 2 args>, <bits, length 12>.
+  RemotePreview: func(described)
+  begin
+    local kind := described.kind;
+    if kind = 'function then
+      return "<function, " & described.count & (if described.count = 1 then " arg>" else " args>");
+    if kind = 'binary then
+      return "<" & described.cls & ", length " & described.count & ">";
+    local text := "";
+    foreach item in described.preview do
+    begin
+      if StrLen(text) > 0 then
+        text := text & ", ";
+      if kind = 'frame then
+        text := text & SymbolName(item.name) & ": ";
+      text := text & (if HasSlot(item, 'value) then :ValueText(item.value)
+                      else if item.kind = 'frame then "{...}"
+                      else if item.kind = 'array then "[...]"
+                      else if item.kind = 'function then "<function>"
+                      else "<binary>");
+    end;
+    if described.count > Length(described.preview) then
+      text := text & (if StrLen(text) > 0 then ", ..." else "...");
+    if kind = 'frame then "{" & text & "}" else "[" & text & "]";
+  end,
+
+  // Step on the Newton (agent v8, |DAPAgent:Step|): kind 'over, 'into,
+  // 'out; by source line, or one instruction (granularity "instruction").
+  // Like continue: the stop comes as a break loop ("step").
+  RemoteStep: func(request, kind)
+  begin
+    if depth = 0 then
+      Throw('|evt.ex.msg|, "The program on the Newton isn't stopped");
+    if Length(:RemoteStackFrames()) = 0 then
+      Throw('|evt.ex.msg|, "Stepping needs NS Debug Tools and newtc's agent on the Newton");
+    local args := request.arguments;
+    local instruction := IsFrame(args) and IsString(args.granularity)
+                         and StrEqual(args.granularity, "instruction");
+    :SendBreakpoints();
+    NTKLeaveBreakLoop(Compile("begin try call functions.|DAPAgent:Step| with ('" & kind & ", "
+      & (if instruction then "true" else "nil") & ") onexception |evt.ex| do nil; nil end"));
+    frames := nil;
+    frameNames := nil;
+    :SendResponse(request, nil);
+  end,
+
   // The program has ended: end the connection, then the session.
   Close: func(exitCode)
   begin
-    NTKClose();
+    :EndSession();
     :Finish(exitCode);
+  end,
+
+  // The session ends: the agent's breakpoints go and a stopped program
+  // goes on (a stop nobody sees would hang the Newton), then the
+  // connection. Nothing waits for answers: the Newton handles these calls
+  // in order, before the connection's end.
+  EndSession: func()
+  begin
+    if NTKIsConnected() then
+    begin
+      NTKCallAsync(Compile("begin local |dap bot| := vars.breakOnThrows; breakOnThrows := nil; "
+        & "try if HasPath(functions, '|DAPAgent:Reset|) then call functions.|DAPAgent:Reset| with () "
+        & "onexception |evt.ex| do nil; vars.breakOnThrows := |dap bot|; nil end"));
+      for i := 1 to depth do
+        NTKLeaveBreakLoop(Compile("ExitBreakLoop()"));
+    end;
+    NTKClose();
   end,
 });
 
@@ -296,8 +703,10 @@ DefGlobalVar('DAPRemoteRequests, {
       Throw('|evt.ex.msg|, "The program on the Newton isn't stopped");
     // with 'code' (with 'lscb' the REP would echo "#2 NIL"); its answer
     // comes when the break loop ends, nobody waits for it
-    NTKCallAsync(Compile("ExitBreakLoop()"));
+    DAPRemote:SendBreakpoints();       // changed while it ran
+    NTKLeaveBreakLoop(Compile("ExitBreakLoop()"));
     DAPRemote.frames := nil;
+    DAPRemote.frameNames := nil;
     :SendResponse(request, {allThreadsContinued: true});
   end,
 
@@ -305,13 +714,13 @@ DefGlobalVar('DAPRemoteRequests, {
     Throw('|evt.ex.msg|, "Pause doesn't work on a remote Newton yet"),
 
   next: func(request)
-    Throw('|evt.ex.msg|, "Stepping doesn't work on a remote Newton yet (plan step 3.9)"),
+    DAPRemote:RemoteStep(request, 'over),
 
   stepIn: func(request)
-    Throw('|evt.ex.msg|, "Stepping doesn't work on a remote Newton yet (plan step 3.9)"),
+    DAPRemote:RemoteStep(request, 'into),
 
   stepOut: func(request)
-    Throw('|evt.ex.msg|, "Stepping doesn't work on a remote Newton yet (plan step 3.9)"),
+    DAPRemote:RemoteStep(request, 'out),
 
   // The Newton's stack (from the agent; without NS Debug Tools one frame
   // that says where the program is), with startFrame/levels paging.
@@ -330,18 +739,85 @@ DefGlobalVar('DAPRemoteRequests, {
     :SendResponse(request, {stackFrames: result, totalFrames: total});
   end,
 
+  // Arguments, Locals (with self), and Stack of a frame on the Newton, from
+  // the agent (|DAPAgent:Scopes|, one round trip; frames and arrays in them
+  // are expanded when the client asks).
   scopes: func(request)
-    :SendResponse(request, {scopes: []}),
+  begin
+    local level := if IsInteger(request.arguments.frameId) then request.arguments.frameId - 1;
+    local remote := DAPRemote:RemoteScopes(level);
+    local scopes := [];
+    if IsFrame(remote) then
+    begin
+      local locals := [];
+      if remote.receiver then
+        AddArraySlot(locals, ['|self|, remote.receiver]);     // 'self is reserved
+      foreach pair in remote.locals do
+        AddArraySlot(locals, pair);
+      if Length(remote.args) > 0 then
+        AddArraySlot(scopes, {name: "Arguments", presentationHint: "arguments",
+                              variablesReference: :NewHandle({remoteItems: remote.args}),
+                              expensive: nil});
+      if Length(locals) > 0 then
+        AddArraySlot(scopes, {name: "Locals", presentationHint: "locals",
+                              variablesReference: :NewHandle({remoteItems: locals}),
+                              expensive: nil});
+      if Length(remote.temps) > 0 then
+        AddArraySlot(scopes, {name: "Stack", variablesReference: :NewHandle({remoteItems: remote.temps}),
+                              expensive: nil});
+    end;
+    :SendResponse(request, {scopes: scopes});
+  end,
 
-  // Until plan step 3.8: breakpoints are not set on the Newton.
+  // A scope's variables, or a remote frame's slots or array's elements
+  // (|DAPAgent:Expand|, start/count for paging); values evaluated here
+  // (a local copy) as in DAP.ns.
+  variables: func(request)
+  begin
+    local args := request.arguments;
+    local ref := args.variablesReference;
+    local what := if IsInteger(ref) and ref >= 1 and ref <= Length(handles) then handles[ref - 1];
+    if not (IsFrame(what) and (HasSlot(what, 'remoteItems) or HasSlot(what, 'remote))) then
+      return DAPRequests:variables(request);
+    local result := [];
+    if HasSlot(what, 'remoteItems) then
+      foreach pair in what.remoteItems do
+        AddArraySlot(result, DAPRemote:MakeRemoteVariable(pair[0], pair[1],
+          if IsSymbol(pair[0]) and :IsIdentifier(SymbolName(pair[0])) then SymbolName(pair[0])
+          else if pair[0] = '|self| then "self"))
+    else
+    begin
+      local first := if IsInteger(args.start) then Min(args.start, what.count) else 0;
+      local count := if IsInteger(args.count) and args.count > 0 then Min(args.count, what.count - first)
+                     else what.count - first;
+      local items := DAPRemote:RemoteCall("if HasPath(functions, '|DAPAgent:Expand|) then "
+        & "call functions.|DAPAgent:Expand| with (" & what.remote & ", " & first & ", " & count & ")");
+      if IsArray(items) then
+        foreach pair in items do
+          AddArraySlot(result, DAPRemote:MakeRemoteVariable(
+            if what.kind = 'array then "[" & pair[0] & "]" else pair[0], pair[1],
+            :SubPath(what.path, pair[0])));
+    end;
+    :SendResponse(request, {variables: result});
+  end,
+
+  // Breakpoints in source files (the program's, or the package's), on the
+  // Newton through the agent.
   setBreakpoints: func(request)
   begin
     local args := request.arguments;
     local requested := if IsFrame(args) and IsArray(args.breakpoints) then args.breakpoints else [];
-    local result := [];
-    foreach bp in requested do
-      AddArraySlot(result, {verified: nil, line: bp.line,
-                            message: "Breakpoints on a remote Newton come in plan step 3.8"});
+    local path := if IsFrame(args) and IsFrame(args.source) then args.source.path;
+    local result;
+    if IsString(path) then
+      result := DAPRemote:SetRemoteBreakpoints(path, requested)
+    else
+    begin
+      result := [];
+      foreach bp in requested do
+        AddArraySlot(result, {verified: nil, line: bp.line,
+                              message: "Only breakpoints in source files work on a remote Newton"});
+    end;
     :SendResponse(request, {breakpoints: result});
   end,
 
@@ -354,8 +830,10 @@ DefGlobalVar('DAPRemoteRequests, {
       DAPRemote:ApplyExceptionFilter();
   end,
 
-  // A global expression, compiled here and run on the Newton: when it is
-  // stopped or idle. The result is a copy here (variables can expand it).
+  // An expression, compiled here and run on the Newton (when it is stopped
+  // or idle): in the stopped frame frameId (its variables, self), else
+  // globally. The result as the agent describes it (frames and arrays
+  // expand like variables).
   evaluate: func(request)
   begin
     local args := request.arguments;
@@ -365,22 +843,17 @@ DefGlobalVar('DAPRemoteRequests, {
       Throw('|evt.ex.msg|, "The Newton isn't connected");
     if DAPRemote.busy and DAPRemote.depth = 0 then
       Throw('|evt.ex.msg|, "The Newton is running the program; evaluate when it is stopped");
-    // breakOnThrows off meanwhile: an error is an error response, not a stop
-    local value := NTKCall(Compile("begin local |dap result|; local |dap bot| := breakOnThrows; "
-      & "breakOnThrows := nil; try |dap result| := begin " & args.expression & kLF
-      & " end onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
-      & "breakOnThrows := |dap bot|; |dap result| end"));
-    if IsFrame(value) and HasSlot(value, '|DAP error|) then
-      Throw('|evt.ex.msg|, DAPRemote:RemoteExceptionText(value.|DAP error|.name,
-                                                         value.|DAP error|.data));
-    local variable := :MakeVariable("", value, nil);
+    local level := if DAPRemote.depth > 0 and IsInteger(args.frameId) and args.frameId >= 1
+                      and args.frameId <= Length(DAPRemote:RemoteStackFrames())
+                   then args.frameId - 1;
+    local variable := DAPRemote:MakeRemoteVariable("", DAPRemote:RemoteEvaluate(args.expression, level), nil);
     :SendResponse(request, {result: variable.value, type: variable.type,
                             variablesReference: variable.variablesReference});
   end,
 
   disconnect: func(request)
   begin
-    NTKClose();
+    DAPRemote:EndSession();
     :SendResponse(request, nil);
     DAPExit(0);
   end,
