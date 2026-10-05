@@ -11,7 +11,7 @@ DefGlobalVar('NTKRemote, {
   debugToolsPackage: nil,
 
   // The agent version this newtc brings (Agent.ns).
-  agentVersion: 1,
+  agentVersion: 4,
 
   // Install a package, replacing one with the same name (a rebuild): 'pkgX'
   // first (no error if it isn't there), then 'pkg '. Returns the Newton's
@@ -22,9 +22,12 @@ DefGlobalVar('NTKRemote, {
     return NTKInstallPackage(package);
   end,
 
+  // Code for the Newton is compiled from strings (Compile): a func() written
+  // in a method would be a closure that takes this frame along (NSOF).
+
   // NS Debug Tools are installed when its BreakLoop replacement is.
   HasDebugTools: func()
-    NTKCall(func() HasPath(functions, 'NSDOriginalBreakLoop)),
+    NTKCall(Compile("HasPath(functions, 'NSDOriginalBreakLoop)")),
 
   // Install NS Debug Tools if they are missing. Returns 0, or an error code,
   // or a message if the package can't be read.
@@ -47,8 +50,8 @@ DefGlobalVar('NTKRemote, {
 
   // The agent's version on the Newton, nil if it isn't there.
   InstalledAgentVersion: func()
-    NTKCall(func() if HasPath(functions, '|DAPAgent:Version|) then
-                     call functions.|DAPAgent:Version| with ()),
+    NTKCall(Compile("if HasPath(functions, '|DAPAgent:Version|) then "
+                    & "call functions.|DAPAgent:Version| with ()")),
 
   // Install (or replace) the agent unless this version is there. Returns 0,
   // or an error code.

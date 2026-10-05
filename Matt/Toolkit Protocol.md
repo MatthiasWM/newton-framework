@@ -432,7 +432,13 @@ Leaving out `09`, `0E`, `C5` declines compression and the speed change.
   order or a CRC error: answer an LA with the last good number, and the
   Newton resends.
 - **Credit**: the LA's last byte; unixnpi/NTX/NewtonInspector send 1,
-  DyneTK 8.
+  DyneTK 8. **Send 8.** With credit 1, Einstein's MNP ended the link about
+  30 s after the program stopped in a break loop inside a `code` command
+  (LD with reason 5, "inactivity timer expired", from
+  `TMNP::InactiveTimeOut`), although our LAs came every 3 s and `stou`
+  pings were answered; with credit 8 the link stayed up through a minute
+  at the stop (2026-10-05, Matt's hint from DyneTK). Idle at the top level,
+  credit 1 had been fine for minutes (the probe sessions).
 
 ### 5.4 Keeping the link alive
 
@@ -441,7 +447,13 @@ The Newton aborts an MNP link that is quiet for too long
 shows as "The connection was closed"). All four desktops therefore
 **resend the last LA every 3 s** while nothing else is sent (NTX's T403,
 NewtonInspector's "keep-alive ping", DyneTK's keep_alive_). The NTK
-endpoint also gets an idle timer option of 30 s (`EzMNPConnectOptions`).
+endpoint also gets an idle timer option of 30 s (`EzMNPConnectOptions`):
+`TCMOIdleTimer`, "if a connection is idle for that long, tear it down".
+Einstein ended a connection that sat stopped in a break loop for more
+than 30 s (2026-10-05): that was the LA credit (see 5.3), not this timer.
+newtc also sends a Toolkit packet after 15 s without one, to be safe:
+`stou` with 30 (the ROM's default), which the Newton answers with `rslt`
+(`NTKInspector::tick()`).
 
 ### 5.5 Disconnecting
 

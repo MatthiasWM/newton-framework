@@ -237,6 +237,12 @@ void DAPSetPolling(bool inPolling)
 }
 
 
+bool DAPInputWaiting(void)
+{
+  return gDAPActive && InputWaiting();
+}
+
+
 int DAPInputFd(void)
 {
   return gDAPActive ? gDAPInFd : -1;

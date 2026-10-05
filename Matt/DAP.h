@@ -57,6 +57,9 @@ void DAPSetPolling(bool inPolling);
     connection); -1 without -dap. */
 int DAPInputFd(void);
 
+/** A request (or the end of input) is waiting, without blocking: in the
+    buffer or on DAPInputFd(). False without -dap. */
+bool DAPInputWaiting(void);
 /** The client has closed the connection (end of input). */
 bool DAPClientGone(void);
 

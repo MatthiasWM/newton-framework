@@ -14,6 +14,7 @@ captured from Einstein (Matt/Toolkit Protocol.md, section 6):
   - 'eref', 'eerr', 'estr' are printed like newtc's REPL prints exceptions
   - 'eext', 'bext', 'fstk'
   - a compile error stays on the desktop
+  - quiet: the idle ping 'stou' (the ROM's 30 s idle timer)
   - the end of stdin: a last 'code' (the sync), then 'term'
 
 Usage: Test/ntk/test_inspector.py [--newtc path]
@@ -108,8 +109,9 @@ def main():
     dante = nsof(args.newtc, "{interpretation: 'dante, data: {}}", tmp)
 
     port = free_port()
+    env = dict(os.environ, NEWTC_NTK_PING="2")    # the idle ping after 2 s (else 15)
     proc = subprocess.Popen([args.newtc, "-ntk", "tcp:%d" % port], stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     out = Lines(proc.stdout)
     errs = Lines(proc.stderr)
     check("says where it waits", out.wait_for("ntk: waiting for a Newton on") ==
@@ -178,6 +180,13 @@ def main():
     proc.stdin.flush()
     check("a compile error is shown", out.wait_containing("syntax error", 3.0) is not None)
     check("... and nothing is sent", newton.next_packet(1.0) is None)
+
+    # quiet: the idle ping ('stou', 30 s): the ROM drops an NTK connection
+    # after 30 s without data (TCMOIdleTimer), MNP keep-alives don't count
+    p = newton.next_packet(5.0)
+    check("quiet: the idle ping, 'stou' 30", p == (b"stou", 4, struct.pack(">I", 30)))
+    newton.packet(b"rslt", struct.pack(">i", 0))
+    check("... its rslt 0 isn't shown", out.none_of("ntk: error", 0.5))
 
     # the end of stdin while a code call is still unanswered: its result is
     # printed, the sync's isn't (Einstein, 2026-10-05: the sync hid "42")

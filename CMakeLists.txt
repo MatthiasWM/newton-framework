@@ -580,6 +580,7 @@ target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAPRemote.ns gDAPRemoteScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Agent.ns gAgentScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Remote.ns gRemoteScript)
 

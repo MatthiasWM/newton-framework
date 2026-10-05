@@ -115,6 +115,14 @@ public:
   /** 'term', then the MNP link ends. */
   void terminate();
 
+  /** Call every second or so while waiting: after 15 s without a Toolkit
+      packet either way, send 'stou' (30 s, the ROM's default), which the
+      Newton answers. The ROM sets a 30 s idle timer on the NTK connection
+      (TCMOIdleTimer: "if a connection is idle for that long, tear it
+      down"), and MNP acknowledgements don't count. NEWTC_NTK_PING=<s>
+      changes the 15 s (for tests). */
+  void tick();
+
   /** Bytes not yet acknowledged by the Newton. */
   size_t pending() { return mLink.pending(); }
 
@@ -131,6 +139,7 @@ private:
   std::deque<uint32_t> mAwaitingResult;   // commands sent that the Newton answers with 'rslt'
   bool mConnected = false;
   int mCallsPending = 0;
+  double mLastTraffic = 0;              // a Toolkit packet sent or data received
 };
 
 /** newtc -ntk <target>: a terminal Inspector. Waits for a Newton; each line

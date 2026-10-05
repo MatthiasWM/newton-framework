@@ -221,6 +221,21 @@ void NTKInspector::sendPacket(uint32_t inCommand, const std::vector<uint8_t> &in
       || inCommand == NTKCommand("stou"))
     mAwaitingResult.push_back(inCommand);
   mLink.send(NTKMakePacket(inCommand, inData.data(), inData.size(), inLength));
+  mLastTraffic = Seconds();
+}
+
+
+void NTKInspector::tick()
+{
+  static double interval = -1;
+  if (interval < 0) {
+    const char *env = getenv("NEWTC_NTK_PING");
+    interval = (env && atof(env) > 0) ? atof(env) : 15.0;
+  }
+  if (mConnected && Seconds() - mLastTraffic > interval) {
+    std::vector<uint8_t> seconds = { 0, 0, 0, 30 };
+    sendPacket(NTKCommand("stou"), seconds);
+  }
 }
 
 
@@ -284,6 +299,7 @@ void NTKInspector::handleEvents(Listener &inListener)
         mReader.reset();
         break;
       case MNPLink::Event::kData: {
+        mLastTraffic = Seconds();
         mReader.feed(event.data.data(), event.data.size());
         NTKPacket packet;
         while (mReader.next(packet))
@@ -316,7 +332,7 @@ void NTKInspector::handlePacket(const NTKPacket &inPacket, Listener &inListener)
 
   if (command == NTKCommand("cnnt")) {
     mAwaitingResult.clear();
-    sendPacket(NTKCommand("okln"), {});
+    sendPacket(NTKCommand("okln"), {});       // (also starts the idle clock)
     mConnected = true;
     mCallsPending = 0;
     inListener.ntkConnected(mLink.describe());
@@ -532,6 +548,7 @@ int NTKInspectorREPL(const std::string &inTarget)
       break;
     if (ready[0])
       inspector.handleEvents(terminal);
+    inspector.tick();
     if (ready[1]) {
       char buffer[4096];
       ssize_t n = read(0, buffer, sizeof(buffer));

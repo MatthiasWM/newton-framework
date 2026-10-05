@@ -46,6 +46,7 @@ DefGlobalVar('DAP, {
   instructionBreakpoints: [], // installed from the Disassembly view
   nextBreakpointId: 1,
   breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
+  requestHandlers: nil,     // DAPRemoteRequests for a remote target (DAPRemote.ns), else DAPRequests
 
   // -- Sending
 
@@ -97,12 +98,13 @@ DefGlobalVar('DAP, {
   begin
     if not (IsFrame(msg) and IsString(msg.type) and StrEqual(msg.type, "request")) then
       return nil;
-    local handler := if IsString(msg.command) then GetSlot(DAPRequests, Intern(msg.command));
+    local handlers := if requestHandlers then requestHandlers else DAPRequests;
+    local handler := if IsString(msg.command) then GetVariable(handlers, Intern(msg.command));
     if not IsFunction(handler) then
       return :SendErrorResponse(msg, "Unsupported request \"" & msg.command & "\"");
     breakOnThrows := nil;
     try
-      Perform(DAPRequests, Intern(msg.command), [msg])
+      Perform(handlers, Intern(msg.command), [msg])
     onexception |evt.ex| do
       :SendErrorResponse(msg, :ExceptionText(CurrentException()));
     breakOnThrows := running and breakOnExceptions;
@@ -693,7 +695,8 @@ DefGlobalVar('DAPRequests, {
   end,
 
   // "program": a NewtonScript file (.ns) is compiled and run when
-  // configurationDone arrives. A package (.pkg) is loaded now, with its
+  // configurationDone arrives. With "target", on a remote Newton
+  // (DAPRemote.ns). A package (.pkg) is loaded now, with its
   // debug map ("debugMap", else <program without .pkg>.nsdbg if there is
   // one), so breakpoints in its decompiled source can be set at once; it is
   // installed (its InstallScript runs) when configurationDone arrives.
@@ -704,6 +707,9 @@ DefGlobalVar('DAPRequests, {
       Throw('|evt.ex.msg|, "launch: \"program\" is missing (the NewtonScript file or package to run)");
     local program := args.program;
     local length := StrLen(program);
+    // "target": the program runs on a remote Newton (DAPRemote.ns)
+    if IsString(args.target) then
+      requestHandlers := DAPRemoteRequests;
     if length > 4 and StrEqual(SubStr(program, length - 4, 4), ".pkg") then
     begin
       local loaded := DAPLoadPackage(program, if IsString(args.debugMap) then args.debugMap);

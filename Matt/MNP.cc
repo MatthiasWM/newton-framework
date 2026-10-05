@@ -9,6 +9,7 @@
 
 #include <cerrno>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 
 #if !defined(_WIN32)
@@ -305,7 +306,8 @@ void MNPLink::trace(const char *inDirection, const std::vector<uint8_t> &inFrame
   if (!mTrace)
     return;
   uint8_t type = inFrame.size() > 1 ? inFrame[1] : 0;
-  fprintf(mTrace, "mnp: %s %s", inDirection, FrameName(type));
+  static double start = now();
+  fprintf(mTrace, "mnp: %8.3f %s %s", now() - start, inDirection, FrameName(type));
   if (type == kMNPLinkTransfer && inFrame.size() >= 3)
     fprintf(mTrace, " seq %d, %zu bytes", inFrame[2], inFrame.size() - (size_t)inFrame[0] - 1);
   else if (type == kMNPLinkAcknowledge && inFrame.size() >= 4)
@@ -332,9 +334,35 @@ void MNPLink::sendFrame(const std::vector<uint8_t> &inHeader, const uint8_t *inD
 }
 
 
+// The receive credit in our LAs: 8, the Newton's window, as DyneTK sends.
+// With credit 1 (unixnpi, NTX), Einstein's MNP ended a link after about 30 s
+// while the program was stopped inside a 'code' command (LD reason 5,
+// inactivity), although LAs and pings kept coming (2026-10-05; Toolkit
+// Protocol.md 5.4). Settable for experiments: NEWTC_MNP_CREDIT, and the
+// keep-alive interval NEWTC_MNP_KEEPALIVE (seconds).
+static uint8_t LACredit()
+{
+  static int credit = -1;
+  if (credit < 0) {
+    const char *env = getenv("NEWTC_MNP_CREDIT");
+    credit = (env && atoi(env) > 0) ? atoi(env) : 8;
+  }
+  return (uint8_t)credit;
+}
+
+static double KeepAliveInterval()
+{
+  static double interval = -1;
+  if (interval < 0) {
+    const char *env = getenv("NEWTC_MNP_KEEPALIVE");
+    interval = (env && atof(env) > 0) ? atof(env) : kKeepAlive;
+  }
+  return interval;
+}
+
 void MNPLink::sendLA()
 {
-  sendFrame({ 0x03, kMNPLinkAcknowledge, mReceiveSeq, 1 });
+  sendFrame({ 0x03, kMNPLinkAcknowledge, mReceiveSeq, LACredit() });
 }
 
 
@@ -503,8 +531,8 @@ void MNPLink::run()
     bool up = isUp();
     if (up && !mInFlight.empty() && mRetransmitAt < deadline)
       deadline = mRetransmitAt;
-    if (up && mLastSent + kKeepAlive < deadline)
-      deadline = mLastSent + kKeepAlive;
+    if (up && mLastSent + KeepAliveInterval() < deadline)
+      deadline = mLastSent + KeepAliveInterval();
     if (mRole == kNewton && !up && mLRRetryAt > t && mLRRetryAt < deadline)
       deadline = mLRRetryAt;
     int timeout = deadline > t ? (int)((deadline - t) * 1000) + 1 : 0;
@@ -564,7 +592,7 @@ void MNPLink::run()
         mRetransmitAt = t + kAckTimeout;
       }
     }
-    if (isUp() && t >= mLastSent + kKeepAlive)
+    if (isUp() && t >= mLastSent + KeepAliveInterval())
       sendLA();
   }
   if (isUp())

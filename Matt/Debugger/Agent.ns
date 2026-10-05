@@ -9,16 +9,30 @@
 // RAM go through EnsureInternal: the package's own objects are read-only and
 // gone once it is removed.
 //
-// Version 1: the version, and on Einstein a Write that takes any object
+// Version 2: the version, and on Einstein a Write that takes any object
 // (Einstein's NS Runtime replaces Write with |Einstein:Log|, which only takes
 // strings, and NS Debug Tools write characters, numbers, functions; Toolkit
-// Protocol.md 7.1). Stack, variables, and stepping come in plan step 3.7.
+// Protocol.md 7.1) and, while NTK is connected, also sends the text to the
+// desktop: NTKSend({|DAPAgent:Write|: text}) (else Print and Write would only
+// reach Einstein's log).
+// Version 3: only on an Einstein whose NS Runtime doesn't keep the original
+// Write (|Einstein:OrigWrite|, fixed by Matt 2026-10-05: its Write then
+// forwards to the original, which reaches the desktop by itself).
+// Version 4 (plan step 3.7a), needs NS Debug Tools: an NSDBreakLoopEntry
+// hook that enters the break loop itself (NSDOriginalBreakLoop) and returns
+// nil, so NSDT doesn't print where it stopped (the desktop asks); and
+// |DAPAgent:Stack|(exceptionStop): the stopped program's frames, newest
+// first, [{name, pc, file, line}, ...] (pc nil for a native function; file
+// and line from the function's line table, which newtc's -g puts in it).
+// The PC that counts: the stopped frame's (after an exception, the one
+// before it, the instruction that threw), the callers' one before theirs
+// (their PC is after the call), as DAP.ns does.
 
 DefGlobalVar('DAPAgentPackage, {
   signature: 'package0,
   id: "xxxx",
   flags: { noCompression: true },
-  version: 1,
+  version: 4,
   copyright: "newtc",
   name: "DAPAgent:newtc",
   modifyDate: 0,
@@ -31,17 +45,90 @@ DefGlobalVar('DAPAgentPackage, {
       flags: { type: 'nos, Notify: true },
       info: "newtc",
       data: {
-        agentVersion: 1,
+        agentVersion: 4,
 
         InstallScript: func(partFrame)
         begin
           local removeFrame := EnsureInternal({ removeScript: partFrame.RemoveScript });
-          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 1);
-          if HasPath(functions, '|Einstein:Log|) then
+          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 4);
+
+          // the stop: enter the break loop here, so NSDT prints nothing
+          if HasPath(functions, 'NSDBreakLoopEntry) then
+            removeFrame.(EnsureInternal('originalHook)) := GetGlobalFn('NSDBreakLoopEntry);
+          DefGlobalFn('NSDBreakLoopEntry, func(fn, pc, params)
+          begin
+            NSDOriginalBreakLoop();
+            nil;
+          end);
+
+          // one frame of the stopped program, nil past the oldest
+          local frameInfo := func(level, exceptionStop)
+          begin
+            local fn := GetCurrentFunction(level);      // throws past the oldest
+            local pc := GetCurrentPC(level);
+            local isNative := not IsInteger(pc) or pc < 0;
+            local info := {name: nil, pc: if isNative then nil else pc};
+            foreach symbol, fnValue in functions do
+              if fnValue = fn then
+                info.name := SymbolName(symbol);
+            if not info.name then
+            begin
+              local implementor;
+              try
+                implementor := GetCurrentImplementor(level);
+              onexception |evt.ex| do
+                implementor := nil;
+              if IsFrame(implementor) then
+                foreach slot, value in implementor do
+                  if value = fn then
+                    info.name := (if IsString(implementor.debug) then implementor.debug
+                                  else if IsSymbol(implementor.appSymbol) then SymbolName(implementor.appSymbol)
+                                  else "self") & "." & SymbolName(slot);
+            end;
+            local table := if not isNative then fn.lineTable;
+            if IsArray(table) and Length(table) >= 3 then
+            begin
+              local at := if level = 0 and not exceptionStop then pc else pc - 1;
+              local line := table[2];
+              for i := 1 to Length(table) - 2 by 2 do
+                if table[i] <= at then
+                  line := table[i + 1];
+              info.file := table[0];
+              info.line := line;
+            end;
+            info;
+          end;
+
+          DefGlobalFn(EnsureInternal('|DAPAgent:Stack|), func(exceptionStop)
+          begin
+            local frames := [];
+            local level := 0;
+            local more := true;
+            while more and level < 200 do
+            begin
+              local info;
+              try
+                info := call frameInfo with (level, exceptionStop);
+              onexception |evt.ex| do
+                info := nil;
+              if info then
+                AddArraySlot(frames, info)
+              else
+                more := nil;
+              level := level + 1;
+            end;
+            frames;
+          end);
+          if HasPath(functions, '|Einstein:Log|) and not GlobalVarExists('|Einstein:OrigWrite|) then
           begin
             removeFrame.(EnsureInternal('originalWrite)) := functions.Write;
             DefGlobalFn('Write, func(what)
-              |Einstein:Log|(if IsString(what) then what else SPrintObject(what)));
+            begin
+              local text := if IsString(what) then what else SPrintObject(what);
+              |Einstein:Log|(text);
+              if NTKAlive() then
+                NTKSend({|DAPAgent:Write|: text});
+            end);
           end;
           return removeFrame;
         end,
@@ -50,6 +137,11 @@ DefGlobalVar('DAPAgentPackage, {
         begin
           if HasSlot(removeFrame, 'originalWrite) then
             DefGlobalFn('Write, removeFrame.originalWrite);
+          if HasSlot(removeFrame, 'originalHook) then
+            DefGlobalFn('NSDBreakLoopEntry, removeFrame.originalHook)
+          else
+            RemoveSlot(functions, 'NSDBreakLoopEntry);
+          RemoveSlot(functions, '|DAPAgent:Stack|);
           RemoveSlot(functions, '|DAPAgent:Version|);
         end
       }

@@ -216,19 +216,19 @@ def main():
     # LTs from the Newton
     cnnt = b"newtntp cnnt\x00\x00\x00\x00"
     newton.lt(1, cnnt)
-    check("acknowledges LT 1", newton.next_frame() == bytes([3, LA, 1, 1]))
+    check("acknowledges LT 1", newton.next_frame() == bytes([3, LA, 1, 8]))
     check("delivers LT 1", out.wait_for("mnp: <- ") == "mnp: <- 16 bytes: " + cnnt.hex(" "))
     newton.lt(1, cnnt)
-    check("acknowledges a resent LT again", newton.next_frame() == bytes([3, LA, 1, 1]))
+    check("acknowledges a resent LT again", newton.next_frame() == bytes([3, LA, 1, 8]))
     check("... but doesn't deliver it twice", out.none_of("mnp: <- ", 0.5))
     dle = bytes([0x10, 0x10, 0x16, 0x10, 0x02, 0x10, 0x03, 0x33])
     newton.lt(2, dle)
-    check("acknowledges LT 2", newton.next_frame() == bytes([3, LA, 2, 1]))
+    check("acknowledges LT 2", newton.next_frame() == bytes([3, LA, 2, 8]))
     check("DLE bytes arrive as they are", out.wait_for("mnp: <- ") == "mnp: <- 8 bytes: " + dle.hex(" "))
     bad = bytearray(encode(bytes([2, LT, 3]) + b"broken"))
     bad[-1] ^= 0xFF
     newton.send_raw(bytes(bad))
-    check("a bad CRC: acknowledges what it has (LT 2)", newton.next_frame() == bytes([3, LA, 2, 1]))
+    check("a bad CRC: acknowledges what it has (LT 2)", newton.next_frame() == bytes([3, LA, 2, 8]))
     check("... and delivers nothing", out.none_of("mnp: <- ", 0.5))
 
     # data from newtc: 300 bytes = LT of 256 + LT of 44
@@ -259,7 +259,7 @@ def main():
         pass
     t0 = time.time()
     ka = newton.next_frame(5.0)
-    check("keep-alive LA after about 3 s", ka == bytes([3, LA, 2, 1]) and 2.5 < time.time() - t0 < 4.0)
+    check("keep-alive LA after about 3 s", ka == bytes([3, LA, 2, 8]) and 2.5 < time.time() - t0 < 4.0)
 
     # the Newton's LD, then a new link on the same connection
     newton.send(bytes([7, LD, 1, 1, 0, 2, 1, 0]))     # as Einstein sends it on 'term'
@@ -270,7 +270,7 @@ def main():
     newton.send(bytes([3, LA, 0, 8]))
     check("... link up again", out.wait_for("mnp: link up") == "mnp: link up")
     newton.lt(1, b"seq starts at 1 again")
-    check("... numbering starts again", newton.next_frame() == bytes([3, LA, 1, 1]))
+    check("... numbering starts again", newton.next_frame() == bytes([3, LA, 1, 8]))
 
     # the connection closed, a new one
     newton.close()
@@ -293,7 +293,7 @@ def main():
     except subprocess.TimeoutExpired:
         proc.kill()
     check("exit code 0", proc.returncode == 0)
-    check("traces frames on stderr", err.wait_for("mnp: <- LR", 1.0) is not None)
+    check("traces frames on stderr (with times)", err.wait_containing("<- LR", 1.0) is not None)
     time.sleep(0.2)
     check("no sanitizer reports", not any("Sanitizer" in l or "runtime error" in l for l in err.raw))
     newton.close()

@@ -2947,6 +2947,10 @@ CInterpreter::callCFunction(RefArg func, ArrayIndex numArgs, bool isUnordered)
 	ArrayIndex	numArgsExpected, offset;
 	Ref			closure;
 
+	// not in ROM: a BinCFunction is ARM code from a package (e.g. NS Debug
+	// Tools' natives); newtc runs on the host and would jump into the bytes.
+	ThrowMsg("A BinCFunction (native ARM code from a package) can't run in newtc");
+
 	// set up VM
 	vm->func = func;
 	instructionOffset = -1;

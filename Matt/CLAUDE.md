@@ -284,16 +284,63 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
         is there. Natives `NTKMakePackage(frame)`, `NTKPackageName(binary)`;
         `writePackageToMemory()` in PackageWriter. Test
         `Test/ntk/test_deploy.py`.
-- [ ] 3.6 DAP launch on a target (VSNewt attributes `target`,
+- [x] 3.6 DAP launch on a target (VSNewt attributes `target`,
       `port`, `baud`; no logic in TS): output events, `eext` -> `stopped`,
       continue, exceptions.
+      Done so far (`Matt/Debugger/DAPRemote.ns`, launch attribute
+      `"target"`): wait for the Newton (requests still served), deploy
+      with breakOnThrows off (agent, NS Debug Tools), then the exception
+      filter; a `.ns` program is compiled here as one top-level block in a
+      try and run with `code` (NTKCompileFile: top-level semantics,
+      exceptions as data, no REP echo); a `.pkg` is installed. Output,
+      exceptions, `stopped` (BreakLoop, exceptions), `continue`,
+      `evaluate` while stopped (breakOnThrows off meanwhile), a placeholder
+      stack frame; breakpoints/stepping answered as later steps.
+      `code` replies are matched by break loop depth (a call sent while
+      stopped is answered before the call that stopped). Agent v2 sends
+      Einstein's Write output to the desktop. newtc no longer runs a
+      BinCFunction (ARM code): it throws. Test
+      `Test/ntk/test_dap_remote.py`. Works on Einstein (dap_client:
+      connect, agent v2, output, BreakLoop stop, evaluate, continue,
+      exception stop, end). `continue` sends ExitBreakLoop() with `code`
+      (no REP echo). VSNewt: `"target"` in package.json (schema +
+      snippet "Run on Einstein", uncommitted in VSNewt); demo
+      `Test/ntk/remote_demo.ns`. Tried in VS Code with Einstein by
+      Matt (2026-10-05): output, stop, Debug Console, continue,
+      exception stop, end.
 - [ ] 3.7 Stack trace, scopes, variables, evaluate through the agent.
+  - [x] 3.7a The stack. Agent v4 (needs NS Debug Tools): an
+        NSDBreakLoopEntry hook that enters the break loop itself (no NSDT
+        location text), `|DAPAgent:Stack|(exceptionStop)` -> [{name, pc,
+        file, line}] newest first (names from `functions` or the
+        implementor's slot, lines from the function's `lineTable`,
+        computed on the Newton). The deploy enables breakpoints
+        (accurate stacks). DAP `stackTrace` from it (cached per stop):
+        source + line for files, "subtle" natives, `<program>`. Every
+        call the adapter makes runs in a try on the Newton
+        (`RemoteCall`): an exception in a `code` block ends the
+        connection. Remote calls are compiled from strings (a func()
+        in a method would take the method's frame along). Agent v3:
+        Write fix only on an old Einstein (no `|Einstein:OrigWrite|`).
+        NTKClose waits for the Newton's LD (no "connection lost").
+        Einstein dropped the link ~30 s into a stop (LD reason 5, MNP
+        inactivity): our LAs carried credit 1; with credit 8 (DyneTK's,
+        Matt's hint) it stays up (traced with timestamps,
+        NEWTC_NTK_TRACE). newtc also sends `stou` after 15 s without a
+        Toolkit packet (`NTKInspector::tick()`), to be safe.
+        Tried in VS Code with Einstein by Matt: Call Stack Inner, Outer,
+        <program> with lines, continue, exception stop, clean end.
+  - [ ] 3.7b Scopes and variables (handles on the Newton).
+  - [ ] 3.7c Evaluate in a stopped frame.
 - [ ] 3.8 Breakpoints: file:line -> (function hash, pc) -> device
       function -> NSDT InstallBreakPoint; pending until the package is
       there.
 - [ ] 3.9 Stepping: instruction steps (NSDT), then line steps (step plan
       in the agent).
 - [ ] 3.10 Source-compiled packages: build with -g, upload, debug.
+      Also: install the program's package without blocking (serving
+      requests), so breakOnThrows can stay on and an exception in its
+      InstallScript stops there (3.6 installs it with breakOnThrows off).
       Decompiled packages: `-odecompile` + .nsdbg, upload the original
       package unchanged, debug in the decompiled source.
 - [ ] 3.11 The real MP2x00 on the serial port (57600, timeouts,

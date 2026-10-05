@@ -223,6 +223,10 @@ bool init()
   defGlobalCFunction("NTKPoll", (void*)FNTKPoll, 1);
   defGlobalCFunction("NTKSetHandler", (void*)FNTKSetHandler, 1);
   defGlobalCFunction("NTKClose", (void*)FNTKClose, 0);
+  defGlobalCFunction("NTKCallAsync", (void*)FNTKCallAsync, 1);
+  defGlobalCFunction("NTKCallResult", (void*)FNTKCallResult, 1);
+  defGlobalCFunction("NTKWaitAny", (void*)FNTKWaitAny, 1);
+  defGlobalCFunction("NTKCompileFile", (void*)FNTKCompileFile, 1);
   defGlobalCFunction("NTKMakePackage", (void*)FNTKMakePackage, 1);
   defGlobalCFunction("NTKPackageName", (void*)FNTKPackageName, 1);
   defGlobalCFunction("NTKLibrary", (void*)FNTKLibrary, 0);
@@ -597,6 +601,7 @@ void handleArgDbg()
 }
 
 extern const EmbeddedScript gDAPScript;            // Matt/Debugger/DAP.ns
+extern const EmbeddedScript gDAPRemoteScript;      // Matt/Debugger/DAPRemote.ns
 
 /**
  \brief Be a debug adapter (Debug Adapter Protocol) on stdin/stdout.
@@ -623,7 +628,7 @@ void handleArgDap(int port = -1)
   // tools): line stepping and source frames must not stop in it.
   DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), NILREF);
   DefGlobalVar(MakeSymbol("dbgKeepVarNames"), NILREF);
-  bool loaded = RunEmbeddedScript(gDAPScript);
+  bool loaded = RunEmbeddedScript(gDAPScript) && RunEmbeddedScript(gDAPRemoteScript);
   handleArgG();
   if (!loaded)
     throw(std::runtime_error("Can't load the debug adapter."));
@@ -633,7 +638,12 @@ void handleArgDap(int port = -1)
   newton_try
   {
     RefVar launchArgs(DoMessage(dap, MakeSymbol("WaitForLaunch"), RA(NILREF)));
-    if (IsFrame(launchArgs)) {
+    if (IsFrame(launchArgs) && IsString(GetFrameSlot(launchArgs, MakeSymbol("target")))) {
+      // the program runs on a remote Newton (Matt/Debugger/DAPRemote.ns)
+      RefVar args(MakeArray(1));
+      SetArraySlot(args, 0, launchArgs);
+      DoMessage(GetGlobalVar(MakeSymbol("DAPRemote")), MakeSymbol("Run"), args);
+    } else if (IsFrame(launchArgs)) {
       std::string program = UTF8FromString(GetFrameSlot(launchArgs, MakeSymbol("program")));
       // a package was loaded by the launch request (DAPLoadPackage)
       RefVar package(GetFrameSlot(dap, MakeSymbol("package")));

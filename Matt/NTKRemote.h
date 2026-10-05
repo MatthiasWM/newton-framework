@@ -46,6 +46,19 @@ Ref FNTKPoll(RefArg rcvr, RefArg inSeconds);
 Ref FNTKSetHandler(RefArg rcvr, RefArg inHandler);
 Ref FNTKClose(RefArg rcvr);
 
+//   NTKCallAsync(fn) -> a number: 'code' sent, not waited for;
+//   NTKCallResult(number) -> {value: result} once answered (taken), else nil
+//   NTKWaitAny(seconds) -> 'dap (a DAP request waits), 'ntk (the Newton's
+//       events handled), nil (nothing within seconds)
+//   NTKCompileFile(path) -> [codeBlock]: the whole file compiled here as
+//       one top-level block inside a try (an exception is returned as
+//       {|DAP error|: ex}), to run with 'code'; throws on errors (printed
+//       like -script)
+Ref FNTKCallAsync(RefArg rcvr, RefArg inFunction);
+Ref FNTKCallResult(RefArg rcvr, RefArg inNumber);
+Ref FNTKWaitAny(RefArg rcvr, RefArg inSeconds);
+Ref FNTKCompileFile(RefArg rcvr, RefArg inPath);
+
 //   NTKMakePackage(frame) -> the package (a binary of class 'package)
 //   NTKPackageName(package) -> its name (for 'pkgX'), nil if no package
 //   NTKLibrary() -> the global NTKRemote (Matt/Debugger/Remote.ns: install,

@@ -14,6 +14,9 @@
 #include "Matt/JSON.h"
 #include "Matt/EmbeddedScript.h"
 #include "Matt/PackageWriter.h"
+#include "Matt/DAP.h"
+#include "Frames/Compiler/InputStreams.h"
+#include "Frames/Compiler/Compiler.h"
 
 #include <chrono>
 #include <cstdio>
@@ -69,8 +72,9 @@ public:
   NTKInspector inspector;
   bool started = false;
   RefStruct handler;
-  int callsSent = 0;                    // 'code' calls, numbered from 1 ...
-  int repliesSeen = 0;                  // ... and their replies, in order
+  int callsSent = 0;                    // 'code' calls, numbered from 1
+  std::map<int, int> open;              // calls not answered: number -> break loop depth when sent
+  int depth = 0;                        // the Newton's break loop depth ('eext' / 'bext')
   std::map<int, RefStruct> results;     // replies nobody took yet
   int resultsAwaited = 0;               // 'rslt' for 'pkg '/'pkgX' wanted ...
   std::deque<long> results2;            // ... and got
@@ -90,7 +94,9 @@ public:
   void ntkConnected(const std::string &inPeer) override
   {
     connectionLost = false;
-    callsSent = repliesSeen = 0;
+    callsSent = 0;
+    depth = 0;
+    open.clear();
     results.clear();
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, MakeStringFromCString(inPeer.c_str()));
@@ -103,6 +109,8 @@ public:
   void ntkDisconnected(const std::string &inReason) override
   {
     connectionLost = true;
+    open.clear();
+    depth = 0;
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, MakeStringFromCString(inReason.c_str()));
     if (!notify("Disconnected", args)) {
@@ -153,9 +161,30 @@ public:
     }
   }
 
+  // Which call a reply answers: replies carry no number. A call sent in a
+  // break loop is answered before the call that runs into the break loop
+  // (the Newton handles it there), calls at one depth in order: the oldest
+  // open call of the deepest depth that has any.
   void ntkCodeResult(RefArg inResult) override
   {
-    results[++repliesSeen] = RefStruct(inResult);
+    int number = -1, deepest = -1;
+    for (auto &call : open)
+      if (call.second > deepest) {
+        deepest = call.second;
+        number = call.first;
+      }
+    if (number < 0)
+      return;                           // nobody asked
+    open.erase(number);
+    results[number] = RefStruct(inResult);
+  }
+
+  int send(RefArg inFunction)
+  {
+    int number = ++callsSent;
+    open[number] = depth;
+    inspector.call(inFunction);
+    return number;
   }
 
   void ntkException(Exception &inException) override
@@ -179,6 +208,10 @@ public:
 
   void ntkBreakLoop(bool inEntered) override
   {
+    if (inEntered)
+      depth++;
+    else if (depth > 0)
+      depth--;
     RefVar args(MakeArray(1));
     SetArraySlot(args, 0, inEntered ? TRUEREF : NILREF);
     if (!notify("BreakLoop", args)) {
@@ -206,6 +239,7 @@ public:
         return false;
       if (ready)
         inspector.handleEvents(*this);
+      inspector.tick();
     }
   }
 
@@ -276,8 +310,7 @@ Ref FNTKCall(RefArg rcvr, RefArg inFunction)
   r.requireConnection();
   if (!IsFunction(inFunction))
     Fail("NTKCall: a function expected");
-  int number = ++r.callsSent;
-  r.inspector.call(inFunction);
+  int number = r.send(inFunction);
   bool answered = r.waitUntil(r.timeout(), [&] {
     return r.results.count(number) > 0 || r.connectionLost;
   });
@@ -347,6 +380,7 @@ Ref FNTKPoll(RefArg rcvr, RefArg inSeconds)
   if (!r.started)
     return NILREF;
   double seconds = ISINT(inSeconds) ? (double)RINT(inSeconds) : 0.0;
+  r.inspector.tick();
   int fd = r.inspector.notifyFd();
   bool ready = false;
   int ms = (int)(seconds * 1000);
@@ -371,8 +405,10 @@ Ref FNTKClose(RefArg rcvr)
     return NILREF;
   Remote &r = *gRemote;
   if (r.inspector.isConnected()) {
+    // the Newton answers 'term' by ending the link itself (an LD); cutting
+    // it first makes Toolkit say "connection lost"
     r.inspector.terminate();
-    r.waitUntil(3.0, [&] { return r.inspector.pending() == 0; });
+    r.waitUntil(3.0, [&] { return r.connectionLost; });
   }
   r.inspector.stop();
   r.started = false;
@@ -479,4 +515,121 @@ Ref FNTKLibrary(RefArg rcvr)
   if (!tools.empty())
     SetFrameSlot(library, MakeSymbol("debugToolsPackage"), MakeStringFromCString(tools.c_str()));
   return library;
+}
+
+
+// NTKCallAsync(fn): send fn as 'code' and return its number at once;
+// NTKCallResult(number) is {value: <the result>} once the reply is there
+// (taken), else nil. For calls that may wait a long time (the Newton only
+// answers when its REP is idle), while DAP requests must still be served.
+Ref FNTKCallAsync(RefArg rcvr, RefArg inFunction)
+{
+  Remote &r = R();
+  r.requireConnection();
+  if (!IsFunction(inFunction))
+    Fail("NTKCallAsync: a function expected");
+  int number = r.send(inFunction);
+  return MAKEINT(number);
+}
+
+
+Ref FNTKCallResult(RefArg rcvr, RefArg inNumber)
+{
+  Remote &r = R();
+  if (!ISINT(inNumber))
+    return NILREF;
+  int number = (int)RINT(inNumber);
+  auto it = r.results.find(number);
+  if (it == r.results.end())
+    return NILREF;
+  RefVar answer(AllocateFrame());
+  SetFrameSlot(answer, MakeSymbol("value"), RefVar(it->second));
+  r.results.erase(it);
+  return answer;
+}
+
+
+// NTKWaitAny(seconds): wait for the Newton or the DAP client, at most that
+// long. Handles what the Newton sent (handler) and returns 'ntk; 'dap if a
+// DAP request (or the end of the client's input) is waiting; nil if
+// nothing came.
+Ref FNTKWaitAny(RefArg rcvr, RefArg inSeconds)
+{
+  Remote &r = R();
+  if (r.started)
+    r.inspector.tick();
+  if (DAPInputWaiting())
+    return MakeSymbol("dap");
+  double seconds = ISINT(inSeconds) ? (double)RINT(inSeconds) : 0.0;
+  int fds[2] = { r.started ? r.inspector.notifyFd() : -1, DAPInputFd() };
+  bool ready[2];
+  if (NTKWaitReadable(fds, 2, (int)(seconds * 1000), ready) <= 0)
+    return NILREF;
+  if (ready[0]) {
+    r.inspector.handleEvents(r);
+    return MakeSymbol("ntk");
+  }
+  return ready[1] ? MakeSymbol("dap") : NILREF;
+}
+
+
+// NTKCompileFile(path): a NewtonScript file as one code block to run on a
+// Newton with 'code': the whole file inside a try, so an exception comes
+// back as {|DAP error|: <the exception>} (an exception in a 'code' block
+// would end the connection, as the ROM does). The Newton runs a 'code'
+// block at the top level (InterpretBlock), so assignments to new variables
+// make globals, as in -script. The wrapper starts on the first line: the
+// line numbers (line tables, with -g) stay those of the file. A compile
+// error throws with the file and line, as -script shows.
+Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
+{
+  if (!IsString(inPath))
+    Fail("NTKCompileFile: a file name expected");
+  std::string path = UTF8FromString(inPath);
+  FILE *file = fopen(path.c_str(), "rb");
+  if (!file)
+    Fail("Can't open the program \"" + path + "\"");
+  std::string text = "begin local |dap result|; try |dap result| := begin ";
+  char chunk[8192];
+  size_t n;
+  while ((n = fread(chunk, 1, sizeof(chunk), file)) > 0)
+    text.append(chunk, n);
+  fclose(file);
+  text += "\nend onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
+          "|dap result| end";
+  FILE *fd = fmemopen((void *)text.data(), text.size(), "r");
+  if (!fd)
+    Fail("NTKCompileFile: out of memory");
+  RefVar blocks(MakeArray(0));
+  CStdioInputStream stream(fd, path.c_str());
+  CCompiler compiler(&stream, true);
+  bool failed = false;
+  newton_try
+  {
+    while (!feof(fd)) {
+      RefVar block(compiler.compile());
+      if (NOTNIL(block))
+        AddArraySlot(blocks, block);
+    }
+  }
+  newton_catch(exRefException)
+  {
+    RefVar data(*(RefStruct *)CurrentException()->data);
+    if (IsFrame(data) && ISNIL(GetFrameSlot(data, MakeSymbol("filename")))) {
+      SetFrameSlot(data, MakeSymbol("filename"), MakeStringFromCString(stream.fileName()));
+      SetFrameSlot(data, MakeSymbol("lineNumber"), MAKEINT(compiler.lineNo()));
+    }
+    gREPout->exceptionNotify(CurrentException());
+    failed = true;
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+    failed = true;
+  }
+  end_try;
+  fclose(fd);
+  if (failed)
+    Fail("The program has errors: " + path);
+  return blocks;
 }

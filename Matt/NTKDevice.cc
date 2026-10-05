@@ -576,8 +576,17 @@ int NTKDeviceRun(const std::string &inTarget)
   if (getenv("NEWTC_NTK_TRACE"))
     nub.link.setTrace(stderr);
   nub.link.setRole(MNPLink::kNewton);
+  // like Einstein, try again until the desktop listens (15 s)
   std::string error;
-  if (!nub.link.start(inTarget, error)) {
+  bool started = false;
+  for (int i = 0; i < 75 && !started; i++) {
+    started = nub.link.start(inTarget, error);
+    if (!started && error.compare(0, 14, "can't connect ") != 0)
+      break;                            // not a refused connection: give up
+    if (!started)
+      usleep(200000);
+  }
+  if (!started) {
     fprintf(stderr, "newtc: -ntk-device: %s\n", error.c_str());
     gNub = nullptr;
     return 1;
