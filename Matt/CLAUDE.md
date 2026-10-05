@@ -469,6 +469,43 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       after session over one Newton link.
 - [ ] 3.14 Our own connection tool in the agent package (instead of
       Toolkit.pkg; 57600 bps; reconnect).
+      Note (Matt, 2026-10-06): an app that reconfigures the serial port
+      (EinsteinPrefs: `call Einstein.Platform with
+      ('GetSerialPortDriverNames, ...)` and friends) can't be debugged
+      over that serial port; stepping over that line hung. On Einstein, a
+      transport that isn't the emulated serial port would avoid it
+      (something to look at here).
+
+Status 2026-10-06: 3.11 waits for a working MP2x00 (Matt's three machines
+need repairs: two recaps, one ePaper display conversion). Next without
+hardware: 3.12 attach, 3.13 background server, or the wishes 3.15 to 3.17.
+
+### Wishes from trying it out (Matt, 2026-10-06; no priority)
+- [ ] 3.15 Breakpoints in an InstallScript, and a "Break in InstallScript"
+      entry under "All Exceptions" (DAP exceptionBreakpointFilters). The
+      script runs during the install, before newtc can find it on the
+      Newton. Plan: when there are InstallScript breakpoints (or the entry
+      is checked), upload the package with each part's InstallScript
+      wrapped: the wrapper hands the function it is about to call to the
+      agent (which sets the breakpoints in it, or a temporary one at pc 0)
+      and then calls it. The original function stays as it is (lines,
+      PCs); it also covers the copy the ROM makes of a form part's
+      InstallScript. Only then is the uploaded package not byte for byte
+      the local one.
+- [ ] 3.16 Progress while uploading a package: "Uploading hello2.pkg (18
+      KB) ....... done" (Debug Console output without a newline continues
+      the line; MNPLink knows the bytes the Newton acknowledged). First
+      measure where the 5 s between "connected" and "Installed" go (agent
+      and NSDT checks, pkgX, the upload, the install itself).
+- [ ] 3.17 Don't upload an unchanged package again. Decide by the .pkg's
+      bytes, not by source dates: after an upload, newtc tells the agent
+      the package's name and a hash of its bytes, with the size and
+      timestamp the Newton reports for it (GetPkgRefInfo); kept in RAM (a
+      reboot: one more upload). Skip the upload only if the package is
+      still installed, its size and timestamp match, and the hash matches
+      the local file. Exceptions: its InstallScript doesn't run again (some
+      apps reset their state there): a launch option `"reinstall": true`;
+      always upload when debugging the InstallScript (3.15).
 
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
