@@ -18,7 +18,9 @@
 
 /** newtc -ntk-device <target>: connect to a desktop (e.g. tcp-client:3679,
     where newtc -ntk or NTK waits) and be its Newton until it sends 'term'
-    or the link ends. 0 then, 1 if no connection could be made. */
+    or the link ends. 0 then, 1 if no connection could be made. The
+    environment variable NEWTC_NTK_DEVICE_SESSIONS=<n>: n sessions one
+    after the other (a Newton that stays on; its packages stay). */
 int NTKDeviceRun(const std::string &inTarget);
 
 #include "Frames/Objects.h"
@@ -31,7 +33,7 @@ extern "C" Ref FNTKDeviceSend(RefArg rcvr, RefArg inObject);
 
 /** The ROM's GetPkgRef(name, store) and GetPkgRefInfo(pkgRef) for the
     packages -ntk-device installed (stubs in newtc otherwise): the ref is
-    the package's name here; the info frame has title, numParts, and parts
+    the package's name here; the info frame has title, size, numParts, and parts
     (each part's data, as the ROM gives for frame parts). nil for others. */
 extern "C" Ref FNTKDeviceGetPkgRef(RefArg rcvr, RefArg inName, RefArg inStore);
 extern "C" Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef);

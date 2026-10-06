@@ -731,6 +731,23 @@ DefGlobalVar('DAPRequests, {
       :NewCode();     // breakpoints set before the package was there
   end,
 
+  // "attach" (a remote Newton only: "target"): connect to it without
+  // installing or running anything (DAPRemote.ns). "program", if given, is
+  // the package (.pkg) already installed there: its line tables or debug
+  // map ("debugMap"), as for launch.
+  attach: func(request)
+  begin
+    local args := request.arguments;
+    if not (IsFrame(args) and IsString(args.target)) then
+      Throw('|evt.ex.msg|, "attach: \"target\" is missing (attach works with a remote Newton)");
+    args.attach := true;
+    if IsString(args.program) then
+      return :launch(request);
+    requestHandlers := DAPRemoteRequests;
+    launchArgs := args;
+    :SendResponse(request, nil);
+  end,
+
   // Breakpoints in a bytecode listing (source with a sourceReference) are
   // NS Debug Tools breakpoints at the instruction of each line; they replace
   // the ones set in that listing before. Breakpoints in a source file

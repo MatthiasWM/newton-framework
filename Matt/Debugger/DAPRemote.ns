@@ -194,6 +194,9 @@ DefGlobalVar('DAPRemote, {
       onexception |evt.ex| do
         :Console("Warning: NS Debug Tools: " & :ExceptionText(CurrentException()));
 
+    if args.attach then
+      return :Attach(args.program);
+
     // run the program
     local program := args.program;
     local length := StrLen(program);
@@ -244,7 +247,31 @@ DefGlobalVar('DAPRemote, {
       return :Close(1);
     end;
     :Console("Installed " & name & " on the Newton.");
-    // functions with lines from a debug map: the agent reports them in stacks
+    :PackageReady(name);
+    // open its app, as the local debugger does (the ROM's install doesn't):
+    // like a program, so its scripts stop at breakpoints and exceptions
+    if IsArray(remotePackage.frame.part) then
+      foreach part in remotePackage.frame.part do
+        if IsString(part.type) and StrEqual(part.type, "form") and IsFrame(part.data)
+           and IsSymbol(part.data.app) and not newtonGone then
+        begin
+          local app := "|" & SymbolName(part.data.app) & "|";
+          if :RunBlock(Compile("begin local |dap result|; try |dap result| := begin "
+               & "if GetRoot().(EnsureInternal('" & app & ")) then GetRoot().(EnsureInternal('" & app & ")):Open() "
+               & "end onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
+               & "|dap result| end")) then
+            :Console("Opened " & SymbolName(part.data.app) & ".");
+        end;
+    while not newtonGone do
+      :Serve(1);
+    :Finish(0);
+  end,
+
+  // The package is on the Newton: tell the agent which of its functions
+  // have lines from a debug map (it reports them in stacks), and set the
+  // breakpoints.
+  PackageReady: func(name)
+  begin
     local entries := [];
     knownFunctions := [];
     if IsArray(remotePackage.frame.part) then
@@ -263,20 +290,43 @@ DefGlobalVar('DAPRemote, {
       if not LSearch(unsentFiles, bp.path, 0, '|str=|, nil) then
         AddArraySlot(unsentFiles, bp.path);
     :SendBreakpoints();
-    // open its app, as the local debugger does (the ROM's install doesn't):
-    // like a program, so its scripts stop at breakpoints and exceptions
-    if IsArray(remotePackage.frame.part) then
-      foreach part in remotePackage.frame.part do
-        if IsString(part.type) and StrEqual(part.type, "form") and IsFrame(part.data)
-           and IsSymbol(part.data.app) and not newtonGone then
-        begin
-          local app := "|" & SymbolName(part.data.app) & "|";
-          if :RunBlock(Compile("begin local |dap result|; try |dap result| := begin "
-               & "if GetRoot().(EnsureInternal('" & app & ")) then GetRoot().(EnsureInternal('" & app & ")):Open() "
-               & "end onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
-               & "|dap result| end")) then
-            :Console("Opened " & SymbolName(part.data.app) & ".");
-        end;
+  end,
+
+  // "attach": nothing is installed or run; the Newton goes on as it is,
+  // and breakpoints, exceptions ("All Exceptions"), and BreakLoop() stop
+  // it. path: the package (.pkg) that is installed there (for its line
+  // tables or debug map), or nil. Serve until the Newton or the client
+  // ends the session ("disconnect": breakpoints removed, it runs on).
+  Attach: func(path)
+  begin
+    if IsString(path) then
+    begin
+      local binary := LoadDataFile(path, 'package);
+      local name := NTKPackageName(binary);
+      remotePackage := {name: name, frame: if IsFrame(package) then package else {}};
+      :ResolveBreakpoints();
+      // the size the Newton reports for it (GetPkgRefInfo), nil if it isn't there
+      local size;
+      try
+        size := :RemoteCallWith("begin local info; foreach store in GetStores() do "
+          & "if not info then begin local ref := GetPkgRef('|dap data|, store); "
+          & "if ref then info := GetPkgRefInfo(ref) end; if info then info.size end", name);
+      onexception |evt.ex| do
+        size := nil;
+      if not size then
+        :Console("Warning: " & name & " isn't installed on the Newton: its breakpoints won't be set.")
+      else
+      begin
+        if size <> Length(binary) then
+          :Console("Warning: the " & name & " on the Newton (" & size & " bytes) isn't "
+                   & :FileName(path) & " (" & Length(binary) & " bytes): another build? "
+                   & "Breakpoints may not match.");
+        :PackageReady(name);
+      end;
+    end;
+    :ApplyExceptionFilter();
+    :Console("Attached" & (if remotePackage then " to " & remotePackage.name else "")
+             & ". The Newton runs on: breakpoints, exceptions, and BreakLoop() stop it.");
     while not newtonGone do
       :Serve(1);
     :Finish(0);
@@ -685,10 +735,18 @@ DefGlobalVar('DAPRemote, {
         & "try if HasPath(functions, '|DAPAgent:Reset|) then call functions.|DAPAgent:Reset| with () "
         & "onexception |evt.ex| do nil; vars.breakOnThrows := |dap bot|; nil end"));
       for i := 1 to depth do
-        NTKLeaveBreakLoop(Compile("ExitBreakLoop()"));
+        NTKLeaveBreakLoop(:ExitBreakLoopBlock());
     end;
     NTKClose();
   end,
+
+  // ExitBreakLoop() for the Newton, harmless if it isn't in a break loop
+  // after all (our depth lags behind until its 'bext' arrives: e.g. a
+  // disconnect right after continue): there it would throw, and with
+  // breakOnThrows stop in a new break loop.
+  ExitBreakLoopBlock: func()
+    Compile("begin local |dap bot| := vars.breakOnThrows; breakOnThrows := nil; "
+      & "try ExitBreakLoop() onexception |evt.ex| do nil; vars.breakOnThrows := |dap bot|; nil end"),
 });
 
 
@@ -704,7 +762,7 @@ DefGlobalVar('DAPRemoteRequests, {
     // with 'code' (with 'lscb' the REP would echo "#2 NIL"); its answer
     // comes when the break loop ends, nobody waits for it
     DAPRemote:SendBreakpoints();       // changed while it ran
-    NTKLeaveBreakLoop(Compile("ExitBreakLoop()"));
+    NTKLeaveBreakLoop(DAPRemote:ExitBreakLoopBlock());
     DAPRemote.frames := nil;
     DAPRemote.frameNames := nil;
     :SendResponse(request, {allThreadsContinued: true});

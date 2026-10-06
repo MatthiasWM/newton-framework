@@ -112,13 +112,16 @@ BAD = '''{
 class Session:
     """newtc -dap and newtc -ntk-device, and the DAP client."""
 
-    def __init__(self, newtc, cwd, device_args=()):
-        self.port = free_port()
+    def __init__(self, newtc, cwd, device_args=(), port=None, device=None):
+        """port, device: a device that is already there (several sessions)."""
+        self.port = port if port else free_port()
         self.dap = subprocess.Popen([newtc, "-dap"], cwd=cwd, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.client = dap_client.Client(dap_client.ProcessConnection(self.dap))
-        self.device = subprocess.Popen([newtc] + list(device_args) + ["-ntk-device", "tcp-client:%d" % self.port],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.shared_device = device is not None
+        self.device = device if device else subprocess.Popen(
+            [newtc] + list(device_args) + ["-ntk-device", "tcp-client:%d" % self.port],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.outputs = []
 
     def request(self, command, arguments=None):
@@ -154,15 +157,17 @@ class Session:
         return text
 
     def close(self):
+        """Wait for both to end (a shared device: only newtc -dap); their logs."""
         logs = ""
-        for proc in (self.dap, self.device):
+        for proc in (self.dap,) if self.shared_device else (self.dap, self.device):
             try:
                 proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
         logs += self.dap.stderr.read().decode("utf-8", "replace")
-        logs += self.device.stderr.read() + self.device.stdout.read()
+        if not self.shared_device:
+            logs += self.device.stderr.read() + self.device.stdout.read()
         return logs
 
 
@@ -521,6 +526,96 @@ def main():
             check("InstallScript exception: no DAP errors (%s)" % e, False)
         logs = s.close()
         transcripts.append("\n".join(s.client.lines) + "\n--- logs ---\n" + logs)
+
+        # attach (3.12): one Newton that stays on for four sessions
+        port = free_port()
+        env = dict(os.environ, NEWTC_NTK_DEVICE_SESSIONS="4")
+        device = subprocess.Popen([args.newtc, "-dbg", "-ntk-device", "tcp-client:%d" % port],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+        # 1. launch: the package is installed
+        s = Session(args.newtc, tmp, port=port, device=device)
+        try:
+            s.request("initialize", {"clientID": "test", "adapterID": "newtonscript"})
+            s.request("launch", {"program": str(app_pkg), "target": "tcp:%d" % port})
+            s.request("configurationDone")
+            while "Installed Debugee:TEST on the Newton." not in s.output_text("console"):
+                s.event("output")
+            s.client.send({"command": "disconnect"})
+        except dap_client.DAPError as e:
+            check("attach, session 1: no DAP errors (%s)" % e, False)
+        s.close()
+        transcripts.append("\\n".join(s.client.lines))
+        # 2. attach with the package: nothing installed, its breakpoints stop
+        s = Session(args.newtc, tmp, port=port, device=device)
+        try:
+            s.request("initialize", {"clientID": "test", "adapterID": "newtonscript"})
+            r = s.request("attach", {"program": str(app_pkg), "target": "tcp:%d" % port})
+            check("attach with the package", r["success"])
+            r = s.request("setBreakpoints", {"source": {"path": str(app)}, "breakpoints": [{"line": 14}]})
+            s.request("configurationDone")
+            while "Attached" not in s.output_text("console"):
+                s.event("output")
+            console = s.output_text("console")
+            check("... attached to it, nothing installed, no warning",
+                  "Attached to Debugee:TEST." in console and "Installed" not in console
+                  and "Warning" not in console)
+            s.client.send({"command": "evaluate", "arguments": {"expression": "DebugeeWork(5)", "context": "repl"}})
+            stopped = s.event("stopped")
+            r = s.request("stackTrace", {"threadId": 1})
+            frames = r["body"]["stackFrames"] if r["success"] else []
+            check("... a breakpoint in the installed package stops (line 14)",
+                  stopped["body"]["reason"] == "breakpoint" and frames[:1] and frames[0]["line"] == 14)
+            s.request("continue", {"threadId": 1})
+            s.client.send({"command": "disconnect"})
+        except dap_client.DAPError as e:
+            check("attach, session 2: no DAP errors (%s)" % e, False)
+        s.close()
+        transcripts.append("\\n".join(s.client.lines))
+        # 3. attach with another build of it: a warning
+        s = Session(args.newtc, tmp, port=port, device=device)
+        try:
+            s.request("initialize", {"clientID": "test", "adapterID": "newtonscript"})
+            s.request("attach", {"program": str(plain_pkg), "target": "tcp:%d" % port,
+                                 "debugMap": str(dec.with_suffix(".nsdbg"))})
+            s.request("configurationDone")
+            while "Attached" not in s.output_text("console"):
+                s.event("output")
+            check("attach with another build: a warning",
+                  "another build?" in s.output_text("console"))
+            s.client.send({"command": "disconnect"})
+        except dap_client.DAPError as e:
+            check("attach, session 3: no DAP errors (%s)" % e, False)
+        s.close()
+        transcripts.append("\\n".join(s.client.lines))
+        # 4. attach without a program
+        s = Session(args.newtc, tmp, port=port, device=device)
+        try:
+            s.request("initialize", {"clientID": "test", "adapterID": "newtonscript"})
+            r = s.request("attach", {"program": str(app_pkg)})
+            check("attach without a target: an error response", not r["success"] and "target" in r["message"])
+            r = s.request("attach", {"target": "tcp:%d" % port})
+            check("attach without a program", r["success"])
+            s.request("configurationDone")
+            while "Attached" not in s.output_text("console"):
+                s.event("output")
+            r = s.request("evaluate", {"expression": "DebugeeWork(5)", "context": "repl"})
+            check("... the package still works; session 2's breakpoint is gone (its end removed it)",
+                  r["success"] and r["body"]["result"] == "16")
+            s.client.send({"command": "disconnect"})
+        except dap_client.DAPError as e:
+            check("attach, session 4: no DAP errors (%s)" % e, False)
+        s.close()
+        transcripts.append("\\n".join(s.client.lines))
+        try:
+            device.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            device.kill()
+            device.wait()
+        device_logs = device.stderr.read() + device.stdout.read()
+        transcripts.append("--- device ---\\n" + device_logs)
+        check("the device served four sessions, installed the package once, and ended",
+              device.returncode == 0 and device_logs.count('installed "Debugee:TEST"') == 1
+              and device_logs.count("Toolkit connected") == 4)
 
         # a target nobody can use
         s = Session(args.newtc, tmp)

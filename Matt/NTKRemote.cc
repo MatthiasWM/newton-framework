@@ -443,7 +443,9 @@ Ref FNTKClose(RefArg rcvr)
     // the Newton answers 'term' by ending the link itself (an LD); cutting
     // it first makes Toolkit say "connection lost"
     r.inspector.terminate();
-    r.waitUntil(3.0, [&] { return r.connectionLost; });
+    // until the link is down: terminate() already counts as disconnected,
+    // and meanwhile the TCP server would accept the Newton's next connection
+    r.waitUntil(3.0, [&] { return r.connectionLost || !r.inspector.linkIsUp(); });
   }
   r.inspector.stop();
   r.started = false;

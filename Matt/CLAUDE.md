@@ -464,7 +464,31 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       when installing (a form part's InstallScript).
 - [ ] 3.11 The real MP2x00 on the serial port (57600, timeouts,
       reconnects).
-- [ ] 3.12 Later: attach to a package that is already installed/running.
+- [x] 3.12 Attach (2026-10-06). DAP `attach` (DAP.ns; remote only:
+      "target" required): connect and prepare the Newton (agent, NSDT) as
+      for launch, but install and run nothing. "program" (optional) is the
+      package installed there, for its line tables or debug map
+      ("debugMap"); newtc checks it is installed and warns if its size
+      differs ("another build?"), then sets its breakpoints
+      (`PackageReady`, shared with RunPackage). Without a program: the
+      Debug Console, exceptions, and BreakLoop() stops (no source).
+      Disconnect detaches: breakpoints removed, the Newton runs on.
+      VSNewt (uncommitted, Matt's repo): "attach" attributes, snippet
+      "Attach to Einstein", resolveDebugConfiguration accepts an attach
+      without program.
+      Fixed on the way: `NTKClose` waited 3 s for an LD it ignored
+      (`terminate()` already counted as disconnected), while its TCP server
+      accepted the Newton's next connection (now: until the link is
+      down); the session end sent ExitBreakLoop once per break loop level
+      by our count, which lags right after continue, and an extra one
+      threw on the Newton and stopped it in a new break loop (now guarded:
+      `ExitBreakLoopBlock`, also for continue). `-ntk-device` serves
+      several sessions (env NEWTC_NTK_DEVICE_SESSIONS; its packages stay;
+      a moment between sessions, a failed handshake tried again), and its
+      GetPkgRefInfo has `size`. Test: test_dap_remote.py, one device for
+      four sessions (launch installs; attach: no install, a breakpoint
+      stops; attach with another build: a warning; attach without a
+      program: evaluate, the earlier breakpoint gone).
 - [ ] 3.13 The background server: `-dap-server` with `-ntk` serves session
       after session over one Newton link.
 - [ ] 3.14 Our own connection tool in the agent package (instead of

@@ -100,6 +100,8 @@ public:
 
   /** The Toolkit connection is up ('cnnt' answered, not terminated). */
   bool isConnected() const { return mConnected; }
+  /** The MNP link is up (after terminate(): until the Newton's LD). */
+  bool linkIsUp() { return mLink.isUp(); }
 
   /** Send a code block: 'lscb' (REP input, output as text) ... */
   void evaluate(RefArg inCodeBlock);

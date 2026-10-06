@@ -59,6 +59,7 @@ struct InstalledPackage {
   NewtonPackage *package;
   RefStruct parts;              // [[installInfo, removeFrame], ...]
   RefStruct frame;              // the package as installed (packageRef() makes a new one each time)
+  long size;                    // its bytes
 };
 
 struct Nub {
@@ -277,7 +278,8 @@ long Nub::loadPackage(const std::vector<uint8_t> &inData)
   if (!ok)
     return kBadPackage;
   fprintf(stderr, "ntk-device: installed \"%s\"\n", name.c_str());
-  installed.push_back(InstalledPackage{ name, package, RefStruct(parts), RefStruct(packageRef) });
+  installed.push_back(InstalledPackage{ name, package, RefStruct(parts), RefStruct(packageRef),
+                                        (long)inData.size() });
   return 0;
 }
 
@@ -608,6 +610,7 @@ Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef)
       SetArraySlot(parts, i, GetFrameSlot(GetArraySlot(partFrames, i), MakeSymbol("data")));
     RefVar info(AllocateFrame());
     SetFrameSlot(info, MakeSymbol("title"), MakeStringFromCString(name.c_str()));
+    SetFrameSlot(info, MakeSymbol("size"), MAKEINT(p.size));
     SetFrameSlot(info, MakeSymbol("numParts"), MAKEINT(count));
     SetFrameSlot(info, MakeSymbol("parts"), parts);
     return info;
@@ -616,17 +619,11 @@ Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef)
 }
 
 
-int NTKDeviceRun(const std::string &inTarget)
+#if !defined(_WIN32)
+// One Toolkit session: connect, serve the desktop until it ends the
+// session. 0, or 1 if no connection could be made.
+static int RunDeviceSession(Nub &nub, const std::string &inTarget)
 {
-#if defined(_WIN32)
-  fprintf(stderr, "newtc: -ntk-device is not supported on Windows yet\n");
-  return 1;
-#else
-  Nub nub;
-  gNub = &nub;
-  if (getenv("NEWTC_NTK_TRACE"))
-    nub.link.setTrace(stderr);
-  nub.link.setRole(MNPLink::kNewton);
   // like Einstein, try again until the desktop listens (15 s)
   std::string error;
   bool started = false;
@@ -639,7 +636,6 @@ int NTKDeviceRun(const std::string &inTarget)
   }
   if (!started) {
     fprintf(stderr, "newtc: -ntk-device: %s\n", error.c_str());
-    gNub = nullptr;
     return 1;
   }
 
@@ -649,7 +645,6 @@ int NTKDeviceRun(const std::string &inTarget)
   if (!nub.linkUp) {
     fprintf(stderr, "newtc: -ntk-device: no MNP link with %s\n", nub.link.describe().c_str());
     nub.link.stop();
-    gNub = nullptr;
     return 1;
   }
   nub.send(NTKCommand("cnnt"));
@@ -659,7 +654,6 @@ int NTKDeviceRun(const std::string &inTarget)
       || nub.packets.front().length != 0) {
     fprintf(stderr, "newtc: -ntk-device: the desktop didn't answer 'cnnt' with 'okln'\n");
     nub.link.stop();
-    gNub = nullptr;
     return 1;
   }
   nub.packets.pop_front();
@@ -689,8 +683,52 @@ int NTKDeviceRun(const std::string &inTarget)
   for (int i = 0; i < 20 && nub.link.pending() > 0 && nub.link.isUp(); i++)
     usleep(100000);
   nub.link.stop();
-  gNub = nullptr;
-  fprintf(stderr, "ntk-device: done\n");
   return 0;
+}
+#endif
+
+
+int NTKDeviceRun(const std::string &inTarget)
+{
+#if defined(_WIN32)
+  fprintf(stderr, "newtc: -ntk-device is not supported on Windows yet\n");
+  return 1;
+#else
+  Nub nub;
+  gNub = &nub;
+  if (getenv("NEWTC_NTK_TRACE"))
+    nub.link.setTrace(stderr);
+  nub.link.setRole(MNPLink::kNewton);
+  // like a Newton that stays on: NEWTC_NTK_DEVICE_SESSIONS sessions one
+  // after the other (connecting again each time); its packages stay
+  int sessions = 1;
+  if (const char *count = getenv("NEWTC_NTK_DEVICE_SESSIONS"))
+    sessions = atoi(count) > 1 ? atoi(count) : 1;
+  int result = 0;
+  for (int s = 0; s < sessions && result == 0; s++) {
+    if (s == 0) {
+      result = RunDeviceSession(nub, inTarget);
+      continue;
+    }
+    // the next session: as a user taps "Connect" again, after a moment
+    // (the old desktop may still be listening while it exits); a failed
+    // handshake is tried again, for half a minute
+    fprintf(stderr, "ntk-device: waiting for the next session\n");
+    for (int attempt = 0; attempt < 30; attempt++) {
+      usleep(1000000);
+      nub.linkUp = false;
+      nub.ended = false;
+      nub.packets.clear();
+      nub.reader = NTKPacketReader(false);
+      nub.frameAvailable = false;
+      result = RunDeviceSession(nub, inTarget);
+      if (result == 0)
+        break;
+    }
+  }
+  gNub = nullptr;
+  if (result == 0)
+    fprintf(stderr, "ntk-device: done\n");
+  return result;
 #endif
 }
