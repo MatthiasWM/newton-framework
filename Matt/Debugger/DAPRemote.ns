@@ -40,9 +40,27 @@ DefGlobalVar('DAPRemote, {
   unsentFiles: [],      // files whose breakpoints changed while the Newton was busy
   stopKind: nil,        // what the agent said about the coming stop ('breakpoint)
   ended: nil,           // EndSession() is done
+  startTicks: nil,      // Ticks() when the session's Run started (NEWTC_DAP_TIMES)
 
   Console: func(text)
     :SendEvent("output", {category: "console", output: text & kLF}),
+
+  // Console output that the next one continues (no line end)
+  ConsoleText: func(text)
+    :SendEvent("output", {category: "console", output: text}),
+
+  // Seconds since ticks (Ticks(): 60 a second), as "2.4 s"
+  SecondsSince: func(ticks)
+  begin
+    local tenths := (Ticks() - ticks) * 10 div 60;
+    (tenths div 10) & "." & (tenths mod 10) & " s";
+  end,
+
+  // NEWTC_DAP_TIMES=1 (global dapTimes): what was done, when (where the
+  // time goes when a session starts)
+  Timed: func(what)
+    if GlobalVarExists('dapTimes) and dapTimes and startTicks then
+      :Console("[" & :SecondsSince(startTicks) & "] " & what),
 
   // -- What the Newton sends (NTKSetHandler(DAPRemote))
 
@@ -167,7 +185,9 @@ DefGlobalVar('DAPRemote, {
   begin
     running := nil;           // nothing runs here: no local breakOnThrows
     breakOnThrows := nil;
+    startTicks := Ticks();
     local library := NTKLibrary();
+    library.reporter := DAPRemote;     // the agent's and NSDT's uploads: progress here
     NTKSetHandler(DAPRemote);
     local error := NTKOpen(args.target);
     if error then
@@ -186,15 +206,20 @@ DefGlobalVar('DAPRemote, {
         :Serve(1);
     end;
 
+    :Timed("connected");
     // prepare the Newton: with breakOnThrows off (an error while
     // installing mustn't stop there while we wait for the answer)
     :RemoteCall("breakOnThrows := nil");
+    :Timed("breakOnThrows off");
     local result := library:EnsureAgent();
+    :Timed("agent checked (installed if needed)");
     if result <> 0 then
       :Console("Warning: newtc's agent package didn't install (" & result & ").")
     else
       :RemoteCall("if HasPath(functions, '|DAPAgent:Reset|) then call functions.|DAPAgent:Reset| with ()");
+    :Timed("agent reset");
     result := library:EnsureDebugTools();
+    :Timed("NS Debug Tools checked (installed if needed)");
     if result <> 0 then
       :Console("Warning: NS Debug Tools: " & result)
     else
@@ -204,6 +229,7 @@ DefGlobalVar('DAPRemote, {
       onexception |evt.ex| do
         :Console("Warning: NS Debug Tools: " & :ExceptionText(CurrentException()));
 
+    :Timed("breakpoints enabled");
     if args.attach then
       return :Attach(args.program);
 
@@ -254,16 +280,24 @@ DefGlobalVar('DAPRemote, {
         :Console("Warning: " & :ExceptionText(CurrentException()));
       :Console("Uploading " & name & " with its InstallScript wrapped for debugging.");
     end;
+    :Timed("package read, breakpoints resolved");
     NTKDeletePackage(name);         // a rebuild replaces it (no error if it isn't there)
+    :Timed("the old " & name & " deleted");
     :ApplyExceptionFilter();
     busy := true;
+    :UploadStart(:FileName(path), Length(binary));
     NTKInstallPackageAsync(binary);
     local result;
     while not newtonGone and not (result := NTKPackageResult()) do
+    begin
+      :UploadTick();
       :Serve(1);
+    end;
+    :UploadEnd(result);
     busy := nil;
     if newtonGone then
       return :Finish(0);
+    :Timed("installed (the InstallScript ran)");
     if result <> 0 then
     begin
       :Console("The Newton couldn't install " & name & " (error " & result & ").");
@@ -271,6 +305,7 @@ DefGlobalVar('DAPRemote, {
     end;
     :Console("Installed " & name & " on the Newton.");
     :PackageReady(name);
+    :Timed("breakpoints set");
     // open its app, as the local debugger does (the ROM's install doesn't):
     // like a program, so its scripts stop at breakpoints and exceptions
     if IsArray(remotePackage.frame.part) then
@@ -289,6 +324,52 @@ DefGlobalVar('DAPRemote, {
       :Serve(1);
     :Finish(0);
   end,
+
+  // An upload's progress in the Debug Console, on one line: "Uploading
+  // hello2.pkg (18 KB) .......... done in 2.1 s", a dot per tenth the
+  // Newton acknowledged (NTKUploadProgress). Also for the agent and NS
+  // Debug Tools (Remote.ns: reporter).
+  uploadTicks: nil,     // Ticks() when it started, nil when not uploading
+  dotsShown: 0,
+
+  UploadStart: func(name, bytes)
+  begin
+    :ConsoleText("Uploading " & name & " (" & Max(1, (bytes + 512) div 1024) & " KB) ");
+    uploadTicks := Ticks();
+    dotsShown := 0;
+  end,
+
+  // Dots for what arrived so far; " done in 2.1 s" ends the line once all
+  // of it is there
+  UploadTick: func()
+  begin
+    if not uploadTicks then
+      return nil;
+    local progress := NTKUploadProgress();
+    local done := not progress or progress[0] >= progress[1];
+    local want := if done then 10 else progress[0] * 10 div Max(1, progress[1]);
+    if want > dotsShown then
+      :ConsoleText(SubStr("..........", 0, want - dotsShown));
+    dotsShown := Max(dotsShown, want);
+    if done then
+    begin
+      :Console(" done in " & :SecondsSince(uploadTicks));
+      uploadTicks := nil;
+    end;
+  end,
+
+  // The Newton answered (result) or is gone (nil): end the line
+  UploadEnd: func(result)
+    if uploadTicks then
+    begin
+      if result then
+        :UploadTick()                     // installed before the dots were all there
+      else
+      begin
+        :Console(" stopped (the Newton disconnected)");
+        uploadTicks := nil;
+      end;
+    end,
 
   // The package is on the Newton: tell the agent which of its functions
   // have lines from a debug map (it reports them in stacks), and set the

@@ -80,6 +80,7 @@ public:
   std::map<int, RefStruct> results;     // replies nobody took yet
   int resultsAwaited = 0;               // 'rslt' for 'pkg '/'pkgX' wanted ...
   std::deque<long> results2;            // ... and got
+  size_t uploadTotal = 0;               // NTKInstallPackageAsync: bytes queued for the upload, 0 when none
   bool connectionLost = false;
 
   // Call the handler's method, if there is one. False if not.
@@ -409,6 +410,7 @@ Ref FNTKInstallPackageAsync(RefArg rcvr, RefArg inPackage)
   const uint8_t *p = (const uint8_t *)BinaryData(inPackage);
   r.resultsAwaited++;
   r.inspector.loadPackage(std::vector<uint8_t>(p, p + Length(inPackage)));
+  r.uploadTotal = r.inspector.pending();     // the packet, as queued for MNP
   return NILREF;
 }
 
@@ -420,7 +422,22 @@ Ref FNTKPackageResult(RefArg rcvr)
     return NILREF;
   long error = r.results2.front();
   r.results2.pop_front();
+  r.uploadTotal = 0;
   return MAKEINT(error);
+}
+
+
+Ref FNTKUploadProgress(RefArg rcvr)
+{
+  if (!gRemote || !gRemote->started || gRemote->uploadTotal == 0 || gRemote->connectionLost)
+    return NILREF;
+  Remote &r = *gRemote;
+  size_t pending = r.inspector.pending();
+  size_t done = pending >= r.uploadTotal ? 0 : r.uploadTotal - pending;
+  RefVar progress(MakeArray(2));
+  SetArraySlot(progress, 0, MAKEINT((long)done));
+  SetArraySlot(progress, 1, MAKEINT((long)r.uploadTotal));
+  return progress;
 }
 
 

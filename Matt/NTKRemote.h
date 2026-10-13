@@ -36,6 +36,9 @@
 //   NTKInstallPackageAsync(binary) -> nil: send 'pkg ' without waiting (its
 //       install script may stop in a break loop); NTKPackageResult() ->
 //       the Newton's answer (0 or an error) once it came, else nil
+//   NTKUploadProgress() -> [bytes the Newton acknowledged, bytes in all]
+//       while an NTKInstallPackageAsync upload is under way (until its
+//       result is taken), else nil
 //   NTKPoll(seconds) -> true if anything happened (handled), within seconds
 //   NTKSetHandler(frame) -> nil
 //   NTKClose() -> nil; 'term', and the link ends
@@ -48,6 +51,7 @@ Ref FNTKInstallPackage(RefArg rcvr, RefArg inPackage);
 Ref FNTKDeletePackage(RefArg rcvr, RefArg inName);
 Ref FNTKInstallPackageAsync(RefArg rcvr, RefArg inPackage);
 Ref FNTKPackageResult(RefArg rcvr);
+Ref FNTKUploadProgress(RefArg rcvr);
 Ref FNTKPoll(RefArg rcvr, RefArg inSeconds);
 Ref FNTKSetHandler(RefArg rcvr, RefArg inHandler);
 Ref FNTKClose(RefArg rcvr);

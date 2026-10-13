@@ -90,6 +90,11 @@ public:
   /** Before start(). */
   void setRole(Role inRole) { mRole = inRole; }
 
+  /** For tests: take as long for received bytes as a serial line at this
+      many bits per second would (10 bits a byte; 0: no wait). newtc
+      -ntk-device with NEWTC_NTK_DEVICE_BPS. */
+  void setThrottle(long inBitsPerSecond) { mThrottle = inBitsPerSecond; }
+
   /** Open the target (see NTKTransport.h) and start the link's thread.
       False and an error message if the target can't be used. */
   bool start(const std::string &inTarget, std::string &outError);
@@ -143,6 +148,7 @@ private:
   int mWake[2] = { -1, -1 };      // wakes the link's thread (send, stop)
   FILE *mTrace = nullptr;
   Role mRole = kDesktop;
+  long mThrottle = 0;
 
   // shared with the main thread, under mLock
   std::mutex mLock;

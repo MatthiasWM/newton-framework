@@ -13,13 +13,32 @@ DefGlobalVar('NTKRemote, {
   // The agent version this newtc brings (Agent.ns).
   agentVersion: 12,
 
+  // Who shows an upload's progress (DAPRemote: the Debug Console), nil:
+  // nobody. Methods UploadStart(name, bytes), UploadTick() (now and then
+  // while it goes), UploadEnd().
+  reporter: nil,
+
   // Install a package, replacing one with the same name (a rebuild): 'pkgX'
   // first (no error if it isn't there), then 'pkg '. Returns the Newton's
   // answer: 0, or an error code.
   InstallPackage: func(package)
   begin
-    NTKDeletePackage(NTKPackageName(package));
-    return NTKInstallPackage(package);
+    local name := NTKPackageName(package);
+    NTKDeletePackage(name);
+    if not reporter then
+      return NTKInstallPackage(package);
+    reporter:UploadStart(name, Length(package));
+    NTKInstallPackageAsync(package);
+    local result;
+    while not (result := NTKPackageResult()) and NTKIsConnected() do
+    begin
+      reporter:UploadTick();
+      NTKPoll(1);
+    end;
+    reporter:UploadEnd(result);
+    if not result then
+      Throw('|evt.ex.msg|, "The remote Newton ended the connection");
+    result;
   end,
 
   // Code for the Newton is compiled from strings (Compile): a func() written

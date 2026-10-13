@@ -558,6 +558,8 @@ void MNPLink::run()
         default:
           break;
       }
+      if (mThrottle > 0 && !data.empty())   // a serial line's pace (tests)
+        std::this_thread::sleep_for(std::chrono::microseconds((long long)data.size() * 10 * 1000000 / mThrottle));
       for (uint8_t b : data) {
         MNPDecoder::Result r = mDecoder.feed(b);
         if (r == MNPDecoder::kFrame)

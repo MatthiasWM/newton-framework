@@ -569,8 +569,8 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
 
 Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
 need repairs: two recaps, one ePaper display conversion). 3.12, 3.13, and
-3.14a and 3.15 done; 3.14b waits for hardware too; next: the wishes 3.16
-and 3.17, or 3.18 (no NS Debug Tools needed).
+3.14a, 3.15, 3.16 done; 3.14b waits for hardware too; next: 3.17, or
+3.18 (no NS Debug Tools needed).
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
 - [x] 3.15 Breakpoints in an InstallScript, and "Break in InstallScript"
@@ -605,11 +605,26 @@ and 3.17, or 3.18 (no NS Debug Tools needed).
       got the new filter in their initialize response. Not covered: a
       RemoveScript (the same trick would work when deleting), and 3.17
       must hash the uploaded (wrapped) bytes, not the file's.
-- [ ] 3.16 Progress while uploading a package: "Uploading hello2.pkg (18
-      KB) ....... done" (Debug Console output without a newline continues
-      the line; MNPLink knows the bytes the Newton acknowledged). First
-      measure where the 5 s between "connected" and "Installed" go (agent
-      and NSDT checks, pkgX, the upload, the install itself).
+- [x] 3.16 Progress while uploading a package (2026-10-13). Every upload
+      in a remote session shows on one Debug Console line: "Uploading
+      hello2.pkg (3 KB) .......... done in 0.8 s", a dot per tenth the
+      Newton acknowledged (new native `NTKUploadProgress()`: [acknowledged,
+      total] from MNPLink's pending bytes, while an
+      `NTKInstallPackageAsync` upload runs). Also the agent's and NS Debug
+      Tools' uploads: Remote.ns `InstallPackage` uploads asynchronously when
+      the library has a `reporter` (DAPRemote: UploadStart, UploadTick,
+      UploadEnd), else as before. `NEWTC_DAP_TIMES=1` shows what the start
+      of a remote session did when ("[4.8 s] agent checked (installed if
+      needed)", ... up to "breakpoints set"), to find where the time goes.
+      For tests `-ntk-device` can be as slow as a serial line
+      (`NEWTC_NTK_DEVICE_BPS=38400`, MNPLink `setThrottle`). Measured there
+      at 38400 bps: a fresh Newton spends 4.5 s on the agent (16 KB, about
+      the line's 3.8 KB/s), hello2 (3 KB) 0.8 s, everything else together
+      about 0.5 s; so the first session after an agent upgrade is the slow
+      one (3.17, 3.18 may make the agent smaller). Einstein's numbers: to
+      measure (`NEWTC_DAP_TIMES=1 newtc -dap-server 4711`). Test:
+      `Test/ntk/test_dap_upload.py`. Fixed on the way: test_deploy.py
+      expected agent version 11 (now read from Remote.ns).
 - [ ] 3.17 Don't upload an unchanged package again. Decide by the .pkg's
       bytes, not by source dates: after an upload, newtc tells the agent
       the package's name and a hash of its bytes, with the size and

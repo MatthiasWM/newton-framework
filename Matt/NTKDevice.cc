@@ -20,6 +20,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <deque>
 #include <string>
@@ -627,6 +628,8 @@ static int RunDeviceSession(Nub &nub, const std::string &inTarget)
   // like Einstein, try again until the desktop listens (15 s)
   std::string error;
   bool started = false;
+  if (const char *bps = getenv("NEWTC_NTK_DEVICE_BPS"))
+    nub.link.setThrottle(atol(bps));      // a serial line's speed (tests)
   for (int i = 0; i < 75 && !started; i++) {
     started = nub.link.start(inTarget, error);
     if (!started && error.compare(0, 14, "can't connect ") != 0)

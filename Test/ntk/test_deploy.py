@@ -114,9 +114,10 @@ def main():
 
         lines, logs, code = run(args.newtc, (script, tmp))
         check("connected", '["connected", true]' in lines)
-        check("the agent: not there, then installed (version 11)",
+        version = re.search(r"agentVersion: (\d+)", (REPO / "Matt" / "Debugger" / "Remote.ns").read_text()).group(1)
+        check("the agent: not there, then installed (version %s, Remote.ns)" % version,
               '["agent before", nil]' in lines and '["ensure agent", 0]' in lines
-              and '["agent after", 11]' in lines)
+              and '["agent after", %s]' % version in lines)
         check("EnsureAgent again: there already, not installed again",
               '["ensure agent again", 0]' in lines and logs.count('installed "DAPAgent:newtc"') == 1)
         check("InstallPackage twice: replaced (deleted, installed), 0 both times",

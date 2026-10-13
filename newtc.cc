@@ -220,6 +220,7 @@ bool init()
   defGlobalCFunction("GetPkgRefInfo", (void*)FNTKDeviceGetPkgRefInfo, 1);
   defGlobalCFunction("NTKInstallPackageAsync", (void*)FNTKInstallPackageAsync, 1);
   defGlobalCFunction("NTKPackageResult", (void*)FNTKPackageResult, 0);
+  defGlobalCFunction("NTKUploadProgress", (void*)FNTKUploadProgress, 0);
   defGlobalCFunction("NTKLeaveBreakLoop", (void*)FNTKLeaveBreakLoop, 1);
   defGlobalCFunction("NTKOpen", (void*)FNTKOpen, 1);
   defGlobalCFunction("NTKWaitConnected", (void*)FNTKWaitConnected, 1);
@@ -735,6 +736,10 @@ void handleArgDap(int port = -1)
   // client's exception filter.
   DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
   DAPInstallTranslators();
+  // NEWTC_DAP_TIMES=1: DAPRemote.ns shows how long each step of a remote
+  // session's start takes (where the time goes)
+  const char *times = getenv("NEWTC_DAP_TIMES");
+  DefGlobalVar(MakeSymbol("dapTimes"), (times && *times && strcmp(times, "0") != 0) ? TRUEREF : NILREF);
   // DAPRemote:EndSession() keeps the Newton's link for the next session
   DefGlobalVar(MakeSymbol("dapServer"), port >= 0 ? TRUEREF : NILREF);
   for (;;) {
