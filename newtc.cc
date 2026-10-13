@@ -222,6 +222,7 @@ bool init()
   defGlobalCFunction("NTKPackageResult", (void*)FNTKPackageResult, 0);
   defGlobalCFunction("NTKUploadProgress", (void*)FNTKUploadProgress, 0);
   defGlobalCFunction("NTKHash", (void*)FNTKHash, 1);
+  gBinCFunctionHook = NTKAgentNativeStandIn;   // our natives' stand-ins (Matt/NTKRemote.h)
   defGlobalCFunction("NTKLeaveBreakLoop", (void*)FNTKLeaveBreakLoop, 1);
   defGlobalCFunction("NTKOpen", (void*)FNTKOpen, 1);
   defGlobalCFunction("NTKWaitConnected", (void*)FNTKWaitConnected, 1);
@@ -587,7 +588,7 @@ void handleArgG()
   DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), TRUEREF);
 }
 
-extern const EmbeddedScript gNSDebugToolsScript;   // Matt/Debugger/NSDebugTools.ns
+extern const EmbeddedScript gNSDebugToolsInstallScript;   // Matt/Debugger/NSDebugToolsInstall.ns
 extern const EmbeddedScript gNSDShortCutsScript;   // Matt/Debugger/NSDShortCuts.ns
 
 /**
@@ -599,7 +600,7 @@ extern const EmbeddedScript gNSDShortCutsScript;   // Matt/Debugger/NSDShortCuts
  */
 void handleArgDbg()
 {
-  if (!RunEmbeddedScript(gNSDebugToolsScript))
+  if (!NSDebugToolsDefinitions() || !RunEmbeddedScript(gNSDebugToolsInstallScript))
     throw(std::runtime_error("Can't load the debugger tools."));
   if (!RunEmbeddedScript(gNSDShortCutsScript))
     throw(std::runtime_error("Can't load the debugger shortcuts."));

@@ -1,0 +1,42 @@
+// NS Debug Tools for newtc: the installation (plan step 3.18c)
+//
+// The part of Apple's NS Debug Tools.pkg that defines the global functions
+// and replaces StackTrace and BreakLoop, run by `newtc -dbg` after
+// NSDebugTools.ns (the definitions). Split off so newtc can put the
+// definitions (kNSDTools, the disassembler) into its own debug tools
+// package for a Newton (DebugToolsPackage.ns) without installing them on
+// the desktop; that package's InstallScript does the same on the Newton.
+
+//------------------------------------------------------------------------------
+// Install the global functions
+//------------------------------------------------------------------------------
+
+// newtc: the tools read the global breakOnThrows; on a Newton, the NTK
+// connection or SetupMyDebug (NSDShortCuts) defined it.
+if not GlobalVarExists('breakOnThrows) then
+  DefGlobalVar('breakOnThrows, nil);
+
+// newtc: newtc's compiler writes no DebuggerInfo, so let Disasm and
+// DisasmRange work on all functions (Apple's switch, see kNSDCanDisassemble).
+DefGlobalVar('becausePeterSaidSo, true);
+
+foreach name in ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
+                 'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,
+                 'GetAllTempVars, 'GetNamedVar, 'SetNamedVar, 'GetAllNamedVars,
+                 'GetPathToSlot, 'GetPathWhereSet, 'InstallBreakPoint,
+                 'RemoveBreakPoint, 'RemoveAllBreakPoints, 'GetAllBreakPoints,
+                 'EnableBreakPoint, 'SetBreakPointLabel, 'GetBreakPointLabel,
+                 'GloballyEnableBreakPoints, 'Step, 'StepIn, 'StepOut, 'RunUntil,
+                 'SetCurrentPC, 'Where, 'QuickStackTrace] do
+  DefGlobalFn(name, Perform(kNSDTools, name, []));
+
+// Replace StackTrace and BreakLoop, keeping the ROM's as StackTraceOld and
+// NSDOriginalBreakLoop. Only once: loading the tools again must not replace
+// the originals with the replacements.
+if not HasPath(functions, 'NSDOriginalBreakLoop) then
+begin
+  DefGlobalFn('StackTraceOld, GetGlobalFn('StackTrace));
+  DefGlobalFn('StackTrace, GetGlobalFn('QuickStackTrace));
+  DefGlobalFn('NSDOriginalBreakLoop, GetGlobalFn('BreakLoop));
+  DefGlobalFn('BreakLoop, kNSDTools:BreakLoop());
+end;

@@ -5,8 +5,10 @@
 //
 //   newtc -script Matt/Debugger/AgentNatives.ns -script Test/ntk/natives_test.ns -opkg natives_test.pkg
 //
-// Installed, it defines a global function |NativeTest:<name>| per native;
-// removing it removes them. The part is align4: ARM code must start on a
+// Installed, it defines a global function |NativeTest:<name>| per native,
+// and |NativeTest:SelfTest|(), which tries them all on its own stack frame
+// (and asks NS Debug Tools the same if they are installed); removing it
+// removes them. The part is align4: ARM code must start on a
 // word boundary. One block: a script's top-level locals don't reach its
 // next statement.
 
@@ -25,6 +27,67 @@ foreach name, entry in kAgentNatives do
     info: "newtc",
     data: {
       natives: natives,
+
+      // natives: the frame of BinCFunctions (the stack object's _proto);
+      // me: this function (to find its frame on the stack)
+      SelfTest: func(natives, me)
+      begin
+        local probe := 41;                      // on the stack: GetVar, SetVar
+        local found := 51;                      // used by a closure: in the argFrame, FindVar
+        local keep := func() found;
+        local ours := {_proto: natives, nsDebugAPI: call natives.MakeNSDebugAPI with ()};
+        local frame := nil;
+        for i := ours:NumStackFrames() - 1 to 0 by -1 do
+          if not frame and ours:Function(i) = me then
+            frame := i;
+        local result := {frames: ours:NumStackFrames(), frame: frame};
+        if frame then
+        begin
+          result.pc := ours:ProgramCounter(frame);
+          result.receiver := ours:Receiver(frame);
+          result.implementor := ours:Implementor(frame);
+          result.getVar0 := ours:GetVar(frame, 0) = natives;    // the first argument: true
+          local index := nil;
+          for k := 0 to 20 do
+            if not index then
+              try
+                if ours:GetVar(frame, k) = 41 then index := k;
+              onexception |evt.ex| do
+                nil;
+          result.probeIndex := index;
+          if index then
+          begin
+            ours:SetVar(frame, index, 43);
+            result.setVar := probe;                             // 43
+          end;
+          try
+          begin
+            result.findVar := ours:FindVar(frame, 'found);       // 51
+            ours:SetFindVar(frame, 'found, 52);
+            result.setFindVar := found;                         // 52
+          end
+          onexception |evt.ex| do
+            result.findVar := "error " & CurrentException().name;
+          result.numTemps := ours:NumTemps(frame);
+          if result.numTemps > 0 then
+            result.tempValue0 := ours:TempValue(frame, 0);
+        end;
+        local was := call natives.EnableBreakPoints with (true);
+        result.enableBreakPoints := [was, call natives.EnableBreakPoints with (was)];   // [?, true]
+        local list := call natives.InstallBreakPoints with (nil);
+        call natives.InstallBreakPoints with (list);                                 // put back
+        result.installBreakPoints := list;
+        // the same from NS Debug Tools, if they are there
+        if GlobalVarExists('NSDSelfFuncs) and HasPath(functions, 'NSDMakeNSDebugAPI) and frame then
+        begin
+          local theirs := {_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()};
+          result.nsdt := {frames: theirs:NumStackFrames(), pc: theirs:ProgramCounter(frame),
+                          sameFunction: theirs:Function(frame) = me,
+                          getVar0: theirs:GetVar(frame, 0) = natives, numTemps: theirs:NumTemps(frame)};
+        end;
+        result;
+      end,
+
       InstallScript: func(partFrame)
       begin
         local names := [];
@@ -34,6 +97,9 @@ foreach name, entry in kAgentNatives do
           functions.(fnName) := fn;
           AddArraySlot(names, fnName);
         end;
+        functions.(EnsureInternal('|NativeTest:SelfTest|)) := func()
+          call partFrame.SelfTest with (partFrame.natives, partFrame.SelfTest);
+        AddArraySlot(names, '|NativeTest:SelfTest|);
         EnsureInternal({names: names, removeScript: func(removeFrame)
           foreach fnName in removeFrame.names do
             RemoveSlot(functions, fnName)});

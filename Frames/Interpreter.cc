@@ -2940,6 +2940,8 @@ CInterpreter::callPlainCodeBlock(RefArg func, ArrayIndex numArgs, unsigned huh)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
+CFunction (*gBinCFunctionHook)(RefArg inFunc) = NULL;
+
 void
 CInterpreter::callCFunction(RefArg func, ArrayIndex numArgs, bool isUnordered)
 {
@@ -2949,7 +2951,11 @@ CInterpreter::callCFunction(RefArg func, ArrayIndex numArgs, bool isUnordered)
 
 	// not in ROM: a BinCFunction is ARM code from a package (e.g. NS Debug
 	// Tools' natives); newtc runs on the host and would jump into the bytes.
-	ThrowMsg("A BinCFunction (native ARM code from a package) can't run in newtc");
+	// gBinCFunctionHook may know a host function for it (newtc's own agent
+	// natives: the C++ stand-ins).
+	CFunction hostCode = gBinCFunctionHook ? gBinCFunctionHook(func) : NULL;
+	if (hostCode == NULL)
+		ThrowMsg("A BinCFunction (native ARM code from a package) can't run in newtc");
 
 	// set up VM
 	vm->func = func;
@@ -2970,6 +2976,7 @@ CInterpreter::callCFunction(RefArg func, ArrayIndex numArgs, bool isUnordered)
 		offset = RVALUE(((FrameObject *)ObjectPtr(func))->slot[kNativeFunctionOffsetIndex]);
 		code = (CFunction) (BinaryData(((FrameObject *)ObjectPtr(func))->slot[kNativeFunctionCodeIndex]) + offset);
 	}
+	code = hostCode;	// not in ROM: never the ARM bytes
 
 	// check number of args
 	if (numArgs != numArgsExpected)

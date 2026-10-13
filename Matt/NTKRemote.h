@@ -91,6 +91,18 @@ Ref FNTKLibrary(RefArg rcvr);
 //       that class (NTK's function, for build scripts); throws if unreadable
 Ref FLoadDataFile(RefArg rcvr, RefArg inFileName, RefArg inClass);
 
+/** NS Debug Tools' definitions (NSDebugTools.ns: kNSDTools, the
+    disassembler), loaded once; true if they are there. */
+bool NSDebugToolsDefinitions(void);
+/** The agent's natives (AgentNatives.ns: kAgentNativeCode, kAgentNatives),
+    loaded once; true if they are there. */
+bool AgentNativesDefinitions(void);
+/** gBinCFunctionHook (Frames/Interpreter.h): for a BinCFunction with newtc's
+    own native code, the C++ stand-in of that native (Frames/DebugAPI.cc), so
+    newtc (e.g. -ntk-device) runs packages that use them; NULL for others. */
+#include "Frames/Interpreter.h"
+CFunction NTKAgentNativeStandIn(RefArg inFunc);
+
 /** Keep an open link alive while no NewtonScript waits on it (-dap-server
     between sessions): send what is due ('stou'), and hand what the Newton
     sent to the handler. Doesn't wait. */

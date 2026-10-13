@@ -398,11 +398,11 @@ def main():
             check("package: no DAP errors (%s)" % e, False)
         logs = s.close()
         transcripts.append("\n".join(s.client.lines) + "\n--- logs ---\n" + logs)
-        # NS Debug Tools were missing: Apple's package uploaded (here its
-        # install script defines NSDOriginalBreakLoop before it reaches ARM
-        # code), or, without NTK's folder, a warning
-        check("package: NS Debug Tools uploaded when missing (or a warning)",
-              'installed "NS Debug Tools:PIE"' in logs or pending_tools_check)
+        # NS Debug Tools were missing: newtc's own debug tools uploaded (3.18c;
+        # Apple's with NEWTC_NSDT_PACKAGE), no warning
+        check("package: debug tools uploaded when missing (newtc's own)",
+              ('installed "DebugTools:newtc"' in logs and not pending_tools_check)
+              or (os.environ.get("NEWTC_NSDT_PACKAGE") and 'installed "NS Debug Tools:PIE"' in logs))
         check("package: the agent installed first, then the package",
               logs.find('installed "DAPAgent:newtc"') < logs.find('installed "hello:SIG"') != -1)
         check("package: both end (exit codes %s, %s)" % (s.dap.returncode, s.device.returncode),

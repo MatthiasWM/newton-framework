@@ -93,6 +93,11 @@ struct StackState
 
 typedef Ref (*CFunction)(RefArg,...);
 
+/* not in ROM: newtc can't run a BinCFunction (ARM code from a package). If
+   set, this may name a host function to run instead (newtc's own agent
+   natives: their C++ stand-ins), else NULL: the call throws. */
+extern CFunction (*gBinCFunctionHook)(RefArg inFunc);
+
 typedef int FramesProfilingKind;
 typedef void (*TraceFunction)(RefArg, RefArg, int, int, FramesProfilingKind, void*);
 

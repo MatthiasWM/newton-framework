@@ -5,10 +5,15 @@
 
 DefGlobalVar('NTKRemote, {
 
-  // Apple's NS Debug Tools.pkg (ARM code inside: newtc's embedded version
-  // can't stand in for it on a Newton). NTKLibrary() sets it from the
-  // environment variable NEWTC_NSDT_PACKAGE, else NTK 1.6.4's folder.
+  // Apple's NS Debug Tools.pkg, to use instead of newtc's own: NTKLibrary()
+  // sets it from the environment variable NEWTC_NSDT_PACKAGE. nil: newtc's
+  // own debug tools (DebugToolsPackage.ns, NewtcDebugToolsPackage), unless
+  // the Newton has NSDT already.
   debugToolsPackage: nil,
+
+  // The version of newtc's own debug tools this newtc brings
+  // (DebugToolsPackage.ns, |DebugTools:newtc:Version|).
+  toolsVersion: 1,
 
   // The agent version this newtc brings (Agent.ns).
   agentVersion: 13,
@@ -48,10 +53,29 @@ DefGlobalVar('NTKRemote, {
   HasDebugTools: func()
     NTKCall(Compile("HasPath(functions, 'NSDOriginalBreakLoop)")),
 
-  // Install NS Debug Tools if they are missing. Returns 0, or an error code,
-  // or a message if the package can't be read.
+  // The version of newtc's own debug tools on the Newton, nil if they
+  // aren't there.
+  OwnToolsVersion: func()
+    NTKCall(Compile("if HasPath(functions, '|DebugTools:newtc:Version|) then "
+                    & "call functions.|DebugTools:newtc:Version| with ()")),
+
+  // Debug tools on the Newton: newtc's own (installed, or replaced by a
+  // newer version) unless Apple's NS Debug Tools are there; Apple's when
+  // debugToolsPackage is set. Returns 0, or an error code, or a message.
   EnsureDebugTools: func()
   begin
+    if not debugToolsPackage then
+    begin
+      local version := :OwnToolsVersion();
+      if version = toolsVersion then
+        return 0;
+      if not version and :HasDebugTools() then
+        return 0;                       // Apple's NS Debug Tools
+      local error := :InstallPackage(NTKMakePackage(NewtcDebugToolsPackage));
+      if error <> 0 then
+        return error;
+      return if :OwnToolsVersion() = toolsVersion then 0 else "newtc's debug tools didn't install";
+    end;
     if :HasDebugTools() then
       return 0;
     if not debugToolsPackage then

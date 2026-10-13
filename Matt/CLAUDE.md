@@ -569,8 +569,8 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
 
 Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
 need repairs: two recaps, one ePaper display conversion). 3.12, 3.13, and
-3.14a, 3.15, 3.16, 3.17, 3.18a done; 3.14b waits for hardware too; 3.18b1
-waits for its first try on Einstein.
+3.12 to 3.18 done except 3.14b (57600 bps), which waits for hardware with
+3.11. Debugging on a Newton needs nothing from NTK any more.
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
 - [x] 3.15 Breakpoints in an InstallScript, and "Break in InstallScript"
@@ -652,7 +652,7 @@ Toolkit.pkg; NS Debug Tools.pkg is the last file from NTK (stack,
 variables, breakpoints, stepping need it; without it: output, exceptions,
 evaluate). It can't be replaced by NewtonScript alone: its few
 `BinCFunction`s reach the interpreter (Toolkit Protocol.md 7.3).
-- [ ] 3.18 Our own debug natives in the agent, instead of NS Debug Tools.
+- [x] 3.18 Our own debug natives, instead of NS Debug Tools (2026-10-13).
   - [x] 3.18a Inventory (2026-10-13): Toolkit Protocol.md 7.4. The agent
         uses 16 NSDT functions (stack, variables, breakpoints, Step/StepIn/
         StepOut, GloballyEnableBreakPoints, the BreakLoop hook); they rest on
@@ -677,7 +677,7 @@ evaluate). It can't be replaced by NewtonScript alone: its few
         table** (0x01800000 + offset, 7.4; Matt, 2026-10-13: so ROMs in
         other languages work), never a ROM-build address; not Apple's
         bytes.
-    - [ ] 3.18b1 (2026-10-13, to try on Einstein) What NSDT's ARM code
+    - [x] 3.18b1 (2026-10-13) What NSDT's ARM code
           shows (disassembled with arm-none-eabi-objdump -EB): a native is
           C `Ref F(RefArg rcvr, RefArg a1, ...)`: r0 the receiver, r1...
           the arguments, each a pointer to a RefVar -> RefHandle* -> Ref;
@@ -704,13 +704,56 @@ evaluate). It can't be replaced by NewtonScript alone: its few
           and ARMLink in the path are outdated). The StrongARM has no
           Thumb (Matt): ARMv4 code only, no bx; `-march=armv4` makes the
           assembler refuse both.
-    - [ ] 3.18b2 The other methods: ProgramCounter (PC), Receiver,
-          Implementor, GetVar, SetVar, FindVar, SetFindVar, NumTemps,
-          TempValue, SetTempValue; tried on Einstein against NSDT's
-          answers.
-  - [ ] 3.18c The agent carries the natives and the NewtonScript layer
-        it needs; EnsureDebugTools becomes optional (an installed NSDT
-        still works). The newtc app or the agent says what's missing.
+    - [x] 3.18b2 (2026-10-13) The other methods:
+          ProgramCounter (PC), Receiver, Implementor, GetVar, SetVar,
+          FindVar, SetFindVar, NumTemps, TempValue, SetTempValue: 15
+          natives in all, 952 bytes; six macros for their argument kinds
+          (an integer frame, a second integer, a symbol, a value; result a
+          Ref, an integer, or nil). Fixed on the way: ApiOf read the
+          receiver's Ref before Intern, which may allocate and move objects
+          (NSDT reads it after). The test package's
+          `|NativeTest:SelfTest|()` tries them all on its own frame (and
+          asks NSDT the same, if installed); its logic checked in newtc with
+          the C++ stand-ins in place of the natives (FindVar needs a
+          variable in the argFrame: one a closure uses).
+          On Einstein (Matt, 2026-10-13), all as expected, and as NSDT:
+          frames 4, frame 2 (NSDT: the same, sameFunction), GetVar of the
+          first argument, SetVar 43, FindVar 51, SetFindVar 52,
+          EnableBreakPoints [true, true], InstallBreakPoints nil (put back),
+          pc 133 (NSDT 586: asked later; the stand-ins gave the same two).
+          To look at in 3.18c: NumTemps -14, from NSDT as well, so the ROM's
+          answer for a frame that isn't stopped in a break loop (the
+          stand-in said 10); check it at a real stop (GetAllTempVars).
+  - [x] 3.18c newtc's own debug tools (Matt, 2026-10-13: a separate
+        package, NSDT-compatible, not inside the agent).
+    - [x] 3.18c1 (2026-10-13) Package "DebugTools:newtc"
+          (`Matt/Debugger/DebugToolsPackage.ns`, built in newtc as the global
+          NewtcDebugToolsPackage, 37 KB): newtc's port of NSDT's NewtonScript
+          (kNSDTools, MakeDisassembler, Disasm, DisasmRange) and our 18 ARM
+          natives (3 more: AccurateStack, SetProgramCounter, RefToHexString
+          via the ROM's sprintf and MakeString); NSDFindSlotName is
+          NewtonScript. Its InstallScript does what NSDT does: the natives
+          under NSDT's names, NSDSelfFuncs, the global functions from the
+          makers, StackTrace and BreakLoop replaced (the ROM's kept as
+          StackTraceOld, NSDOriginalBreakLoop, so the agent's
+          NSDBreakLoopEntry hook works as with NSDT), and
+          |DebugTools:newtc:Version|; RemoveScript undoes it. NSDebugTools.ns
+          is split: the definitions, and NSDebugToolsInstall.ns (what `-dbg`
+          runs after them). Remote.ns EnsureDebugTools: newtc's own tools
+          (installed, or replaced by a newer version) unless the Newton has
+          Apple's NSDT; Apple's only with NEWTC_NSDT_PACKAGE (no more default
+          path to NTK's folder). newtc can run the package: `gBinCFunctionHook`
+          (Interpreter.cc, not in ROM) gives a BinCFunction with our natives'
+          code its C++ stand-in (`NTKAgentNativeStandIn`), so `-ntk-device`
+          runs the whole package in tests. Test: `Test/ntk/test_dap_tools.py`
+          (a stock Newton gets the tools after the agent; a breakpoint, the
+          stack, variables, a step; a second session doesn't upload them
+          again). Found B37 on the way.
+    - [x] 3.18c2 On Einstein without Apple's NSDT (Matt, 2026-10-13):
+          locals all there, the stack fine (so NumTemps at a real stop is
+          right; the -14 of 3.18b2 was a frame not stopped in a break
+          loop). A Newton now needs nothing from NTK: the newtc app
+          (3.14a), the agent, newtc's debug tools.
 
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
@@ -732,6 +775,18 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B37 newtc's package reader (NewtonPackage.cc, 64-bit) misread some
+  packages: a part's data came back as another object (newtc's debug tools
+  package: its data a symbol, so its InstallScript wasn't there). After
+  CopyRef had made every Ref an address, UpdateRef "fixed up" the slots
+  again through a map keyed by 32-bit package offsets: an address whose low
+  32 bits looked like an offset was replaced by another object. Big parts
+  are malloc'ed at 0x...00000000, so their addresses' low bits are small
+  offsets. Fixed 2026-10-13: no UpdateRef (CopyRef maps everything, also
+  cycles: an object is mapped before its slots are copied). Also made the
+  Refs of the package frame being built RefVars (allocations may move
+  objects). The written package was fine (checked object by object); a
+  Newton reads it itself. Test: test_dap_tools.py.
 - [ ] B36 `GetRoot():ChildViewFrames()` hangs in newtc while an app is
   open (FLTK build), and so does `GetRoot():GlobalBox()` (more of the root
   view's methods?); with no window ChildViewFrames throws "nil view". The ROM's

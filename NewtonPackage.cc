@@ -385,7 +385,11 @@ NewtonPackage::partRef(ArrayIndex inPartNo)
 	ArrayObject * dstPtr = newRoot;
 	RefMap map;
 	CopyRef(CANONICAL_LONG(REF(partOffset)), partData, partOffset, dstPtr, map);
-	UpdateRef(newRoot->slot, map);	// Ref offsets -> addresses
+	// not UpdateRef(newRoot->slot, map) (newtc bug B37): CopyRef already made
+	// every Ref an address (also cyclic ones: an object is mapped before its
+	// slots are copied), and the map's keys are 32-bit package offsets, so an
+	// address whose low 32 bits look like one (a big part: malloc returns
+	// 0x...00000000) was "fixed up" again, to another object.
 
 	// don't need the 32-bit part data any more
 	free(partData);
@@ -432,7 +436,9 @@ Ref NewtonPackage::packageRef()
 		return NILREF;
 	char * pkgData = (char *)dir + sizeof(PackageDirectory) + dir->numParts * sizeof(PartEntry);
 
-	Ref package = AllocateFrame();
+	// RefVars, not Refs: the allocations below may collect garbage and move
+	// objects (newtc bug B37: a part's data slot written into a moved frame)
+	RefVar package(AllocateFrame());
 	if (strncmp(dir->signature, "package0", 8) == 0) {
 		SetFrameSlot(package, MakeSymbol("signature"), MakeSymbol("package0"));
 	} else if (strncmp(dir->signature, "package1", 8) == 0) {
@@ -441,7 +447,7 @@ Ref NewtonPackage::packageRef()
 		SetFrameSlot(package, MakeSymbol("signature"), MakeSymbol("unknown"));
 	}
 	SetFrameSlotFourCC(package, MakeSymbol("id"), dir->id);
-	Ref flags = AllocateFrame();
+	RefVar flags(AllocateFrame());
 	if (FLAGTEST(dir->flags, kAutoRemoveFlag)) {
 		SetFrameSlot(flags, MakeSymbol("autoRemove"), TRUEREF);
 	}
@@ -484,16 +490,16 @@ Ref NewtonPackage::packageRef()
 		SetFrameSlot(package, MakeSymbol("info"), MakeStringFromCString(infoStart, (int)infoSize));
 	}
 
-	Ref partArray = AllocateArray(SYMA(array), dir->numParts);
+	RefVar partArray(AllocateArray(SYMA(array), dir->numParts));
 	for (ULong p = 0; p < dir->numParts; p++) {
-		Ref partFrame = AllocateFrame();
+		RefVar partFrame(AllocateFrame());
 		SetArraySlot(partArray, p, partFrame);
 		const PartEntry *part = partEntry(p);
-		Ref partRef = this->partRef(p);
+		RefVar partRef(this->partRef(p));
 		SetFrameSlot(partFrame, SYMA(offset), MAKEINT(part->offset));
 		SetFrameSlot(partFrame, SYMA(size), MAKEINT(part->size));
 		SetFrameSlotFourCC(partFrame, SYMA(type), part->type);
-		Ref flags = AllocateFrame();
+		RefVar flags(AllocateFrame());
 		switch (part->flags & kPartTypeMask) {
 			case kProtocolPart:
 				SetFrameSlot(flags, MakeSymbol("type"), MakeSymbol("protocol"));

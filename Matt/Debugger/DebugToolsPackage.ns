@@ -1,0 +1,140 @@
+// DebugToolsPackage.ns: newtc's own debug tools for a Newton (plan step
+// 3.18c), instead of Apple's NS Debug Tools.pkg: a newcomer needs nothing
+// from NTK. Embedded in newtc as gDebugToolsPackageScript; NTKLibrary()
+// runs it after NSDebugTools.ns (the definitions: kNSDTools, the
+// disassembler) and AgentNatives.ns (our ARM natives), and it defines the
+// global NewtcDebugToolsPackage, the package as a frame
+// (Remote.ns: EnsureDebugTools uploads it when the Newton has no debug
+// tools).
+//
+// It is NSDT-compatible: the same global functions, the same natives under
+// NSDT's names (NSDInstallBreakPoints, NSDEnableBreakPoints,
+// NSDMakeNSDebugAPI, NSDRefToHexString, NSDFindSlotName, NSDSelfFuncs), the
+// same BreakLoop replacement with its NSDBreakLoopEntry hook. So the agent
+// works with either; an installed NSDT stays in charge (it isn't installed
+// then). The NewtonScript is newtc's port of NSDT's (NSDebugTools.ns), the
+// natives are our own (AgentNatives.s; NSDFindSlotName is NewtonScript).
+// Uploaded once per Newton, like NSDT: it changes rarely (its version: the
+// global function |DebugTools:newtc:Version|, Remote.ns toolsVersion).
+//
+// An auto part, align4 (ARM code must start on a word boundary). The
+// InstallScript does on the Newton what NSDebugToolsInstall.ns does in
+// newtc; symbols that become slots in RAM go through EnsureInternal.
+
+DefGlobalVar('NewtcDebugToolsPackage, begin
+  local natives := {};
+  foreach name, entry in kAgentNatives do
+    natives.(name) := {class: 'BinCFunction, code: kAgentNativeCode,
+                       numArgs: entry[1], offset: entry[0]};
+  // the methods of the stack object (NSDT: NSDSelfFuncs)
+  local selfFuncs := {};
+  foreach name in ['AccurateStack, 'NumStackFrames, 'Function, 'ProgramCounter,
+                   'SetProgramCounter, 'Receiver, 'Implementor, 'GetVar, 'SetVar,
+                   'FindVar, 'SetFindVar, 'NumTemps, 'TempValue, 'SetTempValue] do
+    selfFuncs.(name) := natives.(name);
+  {
+    signature: 'package0,
+    id: "xxxx",
+    flags: { noCompression: true },
+    version: 1,
+    copyright: "newtc",
+    name: "DebugTools:newtc",
+    modifyDate: 0,
+    info: "newtc's debug tools (breakpoints, stack, stepping)",
+    part: [
+      {
+        offset: 0,
+        size: 0,
+        type: "auto",
+        flags: { type: 'nos, align4: true, Notify: true },
+        info: "newtc",
+        data: {
+          tools: kNSDTools,                       // NSDT's library frame (its makers)
+          makeDisassembler: GetGlobalFn('MakeDisassembler),
+          disasm: GetGlobalFn('Disasm),
+          disasmRange: GetGlobalFn('DisasmRange),
+          natives: natives,
+          selfFuncs: selfFuncs,
+          // the global functions NSDT defines from its makers
+          globalNames: ['GetCurrentFunction, 'GetCurrentPC, 'GetCurrentReceiver,
+                        'GetCurrentImplementor, 'GetTempVar, 'SetTempVar,
+                        'GetAllTempVars, 'GetNamedVar, 'SetNamedVar, 'GetAllNamedVars,
+                        'GetPathToSlot, 'GetPathWhereSet, 'InstallBreakPoint,
+                        'RemoveBreakPoint, 'RemoveAllBreakPoints, 'GetAllBreakPoints,
+                        'EnableBreakPoint, 'SetBreakPointLabel, 'GetBreakPointLabel,
+                        'GloballyEnableBreakPoints, 'Step, 'StepIn, 'StepOut, 'RunUntil,
+                        'SetCurrentPC, 'Where, 'QuickStackTrace],
+
+          VersionFn: func() 1,
+
+          // NSDFindSlotName(context, obj): the slot of context that holds
+          // obj (the index in an array); its own slots only
+          FindSlotName: func(context, obj)
+          begin
+            if IsFrame(context) then
+              foreach slot, value in context do
+                if value = obj then
+                  return slot;
+            if IsArray(context) then
+              foreach i, value in context do
+                if value = obj then
+                  return i;
+            nil;
+          end,
+
+          InstallScript: func(partFrame)
+          begin
+            local defined := [];
+            local define := func(name, fn)
+            begin
+              local symbol := EnsureInternal(name);
+              DefGlobalFn(symbol, fn);
+              AddArraySlot(defined, symbol);
+            end;
+            local natives := partFrame.natives;
+            call define with ('NSDInstallBreakPoints, natives.InstallBreakPoints);
+            call define with ('NSDEnableBreakPoints, natives.EnableBreakPoints);
+            call define with ('NSDMakeNSDebugAPI, natives.MakeNSDebugAPI);
+            call define with ('NSDRefToHexString, natives.RefToHexString);
+            call define with ('NSDFindSlotName, partFrame.FindSlotName);
+            DefGlobalVar(EnsureInternal('NSDSelfFuncs), partFrame.selfFuncs);
+            if not GlobalVarExists('breakOnThrows) then
+              DefGlobalVar(EnsureInternal('breakOnThrows), nil);
+            call define with ('MakeDisassembler, partFrame.makeDisassembler);
+            call define with ('Disasm, partFrame.disasm);
+            call define with ('DisasmRange, partFrame.disasmRange);
+            foreach name in partFrame.globalNames do
+              call define with (name, Perform(partFrame.tools, name, []));
+            // StackTrace and BreakLoop replaced, the ROM's kept (as NSDT)
+            local replaced := nil;
+            if not HasPath(functions, 'NSDOriginalBreakLoop) then
+            begin
+              DefGlobalFn(EnsureInternal('StackTraceOld), GetGlobalFn('StackTrace));
+              DefGlobalFn(EnsureInternal('StackTrace), GetGlobalFn('QuickStackTrace));
+              DefGlobalFn(EnsureInternal('NSDOriginalBreakLoop), GetGlobalFn('BreakLoop));
+              DefGlobalFn(EnsureInternal('BreakLoop), partFrame.tools:BreakLoop());
+              replaced := true;
+            end;
+            call define with ('|DebugTools:newtc:Version|, partFrame.VersionFn);
+            EnsureInternal({removeScript: partFrame.RemoveScript, defined: defined, replaced: replaced});
+          end,
+
+          // removed: the ROM's StackTrace and BreakLoop back, our globals gone
+          RemoveScript: func(removeFrame)
+          begin
+            if removeFrame.replaced then
+            begin
+              DefGlobalFn('BreakLoop, GetGlobalFn('NSDOriginalBreakLoop));
+              DefGlobalFn('StackTrace, GetGlobalFn('StackTraceOld));
+              RemoveSlot(functions, 'NSDOriginalBreakLoop);
+              RemoveSlot(functions, 'StackTraceOld);
+            end;
+            foreach symbol in removeFrame.defined do
+              RemoveSlot(functions, symbol);
+            RemoveSlot(vars, 'NSDSelfFuncs);
+          end
+        }
+      }
+    ]
+  };
+end);

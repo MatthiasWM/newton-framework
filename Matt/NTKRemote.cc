@@ -17,6 +17,8 @@
 #include "Matt/DAP.h"
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
+#include "Frames/DebugAPI.h"
+#include "Frames/Interpreter.h"
 
 #include <chrono>
 #include <cstdio>
@@ -579,6 +581,67 @@ Ref FNTKPackageName(RefArg rcvr, RefArg inPackage)
 
 extern const EmbeddedScript gAgentScript;
 extern const EmbeddedScript gRemoteScript;
+extern const EmbeddedScript gNSDebugToolsScript;        // Matt/Debugger/NSDebugTools.ns
+extern const EmbeddedScript gAgentNativesScript;        // Matt/Debugger/AgentNatives.ns
+extern const EmbeddedScript gDebugToolsPackageScript;   // Matt/Debugger/DebugToolsPackage.ns
+extern Ref * RSgConstantsFrame;
+
+static bool HaveConstant(const char *inName)
+{
+  return FrameHasSlot(RA(gConstantsFrame), MakeSymbol(inName));
+}
+
+bool NSDebugToolsDefinitions(void)
+{
+  return HaveConstant("kNSDTools") || RunEmbeddedScript(gNSDebugToolsScript);
+}
+
+bool AgentNativesDefinitions(void)
+{
+  return HaveConstant("kAgentNativeCode") || RunEmbeddedScript(gAgentNativesScript);
+}
+
+CFunction NTKAgentNativeStandIn(RefArg inFunc)
+{
+  static const struct { const char *name; CFunction fn; } kStandIns[] = {
+    { "InstallBreakPoints", (CFunction)FNSDInstallBreakPoints },
+    { "EnableBreakPoints", (CFunction)FNSDEnableBreakPoints },
+    { "MakeNSDebugAPI", (CFunction)FNSDMakeNSDebugAPI },
+    { "RefToHexString", (CFunction)FNSDRefToHexString },
+    { "AccurateStack", (CFunction)FNSDAccurateStack },
+    { "NumStackFrames", (CFunction)FNSDNumStackFrames },
+    { "Function", (CFunction)FNSDFunction },
+    { "ProgramCounter", (CFunction)FNSDProgramCounter },
+    { "SetProgramCounter", (CFunction)FNSDSetProgramCounter },
+    { "Receiver", (CFunction)FNSDReceiver },
+    { "Implementor", (CFunction)FNSDImplementor },
+    { "GetVar", (CFunction)FNSDGetVar },
+    { "SetVar", (CFunction)FNSDSetVar },
+    { "FindVar", (CFunction)FNSDFindVar },
+    { "SetFindVar", (CFunction)FNSDSetFindVar },
+    { "NumTemps", (CFunction)FNSDNumTemps },
+    { "TempValue", (CFunction)FNSDTempValue },
+    { "SetTempValue", (CFunction)FNSDSetTempValue },
+  };
+  if (!AgentNativesDefinitions())
+    return NULL;
+  // our code: the same bytes as kAgentNativeCode
+  RefVar code(GetFrameSlot(inFunc, MakeSymbol("code")));
+  RefVar ours(GetFrameSlot(RA(gConstantsFrame), MakeSymbol("kAgentNativeCode")));
+  if (!IsBinary(code) || !IsBinary(ours) || Length(code) != Length(ours)
+   || memcmp(BinaryData(code), BinaryData(ours), Length(code)) != 0)
+    return NULL;
+  RefVar offset(GetFrameSlot(inFunc, MakeSymbol("offset")));
+  RefVar natives(GetFrameSlot(RA(gConstantsFrame), MakeSymbol("kAgentNatives")));
+  if (!ISINT(offset) || !IsFrame(natives))
+    return NULL;
+  for (const auto &standIn : kStandIns) {
+    RefVar entry(GetFrameSlot(natives, MakeSymbol(standIn.name)));
+    if (IsArray(entry) && Length(entry) > 0 && GetArraySlot(entry, 0) == offset)
+      return standIn.fn;
+  }
+  return NULL;
+}
 
 // NTKLibrary(): the global NTKRemote (Matt/Debugger/Remote.ns), loaded with
 // the agent (Agent.ns) the first time; without line tables and variable
@@ -592,25 +655,20 @@ Ref FNTKLibrary(RefArg rcvr)
   RefVar lines(GetGlobalVar(MakeSymbol("dbgKeepLineNumbers")));
   DefGlobalVar(MakeSymbol("dbgKeepVarNames"), NILREF);
   DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), NILREF);
-  bool ok = RunEmbeddedScript(gAgentScript) && RunEmbeddedScript(gRemoteScript);
+  // newtc's own debug tools package (DebugToolsPackage.ns: NSDT's
+  // definitions and our natives)
+  bool ok = RunEmbeddedScript(gAgentScript) && RunEmbeddedScript(gRemoteScript)
+            && NSDebugToolsDefinitions() && AgentNativesDefinitions()
+            && RunEmbeddedScript(gDebugToolsPackageScript);
   DefGlobalVar(MakeSymbol("dbgKeepVarNames"), names);
   DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), lines);
   if (!ok)
     Fail("NTKLibrary: can't load Remote.ns");
   library = GetGlobalVar(MakeSymbol("NTKRemote"));
+  // Apple's NS Debug Tools.pkg instead of newtc's own, if asked for
   const char *env = getenv("NEWTC_NSDT_PACKAGE");
-  std::string tools;
-  if (env && *env) {
-    tools = env;
-  } else if (const char *home = getenv("HOME")) {
-    tools = std::string(home) + "/Azureus/unna2/apple/development/NTK/macntk/NTK 1.6.4b3/"
-            "NTK 1.6.4b3/Newton Debug Tools 2.2/NS Debug Tools.pkg";
-    struct stat info;
-    if (stat(tools.c_str(), &info) != 0)
-      tools.clear();
-  }
-  if (!tools.empty())
-    SetFrameSlot(library, MakeSymbol("debugToolsPackage"), MakeStringFromCString(tools.c_str()));
+  if (env && *env)
+    SetFrameSlot(library, MakeSymbol("debugToolsPackage"), MakeStringFromCString(env));
   return library;
 }
 
