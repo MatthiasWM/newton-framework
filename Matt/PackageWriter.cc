@@ -64,14 +64,17 @@ public:
       }
     }
   }
-  void alignTo4() {
+  // inFill: 0xBF between objects (as NTK); 0 after the directory's
+  // strings, as NTK, so the package info (whose length isn't stored) ends
+  // at its first NUL
+  void alignTo4(uint8_t inFill = 0xbf) {
     assert((size_t)tellp() == str().size());
     size_t len = str().size();
     size_t aligned_len = (len + 3) & ~0x00000003;
     size_t filler = aligned_len - len;
     if (filler) {
-      uint32_t bf = 0xbfbfbfbf;
-      write((const char*)&bf, aligned_len-len);
+      uint8_t bf[4] = { inFill, inFill, inFill, inFill };
+      write((const char*)bf, aligned_len-len);
     }
   }
   void alignTo8() {
@@ -329,7 +332,7 @@ void NewtonPackageWriter::writePackage(RefArg package)
   }
   // If you change this here, change this in calculateVarDataSize as well
   // align(varData_.get());
-  varData_->alignTo4();
+  varData_->alignTo4(0);
 
   //   ULong size;
   assert(varDataSize_ == (uint32_t)varData_->str().size());

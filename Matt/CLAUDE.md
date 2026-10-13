@@ -775,6 +775,14 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B38 A package's info (the creator text after the directory) has no
+  stored length and no NUL: the reader took everything up to the end of the
+  directory, so newtc's own packages read back with "ø ø ø" (newtc padded
+  the directory with 0xBF, NTK's padding between objects). The corpus shows
+  NTK pads the directory with zeros. Fixed 2026-10-13: the writer pads it
+  with zeros, the reader takes the text up to the first NUL (and drops up to
+  three trailing 0xBF from older newtc packages). The unused UpdateRef
+  (B37) is gone. Corpus unchanged.
 - [x] B37 newtc's package reader (NewtonPackage.cc, 64-bit) misread some
   packages: a part's data came back as another object (newtc's debug tools
   package: its data a symbol, so its InstallScript wasn't there). After
@@ -819,12 +827,14 @@ to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
   an entry into "doesn't exist". Fixed 2026-10-05 (Frames/Lookup.cc): an
   entry whose receiver, slot, or implementor died is dropped. Found by
   the stepping test (a GC at the right moment).
-- [ ] B33 Undefined global function: newtc's interpreter throws
-  `{errorCode: -48808, value: 'Foo}`, the ROM `{errorCode: -48808, symbol:
-  'Foo}` (Einstein, Toolkit Protocol.md 6.1). Check the other errors'
-  slot names against the ROM too. Found 2026-10-05 (test_remote.py
-  accepts both for now).
-- [ ] B32 `newtc -nsof` with a missing file or one that isn't NSOF ends in
-  "Unhandled exception evt.ex.pipe -- warm reboot!" (or evt.ex.fr.store)
-  with exit code 0, instead of an error message and exit code 1. (Before
-  B31's fix too.) Found 2026-10-05.
+- [x] B33 Undefined global function (and variable): newtc's interpreter
+  threw `{errorCode: -48808, value: 'Foo}`, the ROM `{..., symbol: 'Foo}`
+  (Einstein, Toolkit Protocol.md 6.1). Fixed 2026-10-13
+  (Frames/Exceptions.cc, ThrowExInterpreterWithSymbol, read in newtonos.s).
+  The other throw helpers there already match the ROM's slot names (checked
+  against newtonos.s). DAP.ns reads 'symbol, else 'value; test_remote.py and
+  the case exception_data expect 'symbol.
+- [x] B32 `newtc -nsof` with a missing file or one that isn't NSOF ended in
+  "Unhandled exception evt.ex.pipe -- warm reboot!". Fixed 2026-10-13:
+  "newtc: ERROR: -nsof: can't open ..." or "... isn't NSOF", exit code
+  non-zero.

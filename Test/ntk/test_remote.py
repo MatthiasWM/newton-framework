@@ -115,9 +115,9 @@ def main():
     check("NTKCall: results as objects", '["call", 42]' in lines and "[\"call\", [1, \"two\", 'three]]" in lines)
     check("NTKEvaluate: the Newton's output to Text",
           '"text: \\"hello\\""' in lines and '"text: #2        nil"' in lines)
-    # B33: newtc's interpreter names the function in 'value, the ROM in 'symbol
+    # the function in 'symbol, as the ROM (B33, fixed: newtc said 'value)
     check("an exception (eref) to Exception with its frame",
-          any(l.startswith('["exception", "evt.ex.fr.intrp;type.ref.frame", {errorCode: -48808, ')
+          any(l.startswith('["exception", "evt.ex.fr.intrp;type.ref.frame", {errorCode: -48808, symbol: ')
               and "'NoSuchFunctionProbe}]" in l for l in lines))
     check("an error (eerr) to Exception with its code", '["exception", "evt.ex.fr.intrp", -48800]' in lines)
     i = lines.index('["breakloop", true]') if '["breakloop", true]' in lines else -1

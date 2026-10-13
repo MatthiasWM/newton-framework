@@ -83,7 +83,8 @@ DefGlobalVar('DAP, {
     if ex.message then
       return ex.message;
     local code := if IsFrame(ex.data) then ex.data.errorCode else ex.error;
-    local value := if IsFrame(ex.data) then ex.data.value;
+    // the value it is about ('symbol for an undefined function or variable, as the ROM)
+    local value := if IsFrame(ex.data) then (if HasSlot(ex.data, 'symbol) then ex.data.symbol else ex.data.value);
     if IsString(value) then
       return value;
     local text := DAPErrorText(code);

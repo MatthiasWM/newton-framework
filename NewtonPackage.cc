@@ -37,7 +37,6 @@ bool		IsObjClass(Ref obj, const char * inClassName);
 
 size_t	ScanRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ScanRefMap & ioMap);
 Ref		CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &ioDstPtr, RefMap & ioMap);
-void		UpdateRef(Ref * inRefPtr, RefMap & inMap);
 #else
 void		FixUpRef(Ref * inRefPtr, char * inBaseAddr);
 #endif
@@ -486,6 +485,12 @@ Ref NewtonPackage::packageRef()
 	const char *infoStart = pkgData + lastPart.info.offset + lastPart.info.length;
 	const char *infoEnd = (char*)dir + dir->directorySize;
 	size_t infoSize = infoEnd - infoStart;
+	// its length isn't stored: it ends at its first NUL (NTK pads with
+	// zeros), and older newtc packages padded with up to three 0xBF
+	infoSize = strnlen(infoStart, infoSize);
+	for (size_t pad = 0; pad < 3 && infoSize > 0 && infoStart + infoSize > infoEnd - 4
+	                     && (uint8_t)infoStart[infoSize - 1] == 0xBF; pad++)
+		infoSize--;
 	if (infoSize > 0) {
 		SetFrameSlot(package, MakeSymbol("info"), MakeStringFromCString(infoStart, (int)infoSize));
 	}
@@ -718,40 +723,6 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 		return ref;
 	}
 	return srcRef;
-}
-
-
-/* -----------------------------------------------------------------------------
-	Pass 3: fix up 64-bit refs at new addresses
-	For pointer refs, fix up the class.
-	For slotted refs, fix up all slots recursively.
-
-	Args:		inRefPtr		pointer to ref to be fixed up
-				ioMap			mapping of pointer Ref, pkg relative offset -> address
-	Return:	--
------------------------------------------------------------------------------ */
-
-void
-UpdateRef(Ref * inRefPtr, RefMap & inMap)
-{
-	Ref ref = *inRefPtr;
-	if (ISREALPTR(ref)) {
-		RefMap::iterator mapping = inMap.find(ref);
-		if (mapping != inMap.end()) {
-			*inRefPtr = mapping->second;
-			ArrayObject *  obj = (ArrayObject *)PTR(*inRefPtr);
-			// for frames, class is actually the map which needs fixing too; non-pointer refs may need byte-swapping anyway so we always need to do this
-			UpdateRef(&obj->objClass, inMap);
-
-			//	if it's a frame / array, step through each slot / element fixing those
-			if ((obj->flags & kObjSlotted)) {
-				Ref * refPtr = obj->slot;
-				for (ArrayIndex count = ARRAYLENGTH(obj); count > 0; --count, ++refPtr) {
-					UpdateRef(refPtr, inMap);
-				}
-			}
-		}
-	}
 }
 
 #else

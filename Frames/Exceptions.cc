@@ -341,7 +341,7 @@ ThrowExInterpreterWithSymbol(NewtonErr errorCode, RefArg value)
 {
 	RefVar fr(AllocateFrame());
 	SetFrameSlot(fr, SYMA(errorCode), MAKEINT(errorCode));
-	SetFrameSlot(fr, SYMA(value), value);
+	SetFrameSlot(fr, SYMA(symbol), value);		// as the ROM (B33: was value)
 	ThrowRefException(exInterpreterData, fr);
 }
 

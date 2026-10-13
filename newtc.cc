@@ -334,9 +334,25 @@ void handleArgPkg(const std::string &filename)
 void handleArgNsof(const std::string &filename)
 {
   currentFileName = filename;
-  CStdIOPipe inPipe(filename.c_str(), "rb");
-  CObjectReader reader(inPipe);
-  RefVar ref = reader.read();     // throws if the file isn't NSOF; nil is fine
+  FILE *f = fopen(filename.c_str(), "rb");
+  if (f == nullptr)
+    throw(std::runtime_error("-nsof: can't open \"" + filename + "\"."));
+  fclose(f);
+  RefVar ref;
+  volatile bool ok = true;    // volatile: changed in newton_catch (longjmp)
+  newton_try
+  {
+    CStdIOPipe inPipe(filename.c_str(), "rb");
+    CObjectReader reader(inPipe);
+    ref = reader.read();      // throws if the file isn't NSOF; nil is fine
+  }
+  newton_catch_all
+  {
+    ok = false;
+  }
+  end_try;
+  if (!ok)                    // B32: was "Unhandled exception ... warm reboot!"
+    throw(std::runtime_error("-nsof: \"" + filename + "\" isn't NSOF (a flattened Newton object)."));
   addGlobalRef(ref);
 }
 
