@@ -22,7 +22,8 @@
 #include "Frames/Objects.h"
 
 // NewtonScript functions, registered in newtc.cc:
-//   NTKOpen(target) -> nil, or an error message (see NTKTransport.h)
+//   NTKOpen(target) -> nil, or an error message (see NTKTransport.h); the
+//       same target again while it is open (not closed): nil, it stays open
 //   NTKWaitConnected(seconds) -> true when connected, nil after the time
 //   NTKIsConnected() -> true while the Toolkit connection is up
 //   NTKCall(fn) -> what fn returns on the Newton ('code'); waits at most
@@ -82,5 +83,10 @@ Ref FNTKLibrary(RefArg rcvr);
 //   LoadDataFile(fileName, class) -> the file's bytes as a binary object of
 //       that class (NTK's function, for build scripts); throws if unreadable
 Ref FLoadDataFile(RefArg rcvr, RefArg inFileName, RefArg inClass);
+
+/** Keep an open link alive while no NewtonScript waits on it (-dap-server
+    between sessions): send what is due ('stou'), and hand what the Newton
+    sent to the handler. Doesn't wait. */
+void NTKIdle(void);
 
 #endif // MATT_NTKREMOTE_H

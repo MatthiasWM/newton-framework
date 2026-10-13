@@ -37,6 +37,7 @@ DefGlobalVar('DAPRemote, {
   remoteBreakpoints: [],  // {id, path, line, verified, actualLine, places: [[path in program, pc], ...]}
   unsentFiles: [],      // files whose breakpoints changed while the Newton was busy
   stopKind: nil,        // what the agent said about the coming stop ('breakpoint)
+  ended: nil,           // EndSession() is done
 
   Console: func(text)
     :SendEvent("output", {category: "console", output: text & kLF}),
@@ -171,10 +172,15 @@ DefGlobalVar('DAPRemote, {
       :Console("Can't use the target \"" & args.target & "\": " & error);
       return :Finish(1);
     end;
-    :Console("Waiting for a Newton on " & args.target
-             & ". In its Toolkit app, tap \"Connect Inspector\".");
-    while not NTKIsConnected() do
-      :Serve(1);
+    if NTKIsConnected() then
+      :Console("The Newton on " & args.target & " is still connected.")
+    else
+    begin
+      :Console("Waiting for a Newton on " & args.target
+               & ". In its Toolkit app, tap \"Connect Inspector\".");
+      while not NTKIsConnected() do
+        :Serve(1);
+    end;
 
     // prepare the Newton: with breakOnThrows off (an error while
     // installing mustn't stop there while we wait for the answer)
@@ -726,18 +732,28 @@ DefGlobalVar('DAPRemote, {
   // The session ends: the agent's breakpoints go and a stopped program
   // goes on (a stop nobody sees would hang the Newton), then the
   // connection. Nothing waits for answers: the Newton handles these calls
-  // in order, before the connection's end.
+  // in order, before the connection's end. newtc -dap-server keeps the
+  // connection for the next session: breakOnThrows goes off there, and
+  // DAPServerIdle handles what the Newton does meanwhile.
   EndSession: func()
   begin
+    if ended then
+      return nil;
+    ended := true;
+    local keep := GlobalVarExists('dapServer) and dapServer;
     if NTKIsConnected() then
     begin
       NTKCallAsync(Compile("begin local |dap bot| := vars.breakOnThrows; breakOnThrows := nil; "
         & "try if HasPath(functions, '|DAPAgent:Reset|) then call functions.|DAPAgent:Reset| with () "
-        & "onexception |evt.ex| do nil; vars.breakOnThrows := |dap bot|; nil end"));
+        & "onexception |evt.ex| do nil; vars.breakOnThrows := "
+        & (if keep then "nil" else "|dap bot|") & "; nil end"));
       for i := 1 to depth do
         NTKLeaveBreakLoop(:ExitBreakLoopBlock());
     end;
-    NTKClose();
+    if keep then
+      NTKSetHandler(DAPServerIdle)
+    else
+      NTKClose();
   end,
 
   // ExitBreakLoop() for the Newton, harmless if it isn't in a break loop
@@ -747,6 +763,21 @@ DefGlobalVar('DAPRemote, {
   ExitBreakLoopBlock: func()
     Compile("begin local |dap bot| := vars.breakOnThrows; breakOnThrows := nil; "
       & "try ExitBreakLoop() onexception |evt.ex| do nil; vars.breakOnThrows := |dap bot|; nil end"),
+});
+
+
+// newtc -dap-server between sessions: the Newton stays connected, nobody
+// debugs. A break loop (BreakLoop(), a breakpoint the agent didn't set)
+// is left at once: a stop nobody sees would hang the Newton. What isn't
+// handled here, newtc prints in its terminal (text, exceptions, the
+// connection's end and a new one).
+DefGlobalVar('DAPServerIdle, {
+  BreakLoop: func(entered)
+    if entered then
+    begin
+      Write("ntk: a break loop on the Newton, no debug session: it goes on" & kLF);
+      NTKLeaveBreakLoop(DAPRemote:ExitBreakLoopBlock());
+    end,
 });
 
 

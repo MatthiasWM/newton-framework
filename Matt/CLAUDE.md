@@ -489,8 +489,32 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       four sessions (launch installs; attach: no install, a breakpoint
       stops; attach with another build: a warning; attach without a
       program: evaluate, the earlier breakpoint gone).
-- [ ] 3.13 The background server: `-dap-server` with `-ntk` serves session
-      after session over one Newton link.
+- [x] 3.13 The background server (2026-10-13). `newtc -dap-server <port>`
+      serves one session after the other (VS Code: `"debugServer": <port>`);
+      the target stays in launch.json (`"target"`), so no new option: a
+      session with the same target as the open link uses it ("The Newton
+      on tcp is still connected."; `NTKOpen` keeps it), no new tap on
+      Connect Inspector. Each session starts fresh (DAP.ns and DAPRemote.ns
+      loaded again; seq, input, exception count reset: `DAPAcceptClient`).
+      `DAPExit` in a session of the server throws `dap.sessionEnd` (not
+      under evt.ex: no NewtonScript handler catches it) instead of quitting;
+      a client that leaves before launching ends only its session. At the
+      end of a session `EndSession` keeps the link (global `dapServer`):
+      the agent's breakpoints go, break loops are left, breakOnThrows goes
+      off on the Newton. Between sessions newtc keeps the link alive while
+      it waits for a client (`NTKIdle` every 0.25 s: the 15 s ping, the
+      Newton's packets): `DAPServerIdle` leaves a break loop at once (a stop
+      nobody sees would hang the Newton); text, exceptions, and the link's
+      end and a new connection are printed in the server's terminal (the
+      DAP output translator writes to stderr while no client is there).
+      A program run here (no "target") still ends the server: it changes
+      newtc itself (test_dap_extras.py unchanged). Test:
+      `Test/ntk/test_dap_server.py` (a client that leaves early; launch,
+      attach, launch over one link with idle pings between; the global from
+      session 1 in session 2; a BreakLoop() that comes after the disconnect
+      is left; the server still runs). Not yet: Ctrl-C ends the server
+      without 'term' (Toolkit says "connection lost"); VSNewt could start
+      the server itself (for newcomers: no terminal step).
 - [ ] 3.14 Our own connection tool in the agent package (instead of
       Toolkit.pkg; 57600 bps; reconnect).
       Note (Matt, 2026-10-06): an app that reconfigures the serial port
@@ -500,9 +524,9 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       transport that isn't the emulated serial port would avoid it
       (something to look at here).
 
-Status 2026-10-06: 3.11 waits for a working MP2x00 (Matt's three machines
-need repairs: two recaps, one ePaper display conversion). Next without
-hardware: 3.12 attach, 3.13 background server, or the wishes 3.15 to 3.17.
+Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
+need repairs: two recaps, one ePaper display conversion). 3.12 and 3.13
+done; next without hardware: 3.14, or the wishes 3.15 to 3.17.
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
 - [ ] 3.15 Breakpoints in an InstallScript, and a "Break in InstallScript"

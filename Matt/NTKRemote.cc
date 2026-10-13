@@ -71,6 +71,7 @@ class Remote : public NTKInspector::Listener
 public:
   NTKInspector inspector;
   bool started = false;
+  std::string target;                   // what NTKOpen started
   RefStruct handler;
   int callsSent = 0;                    // 'code' calls, numbered from 1
   std::map<int, int> open;              // calls not answered: number -> break loop depth when sent
@@ -286,16 +287,41 @@ Ref FNTKOpen(RefArg rcvr, RefArg inTarget)
   if (!IsString(inTarget))
     return MakeStringFromCString("NTKOpen: the target must be a string");
   Remote &r = R();
+  std::string target = UTF8FromString(inTarget);
+  if (r.started && target == r.target)
+    return NILREF;    // still open (-dap-server keeps it from session to session)
   if (r.started) {
     r.inspector.stop();
     r.started = false;
   }
   std::string error;
-  if (!r.inspector.start(UTF8FromString(inTarget), error))
+  if (!r.inspector.start(target, error))
     return MakeStringFromCString(error.c_str());
   r.started = true;
+  r.target = target;
   r.connectionLost = false;
   return NILREF;
+}
+
+
+void NTKIdle(void)
+{
+  if (!gRemote || !gRemote->started)
+    return;
+  Remote &r = *gRemote;
+  newton_try
+  {
+    r.inspector.tick();
+    int fd = r.inspector.notifyFd();
+    bool ready = false;
+    if (NTKWaitReadable(&fd, 1, 0, &ready) > 0 && ready)
+      r.inspector.handleEvents(r);
+  }
+  newton_catch_all
+  {
+    REPExceptionNotify(CurrentException());
+  }
+  end_try;
 }
 
 

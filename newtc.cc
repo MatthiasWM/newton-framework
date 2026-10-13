@@ -614,26 +614,11 @@ extern const EmbeddedScript gDAPScript;            // Matt/Debugger/DAP.ns
 extern const EmbeddedScript gDAPRemoteScript;      // Matt/Debugger/DAPRemote.ns
 
 /**
- \brief Be a debug adapter (Debug Adapter Protocol) on stdin/stdout.
- Started by VS Code (or any DAP client) as `newtc -dap`. Sets up the
- debugger like -dbg, then the protocol in Matt/Debugger/DAP.ns handles the
- requests until the client launches a program, runs it like -script, and
- reports its end. See Matt/DAP.h.
- \param port -1: talk on stdin/stdout; else wait for one client on this
-   TCP port (-dap-server), and stdin/stdout stay as they are.
+ \brief Load the debug adapter (DAP.ns, DAPRemote.ns); again for each
+ session of -dap-server, so each starts with fresh state.
  */
-void handleArgDap(int port = -1)
+static void loadDapAdapter()
 {
-  if (port < 0) {
-    DAPStartIO();     // from here on, stdout carries only DAP messages
-  } else if (!DAPStartServer(port)) {
-    throw(std::runtime_error("Can't start the DAP server."));
-  }
-  handleArgDbg();     // its messages still go to the stdio translator (stderr with -dap)
-  // Off while no program runs; DAP:WaitForLaunch() sets it from the
-  // client's exception filter.
-  DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
-  DAPInstallTranslators();
   // The adapter's own code gets no line tables or variable names (like the
   // tools): line stepping and source frames must not stop in it.
   DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), NILREF);
@@ -642,12 +627,29 @@ void handleArgDap(int port = -1)
   handleArgG();
   if (!loaded)
     throw(std::runtime_error("Can't load the debug adapter."));
+}
 
+/**
+ \brief One DAP session: requests until the client launches a program, run
+ it (here, or on a remote Newton: DAPRemote.ns), report its end.
+ \param inServer -dap-server: "disconnect" ends the session, not newtc
+ \return false if newtc's server should end after it (a program ran here)
+ */
+static bool runDapSession(bool inServer)
+{
   RefVar dap(GetGlobalVar(MakeSymbol("DAP")));
   int exitCode = 0;
+  volatile bool keepServing = true;   // volatile: changed in newton_try (longjmp)
+  DAPSetServing(inServer);
   newton_try
   {
     RefVar launchArgs(DoMessage(dap, MakeSymbol("WaitForLaunch"), RA(NILREF)));
+    if (IsFrame(launchArgs) && !IsString(GetFrameSlot(launchArgs, MakeSymbol("target")))) {
+      // a program run here changes newtc itself: the session is its last,
+      // and DAPExit quits newtc as before
+      keepServing = false;
+      DAPSetServing(false);
+    }
     if (IsFrame(launchArgs) && IsString(GetFrameSlot(launchArgs, MakeSymbol("target")))) {
       // the program runs on a remote Newton (Matt/Debugger/DAPRemote.ns)
       RefVar args(MakeArray(1));
@@ -698,12 +700,51 @@ void handleArgDap(int port = -1)
       DoMessage(dap, MakeSymbol("Finish"), args);
     }
   }
+  newton_catch(exDAPSessionEnd)
+  { }   // DAPExit while serving: the client is done
   newton_catch_all
   {
     gREPout->exceptionNotify(CurrentException());
     gREPout->flush();
   }
   end_try;
+  DAPSetServing(false);
+  return keepServing;
+}
+
+/**
+ \brief Be a debug adapter (Debug Adapter Protocol) on stdin/stdout.
+ Started by VS Code (or any DAP client) as `newtc -dap`. Sets up the
+ debugger like -dbg, then the protocol in Matt/Debugger/DAP.ns handles the
+ requests until the client launches a program, runs it like -script, and
+ reports its end. See Matt/DAP.h.
+ \param port -1: talk on stdin/stdout; else serve clients on this TCP
+   port (-dap-server), one session after the other, and stdin/stdout stay
+   as they are. A session on a remote Newton keeps its link open for the
+   next one (DAPRemote.ns); a program run here ends the server.
+ */
+void handleArgDap(int port = -1)
+{
+  if (port < 0) {
+    DAPStartIO();     // from here on, stdout carries only DAP messages
+  } else if (!DAPStartServer(port)) {
+    throw(std::runtime_error("Can't start the DAP server."));
+  }
+  handleArgDbg();     // its messages still go to the stdio translator (stderr with -dap)
+  // Off while no program runs; DAP:WaitForLaunch() sets it from the
+  // client's exception filter.
+  DefGlobalVar(MakeSymbol("breakOnThrows"), NILREF);
+  DAPInstallTranslators();
+  // DAPRemote:EndSession() keeps the Newton's link for the next session
+  DefGlobalVar(MakeSymbol("dapServer"), port >= 0 ? TRUEREF : NILREF);
+  for (;;) {
+    if (port >= 0 && !DAPAcceptClient(NTKIdle))
+      throw(std::runtime_error("The DAP server can't accept a client."));
+    loadDapAdapter();
+    if (!runDapSession(port >= 0) || port < 0)
+      break;
+    DAPEndClient();
+  }
 }
 
 /**
@@ -1142,9 +1183,12 @@ the commands in the given order.
                           client's "launch" request: a .ns file, or a .pkg that is
                           installed like with -run, with its debug map ("debugMap",
                           else the .nsdbg next to it)
-  -dap-server <port>      Like -dap, but wait for one client on this TCP port
-                          (localhost), e.g. VS Code with "debugServer": <port>;
-                          for running newtc itself in a debugger
+  -dap-server <port>      Like -dap, but serve clients on this TCP port
+                          (localhost), e.g. VS Code with "debugServer": <port>.
+                          With a remote Newton ("target") it serves session after
+                          session and keeps the Newton connected in between; a
+                          program run here (no "target") ends it. Also for
+                          running newtc itself in a debugger
   -dap-log <filename>     Write all DAP messages to this file (before -dap or
                           -dap-server)
   -ntk-dump <target>      Wait for a Newton on <target> and print what arrives,

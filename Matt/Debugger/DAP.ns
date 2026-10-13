@@ -31,8 +31,11 @@
 // "StackFrames". Don't name anything like a DAP key with other capitals.
 
 // A line feed. "\n" in a NewtonScript string is a CR (the Newton line
-// ending); output for the client ends lines with LF.
-DefineGlobalConstant('kLF, Chr(10));
+// ending); output for the client ends lines with LF. (-dap-server loads
+// this file again for each session.)
+try
+  DefineGlobalConstant('kLF, Chr(10))
+onexception |evt.ex.fr| do nil;     // defined already
 
 DefGlobalVar('DAP, {
   launchArgs: nil,    // arguments of the "launch" request

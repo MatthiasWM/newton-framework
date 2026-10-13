@@ -18,6 +18,7 @@
 #include "REPTranslators.h"
 
 #include <cstdio>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -52,6 +53,8 @@ bool gDAPPauseRequested = false;  // stop at the next poll (see FDAPPause)
 bool gDAPActive = false;      // -dap/-dap-server: the translators are installed
 bool gDAPCodeCopied = false;  // code with a line table was copied (gCodeCopiedHook)
 FILE *gDAPLog = nullptr;      // -dap-log: every message, both ways
+int gDAPListener = -1;        // -dap-server: the socket clients connect to
+bool gDAPServing = false;     // a remote session in -dap-server: DAPExit ends the session, not newtc
 
 // -dap-log: one line per message, as in the test transcripts: "-> " from
 // the client to newtc, "<- " from newtc to the client.
@@ -87,6 +90,8 @@ bool InputWaiting(void)
 {
   if (!gInBuffer.empty())
     return true;
+  if (gDAPInFd < 0)
+    return false;   // -dap-server between sessions: no client
 #if defined(_WIN32)
   DWORD available = 0;
   if (!PeekNamedPipe(GetStdHandle(STD_INPUT_HANDLE), NULL, 0, NULL, &available, NULL))
@@ -147,6 +152,8 @@ void SendMessage(const std::string &json)
   if (json.size() > 2)
     message += ",";
   message += json.substr(1);
+  if (gDAPOut == nullptr)
+    return;   // -dap-server between sessions: nobody to tell
   fprintf(gDAPOut, "Content-Length: %zu\r\n\r\n", message.size());
   fwrite(message.data(), 1, message.size(), gDAPOut);
   fflush(gDAPOut);
@@ -319,17 +326,71 @@ bool DAPStartServer(int inPort)
     close(listener);
     return false;
   }
+  signal(SIGPIPE, SIG_IGN);   // a client that goes away is end of input
+  gDAPListener = listener;
+  gDAPInFd = -1;              // no client yet
+  gDAPOut = nullptr;
   fprintf(stderr, "newtc: waiting for a DAP client on port %d\n", inPort);
-  int connection = accept(listener, nullptr, nullptr);
-  close(listener);
+  return true;
+#endif
+}
+
+
+bool DAPAcceptClient(void (*inIdle)(void))
+{
+#if defined(_WIN32)
+  return false;
+#else
+  if (gDAPListener < 0)
+    return false;
+  for (;;) {
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(gDAPListener, &fds);
+    struct timeval wait = { 0, 250000 };
+    int ready = select(gDAPListener + 1, &fds, NULL, NULL, &wait);
+    if (ready < 0 && errno != EINTR)
+      return false;
+    if (ready > 0)
+      break;
+    if (inIdle)
+      inIdle();
+  }
+  int connection = accept(gDAPListener, nullptr, nullptr);
   if (connection < 0)
     return false;
   fprintf(stderr, "newtc: DAP client connected\n");
-  signal(SIGPIPE, SIG_IGN);   // a client that goes away is end of input
   gDAPInFd = connection;
   gDAPOut = fdopen(dup(connection), "wb");
+  gInBuffer.clear();
+  gDAPInputEnded = false;
+  gDAPSeq = 0;
+  gDAPExceptionCount = 0;
+  gDAPPauseRequested = false;
   return gDAPOut != nullptr;
 #endif
+}
+
+
+void DAPEndClient(void)
+{
+  if (gDAPListener < 0)
+    return;   // not -dap-server: stdin/stdout stay
+  gREPout->flush();
+  if (gDAPOut)
+    fclose(gDAPOut);
+  gDAPOut = nullptr;
+  if (gDAPInFd >= 0)
+    close(gDAPInFd);
+  gDAPInFd = -1;
+  gInBuffer.clear();
+  fprintf(stderr, "newtc: DAP client gone, waiting for the next one\n");
+}
+
+
+void DAPSetServing(bool inServing)
+{
+  gDAPServing = inServing;
 }
 
 
@@ -415,10 +476,15 @@ Ref FDAPSend(RefArg rcvr, RefArg inMessage)
 }
 
 
+DefineException(exDAPSessionEnd, dap.sessionEnd);
+
 Ref FDAPExit(RefArg rcvr, RefArg inCode)
 {
   gREPout->flush();
-  fflush(gDAPOut);
+  if (gDAPServing)
+    Throw(exDAPSessionEnd);   // -dap-server: newtc goes on (handleArgDap)
+  if (gDAPOut)
+    fflush(gDAPOut);
   fflush(stderr);
   exit(ISINT(inCode) ? (int)RINT(inCode) : 0);
 }
@@ -595,6 +661,10 @@ PDAPOutTranslator::flush(void)
     return;
   std::string text;
   text.swap(*fText);
+  if (gDAPOut == nullptr) {
+    fputs(text.c_str(), stderr);   // -dap-server between sessions: the terminal
+    return;
+  }
   SendMessage(std::string("{\"type\":\"event\",\"event\":\"output\",\"body\":{\"category\":\"")
               + fCategory + "\",\"output\":" + QuoteJSON(text) + "}}");
 }

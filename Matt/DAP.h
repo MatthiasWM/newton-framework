@@ -32,10 +32,26 @@
     calling it again does nothing. */
 void DAPStartIO(void);
 
-/** -dap-server: wait for one client on TCP port inPort (127.0.0.1 only)
-    and use the connection instead of stdin/stdout, which stay as they
-    are (for running newtc under a debugger). False on failure. */
+/** -dap-server: listen on TCP port inPort (127.0.0.1 only); the clients'
+    connections are used instead of stdin/stdout, which stay as they are
+    (for running newtc under a debugger). False on failure. */
 bool DAPStartServer(int inPort);
+
+/** -dap-server: wait for the next client and make it the one DAP talks
+    to (a fresh session: seq, input, exception count). While waiting,
+    inIdle (if given) is called every quarter second, e.g. to keep a
+    Newton's link alive. False on failure. */
+bool DAPAcceptClient(void (*inIdle)(void));
+
+/** -dap-server: the session is over, close the client's connection.
+    Until the next DAPAcceptClient(), messages go nowhere. Does nothing
+    without -dap-server. */
+void DAPEndClient(void);
+
+/** While true (a remote session in -dap-server), DAPExit() doesn't quit
+    newtc: it throws exDAPSessionEnd, which ends the session. */
+void DAPSetServing(bool inServing);
+DeclareException(exDAPSessionEnd, exRootException);
 
 /** -dap-log: write every message to this file, both ways ("-> " from the
     client, "<- " to it). False if it can't be opened. */
