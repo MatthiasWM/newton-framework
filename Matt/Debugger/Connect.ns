@@ -1,0 +1,283 @@
+// Connect.ns: "newtc", the Newton side of the connection to newtc (plan
+// step 3.14), instead of NTK's Toolkit.pkg. Embedded in newtc as
+// gConnectScript; running it defines the global NewtcConnectPackage, the
+// package as a frame. `newtc -connect-package newtc.pkg` writes it to a
+// file, which the user installs once (Einstein: Install Package; a
+// MessagePad: any package installer). The agent (Agent.ns) is a separate
+// package that newtc replaces whenever its version changes; this one is
+// never replaced during a session, so the connection it holds stays.
+//
+// A small app in Extras: the state of the connection, Connect or
+// Disconnect, and "Stay connected": when the connection is lost (newtc
+// restarted, a cable pulled), it tries again, up to three times, five
+// seconds apart. A Connect that fails isn't tried again: each attempt
+// blocks the Newton until it fails.
+//
+// Method names: none that the system sends to a view. Extras opens an app
+// with ButtonToggle, which sends Toggle() to its base view: version 1 had
+// its own Toggle (the button), so tapping the icon started a connection
+// instead of opening the app (and blocked the Newton). Show, Hide, Open,
+// Close, Toggle, ... stay the ROM's.
+//
+// The connection itself is the ROM's, as with Toolkit: ntpTetheredListener
+// (the ROM's SetUpTetheredListener: the NTK nub, MNP on the serial port,
+// 38400 bps), which blocks until newtc answers or the attempt fails; so it
+// runs from a deferred send, after the status says "Connecting". Like
+// Toolkit it sends NTK's hello ('dante) and keeps the Newton from sleeping
+// while connected (a power-off handler).
+//
+// The state lives in the app's view frame (GetRoot().|Connect:newtc|),
+// which stays while the app is closed. A check every two seconds sees a
+// lost connection (NTKAlive()); it is a function copied into RAM
+// (EnsureInternal) that does nothing once the package is gone.
+//
+// Version 2.
+// Version 3: centered (vjParentCenterH; version 2 was cut off on the
+// right), one line more for the state.
+
+DefGlobalVar('NewtcConnectPackage, {
+  signature: 'package0,
+  id: "xxxx",
+  flags: { noCompression: true },
+  version: 3,
+  copyright: "newtc",
+  name: "Connect:newtc",
+  modifyDate: 0,
+  info: "Connects the Newton to newtc for debugging",
+  part: [
+    {
+      offset: 0,
+      size: 0,
+      type: "form",
+      flags: { type: 'nos, Notify: true },
+      info: "newtc",
+      data: {
+        app: '|Connect:newtc|,
+        text: "newtc",
+        theForm: {
+          _proto: @180,             // protoFloatNGo
+          appSymbol: '|Connect:newtc|,
+          viewJustify: 16,          // vjParentCenterH: centered, left is an offset
+          viewBounds: { left: 0, top: 80, right: 220, bottom: 210 },
+
+          // -- the state (written into the view frame: it stays while closed)
+          connState: 'idle,         // 'idle, 'connecting, 'connected, 'waiting (to try again)
+          ownLink: nil,             // the connection is ours (not Toolkit's)
+          stayConnected: true,
+          tries: 0,                 // attempts again in a row
+          reconnecting: nil,        // trying again after the connection was lost
+          maxTries: 3,
+          retryDelay: 5000,         // ms before trying again
+          watchInterval: 2000,      // ms between checks while connected
+          statusText: "Not connected.",
+          statusView: nil,          // the children, while open
+          buttonView: nil,
+
+          viewSetupFormScript: func()
+          begin
+            if connState = 'idle and NTKAlive() then
+              statusText := "Connected (by another app, e.g. Toolkit).";
+          end,
+
+          viewQuitScript: func()
+          begin
+            statusView := nil;
+            buttonView := nil;
+          end,
+
+          // Show the state: the text, and the button's label
+          ShowState: func(text)
+          begin
+            statusText := text;
+            if statusView then
+              SetValue(statusView, 'text, text);
+            if buttonView then
+              SetValue(buttonView, 'text,
+                if connState = 'idle and not ownLink then "Connect" else "Disconnect");
+          end,
+
+          // The button
+          ConnectOrDisconnect: func()
+            if connState = 'idle and not ownLink and NTKAlive() then
+              :ShowState("Connected by another app (e.g. Toolkit): disconnect there.")
+            else if connState = 'idle and not ownLink then
+            begin
+              tries := 0;
+              reconnecting := nil;
+              :TryConnect();
+            end
+            else
+              :EndConnection(),
+
+          TryConnect: func()
+          begin
+            connState := 'connecting;
+            :ShowState("Connecting to newtc" & (if tries > 0 then " (again, " & tries & " of " & maxTries & ")" else "")
+                  & "...");
+            AddDeferredSend(self, 'Connecting, []);
+          end,
+
+          // Blocks until newtc answers or the attempt fails
+          Connecting: func()
+          begin
+            if connState <> 'connecting then
+              return nil;           // disconnected meanwhile
+            RefreshViews();
+            local error;
+            try
+              error := ntpTetheredListener(true, 3, nil);      // 3: MNP on the serial port
+            onexception |evt.ex| do
+              error := -1;
+            if error = 0 then
+            begin
+              connState := 'connected;
+              ownLink := true;
+              tries := 0;
+              reconnecting := nil;
+              AddPowerOffHandler(self);
+              NTKSend({interpretation: 'dante, data: {}});     // NTK's hello, as Toolkit
+              :ShowState("Connected to newtc.");
+              :CheckLater(watchInterval);
+            end
+            else
+              :ConnectFailed(:ErrorText(error), nil);
+          end,
+
+          // An attempt failed or the connection was lost (lost true): try
+          // again (only after a loss), or stop
+          ConnectFailed: func(text, lost)
+          begin
+            if ownLink then
+              RemovePowerOffHandler(self);
+            ownLink := nil;
+            if lost then
+              reconnecting := true;
+            if stayConnected and reconnecting and tries < maxTries then
+            begin
+              tries := tries + 1;
+              connState := 'waiting;
+              :ShowState(text & " Trying again in " & retryDelay div 1000 & " seconds (" & tries & " of " & maxTries & ").");
+              :CheckLater(retryDelay);
+            end
+            else
+            begin
+              connState := 'idle;
+              reconnecting := nil;
+              :ShowState(text);
+            end;
+          end,
+
+          EndConnection: func()
+          begin
+            local was := ownLink;
+            connState := 'idle;
+            ownLink := nil;
+            tries := 0;
+            reconnecting := nil;
+            if was then
+            begin
+              RemovePowerOffHandler(self);
+              if NTKAlive() then
+                try
+                  ntpTetheredListener(nil, nil, nil);
+                onexception |evt.ex| do
+                  nil;
+            end;
+            :ShowState("Not connected.");
+          end,
+
+          // Look again in ms milliseconds
+          CheckLater: func(ms)
+            AddDelayedCall(EnsureInternal(CheckFn), [], ms),
+
+          // Called later (a copy in RAM): nothing if the app is gone
+          CheckFn: func()
+          begin
+            local app := GetRoot().|Connect:newtc|;
+            if app then
+              app:CheckConnection();
+          end,
+
+          CheckConnection: func()
+            if connState = 'connected then
+            begin
+              if NTKAlive() then
+                :CheckLater(watchInterval)
+              else
+                :ConnectFailed("The connection to newtc was lost.", true);
+            end
+            else if connState = 'waiting then
+              :TryConnect(),
+
+          // Keep the Newton awake while connected
+          powerOffScript: func(what)
+            not (ownLink and NTKAlive()),
+
+          ErrorText: func(error)
+            if error = -10021 then
+              "No answer from newtc. Is it waiting for the Newton (newtc -dap-server, a debug session)? Is the cable connected?"
+            else if error = -28011 then
+              "This Newton doesn't work with this connection."
+            else if error = -20003 then
+              "The connection was closed by the other side."
+            else if error = -20006 or error = -28009 or error = -12314 or error = -16013 then
+              "A problem with the connection (error " & error & "). Please check the cable."
+            else
+              "Can't connect (error " & error & ").",
+
+          stepChildren: [
+            {
+              _proto: @218,         // protoStaticText
+              text: "newtc",
+              viewFont: @88,        // ROM_fontSystem10Bold
+              viewBounds: { left: 10, top: 6, right: 210, bottom: 20 },
+            },
+            {
+              _proto: @218,         // protoStaticText
+              text: "",
+              viewBounds: { left: 10, top: 22, right: 210, bottom: 76 },
+              viewSetupFormScript: func()
+                text := :Parent().statusText,
+              viewSetupDoneScript: func()
+                :Parent().statusView := self,
+            },
+            {
+              _proto: @164,         // protoCheckbox
+              text: "Stay connected",
+              viewBounds: { left: 10, top: 80, right: 210, bottom: 96 },
+              viewSetupFormScript: func()
+                viewValue := :Parent().stayConnected,
+              ValueChanged: func()
+                :Parent().stayConnected := viewValue,
+            },
+            {
+              _proto: @226,         // protoTextButton
+              text: "Connect",
+              viewBounds: { left: 10, top: 102, right: 100, bottom: 120 },
+              viewSetupFormScript: func()
+                text := if :Parent().connState = 'idle and not :Parent().ownLink then "Connect" else "Disconnect",
+              viewSetupDoneScript: func()
+                :Parent().buttonView := self,
+              buttonClickScript: func()
+                :Parent():ConnectOrDisconnect(),
+            },
+          ],
+        },
+
+        InstallScript: func(partFrame)
+          nil,
+
+        // The package is removed: our connection ends with it (it can't be
+        // watched any more); Toolkit's stays
+        RemoveScript: func(partFrame)
+        begin
+          local app := GetRoot().|Connect:newtc|;
+          if app and app.ownLink then
+            app:EndConnection();
+          if app then
+            app.connState := 'idle;     // a pending check does nothing
+        end,
+      }
+    }
+  ]
+});

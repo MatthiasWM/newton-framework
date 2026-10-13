@@ -807,6 +807,28 @@ void handleArgOPkg(const std::string &filename)
   writePackageToFile(package, filename);
 }
 
+extern const EmbeddedScript gConnectScript;       // Matt/Debugger/Connect.ns
+
+/**
+ \brief Write the "newtc" app for the Newton (Matt/Debugger/Connect.ns):
+ the user installs it once and connects to newtc with it, instead of
+ Toolkit.pkg. Without line tables or variable names (small).
+ */
+void handleArgConnectPackage(const std::string &filename)
+{
+  RefVar names(GetGlobalVar(MakeSymbol("dbgKeepVarNames")));
+  RefVar lines(GetGlobalVar(MakeSymbol("dbgKeepLineNumbers")));
+  DefGlobalVar(MakeSymbol("dbgKeepVarNames"), NILREF);
+  DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), NILREF);
+  bool ok = RunEmbeddedScript(gConnectScript);
+  DefGlobalVar(MakeSymbol("dbgKeepVarNames"), names);
+  DefGlobalVar(MakeSymbol("dbgKeepLineNumbers"), lines);
+  if (!ok)
+    throw(std::runtime_error("Can't build the newtc app (Connect.ns)."));
+  RefVar package(GetGlobalVar(MakeSymbol("NewtcConnectPackage")));
+  writePackageToFile(package, filename);
+}
+
 /**
  \brief Create an NSOF file from current ref.
  */
@@ -1153,6 +1175,10 @@ the commands in the given order.
 
   Output Commands
   -opkg <filename>        Write the current object to a package file
+  -connect-package <filename>
+                          Write the "newtc" app for the Newton: install it there
+                          once, then tap Connect in it to debug with newtc
+                          (instead of NTK's Toolkit app)
   -onsof <filename>       Write the current object to a NSOF file
   -opdf <filename>        Write the first part as a PDF file if it is a book
   -print                  Print the current object, functions are just frames
@@ -1304,6 +1330,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing Ref Path after -trap ... ."));
         handleArgTrap(std::string(argv[argi++]));
+      } else if (cmd == "-connect-package") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -connect-package ... ."));
+        handleArgConnectPackage(std::string(argv[argi++]));
       } else if (cmd == "-opkg") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -opkg ... ."));

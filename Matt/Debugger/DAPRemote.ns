@@ -7,7 +7,8 @@
 // see Matt/NTKTransport.h), DAP.ns hands the requests to DAPRemoteRequests,
 // and newtc -dap calls DAPRemote:Run(launchArgs) instead of running the
 // program itself:
-//   1. wait for the Newton (the user taps "Connect Inspector" in Toolkit),
+//   1. wait for the Newton (the user taps "Connect" in the newtc app,
+//      Connect.ns, or "Connect Inspector" in Toolkit),
 //      while still answering requests;
 //   2. set breakOnThrows there from the exception filter, install our agent
 //      and NS Debug Tools if they are missing (Remote.ns);
@@ -177,7 +178,8 @@ DefGlobalVar('DAPRemote, {
     else
     begin
       :Console("Waiting for a Newton on " & args.target
-               & ". In its Toolkit app, tap \"Connect Inspector\".");
+               & ". On the Newton, tap \"Connect\" in the newtc app (newtc -connect-package"
+               & " writes it), or \"Connect Inspector\" in NTK's Toolkit app.");
       while not NTKIsConnected() do
         :Serve(1);
     end;

@@ -515,8 +515,51 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       is left; the server still runs). Not yet: Ctrl-C ends the server
       without 'term' (Toolkit says "connection lost"); VSNewt could start
       the server itself (for newcomers: no terminal step).
-- [ ] 3.14 Our own connection tool in the agent package (instead of
-      Toolkit.pkg; 57600 bps; reconnect).
+- [ ] 3.14 Our own connection tool (instead of Toolkit.pkg; 57600 bps;
+      reconnect). Decided with Matt (2026-10-13): a separate package, not
+      inside the agent (newtc replaces the agent when its version changes,
+      during a session; this one is installed once and never replaced
+      meanwhile); after a drop, try again a few times; 57600 bps with 3.11.
+  - [x] 3.14a The "newtc" app (`Matt/Debugger/Connect.ns`, package
+        "Connect:newtc", a form part, app `|Connect:newtc|` in Extras):
+        `newtc -connect-package newtc.pkg` writes it; the user installs it
+        once (Einstein: Install Package), no NTK needed. A floater: the
+        state, Connect/Disconnect, "Stay connected". The connection is the
+        ROM's, as Toolkit makes it (decompiled Toolkit.pkg):
+        `ntpTetheredListener(true, 3, nil)` (MNP serial, 38400) from a
+        deferred send after the status says "Connecting..." (it blocks
+        until newtc answers or the attempt fails), NTK's 'dante hello, a
+        power-off handler while connected; Disconnect:
+        `ntpTetheredListener(nil, nil, nil)`. With "Stay connected", a
+        lost connection (NTKAlive() checked every 2 s by a function copied
+        into RAM, harmless once the package is gone) is tried again 3
+        times, 5 s apart, then it stops and says why
+        (Toolkit's error texts, reworded for newtc). The state lives in the
+        app's view frame (stays while closed). A connection made by Toolkit
+        is shown and left alone; removing the package ends our connection.
+        newtc's "Waiting for a Newton" names both apps. Test:
+        `Test/ntk/test_connect_app.py` (FLTK: the app in newtc, the ROM's
+        listener stubbed; a failed attempt tried again, NTK's hello, a drop
+        tried 3 times then the reason, Disconnect stops the listener).
+        Matt's first try on Einstein (2026-10-13): installed, tapping its
+        icon soft-locked the Newton. Extras opens an app with the ROM's
+        ButtonToggle, which sends Toggle() to the base view: version 1 had
+        its own Toggle (the button) and Show, so the tap started a blocking
+        connection attempt (and 3 retries) instead of opening the app.
+        Version 2: no method names the system sends to views
+        (ShowState, ConnectOrDisconnect, ...), and a Connect that fails
+        isn't tried again (only a lost connection is); the test opens the
+        app with Toggle(). Found B36 on the way. Version 3 (Matt: works;
+        the floater was off to the right and cut off, the state didn't
+        always fit): centered (vjParentCenterH, 220 wide), the state one
+        line taller.
+        To check on Einstein: install, connect, a session, a drop (Ctrl-C
+        the server, start it again within 15 s), how long a failed attempt
+        freezes the Newton.
+  - [ ] 3.14b 57600 bps (with 3.11, a real MP2x00): an endpoint options
+        frame for `NTKListener(true, options, ...)` (EzConvertOptions, ROM
+        0xB1124: slots like openOptions/bindOptions), a speed setting in the
+        app.
       Note (Matt, 2026-10-06): an app that reconfigures the serial port
       (EinsteinPrefs: `call Einstein.Platform with
       ('GetSerialPortDriverNames, ...)` and friends) can't be debugged
@@ -525,8 +568,9 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
       (something to look at here).
 
 Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
-need repairs: two recaps, one ePaper display conversion). 3.12 and 3.13
-done; next without hardware: 3.14, or the wishes 3.15 to 3.17.
+need repairs: two recaps, one ePaper display conversion). 3.12, 3.13, and
+3.14a done; 3.14b waits for hardware too; next: the wishes 3.15 to 3.17,
+or 3.18 (no NS Debug Tools needed).
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
 - [ ] 3.15 Breakpoints in an InstallScript, and a "Break in InstallScript"
@@ -555,6 +599,36 @@ done; next without hardware: 3.14, or the wishes 3.15 to 3.17.
       apps reset their state there): a launch option `"reinstall": true`;
       always upload when debugging the InstallScript (3.15).
 
+### No Apple files on the Newton (Matt, 2026-10-13)
+Goal: a newcomer needs only newtc. The newtc app (3.14a) replaced
+Toolkit.pkg; NS Debug Tools.pkg is the last file from NTK (stack,
+variables, breakpoints, stepping need it; without it: output, exceptions,
+evaluate). It can't be replaced by NewtonScript alone: its few
+`BinCFunction`s reach the interpreter (Toolkit Protocol.md 7.3).
+- [ ] 3.18 Our own debug natives in the agent, instead of NS Debug Tools.
+  - [ ] 3.18a Inventory: which NSDT functions the agent and DAPRemote.ns
+        call (InstallBreakPoint, RemoveBreakPoint,
+        GloballyEnableBreakPoints, GetAllNamedVars, GetNamedVar,
+        SetNamedVar, GetAllTempVars, GetCurrentFunction, Step, StepIn,
+        StepOut, the NSDBreakLoopEntry hook, NSDOriginalBreakLoop, ...),
+        which `BinCFunction`s they rest on (NSDInstallBreakPoints,
+        NSDEnableBreakPoints, NSDMakeNSDebugAPI and its methods: Function,
+        PC, SetPC, GetVar, SetVar, temporaries, ...), and what each does in
+        the ROM (TNSDebugAPI, TInterpreter::SetBreakPoints; newtc's
+        stand-ins are in Frames/DebugAPI.cc, the NewtonScript side in
+        Matt/Debugger/NSDebugTools.ns). Only what we use.
+  - [ ] 3.18b The ARM code. A native is a frame {class: 'BinCFunction,
+        code: <binary>, numArgs, offset} in the package; newtc already
+        makes the binary with MakeBinaryFromHex (Matt). Write our own small
+        routines (calling the ROM's entry points, e.g. through its jump
+        table) rather than copying Apple's bytes; assemble on the host
+        into hex for Agent.ns (the toolchain to be chosen). Testing:
+        newtc's -ntk-device can't run ARM (it throws for a BinCFunction,
+        3.6), so these run on Einstein; in newtc the C++ stand-ins answer.
+  - [ ] 3.18c The agent carries the natives and the NewtonScript layer
+        it needs; EnsureDebugTools becomes optional (an installed NSDT
+        still works). The newtc app or the agent says what's missing.
+
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
   client to 127.0.0.1:3679 (newtc listens there). If that is buggy, Matt
@@ -575,6 +649,12 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [ ] B36 `GetRoot():ChildViewFrames()` hangs in newtc while an app is
+  open (FLTK build), and so does `GetRoot():GlobalBox()` (more of the root
+  view's methods?); with no window ChildViewFrames throws "nil view". The ROM's
+  ButtonToggle (how Extras opens an app) calls it, so newtc can't open an
+  app the way Extras does. Found 2026-10-13 (3.14a, test_connect_app.py
+  calls Toggle() instead).
 - [x] B31 `newtc -nsof x.nsof` can't read the NSOF of a bare nil (`02 0A`,
   a `code` reply from the Newton): "Can't read NSOF". Found 2026-10-04
   (Test/ntk/captures/capture3/obj006_code.nsof). Fixed 2026-10-05:

@@ -583,6 +583,7 @@ embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAPRemote.ns gDAPRemoteScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Agent.ns gAgentScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Remote.ns gRemoteScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Connect.ns gConnectScript)
 
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
