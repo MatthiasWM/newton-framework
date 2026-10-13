@@ -787,12 +787,16 @@ to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
   Refs of the package frame being built RefVars (allocations may move
   objects). The written package was fine (checked object by object); a
   Newton reads it itself. Test: test_dap_tools.py.
-- [ ] B36 `GetRoot():ChildViewFrames()` hangs in newtc while an app is
-  open (FLTK build), and so does `GetRoot():GlobalBox()` (more of the root
-  view's methods?); with no window ChildViewFrames throws "nil view". The ROM's
-  ButtonToggle (how Extras opens an app) calls it, so newtc can't open an
-  app the way Extras does. Found 2026-10-13 (3.14a, test_connect_app.py
-  calls Toggle() instead).
+- [x] B36 `GetRoot():ChildViewFrames()` and `GetRoot():GlobalBox()` threw
+  "nil view" in newtc (with an app window open, the break loop then waited:
+  it looked like a hang). The ROM's ButtonToggle (how Extras opens an app)
+  calls them. newtc's root view isn't a Link: each of its children is a
+  window. Fixed 2026-10-13 (Host/FLTK/Links.cc): the root's GlobalBox and
+  LocalBox are the screen (displayParams scr...), its ChildViewFrames the
+  open top-level views in the order they opened (a list kept by Link), Hide,
+  Show, SetupIdle do nothing. ButtonToggle opens an app and closes it when it
+  is in front. Test: Test/dbg/cases/fltk_root_view; test_connect_app.py now
+  opens the app with ButtonToggle.
 - [x] B31 `newtc -nsof x.nsof` can't read the NSOF of a bare nil (`02 0A`,
   a `code` reply from the Newton): "Can't read NSOF". Found 2026-10-04
   (Test/ntk/captures/capture3/obj006_code.nsof). Fixed 2026-10-05:

@@ -344,7 +344,11 @@ Views and drawing
   pixels at their top left, which matches the screen). Check pens 1 to 4
   at 1, 1.5 and 2 times (Matt's wide-line work in FLTK).
 Decompiler
-- [ ] B7 **Output depends on memory layout.** With AddressSanitizer on (Debug
+- [x] B7 (fixed 2026-10-13 by B37, Matt/CLAUDE.md: the package reader's UpdateRef remapped
+  addresses whose low 32 bits looked like package offsets; ASan's allocator
+  placed objects where that happened. With ASan the corpus now has the
+  non-ASan totals; Tymnet-MCI_1.1.pkg and mobilem1.pkg decompile cleanly.)
+  **Output depends on memory layout.** With AddressSanitizer on (Debug
   builds since 2026-09-25) the corpus sweep has 13 packages that decompile fine
   without ASan (Debug or Release) but fail with it: 11 recurse without end (stack
   overflow; with a bigger stack they run out of NewtonScript memory instead),
@@ -360,6 +364,8 @@ Decompiler
   371 UNRESOLVED, 69 CRASHED.
 - [ ] B10 **Round trip**: `Test/round_trip.py` reports `GEN2_FAILED` for 29 of
   the first 30 manifest packages, with the binary from before 1.1 too.
+  2026-10-13, after B37: 3 of 30 (27 OK): Comms FSM.pkg, ArchiveRoute.pkg,
+  Exception Printer.pkg (`--batch <manifest> --limit 30`).
 - [ ] B12 **ASCII only characters**: make sure that the decompiler outputs only
   ASCII characters and that characters that were originally non-ASCII UTF-16
   are output a escaped sequences - eventually we have to decide if NewtonScript

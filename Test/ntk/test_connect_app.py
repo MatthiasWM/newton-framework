@@ -6,7 +6,7 @@ connection is stubbed: ntpTetheredListener answers from a list (0: newtc
 answered, -10021: no answer), NTKAlive says whether it is up.
 
   - `newtc -connect-package x.pkg` writes the package
-  - opened as Extras does (Toggle): no connection attempt (version 1
+  - opened as Extras does (ButtonToggle): no connection attempt (version 1
     had its own Toggle and connected instead, blocking the Newton)
   - Connect fails: not tried again (each attempt blocks the Newton);
     Connect again: connected (NTK's hello sent, "Connected to newtc.")
@@ -54,13 +54,13 @@ ref0;
 '''
 
 CHECK = '''// the app is open (-run): close it and open it as Extras does (the
-// ROM's ButtonToggle ends in Toggle(); GetRoot():ChildViewFrames(), which
-// ButtonToggle uses, hangs in newtc: B36); then tap its button
+// ROM's ButtonToggle, which sends Toggle() to the base view); then tap its
+// button
 DefGlobalVar('app, GetRoot().|Connect:newtc|);
 app.retryDelay := 300;
 app.watchInterval := 200;
 app:Close();
-app:Toggle();
+app:ButtonToggle();
 Print(["open", app.viewCObject <> nil, app.connState, app.statusText, app.buttonView.text]);
 TestTap(app.buttonView, nil);
 AddDelayedCall(func()
@@ -123,7 +123,7 @@ def main():
 
     lines = [line for line in out.splitlines() if line.startswith("[") or line.startswith('"')]
     text = "\n".join(lines)
-    check("Toggle (Extras) opens the app, no connection attempt (version 1 connected)",
+    check("ButtonToggle (Extras) opens the app, no connection attempt (version 1 connected)",
           '["open", true, \'idle, "Not connected.", "Connect"]' in text
           and text.index('["open"') < text.index('"listen"'))
     check("Connect: MNP on the serial port (3), status Connecting",

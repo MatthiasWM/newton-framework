@@ -479,11 +479,17 @@ std::string DisplayText(std::string inText)
 // and its coming up, whichever widget FLTK gives them to.
 static Link * gPenOwner = nullptr;
 
+// The root view's open children (each a window), in the order they opened:
+// the root isn't a Link (B36), ChildViewFrames gives these for it.
+static std::vector<Link *> gRootChildren;
+
 Link::Link(RefArg inContext, Link * inParent)
 : fContext(inContext), fParent(inParent)
 {
   if (fParent)
     fParent->fChildren.push_back(this);
+  else
+    gRootChildren.push_back(this);
 }
 
 
@@ -497,11 +503,9 @@ Link::~Link()
   delete fInvert;
   delete fInvertOverlay;
   Fl::remove_timeout(IdleTimeout, this);
-  if (fParent) {
-    auto & siblings = fParent->fChildren;
-    for (auto it = siblings.begin(); it != siblings.end(); ++it)
-      if (*it == this) { siblings.erase(it); break; }
-  }
+  auto & siblings = fParent ? fParent->fChildren : gRootChildren;
+  for (auto it = siblings.begin(); it != siblings.end(); ++it)
+    if (*it == this) { siblings.erase(it); break; }
 }
 
 
@@ -1113,8 +1117,29 @@ Ref CloseView(RefArg inContext)
   return TRUEREF;
 }
 
+// The root view (GetRoot()) isn't a Link: in newtc each of its children is
+// a window. It is the screen, it has the open windows' views as children,
+// and it can't be hidden or shown (B36: these threw "nil view").
+static bool IsRoot(RefArg inContext)
+{
+  return EQ(inContext, RootView());
+}
+
+static Bounds ScreenBounds(void)
+{
+  RefVar params(GetGlobalVar(MakeSymbol("displayParams")));
+  Bounds screen;
+  screen.left = IntSlot(params, "scrLeft");
+  screen.top = IntSlot(params, "scrTop");
+  screen.right = screen.left + IntSlot(params, "scrWidth");
+  screen.bottom = screen.top + IntSlot(params, "scrHeight");
+  return screen;
+}
+
 Ref GlobalBox(RefArg inContext)
 {
+  if (IsRoot(inContext))
+    return BoundsFrame(ScreenBounds());
   Link * link = OpenLink(inContext);
   return BoundsFrame(link->fInSetupForm ? link->JustifiedBounds() : link->GlobalBounds());
 }
@@ -1122,8 +1147,13 @@ Ref GlobalBox(RefArg inContext)
 
 Ref LocalBox(RefArg inContext)
 {
-  Link * link = OpenLink(inContext);
-  Bounds bounds = link->fInSetupForm ? link->JustifiedBounds() : link->GlobalBounds();
+  Bounds bounds;
+  if (IsRoot(inContext))
+    bounds = ScreenBounds();
+  else {
+    Link * link = OpenLink(inContext);
+    bounds = link->fInSetupForm ? link->JustifiedBounds() : link->GlobalBounds();
+  }
   Bounds local;
   local.right = bounds.Width();
   local.bottom = bounds.Height();
@@ -1133,9 +1163,9 @@ Ref LocalBox(RefArg inContext)
 
 Ref ChildViewFrames(RefArg inContext)
 {
-  Link * link = OpenLink(inContext);
+  const std::vector<Link *> & children = IsRoot(inContext) ? gRootChildren : OpenLink(inContext)->fChildren;
   RefVar frames(MakeArray(0));
-  for (Link * child : link->fChildren)
+  for (Link * child : children)
     AddArraySlot(frames, child->Context());
   return frames;
 }
@@ -1143,6 +1173,8 @@ Ref ChildViewFrames(RefArg inContext)
 
 Ref HideView(RefArg inContext)
 {
+  if (IsRoot(inContext))
+    return NILREF;
   Link * link = OpenLink(inContext);
   if (!link->fHidden) {
     link->fHidden = true;
@@ -1158,6 +1190,8 @@ Ref HideView(RefArg inContext)
 
 Ref ShowView(RefArg inContext)
 {
+  if (IsRoot(inContext))
+    return NILREF;
   Link * link = OpenLink(inContext);
   if (link->fHidden) {
     link->fHidden = false;
@@ -1218,6 +1252,8 @@ Ref ModalDialog(RefArg inContext)
 
 Ref SetupIdle(RefArg inContext, RefArg inMilliseconds)
 {
+  if (IsRoot(inContext))
+    return NILREF;
   OpenLink(inContext)->SetupIdle(ISINT(inMilliseconds) ? RINT(inMilliseconds) : 0);
   return NILREF;
 }

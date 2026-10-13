@@ -1,0 +1,17 @@
+// run after -run (see fltk_root_view.ns)
+begin
+  local root := GetRoot();
+  local app := root.|hello:SIG|;
+  Print(root:GlobalBox());
+  Print(root:LocalBox());
+  local kids := root:ChildViewFrames();
+  Print([Length(kids), kids[0] = app]);
+  root:Hide();
+  root:Show();
+  app:Close();
+  Print(Length(root:ChildViewFrames()));
+  app:ButtonToggle();
+  Print(["opened", app.viewCObject <> nil]);
+  app:ButtonToggle();
+  Print(["closed", app.viewCObject = nil]);
+end;

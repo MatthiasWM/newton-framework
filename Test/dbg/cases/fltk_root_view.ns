@@ -1,0 +1,7 @@
+// B36: the root view (GetRoot()) answers view methods in newtc, where it
+// isn't a view of its own (each of its children is a window): GlobalBox
+// and LocalBox are the screen, ChildViewFrames the open apps; Hide, Show
+// do nothing. These threw "nil view" (and with a window open, the break
+// loop waited). The ROM's ButtonToggle (how Extras opens an app) uses
+// them: it opens the Hello app, and closes it when it is in front.
+ref0;
