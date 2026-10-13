@@ -20,7 +20,7 @@
 <- {"seq":14,"type":"event","event":"stopped","body":{"reason":"exception","threadId":1,"allThreadsStopped":true,"text":"Expected a number"}}
 -> {"seq":7,"type":"request","command":"continue","arguments":{"threadId":1}}
 <- {"seq":15,"type":"response","request_seq":7,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
-<- {"seq":16,"type":"event","event":"output","body":{"category":"stderr","output":"    File \"$DIR/dap_exception.ns\"; Line 13 !!! Exception: -48404, Expected a number\n"}}
+<- {"seq":16,"type":"event","event":"output","body":{"category":"stderr","output":"    File \"$DIR/dap_exception.ns\"; Line 12 !!! Exception: -48404, Expected a number\n"}}
 <- {"seq":17,"type":"event","event":"exited","body":{"exitCode":1}}
 <- {"seq":18,"type":"event","event":"terminated"}
 -> {"seq":8,"type":"request","command":"disconnect"}

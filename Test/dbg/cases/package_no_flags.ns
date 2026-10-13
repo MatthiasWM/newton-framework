@@ -1,0 +1,16 @@
+// A package frame without flags (and parts without flags) is written: no
+// package flags, NewtonScript parts ({type: 'nos}). It crashed the writer
+// ("Unhandled exception evt.ex.fr.type;type.ref.frame -- warm reboot!").
+// A frame that isn't a package says why.
+begin
+  NTKLibrary();
+  local p := {signature: 'package0, id: "xxxx", version: 1, copyright: "t", name: "NoFlags:TEST",
+              modifyDate: 0, info: "t",
+              part: [{offset: 0, size: 0, type: "auto", info: "t", data: {v: 1}}]};
+  Print(IsBinary(NTKMakePackage(p)));
+  RemoveSlot(p, 'name);
+  try
+    NTKMakePackage(p)
+  onexception |evt.ex.msg| do
+    Print(CurrentException().message);
+end;

@@ -38,7 +38,7 @@ bool RunEmbeddedScript(const EmbeddedScript &script)
     if (IsFrame(data) && ISNIL(GetFrameSlot(data, SYMA(filename))))
     {
       SetFrameSlot(data, SYMA(filename), MakeStringFromCString(script.fileName));
-      SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+      SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.topLine()));
     }
     gREPout->exceptionNotify(CurrentException());
     ok = false;

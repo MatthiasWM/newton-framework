@@ -1,0 +1,8 @@
+x := 1;
+y := (3 + ;
+
+
+
+z := 2;
+// A syntax error is reported at the line of the offending token (here the
+// ';' on line 2), not where the lexer is after looking ahead (line 6).

@@ -170,12 +170,20 @@ public:
 	bool			keepsLines(void) const	{ return fKeepLines; }
 	Ref			lineFile(void);			// the file name for line tables
 	int			statementLine(void) const	{ return fStatementLine; }
+	// Not in ROM: lines for messages. topLine: the first line of the
+	// top-level statement compiled last (what -script ran when a run-time
+	// error comes); errorLine: where a compile error is (the offending
+	// token while parsing, else the statement being generated).
+	int			topLine(void) const	{ return fTopLine > 0 ? fTopLine : (int)lineNumber; }
+	int			errorLine(void) const;
 private:
 	Ref			withLine(RefArg inNode, int inLine);
 	int *			lStack;					// parser line stack
 	bool			fKeepLines;
 	RefStruct	fLineFile;
 	int			fStatementLine;			// line of the statement being generated
+	int			fTopLine;				// first line of the top-level statement (topLine)
+	bool			fParsing;				// parsing (errorLine: the token's line)
 //	int32_t		x20;						// +20	never referenced
 	int *			funcDepthPtr;			// +24
 //	bool			isStackedToken;		// +28

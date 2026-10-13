@@ -237,7 +237,9 @@ ParseFile(const char * inFilename)
 		&&  ISNIL(GetFrameSlot(data, SYMA(filename))))
 		{
 			SetFrameSlot(data, SYMA(filename), MakeStringFromCString(stream.fileName()));
-			SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+			// not in ROM: the statement that ran (lineNo() is past the
+			// parser's lookahead: the next statement's line)
+			SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.topLine()));
 		}
 		gREPout->exceptionNotify(CurrentException());
 	}
@@ -331,6 +333,8 @@ CCompiler::CCompiler(CInputStream * inStream, bool inByExpressions)
 	fKeepLines = NOTNIL(GetGlobalVar(MakeSymbol("dbgKeepLineNumbers")));
 	fLineFile = NILREF;
 	fStatementLine = 0;
+	fTopLine = 0;
+	fParsing = false;
 	is1Expression = inByExpressions;
 	funcDepthPtr = NULL;
 	tokenQueueIndex = 0;
@@ -438,7 +442,10 @@ CCompiler::compile(void)
 	funcDepthPtr = NULL;
 
 	// build the AST...
+	fTopLine = 0;			// not in ROM: set by the statement's first token
+	fParsing = true;
 	int		err = parser();	// returns "there is an error" rather than a NewtonErr code
+	fParsing = false;
 	// ...with a root node
 	RefVar	graph(AllocatePT1(TOKENbegin, yyval));
 
@@ -672,6 +679,8 @@ yyloop:
 		*++yyssp = yystate = yytable[yyn];
 		*++yyvsp = theToken.value.ref;
 		*++yylsp = theToken.location.lineNumber;
+		if (fTopLine == 0)		// not in ROM: the statement's first token (topLine)
+			fTopLine = theToken.location.lineNumber;
 		yychar = -1;
 		if (yyerrflag > 0) --yyerrflag;
 		goto yyloop;
@@ -3139,14 +3148,14 @@ CCompiler::emitVarIncr(RefArg inName)
 void
 CCompiler::warning(const char * inMsg)
 {
-	REPprintf("File \"%s\"; Line %d ### Warning: %s\n", stream->fileName(), lineNumber, inMsg);
+	REPprintf("File \"%s\"; Line %d ### Warning: %s\n", stream->fileName(), errorLine(), inMsg);
 }
 
 
 void
 CCompiler::error(const char * inMsg)
 {
-	REPprintf("Line %d ### Error: %s\n", lineNumber, inMsg);
+	REPprintf("Line %d ### Error: %s\n", errorLine(), inMsg);
 }
 
 
@@ -3207,6 +3216,17 @@ CCompiler::syntaxError(const char * msg)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
+int
+CCompiler::errorLine(void) const
+{
+	if (fParsing)
+		return theToken.location.lineNumber;	// the offending token
+	if (fStatementLine > 0)
+		return fStatementLine;					// generating code with lines (-g)
+	return topLine();
+}
+
+
 void
 CCompiler::error(NewtonErr inErr)
 {
@@ -3214,7 +3234,7 @@ CCompiler::error(NewtonErr inErr)
 
 	SetFrameSlot(fr, SYMA(errorCode), MAKEINT(inErr));
 	SetFrameSlot(fr, SYMA(filename), MakeStringFromCString(stream->fileName()));
-	SetFrameSlot(fr, SYMA(lineNumber), MAKEINT(lineNumber));
+	SetFrameSlot(fr, SYMA(lineNumber), MAKEINT(errorLine()));	// not in ROM: was lineNumber (the lexer's, past the token)
 
 	ThrowRefException(exCompilerData, fr);
 }
@@ -3235,7 +3255,7 @@ CCompiler::errorWithValue(NewtonErr inErr, RefArg inVal)
 	SetFrameSlot(fr, SYMA(errorCode), MAKEINT(inErr));
 	SetFrameSlot(fr, SYMA(value), inVal);
 	SetFrameSlot(fr, SYMA(filename), MakeStringFromCString(stream->fileName()));
-	SetFrameSlot(fr, SYMA(lineNumber), MAKEINT(lineNumber));
+	SetFrameSlot(fr, SYMA(lineNumber), MAKEINT(errorLine()));	// not in ROM: was lineNumber
 
 	ThrowRefException(exCompilerData, fr);
 }

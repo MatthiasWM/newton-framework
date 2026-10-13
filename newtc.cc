@@ -577,7 +577,9 @@ void handleArgS(const std::string &script)
     RefVar data(*(RefStruct *)CurrentException()->data);
     if (IsFrame(data)) {
       SetFrameSlot(data, SYMA(filename), MakeStringFromCString("<script>"));
-      SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.lineNo()));
+      // a compile error knows its line; a run-time error: the statement's
+      if (ISNIL(GetFrameSlot(data, SYMA(lineNumber))))
+        SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.topLine()));
     }
     gREPout->exceptionNotify(CurrentException());
   }
@@ -840,6 +842,20 @@ static void writeOrFail(const char *inOption, Write inWrite)
   {
     const char *text = (const char *)CurrentException()->data;
     message = std::string(inOption) + ": " + (text ? text : "can't write");
+  }
+  newton_catch_all
+  {
+    // e.g. a type error in the object written: its error's text
+    Exception *ex = CurrentException();
+    std::string what = ex->name ? ex->name : "an exception";
+    if (Subexception(ex->name, exRefException)) {
+      RefVar data(*(RefStruct *)ex->data);
+      Ref code = IsFrame(data) ? GetFrameSlot(data, SYMA(errorCode)) : NILREF;
+      if (ISINT(code))
+        if (const char *text = GetFramesErrorString((NewtonErr)RINT(code)))
+          what = text;
+    }
+    message = std::string(inOption) + ": can't write it (" + what + ")";
   }
   end_try;
   if (!message.empty())

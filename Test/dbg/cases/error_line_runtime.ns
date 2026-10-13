@@ -1,0 +1,7 @@
+// A run-time error in -script is reported at the line of the top-level
+// statement that ran (line 5), not after the parser's lookahead (the next
+// statement, or the end of the file).
+a := 1;
+b := NoSuchFunctionLine5(2);
+
+c := 3;

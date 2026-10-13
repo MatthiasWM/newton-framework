@@ -775,6 +775,26 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B39 Error lines were wrong (found by VSNewt, 2026-10-13): a syntax
+  error came at the lexer's line after its lookahead (an error on line 2
+  followed by blank lines: line 6), a run-time error in -script at the line
+  after the top-level statement that ran (the parser had read the next
+  statement's first token). Fixed: syntax errors at the offending token's
+  line (`CCompiler::errorLine()`: theToken.location while parsing, else the
+  statement being generated, -g, else the top-level statement); run-time
+  errors at `topLine()`, the first line of the statement that ran
+  (ParseFile, -s, embedded scripts, NTKCompileFile). A dropped trailing ';'
+  before `end` makes the parser read `end`: that line is reported (the
+  message says "read end"). Tests: cases error_line_syntax,
+  error_line_runtime; dap_errors, dap_exception, dap_exception_off,
+  for_closure now show the right lines.
+- [x] B40 A package frame without flags crashed the writer ("Unhandled
+  exception evt.ex.fr.type;type.ref.frame -- warm reboot!", found by
+  VSNewt): `if (RefVar flagsRef = ...)` took nil for true. Fixed: no package
+  flags means none set; a part without flags is a NewtonScript part
+  ({type: 'nos}; it was flags 0, a 'protocol part); the frame is checked
+  first (a part array of frames with data, a name), and -opkg reports any
+  exception as a newtc error. Test: case package_no_flags.
 - [x] B38 A package's info (the creator text after the directory) has no
   stored length and no NUL: the reader took everything up to the end of the
   directory, so newtc's own packages read back with "ø ø ø" (newtc padded

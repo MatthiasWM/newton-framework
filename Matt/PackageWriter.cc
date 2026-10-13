@@ -103,7 +103,7 @@ NewtonPackageWriter::NewtonPackageWriter()
   {
     signature: 'package0, // or 'package1
     id: "xxxx",           // optional FourCC string or binary, defaults ot "xxxx"
-    flags: {              // flags are optional and set to true or nil, nil by default
+    flags: {              // optional, each flag true or nil, nil by default
       autoRemove: nil,
       copyProtect: nil,
       invisible: nil,
@@ -126,7 +126,7 @@ NewtonPackageWriter::NewtonPackageWriter()
   ```
   {
     type: "form", // FourCC
-    flags: {
+    flags: {      // optional: without it {type: 'nos}
       type: 'nos, // 'protocol, 'raw', and 'package are not supported
       autoLoad: nil,
       autoRemove: nil,
@@ -194,6 +194,12 @@ void NewtonPackageWriter::openStreams(RefArg package)
 
   numParts_ = Length(part);
   if (numParts_ < 1) ThrowMsg("Not a package: no parts found");
+  for (int i = 0; i < numParts_; i++) {
+    RefVar p = GetArraySlot(part, i);
+    if (!IsFrame(p)) ThrowMsg("Not a package: a part isn't a frame");
+    if (ISNIL(GetFrameSlot(p, MakeSymbol("data")))) ThrowMsg("Not a package: a part has no data");
+  }
+  if (!IsString(GetFrameSlot(package, MakeSymbol("name")))) ThrowMsg("Not a package: no package name (a string)");
 
   header_ = std::make_unique<BinaryOutStream>();
   varData_ = std::make_unique<BinaryOutStream>();
@@ -269,7 +275,8 @@ void NewtonPackageWriter::writePackage(RefArg package)
 
   //   ULong flags;
   uint32_t flags = 0;
-  if (RefVar flagsRef = GetFrameSlot(package, MakeSymbol("flags"))) {
+  RefVar flagsRef = GetFrameSlot(package, MakeSymbol("flags"));
+  if (IsFrame(flagsRef)) {		// optional: none set (it was always taken: nil crashed)
     if (GetFrameSlot(flagsRef, MakeSymbol("autoRemove")) == TRUEREF)
       flags |= kAutoRemoveFlag;
     if (GetFrameSlot(flagsRef, MakeSymbol("copyProtect")) == TRUEREF)
@@ -380,9 +387,10 @@ void NewtonPackageWriter::writePartDir(int index, RefArg package) {
   if (!IsFrame(part)) ThrowMsg("Not a package: part description is not a frame");
 
   align4_ = false;
-  uint32_t flags = 0;
+  uint32_t flags = 1;		// no flags: a NewtonScript part ('nos), the only kind written
   RefVar flagsRef = GetFrameSlot(part, MakeSymbol("flags"));
   if (IsFrame(flagsRef)) {
+    flags = 0;
     RefVar type = GetFrameSlot(flagsRef, MakeSymbol("type"));
     if (!IsSymbol(type)) ThrowMsg("Not a valid package: no part type set");
     if (SymbolCompare(type, MakeSymbol("protocol"))==0) {

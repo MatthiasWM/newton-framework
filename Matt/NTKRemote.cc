@@ -789,7 +789,7 @@ Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
     RefVar data(*(RefStruct *)CurrentException()->data);
     if (IsFrame(data) && ISNIL(GetFrameSlot(data, MakeSymbol("filename")))) {
       SetFrameSlot(data, MakeSymbol("filename"), MakeStringFromCString(stream.fileName()));
-      SetFrameSlot(data, MakeSymbol("lineNumber"), MAKEINT(compiler.lineNo()));
+      SetFrameSlot(data, MakeSymbol("lineNumber"), MAKEINT(compiler.topLine()));
     }
     gREPout->exceptionNotify(CurrentException());
     failed = true;
