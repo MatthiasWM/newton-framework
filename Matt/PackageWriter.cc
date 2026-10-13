@@ -17,6 +17,7 @@
 #include "Ref32.h"
 #include "ROMResources.h"
 #include "Symbols.h"
+#include "StreamObjects.h"
 
 #include <ios>
 #include <fstream>
@@ -656,7 +657,9 @@ uint32_t NewtonPackageWriter::writeRef(BinaryOutStream *out, Ref ref)
       fixup_.insert(std::make_pair(pos, ref));
     }
   } else {
-    // We are going from 64 to 32 bit, so we may crop information here
+    // 64 to 32 bits: an integer a Newton can't hold throws (B14) instead of
+    // being cropped
+    CheckNewtonInteger(ref);
     *out << (uint32_t)ref;
   }
   return pos;

@@ -119,4 +119,9 @@ inline ArrayIndex	CObjectWriter::longToSize(long inValue) const
 { return (inValue < 0 || inValue > 254) ? 1 + 4 : 1; }
 
 
+/* not in ROM: newtc's integers have 62 bits, a Newton's 30. Writing an
+   integer a Newton can't hold (into NSOF, a package) throws with a message
+   instead of cropping it (B14). */
+void	CheckNewtonInteger(Ref inRef);
+
 #endif	/* __STREAMOBJECTS */

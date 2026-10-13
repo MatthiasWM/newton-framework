@@ -1267,8 +1267,23 @@ CObjectWriter::scan(void)
 
 	else								// immediate
 	{
+		CheckNewtonInteger(fObj);
 		fPipe << (unsigned char) kNSImmediate;
 		longToPipe(fObj);
+	}
+}
+
+
+void
+CheckNewtonInteger(Ref inRef)
+{
+	// a Newton's integers: 30 bits, -536870912 .. 536870911
+	if (ISINT(inRef) && (RVALUE(inRef) < -(1L << 29) || RVALUE(inRef) > (1L << 29) - 1))
+	{
+		static char message[160];		// ThrowMsg keeps the pointer
+		snprintf(message, sizeof(message),
+			"The integer %ld doesn't fit a Newton (30 bits: -536870912 to 536870911)", (long)RVALUE(inRef));
+		ThrowMsg(message);
 	}
 }
 

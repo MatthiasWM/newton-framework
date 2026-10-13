@@ -325,14 +325,19 @@ Interpreter and runtime
   `IntegerString(long)` (Locales.cc). The callers (`&` and Stringer: the
   ROM's %g, "0.0"; ParamStr, NumberStr: StringObject's %.15g) match the ROM.
   Test: Test/dbg/cases/sprintobject.
-- [ ] B14 **Integers overflow silently**: integers have 62 bits on a 64-bit
-  host (`kRefValueBits`), but arithmetic wraps without notice:
-  `1152921504606846975 * 4` gives `-4` (e.g. Interpreter.cc
-  `MAKEINT(RINT(a) + RINT(b))`). Check what the ROM does (throw, or convert
-  to a real?). Also: the compiler rejects the literal `-2305843009213693952`
-  (it negates the out-of-range 2^61), like C does; `-2305843009213693951 - 1`
-  works. And a 62-bit integer can't go into a package or NSOF file for a
-  real Newton (30 bits): check what the writers do with one.
+- [x] B14 **Integers overflow silently** (2026-10-13). The ROM wraps too
+  (FAdd, FSubtract, FMultiply: `MAKEINT(a op b)`, 32-bit ARM words, so
+  30-bit integers; newton-re's reconstruction): newtc wrapping at 62 bits is
+  the same behavior, wider. Kept so (Matt, 2026-10-13: no 30-bit emulation,
+  no run-time check). Fixed: what goes to a Newton refused nothing and
+  cropped silently (a package: 2^40 became 0, 2^29 became -2^29). Now the
+  package writer (PackageWriter writeRef: -opkg, NTKMakePackage) and the
+  NSOF writer (CObjectWriter: -onsof, everything sent over the link) throw
+  "The integer N doesn't fit a Newton (30 bits: -536870912 to 536870911)"
+  (`CheckNewtonInteger`, Frames/StreamObjects.cc); -opkg and -onsof report
+  it as a newtc error. Test: Test/dbg/cases/newton_integers. Left as is:
+  the compiler rejects the literal `-2305843009213693952` (it negates the
+  out-of-range 2^61, as C does; `-2305843009213693951 - 1` works).
 
 
 Views and drawing

@@ -824,10 +824,32 @@ void handleArgTrap(const std::string &arg)
  \brief Write the object top of ref stack as a package file.
  \todo Error handling
  */
+/**
+ \brief Run inWrite (writing a file); a NewtonScript exception with a message
+ (e.g. an integer a Newton can't hold, B14) becomes a newtc error.
+ */
+template <typename Write>
+static void writeOrFail(const char *inOption, Write inWrite)
+{
+  std::string message;
+  newton_try
+  {
+    inWrite();
+  }
+  newton_catch(exMessage)
+  {
+    const char *text = (const char *)CurrentException()->data;
+    message = std::string(inOption) + ": " + (text ? text : "can't write");
+  }
+  end_try;
+  if (!message.empty())
+    throw(std::runtime_error(message + "."));
+}
+
 void handleArgOPkg(const std::string &filename)
 {
   RefVar package = getGlobalRef(0);
-  writePackageToFile(package, filename);
+  writeOrFail("-opkg", [&] { writePackageToFile(package, filename); });
 }
 
 extern const EmbeddedScript gConnectScript;       // Matt/Debugger/Connect.ns
@@ -857,10 +879,12 @@ void handleArgConnectPackage(const std::string &filename)
  */
 void handleArgONsof(const std::string &filename)
 {
-  CStdIOPipe outPipe(filename.c_str(), "wb");
   RefVar ref = getGlobalRef(0);
-  CObjectWriter out(ref, outPipe, false);
-  out.write();
+  writeOrFail("-onsof", [&] {
+    CStdIOPipe outPipe(filename.c_str(), "wb");
+    CObjectWriter out(ref, outPipe, false);
+    out.write();
+  });
 }
 
 /**

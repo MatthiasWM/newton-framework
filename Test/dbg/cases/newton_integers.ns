@@ -1,0 +1,18 @@
+// B14: newtc's integers have 62 bits (they wrap at 62 bits, as the ROM's
+// wrap at 30: kept, Matt 2026-10-13), a Newton's 30. What goes to a Newton
+// (a package, NSOF) refuses an integer it can't hold, instead of cropping
+// it (2^40 became 0, 2^29 became -2^29).
+begin
+  NTKLibrary();
+  local MakePackage := func(value)
+    NTKMakePackage({signature: 'package0, id: "xxxx", flags: {noCompression: true}, version: 1,
+      copyright: "t", name: "Ints:TEST", modifyDate: 0, info: "t",
+      part: [{offset: 0, size: 0, type: "auto", flags: {type: 'nos, Notify: true}, info: "t",
+              data: {value: value}}]});
+  foreach value in [536870911, -536870912, 536870912, -536870913, 1099511627776] do
+    try
+      Print([value, IsBinary(call MakePackage with (value))])
+    onexception |evt.ex.msg| do
+      Print([value, CurrentException().message]);
+  Print(536870911 + 1);       // in newtc: 62 bits (a Newton: -536870912)
+end;

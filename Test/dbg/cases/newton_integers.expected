@@ -1,0 +1,6 @@
+[536870911, true]
+[-536870912, true]
+[536870912, "The integer 536870912 doesn't fit a Newton (30 bits: -536870912 to 536870911)"]
+[-536870913, "The integer -536870913 doesn't fit a Newton (30 bits: -536870912 to 536870911)"]
+[1099511627776, "The integer 1099511627776 doesn't fit a Newton (30 bits: -536870912 to 536870911)"]
+536870912
