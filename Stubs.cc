@@ -583,7 +583,6 @@ Ref FntpDownloadPackage(RefArg rcvr);
 Ref FTestReportError(RefArg rcvr);
 Ref FSpellDocEnd(RefArg rcvr);
 Ref FVBOUndoChanges(RefArg rcvr);
-Ref FSetGlobal(RefArg rcvr);
 Ref FValidateWord(RefArg rcvr);
 Ref FGetLetterHilite(RefArg rcvr);
 Ref FStripRecognitionWordDiacritsOK(RefArg rcvr);
@@ -1299,7 +1298,6 @@ NS_STUB(FntpDownloadPackage, RefArg rcvr)
 NS_STUB(FTestReportError, RefArg rcvr)
 NS_STUB(FSpellDocEnd, RefArg rcvr)
 NS_STUB(FVBOUndoChanges, RefArg rcvr)
-NS_STUB(FSetGlobal, RefArg rcvr)
 NS_STUB(FValidateWord, RefArg rcvr)
 NS_STUB(FGetLetterHilite, RefArg rcvr)
 NS_STUB(FStripRecognitionWordDiacritsOK, RefArg rcvr)

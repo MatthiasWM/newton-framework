@@ -775,6 +775,12 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B41 `global x := value` did nothing (found with VSNewt,
+  2026-10-13): the compiler emits SetGlobal(value, 'x), newtc had only a
+  stub (with the wrong arguments). Now FSetGlobal (Frames/Globals.cc) as
+  the ROM's (0x002B72C8): sets the global variable, its symbol made
+  internal, returns the symbol. `global` is a top-level statement (the
+  ROM's grammar). Test: case global_keyword.
 - [x] B39 Error lines were wrong (found by VSNewt, 2026-10-13): a syntax
   error came at the lexer's line after its lookahead (an error on line 2
   followed by blank lines: line 6), a run-time error in -script at the line

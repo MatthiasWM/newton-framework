@@ -1,0 +1,9 @@
+// `global x := value` (a top-level statement) compiles to SetGlobal(value,
+// 'x): it sets the global variable (as the ROM's FSetGlobal). It hit
+// newtc's stub, so the variable stayed undefined. `global x` makes x nil.
+global gCount := 5;
+Print(gCount);
+global gNothing;
+Print([GlobalVarExists('gNothing), gNothing]);
+global gDouble := func(a) a * 2;
+Print(call gDouble with (21));
