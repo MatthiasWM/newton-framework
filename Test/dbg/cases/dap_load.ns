@@ -1,0 +1,5 @@
+// Load(file) runs a NewtonScript file (a relative name next to this file);
+// its code gets line tables for that file, so breakpoints set in it before
+// it is loaded stop there: a top-level statement, and in a function.
+Load("dap_load.nsi");
+Print(LoadedDouble(21));

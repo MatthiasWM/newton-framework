@@ -25,6 +25,9 @@
 #include "ROMResources.h"
 
 #include "Compiler.h"
+#include <filesystem>
+#include <string>
+#include <vector>
 #include "Tokens.h"
 #include "REPTranslators.h"
 #include "Unicode.h"
@@ -140,13 +143,37 @@ FCompile(RefArg inRcvr, RefArg inStr)
 }
 
 
+// Not in ROM: the files ParseFile is running (absolute), innermost last:
+// Load() looks for a relative name next to the file that calls it.
+static std::vector<std::string> gParseFileStack;
+
+/*------------------------------------------------------------------------------
+	Load(filename): compile and run a NewtonScript file, statement by
+	statement (as -script), and return the last result. Not in ROM: a
+	relative name is looked for next to the file that calls Load (as C's
+	#include "..."), then in the current directory; the file is compiled
+	under its absolute path, so its line tables (-g) name the file a
+	debugger sets breakpoints in.
+------------------------------------------------------------------------------*/
+
 extern "C" Ref
 FLoad(RefArg inRcvr, RefArg inFilenameStr)
 {
 	// convert Unicode string to ASCII
 	RefVar asciiStr(ASCIIString(inFilenameStr));
 	CDataPtr filename(asciiStr);
-	return ParseFile((const char *)filename);
+	std::filesystem::path path((const char *)filename);
+	std::error_code error;
+	if (path.is_relative() && !gParseFileStack.empty())
+	{
+		std::filesystem::path nearby = std::filesystem::path(gParseFileStack.back()).parent_path() / path;
+		if (std::filesystem::exists(nearby, error))
+			path = nearby;
+	}
+	std::filesystem::path absolute = std::filesystem::absolute(path, error);
+	if (!error)
+		path = absolute.lexically_normal();
+	return ParseFile(path.string().c_str());
 }
 
 
@@ -202,6 +229,11 @@ ParseFile(const char * inFilename)
 	CStdioInputStream stream(fd, inFilename);
 	CCompiler compiler(&stream, true);
 
+	// not in ROM: Load() in this file looks next to it
+	std::error_code fsError;
+	std::filesystem::path absolutePath = std::filesystem::absolute(inFilename, fsError);
+	gParseFileStack.push_back(fsError ? std::string(inFilename) : absolutePath.lexically_normal().string());
+
 	newton_try
 	{
 		while (!feof(fd))
@@ -249,6 +281,7 @@ ParseFile(const char * inFilename)
 	}
 	end_try;
 
+	gParseFileStack.pop_back();
 	fclose(fd);
 	return result;
 }

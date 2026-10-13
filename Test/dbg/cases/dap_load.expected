@@ -1,0 +1,34 @@
+-> {"seq":1,"type":"request","command":"initialize","arguments":{"clientID":"test","adapterID":"newtonscript"}}
+<- {"seq":1,"type":"response","request_seq":1,"success":true,"command":"initialize","body":{"supportsConfigurationDoneRequest":true,"supportsDisassembleRequest":true,"supportsSteppingGranularity":true,"supportsInstructionBreakpoints":true,"exceptionBreakpointFilters":[{"filter":"all","label":"All Exceptions","default":true,"description":"Stop when an exception is thrown, even if the program catches it (breakOnThrows)"},{"filter":"installScript","label":"Break in InstallScript","default":false,"description":"Stop when a package's InstallScript starts, on a remote Newton (the package is uploaded with its InstallScripts wrapped)"}]}}
+<- {"seq":2,"type":"event","event":"initialized"}
+-> {"seq":2,"type":"request","command":"launch","arguments":{"program":"$DIR/dap_load.ns"}}
+<- {"seq":3,"type":"response","request_seq":2,"success":true,"command":"launch"}
+-> {"seq":3,"type":"request","command":"setBreakpoints","arguments":{"source":{"path":"$DIR/dap_load.nsi"},"breakpoints":[{"line":2},{"line":4}]}}
+<- {"seq":4,"type":"response","request_seq":3,"success":true,"command":"setBreakpoints","body":{"breakpoints":[{"id":1,"verified":false,"line":2,"message":"No code for this line yet: set when the code is compiled"},{"id":2,"verified":false,"line":4,"message":"No code for this line yet: set when the code is compiled"}]}}
+-> {"seq":4,"type":"request","command":"configurationDone"}
+<- {"seq":5,"type":"response","request_seq":4,"success":true,"command":"configurationDone"}
+<- {"seq":6,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":1,"verified":true,"line":2}}}
+<- {"seq":7,"type":"event","event":"breakpoint","body":{"reason":"changed","breakpoint":{"id":2,"verified":true,"line":4}}}
+<- {"seq":8,"type":"event","event":"output","body":{"category":"stdout","output":"<function, 0 args, #<ref>>(), 0: Push 'LoadedDouble\n"}}
+<- {"seq":9,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":5,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":2}}
+<- {"seq":10,"type":"response","request_seq":5,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":3,"name":"<function>","line":2,"column":1,"source":{"name":"dap_load.nsi","path":"$DIR/dap_load.nsi"},"instructionPointerReference":"0x10000"},{"id":2,"name":"Load","line":0,"column":0,"presentationHint":"subtle"}],"totalFrames":3}}
+-> {"seq":6,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":11,"type":"response","request_seq":6,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":12,"type":"event","event":"output","body":{"category":"stdout","output":"functions.LoadedDouble('n=21), 0: GetVar n\n"}}
+<- {"seq":13,"type":"event","event":"stopped","body":{"reason":"breakpoint","threadId":1,"allThreadsStopped":true}}
+-> {"seq":7,"type":"request","command":"stackTrace","arguments":{"threadId":1,"levels":3}}
+<- {"seq":14,"type":"response","request_seq":7,"success":true,"command":"stackTrace","body":{"stackFrames":[{"id":2,"name":"LoadedDouble","line":4,"column":1,"source":{"name":"dap_load.nsi","path":"$DIR/dap_load.nsi"},"instructionPointerReference":"0x30000"},{"id":1,"name":"<program>","line":5,"column":1,"source":{"name":"dap_load.ns","path":"$DIR/dap_load.ns"},"instructionPointerReference":"0x40004"}],"totalFrames":2}}
+-> {"seq":8,"type":"request","command":"continue","arguments":{"threadId":1}}
+<- {"seq":15,"type":"response","request_seq":8,"success":true,"command":"continue","body":{"allThreadsContinued":true}}
+<- {"seq":16,"type":"event","event":"output","body":{"category":"stdout","output":"42\n"}}
+<- {"seq":17,"type":"event","event":"exited","body":{"exitCode":0}}
+<- {"seq":18,"type":"event","event":"terminated"}
+-> {"seq":9,"type":"request","command":"disconnect"}
+<- {"seq":19,"type":"response","request_seq":9,"success":true,"command":"disconnect"}
+
+--- stderr ---
+BREAKPOINTS ENABLED
+breakOnThrows  = True
+printDepth     = 3
+printLength    = 50

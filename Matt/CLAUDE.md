@@ -775,6 +775,19 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B43 `Load(filename)` (2026-10-14): newtc has it (FLoad -> ParseFile,
+  as -script: statement by statement, errors with file and line, the
+  debugger's hook sets pending breakpoints in each new statement). But a
+  relative name was looked for only in the current directory (VSNewt starts
+  newtc in the workspace: "couldn't open file"), and the line tables named
+  the file as given. Now a relative name is looked for next to the file
+  that calls Load (ParseFile keeps a stack), then in the current directory,
+  and the file is compiled under its absolute path, so breakpoints set in a
+  loaded file (before it is loaded) stop there: top-level statements and
+  its functions. Test: case dap_load (dap_load.nsi). Not on a remote
+  Newton: the ROM has a Load (FLoad, 0x002B8290), but the Newton has no
+  such file; newtc would have to take loaded files along (compile them into
+  the program it sends): a feature for later.
 - [x] B42 A remote session failed about half the time with a release
   build (found by VSNewt, 2026-10-13): "Exception: ObjectPtr of
   non-pointer" right after the deploy, the session ended before the
