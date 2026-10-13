@@ -49,6 +49,7 @@ DefGlobalVar('DAP, {
   instructionBreakpoints: [], // installed from the Disassembly view
   nextBreakpointId: 1,
   breakOnExceptions: true,  // the "All Exceptions" filter: breakOnThrows
+  breakOnInstall: nil,      // the "Break in InstallScript" filter (remote packages, DAPRemote.ns)
   requestHandlers: nil,     // DAPRemoteRequests for a remote target (DAPRemote.ns), else DAPRequests
 
   // -- Sending
@@ -154,7 +155,9 @@ DefGlobalVar('DAP, {
     begin
       body.reason := "pause";
       body.description := "Paused in BreakLoop()";
-    end;
+    end
+    else if StrEqual(reason, "entry") then
+      body.description := "Paused at the start of an InstallScript";
     if text then
       body.text := text;
     stopReason := reason;
@@ -693,7 +696,9 @@ DefGlobalVar('DAPRequests, {
       supportsInstructionBreakpoints: true,
       exceptionBreakpointFilters: [
         {filter: "all", label: "All Exceptions", default: true,
-         description: "Stop when an exception is thrown, even if the program catches it (breakOnThrows)"}]});
+         description: "Stop when an exception is thrown, even if the program catches it (breakOnThrows)"},
+        {filter: "installScript", label: "Break in InstallScript", default: nil,
+         description: "Stop when a package's InstallScript starts, on a remote Newton (the package is uploaded with its InstallScripts wrapped)"}]});
     :SendEvent("initialized", nil);
   end,
 
@@ -892,10 +897,13 @@ DefGlobalVar('DAPRequests, {
   setExceptionBreakpoints: func(request)
   begin
     breakOnExceptions := nil;
+    breakOnInstall := nil;
     if IsFrame(request.arguments) and IsArray(request.arguments.filters) then
       foreach filter in request.arguments.filters do
         if IsString(filter) and StrEqual(filter, "all") then
-          breakOnExceptions := true;
+          breakOnExceptions := true
+        else if IsString(filter) and StrEqual(filter, "installScript") then
+          breakOnInstall := true;
     :SendResponse(request, nil);
   end,
 

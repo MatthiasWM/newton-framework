@@ -33,7 +33,8 @@ DefGlobalVar('DAPRemote, {
   wrapped: nil,         // the program is a .ns file, run in NTKCompileFile's wrapper
   frameNames: nil,      // per stack level: the frame's variable names (for evaluate), this stop
   program: nil,         // the program's code block as compiled here (NTKCompileFile)
-  remotePackage: nil,   // or the package: {name, frame (as read here, DAP.package)}
+  remotePackage: nil,   // or the package: {name, frame (as read here, DAP.package),
+                        // wrapped: per part the install slot wrapped (3.15), or nil}
   knownFunctions: [],   // its functions with lines from a debug map (|DAPAgent:Known| order)
   remoteBreakpoints: [],  // {id, path, line, verified, actualLine, places: [[path in program, pc], ...]}
   unsentFiles: [],      // files whose breakpoints changed while the Newton was busy
@@ -77,6 +78,7 @@ DefGlobalVar('DAPRemote, {
       :Stopped(if lastException then "exception"
                else if stopKind = 'breakpoint then "breakpoint"
                else if stopKind = 'step then "step"
+               else if stopKind = 'entry then "entry"
                else "breakloop", lastException);
       lastException := nil;
       stopKind := nil;
@@ -237,8 +239,21 @@ DefGlobalVar('DAPRemote, {
   begin
     local binary := LoadDataFile(path, 'package);
     local name := NTKPackageName(binary);
-    remotePackage := {name: name, frame: if IsFrame(package) then package else {}};
+    remotePackage := {name: name, frame: if IsFrame(package) then package else {}, wrapped: nil};
     :ResolveBreakpoints();
+    // breakpoints in an InstallScript, or "Break in InstallScript": the
+    // InstallScripts wrapped, the agent told where to stop
+    local plan := :InstallPlan();
+    if plan then
+    begin
+      binary := NTKMakePackage(:WrapInstallScripts(plan));
+      try
+        :RemoteCallWith("if HasPath(functions, '|DAPAgent:InstallPlan|) then "
+                        & "call functions.|DAPAgent:InstallPlan| with ('|dap data|)", plan.agent);
+      onexception |evt.ex| do
+        :Console("Warning: " & :ExceptionText(CurrentException()));
+      :Console("Uploading " & name & " with its InstallScript wrapped for debugging.");
+    end;
     NTKDeletePackage(name);         // a rebuild replaces it (no error if it isn't there)
     :ApplyExceptionFilter();
     busy := true;
@@ -280,15 +295,7 @@ DefGlobalVar('DAPRemote, {
   // breakpoints.
   PackageReady: func(name)
   begin
-    local entries := [];
-    knownFunctions := [];
-    if IsArray(remotePackage.frame.part) then
-      foreach i, part in remotePackage.frame.part do
-        foreach fn in MappedFunctions(part.data) do
-        begin
-          AddArraySlot(entries, [PathTo(part.data, fn), [name, i]]);
-          AddArraySlot(knownFunctions, fn);
-        end;
+    local entries := :KnownEntries(name);
     if Length(entries) > 0 then
       try
         :RemoteCallWith("if HasPath(functions, '|DAPAgent:Known|) then call functions.|DAPAgent:Known| with ('|dap data|)", entries);
@@ -299,6 +306,154 @@ DefGlobalVar('DAPRemote, {
         AddArraySlot(unsentFiles, bp.path);
     :SendBreakpoints();
   end,
+
+  // The functions of the package with lines from a debug map, as
+  // [[path in part data, [name, part index]], ...] for |DAPAgent:Known|;
+  // knownFunctions gets them in the same order (the agent's index).
+  KnownEntries: func(name)
+  begin
+    local entries := [];
+    knownFunctions := [];
+    if IsArray(remotePackage.frame.part) then
+      foreach i, part in remotePackage.frame.part do
+        foreach fn in MappedFunctions(part.data) do
+        begin
+          AddArraySlot(entries, [:InstalledPath(PathTo(part.data, fn), i), [name, i]]);
+          AddArraySlot(knownFunctions, fn);
+        end;
+    entries;
+  end,
+
+  // -- InstallScripts (3.15). An InstallScript runs while the package
+  // installs, before breakpoints can be set in the installed package. So
+  // the package is uploaded with each part's install function moved to
+  // |DAPAgent:InstallScript| and a wrapper in its place, which hands the
+  // function that will run (for a form part the ROM's InstallFormPart
+  // runs an EnsureInternal copy: the wrapper makes it) to the agent, then
+  // calls it with the same self and argument. The agent sets the
+  // breakpoints in it (told before the upload), and stops at its start
+  // with "Break in InstallScript". Without either, the package goes
+  // unchanged.
+
+  // The slot of a part's install function: a form part's devInstallScript
+  // (NTK's name for the developer's) or InstallScript, an auto part's
+  // InstallScript (as the ROM calls them); nil if it has none.
+  InstallSlot: func(part)
+  begin
+    local data := part.data;
+    if not (IsFrame(data) and IsString(part.type)) then
+      return nil;
+    if StrEqual(part.type, "form") and IsFunction(data.devInstallScript) then
+      return 'devInstallScript;
+    if (StrEqual(part.type, "form") or StrEqual(part.type, "auto")) and IsFunction(data.InstallScript) then
+      return 'InstallScript;
+    nil;
+  end,
+
+  // A path in part i's data as it is on the Newton: in a wrapped part, the
+  // install function moved to |DAPAgent:InstallScript|.
+  InstalledPath: func(path, i)
+  begin
+    local wrapped := if remotePackage then remotePackage.wrapped;
+    if not (IsArray(wrapped) and i < Length(wrapped) and wrapped[i]
+            and IsArray(path) and Length(path) > 0 and path[0] = wrapped[i]) then
+      return path;
+    local moved := Clone(path);
+    moved[0] := '|DAPAgent:InstallScript|;
+    moved;
+  end,
+
+  // path without its first step
+  RestOf: func(path)
+  begin
+    local rest := Array(Length(path) - 1, nil);
+    for j := 1 to Length(path) - 1 do
+      rest[j - 1] := path[j];
+    rest;
+  end,
+
+  // What to wrap and what the agent needs, nil if nothing: {parts:
+  // [{index, slot, form}], agent: {name, parts: [{index, places: [[path
+  // in the function, pc], ...], known: [[path in the function, index in
+  // knownFunctions], ...]}], entry, knownCount}}. From now on the
+  // breakpoints' paths lead to the moved functions (remotePackage.wrapped).
+  InstallPlan: func()
+  begin
+    local frame := remotePackage.frame;
+    if not IsArray(frame.part) then
+      return nil;
+    local slots := Array(Length(frame.part), nil);
+    foreach i, part in frame.part do
+      slots[i] := :InstallSlot(part);
+    local knownEntries := :KnownEntries(remotePackage.name);
+    local parts := [];
+    local agentParts := [];
+    local anyPlace := nil;
+    foreach i, slot in slots do
+      if slot then
+      begin
+        local places := [];
+        foreach bp in remoteBreakpoints do
+          foreach place in bp.places do
+            if Length(place) > 2 and place[2][1] = i and Length(place[0]) > 0 and place[0][0] = slot then
+              AddArraySlot(places, [:RestOf(place[0]), place[1]]);
+        local known := [];
+        foreach k, entry in knownEntries do
+          if entry[1][1] = i and Length(entry[0]) > 0 and entry[0][0] = slot then
+            AddArraySlot(known, [:RestOf(entry[0]), k]);
+        if Length(places) > 0 or breakOnInstall then
+        begin
+          anyPlace := anyPlace or Length(places) > 0;
+          AddArraySlot(parts, {index: i, slot: slot,
+                               form: StrEqual(frame.part[i].type, "form")});
+          AddArraySlot(agentParts, {index: i, places: places, known: known});
+        end;
+      end;
+    if Length(parts) = 0 then
+      return nil;
+    // the places now lead to the moved functions
+    local wrapped := Array(Length(slots), nil);
+    foreach p in parts do
+      wrapped[p.index] := p.slot;
+    remotePackage.wrapped := wrapped;
+    foreach bp in remoteBreakpoints do
+      foreach place in bp.places do
+        if Length(place) > 2 then
+          place[0] := :InstalledPath(place[0], place[2][1]);
+    {parts: parts,
+     agent: {name: remotePackage.name, parts: agentParts, entry: breakOnInstall,
+             knownCount: Length(knownFunctions)}};
+  end,
+
+  // The package with the parts of plan wrapped (copies: the package as
+  // read stays as it is)
+  WrapInstallScripts: func(plan)
+  begin
+    local frame := remotePackage.frame;
+    local wrappedPackage := Clone(frame);
+    wrappedPackage.part := Clone(frame.part);
+    foreach p in plan.parts do
+    begin
+      local part := Clone(frame.part[p.index]);
+      local data := Clone(part.data);
+      data.|DAPAgent:InstallScript| := data.(p.slot);
+      data.(p.slot) := :InstallWrapper(p.index, p.form);
+      part.data := data;
+      wrappedPackage.part[p.index] := part;
+    end;
+    wrappedPackage;
+  end,
+
+  // The wrapper for part i's install function (compiled from a string: a
+  // func() here would take this frame along). self is the part frame (an
+  // auto part) or the ROM's context {_proto: partFrame, ...} (a form part:
+  // RAM, so the copy can go there).
+  InstallWrapper: func(i, form)
+    call Compile("func(arg) begin local fn := self.|DAPAgent:InstallScript|; "
+      & (if form then "fn := EnsureInternal(fn); self.|DAPAgent:InstallScript| := fn; " else "")
+      & "if HasPath(functions, '|DAPAgent:Installing|) then "
+      & "try call functions.|DAPAgent:Installing| with (fn, " & i & ") onexception |evt.ex| do nil; "
+      & "self:|DAPAgent:InstallScript|(arg) end") with (),
 
   // "attach": nothing is installed or run; the Newton goes on as it is,
   // and breakpoints, exceptions ("All Exceptions"), and BreakLoop() stop
@@ -453,7 +608,7 @@ DefGlobalVar('DAPRemote, {
         else if remotePackage and IsArray(remotePackage.frame.part) then
           foreach i, part in remotePackage.frame.part do
             if not where and (where := PathTo(part.data, place[0])) then
-              AddArraySlot(bp.places, [where, place[1], [remotePackage.name, i]]);
+              AddArraySlot(bp.places, [:InstalledPath(where, i), place[1], [remotePackage.name, i]]);
       end;
     if Length(bp.places) > 0 then
     begin

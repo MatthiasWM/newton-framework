@@ -78,12 +78,23 @@
 // is connected (a session that ended without cleaning up, e.g. newtc
 // killed): they are removed and the program runs on; a stop nobody sees
 // would hang the Newton (Matt, Einstein, 2026-10-06).
+// Version 12 (plan step 3.15): breakpoints in InstallScripts. The desktop
+// uploads the package with each install function wrapped (DAPRemote.ns,
+// WrapInstallScripts) and first sends |DAPAgent:InstallPlan|({name,
+// parts: [{index, places: [[path in the function, pc], ...], known:
+// [[path in the function, index], ...]}], entry, knownCount}). While the
+// package installs, the wrapper calls |DAPAgent:Installing|(fn, part
+// index) with the function about to run (for a form part the ROM's
+// EnsureInternal copy): its breakpoints are set in it, decompiled
+// functions in it are known (index) until |DAPAgent:Known| replaces the
+// list, and with entry ("Break in InstallScript") a one-time breakpoint
+// at its pc 0 stops it there: {|DAPAgent:Stop|: 'entry}.
 
 DefGlobalVar('DAPAgentPackage, {
   signature: 'package0,
   id: "xxxx",
   flags: { noCompression: true },
-  version: 11,
+  version: 12,
   copyright: "newtc",
   name: "DAPAgent:newtc",
   modifyDate: 0,
@@ -96,12 +107,12 @@ DefGlobalVar('DAPAgentPackage, {
       flags: { type: 'nos, Notify: true },
       info: "newtc",
       data: {
-        agentVersion: 11,
+        agentVersion: 12,
 
         InstallScript: func(partFrame)
         begin
           local removeFrame := EnsureInternal({ removeScript: partFrame.RemoveScript });
-          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 11);
+          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 12);
 
           // the stop: enter the break loop here, so NSDT prints nothing
           if HasPath(functions, 'NSDBreakLoopEntry) then
@@ -221,6 +232,72 @@ DefGlobalVar('DAPAgentPackage, {
             end;
             Length(known);
           end);
+          // InstallScripts (version 12): the plan for the package about to
+          // install, and the one-time breakpoints at their start
+          local installPlan := nil;
+          local entryStops := [];
+          local follow := func(root, path)
+          begin
+            local x := root;
+            foreach step in path do
+              x := if IsFrame(x) and IsSymbol(step) then x.(step)
+                   else if IsArray(x) and IsInteger(step) and step < Length(x) then x[step];
+            x;
+          end;
+          local removeEntryStops := func()
+          begin
+            foreach bp in entryStops do
+              RemoveBreakPoint(bp);
+            entryStops := [];
+          end;
+          DefGlobalFn(EnsureInternal('|DAPAgent:InstallPlan|), func(plan)
+          begin
+            installPlan := plan;
+            nil;
+          end);
+          DefGlobalFn(EnsureInternal('|DAPAgent:Installing|), func(fn, partIndex)
+          begin
+            if not (installPlan and IsFunction(fn) and HasPath(functions, 'InstallBreakPoint)) then
+              return nil;
+            foreach part in installPlan.parts do
+              if part.index = partIndex then
+              begin
+                local file := {key: "<InstallScript>", installed: []};
+                AddArraySlot(placed, file);
+                foreach place in part.places do
+                begin
+                  local target := call follow with (fn, place[0]);
+                  if IsFunction(target) then
+                    try
+                      AddArraySlot(file.installed, InstallBreakPoint(target, place[1]));
+                    onexception |evt.ex| do
+                      nil;
+                end;
+                if Length(part.known) > 0 then
+                begin
+                  if Length(known) < installPlan.knownCount then
+                  begin
+                    local more := Array(installPlan.knownCount, nil);
+                    foreach k, instructions in known do
+                      more[k] := instructions;
+                    known := more;
+                  end;
+                  foreach entry in part.known do
+                  begin
+                    local target := call follow with (fn, entry[0]);
+                    if IsFrame(target) then
+                      known[entry[1]] := target.instructions;
+                  end;
+                end;
+                if installPlan.entry and not call isOurBreakpoint with (fn, 0) then
+                  try
+                    AddArraySlot(entryStops, InstallBreakPoint(fn, 0));
+                  onexception |evt.ex| do
+                    nil;
+              end;
+            nil;
+          end);
+
           DefGlobalFn(EnsureInternal('|DAPAgent:Reset|), func()
           begin
             known := [];
@@ -229,6 +306,8 @@ DefGlobalVar('DAPAgentPackage, {
                 RemoveBreakPoint(bp);
             placed := [];
             program := nil;
+            installPlan := nil;
+            call removeEntryStops with ();
             nil;
           end);
 
@@ -359,9 +438,14 @@ DefGlobalVar('DAPAgentPackage, {
 
           DefGlobalFn('NSDBreakLoopEntry, func(fn, pc, params)
           begin
-            if not NTKAlive() and (call isOurBreakpoint with (fn, pc)
+            local entryStop := nil;
+            foreach bp in entryStops do
+              if IsFrame(fn) and bp.instructions = fn.instructions and bp.programCounter = pc then
+                entryStop := bp;
+            if not NTKAlive() and (entryStop or call isOurBreakpoint with (fn, pc)
                                    or (stepping and call temporaries with (nil) = 0)) then
             begin
+              call removeEntryStops with ();
               // no desktop (a session ended without cleaning up): our
               // breakpoints and step go, the program runs on (a stop
               // nobody sees would hang the Newton)
@@ -372,7 +456,20 @@ DefGlobalVar('DAPAgentPackage, {
               placed := [];
               return nil;
             end;
-            if call isOurBreakpoint with (fn, pc) then
+            if entryStop then
+            begin
+              // "Break in InstallScript": once
+              RemoveBreakPoint(entryStop);
+              local others := [];
+              foreach bp in entryStops do
+                if bp <> entryStop then
+                  AddArraySlot(others, bp);
+              entryStops := others;
+              call endStep with ();
+              if NTKAlive() then
+                NTKSend({|DAPAgent:Stop|: 'entry});
+            end
+            else if call isOurBreakpoint with (fn, pc) then
             begin
               call endStep with ();
               if NTKAlive() then
@@ -666,6 +763,8 @@ DefGlobalVar('DAPAgentPackage, {
           RemoveSlot(functions, '|DAPAgent:Step|);
           RemoveSlot(functions, '|DAPAgent:Reset|);
           RemoveSlot(functions, '|DAPAgent:Known|);
+          RemoveSlot(functions, '|DAPAgent:InstallPlan|);
+          RemoveSlot(functions, '|DAPAgent:Installing|);
           RemoveSlot(functions, '|DAPAgent:Version|);
         end
       }

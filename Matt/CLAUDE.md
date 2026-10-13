@@ -461,7 +461,7 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
         the session.
       Not yet: breakpoints in an InstallScript (it runs during the
       install, before the breakpoints are set), and code the ROM copies
-      when installing (a form part's InstallScript).
+      when installing (a form part's InstallScript): done in 3.15.
 - [ ] 3.11 The real MP2x00 on the serial port (57600, timeouts,
       reconnects).
 - [x] 3.12 Attach (2026-10-06). DAP `attach` (DAP.ns; remote only:
@@ -569,21 +569,42 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
 
 Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
 need repairs: two recaps, one ePaper display conversion). 3.12, 3.13, and
-3.14a done; 3.14b waits for hardware too; next: the wishes 3.15 to 3.17,
-or 3.18 (no NS Debug Tools needed).
+3.14a and 3.15 done; 3.14b waits for hardware too; next: the wishes 3.16
+and 3.17, or 3.18 (no NS Debug Tools needed).
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
-- [ ] 3.15 Breakpoints in an InstallScript, and a "Break in InstallScript"
-      entry under "All Exceptions" (DAP exceptionBreakpointFilters). The
-      script runs during the install, before newtc can find it on the
-      Newton. Plan: when there are InstallScript breakpoints (or the entry
-      is checked), upload the package with each part's InstallScript
-      wrapped: the wrapper hands the function it is about to call to the
-      agent (which sets the breakpoints in it, or a temporary one at pc 0)
-      and then calls it. The original function stays as it is (lines,
-      PCs); it also covers the copy the ROM makes of a form part's
-      InstallScript. Only then is the uploaded package not byte for byte
-      the local one.
+- [x] 3.15 Breakpoints in an InstallScript, and "Break in InstallScript"
+      (2026-10-13). A new exception filter `installScript` (DAP.ns; off
+      by default; works with a remote Newton only, a local session ignores
+      it). When a breakpoint lies in a part's install function (a form
+      part's devInstallScript, else InstallScript; an auto part's
+      InstallScript: as the ROM calls them) or the filter is on,
+      DAPRemote.ns uploads a copy of the package (`InstallPlan`,
+      `WrapInstallScripts`): the install function moved to
+      `|DAPAgent:InstallScript|`, a wrapper in its place (compiled from a
+      string), and first tells the agent the plan
+      (`|DAPAgent:InstallPlan|`: per part the breakpoints as [path in the
+      function, pc], the decompiled functions in it with their index in
+      knownFunctions, entry). On the Newton the wrapper takes the function
+      that will run (a form part: `EnsureInternal` of it, as the ROM's
+      InstallFormPart does), calls `|DAPAgent:Installing|(fn, part index)`
+      and then the function with the same self and argument. Agent v12
+      sets the breakpoints in that very function (also in the copy), makes
+      its decompiled functions known (the stack's lines), and for the
+      filter a one-time breakpoint at pc 0: stop reason "entry" ("Paused at
+      the start of an InstallScript"). From the plan on, the breakpoints'
+      paths lead to the moved function (`InstalledPath`; also the Known
+      entries after the install). Without either the package goes
+      unchanged ("Uploading <name> with its InstallScript wrapped for
+      debugging." says when it doesn't). Test:
+      `Test/ntk/test_dap_install.py` (an auto part with -g: breakpoint,
+      variable, step, continue, installed; a form part with the filter:
+      "entry" at its first line in the ROM's copy; the form part
+      decompiled: a breakpoint in the decompiled InstallScript, its line in
+      the stack; unchanged without). The 26 DAP transcripts in Test/dbg
+      got the new filter in their initialize response. Not covered: a
+      RemoveScript (the same trick would work when deleting), and 3.17
+      must hash the uploaded (wrapped) bytes, not the file's.
 - [ ] 3.16 Progress while uploading a package: "Uploading hello2.pkg (18
       KB) ....... done" (Debug Console output without a newline continues
       the line; MNPLink knows the bytes the Newton acknowledged). First
