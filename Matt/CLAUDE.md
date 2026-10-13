@@ -775,6 +775,22 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B42 A remote session failed about half the time with a release
+  build (found by VSNewt, 2026-10-13): "Exception: ObjectPtr of
+  non-pointer" right after the deploy, the session ended before the
+  program ran. The NSOF writer's precedents table (CPrecedentsForWriting,
+  Frames/StreamObjects.cc), a radix tree over the bits of the objects'
+  addresses, was 32-bit code on 64-bit Refs: `(1 << n)` as an int, for
+  n = 31 negative, widened to a Ref tested bits 31 to 63 at once, and the
+  bit telling two Refs apart came from their low 32 bits. With objects in
+  different regions above 4 GB (as the release build's allocator placed
+  them) find() missed objects already written, and the program block,
+  which holds itself in its literals (PrepareProgram), was walked without
+  end (thousands of prescan frames, then garbage). Fixed: bits tested in
+  the Ref's width, the top bit 63. Found with a backtrace at the throw
+  (ASan builds never failed: other addresses). Also: NTKCompileFile's
+  `failed` is volatile (changed after a longjmp). Test: test_dap_server.py
+  on the release build 18 of 18, before about 1 in 2.
 - [x] B41 `global x := value` did nothing (found with VSNewt,
   2026-10-13): the compiler emits SetGlobal(value, 'x), newtc had only a
   stub (with the wrong arguments). Now FSetGlobal (Frames/Globals.cc) as

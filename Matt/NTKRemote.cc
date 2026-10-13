@@ -775,7 +775,7 @@ Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
   CStdioInputStream stream(fd, path.c_str());
   CCompiler compiler(&stream, true);
   compiler.setLineNo(0);
-  bool failed = false;
+  volatile bool failed = false;   // volatile: changed in newton_catch (longjmp)
   newton_try
   {
     while (!feof(fd)) {

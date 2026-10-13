@@ -191,6 +191,23 @@ CPrecedentsForReading::GCUpdate(void * inContext)
 	When writing, we have to convert pointer refs to self-relative offsets.
 ------------------------------------------------------------------------------*/
 
+// The table is a radix tree over the bits of the Refs (addresses). Not in
+// ROM: newtc's Refs have 64 bits. The ROM's code tested bit n with
+// (1 << n), an int: for n = 31 that is negative, so widened to a 64-bit Ref
+// it tested bits 31 to 63 at once, and the bit that tells two Refs apart
+// came from their low 32 bits only. With objects in different regions
+// above 4 GB the tree branched wrongly, find() missed an object it held,
+// and a cycle (a block in its own literals) was walked without end
+// ("ObjectPtr of non-pointer" deep in prescan; only in release builds,
+// whose allocator placed objects so).
+static const unsigned kRefTopBit = sizeof(Ref) * 8 - 1;
+
+static inline bool RefBit(Ref inRef, unsigned inBit)
+{
+	return (((unsigned long)inRef >> inBit) & 1) != 0;
+}
+
+
 CPrecedentsForWriting::CPrecedentsForWriting()
 	:	CBucketArray(sizeof(WrPrec))
 {
@@ -232,7 +249,7 @@ CPrecedentsForWriting::reset(void)
 	p->ref = NILREF;
 	p->f04 = 0;
 	p->f09 = 0;
-	p->highestBit = 31;
+	p->highestBit = kRefTopBit;
 }
 
 
@@ -243,7 +260,7 @@ CPrecedentsForWriting::search(RefArg inObj)
 	ArrayIndex	index;
 
 	unsigned	bitNum = get(0)->highestBit;
-	if ((r7 & (1 << bitNum)) != 0)
+	if (RefBit(r7, bitNum))
 		index = get(0)->f09;
 	else
 		index = get(0)->f04;
@@ -252,8 +269,7 @@ CPrecedentsForWriting::search(RefArg inObj)
 	while ((bitNum = get(index)->highestBit) < r6)
 	{
 		r6 = bitNum;
-		bitNum = get(index)->highestBit;
-		if ((r7 & (1 << bitNum)) != 0)
+		if (RefBit(r7, bitNum))
 			index = get(index)->f09;
 		else
 			index = get(index)->f04;
@@ -278,43 +294,44 @@ CPrecedentsForWriting::generateLinks(ArrayIndex index)
 {
 	RefVar	sp00(get(index)->ref);
 	ArrayIndex	r1 = search(sp00);
-	int		r7 = 31;
 	Ref		r8 = sp00;
-	unsigned	r0 = get(r1)->ref ^ r8;
-	for ( ; (r0 & 0x80000000) == 0; r0 <<= 1)	// calc next highest bit set
+	// the highest bit in which it differs from the Ref the search found
+	unsigned long	diff = (unsigned long)(get(r1)->ref ^ r8);
+	int		r7 = kRefTopBit;
+	for ( ; diff != 0 && ((diff >> kRefTopBit) & 1) == 0; diff <<= 1)
 		r7--;
 	get(index)->highestBit = r7;
 
+	unsigned	r0;
 	unsigned	r6;
 	unsigned	r9 = 0;
 	unsigned	r10 = 0;
 
 	r0 = get(0)->highestBit;
-	if ((r8 & (1 << r0)) != 0)
+	if (RefBit(r8, r0))
 		r6 = get(0)->f09;
 	else
 		r6 = get(0)->f04;
 
 	r10 = get(0)->highestBit;
-	while ((r0 = get(r6)->highestBit) > r7 && r0 < r10)
+	while ((r0 = get(r6)->highestBit) > (unsigned)r7 && r0 < r10)
 	{
 		r9 = r6;
 		r10 = r0;
-		r0 = get(r6)->highestBit;
-		if ((r8 & (1 << r0)) != 0)
+		if (RefBit(r8, r0))
 			r6 = get(r6)->f09;
 		else
 			r6 = get(r6)->f04;
 	}
 
-	bool	xr7 = (r8 & (1 << r7)) != 0;
+	bool	xr7 = RefBit(r8, r7);
 	get(index)->f04 = xr7 ? r6 : index;
 	if (xr7)
 		r6 = index;
 	get(index)->f09 = r6;
 
 	r0 = get(r9)->highestBit;
-	if ((r8 & (1 << r0)) != 0)
+	if (RefBit(r8, r0))
 		get(r9)->f09 = index;
 	else
 		get(r9)->f04 = index;
