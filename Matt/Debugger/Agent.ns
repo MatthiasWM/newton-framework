@@ -89,12 +89,18 @@
 // functions in it are known (index) until |DAPAgent:Known| replaces the
 // list, and with entry ("Break in InstallScript") a one-time breakpoint
 // at its pc 0 stops it there: {|DAPAgent:Stop|: 'entry}.
+// Version 13 (plan step 3.17): no upload of an unchanged package. After
+// an upload newtc calls |DAPAgent:NoteUpload|(name, hash of its bytes);
+// the agent keeps it (RAM: a reboot or a new agent forgets it) with the
+// size and timestamp GetPkgRefInfo reports then. |DAPAgent:UploadedHash|
+// (name) answers that hash while the package is installed with the same
+// size and timestamp, else nil: newtc uploads only if the hashes differ.
 
 DefGlobalVar('DAPAgentPackage, {
   signature: 'package0,
   id: "xxxx",
   flags: { noCompression: true },
-  version: 12,
+  version: 13,
   copyright: "newtc",
   name: "DAPAgent:newtc",
   modifyDate: 0,
@@ -107,12 +113,12 @@ DefGlobalVar('DAPAgentPackage, {
       flags: { type: 'nos, Notify: true },
       info: "newtc",
       data: {
-        agentVersion: 12,
+        agentVersion: 13,
 
         InstallScript: func(partFrame)
         begin
           local removeFrame := EnsureInternal({ removeScript: partFrame.RemoveScript });
-          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 12);
+          DefGlobalFn(EnsureInternal('|DAPAgent:Version|), func() 13);
 
           // the stop: enter the break loop here, so NSDT prints nothing
           if HasPath(functions, 'NSDBreakLoopEntry) then
@@ -134,8 +140,8 @@ DefGlobalVar('DAPAgentPackage, {
                     return true;
             nil;
           end;
-          // the parts of an installed package (their data), nil if it isn't
-          local packageParts := func(name)
+          // an installed package's GetPkgRefInfo, nil if it isn't installed
+          local packageInfo := func(name)
           begin
             local stores;
             try
@@ -153,11 +159,43 @@ DefGlobalVar('DAPAgentPackage, {
               end
               onexception |evt.ex| do
                 info := nil;
-              if IsFrame(info) and IsArray(info.parts) then
-                return info.parts;
+              if IsFrame(info) then
+                return info;
             end;
             nil;
           end;
+          // the parts of an installed package (their data), nil if it isn't
+          local packageParts := func(name)
+          begin
+            local info := call packageInfo with (name);
+            if info and IsArray(info.parts) then info.parts;
+          end;
+          // what newtc uploaded last (version 13): [{name, hash, size,
+          // timestamp}, ...]
+          local uploads := [];
+          DefGlobalFn(EnsureInternal('|DAPAgent:NoteUpload|), func(name, hash)
+          begin
+            local info := call packageInfo with (name);
+            local kept := [];
+            foreach upload in uploads do
+              if not StrEqual(upload.name, name) then
+                AddArraySlot(kept, upload);
+            if info then
+              AddArraySlot(kept, {name: Clone(name), hash: Clone(hash),
+                                  size: info.size, timestamp: info.timestamp});
+            uploads := kept;
+            nil;
+          end);
+          DefGlobalFn(EnsureInternal('|DAPAgent:UploadedHash|), func(name)
+          begin
+            local info := call packageInfo with (name);
+            if info then
+              foreach upload in uploads do
+                if StrEqual(upload.name, name) and upload.size = info.size
+                   and upload.timestamp = info.timestamp then
+                  return upload.hash;
+            nil;
+          end);
           // what path leads to from the program (where nil) or from part
           // where[1] of package where[0]; cache: [name, parts] of the last
           // package looked up
@@ -765,6 +803,8 @@ DefGlobalVar('DAPAgentPackage, {
           RemoveSlot(functions, '|DAPAgent:Known|);
           RemoveSlot(functions, '|DAPAgent:InstallPlan|);
           RemoveSlot(functions, '|DAPAgent:Installing|);
+          RemoveSlot(functions, '|DAPAgent:NoteUpload|);
+          RemoveSlot(functions, '|DAPAgent:UploadedHash|);
           RemoveSlot(functions, '|DAPAgent:Version|);
         end
       }

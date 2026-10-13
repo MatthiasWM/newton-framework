@@ -36,6 +36,8 @@
 //   NTKInstallPackageAsync(binary) -> nil: send 'pkg ' without waiting (its
 //       install script may stop in a break loop); NTKPackageResult() ->
 //       the Newton's answer (0 or an error) once it came, else nil
+//   NTKHash(binary) -> its bytes' hash (FNV-1a, 16 hex digits), e.g. to
+//       know whether the package on the Newton is this one
 //   NTKUploadProgress() -> [bytes the Newton acknowledged, bytes in all]
 //       while an NTKInstallPackageAsync upload is under way (until its
 //       result is taken), else nil
@@ -52,6 +54,7 @@ Ref FNTKDeletePackage(RefArg rcvr, RefArg inName);
 Ref FNTKInstallPackageAsync(RefArg rcvr, RefArg inPackage);
 Ref FNTKPackageResult(RefArg rcvr);
 Ref FNTKUploadProgress(RefArg rcvr);
+Ref FNTKHash(RefArg rcvr, RefArg inBinary);
 Ref FNTKPoll(RefArg rcvr, RefArg inSeconds);
 Ref FNTKSetHandler(RefArg rcvr, RefArg inHandler);
 Ref FNTKClose(RefArg rcvr);

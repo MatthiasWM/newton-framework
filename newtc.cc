@@ -221,6 +221,7 @@ bool init()
   defGlobalCFunction("NTKInstallPackageAsync", (void*)FNTKInstallPackageAsync, 1);
   defGlobalCFunction("NTKPackageResult", (void*)FNTKPackageResult, 0);
   defGlobalCFunction("NTKUploadProgress", (void*)FNTKUploadProgress, 0);
+  defGlobalCFunction("NTKHash", (void*)FNTKHash, 1);
   defGlobalCFunction("NTKLeaveBreakLoop", (void*)FNTKLeaveBreakLoop, 1);
   defGlobalCFunction("NTKOpen", (void*)FNTKOpen, 1);
   defGlobalCFunction("NTKWaitConnected", (void*)FNTKWaitConnected, 1);

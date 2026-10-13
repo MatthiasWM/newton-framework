@@ -41,6 +41,7 @@ DefGlobalVar('DAPRemote, {
   stopKind: nil,        // what the agent said about the coming stop ('breakpoint)
   ended: nil,           // EndSession() is done
   startTicks: nil,      // Ticks() when the session's Run started (NEWTC_DAP_TIMES)
+  reinstall: nil,       // launch "reinstall": true: upload the package even if unchanged
 
   Console: func(text)
     :SendEvent("output", {category: "console", output: text & kLF}),
@@ -186,6 +187,7 @@ DefGlobalVar('DAPRemote, {
     running := nil;           // nothing runs here: no local breakOnThrows
     breakOnThrows := nil;
     startTicks := Ticks();
+    reinstall := IsFrame(args) and args.reinstall;
     local library := NTKLibrary();
     library.reporter := DAPRemote;     // the agent's and NSDT's uploads: progress here
     NTKSetHandler(DAPRemote);
@@ -281,29 +283,46 @@ DefGlobalVar('DAPRemote, {
       :Console("Uploading " & name & " with its InstallScript wrapped for debugging.");
     end;
     :Timed("package read, breakpoints resolved");
-    NTKDeletePackage(name);         // a rebuild replaces it (no error if it isn't there)
-    :Timed("the old " & name & " deleted");
-    :ApplyExceptionFilter();
-    busy := true;
-    :UploadStart(:FileName(path), Length(binary));
-    NTKInstallPackageAsync(binary);
-    local result;
-    while not newtonGone and not (result := NTKPackageResult()) do
+    // the same bytes as the last upload, still installed: not again (3.17;
+    // its InstallScript doesn't run again: "reinstall": true)
+    local hash := NTKHash(binary);
+    if not plan and not reinstall and StrEqual(:UploadedHash(name), hash) then
     begin
-      :UploadTick();
-      :Serve(1);
-    end;
-    :UploadEnd(result);
-    busy := nil;
-    if newtonGone then
-      return :Finish(0);
-    :Timed("installed (the InstallScript ran)");
-    if result <> 0 then
+      :Console(:FileName(path) & " is unchanged on the Newton: not uploaded again"
+               & " (\"reinstall\": true uploads it, and its InstallScript runs).");
+      :ApplyExceptionFilter();
+    end
+    else
     begin
-      :Console("The Newton couldn't install " & name & " (error " & result & ").");
-      return :Close(1);
+      NTKDeletePackage(name);         // a rebuild replaces it (no error if it isn't there)
+      :Timed("the old " & name & " deleted");
+      :ApplyExceptionFilter();
+      busy := true;
+      :UploadStart(:FileName(path), Length(binary));
+      NTKInstallPackageAsync(binary);
+      local result;
+      while not newtonGone and not (result := NTKPackageResult()) do
+      begin
+        :UploadTick();
+        :Serve(1);
+      end;
+      :UploadEnd(result);
+      busy := nil;
+      if newtonGone then
+        return :Finish(0);
+      :Timed("installed (the InstallScript ran)");
+      if result <> 0 then
+      begin
+        :Console("The Newton couldn't install " & name & " (error " & result & ").");
+        return :Close(1);
+      end;
+      :Console("Installed " & name & " on the Newton.");
+      try
+        :RemoteCallWith("begin local d := '|dap data|; if HasPath(functions, '|DAPAgent:NoteUpload|) then "
+                        & "call functions.|DAPAgent:NoteUpload| with (d[0], d[1]) end", [name, hash]);
+      onexception |evt.ex| do
+        :Console("Warning: " & :ExceptionText(CurrentException()));
     end;
-    :Console("Installed " & name & " on the Newton.");
     :PackageReady(name);
     :Timed("breakpoints set");
     // open its app, as the local debugger does (the ROM's install doesn't):
@@ -323,6 +342,19 @@ DefGlobalVar('DAPRemote, {
     while not newtonGone do
       :Serve(1);
     :Finish(0);
+  end,
+
+  // The hash of the package newtc uploaded last as name, if it is still
+  // the one installed (the agent knows, version 13); "" if not or unknown
+  UploadedHash: func(name)
+  begin
+    local hash;
+    try
+      hash := :RemoteCallWith("if HasPath(functions, '|DAPAgent:UploadedHash|) then "
+                              & "call functions.|DAPAgent:UploadedHash| with ('|dap data|)", name);
+    onexception |evt.ex| do
+      hash := nil;
+    if IsString(hash) then hash else "";
   end,
 
   // An upload's progress in the Debug Console, on one line: "Uploading

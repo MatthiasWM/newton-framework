@@ -427,6 +427,23 @@ Ref FNTKPackageResult(RefArg rcvr)
 }
 
 
+Ref FNTKHash(RefArg rcvr, RefArg inBinary)
+{
+  if (!IsBinary(inBinary))
+    Fail("NTKHash: a binary expected (the package's bytes)");
+  // FNV-1a, 64 bits, as the debug maps' (LineTables.cc)
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  const unsigned char *bytes = (const unsigned char *)BinaryData(inBinary);
+  for (ArrayIndex i = 0, n = Length(inBinary); i < n; ++i) {
+    hash ^= bytes[i];
+    hash *= 0x100000001b3ULL;
+  }
+  char text[17];
+  snprintf(text, sizeof(text), "%016llx", (unsigned long long)hash);
+  return MakeStringFromCString(text);
+}
+
+
 Ref FNTKUploadProgress(RefArg rcvr)
 {
   if (!gRemote || !gRemote->started || gRemote->uploadTotal == 0 || gRemote->connectionLost)

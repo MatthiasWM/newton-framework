@@ -22,6 +22,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <algorithm>
 #include <deque>
 #include <string>
 
@@ -61,6 +63,7 @@ struct InstalledPackage {
   RefStruct parts;              // [[installInfo, removeFrame], ...]
   RefStruct frame;              // the package as installed (packageRef() makes a new one each time)
   long size;                    // its bytes
+  long timestamp;               // when it was installed (GetPkgRefInfo's timestamp)
 };
 
 struct Nub {
@@ -279,8 +282,12 @@ long Nub::loadPackage(const std::vector<uint8_t> &inData)
   if (!ok)
     return kBadPackage;
   fprintf(stderr, "ntk-device: installed \"%s\"\n", name.c_str());
+  // the time of the install, a new one each time (a reinstall within the
+  // same second is a different install)
+  static long lastTimestamp = 0;
+  lastTimestamp = std::max(lastTimestamp + 1, (long)time(nullptr));
   installed.push_back(InstalledPackage{ name, package, RefStruct(parts), RefStruct(packageRef),
-                                        (long)inData.size() });
+                                        (long)inData.size(), lastTimestamp });
   return 0;
 }
 
@@ -612,6 +619,7 @@ Ref FNTKDeviceGetPkgRefInfo(RefArg rcvr, RefArg inRef)
     RefVar info(AllocateFrame());
     SetFrameSlot(info, MakeSymbol("title"), MakeStringFromCString(name.c_str()));
     SetFrameSlot(info, MakeSymbol("size"), MAKEINT(p.size));
+    SetFrameSlot(info, MakeSymbol("timestamp"), MAKEINT(p.timestamp));
     SetFrameSlot(info, MakeSymbol("numParts"), MAKEINT(count));
     SetFrameSlot(info, MakeSymbol("parts"), parts);
     return info;

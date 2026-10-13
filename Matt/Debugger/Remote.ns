@@ -11,7 +11,7 @@ DefGlobalVar('NTKRemote, {
   debugToolsPackage: nil,
 
   // The agent version this newtc brings (Agent.ns).
-  agentVersion: 12,
+  agentVersion: 13,
 
   // Who shows an upload's progress (DAPRemote: the Debug Console), nil:
   // nobody. Methods UploadStart(name, bytes), UploadTick() (now and then
