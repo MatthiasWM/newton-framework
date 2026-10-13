@@ -18,7 +18,7 @@ Ref			GetLocaleSlot(RefArg inLocale, RefArg inTag);
 Ref			GetLocaleSlot(RefArg inTag);
 
 NewtonErr	IntlNumberMunge(const char * inStr, UniChar * outStr, bool inIsNegative, ArrayIndex inNumOfDecimals, ArrayIndex inStrLen, ULong inFmt);
-NewtonErr	IntegerString(int inNum, UniChar * outStr);
+NewtonErr	IntegerString(long inNum, UniChar * outStr);
 
 UniChar *	PositiveNumberProtoStr(void);
 UniChar *	NegativeNumberProtoStr(void);

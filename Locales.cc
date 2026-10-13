@@ -754,25 +754,24 @@ NumberStringSpec(double inNum, UniChar * outStr, ArrayIndex inStrLen, ULong inFm
 
 
 NewtonErr
-IntegerString(int inNum, UniChar * outStr)
+IntegerString(long inNum, UniChar * outStr)
 {
+	// newtc: long, not int: integers have 62 bits on a 64-bit host (the
+	// ROM's 30); SPrintObject(1152921504606846975) gave "-1" (B15)
 	UniChar *	s, ch;
-	div_t	number;
 	int	first;
 	int	last;
 
-	// Determine sign and ensure inNum is positive
+	// Determine sign; the digits from the magnitude (unsigned: no overflow)
 	bool isNegative = (inNum < 0);
-	if (isNegative)
-		inNum = -inNum;
+	unsigned long magnitude = isNegative ? 0UL - (unsigned long)inNum : (unsigned long)inNum;
 
 	// Convert to chars - but backwards!
 	s = outStr;
-	number.quot = inNum;
 	do {
-		number = div(number.quot, 10);
-		*s++ = '0' + number.rem;
-	} while (number.quot != 0);
+		*s++ = '0' + (UniChar)(magnitude % 10);
+		magnitude /= 10;
+	} while (magnitude != 0);
 	if (isNegative)
 		*s++ = '-';
 	*s = kEndOfString;

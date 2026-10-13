@@ -1,0 +1,14 @@
+// B15: SPrintObject (the ROM's FSPrintObject and StringObject) converts
+// strings, numbers, characters and symbols; anything else (nil, true,
+// frames, arrays) gives "" (as the ROM; checked against newton-re's
+// reconstruction). Integers have 62 bits in newtc: they were cut to 32
+// ("-1"). Reals with %.15g; & and Stringer use the ROM's %g ("0.0").
+begin
+  local third := 1 / 3;
+  foreach x in [nil, true, {a: 1}, [1, 2], 1152921504606846975, -1152921504606846976,
+                0, -7, 1.5, 0.0, third, $a, 'sym, "str"] do
+    Print([SPrintObject(x), StrLen(SPrintObject(x))]);
+  Print([NumberStr(1152921504606846975), NumberStr(-7)]);
+  Print(["" & 0.0 & " " & third & " " & 1152921504606846975 & " " & 'sym & $c & nil]);
+  Print(Stringer([0.0, " ", third, " ", 1152921504606846975, nil, 'sym, $c, "s"]));
+end;

@@ -15,7 +15,7 @@ Ref			FFindStringInArray(RefArg inRcvr, RefArg inArray, RefArg inStr);
 
 UniChar *	GetUString(RefArg inStr);
 bool			MakeStringObject(RefArg obj, UniChar * inStr, ArrayIndex * outLength, ArrayIndex inLength);
-NewtonErr	IntegerString(int i, UniChar * ioStr);
+NewtonErr	IntegerString(long i, UniChar * ioStr);
 NewtonErr	NumberString(double n, UniChar * ioStr, ArrayIndex inLength, const char * inFormat);
 
 

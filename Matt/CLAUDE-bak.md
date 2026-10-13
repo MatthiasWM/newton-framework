@@ -314,16 +314,17 @@ Interpreter and runtime
   Strategy (2026-09-26): every stub now says so when called (see
   Conventions, "Stubs"); `-stubs report` shows which ones real programs
   call, to choose what to implement next.
-- [ ] B15 **`SPrintObject` is half ported** (Frames/Strings.cc,
-  `MakeStringObject`): nil, true, frames, arrays give `""` (reals: fixed
-  with B28, 2026-09-29), a 62-bit
-  integer is cut to 32 bits (`1152921504606846975` -> `"-1"`,
-  `IntegerString(RINT(obj))`), and the function never copies into the
-  result string in some branches. In the ROM it is the `&` conversion
-  (strings, numbers, symbols, characters), not the printer. DAP uses its
-  own `DAPPrintObject`.
-  2026-09-26: `"" & 1.5 & " " & 1152921504606846975 & " " & $a & " " & 'sym`
-  gives the right string now; check the other callers before closing.
+- [x] B15 **`SPrintObject` is half ported** (fixed 2026-10-13). Compared
+  with the ROM (newton-re's reconstruction of FSPrintObject, StringObject,
+  Stringer): nil, true, frames and arrays giving `""` is the ROM's behavior
+  (StringObject converts only strings, numbers, characters, symbols), and
+  so is the 63-character limit for symbol names; the empty results are
+  proper strings. The one real bug: integers (62 bits in newtc, 30 on the
+  ROM) went through a 32-bit `IntegerString(int)`, so
+  `SPrintObject(1152921504606846975)` and `NumberStr` gave "-1": now
+  `IntegerString(long)` (Locales.cc). The callers (`&` and Stringer: the
+  ROM's %g, "0.0"; ParamStr, NumberStr: StringObject's %.15g) match the ROM.
+  Test: Test/dbg/cases/sprintobject.
 - [ ] B14 **Integers overflow silently**: integers have 62 bits on a 64-bit
   host (`kRefValueBits`), but arithmetic wraps without notice:
   `1152921504606846975 * 4` gives `-4` (e.g. Interpreter.cc
