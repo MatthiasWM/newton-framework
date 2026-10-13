@@ -13,7 +13,7 @@ disassembly; "to confirm" means it still needs a capture (step 1.5).
 4. Desktop side                     <- step 1.3
 5. MNP                              <- step 1.4
 6. Captured sessions                <- step 1.5
-7. Remote tools                     <- step 2
+7. Remote tools                     <- step 2 (7.4: step 3.18a)
 
 ---
 
@@ -697,3 +697,93 @@ Shown working remotely in 7.1. **So the device needs:**
    `functions.Write` not native.
 Everything else (names for ROM objects, error texts, `viewFlags` names)
 is done on the host.
+
+### 7.4 What we use from NS Debug Tools, and what it rests on (plan 3.18a)
+
+Goal (3.18): the agent brings its own natives, so a Newton needs nothing
+from NTK. Matt (2026-10-13): the natives call the ROM **only through the
+fixed public jump table**, so ROMs in other languages (other builds, other
+addresses) work too. NS Debug Tools does exactly that.
+
+**Our calls into NSDT** (agent v13 in `Matt/Debugger/Agent.ns`; DAPRemote.ns
+itself only calls `GloballyEnableBreakPoints` and checks for
+`GetCurrentFunction`):
+
+| NSDT function | What the agent uses it for |
+|---|---|
+| `GetCurrentFunction`, `GetCurrentPC`, `GetCurrentReceiver`, `GetCurrentImplementor` | the stack (frames, names, lines), stepping depth, evaluate's self |
+| `GetAllNamedVars`, `GetNamedVar`, `SetNamedVar` | scopes, evaluate in a frame (and writing back) |
+| `GetAllTempVars` | the "Stack" scope |
+| `InstallBreakPoint`, `RemoveBreakPoint`, `GetAllBreakPoints` | breakpoints, temporary ones while stepping |
+| `Step`, `StepIn`, `StepOut` | stepping (one instruction each; the agent repeats them) |
+| `GloballyEnableBreakPoints` | at the start of a session (accurate stacks) |
+| its `BreakLoop` (replaces the ROM's), the hook `NSDBreakLoopEntry`, `NSDOriginalBreakLoop` | every stop goes through the hook |
+
+Also from the ROM itself (no NSDT): `ExitBreakLoop`, `GetFunctionArgCount`.
+
+**NSDT's layers.** The functions above are NewtonScript (`kNSDTools` in
+our port `Matt/Debugger/NSDebugTools.ns`): a "stack object" (`CurrentStack()`:
+`{_proto: NSDSelfFuncs, nsDebugAPI: NSDMakeNSDebugAPI()}`, `FindBreakLoop()`
+finds the newest `BreakLoop` frame), the breakpoint list (read with
+`NSDInstallBreakPoints(nil)`, which returns the old list, then set again),
+and for stepping an instruction decoder (`MakeDisassembler`: `InstrOpcode`,
+`InstrParameter`, `InstrLength`; the printing parts aren't needed). Under it
+are the natives, two `BinCFunction` blobs in two auto parts (decompiled:
+`newtc -pkg "NS Debug Tools.pkg" -odecompile`):
+
+| Part | Blob | Natives |
+|---|---|---|
+| "NSDCPatch1" | 336 bytes, no ROM stubs | `NSDInstallBreakPoints(list)`, `NSDEnableBreakPoints(flag)` |
+| "NSDCPatch2" | 2600 bytes, 4 stubs | `NSDMakeNSDebugAPI()`, and the methods of `NSDSelfFuncs`: `AccurateStack`, `NumStackFrames`, `Function`, `ProgramCounter`, `SetProgramCounter`, `Receiver`, `Implementor`, `GetVar`, `SetVar`, `FindVar`, `SetFindVar`, `NumTemps`, `TempValue`, `SetTempValue`; also `NSDFindSlotName`, `NSDRefToHexString` (printing only) |
+
+Each part's InstallScript sets the globals: `functions.X := {class:
+'BinCFunction, code: <blob>, numArgs, offset}` (an `EnsureInternal` copy
+when the package isn't in the internal store).
+
+**How the ARM code reaches the ROM.** The 2600-byte blob starts with four
+stubs `E51FF004 <address>` (`ldr pc, [pc, #-4]` + a word): far jumps to
+0x018027EC, 0x018027E0, 0x01800818, 0x01800828. 0x01800000 is the ROM's
+**public jump table** as the MMU maps it for packages
+(`gROMPublicJumpTable`, physical 0x00013000-0x00015E0C, 2947 entries, one
+`B` each, encoded relative to the virtual address; newton-re
+`src/armcpu/PublicJumpTable.cpp` names them all). So entry = 0x01800000 +
+offset, the same on every ROM build:
+
+| Offset | Function | NSDT uses it |
+|---|---|---|
+| 0x0818 | `AllocateRefHandle(long)` | yes |
+| 0x0828 | `BinaryData(long)` | yes |
+| 0x0888 | `DisposeRefHandle(RefHandle*)` | |
+| 0x1EE8 | `GetGInterpreter()` | |
+| 0x1FF4 | `TInterpreter::SetBreakPoints(const RefVar&)` | |
+| 0x20C0 | `TInterpreter::EnableBreakPoints(unsigned char)` | |
+| 0x27E0 | `AllocateCObjectBinary(void*, void(*)(void*), ...)` | yes |
+| 0x27EC | `TNSDebugAPI::AccurateStack()` | yes |
+| 0x27F0 ... 0x2834 | the rest of `TNSDebugAPI`: `NumStackFrames`, `Function`, `SetFunction`, `PC`, `SetPC`, `Receiver`, `SetReceiver`, `Implementor`, `SetImplementor`, `Locals`, `GetVar`, `SetVar`, `FindVar`, `SetFindVar`, `NumTemps`, `TempValue`, `SetTempValue`, `Return` | (probably relative to 0x27EC) |
+| 0x2838 | `NewNSDebugAPI(TInterpreter*)` | |
+| 0x283C | `DeleteNSDebugAPI(TNSDebugAPI*)` | |
+| 0x2B28 | `ThrowBadTypeWithFrameData(long, const RefVar&)` | |
+
+The 336-byte blob has no stubs: how `NSDInstallBreakPoints` and
+`NSDEnableBreakPoints` reach the interpreter is to be read in 3.18b (if they
+use a ROM-build address, ours won't: `GetGInterpreter` then
+`SetBreakPoints`/`EnableBreakPoints` through the table).
+
+**What our natives must do** (newtc's C++ stand-ins in `Frames/DebugAPI.cc`
+show the semantics, one ROM call each):
+- `MakeNSDebugAPI()`: `AllocateCObjectBinary(NewNSDebugAPI(GetGInterpreter()),
+  DeleteNSDebugAPI, ...)`: the API object, freed by the garbage collector.
+- The methods, receiver the stack object (its `nsDebugAPI` slot: the
+  binary's C object): `NumStackFrames`, `Function`, `ProgramCounter` (PC),
+  `Receiver`, `Implementor`, `GetVar`, `SetVar`, `FindVar`, `SetFindVar`,
+  `NumTemps`, `TempValue`, `SetTempValue`: argument conversion (Ref <->
+  long), then the `TNSDebugAPI` call. Not needed: `AccurateStack` (only
+  NSDT's "PC may not be accurate" warning, which the agent skips),
+  `SetProgramCounter` (`SetCurrentPC`), the printing natives.
+- `InstallBreakPoints(list)`: `GetGInterpreter()->SetBreakPoints(list)`,
+  returning the old list. `EnableBreakPoints(flag)`:
+  `GetGInterpreter()->EnableBreakPoints(flag)`, returning the old setting.
+- On top, in the agent: the part of NSDT's NewtonScript we use (the stack
+  object, the breakpoint list, Step/StepIn/StepOut with the instruction
+  decoder, the BreakLoop replacement with our hook), about a fifth of
+  NSDebugTools.ns.

@@ -1,0 +1,44 @@
+// natives_test.ns: a package to try the agent's natives (plan step 3.18b)
+// on a Newton by hand, before the agent uses them. Run after
+// Matt/Debugger/AgentNatives.ns (it defines kAgentNativeCode and
+// kAgentNatives):
+//
+//   newtc -script Matt/Debugger/AgentNatives.ns -script Test/ntk/natives_test.ns -opkg natives_test.pkg
+//
+// Installed, it defines a global function |NativeTest:<name>| per native;
+// removing it removes them. The part is align4: ARM code must start on a
+// word boundary. One block: a script's top-level locals don't reach its
+// next statement.
+
+begin
+local natives := {};
+foreach name, entry in kAgentNatives do
+  natives.(name) := {class: 'BinCFunction, code: kAgentNativeCode,
+                     numArgs: entry[1], offset: entry[0]};
+
+{
+  signature: 'package0, id: "xxxx", flags: {noCompression: true}, version: 1,
+  copyright: "newtc", name: "NativeTest:newtc", modifyDate: 0,
+  info: "A test of newtc's agent natives",
+  part: [{
+    offset: 0, size: 0, type: "auto", flags: {type: 'nos, align4: true, Notify: true},
+    info: "newtc",
+    data: {
+      natives: natives,
+      InstallScript: func(partFrame)
+      begin
+        local names := [];
+        foreach name, fn in partFrame.natives do
+        begin
+          local fnName := EnsureInternal(Intern("NativeTest:" & SymbolName(name)));
+          functions.(fnName) := fn;
+          AddArraySlot(names, fnName);
+        end;
+        EnsureInternal({names: names, removeScript: func(removeFrame)
+          foreach fnName in removeFrame.names do
+            RemoveSlot(functions, fnName)});
+      end
+    }
+  }]
+};
+end;

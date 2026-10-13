@@ -569,8 +569,8 @@ VS Code --DAP--> newtc -dap (host)                 Newton / Einstein
 
 Status 2026-10-13: 3.11 waits for a working MP2x00 (Matt's three machines
 need repairs: two recaps, one ePaper display conversion). 3.12, 3.13, and
-3.14a, 3.15, 3.16, 3.17 done; 3.14b waits for hardware too; next: 3.18
-(no NS Debug Tools needed).
+3.14a, 3.15, 3.16, 3.17, 3.18a done; 3.14b waits for hardware too; 3.18b1
+waits for its first try on Einstein.
 
 ### Wishes from trying it out (Matt, 2026-10-06; no priority)
 - [x] 3.15 Breakpoints in an InstallScript, and "Break in InstallScript"
@@ -653,25 +653,61 @@ variables, breakpoints, stepping need it; without it: output, exceptions,
 evaluate). It can't be replaced by NewtonScript alone: its few
 `BinCFunction`s reach the interpreter (Toolkit Protocol.md 7.3).
 - [ ] 3.18 Our own debug natives in the agent, instead of NS Debug Tools.
-  - [ ] 3.18a Inventory: which NSDT functions the agent and DAPRemote.ns
-        call (InstallBreakPoint, RemoveBreakPoint,
-        GloballyEnableBreakPoints, GetAllNamedVars, GetNamedVar,
-        SetNamedVar, GetAllTempVars, GetCurrentFunction, Step, StepIn,
-        StepOut, the NSDBreakLoopEntry hook, NSDOriginalBreakLoop, ...),
-        which `BinCFunction`s they rest on (NSDInstallBreakPoints,
-        NSDEnableBreakPoints, NSDMakeNSDebugAPI and its methods: Function,
-        PC, SetPC, GetVar, SetVar, temporaries, ...), and what each does in
-        the ROM (TNSDebugAPI, TInterpreter::SetBreakPoints; newtc's
-        stand-ins are in Frames/DebugAPI.cc, the NewtonScript side in
-        Matt/Debugger/NSDebugTools.ns). Only what we use.
+  - [x] 3.18a Inventory (2026-10-13): Toolkit Protocol.md 7.4. The agent
+        uses 16 NSDT functions (stack, variables, breakpoints, Step/StepIn/
+        StepOut, GloballyEnableBreakPoints, the BreakLoop hook); they rest on
+        NSDT's NewtonScript (stack object, breakpoint list, instruction
+        decoder) and two ARM blobs: NSDInstallBreakPoints and
+        NSDEnableBreakPoints (336 bytes), NSDMakeNSDebugAPI and the 13
+        methods of NSDSelfFuncs (2600 bytes). The ARM code calls the ROM
+        through the public jump table at 0x01800000 (+ offset; physical
+        0x13000, the same entries in every ROM build; names from newton-re
+        src/armcpu/PublicJumpTable.cpp): AllocateRefHandle 0x0818,
+        BinaryData 0x0828, AllocateCObjectBinary 0x27E0,
+        TNSDebugAPI::AccurateStack 0x27EC. The whole TNSDebugAPI is there
+        (0x27EC-0x283C, with NewNSDebugAPI 0x2838, DeleteNSDebugAPI 0x283C),
+        and GetGInterpreter 0x1EE8, TInterpreter::SetBreakPoints 0x1FF4,
+        EnableBreakPoints 0x20C0. We need 14 natives (not AccurateStack,
+        SetProgramCounter, the printing ones), each one jump-table call
+        plus argument conversion.
   - [ ] 3.18b The ARM code. A native is a frame {class: 'BinCFunction,
         code: <binary>, numArgs, offset} in the package; newtc already
-        makes the binary with MakeBinaryFromHex (Matt). Write our own small
-        routines (calling the ROM's entry points, e.g. through its jump
-        table) rather than copying Apple's bytes; assemble on the host
-        into hex for Agent.ns (the toolchain to be chosen). Testing:
-        newtc's -ntk-device can't run ARM (it throws for a BinCFunction,
-        3.6), so these run on Einstein; in newtc the C++ stand-ins answer.
+        makes the binary with MakeBinaryFromHex (Matt). Our own small
+        routines, calling the ROM **only through the fixed public jump
+        table** (0x01800000 + offset, 7.4; Matt, 2026-10-13: so ROMs in
+        other languages work), never a ROM-build address; not Apple's
+        bytes.
+    - [ ] 3.18b1 (2026-10-13, to try on Einstein) What NSDT's ARM code
+          shows (disassembled with arm-none-eabi-objdump -EB): a native is
+          C `Ref F(RefArg rcvr, RefArg a1, ...)`: r0 the receiver, r1...
+          the arguments, each a pointer to a RefVar -> RefHandle* -> Ref;
+          the Ref back in r0. All 33 ROM calls are stubs `ldr pc, [pc,
+          #-4]` + 0x0180xxxx (also in the 336-byte blob, at its end;
+          NSDT checks that GetGInterpreter isn't an "unimplemented" entry
+          first). Its two literal addresses (0x6F80, 0x5FC0) point into
+          its own package (relocated when installed); our packages have
+          no relocations, so our code is position independent (adr). The
+          method natives read the receiver's slot nsDebugAPI (Intern,
+          GetFrameSlotRef) and take BinaryData of that CObject binary as
+          the TNSDebugAPI*. Done: `Matt/Debugger/AgentNatives.s` (GNU as
+          syntax: arm-none-eabi-as -EB -march=armv4), assembled by
+          `Matt/tools/build_agent_natives.sh` into the checked-in
+          `Matt/Debugger/AgentNatives.ns` (kAgentNativeCode, kAgentNatives:
+          offset and numArgs per native; building newtc needs no ARM
+          tools). Five natives first: InstallBreakPoints,
+          EnableBreakPoints, MakeNSDebugAPI (its destructor is the jump
+          table entry of DeleteNSDebugAPI, 0x0180283C, not code in our
+          package, which may be gone when the collector frees it: a new
+          agent), NumStackFrames, Function. `Test/ntk/natives_test.ns`
+          builds a package (align4) that defines them as
+          |NativeTest:<name>|. Assembler: GNU as (Matt: the old ARM6asm
+          and ARMLink in the path are outdated). The StrongARM has no
+          Thumb (Matt): ARMv4 code only, no bx; `-march=armv4` makes the
+          assembler refuse both.
+    - [ ] 3.18b2 The other methods: ProgramCounter (PC), Receiver,
+          Implementor, GetVar, SetVar, FindVar, SetFindVar, NumTemps,
+          TempValue, SetTempValue; tried on Einstein against NSDT's
+          answers.
   - [ ] 3.18c The agent carries the natives and the NewtonScript layer
         it needs; EnsureDebugTools becomes optional (an installed NSDT
         still works). The newtc app or the agent says what's missing.
