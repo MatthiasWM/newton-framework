@@ -400,3 +400,27 @@ Your ROM file is unpatched: `BeaconDetect` still has its original start, `gDebug
 Should I correct those two comments in TJITGenericROMPatch.cpp?
 
 
+
+
+Debug a decompiled package:
+
+newtc -pkg /path/to/app.pkg -odecompile /path/to/app_dec.ns
+
+launch.json
+{
+    "type": "newtonscript",
+    "request": "launch",
+    "name": "Debug app (decompiled)",
+    "program": "/path/to/app.pkg",
+    "debugMap": "/path/to/app_dec.nsdbg",
+    "target": "tcp",
+    "newtc": "/Users/matt/dev/newton-framework.matt.git/build/VSCode/newtc"
+}
+{
+  "type": "newtonscript",
+  "request": "launch",
+  "name": "Run on Einstein (server)",
+  "program": "${file}",
+  "target": "tcp",
+  "debugServer": 4711
+}
