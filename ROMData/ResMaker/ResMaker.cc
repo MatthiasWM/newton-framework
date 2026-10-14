@@ -1308,6 +1308,29 @@ main(int argc, const char * argv[])
 	MagicPointerTable * mp = (MagicPointerTable *)(ROMdata + 0x003AF000);	// it's at a well-known address in the ROM image
 	ArrayIndex count = CANONICAL_LONG(mp->numOfPointers);
 
+/*-- define the contents of the table (into a temporary file: the table comes first) --*/
+	// A few entries aren't objects of their own but bare symbols ('obsolete,
+	// 'espy, 'helvetica), which PrintROMObject doesn't print here: their table
+	// entry is that symbol's Ref itself, not a pointer to an MPxxxx label
+	// (that pointed at a word holding the Ref, so @42 wasn't an object).
+	FILE * fp_contents = tmpfile();
+	char ** tableEntry = (char **)calloc(count, sizeof(char *));
+	size_t filePos, prevPos = 0;
+	Ref32 * mpp = mp->magicPointer;
+	for (ArrayIndex i = 0; i < count; ++i, ++mpp) {
+		sprintf(rsName, "MP%04d", i);
+		rRef = FixPointerRef(CANONICAL_LONG(*mpp));
+		rsValue = PrintROMObject(fp_contents, rsName, NILREF, rRef, true, false);
+		filePos = ftell(fp_contents);
+		char entry[256];
+		if (filePos == prevPos)
+			snprintf(entry, sizeof(entry), "%s", rsValue);
+		else
+			snprintf(entry, sizeof(entry), "MAKEPTR(%s)", rsName);
+		tableEntry[i] = strdup(entry);
+		prevPos = filePos;
+	}
+
 /*-- define the table --*/
 	fprintf(fp_mp, kDataPreamble, "MagicPointers");
 	fprintf(fp_mp, "		.globl	_gROMMagicPointerTable\n");
@@ -1315,24 +1338,17 @@ main(int argc, const char * argv[])
 	for (ArrayIndex slotIndex = 0, slotsRemaining = count; slotsRemaining > 0;) {
 		fprintf(fp_mp, "		Ref		");
 		for (ArrayIndex i = 0; i < 10 && slotsRemaining > 0; ++i, ++slotIndex, --slotsRemaining) {
-			fprintf(fp_mp, "MAKEPTR(MP%04d)%c", slotIndex, (i < 9 && slotsRemaining > 1) ? ',' : '\n');
+			fprintf(fp_mp, "%s%c", tableEntry[slotIndex], (i < 9 && slotsRemaining > 1) ? ',' : '\n');
+			free(tableEntry[slotIndex]);
 		}
 	}
-/*-- define the contents of the table --*/
-	size_t filePos, prevPos = 0;
-	Ref32 * mpp = mp->magicPointer;
-	for (ArrayIndex i = 0; i < count; ++i, ++mpp) {
-		sprintf(rsName, "MP%04d", i);
-		rRef = FixPointerRef(CANONICAL_LONG(*mpp));
-		rsValue = PrintROMObject(fp_mp, rsName, NILREF, rRef, true, false);
-		// there are a couple of weird immediates in the magic pointer table that don't get printed by PrintROMObject
-		filePos = ftell(fp_mp);
-		if (filePos == prevPos) {
-			fprintf(fp_mp, "%s:	Ref		%s\n", rsName, rsValue);
-			filePos = ftell(fp_mp);
-		}
-		prevPos = filePos;
-	}
+	free(tableEntry);
+	rewind(fp_contents);
+	char buf[4096];
+	size_t n;
+	while ((n = fread(buf, 1, sizeof(buf), fp_contents)) > 0)
+		fwrite(buf, 1, n, fp_mp);
+	fclose(fp_contents);
 
 	fclose(fp_mp);
 #endif /*forMagicPointers*/

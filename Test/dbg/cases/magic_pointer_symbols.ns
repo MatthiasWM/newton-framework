@@ -1,0 +1,5 @@
+// B44: three magic pointers are bare symbols in the ROM (@42 'obsolete,
+// @273 'espy, @274 'helvetica); the table pointed at a word holding the
+// symbol instead (ClassOf(@42) was 0, Length crashed).
+Print([ClassOf(@42), @42 = 'obsolete, @273 = 'espy, @274 = 'helvetica, Length(@274)]);
+Print([ClassOf(@41), ClassOf(@43), ClassOf(@180)]);

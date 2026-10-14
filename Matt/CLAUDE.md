@@ -906,16 +906,20 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
-- [ ] B44 Magic pointers @42, @273, @274 aren't objects in newtc
+- [x] B44 Magic pointers @42, @273, @274 weren't objects in newtc
   (found 2026-10-14 while walking "Newton 2.1"'s platformConstants:
   ROM_capslockLight is @42). In the ROM these three entries are bare
-  symbols ('obsolete, 'espy, 'helvetica). ResMaker writes them as
+  symbols ('obsolete, 'espy, 'helvetica). ResMaker wrote them as
   `MPnnnn: Ref MAKEPTR(SYMxxx)` and the table as MAKEPTR(MPnnnn): a pointer
-  to a word that holds a Ref, not to an object. So ClassOf(@42) is 0,
-  Length(@42) throws "ObjectPtr of non-pointer" or crashes (ASan: SEGV in
-  Length, ObjectHeap.cc:335). Fix in ResMaker (the table entry is the Ref
-  itself), then regenerate Frames/, ROMData/forNTK/, and forNewton/
-  MagicPointers.s; check that the Newton build's table is right.
+  to a word that holds a Ref, not to an object. So ClassOf(@42) was 0, and
+  Length(@42) threw "ObjectPtr of non-pointer" or crashed (ASan: SEGV in
+  Length). Fixed 2026-10-14: the table holds the symbol itself
+  (MAKEPTR(SYMobsolete), ...), the MPnnnn lines are gone, in all three
+  copies of MagicPointers.s (newtc builds ROMData/forNewton/, included by
+  its RefData.s; forNTK/ and Frames/ the same). ResMaker now writes the
+  entries into a temporary file first and the table from what it found
+  (not run here: it needs the ROM image setup; it compiles). Test: case
+  magic_pointer_symbols.
 - [x] B43 `Load(filename)` (2026-10-14): newtc has it (FLoad -> ParseFile,
   as -script: statement by statement, errors with file and line, the
   debugger's hook sets pending breakpoints in each new statement). But a
