@@ -1,0 +1,18 @@
+// NTK's build functions (plan 4.2): ReadStreamFile reads an NSOF file into
+// an object, found as Load finds files; IsGlobalConstant,
+// UndefineGlobalConstant; LoadDataFile finds its file the same way.
+begin
+  local data := Load("read_stream_file_data/read.nsi");
+  Print(data);
+  Print(ReadStreamFile("read_stream_file_data/sample.nsof").list);
+  Print(try ReadStreamFile("nowhere.nsof") onexception |evt.ex| do CurrentException().data);
+  Print(try ReadStreamFile("read_stream_file.ns") onexception |evt.ex| do CurrentException().data.errorCode);
+  Print(Length(LoadDataFile("read_stream_file_data/sample.nsof", 'nsof)));
+  Print(IsGlobalConstant('kSample));
+end;
+DefineGlobalConstant('kSample, ReadStreamFile("read_stream_file_data/sample.nsof"));
+Print(IsGlobalConstant('kSample));
+Print(kSample.count);
+UndefineGlobalConstant('kSample);
+Print(IsGlobalConstant('kSample));
+ReadStreamFile("missing.nsof");

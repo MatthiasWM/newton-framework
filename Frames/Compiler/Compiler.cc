@@ -174,22 +174,21 @@ ThrowFileNotFound(const std::string & inMessage)
 }
 
 /*------------------------------------------------------------------------------
-	Load(filename): compile and run a NewtonScript file, statement by
-	statement (as -script), and return the last result. Not in ROM: a
-	relative name is looked for next to the file that calls Load (as C's
+	Not in ROM: where newtc finds a file a script names (Load, ReadStreamFile,
+	LoadDataFile): a relative name next to the file that is running (as C's
 	#include "..."), then in the folders of newtc -I, then in the current
-	directory; the file is compiled under its absolute path, so its line
-	tables (-g) name the file a debugger sets breakpoints in. A file that
-	isn't there throws "File not found" (at the Load call); an error in the
-	file is passed on to the caller (the ROM reported it and returned), so
-	it stops the file that loads it, and newtc -script.
+	directory. Throws "File not found" (-43) with the places looked in.
+	Args:		inName			the file name as the script gives it
+	Return:	its absolute path
 ------------------------------------------------------------------------------*/
 
-extern "C" Ref
-FLoad(RefArg inRcvr, RefArg inFilenameStr)
+std::string
+FindScriptFile(RefArg inName)
 {
+	if (!IsString(inName))
+		ThrowBadTypeWithFrameData(kNSErrNotAString, inName);
 	// convert Unicode string to ASCII
-	RefVar asciiStr(ASCIIString(inFilenameStr));
+	RefVar asciiStr(ASCIIString(inName));
 	CDataPtr filename(asciiStr);
 	std::filesystem::path path((const char *)filename);
 	std::error_code error;
@@ -234,7 +233,26 @@ FLoad(RefArg inRcvr, RefArg inFilenameStr)
 	std::filesystem::path absolute = std::filesystem::absolute(path, error);
 	if (!error)
 		path = absolute.lexically_normal();
-	return ParseFile(path.string().c_str(), true, NULL);
+	return path.string();
+}
+
+
+/*------------------------------------------------------------------------------
+	Load(filename): compile and run a NewtonScript file, statement by
+	statement (as -script), and return the last result. Not in ROM: the file
+	is found by FindScriptFile (next to the file that calls Load, ...) and
+	compiled under its absolute path, so its line tables (-g) name the file a
+	debugger sets breakpoints in. A file that isn't there throws "File not
+	found" (at the Load call); an error in the file is passed on to the
+	caller (the ROM reported it and returned), so it stops the file that
+	loads it, and newtc -script.
+------------------------------------------------------------------------------*/
+
+extern "C" Ref
+FLoad(RefArg inRcvr, RefArg inFilenameStr)
+{
+	std::string path = FindScriptFile(inFilenameStr);
+	return ParseFile(path.c_str(), true, NULL);
 }
 
 

@@ -1,0 +1,16 @@
+{name: "sample", 
+ flags: 'nos, 
+ count: 3, 
+ list: [1, 2, $x]}
+[1, 2, $x]
+{errorCode: -43, value: "nowhere.nsof (looked in $DIR)"}
+-48006
+60
+nil
+true
+3
+nil
+    File "read_stream_file.ns"; Line 18 !!! Exception: -43, File not found: missing.nsof (looked in $DIR)
+newtc: ERROR: -script: "read_stream_file.ns" stopped at the error above.
+
+--- exit code 255 ---

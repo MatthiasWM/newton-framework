@@ -85,7 +85,7 @@ FUnDefineGlobalConstant(RefArg inRcvr, RefArg inTag)
 Ref
 FIsGlobalConstant(RefArg inRcvr, RefArg inTag)
 {
-	return FrameHasSlot(RA(gConstantsFrame), inTag);
+	return MAKEBOOLEAN(FrameHasSlot(RA(gConstantsFrame), inTag));	// was the bool as a Ref (0 or 1)
 }
 
 #if defined(forNTK)

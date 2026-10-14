@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 
+extern std::string FindScriptFile(RefArg inName);   // Frames/Compiler/Compiler.cc
 extern void REPExceptionNotify(Exception * inException);
 
 namespace {
@@ -517,12 +518,11 @@ Ref FNTKClose(RefArg rcvr)
 
 // NTK's LoadDataFile(fileName, class): a file's bytes as a binary object of
 // that class (a symbol; nil: 'binary). Not part of NewtonOS: NTK offered it
-// to build scripts; here, e.g., to send a package to a Newton.
+// to build scripts; here, e.g., to send a package to a Newton. The file is
+// found as Load finds it (Compiler.cc FindScriptFile).
 Ref FLoadDataFile(RefArg rcvr, RefArg inFileName, RefArg inClass)
 {
-  if (!IsString(inFileName))
-    Fail("LoadDataFile: a file name expected");
-  std::string path = UTF8FromString(inFileName);
+  std::string path = FindScriptFile(inFileName);
   FILE *f = fopen(path.c_str(), "rb");
   if (!f)
     Fail("LoadDataFile: can't read " + path);

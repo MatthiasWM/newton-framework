@@ -829,11 +829,18 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       cases load_errors (try, a nested Load next to its file, a syntax error
       in a loaded file), load_missing, load_path (-I); four cases end with
       the new error line; plain cases get $DIR for their folder too.
-- [ ] 4.2 ReadStreamFile(path) (was 3.20): NTK's: an NSOF file read into an
-      object. FReadStreamFile exists (Frames/RefIO.cc) inside an #if newtc
-      doesn't compile, a stub in Stubs.cc: enable it, path as Load (next to
-      the calling file), errors with the file name; IsGlobalConstant
-      (FIsGlobalConstant exists, unregistered).
+- [x] 4.2 ReadStreamFile(path) (2026-10-14). NTK's: an NSOF file read
+      into an object. FReadStreamFile (Frames/RefIO.cc) was compiled
+      (newtc builds forNTK) but not registered, and gave nil for any error.
+      Now it finds the file as Load does (FindScriptFile, Compiler.cc: next
+      to the running file, -I, the current directory; also LoadDataFile),
+      throws "File not found" (-43) or "Object stream has unknown format
+      version" (-48006, "<path> isn't NSOF"). IsGlobalConstant and
+      UndefineGlobalConstant registered; IsGlobalConstant returned the C++
+      bool as a Ref (0, or 1, which Print took for a pointer and crashed):
+      now nil or true. Reads Apple's "Newton 2.1" (2,056 constants) in about
+      0.1 s. Test: case read_stream_file (read_stream_file_data/sample.nsof,
+      made with newtc -onsof).
 - [ ] 4.3 newtc's built-in 2.1 platform. A source in the repo (e.g.
       `Platform/Newton21.ns`): one readable line per constant
       (`protoFloatNGo: @180`, `vjParentCenterH: 16`, ...), embedded in

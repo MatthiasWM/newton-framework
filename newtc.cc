@@ -69,6 +69,9 @@ extern void Disassemble(RefArg inFunc);
 extern Ref MakeStringFromCString(const char * str);
 extern void PrintCode(RefArg obj);
 extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
+extern "C" Ref FUnDefineGlobalConstant(RefArg inRcvr, RefArg inTag);
+extern "C" Ref FIsGlobalConstant(RefArg inRcvr, RefArg inTag);
+extern "C" Ref FReadStreamFile(RefArg inRcvr, RefArg inFilename);
 // EnsureInternal
 
 int handleArgs(int argc, char **argv);
@@ -197,6 +200,10 @@ bool init()
 
   defGlobalCFunction("MakeBinaryFromHex", (void*)FStuffHex, 2);
   defGlobalCFunction("DefineGlobalConstant", (void*)FDefineGlobalConstant, 2);
+  // NTK's build functions (Frames/Frames.cc, Frames/RefIO.cc)
+  defGlobalCFunction("UndefineGlobalConstant", (void*)FUnDefineGlobalConstant, 1);
+  defGlobalCFunction("IsGlobalConstant", (void*)FIsGlobalConstant, 1);
+  defGlobalCFunction("ReadStreamFile", (void*)FReadStreamFile, 1);
 
   installNSDebugToolsNatives();
 

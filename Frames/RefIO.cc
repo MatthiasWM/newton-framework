@@ -10,6 +10,8 @@
 #include "RefIO.h"
 #include "StreamObjects.h"
 #include "Unicode.h"
+#include "ROMResources.h"
+#include <string>
 
 DeclareException(exTranslator, exRootException);
 
@@ -129,30 +131,42 @@ FLoadDataFile(RefArg inRcvr, RefArg inFilename, RefArg inClass)
 
 
 /*------------------------------------------------------------------------------
-	Read a stream file.
+	Read a stream file: NTK's ReadStreamFile(path), an NSOF file read into
+	an object (e.g. a platform file). Not as before (nil for any error):
+	newtc finds the file as Load does (next to the file that is running, -I,
+	the current directory) and throws "File not found" (-43), or "Object
+	stream has unknown format version" with the path when it isn't NSOF.
 	Args:		inRcvr
 				inFilename
 	Return:	the streamed object
 ------------------------------------------------------------------------------*/
 
+extern std::string FindScriptFile(RefArg inName);
+
 extern "C" Ref
 FReadStreamFile(RefArg inRcvr, RefArg inFilename)
 {
+	std::string path = FindScriptFile(inFilename);
 	RefVar obj;
+	volatile bool ok = true;		// volatile: changed in newton_catch (longjmp)
 	newton_try
 	{
-		char filename[256];
-		ConvertFromUnicode(GetUString(inFilename), filename, 255);
-
-		CStdIOPipe pipe(filename, "r");
+		CStdIOPipe pipe(path.c_str(), "rb");
 		CObjectReader reader(pipe);
-		obj = reader.read();
+		obj = reader.read();			// throws if the file isn't NSOF; nil is fine
 	}
 	newton_catch_all
 	{
-		obj = NILREF;
+		ok = false;
 	}
 	end_try;
+	if (!ok)
+	{
+		RefVar fr(AllocateFrame());
+		SetFrameSlot(fr, SYMA(errorCode), MAKEINT(kNSErrUnknownStreamFormat));
+		SetFrameSlot(fr, SYMA(value), MakeStringFromCString((path + " isn't NSOF").c_str()));
+		ThrowRefException(exFramesData, fr);
+	}
 	return obj;
 }
 
