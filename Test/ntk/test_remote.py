@@ -6,7 +6,8 @@ control `newtc -ntk-device` (the Newton), with a handler frame for what the
 Newton sends:
 
   - NTKOpen, NTKWaitConnected, the handler's Connected and Object ('dante')
-  - NTKCall: results as objects (also a function compiled with Compile())
+  - NTKCall: results as objects (also a function compiled with Compile());
+    a literal template in the function keeps its _proto
   - NTKEvaluate: the Newton's output to the handler's Text
   - exceptions to the handler's Exception: eref (a frame), eerr (a code)
   - a break loop: BreakLoop(true), NTKCall while stopped, BreakLoop(nil)
@@ -46,6 +47,7 @@ Print(NTKOpen("tcp:PORT"));
 Print(["waited", NTKWaitConnected(10)]);
 Print(["call", NTKCall(func() 6 * 7)]);
 Print(["call", NTKCall(Compile("[1, \"two\", 'three]"))]);
+Print(["template", NTKCall(func() begin local t := '{_proto: @180, a: 1, b: 2}; [t._proto, t.b] end)]);
 NTKEvaluate(func() Print("hello"));
 NTKCall(func() nil);
 NTKEvaluate(func() NoSuchFunctionProbe());
@@ -113,6 +115,9 @@ def main():
           lines[:3] == ["nil", '"connected"', '["waited", true]'])
     check("the 'dante' object to Object", "[\"object\", \"fobj\", {interpretation: 'dante, data: {}}]" in lines)
     check("NTKCall: results as objects", '["call", 42]' in lines and "[\"call\", [1, \"two\", 'three]]" in lines)
+    # what newtc sends keeps _proto slots (the ROM's writer leaves them out
+    # for what a Newton sends): a literal template keeps its proto
+    check("a literal template sent to the Newton keeps its _proto", '["template", [@180, 2]]' in lines)
     check("NTKEvaluate: the Newton's output to Text",
           '"text: \\"hello\\""' in lines and '"text: #2        nil"' in lines)
     # the function in 'symbol, as the ROM (B33, fixed: newtc said 'value)

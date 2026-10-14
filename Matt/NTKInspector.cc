@@ -176,10 +176,10 @@ std::vector<uint8_t> NTKPacketReader::takeJunk()
 
 /*--- NSOF in memory ---*/
 
-std::vector<uint8_t> NTKFlatten(RefArg inObject)
+std::vector<uint8_t> NTKFlatten(RefArg inObject, bool inWithProtos)
 {
   CPtrPipe pipe;
-  CObjectWriter writer(inObject, pipe, false);
+  CObjectWriter writer(inObject, pipe, inWithProtos);
   std::vector<uint8_t> bytes(writer.size());
   pipe.init(bytes.data(), bytes.size(), false, nullptr);
   writer.write();
@@ -241,7 +241,7 @@ void NTKInspector::tick()
 
 void NTKInspector::evaluate(RefArg inCodeBlock)
 {
-  sendPacket(NTKCommand("lscb"), NTKFlatten(inCodeBlock));
+  sendPacket(NTKCommand("lscb"), NTKFlatten(inCodeBlock, true));   // with _proto slots
 }
 
 
@@ -249,7 +249,7 @@ void NTKInspector::call(RefArg inCodeBlock)
 {
   // a u32 the Newton reads and ignores, then the code block
   std::vector<uint8_t> data(4, 0);
-  std::vector<uint8_t> nsof = NTKFlatten(inCodeBlock);
+  std::vector<uint8_t> nsof = NTKFlatten(inCodeBlock, true);   // with _proto slots
   data.insert(data.end(), nsof.begin(), nsof.end());
   sendPacket(NTKCommand("code"), data);
   mCallsPending++;

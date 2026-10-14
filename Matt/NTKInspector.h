@@ -65,8 +65,10 @@ private:
   std::vector<uint8_t> mJunk;
 };
 
-/** NSOF in memory. */
-std::vector<uint8_t> NTKFlatten(RefArg inObject);
+/** NSOF in memory. inWithProtos: write _proto slots, as the desktop sends
+    code to a Newton (a literal template keeps its proto); without them as
+    the Newton writes what it sends to the desktop (the ROM's). */
+std::vector<uint8_t> NTKFlatten(RefArg inObject, bool inWithProtos = false);
 Ref NTKUnflatten(const uint8_t *inData, size_t inSize);
 
 class NTKInspector

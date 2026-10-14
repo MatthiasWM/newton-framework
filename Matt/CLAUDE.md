@@ -984,9 +984,8 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       Newton beams, syncs, or sends to NTK. -onsof now writes them (a ROM
       proto is just its magic pointer since B49); the new -onsof_no_proto
       leaves them all out. No "magic protos only" variant (Matt: correctly
-      written apps don't need it). Still false: what newtc sends to a Newton
-      (NTKInspector), to look at (a literal template in a remote program
-      would lose its _proto). Test: Test/dbg/test_nsof.py.
+      written apps don't need it). What newtc sends to a Newton: B50. Test:
+      Test/dbg/test_nsof.py.
 
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
@@ -1008,6 +1007,15 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B50 A literal template in code newtc sends to a Newton (remote runs,
+  evaluate, the agent's calls) lost its `_proto`: `'{_proto: @180, a: 1}` or
+  a constant's frame (DefConst, an NTK platform's object constants) arrived
+  as {a: 1}. NTKFlatten wrote with followProtos false, as the ROM writes
+  what a Newton sends. Found 2026-10-14 (Matt's question about -onsof);
+  `{...}` built by the code itself was fine (only its slot names are
+  literals). Fixed: NTKFlatten(object, withProtos); the desktop's lscb and
+  code write _proto slots, newtc as the Newton (-ntk-device) doesn't. Test:
+  Test/ntk/test_remote.py (a quoted template keeps @180).
 - [x] B49 newtc's NSOF writer (Frames/StreamObjects.cc) wrote a magic
   pointer as the ROM object it stands for (ISPTR is true for magic
   pointers), and that cut short (B48): `newtc -s "@180" -onsof` gave a file
