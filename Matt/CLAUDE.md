@@ -798,7 +798,7 @@ ReadStreamFile, OpenResFile; -platform, -I includepath, -script a -script b
 -compile (b forgets most of a).
 
 To decide with Matt (before the step that needs it):
-- D1 Names: separate globals newtAppName, newtAppSymbol, newtAppLabel,
+- D1 (decided 2026-10-14: separate globals) Names: separate globals newtAppName, newtAppSymbol, newtAppLabel,
   newtAppIcon, newtAppVersion, newtAppCopyright (and `newt` with theForm,
   InstallScript, RemoveScript, ...), as in the example (`newAppIcon` there
   is newtAppIcon?), or one frame newtApp {name, symbol, ...}. Also define
@@ -809,7 +809,7 @@ To decide with Matt (before the step that needs it):
   ReadStreamFile of a platform file installs it too (not NTK).
 - D3 PNG decoding: stb_image (one public-domain header, every build) or
   FLTK's Fl_PNG_Image (only builds with FLTK).
-- D4 Where the package comes from: `newtc -build app.ns -opkg app.pkg`
+- D4 (decided 2026-10-14: -build) Where the package comes from: `newtc -build app.ns -opkg app.pkg`
   (defaults, the script, then the package assembled from newtApp*/newt), or
   -script with an explicit MakeNewtAppPackage() at its end.
 
@@ -880,18 +880,42 @@ Steps (each testable in newtc; a package on Einstein by Matt):
         are 4.6), the deprecated sound ones, and units (DeclareUnit,
         DefineUnit, AliasUnit, AliasUnitSubset: shared libraries need the
         package writer). Test: case platform_functions.
-- [ ] 4.4 NTK's build functions on the desktop (an embedded Build.ns):
-      AddStepForm(parent, child) (child to parent.stepChildren),
-      StepDeclare(parent, child, 'sym) (parent.stepAllocateContext, so the
-      child is parent.sym at run time), DefConst, GetPartFrameSlot,
-      SetPartFrameSlot; later GetLayout (NTK layout files), OpenResFile.
-- [ ] 4.5 The newtApp setup (D1, D4): a default package (signature, id,
-      version, copyright, one form part with flags, InstallScript and
-      RemoveScript that do the usual, theForm a protoApp or protoFloatNGo,
-      the app symbol in theForm), the user's script, then the package
-      assembled and checked with clear messages (an app symbol is
-      'name:SIG', the package name and symbol agree, lengths), NTK's
-      kAppName/kAppSymbol/kPackageName defined. Sample in VSNewt.
+- [x] 4.4 NTK's build functions (2026-10-14), `Matt/Platform/NTKBuild.ns`,
+      embedded and run at startup after the platform: AddStepForm(parent,
+      child) (child to parent.stepChildren), StepDeclare(parent, child, 'sym)
+      as NTK's packages have it (checked against Bobby.pkg, Lantern DDK, and
+      NTX's layout builder): [sym, child] to parent.stepAllocateContext, a
+      slot parent.sym (nil), child.preAllocatedContext := 'sym. The last one
+      matters: the view system (TView::AddView) uses the view frame built
+      for the declaration only when the child names it; without it the
+      child gets a second frame and parent.sym is a view that never opens.
+      Errors for non-frames, a child declared under another name, a name
+      declaring another child. DefConst, Get/SetPartFrameSlot: 4.3b. The
+      old #if 0 draft in newtc.cc (from NTX) is gone. Later: GetLayout (NTK
+      layout files), OpenResFile. Test: case fltk_step_declare (the plan's
+      example: theForm.wTitle is the open child's view).
+- [x] 4.5 The newtApp setup (2026-10-14; D1 separate globals, D4 -build).
+      `newtc -build app.ns -opkg app.pkg` (`Matt/Platform/NewtApp.ns`,
+      embedded): |newt:Defaults| sets newtAppName, newtAppSymbol (default:
+      the name as a symbol), newtAppLabel (default: the name up to ':'),
+      newtAppIcon, newtAppVersion (1), newtAppCopyright (""), and newt
+      {theForm: a protoFloatNGo, InstallScript, RemoveScript}; the script
+      runs (as -script); after each of its top-level statements (new
+      gStatementDoneHook in ParseFile, not in ROM) |newt:Constants| defines
+      NTK's kAppSymbol, kAppString, kAppName (the label), kPackageName as
+      the globals are then, so the app's code gets them as literals (a
+      Newton has no such globals); at the end |newt:Package| checks
+      (messages that say what to set) and makes the package: a form part
+      {app, text, icon, theForm (+ appSymbol), InstallScript, RemoveScript},
+      held like -script's result (-opkg, -run). Notes, not errors: a name
+      without ":Signature", a symbol that differs from the name. NTK's
+      package InstallScript wrapper (devInstallScript) isn't needed: the
+      ROM runs a form part's InstallScript as it is. Found: a local named
+      `fail` in the embedded script respelled a test's Fail (symbols keep
+      their first spelling): newtc's own scripts use distinctive local
+      names. Tests: cases build_app (defaults, constants as literals),
+      build_app_missing. Not yet: a DAP launch of a -build app (VSNewt can
+      build first: 4.7).
 - [ ] 4.6 Images from PNG files (D3): MakeBitmapFromPNG(path, options),
       MakeIconFromPNG(path, options): 1 bit (threshold or dithered), 4 bit
       gray (16 grays, NOS 2's colorData {cbits, bitDepth}), with and without

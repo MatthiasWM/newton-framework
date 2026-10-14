@@ -352,6 +352,8 @@ ParseFile(const char * inFilename, bool inRethrow, bool * outFailed)
 				gCompiledStatementHook(codeBlock);
 
 			result = NOTNIL(codeBlock) ? InterpretBlock(codeBlock, RA(NILREF)) : NILREF;
+			if (gStatementDoneHook != NULL)		// not in ROM
+				gStatementDoneHook();
 
 			if (NOTNIL(GetGlobalVar(MakeSymbol("showLoadResults"))))
 			{

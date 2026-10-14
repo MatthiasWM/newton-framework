@@ -1,0 +1,6 @@
+[2, 'wTitle, true, 'wTitle, nil]
+2
+"StepDeclare: the child is declared already, as wTitle"
+"AddStepForm: the child isn't a frame (a view template)"
+["declared", "test", true]
+["test", true]

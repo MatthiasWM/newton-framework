@@ -1,0 +1,21 @@
+// NTK's build functions (plan 4.4, Matt/Platform/NTKBuild.ns): AddStepForm
+// and StepDeclare put an app together as NTK's text export writes it (needs
+// FLTK to open it). theForm.wTitle is the static text's view once open.
+DefGlobalVar('theForm, {_proto: protoFloatNGo,
+  viewBounds: {left: 0, top: 30, right: 180, bottom: 120},
+  viewSetupDoneScript: func() Print(["declared", wTitle.text, wTitle:Parent() = self])});
+wTitle := {_proto: protoStaticText, text: "test", viewBounds: SetBounds(10, 10, 170, 30)};
+wButton := {_proto: protoTextButton, text: "Tap", viewBounds: RelBounds(10, 40, 60, 20)};
+AddStepForm(theForm, wTitle);
+StepDeclare(theForm, wTitle, 'wTitle);
+AddStepForm(theForm, wButton);
+Print([Length(theForm.stepChildren), theForm.stepAllocateContext[0], HasSlot(theForm, 'wTitle),
+       wTitle.preAllocatedContext, HasSlot(wButton, 'preAllocatedContext)]);
+StepDeclare(theForm, wTitle, 'wTitle);       // again: nothing changes
+Print(Length(theForm.stepAllocateContext));
+Print(try StepDeclare(theForm, wTitle, 'other) onexception |evt.ex.msg| do CurrentException().message);
+Print(try AddStepForm(theForm, "text") onexception |evt.ex.msg| do CurrentException().message);
+app := BuildContext(theForm);
+app:Open();
+Print([app.wTitle.text, app.wTitle:Parent() = app]);
+app:Close();

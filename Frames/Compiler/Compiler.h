@@ -205,6 +205,10 @@ extern void (*gCompiledFunctionHook)(RefArg inFunction);
    compiled, before running it; see Matt/DAP.cc. */
 extern void (*gCompiledStatementHook)(RefArg inCodeBlock);
 
+/* Not in ROM: called by ParseFile() after each top-level statement ran;
+   see newtc.cc -build. */
+extern void (*gStatementDoneHook)(void);
+
 class	CFunctionState
 {
 public:

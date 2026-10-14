@@ -588,6 +588,8 @@ embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Connect.ns gConnectS
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/AgentNatives.ns gAgentNativesScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DebugToolsPackage.ns gDebugToolsPackageScript)
 embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/Newton21.ns gPlatformScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/NTKBuild.ns gNTKBuildScript)
+embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/NewtApp.ns gNewtAppScript)
 
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'

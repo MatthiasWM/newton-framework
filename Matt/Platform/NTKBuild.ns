@@ -1,0 +1,61 @@
+// NTKBuild.ns: NTK's build functions (plan 4.4), for scripts that put an app
+// together the way NTK's text export writes it:
+//
+//   wTitle := {_proto: protoStaticText, text: "test", ...};
+//   AddStepForm(theForm, wTitle);              // wTitle is a child of theForm
+//   StepDeclare(theForm, wTitle, 'wTitle);     // theForm.wTitle is its view
+//
+// newtc runs this file at startup (embedded, after Newton21.ns). The view
+// system's side is the ROM's (TView::Constructor, TView::AddView): a view
+// builds the view frames of its stepAllocateContext first, each in its own
+// slot; a child whose template has preAllocatedContext uses the one built
+// for it, so the slot and the child's view are the same frame.
+//
+// The platform's build functions (DefConst, GetPartFrameSlot,
+// SetPartFrameSlot) are in Newton21.ns.
+
+// AddStepForm(parent, child): child goes to the end of parent.stepChildren
+// (made when missing). As NTK; returns nil.
+DefGlobalFn('AddStepForm, func(parent, child)
+begin
+  if not IsFrame(parent) then
+    Throw('|evt.ex.msg|, "AddStepForm: the parent isn't a frame (a view template)");
+  if not IsFrame(child) then
+    Throw('|evt.ex.msg|, "AddStepForm: the child isn't a frame (a view template)");
+  if not parent.stepChildren then
+    parent.stepChildren := [];
+  AddArraySlot(parent.stepChildren, child);
+  nil;
+end);
+
+// StepDeclare(parent, child, 'name): at run time parent.name is child's
+// view. As in NTK's packages: [name, child] go to parent.stepAllocateContext,
+// the parent gets a slot name (nil until the view opens), and the child's
+// preAllocatedContext is name. The child must be one of the parent's
+// stepChildren (AddStepForm), or one of its descendants: NTK lets a view
+// declare itself to an ancestor; returns nil.
+DefGlobalFn('StepDeclare, func(parent, child, name)
+begin
+  if not IsFrame(parent) then
+    Throw('|evt.ex.msg|, "StepDeclare: the parent isn't a frame (a view template)");
+  if not IsFrame(child) then
+    Throw('|evt.ex.msg|, "StepDeclare: the child isn't a frame (a view template)");
+  if not IsSymbol(name) then
+    Throw('|evt.ex.msg|, "StepDeclare: the name must be a symbol, e.g. 'wTitle");
+  if child.preAllocatedContext and child.preAllocatedContext <> name then
+    Throw('|evt.ex.msg|, "StepDeclare: the child is declared already, as " & child.preAllocatedContext);
+  if not parent.stepAllocateContext then
+    parent.stepAllocateContext := [];
+  local list := parent.stepAllocateContext;
+  for i := 0 to Length(list) - 2 by 2 do
+    if list[i] = name and list[i + 1] <> child then
+      Throw('|evt.ex.msg|, "StepDeclare: the parent declares another view as " & name);
+  if not LSearch(list, child, 0, '|=|, nil) then
+  begin
+    AddArraySlot(list, name);
+    AddArraySlot(list, child);
+  end;
+  parent.(name) := nil;
+  child.preAllocatedContext := name;
+  nil;
+end);

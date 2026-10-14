@@ -475,6 +475,10 @@ void (*gCompiledFunctionHook)(RefArg inFunction) = NULL;
 // compiled, before running it (a debugger resolves pending breakpoints).
 void (*gCompiledStatementHook)(RefArg inCodeBlock) = NULL;
 
+// Not in ROM: called by ParseFile() after each top-level statement ran
+// (newtc -build defines kAppSymbol & co. as soon as the script set them).
+void (*gStatementDoneHook)(void) = NULL;
+
 void
 CFunctionState::noteLine(int inLine)
 {

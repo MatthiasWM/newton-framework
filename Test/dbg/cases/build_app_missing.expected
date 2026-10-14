@@ -1,0 +1,4 @@
+    !!! Exception: -build: newtAppName is missing: the package's name, e.g. newtAppName := "Hello:SIG";
+newtc: ERROR: -build: "build_app_missing.nsi": no package (see above).
+
+--- exit code 255 ---

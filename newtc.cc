@@ -187,6 +187,8 @@ static void installNSDebugToolsNatives()
  \brief Initialize the newtc tool and the NewtonScript toolkit.
  */
 extern const EmbeddedScript gPlatformScript;       // Matt/Platform/Newton21.ns
+extern const EmbeddedScript gNTKBuildScript;       // Matt/Platform/NTKBuild.ns
+extern const EmbeddedScript gNewtAppScript;        // Matt/Platform/NewtApp.ns
 
 bool init()
 {
@@ -283,6 +285,12 @@ bool init()
   // the NewtonOS 2.1 platform's constants (protoFloatNGo, vjParentCenterH,
   // ...), as NTK has them from its platform file (plan 4.3)
   if (!RunEmbeddedScript(gPlatformScript))
+    return false;
+  // NTK's build functions: AddStepForm, StepDeclare (plan 4.4)
+  if (!RunEmbeddedScript(gNTKBuildScript))
+    return false;
+  // newtc -build: the newtApp setup (plan 4.5)
+  if (!RunEmbeddedScript(gNewtAppScript))
     return false;
 
   return true;
@@ -409,6 +417,53 @@ void handleArgScript(const std::string &filename)
 {
   if (!runScript(filename))
     throw(std::runtime_error("-script: \"" + filename + "\" stopped at the error above."));
+}
+
+// -build: NewtApp.ns's functions, an exception printed as newtc does
+static bool callNewtFunction(const char *name, RefVar *outResult = nullptr)
+{
+  volatile bool ok = true;     // volatile: changed in newton_catch (longjmp)
+  newton_try
+  {
+    RefVar result(NSCallGlobalFn(MakeSymbol(name)));
+    if (outResult)
+      *outResult = result;
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+    ok = false;
+  }
+  end_try;
+  return ok;
+}
+
+static void newtConstantsAfterStatement()
+{
+  callNewtFunction("newt:Constants");
+}
+
+/**
+ \brief -build: the newtApp setup (plan 4.5, Matt/Platform/NewtApp.ns).
+ The defaults (newtAppName, newtAppSymbol, ..., newt.theForm), the script,
+ NTK's kAppSymbol & co. defined after each of its top-level statements, and
+ at its end the package frame made from what it set, held like -script's
+ result (for -opkg, -run). An error stops newtc.
+ */
+void handleArgBuild(const std::string &filename)
+{
+  if (!callNewtFunction("newt:Defaults"))
+    throw(std::runtime_error("-build: can't set up the defaults."));
+  gStatementDoneHook = newtConstantsAfterStatement;
+  bool ok = runScript(filename);
+  gStatementDoneHook = nullptr;
+  if (!ok)
+    throw(std::runtime_error("-build: \"" + filename + "\" stopped at the error above."));
+  dropGlobalRef();             // the script's result: the package replaces it
+  RefVar package;
+  if (!callNewtFunction("newt:Package", &package))
+    throw(std::runtime_error("-build: \"" + filename + "\": no package (see above)."));
+  addGlobalRef(package);
 }
 
 /*
@@ -1272,6 +1327,9 @@ the commands in the given order.
   -script <filename>      Read a source file, compile and run it, and hold the result;
                           an error stops it and newtc
   -s <script>             Compile and run the script, and hold the result
+  -build <filename>       Run an app's script (newtAppName, newt.theForm, ...: only
+                          what differs from the defaults) and hold its package,
+                          e.g. `newtc -build app.ns -opkg app.pkg`
   -hello                  Compile a "Hello World" app and hold it
   -run                    Run the current object: a package from -pkg is installed
                           (DoNotInstall, then its InstallScript) and its app opened
@@ -1373,6 +1431,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -script ... ."));
         handleArgScript(std::string(argv[argi++]));
+      } else if (cmd == "-build") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -build ... ."));
+        handleArgBuild(std::string(argv[argi++]));
       } else if (cmd == "-I") {
         if (argi >= argc)
           throw(std::runtime_error("-I: folder expected."));
@@ -1684,28 +1746,3 @@ void handleArgHello() {
 }
 
 
-// NTK uses these (and possibly more) global methods to assemble views
-// fgUseStepChildren -> kUseStepChildren -> projectSettings.useStepChildren
-// for all options, see newton-toolkit: buildPkg in ProjectDocument.mm
-// stepChildren hold user created view templates (the contents of a group)
-// viewChildren hold system created views, like the clock in the app window
-#if 0
-Ref
-AddStepForm(RefArg parent, RefArg child) {
-  RefVar childArraySym(fgUseStepChildren? SYMA(stepChildren) : SYMA(viewChildren));
-  if (!FrameHasSlot(parent, childArraySym)) {
-    SetFrameSlot(parent, childArraySym, AllocateArray(childArraySym, 0));
-  }
-  AddArraySlot(GetFrameSlot(parent, childArraySym), child);
-}
-
-Ref
-StepDeclare(RefArg parent, RefArg child, RefArg tag) {
-  RefVar childContextArraySym(fgUseStepChildren? SYMA(stepAllocateContext) : SYMA(allocateContext));
-  if (!FrameHasSlot(parent, childContextArraySym)) {
-    SetFrameSlot(parent, childContextArraySym, MakeArray(0));
-  }
-  AddArraySlot(GetFrameSlot(parent, childContextArraySym), tag);
-  AddArraySlot(GetFrameSlot(parent, childContextArraySym), child);
-}
-#endif

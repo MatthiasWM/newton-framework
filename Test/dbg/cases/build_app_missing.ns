@@ -1,0 +1,3 @@
+// newtc -build without newtAppName (build_app_missing.args): an error that
+// says what to set, no package, newtc ends with an error.
+Print("not printed");

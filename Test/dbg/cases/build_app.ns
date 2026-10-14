@@ -1,0 +1,12 @@
+// newtc -build (plan 4.5, Matt/Platform/NewtApp.ns): build_app.args builds
+// build_app.nsi; its package is ref0. Defaults: the symbol from the name,
+// the label up to ':', version 1; theForm gets the app symbol; NTK's
+// constants are literals in the app's code (a Newton has no globals for them).
+begin
+  local package := ref0;
+  local part := package.part[0];
+  Print([package.name, package.version, package.copyright, part.type, part.flags]);
+  Print([part.data.app, part.data.text, part.data.theForm.appSymbol, HasSlot(part.data, 'icon),
+         IsFunction(part.data.InstallScript), HasSlot(part.data, 'RemoveScript)]);
+  Print(part.data.theForm.Greet.literals);
+end;
