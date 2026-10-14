@@ -1,0 +1,35 @@
+// PlatformFile.ns: `newtc -platform <file>` (plan 4.8): an NTK platform file
+// (e.g. NTK's "Newton 2.1", an NSOF file) instead of newtc's built-in
+// platform (Newton21.ns). newtc embeds this file and, with -platform, calls
+// |newt:UsePlatformFile| at startup, before NTKBuild.ns and NewtApp.ns
+// (they use the platform's names). The file is found as Load finds files:
+// the folders of -I, then the current directory.
+//
+// From the platform frame: platformConstants as global constants (also the
+// ones whose values are objects: NTK copies those into the packages that
+// use them, and so does newtc), platformVariables as globals,
+// platformFunctions as constant functions (DefPureFn: called with constant
+// arguments, the compiler runs them, as Newton21.ns's), and
+// platformWeakFunctions as global functions unless one exists. The layout
+// editor's parts (Templates, ViewClasses, ScriptSlots, AttributeSlots,
+// NameMap) aren't used.
+
+DefGlobalFn('|newt:UsePlatformFile|, func(path)
+begin
+  local platform := ReadStreamFile(path);
+  if not IsFrame(platform) or not IsFrame(platform.platformConstants) then
+    Throw('|evt.ex.msg|, path & " isn't an NTK platform file (it has no platformConstants)");
+  foreach name, value in platform.platformConstants do
+    DefineGlobalConstant(name, value);
+  if IsFrame(platform.platformVariables) then
+    foreach name, value in platform.platformVariables do
+      DefGlobalVar(name, value);
+  if IsFrame(platform.platformFunctions) then
+    foreach name, fn in platform.platformFunctions do
+      DefPureFn(name, fn);
+  if IsFrame(platform.platformWeakFunctions) then
+    foreach name, fn in platform.platformWeakFunctions do
+      if not GlobalFnExists(name) then
+        DefGlobalFn(name, fn);
+  nil;
+end);

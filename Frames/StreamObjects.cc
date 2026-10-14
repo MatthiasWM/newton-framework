@@ -1010,7 +1010,10 @@ CObjectWriter::prescan(RefArg inObject)
 void
 CObjectWriter::prescan(void)
 {
-	if (ISPTR(fObj))
+	// newtc (B49): a magic pointer stays one (an immediate), as NTK writes
+	// them (its platform files, packages, code for a Newton); the ROM writes
+	// the object, for a desktop without the ROM
+	if (ISPTR(fObj) && !ISMAGICPTR(fObj))
 	{
 		ArrayIndex	index;
 		if ((index = fPrecedents->find(fObj)) != -1)		// precedent
@@ -1030,9 +1033,11 @@ CObjectWriter::prescan(void)
 					else												// frame
 					{
 						ArrayIndex	frameSize = 0;
-						ArrayIndex	i, numOfSlots = Length(fObj);
+						// B48: the count without _proto, the loops over all slots
+						// (as the ROM's; the last slot was lost when _proto wasn't it)
+						ArrayIndex	i, numOfSlots = Length(fObj), numWritten = numOfSlots;
 						if (!fFollowProtos && FrameHasSlot(fObj, SYMA(_proto)))
-							numOfSlots--;
+							numWritten--;
 
 						RefVar	map(((FrameObject*)ObjectPtr(fObj))->map);
 						ArrayIndex	protoIndex = kIndexNotFound;
@@ -1049,7 +1054,7 @@ CObjectWriter::prescan(void)
 							if (i != protoIndex)
 								frameSize += prescan(GetArraySlot(fObj, i));
 						}
-						fObjSize = 1 + longToSize(numOfSlots) + frameSize;
+						fObjSize = 1 + longToSize(numWritten) + frameSize;
 					}
 				}
 				else if (IsArray(fObj))							// array
@@ -1144,7 +1149,7 @@ CObjectWriter::scan(RefArg inObject)
 void
 CObjectWriter::scan(void)
 {
-	if (ISPTR(fObj))
+	if (ISPTR(fObj) && !ISMAGICPTR(fObj))		// newtc (B49): see prescan
 	{
 		ArrayIndex	index;
 		if ((index = fPrecedents->find(fObj)) != -1)		// precedent
@@ -1171,10 +1176,11 @@ CObjectWriter::scan(void)
 					{
 						fPipe << (unsigned char) kNSFrame;
 
-						ArrayIndex	numOfSlots = Length(fObj);
+						// B48: the count without _proto, the loops over all slots
+						ArrayIndex	numOfSlots = Length(fObj), numWritten = numOfSlots;
 						if (!fFollowProtos && FrameHasSlot(fObj, SYMA(_proto)))
-							numOfSlots--;
-						longToPipe(numOfSlots);
+							numWritten--;
+						longToPipe(numWritten);
 
 						RefVar	map(((FrameObject*)ObjectPtr(fObj))->map);
 						ArrayIndex	i, protoIndex = kIndexNotFound;

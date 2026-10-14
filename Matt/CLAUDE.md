@@ -960,16 +960,27 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       chooses -build; all 20 pass (NEWTC set). Bundled newtc rebuilt. Found
       B47 on the way. Later: completions and hover help from the platform
       (NTK's per-proto templates: plan 4.8's file, or newtc -list-constants).
-- [ ] 4.8 Optional: Apple's platform files (was 3.19), for the protos
-      newtc doesn't have (mail, the endpoint layer, NTK's exact set).
-      `-platform <file>` and UsePlatform(path) (D2): read the platform frame
-      (platformConstants, platformFunctions, platformWeakFunctions,
-      platformVariables, NameMap, the layout editor's Templates,
-      ViewClasses, ScriptSlots, AttributeSlots); its constants replace or
-      extend the built-in ones (object values copied into the package as
-      NTK does), its functions run at build time. Apple's files: never in
-      the repo; the user points newtc to one. The "... Defs" text is a
-      listing for people, not used (CR, MacRoman; not compilable).
+- [x] 4.8 Apple's platform files (2026-10-14, Matt: -platform loads the
+      file instead of the built-in platform, found through -I).
+      `newtc -platform <file>` (`Matt/Platform/PlatformFile.ns`,
+      |newt:UsePlatformFile|): -I and -platform are read from the command
+      line before init() (as -store), which loads the file in place of
+      Newton21.ns, before NTKBuild.ns and NewtApp.ns (they use its names).
+      The file is found as Load finds files (-I folders, the current
+      directory). platformConstants -> global constants (also the objects,
+      e.g. protoMailTransport: copied into the packages that use them, as
+      NTK does), platformVariables -> globals, platformFunctions ->
+      constant functions (DefPureFn: vfPen(2) folds), platformWeakFunctions
+      -> global functions unless one exists; NameMap and the layout editor's
+      parts aren't used. A file that isn't there or isn't a platform: newtc
+      says why and doesn't start. Checked with NTK's "Newton 2.1" (also
+      -build of VSNewt's template). Found B48, B49 (the tiny test platform,
+      made with -onsof, didn't read back). Tests: case platform_file
+      (platform_file_data/Tiny.platform), Test/dbg/test_nsof.py. (D2:
+      UsePlatform() from a script isn't there: the platform must be there
+      before newtc's own scripts compile.) Note: -onsof and the Toolkit
+      connection write with followProtos false: `_proto` slots are left out
+      (the ROM's option; for -onsof of templates maybe not what one wants).
 
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
@@ -991,6 +1002,20 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B49 newtc's NSOF writer (Frames/StreamObjects.cc) wrote a magic
+  pointer as the ROM object it stands for (ISPTR is true for magic
+  pointers), and that cut short (B48): `newtc -s "@180" -onsof` gave a file
+  that didn't read back. The ROM does write the object (a Newton writes for
+  a desktop without its ROM); newtc writes as NTK (-onsof, packages, code
+  for a Newton), which keeps magic pointers, as in NTK's platform files.
+  Fixed 2026-10-14: a magic pointer is written as an immediate. Test:
+  Test/dbg/test_nsof.py.
+- [x] B48 The NSOF writer lost a frame's last slot when the frame had a
+  `_proto` slot before it and followProtos was false (-onsof, the Toolkit
+  connection): it wrote the count without _proto and looped only that far.
+  The ROM writes the reduced count but loops over all slots (newtonos.s,
+  TObjectWriter::Scan); fixed so, in Prescan and Scan. Test:
+  Test/dbg/test_nsof.py.
 - [x] B47 Scripts that define the platform's constants themselves failed
   since 4.3a ("cannot redefine a constant"; found 2026-10-14 in VSNewt's
   README: `constant protoFloatNGo := @180;`, also in users' projects). Now

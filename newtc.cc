@@ -190,6 +190,29 @@ static void installNSDebugToolsNatives()
 extern const EmbeddedScript gPlatformScript;       // Matt/Platform/Newton21.ns
 extern const EmbeddedScript gNTKBuildScript;       // Matt/Platform/NTKBuild.ns
 extern const EmbeddedScript gNewtAppScript;        // Matt/Platform/NewtApp.ns
+extern const EmbeddedScript gPlatformFileScript;   // Matt/Platform/PlatformFile.ns
+
+// -platform <file>: an NTK platform file instead of the built-in platform;
+// read from the command line before init() (main), as init() loads it
+static std::string gPlatformFile;
+
+// -platform: |newt:UsePlatformFile|(path) (PlatformFile.ns); an exception is
+// printed as newtc does
+static bool usePlatformFile(const std::string &path)
+{
+  volatile bool ok = true;     // volatile: changed in newton_catch (longjmp)
+  newton_try
+  {
+    NSCallGlobalFn(MakeSymbol("newt:UsePlatformFile"), MakeStringFromCString(path.c_str()));
+  }
+  newton_catch_all
+  {
+    gREPout->exceptionNotify(CurrentException());
+    ok = false;
+  }
+  end_try;
+  return ok;
+}
 
 bool init()
 {
@@ -287,9 +310,19 @@ bool init()
 #endif
 
   // the NewtonOS 2.1 platform's constants (protoFloatNGo, vjParentCenterH,
-  // ...), as NTK has them from its platform file (plan 4.3)
-  if (!RunEmbeddedScript(gPlatformScript))
-    return false;
+  // ...), as NTK has them from its platform file (plan 4.3), or that file
+  // itself (-platform, plan 4.8)
+  if (gPlatformFile.empty()) {
+    if (!RunEmbeddedScript(gPlatformScript))
+      return false;
+  } else {
+    if (!RunEmbeddedScript(gPlatformFileScript))
+      return false;
+    if (!usePlatformFile(gPlatformFile)) {
+      printf("newtc: ERROR: -platform: can't use \"%s\" (see above).\n", gPlatformFile.c_str());
+      return false;
+    }
+  }
   // NTK's build functions: AddStepForm, StepDeclare (plan 4.4)
   if (!RunEmbeddedScript(gNTKBuildScript))
     return false;
@@ -1404,6 +1437,9 @@ the commands in the given order.
   Options
   -I <folder>             Load() looks there too: next to the calling file first,
                           then in each -I folder, then in the current directory
+  -platform <file>        Use an NTK platform file (e.g. NTK's "Newton 2.1") instead of
+                          newtc's built-in NewtonOS 2.1 platform; found in the -I
+                          folders, then in the current directory
   -g                      Compile with debug information: variable names (DebuggerInfo)
                           and line tables; -dbg and -dap do this, too
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
@@ -1442,7 +1478,11 @@ int handleArgs(int argc, char **argv)
       } else if (cmd == "-I") {
         if (argi >= argc)
           throw(std::runtime_error("-I: folder expected."));
-        AddLoadSearchPath(argv[argi++]);
+        argi++;                  // added before init() (main)
+      } else if (cmd == "-platform") {
+        if (argi >= argc)
+          throw(std::runtime_error("-platform: an NTK platform file expected."));
+        argi++;                  // loaded by init() (main)
       } else if (cmd == "-run") {
         handleArgRun();
       } else if (cmd == "-s") {
@@ -1634,6 +1674,13 @@ int main(int argc, char **argv) {
   for (int i = 1; i + 1 < argc; ++i)
     if (strcmp(argv[i], "-store") == 0)
       CHostStore::SetFile(argv[i + 1]);
+  // -I and -platform: init() loads the platform, found as Load finds files
+  for (int i = 1; i + 1 < argc; ++i) {
+    if (strcmp(argv[i], "-I") == 0)
+      AddLoadSearchPath(argv[i + 1]);
+    else if (strcmp(argv[i], "-platform") == 0)
+      gPlatformFile = argv[i + 1];
+  }
   // Stubs that newtc's own start calls are counted, but not the program's
   // business: no log (see Utilities/Unimplemented.h)
   SetStubMode(kStubQuiet);

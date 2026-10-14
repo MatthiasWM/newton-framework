@@ -1,0 +1,9 @@
+// newtc -platform <file> (plan 4.8; platform_file.args): an NTK platform
+// file (here a tiny one made with newtc -onsof, found through -I) instead of
+// the built-in platform. Its constants (also objects), variables, constant
+// functions (folded while compiling), weak functions (only where none
+// exists: Print stays the ROM's). The built-in platform isn't there.
+Print([kTinyConst, protoFloatNGo, kTinyFrame, tinyVar]);
+f := func() TinyTwice(21);
+Print([call f with (), f.literals]);
+Print([TinyWeak(), IsGlobalConstant('vjParentCenterH)]);
