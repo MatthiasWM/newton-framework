@@ -1026,12 +1026,15 @@ void handleArgConnectPackage(const std::string &filename)
 /**
  \brief Create an NSOF file from current ref.
  */
-void handleArgONsof(const std::string &filename)
+// -onsof writes _proto slots (a template keeps its proto; a ROM proto is
+// just its magic pointer); -onsof_no_proto leaves out every _proto slot,
+// as the ROM does for data it beams or syncs (Matt, 2026-10-14)
+void handleArgONsof(const std::string &filename, bool withProtos = true)
 {
   RefVar ref = getGlobalRef(0);
-  writeOrFail("-onsof", [&] {
+  writeOrFail(withProtos ? "-onsof" : "-onsof_no_proto", [&] {
     CStdIOPipe outPipe(filename.c_str(), "wb");
-    CObjectWriter out(ref, outPipe, false);
+    CObjectWriter out(ref, outPipe, withProtos);
     out.write();
   });
 }
@@ -1379,7 +1382,9 @@ the commands in the given order.
                           Write the "newtc" app for the Newton: install it there
                           once, then tap Connect in it to debug with newtc
                           (instead of NTK's Toolkit app)
-  -onsof <filename>       Write the current object to a NSOF file
+  -onsof <filename>       Write the current object to a NSOF file (with _proto slots)
+  -onsof_no_proto <file>  The same without any _proto slots (as a Newton writes data
+                          it beams or syncs)
   -opdf <filename>        Write the first part as a PDF file if it is a book
   -print                  Print the current object, functions are just frames
   -decompile              Print the object with all functions decompiled
@@ -1559,6 +1564,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -onsof ... ."));
         handleArgONsof(std::string(argv[argi++]));
+      } else if (cmd == "-onsof_no_proto") {
+        if ((argi >= argc) || (argv[argi][0] == '-'))
+          throw(std::runtime_error("Missing filename after -onsof_no_proto ... ."));
+        handleArgONsof(std::string(argv[argi++]), false);
       } else if (cmd == "-opdf") {
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -opdf ... ."));

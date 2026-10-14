@@ -978,9 +978,15 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       made with -onsof, didn't read back). Tests: case platform_file
       (platform_file_data/Tiny.platform), Test/dbg/test_nsof.py. (D2:
       UsePlatform() from a script isn't there: the platform must be there
-      before newtc's own scripts compile.) Note: -onsof and the Toolkit
-      connection write with followProtos false: `_proto` slots are left out
-      (the ROM's option; for -onsof of templates maybe not what one wants).
+      before newtc's own scripts compile.) `_proto` slots (Matt,
+      2026-10-14): the ROM's writer leaves out every `_proto` slot (by name,
+      whatever its value) when followProtos is false, as it is for what a
+      Newton beams, syncs, or sends to NTK. -onsof now writes them (a ROM
+      proto is just its magic pointer since B49); the new -onsof_no_proto
+      leaves them all out. No "magic protos only" variant (Matt: correctly
+      written apps don't need it). Still false: what newtc sends to a Newton
+      (NTKInspector), to look at (a literal template in a remote program
+      would lose its _proto). Test: Test/dbg/test_nsof.py.
 
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
