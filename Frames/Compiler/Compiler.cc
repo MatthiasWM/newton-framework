@@ -163,6 +163,17 @@ AddLoadSearchPath(const char * inDir)
 // Not in ROM: as the Mac's fnfErr (NTK ran on a Mac); ErrorString.cc has its text.
 #define kFileNotFoundErr (-43)
 
+// Not in ROM (B47): whether a constant's new value is the one it has (an
+// integer, character, magic pointer, symbol, true, nil, or an equal real).
+bool
+SameConstantValue(RefArg inA, RefArg inB)
+{
+	if ((Ref)inA == (Ref)inB)		// not EQ: it looks up magic pointers (@999 throws)
+		return true;
+	// reals: only real objects (IsReal would look up a magic pointer)
+	return ISREALPTR(inA) && ISREALPTR(inB) && IsReal(inA) && IsReal(inB) && CDouble(inA) == CDouble(inB);
+}
+
 // {errorCode: -43, value: "<name> (looked in ...)"}, evt.ex.fr
 static void
 ThrowFileNotFound(const std::string & inMessage)
@@ -1906,7 +1917,14 @@ CCompiler::declarationWalker(RefArg inGraph, int inNodeType, RefArg inP1, RefArg
 			RefVar	varName(GetArraySlot(inP1, i));
 			RefVar	varValue(GetArraySlot(inP1, i+1));
 			if (func->isLocalConstant(varName))
+			{
+				// not in ROM (B47): the same value again is fine (scripts that
+				// define the platform's constants themselves, e.g. protoFloatNGo)
+				if (isConstantExpr(varValue)
+				&&  SameConstantValue(evaluateConstantExpr(varValue), func->getConstantValue(varName, NULL)))
+					continue;
 				errorWithValue(kNSErrConstRedefined, varName);
+			}
 			if (func->atTopLevel() && FrameHasSlot(RA(gVarFrame), varName))
 				errorWithValue(kNSErrGlobalAndConstCollision, varName);
 			simplify(varValue);

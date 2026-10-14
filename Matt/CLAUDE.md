@@ -947,9 +947,19 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       png_data/*.png, made by a few lines of Python), build_app_icons.
       To check on Einstein (Matt): an app built with a 4-bit icon and a
       highlighted one; Extras on 2.1 (iconPro) and the B&W icon's XOR mask.
-- [ ] 4.7 VSNewt (Matt's repo): "New Newton App" (app.ns with the newtApp
-      setup, icon.png, launch.json); later completions and hover help (the
-      names from 4.3).
+- [x] 4.7 VSNewt (2026-10-14; Matt's repo, uncommitted there): New App
+      Project writes the -build style (templates/app.ns: newtAppName,
+      newtAppLabel, newtAppIcon with 16 grays, newt.theForm a protoFloatNGo,
+      a declared protoStaticText and a protoTextButton that sets it with
+      SetValue and kAppName) and templates/icon.png (32x32, grays, alpha;
+      drawn by a few lines of Python). F7: `-build` when the main file sets
+      newtAppName (usesBuild), else `-script` as before. README "Writing an
+      app" rewritten (globals table, NTK names, PNGs, Load example in the new
+      style), the "no NTK names" limitation replaced, CHANGELOG
+      "Unreleased". Tests: the template builds with -build; compilerArguments
+      chooses -build; all 20 pass (NEWTC set). Bundled newtc rebuilt. Found
+      B47 on the way. Later: completions and hover help from the platform
+      (NTK's per-proto templates: plan 4.8's file, or newtc -list-constants).
 - [ ] 4.8 Optional: Apple's platform files (was 3.19), for the protos
       newtc doesn't have (mail, the endpoint layer, NTK's exact set).
       `-platform <file>` and UsePlatform(path) (D2): read the platform frame
@@ -981,6 +991,16 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B47 Scripts that define the platform's constants themselves failed
+  since 4.3a ("cannot redefine a constant"; found 2026-10-14 in VSNewt's
+  README: `constant protoFloatNGo := @180;`, also in users' projects). Now
+  the same value again is fine, in `constant` and DefineGlobalConstant
+  (SameConstantValue: the same Ref, or an equal real; not EQ, which looks
+  up magic pointers and threw for @999); another value is still an error.
+  Test: case constant_redefine. Also: 04e766c's build_app_icons.expected
+  held an error, recorded with a newtc built before the hilited ->
+  highlighted rename (embedded NewtApp.ns; the test run after used the same
+  binary): regenerated. Rebuild newtc before --update.
 - [x] B46 The compiler leaked every function's CFunctionState (found
   2026-10-14: 2,000 top-level statements took 3.8 s in the debug build).
   Its RefStructs held 9 RefHandles, never given back; every 32 more grow

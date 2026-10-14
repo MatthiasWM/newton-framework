@@ -1,0 +1,9 @@
+// B47: scripts written before the built-in platform (4.3) define its
+// constants themselves (VSNewt's README did: constant protoFloatNGo :=
+// @180;). The same value again is fine now; another value is still
+// "cannot redefine a constant".
+constant protoFloatNGo := @180;
+constant vjParentCenterH := 16;
+DefineGlobalConstant('protoTextButton, @226);
+Print([protoFloatNGo, vjParentCenterH, protoTextButton]);
+constant protoStaticText := @999;

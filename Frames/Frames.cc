@@ -69,7 +69,13 @@ Ref
 FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj)
 {
 	if (FrameHasSlot(RA(gConstantsFrame), inTag))
+	{
+		// not in ROM (B47): the same value again is fine
+		extern bool SameConstantValue(RefArg inA, RefArg inB);
+		if (SameConstantValue(inObj, GetFrameSlot(RA(gConstantsFrame), inTag)))
+			return inTag;
 		ThrowExFramesWithBadValue(kNSErrConstRedefined, inTag);
+	}
 
 	SetFrameSlot(RA(gConstantsFrame), EnsureInternal(inTag), inObj);
 	return inTag;

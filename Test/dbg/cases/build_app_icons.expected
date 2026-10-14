@@ -5,7 +5,4 @@
  2, 
  4, 
  1]
-    File "build_app_icons.ns"; Line 5 !!! Exception: -48200, ObjectPtr of non-pointer
-newtc: ERROR: -script: "build_app_icons.ns" stopped at the error above.
-
---- exit code 255 ---
+MakeBinaryFromHex("0000000000040000000000000004000400000000000000000070000000000000", 'cBits)

@@ -1,0 +1,5 @@
+[@180, 16, @226]
+    File "constant_redefine.ns"; Line 9 !!! Exception: -48607, cannot redefine a constant
+newtc: ERROR: -script: "constant_redefine.ns" stopped at the error above.
+
+--- exit code 255 ---
