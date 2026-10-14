@@ -2578,6 +2578,8 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 		break;
 
 	case TOKENcall:
+		if (foldConstantCall(p1, p2))		// not in ROM: NTK's constant functions
+			break;
 		numOfArgs = Length(p2);
 		for (i = 0; i < numOfArgs; ++i)
 			walkForCode(GetArraySlot(p2, i), false);
@@ -3118,6 +3120,51 @@ CCompiler::evaluateConstantExpr(RefArg inGraph)
 #endif
 
 	return result;
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in ROM: NTK's constant functions (plan 4.3b). A call of a function
+	defined with DefPureFn (the platform's vfPen, tsSize, ...: Matt/Platform/
+	Newton21.ns) whose arguments are all constants runs here, while
+	compiling, and its result goes into the code as a literal: so
+	`viewFormat: vfPen(2)` in a method works on a Newton, which has no vfPen.
+	Only immediates (integers, characters, true, nil) and reals: a frame or
+	an array would be a read-only literal in a package. Otherwise, or if the
+	function throws, it stays a call.
+	Args:		inName		the function's symbol
+				inArgs		its argument nodes
+	Return:	true if the call was folded into a literal
+------------------------------------------------------------------------------*/
+
+bool
+CCompiler::foldConstantCall(RefArg inName, RefArg inArgs)
+{
+	RefVar constFuncs(gConstFuncFrame);
+	if (ISNIL(constFuncs) || !FrameHasSlot(constFuncs, inName))
+		return false;
+	ArrayIndex numOfArgs = Length(inArgs);
+	for (ArrayIndex i = 0; i < numOfArgs; ++i)
+		if (!isConstantExpr(GetArraySlot(inArgs, i)))
+			return false;
+	RefVar args(MakeArray(numOfArgs));
+	for (ArrayIndex i = 0; i < numOfArgs; ++i)
+		SetArraySlot(args, i, evaluateConstantExpr(GetArraySlot(inArgs, i)));
+	RefVar result;
+	volatile bool folded = false;		// volatile: set before a possible longjmp
+	newton_try
+	{
+		result = DoBlock(GetFrameSlot(constFuncs, inName), args);
+		folded = ISINT(result) || ISIMMED(result) || IsReal(result);
+	}
+	newton_catch_all
+	{
+		folded = false;
+	}
+	end_try;
+	if (folded)
+		emitPush(result);
+	return folded;
 }
 
 

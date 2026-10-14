@@ -72,6 +72,7 @@ extern "C" Ref FDefineGlobalConstant(RefArg inRcvr, RefArg inTag, RefArg inObj);
 extern "C" Ref FUnDefineGlobalConstant(RefArg inRcvr, RefArg inTag);
 extern "C" Ref FIsGlobalConstant(RefArg inRcvr, RefArg inTag);
 extern "C" Ref FReadStreamFile(RefArg inRcvr, RefArg inFilename);
+extern "C" Ref FDefPureFn(RefArg inRcvr, RefArg inTag, RefArg inFn);
 // EnsureInternal
 
 int handleArgs(int argc, char **argv);
@@ -206,6 +207,7 @@ bool init()
   defGlobalCFunction("UndefineGlobalConstant", (void*)FUnDefineGlobalConstant, 1);
   defGlobalCFunction("IsGlobalConstant", (void*)FIsGlobalConstant, 1);
   defGlobalCFunction("ReadStreamFile", (void*)FReadStreamFile, 1);
+  defGlobalCFunction("DefPureFn", (void*)FDefPureFn, 2);   // constant functions (Compiler.cc foldConstantCall)
 
   installNSDebugToolsNatives();
 

@@ -1951,6 +1951,76 @@ constant vWidthGrowsWithText := 4;
 constant vWidthIsParentWidth := 1;
 constant vWriteProtected := 128;
 
+// Functions (plan 4.3b), written for newtc after what NTK's platform
+// functions compute. The ROM has SetBounds, RelBounds, PackRGB, GetRed,
+// GetGreen, GetBlue and StdButtonWidth itself.
+//
+// Constant functions (DefPureFn): called with constant arguments, the
+// compiler runs them and puts the result into the code, so `vfPen(2)` in a
+// method works on a Newton (which doesn't have them). Only results that are
+// immediates or reals; ButtonBounds, UnpackRGB, ... are build-time helpers.
+
+DefPureFn('vfPen, func(width) width * 256);              // pen width, bits 8-15
+DefPureFn('vfInset, func(inset) inset * 65536);           // inset, bits 16-17
+DefPureFn('vfShadow, func(shadow) shadow * 262144);       // shadow, bits 18-21
+DefPureFn('vfRound, func(radius) radius * 16777216);      // corner radius, bits 24-27
+DefPureFn('tsSize, func(points) points << 10);            // font size in a font spec
+DefPureFn('fxColumns, func(n) n - 1);                     // viewEffect: n columns
+DefPureFn('fxRows, func(n) (n - 1) << 5);                 // viewEffect: n rows
+DefPureFn('fxSteps, func(n) (n - 1) << 21);               // viewEffect: n animation steps
+DefPureFn('fxStepTime, func(ticks) ticks << 25);          // viewEffect: ticks per step
+
+// a date or time format spec: an array of [element, format] pairs, 6 bits each
+DefPureFn('GetDateStringSpec, func(elements)
+begin
+  local spec := 0;
+  foreach element in elements do
+    spec := (spec << 6) + (element[1] << 3) + element[0];
+  spec;
+end);
+
+// a packed color (PackRGB) as {red, green, blue}, 16 bits each
+DefPureFn('UnpackRGB, func(packed)
+  {red: GetRed(packed), green: GetGreen(packed), blue: GetBlue(packed)});
+
+// the bounds of a button in a protoStatusBar: from the left (width > 0) or
+// from the right (width < 0)
+DefPureFn('ButtonBounds, func(width)
+  if width > 0 then SetBounds(7, 2, 7 + width, 15) else SetBounds(25, 2, 25 - width, 15));
+
+DefPureFn('MakeDitheredPattern, func(pattern, foreground, background)
+  {class: 'ditherPattern, pattern: pattern, foreground: foreground, background: background});
+
+// bitmap bits XORed from byte 16 on (after the header): e.g. a mask from a
+// hilited and an unhilited icon
+DefPureFn('XORPixels, func(pixels1, pixels2, class)
+begin
+  local result := Clone(pixels1);
+  SetClass(result, class);
+  for i := 16 to Length(result) - 1 do
+    StuffByte(result, i, BXOr(ExtractByte(pixels1, i), ExtractByte(pixels2, i)));
+  result;
+end);
+
+// Build functions (NTK's): a constant from any value; slots of the part
+// frame (the package's form part, plan 4.5)
+DefGlobalFn('DefConst, func(symbol, value) begin DefineGlobalConstant(symbol, value); nil end);
+DefGlobalFn('GetPartFrameSlot, func(slot)
+  GlobalVarExists('partFrame) and GetGlobalVar('partFrame).(slot));
+DefGlobalFn('SetPartFrameSlot, func(slot, value)
+begin
+  if not GlobalVarExists('partFrame) then
+    DefGlobalVar('partFrame, {});
+  GetGlobalVar('partFrame).(slot) := value;
+end);
+
+// Not here (yet): NTK's functions that read its Mac resources
+// (GetSoundFrame, GetSynthSoundFrame, GetSynthSoundFrameSlow, PictBounds,
+// MakeExtrasIcons: icons from PNG files are plan 4.6), the deprecated ones
+// (GetSoundDeprecated, GetSound11Deprecated), and units (DeclareUnit,
+// DefineUnit, AliasUnit, AliasUnitSubset: NTK's shared libraries need
+// support in the package writer).
+
 // Objects in NTK's file, not here (NTK copies them into the packages
 // that use them; plan 4.8 reads NTK's file):
 // k1KOutputBuffer k2KOutputbuffer kAddExtraIconFunc kAddLocaleFunc

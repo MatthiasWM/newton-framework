@@ -1,0 +1,21 @@
+// The platform's functions (plan 4.3b, Matt/Platform/Newton21.ns). Constant
+// functions (DefPureFn) called with constant arguments are computed while
+// compiling: the code holds the result, not a call (a Newton has no vfPen);
+// with a variable argument they stay a call (works in newtc).
+begin
+  local f := func(n) {viewFormat: vfFillWhite + vfFrameBlack + vfPen(2) + vfRound(4),
+                      font: tsSize(12), fx: fxColumns(3) + fxRows(2) + fxSteps(4), pen: vfPen(n)};
+  local r := call f with (3);
+  Print([r.viewFormat, r.font, r.fx, r.pen]);
+  Print(f.literals);
+  Print([vfInset(1), vfShadow(2), fxStepTime(5), GetDateStringSpec([[1, 2], [3, 4]])]);
+  Print([ButtonBounds(40), ButtonBounds(-40), MakeDitheredPattern(1, 2, 3).class]);
+  // PackRGB, GetRed, GetGreen, GetBlue: the ROM's (were stubs in newtc)
+  Print([PackRGB(65535, 0, 32768), UnpackRGB(PackRGB(65535, 0, 32768))]);
+  Print(XORPixels(MakeBinaryFromHex("0000000000000000000000000000000000FF0F", 'bits),
+                  MakeBinaryFromHex("0000000000000000000000000000000000F0FF", 'bits), 'mask));
+  SetPartFrameSlot('icon, 'test);
+  Print([GetPartFrameSlot('icon), GetPartFrameSlot('nothing)]);
+end;
+DefConst('kFromDefConst, {a: 1});
+Print(kFromDefConst);

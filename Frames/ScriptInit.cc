@@ -132,7 +132,9 @@ InitScriptGlobals(void)
 
 #if defined(hasPureFunctionSupport)
 //	Add constant functions
-	DefGlobalVar(SYMA(constantFunctions), Clone(RA(constantFunctions)));
+	// newtc: the Newton ROM's data has no constantFunctions (NTK's had them):
+	// an empty frame, filled by DefPureFn (Matt/Platform/Newton21.ns)
+	DefGlobalVar(SYMA(constantFunctions), AllocateFrame());
 #endif
 
 // ** This has already been done by REPInit()

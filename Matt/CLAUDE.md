@@ -841,7 +841,7 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       now nil or true. Reads Apple's "Newton 2.1" (2,056 constants) in about
       0.1 s. Test: case read_stream_file (read_stream_file_data/sample.nsof,
       made with newtc -onsof).
-- [ ] 4.3 newtc's built-in 2.1 platform.
+- [x] 4.3 newtc's built-in 2.1 platform.
   - [x] 4.3a The constants (2026-10-14). `Matt/Platform/Newton21.ns`, one
         line each (`constant protoFloatNGo := @180;`): 831 magic pointers by
         number, 1,103 numbers, strings, characters, symbols by name (inf,
@@ -858,11 +858,28 @@ Steps (each testable in newtc; a package on Einstein by Matt):
         compiler leaked 9 RefHandles per function: 2,000 statements took
         3.8 s, newtc's start went from 0.5 to 1.0 s with the platform; now
         0.08 s with it). Test: case platform_constants.
-  - [ ] 4.3b The platform's 32 build-time functions (platformFunctions:
-        vfShadow(x), fxColumns, PackRGB, ButtonBounds, DefineUnit, ...;
-        NTK's "constant functions", evaluated while compiling) and
-        platformWeakFunctions (DefConst, XORPixels, MakeExtrasIcons): written
-        in NewtonScript, in Newton21.ns or Build.ns (4.4).
+  - [x] 4.3b The platform's functions (2026-10-14), in Newton21.ns, written
+        for newtc after what NTK's compute (read by decompiling NTK's file;
+        nothing of it in the repo). The ROM has SetBounds, RelBounds, PackRGB,
+        GetRed, GetGreen, GetBlue, StdButtonWidth itself; newtc's PackRGB and
+        GetRed/Green/Blue were stubs: now the ROM's (Graphics/QDDrawing.cc,
+        on PackRGBvalues/UnpackRGBvalues). Constant functions (DefPureFn,
+        now registered; newtc builds with hasPureFunctionSupport, ScriptInit
+        makes an empty constantFunctions frame: the Newton ROM has none):
+        vfPen, vfInset, vfShadow, vfRound, tsSize, fxColumns, fxRows, fxSteps,
+        fxStepTime, GetDateStringSpec, UnpackRGB, ButtonBounds,
+        MakeDitheredPattern, XORPixels. The compiler (foldConstantCall, not in
+        ROM) runs a constant function called with constant arguments while
+        compiling and puts the result into the code when it is an integer,
+        an immediate or a real (a frame would be a read-only literal in a
+        package): `vfPen(2)` in a method is 512 on a Newton, which has no
+        vfPen; with a variable argument it stays a call (newtc only). Build
+        functions: DefConst, GetPartFrameSlot, SetPartFrameSlot. Not done:
+        NTK's functions on its Mac resources (GetSoundFrame,
+        GetSynthSoundFrame(Slow), PictBounds, MakeExtrasIcons: icons from PNG
+        are 4.6), the deprecated sound ones, and units (DeclareUnit,
+        DefineUnit, AliasUnit, AliasUnitSubset: shared libraries need the
+        package writer). Test: case platform_functions.
 - [ ] 4.4 NTK's build functions on the desktop (an embedded Build.ns):
       AddStepForm(parent, child) (child to parent.stepChildren),
       StepDeclare(parent, child, 'sym) (parent.stepAllocateContext, so the

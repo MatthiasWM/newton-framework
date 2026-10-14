@@ -1,0 +1,16 @@
+[67109457, 12288, 6291490, 768]
+[literals: 
+ 67108864, 
+ 12288, 
+ 6291456, 
+ 'vfPen, 
+ [2: nil, 'viewFormat, 'font, 'fx, 'pen]]
+[65536, 524288, 167772160, 1123]
+[{left: 7, top: 2, right: 47, bottom: 15}, 
+ {left: 25, top: 2, right: 65, bottom: 15}, 
+ 'ditherPattern]
+[285147264, 
+ {red: 65535, green: 0, blue: 32896}]
+MakeBinaryFromHex("00000000000000000000000000000000000FF0", 'mask)
+['test, nil]
+{a: 1}

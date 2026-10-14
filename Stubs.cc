@@ -554,7 +554,6 @@ Ref FStyleArrayContainsInk(RefArg rcvr);
 Ref FStrTruncate(RefArg rcvr);
 Ref FNBPStartLookup(RefArg rcvr);
 Ref FDecodeRichString(RefArg rcvr);
-Ref FGetBlue(RefArg rcvr);
 Ref FClassInfoRegistrySeed(RefArg rcvr);
 Ref FGetExportTableClients(RefArg rcvr);
 Ref FIsEqualTone(RefArg rcvr);
@@ -590,7 +589,6 @@ Ref FTestReportMessage(RefArg rcvr);
 Ref FGetVBOCompanderData(RefArg rcvr);
 Ref FFastStrLookup(RefArg rcvr);
 Ref FRecognizePara(RefArg rcvr);
-Ref FGetGreen(RefArg rcvr);
 Ref FSetHiliteIndex(RefArg rcvr);
 Ref For(RefArg rcvr);
 Ref FInkConvert(RefArg rcvr);
@@ -673,7 +671,6 @@ Ref FGetZoneFromName(RefArg rcvr);
 Ref FRemove1_2EXPackage(RefArg rcvr);
 Ref FGetRandomDictionaryWord(RefArg rcvr);
 Ref FCancelOnlineService(RefArg rcvr);
-Ref FPackRGB(RefArg rcvr);
 Ref FMakeCompactFont(RefArg rcvr);
 Ref FFavorAction(RefArg rcvr);
 Ref FNBPGetLookupNames(RefArg rcvr);
@@ -691,7 +688,6 @@ Ref FResetLetterDefaults(RefArg rcvr);
 Ref FClearVBOCache(RefArg rcvr);
 Ref FNBPGetNames(RefArg rcvr);
 Ref FConnBuildStoreFrame(RefArg rcvr);
-Ref FGetRed(RefArg rcvr);
 Ref FGetOnlineEndpoint(RefArg rcvr);
 Ref FCalcBundleBounds(RefArg rcvr);
 Ref FTryStringLength(RefArg rcvr);
@@ -1269,7 +1265,6 @@ NS_STUB(FStyleArrayContainsInk, RefArg rcvr)
 NS_STUB(FStrTruncate, RefArg rcvr)
 NS_STUB(FNBPStartLookup, RefArg rcvr)
 NS_STUB(FDecodeRichString, RefArg rcvr)
-NS_STUB(FGetBlue, RefArg rcvr)
 NS_STUB(FClassInfoRegistrySeed, RefArg rcvr)
 NS_STUB(FGetExportTableClients, RefArg rcvr)
 NS_STUB(FIsEqualTone, RefArg rcvr)
@@ -1305,7 +1300,6 @@ NS_STUB(FTestReportMessage, RefArg rcvr)
 NS_STUB(FGetVBOCompanderData, RefArg rcvr)
 NS_STUB(FFastStrLookup, RefArg rcvr)
 NS_STUB(FRecognizePara, RefArg rcvr)
-NS_STUB(FGetGreen, RefArg rcvr)
 NS_STUB(FSetHiliteIndex, RefArg rcvr)
 NS_STUB(For, RefArg rcvr)
 NS_STUB(FInkConvert, RefArg rcvr)
@@ -1388,7 +1382,6 @@ NS_STUB(FGetZoneFromName, RefArg rcvr)
 NS_STUB(FRemove1_2EXPackage, RefArg rcvr)
 NS_STUB(FGetRandomDictionaryWord, RefArg rcvr)
 NS_STUB(FCancelOnlineService, RefArg rcvr)
-NS_STUB(FPackRGB, RefArg rcvr)
 NS_STUB(FMakeCompactFont, RefArg rcvr)
 NS_STUB(FFavorAction, RefArg rcvr)
 NS_STUB(FNBPGetLookupNames, RefArg rcvr)
@@ -1406,7 +1399,6 @@ NS_STUB(FResetLetterDefaults, RefArg rcvr)
 NS_STUB(FClearVBOCache, RefArg rcvr)
 NS_STUB(FNBPGetNames, RefArg rcvr)
 NS_STUB(FConnBuildStoreFrame, RefArg rcvr)
-NS_STUB(FGetRed, RefArg rcvr)
 NS_STUB(FGetOnlineEndpoint, RefArg rcvr)
 NS_STUB(FCalcBundleBounds, RefArg rcvr)
 NS_STUB(FTryStringLength, RefArg rcvr)

@@ -129,6 +129,7 @@ private:
 	int			walkForStringer(RefArg inGraph);
 	bool			isConstantExpr(RefArg inGraph);
 	Ref			evaluateConstantExpr(RefArg inGraph);
+	bool			foldConstantCall(RefArg inName, RefArg inArgs);	// not in ROM
 
 	ArrayIndex	freqFuncIndex(RefArg inName, ArrayIndex inNumArgs);
 	void			emitFuncall(RefArg inName, ArrayIndex inNumArgs);

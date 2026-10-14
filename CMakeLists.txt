@@ -630,7 +630,7 @@ set_property (TARGET newtc
     "-ohtml ~/dev/test.html"
 )
 
-target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1)
+target_compile_definitions(newtc PRIVATE forNTK forMac forFramework hasGlobalConstantFunctions=1 hasPureFunctionSupport=1)
 target_compile_definitions(newtc PRIVATE __LP64__=1)
 # the internal store keeps its objects in memory and a file (Stores/HostStore.h)
 target_compile_definitions(newtc PRIVATE NEWTC_HOST_STORE=1)

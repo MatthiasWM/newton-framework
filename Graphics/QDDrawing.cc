@@ -650,6 +650,47 @@ UnpackRGBvalues(ULong inRGB, ULong * outR, ULong * outG, ULong * outB)
 	*outB += (*outB << 8);
 }
 
+
+/*------------------------------------------------------------------------------
+	PackRGB(red, green, blue), GetRed(rgb), GetGreen(rgb), GetBlue(rgb):
+	the NewtonScript functions (ROM 0x000E387C ff.), 16 bits per component.
+	The ROM throws exGrafException -8809 for a component over 65535; newtc
+	has no exGrafException: a frames error with that code and the value.
+------------------------------------------------------------------------------*/
+
+extern "C" Ref
+FPackRGB(RefArg inRcvr, RefArg inRed, RefArg inGreen, RefArg inBlue)
+{
+	long r = RINT(inRed), g = RINT(inGreen), b = RINT(inBlue);
+	if ((ULong)r > 0xFFFF || (ULong)g > 0xFFFF || (ULong)b > 0xFFFF)
+		ThrowExFramesWithBadValue(-8809, (ULong)r > 0xFFFF ? inRed : ((ULong)g > 0xFFFF ? inGreen : inBlue));
+	return MAKEINT(PackRGBvalues(r, g, b));
+}
+
+extern "C" Ref
+FGetRed(RefArg inRcvr, RefArg inRGB)
+{
+	ULong r, g, b;
+	UnpackRGBvalues(RINT(inRGB), &r, &g, &b);
+	return MAKEINT(r);
+}
+
+extern "C" Ref
+FGetGreen(RefArg inRcvr, RefArg inRGB)
+{
+	ULong r, g, b;
+	UnpackRGBvalues(RINT(inRGB), &r, &g, &b);
+	return MAKEINT(g);
+}
+
+extern "C" Ref
+FGetBlue(RefArg inRcvr, RefArg inRGB)
+{
+	ULong r, g, b;
+	UnpackRGBvalues(RINT(inRGB), &r, &g, &b);
+	return MAKEINT(b);
+}
+
 /* This is the Grayscale Conversion according to the Luminance Model
 	used by NTSC and JPEG for nonlinear data in a gamma working space:
 	Y = 0.299R + 0.587G + 0.114B
