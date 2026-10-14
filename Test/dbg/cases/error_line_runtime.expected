@@ -1,1 +1,4 @@
     File "error_line_runtime.ns"; Line 5 !!! Exception: -48808, Undefined global function
+newtc: ERROR: -script: "error_line_runtime.ns" stopped at the error above.
+
+--- exit code 255 ---

@@ -18,7 +18,8 @@ A DAP case has a <name>.dap script instead of <name>.in: newtc runs as
 <event>`, `eof`; see there) against it. In the script, $PROGRAM is the
 case's .ns file (absolute path) and $DIR its directory. The expected output
 is the transcript of all messages, with $DIR put back for the directory,
-then stderr and the exit code.
+then stderr and the exit code. (Other cases get $DIR too: the files a case
+loads are printed with their absolute path.)
 
 Output is normalized before comparing: heap references printed as
 `#<hex>` or `#0x<hex>` change from run to run, so any `#` followed by 6 or
@@ -129,7 +130,8 @@ def run_case(newtc, ns):
         out += "\n--- stderr ---\n" + err
     if proc.returncode != 0:
         out += f"\n--- exit code {proc.returncode} ---\n"
-    return normalize(out)
+    # files a case loads are named by their absolute path
+    return normalize(out.replace(str(ns.parent), "$DIR"))
 
 
 def has_fltk(newtc):

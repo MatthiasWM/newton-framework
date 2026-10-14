@@ -1,0 +1,1 @@
+Print("inner.nsi");

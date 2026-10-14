@@ -1,1 +1,4 @@
     File "error_line_syntax.ns"; Line 2 !!! Exception: -48601, syntax error -- read ';' , but wanted '\'', '(', '-', ':', '[', '{', const, symbol, integer, real, ref-const, begin, func, constant, if, try, local, loop, for, while, repeat, call, foreach, self, inherited, return, break, not, :?
+newtc: ERROR: -script: "error_line_syntax.ns" stopped at the error above.
+
+--- exit code 255 ---

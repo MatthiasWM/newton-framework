@@ -1,0 +1,5 @@
+"before"
+    File "load_missing.ns"; Line 4 !!! Exception: -43, File not found: no_such_file.nsi (looked in $DIR)
+newtc: ERROR: -script: "load_missing.ns" stopped at the error above.
+
+--- exit code 255 ---

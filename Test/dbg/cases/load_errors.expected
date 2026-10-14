@@ -1,0 +1,11 @@
+"in load_errors_throws.nsi"
+"caught -48808"
+"nowhere.nsi (looked in $DIR)"
+"outer.nsi"
+"inner.nsi"
+"outer.nsi done"
+"in load_errors_syntax.nsi"
+    File "$DIR/load_errors_syntax.nsi"; Line 3 !!! Exception: -48601, syntax error -- read ';' , but wanted '\'', '(', '-', ':', '[', '{', const, symbol, integer, real, ref-const, begin, func, constant, if, try, local, loop, for, while, repeat, call, foreach, self, inherited, return, break, not, :?
+newtc: ERROR: -script: "load_errors.ns" stopped at the error above.
+
+--- exit code 255 ---

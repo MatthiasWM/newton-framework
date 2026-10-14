@@ -755,6 +755,130 @@ evaluate). It can't be replaced by NewtonScript alone: its few
           loop). A Newton now needs nothing from NTK: the newtc app
           (3.14a), the agent, newtc's debug tools.
 
+### 4. Easy packages (Matt, 2026-10-14)
+
+Goal: a VSNewt user writes a simple app without knowing the package frame,
+only what differs from a sane default, in NTK's style:
+
+```
+newtAppName := "test:NEWTC";
+newtAppSymbol := '|test:NEWTC|;
+newtAppLabel := "test";
+newtAppIcon := MakeIconFromPNG("test_icon.png");
+newt.theForm := {_proto: protoFloatNGo, viewBounds: {left: 0, top: 30, right: 180, bottom: 220}};
+wTitle := {_proto: protoStaticText, text: "test", ...};
+AddStepForm(newt.theForm, wTitle);
+StepDeclare(newt.theForm, wTitle, 'wTitle);
+```
+
+The platform is built into newtc (decided with Matt, 2026-10-14): the
+2.1 constants (2.0 is a subset; 1.x not needed) as a NewtonScript source in
+the repo, embedded like DAP.ns, so `protoFloatNGo` just works and always
+matches the ROM newtc runs (717006). Apple's platform files stay optional
+(4.8).
+
+Found while planning:
+- NTK's binary platform files are plain NSOF. Of "Newton 2.1"'s 2,056
+  platformConstants, 1,932 are simple values (831 magic pointers, 931
+  numbers, 96 strings, 61 characters, ...).
+- The other 124 are whole objects: protoendpoint (274 KB as text), the
+  mail protos (protoMailTransport, protoMailRouteSlip, ...),
+  kMungeBitmapFunc, deprecated 1.x functions, and an embedded package
+  installed with SuckPackageFromBinary. NTK copies such a value into every
+  package that uses it. We don't need them.
+- The ROM names its magic pointers (ROMData/forNTK/MagicPointers.s:
+  SYMprotoFloatNGo, ...; fix B44 first), and the C headers hold the view
+  flag and justification constants (Views/ViewFlags.h).
+- newtc reads Newton bitmaps already (Host/Shapes.cc, BookWriter), so
+  writing them is the inverse (4.6).
+
+Matt's list (MATT.md): DefineGlobalConstant, UndefineGlobalConstant,
+IsGlobalConstant, GetLayout, SetPartFrameSlot, GetPartFrameSlot, Load,
+ReadStreamFile, OpenResFile; -platform, -I includepath, -script a -script b
+-compile (b forgets most of a).
+
+To decide with Matt (before the step that needs it):
+- D1 Names: separate globals newtAppName, newtAppSymbol, newtAppLabel,
+  newtAppIcon, newtAppVersion, newtAppCopyright (and `newt` with theForm,
+  InstallScript, RemoveScript, ...), as in the example (`newAppIcon` there
+  is newtAppIcon?), or one frame newtApp {name, symbol, ...}. Also define
+  NTK's constants kAppName, kAppSymbol, kPackageName from them, so NTK
+  sources (and decompiled ones) compile unchanged.
+- D2 (for 4.8) ReadStreamFile stays NTK's (it only returns the object);
+  installing Apple's platform is UsePlatform(path) (= -platform). Or
+  ReadStreamFile of a platform file installs it too (not NTK).
+- D3 PNG decoding: stb_image (one public-domain header, every build) or
+  FLTK's Fl_PNG_Image (only builds with FLTK).
+- D4 Where the package comes from: `newtc -build app.ns -opkg app.pkg`
+  (defaults, the script, then the package assembled from newtApp*/newt), or
+  -script with an explicit MakeNewtAppPackage() at its end.
+
+Steps (each testable in newtc; a package on Einstein by Matt):
+- [x] 4.1 Load errors (2026-10-14). An error in a loaded file is passed on
+      to the caller (FLoad -> ParseFile with rethrow; the ROM's ParseFile
+      printed it and returned): it keeps its file and line, a `try` around
+      Load catches it, otherwise it stops the loading file and -script. A
+      missing file throws {errorCode: -43 (the Mac's fnfErr, NTK's world),
+      value: "<name> (looked in ...)"} at the Load call: "File not found".
+      `-script` stops newtc when an error stopped the script ("-script:
+      "x.ns" stopped at the error above.", exit code 255, newtc's usual), so
+      `-opkg` after it writes nothing (it said "Not a package" before); so
+      does `-s`. A DAP launch runs the program as before (`runScript`, its
+      exceptions counted). `-I <folder>`: Load looks next to the calling
+      file, then in each -I folder, then in the current directory. Tests:
+      cases load_errors (try, a nested Load next to its file, a syntax error
+      in a loaded file), load_missing, load_path (-I); four cases end with
+      the new error line; plain cases get $DIR for their folder too.
+- [ ] 4.2 ReadStreamFile(path) (was 3.20): NTK's: an NSOF file read into an
+      object. FReadStreamFile exists (Frames/RefIO.cc) inside an #if newtc
+      doesn't compile, a stub in Stubs.cc: enable it, path as Load (next to
+      the calling file), errors with the file name; IsGlobalConstant
+      (FIsGlobalConstant exists, unregistered).
+- [ ] 4.3 newtc's built-in 2.1 platform. A source in the repo (e.g.
+      `Platform/Newton21.ns`): one readable line per constant
+      (`protoFloatNGo: @180`, `vjParentCenterH: 16`, ...), embedded in
+      newtc and loaded at startup as global compile-time constants (always
+      defined, as in NTK). Generated once by a script from the ROM's magic
+      pointer names and newtc's headers (view flags, justification, fonts,
+      ...), then maintained by hand. The few build-time functions of
+      platformFunctions that matter (PackRGB, ButtonBounds, fxColumns, ...)
+      rewritten in NewtonScript. No Apple data in it: Apple's file is only
+      compared against once (which names are missing, which values differ),
+      by a script in the scratchpad, never in the repo. VSNewt can get the
+      names for completions from newtc (e.g. `newtc -list-constants`).
+- [ ] 4.4 NTK's build functions on the desktop (an embedded Build.ns):
+      AddStepForm(parent, child) (child to parent.stepChildren),
+      StepDeclare(parent, child, 'sym) (parent.stepAllocateContext, so the
+      child is parent.sym at run time), DefConst, GetPartFrameSlot,
+      SetPartFrameSlot; later GetLayout (NTK layout files), OpenResFile.
+- [ ] 4.5 The newtApp setup (D1, D4): a default package (signature, id,
+      version, copyright, one form part with flags, InstallScript and
+      RemoveScript that do the usual, theForm a protoApp or protoFloatNGo,
+      the app symbol in theForm), the user's script, then the package
+      assembled and checked with clear messages (an app symbol is
+      'name:SIG', the package name and symbol agree, lengths), NTK's
+      kAppName/kAppSymbol/kPackageName defined. Sample in VSNewt.
+- [ ] 4.6 Images from PNG files (D3): MakeBitmapFromPNG(path, options),
+      MakeIconFromPNG(path, options): 1 bit (threshold or dithered), 4 bit
+      gray (16 grays, NOS 2's colorData {cbits, bitDepth}), with and without
+      alpha (alpha -> mask); B&W icons (bits + mask, for every Newton) and
+      gray icons (colorData too, for 2.x); sizes checked. The bitmap format
+      from newtc's readers (Host/Shapes.cc, BookWriter) and hello2's icon.
+      Test: PNG -> bitmap -> newtc draws it -> compare; on Einstein.
+- [ ] 4.7 VSNewt (Matt's repo): "New Newton App" (app.ns with the newtApp
+      setup, icon.png, launch.json); later completions and hover help (the
+      names from 4.3).
+- [ ] 4.8 Optional: Apple's platform files (was 3.19), for the protos
+      newtc doesn't have (mail, the endpoint layer, NTK's exact set).
+      `-platform <file>` and UsePlatform(path) (D2): read the platform frame
+      (platformConstants, platformFunctions, platformWeakFunctions,
+      platformVariables, NameMap, the layout editor's Templates,
+      ViewClasses, ScriptSlots, AttributeSlots); its constants replace or
+      extend the built-in ones (object values copied into the package as
+      NTK does), its functions run at build time. Apple's files: never in
+      the repo; the user points newtc to one. The "... Defs" text is a
+      listing for people, not used (CR, MacRoman; not compilable).
+
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
   client to 127.0.0.1:3679 (newtc listens there). If that is buggy, Matt
@@ -775,6 +899,16 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [ ] B44 Magic pointers @42, @273, @274 aren't objects in newtc
+  (found 2026-10-14 while walking "Newton 2.1"'s platformConstants:
+  ROM_capslockLight is @42). In the ROM these three entries are bare
+  symbols ('obsolete, 'espy, 'helvetica). ResMaker writes them as
+  `MPnnnn: Ref MAKEPTR(SYMxxx)` and the table as MAKEPTR(MPnnnn): a pointer
+  to a word that holds a Ref, not to an object. So ClassOf(@42) is 0,
+  Length(@42) throws "ObjectPtr of non-pointer" or crashes (ASan: SEGV in
+  Length, ObjectHeap.cc:335). Fix in ResMaker (the table entry is the Ref
+  itself), then regenerate Frames/, ROMData/forNTK/, and forNewton/
+  MagicPointers.s; check that the Newton build's table is right.
 - [x] B43 `Load(filename)` (2026-10-14): newtc has it (FLoad -> ParseFile,
   as -script: statement by statement, errors with file and line, the
   debugger's hook sets pending breakpoints in each new statement). But a

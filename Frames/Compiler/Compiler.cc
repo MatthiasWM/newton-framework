@@ -25,6 +25,7 @@
 #include "ROMResources.h"
 
 #include "Compiler.h"
+#include <algorithm>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -135,6 +136,7 @@ short *	yyss;				// +24	state stack base
 extern void Disassemble(RefArg inFunc);
 Ref	ParseString(RefArg inStr);
 Ref	ParseFile(const char * inFilename);
+static Ref	ParseFile(const char * inFilename, bool inRethrow, bool * outFailed);
 
 extern "C" Ref
 FCompile(RefArg inRcvr, RefArg inStr)
@@ -147,13 +149,40 @@ FCompile(RefArg inRcvr, RefArg inStr)
 // Load() looks for a relative name next to the file that calls it.
 static std::vector<std::string> gParseFileStack;
 
+// Not in ROM: more folders for Load() (newtc -I <dir>), in order.
+static std::vector<std::string> gLoadSearchPath;
+
+void
+AddLoadSearchPath(const char * inDir)
+{
+	std::error_code error;
+	std::filesystem::path dir = std::filesystem::absolute(inDir, error);
+	gLoadSearchPath.push_back(error ? std::string(inDir) : dir.lexically_normal().string());
+}
+
+// Not in ROM: as the Mac's fnfErr (NTK ran on a Mac); ErrorString.cc has its text.
+#define kFileNotFoundErr (-43)
+
+// {errorCode: -43, value: "<name> (looked in ...)"}, evt.ex.fr
+static void
+ThrowFileNotFound(const std::string & inMessage)
+{
+	RefVar fr(AllocateFrame());
+	SetFrameSlot(fr, SYMA(errorCode), MAKEINT(kFileNotFoundErr));
+	SetFrameSlot(fr, SYMA(value), MakeStringFromCString(inMessage.c_str()));
+	ThrowRefException(exFramesData, fr);
+}
+
 /*------------------------------------------------------------------------------
 	Load(filename): compile and run a NewtonScript file, statement by
 	statement (as -script), and return the last result. Not in ROM: a
 	relative name is looked for next to the file that calls Load (as C's
-	#include "..."), then in the current directory; the file is compiled
-	under its absolute path, so its line tables (-g) name the file a
-	debugger sets breakpoints in.
+	#include "..."), then in the folders of newtc -I, then in the current
+	directory; the file is compiled under its absolute path, so its line
+	tables (-g) name the file a debugger sets breakpoints in. A file that
+	isn't there throws "File not found" (at the Load call); an error in the
+	file is passed on to the caller (the ROM reported it and returned), so
+	it stops the file that loads it, and newtc -script.
 ------------------------------------------------------------------------------*/
 
 extern "C" Ref
@@ -164,16 +193,48 @@ FLoad(RefArg inRcvr, RefArg inFilenameStr)
 	CDataPtr filename(asciiStr);
 	std::filesystem::path path((const char *)filename);
 	std::error_code error;
-	if (path.is_relative() && !gParseFileStack.empty())
+	if (path.is_relative())
 	{
-		std::filesystem::path nearby = std::filesystem::path(gParseFileStack.back()).parent_path() / path;
-		if (std::filesystem::exists(nearby, error))
-			path = nearby;
+		std::vector<std::filesystem::path> places;
+		if (!gParseFileStack.empty())
+			places.push_back(std::filesystem::path(gParseFileStack.back()).parent_path());
+		for (const std::string & dir : gLoadSearchPath)
+			places.push_back(dir);
+		places.push_back(std::filesystem::current_path(error));
+		for (std::filesystem::path & place : places)
+			place = place.lexically_normal();
+		for (size_t i = 1; i < places.size(); )		// each place once
+		{
+			if (std::find(places.begin(), places.begin() + i, places[i]) != places.begin() + i)
+				places.erase(places.begin() + i);
+			else
+				i++;
+		}
+		bool found = false;
+		for (const std::filesystem::path & place : places)
+		{
+			if (std::filesystem::is_regular_file(place / path, error))
+			{
+				path = place / path;
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			std::string message = std::string((const char *)filename) + " (looked in ";
+			for (size_t i = 0; i < places.size(); i++)
+				message += (i > 0 ? ", " : "") + places[i].string();
+			message += ")";
+			ThrowFileNotFound(message);
+		}
 	}
+	else if (!std::filesystem::is_regular_file(path, error))
+		ThrowFileNotFound((const char *)filename);
 	std::filesystem::path absolute = std::filesystem::absolute(path, error);
 	if (!error)
 		path = absolute.lexically_normal();
-	return ParseFile(path.string().c_str());
+	return ParseFile(path.string().c_str(), true, NULL);
 }
 
 
@@ -219,12 +280,32 @@ ParseString(RefArg inStr)
 Ref
 ParseFile(const char * inFilename)
 {
+	return ParseFile(inFilename, false, NULL);
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in ROM: ParseFile, also for Load() and newtc -script.
+	The first exception stops the file. It gets the file name and line (if it
+	has none yet: one from a file loaded by this one keeps its own) and is
+	notified to gREPout, or rethrown with inRethrow (Load: the caller decides).
+	Args:		inFilename		path of file containing NewtonScript
+				inRethrow		pass exceptions on instead of notifying them
+				outFailed		if not NULL: whether an exception stopped the file
+	Return:	result of final codeblock execution
+------------------------------------------------------------------------------*/
+
+static Ref
+ParseFile(const char * inFilename, bool inRethrow, bool * outFailed)
+{
 	RefVar result;
 	RefVar codeBlock;
+	if (outFailed != NULL)
+		*outFailed = false;
 
 	FILE * fd = fopen(inFilename, "r");
 	if (fd == NULL)
-		ThrowMsg("couldn't open file");
+		ThrowFileNotFound(inFilename);
 
 	CStdioInputStream stream(fd, inFilename);
 	CCompiler compiler(&stream, true);
@@ -273,10 +354,30 @@ ParseFile(const char * inFilename)
 			// parser's lookahead: the next statement's line)
 			SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.topLine()));
 		}
+		if (outFailed != NULL)
+			*outFailed = true;
+		if (inRethrow)
+		{
+			gParseFileStack.pop_back();
+			fclose(fd);
+			compiler.~CCompiler();
+			stream.~CStdioInputStream();
+			rethrow;
+		}
 		gREPout->exceptionNotify(CurrentException());
 	}
 	newton_catch_all
 	{
+		if (outFailed != NULL)
+			*outFailed = true;
+		if (inRethrow)
+		{
+			gParseFileStack.pop_back();
+			fclose(fd);
+			compiler.~CCompiler();
+			stream.~CStdioInputStream();
+			rethrow;
+		}
 		gREPout->exceptionNotify(CurrentException());
 	}
 	end_try;
@@ -284,6 +385,18 @@ ParseFile(const char * inFilename)
 	gParseFileStack.pop_back();
 	fclose(fd);
 	return result;
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in ROM: newtc -script. As ParseFile, and tells whether an exception
+	stopped the file (newtc then stops with an error).
+------------------------------------------------------------------------------*/
+
+Ref
+ParseFileReporting(const char * inFilename, bool * outFailed)
+{
+	return ParseFile(inFilename, false, outFailed);
 }
 
 

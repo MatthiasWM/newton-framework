@@ -1,0 +1,4 @@
+// -I <folder> (load_path.args): Load looks there after the calling file's
+// folder, before the current directory.
+Load("inner.nsi");
+Print("found inner.nsi in -I load_errors_lib");

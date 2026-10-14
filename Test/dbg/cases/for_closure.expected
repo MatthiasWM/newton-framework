@@ -1,2 +1,5 @@
 2
     File "for_closure.ns"; Line 11 !!! Exception: -48601, syntax error: can't close over a for-loop index variable
+newtc: ERROR: -script: "for_closure.ns" stopped at the error above.
+
+--- exit code 255 ---

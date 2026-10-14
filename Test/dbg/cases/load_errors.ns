@@ -1,0 +1,12 @@
+// Load (plan 4.1): errors in a loaded file go to the caller (try catches
+// them), a missing file says so at the Load call, and the first error not
+// caught stops -script (newtc ends with an error).
+begin
+  local r := try Load("load_errors_throws.nsi") onexception |evt.ex| do "caught " & CurrentException().data.errorCode;
+  Print(r);
+  r := try Load("nowhere.nsi") onexception |evt.ex| do CurrentException().data.value;
+  Print(r);
+end;
+Load("load_errors_lib/outer.nsi");
+Load("load_errors_syntax.nsi");
+Print("not printed: the syntax error stopped the script");

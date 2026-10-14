@@ -1,2 +1,5 @@
 "Fsin is not implemented yet (stub in <file:line>)"
     !!! Exception: Fsin is not implemented yet (stub in <file:line>)
+newtc: ERROR: -script: "stubs_throw.ns" stopped at the error above.
+
+--- exit code 255 ---

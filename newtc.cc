@@ -63,6 +63,8 @@ extern "C" void InitObjectSystem(void);
 extern "C" void PrintObject(Ref inObj, int indent);
 extern Ref ParseString(RefArg inStr);
 extern Ref ParseFile(const char * inFilename);
+extern Ref ParseFileReporting(const char * inFilename, bool * outFailed);
+extern void AddLoadSearchPath(const char * inDir);
 extern void Disassemble(RefArg inFunc);
 extern Ref MakeStringFromCString(const char * str);
 extern void PrintCode(RefArg obj);
@@ -358,8 +360,9 @@ void handleArgNsof(const std::string &filename)
 
 /**
  \brief Load a script from a text file and write the resulting object into ref#.
+ \return false if an exception stopped it (it was printed); its result isn't held then.
  */
-void handleArgScript(const std::string &filename)
+bool runScript(const std::string &filename)
 {
   currentFileName = filename;
   FILE *f = fopen(filename.c_str(), "rb");
@@ -372,8 +375,24 @@ void handleArgScript(const std::string &filename)
       DefGlobalVar(MakeSymbol("compilerCompatibility"), MAKEINT(1));
     fclose(f);
   }
-  Ref result = ParseFile(filename.c_str());
+  if (f == nullptr)
+    throw(std::runtime_error("-script: can't open \"" + filename + "\"."));
+  bool failed = false;
+  Ref result = ParseFileReporting(filename.c_str(), &failed);
+  if (failed)
+    return false;
   addGlobalRef(result);
+  return true;
+}
+
+/**
+ \brief -script: runScript(), and an error stops newtc (no package from a
+ broken script).
+ */
+void handleArgScript(const std::string &filename)
+{
+  if (!runScript(filename))
+    throw(std::runtime_error("-script: \"" + filename + "\" stopped at the error above."));
 }
 
 /*
@@ -563,6 +582,7 @@ void handleArgS(const std::string &script)
   CStringInputStream stream(src);
 
   CCompiler compiler(&stream, true);
+  volatile bool failed = false;   // set after a longjmp
 
   newton_try
   {
@@ -575,20 +595,25 @@ void handleArgS(const std::string &script)
   newton_catch(exRefException)
   {
     RefVar data(*(RefStruct *)CurrentException()->data);
-    if (IsFrame(data)) {
+    // an error in a file it loads keeps that file's name and line
+    if (IsFrame(data) && ISNIL(GetFrameSlot(data, SYMA(filename)))) {
       SetFrameSlot(data, SYMA(filename), MakeStringFromCString("<script>"));
       // a compile error knows its line; a run-time error: the statement's
       if (ISNIL(GetFrameSlot(data, SYMA(lineNumber))))
         SetFrameSlot(data, SYMA(lineNumber), MAKEINT(compiler.topLine()));
     }
     gREPout->exceptionNotify(CurrentException());
+    failed = true;
   }
   newton_catch_all
   {
     gREPout->exceptionNotify(CurrentException());
+    failed = true;
   }
   end_try;
 
+  if (failed)
+    throw(std::runtime_error("-s: the script stopped at the error above."));
   addGlobalRef(result);
 }
 
@@ -696,7 +721,7 @@ static bool runDapSession(bool inServer)
           }
           fclose(f);
           DAPSetPolling(true);    // pause, setBreakpoints, ... while it runs
-          handleArgScript(program);
+          runScript(program);     // its exceptions were counted
           DAPSetPolling(false);
         }
       }
@@ -1228,7 +1253,8 @@ the commands in the given order.
   -pkg <filename>         Load a package file and hold it as a Newton object
   -nsdbg <filename>       Load a debug map (from -odecompile) for the object held
   -nsof <filename>        Load a Newton streaming object file
-  -script <filename>      Read a source file, compile and run it, and hold the result
+  -script <filename>      Read a source file, compile and run it, and hold the result;
+                          an error stops it and newtc
   -s <script>             Compile and run the script, and hold the result
   -hello                  Compile a "Hello World" app and hold it
   -run                    Run the current object: a package from -pkg is installed
@@ -1298,6 +1324,8 @@ the commands in the given order.
                           Einstein), run what it sends, until it ends
 
   Options
+  -I <folder>             Load() looks there too: next to the calling file first,
+                          then in each -I folder, then in the current directory
   -g                      Compile with debug information: variable names (DebuggerInfo)
                           and line tables; -dbg and -dap do this, too
   -nos1                   Compile for NewtonOS 1.x (compatible with NOS 2.x)
@@ -1329,6 +1357,10 @@ int handleArgs(int argc, char **argv)
         if ((argi >= argc) || (argv[argi][0] == '-'))
           throw(std::runtime_error("Missing filename after -script ... ."));
         handleArgScript(std::string(argv[argi++]));
+      } else if (cmd == "-I") {
+        if (argi >= argc)
+          throw(std::runtime_error("-I: folder expected."));
+        AddLoadSearchPath(argv[argi++]);
       } else if (cmd == "-run") {
         handleArgRun();
       } else if (cmd == "-s") {

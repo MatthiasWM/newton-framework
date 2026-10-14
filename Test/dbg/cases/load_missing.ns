@@ -1,0 +1,5 @@
+// A missing file: "File not found" at the Load call, with where it looked;
+// -script stops with an error.
+Print("before");
+Load("no_such_file.nsi");
+Print("not printed");
