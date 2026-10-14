@@ -1,0 +1,11 @@
+// newtc -build with icons (plan 4.6; build_app_icons.args): the form part's
+// icon is black and white for every Newton, its mask the XOR of the two
+// versions (as NTK's MakeExtrasIcons); iconPro has both versions, each with
+// its 16 grays and 1 bit in colorData (NewtonOS 2.1's Extras).
+begin
+  local data := ref0.part[0].data;
+  Print(data.icon);
+  Print([data.iconPro.unhilited.bounds, Length(data.iconPro.unhilited.colorData),
+         data.iconPro.unhilited.colorData[0].bitDepth, data.iconPro.unhilited.colorData[1].bitDepth]);
+  Print(data.iconPro.hilited.colorData[0].cbits);
+end;

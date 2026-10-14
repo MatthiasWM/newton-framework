@@ -14,6 +14,7 @@
 #include "Frames/NewtonScript.h"
 #include "Frames/DebugAPI.h"
 #include "Matt/EmbeddedScript.h"
+#include "Matt/PNG.h"
 #include "Matt/JSON.h"
 #include "Matt/DAP.h"
 #include "Matt/NTKTransport.h"
@@ -210,6 +211,9 @@ bool init()
   defGlobalCFunction("IsGlobalConstant", (void*)FIsGlobalConstant, 1);
   defGlobalCFunction("ReadStreamFile", (void*)FReadStreamFile, 1);
   defGlobalCFunction("DefPureFn", (void*)FDefPureFn, 2);   // constant functions (Compiler.cc foldConstantCall)
+  // Newton bitmaps and icons from PNG files (Matt/PNG.h)
+  defGlobalCFunction("MakeBitmapFromPNG", (void*)FMakeBitmapFromPNG, 1);
+  defGlobalCFunction("MakeIconFromPNG", (void*)FMakeIconFromPNG, 1);
 
   installNSDebugToolsNatives();
 

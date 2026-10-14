@@ -4,7 +4,8 @@
 //   newtAppName := "Hello:SIG";        // the package's name (required)
 //   newtAppSymbol := '|Hello:SIG|;     // the app's symbol (default: the name)
 //   newtAppLabel := "Hello";           // its name in Extras (default: the name up to ':')
-//   newtAppIcon := ...;                // {bits, mask, bounds} or nil (default: none)
+//   newtAppIcon := MakeIconFromPNG("icon.png");   // the icon in Extras (default: none)
+//   newtAppHighlightedIcon := MakeIconFromPNG("highlighted.png");   // when highlighted (optional)
 //   newtAppVersion := 1;               // an integer (default 1)
 //   newtAppCopyright := "(c) me";      // (default "")
 //   newt.theForm := {_proto: protoFloatNGo, ...};   // the app's base view
@@ -23,6 +24,7 @@ begin
   DefGlobalVar('newtAppSymbol, nil);
   DefGlobalVar('newtAppLabel, nil);
   DefGlobalVar('newtAppIcon, nil);
+  DefGlobalVar('newtAppHighlightedIcon, nil);
   DefGlobalVar('newtAppVersion, 1);
   DefGlobalVar('newtAppCopyright, "");
   DefGlobalVar('newt, {
@@ -84,8 +86,16 @@ begin
     call buildError with ("newtAppLabel must be a string, e.g. newtAppLabel := \"Hello\";");
   if not IsInteger(newtAppVersion) or newtAppVersion < 0 then
     call buildError with ("newtAppVersion must be an integer, 0 or more");
-  if newtAppIcon and not (IsFrame(newtAppIcon) and (newtAppIcon.bits or newtAppIcon.colorData)) then
-    call buildError with ("newtAppIcon must be an icon frame ({bits, mask, bounds}) or nil");
+  local isIcon := func(icon) IsFrame(icon) and IsBinary(icon.bits) and IsFrame(icon.bounds);
+  if newtAppIcon and not call isIcon with (newtAppIcon) then
+    call buildError with ("newtAppIcon must be an icon, e.g. newtAppIcon := MakeIconFromPNG(\"icon.png\");");
+  if newtAppHighlightedIcon and not call isIcon with (newtAppHighlightedIcon) then
+    call buildError with ("newtAppHighlightedIcon must be an icon, e.g. MakeIconFromPNG(\"highlighted.png\")");
+  if newtAppHighlightedIcon and not newtAppIcon then
+    call buildError with ("newtAppHighlightedIcon needs newtAppIcon (the icon when not highlighted)");
+  if newtAppHighlightedIcon and (newtAppIcon.bounds.right - newtAppIcon.bounds.left <> newtAppHighlightedIcon.bounds.right - newtAppHighlightedIcon.bounds.left
+                             or newtAppIcon.bounds.bottom - newtAppIcon.bounds.top <> newtAppHighlightedIcon.bounds.bottom - newtAppHighlightedIcon.bounds.top) then
+    call buildError with ("newtAppIcon and newtAppHighlightedIcon must have the same size");
   if not IsFrame(newt) or not IsFrame(newt.theForm) then
     call buildError with ("newt.theForm must be the app's base view template (a frame)");
   if not StrPos(newtAppName, ":", 0) then
@@ -98,7 +108,7 @@ begin
     theForm.appSymbol := symbol;
   local data := {app: symbol, text: label, theForm: theForm};
   if newtAppIcon then
-    data.icon := newtAppIcon;
+    |newt:Icons|(data, newtAppIcon, newtAppHighlightedIcon);
   if newt.InstallScript then
     data.InstallScript := newt.InstallScript;
   if newt.RemoveScript then
@@ -113,4 +123,37 @@ begin
     info: "newtc",
     part: [{type: "form", flags: {type: 'nos, Notify: true}, info: "newtc -build", data: data}]
   };
+end);
+
+// The app's icons in the form part, as NTK's MakeExtrasIcons makes them:
+// icon, black and white for every Newton ({bits, mask, bounds}); iconPro,
+// for NewtonOS 2.1's Extras, when there are grays or a highlighted version
+// ({unhilited, hilited}: Apple's slot names, the Newton reads them; each
+// {bounds, bits, mask, colorData: 4-bit and
+// 1-bit}). With a highlighted version, icon's mask is the XOR of the two
+// black and white images, as NTK's (Extras 2.0 inverts what it covers).
+DefGlobalFn('|newt:Icons|, func(data, icon, highlighted)
+begin
+  local family := func(i)
+  begin
+    local f := {bounds: i.bounds, bits: i.bits};
+    if i.mask then f.mask := i.mask;
+    local depths := [];
+    if i.colorData then
+      foreach entry in i.colorData do AddArraySlot(depths, entry);
+    AddArraySlot(depths, {cbits: i.bits, bitDepth: 1});
+    f.colorData := depths;
+    f;
+  end;
+  data.icon := {bits: icon.bits, bounds: icon.bounds};
+  if highlighted then
+    data.icon.mask := XORPixels(highlighted.bits, icon.bits, 'mask)
+  else if icon.mask then
+    data.icon.mask := icon.mask;
+  if icon.colorData or highlighted then
+  begin
+    data.iconPro := {unhilited: call family with (icon)};
+    if highlighted then
+      data.iconPro.hilited := call family with (highlighted);
+  end;
 end);

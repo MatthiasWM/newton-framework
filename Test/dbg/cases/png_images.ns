@@ -1,0 +1,31 @@
+// Bitmaps and icons from PNG files (plan 4.6, Matt/PNG.cc; stb_image, also
+// without FLTK). png_data/ramp.png: 8x2 grays (white to black, then back),
+// no alpha; alpha.png: 4x4, a black square on transparent, one pixel
+// half transparent. 1 bit: black is 1; 4 bit (colorData, 16 grays): 0
+// white, 15 black; mask 1: part of the image. Rows padded to 32 bits.
+begin
+  local b := MakeBitmapFromPNG("png_data/ramp.png");
+  Print([b.bounds, HasSlot(b, 'mask), HasSlot(b, 'colorData)]);
+  Print(b.bits);
+  b := MakeBitmapFromPNG({file: "png_data/ramp.png", depth: 4});
+  Print(b.colorData);
+  Print(MakeBitmapFromPNG({file: "png_data/ramp.png", threshold: 200}).bits);
+  Print(MakeBitmapFromPNG({file: "png_data/ramp.png", dither: true}).bits);
+  b := MakeBitmapFromPNG("png_data/alpha.png");
+  Print([b.bits, b.mask]);
+  Print(MakeBitmapFromPNG({file: "png_data/alpha.png", alphaThreshold: 50}).mask);
+  Print(HasSlot(MakeBitmapFromPNG({file: "png_data/alpha.png", mask: 'none}), 'mask));
+  // NTK's mask choices. calculate.png (no alpha): row 0 black at 2 and 5,
+  // row 1 white, row 2 black at 0 and 7. Calculate Mask: outside from either
+  // edge until the first black pixel (an icon's default without alpha);
+  // Use Picture: the alpha, all of it without one
+  Print(MakeIconFromPNG("png_data/calculate.png").mask);
+  Print(MakeBitmapFromPNG({file: "png_data/calculate.png", mask: 'calculate}).mask);
+  Print(MakeBitmapFromPNG({file: "png_data/calculate.png", mask: 'picture}).mask);
+  Print(MakeIconFromPNG({file: "png_data/alpha.png", mask: 'calculate}).mask);
+  Print(HasSlot(MakeIconFromPNG({file: "png_data/alpha.png", mask: 'none}), 'mask));
+  Print(try MakeIconFromPNG({file: "png_data/alpha.png", mask: true}) onexception |evt.ex| do CurrentException().data.value);
+  Print(try MakeBitmapFromPNG("png_images.ns") onexception |evt.ex| do CurrentException().data);
+  Print(try MakeBitmapFromPNG({file: "png_data/ramp.png", depth: 2}) onexception |evt.ex| do CurrentException().data);
+end;
+MakeIconFromPNG("png_data/nothere.png");

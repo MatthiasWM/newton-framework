@@ -807,7 +807,7 @@ To decide with Matt (before the step that needs it):
 - D2 (for 4.8) ReadStreamFile stays NTK's (it only returns the object);
   installing Apple's platform is UsePlatform(path) (= -platform). Or
   ReadStreamFile of a platform file installs it too (not NTK).
-- D3 PNG decoding: stb_image (one public-domain header, every build) or
+- D3 (decided 2026-10-14: stb_image; newtc variants without FLTK must read PNGs too) PNG decoding: stb_image (one public-domain header, every build) or
   FLTK's Fl_PNG_Image (only builds with FLTK).
 - D4 (decided 2026-10-14: -build) Where the package comes from: `newtc -build app.ns -opkg app.pkg`
   (defaults, the script, then the package assembled from newtApp*/newt), or
@@ -916,13 +916,37 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       names. Tests: cases build_app (defaults, constants as literals),
       build_app_missing. Not yet: a DAP launch of a -build app (VSNewt can
       build first: 4.7).
-- [ ] 4.6 Images from PNG files (D3): MakeBitmapFromPNG(path, options),
-      MakeIconFromPNG(path, options): 1 bit (threshold or dithered), 4 bit
-      gray (16 grays, NOS 2's colorData {cbits, bitDepth}), with and without
-      alpha (alpha -> mask); B&W icons (bits + mask, for every Newton) and
-      gray icons (colorData too, for 2.x); sizes checked. The bitmap format
-      from newtc's readers (Host/Shapes.cc, BookWriter) and hello2's icon.
-      Test: PNG -> bitmap -> newtc draws it -> compare; on Einstein.
+- [x] 4.6 Images and icons from PNG files (2026-10-14; D3 stb_image).
+      `Matt/PNG.cc` with stb_image v2.30 (`Matt/ThirdParty/stb_image.h`,
+      public domain or MIT; every build, also without FLTK).
+      MakeBitmapFromPNG(file), MakeIconFromPNG(file): file is a path (found
+      as Load finds files) or {file: path, depth: 1 or 4, dither, threshold,
+      mask, alphaThreshold}; one argument, as NewtonScript has
+      no optional ones (Matt's example: MakeIconFromPNG("test_icon.png")).
+      Result {bounds, bits, mask, colorData}: bits 1 bit (black 1; gray
+      below the threshold, 128, or Floyd-Steinberg dithered); depth 4 adds
+      colorData [{cbits, bitDepth: 4}], 16 grays (0 white, 15 black; Matt:
+      no Newton has color, 16 grays at most); mask (1 = part of the image),
+      NTK's choices (Matt): 'none (No Mask), 'picture (Use Picture: the
+      PNG's alpha, all of the image without one), 'calculate (Calculate
+      Mask: in each row outside from the left and from the right edge until
+      the first black pixel; Matt's reading of NTK, not checked); default
+      'picture with transparency, else a bitmap none and an icon
+      'calculate; transparent pixels white; gray = luminance over white. The
+      binaries as NTK's: 16-byte header (rowBytes at 4, bounds at 8), rows
+      padded to 32 bits (checked against Toolkit.pkg, Bobby.pkg). Errors with
+      file and line: newtc's codes -1000001 "Can't read the file", -1000002
+      "Wrong argument" (ErrorString.cc; Apple's range for non-Apple errors).
+      -build: newtAppIcon (and the new newtAppHighlightedIcon, the
+      highlighted version; Matt: "highlighted", not "hilited", in newtc's
+      names) go into the form part as NTK's MakeExtrasIcons makes them:
+      icon {bits, mask, bounds} black and white for every Newton (with a
+      highlighted version its mask is the XOR of the two, NTK's formula),
+      iconPro {unhilited, hilited} (Apple's slot names) with colorData
+      [4-bit, 1-bit] when there are grays or a highlighted version. Tests: cases png_images (fixtures
+      png_data/*.png, made by a few lines of Python), build_app_icons.
+      To check on Einstein (Matt): an app built with a 4-bit icon and a
+      highlighted one; Extras on 2.1 (iconPro) and the B&W icon's XOR mask.
 - [ ] 4.7 VSNewt (Matt's repo): "New Newton App" (app.ns with the newtApp
       setup, icon.png, launch.json); later completions and hover help (the
       names from 4.3).

@@ -276,5 +276,7 @@ const std::map<int, std::string> error_LUT =
   { kNSErrNilContext, "Tried to access slot in NIL context" },
   { kNSErrBadCharForString, "The operation would make the (rich) string invalid" },
   { -43, "File not found" },    // not in ROM: newtc's Load (the Mac's fnfErr)
+  { -1000001, "Can't read the file" },   // newtc (ERRBASE_PRODUCTSPECIFIC): e.g. MakeBitmapFromPNG
+  { -1000002, "Wrong argument" },        // newtc: e.g. MakeBitmapFromPNG's options
 };
 

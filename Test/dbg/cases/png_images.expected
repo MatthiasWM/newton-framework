@@ -1,0 +1,22 @@
+[{left: 0, top: 0, right: 8, bottom: 2}, 
+ nil, 
+ nil]
+MakeBinaryFromHex("00000000000400000000000000020008F00000000F000000", 'bits)
+[{cBits: MakeBinaryFromHex("00000000000400000000000000020008FDB9642002469BDF", 'cBits), bitDepth: 4}]
+MakeBinaryFromHex("00000000000400000000000000020008FC0000003F000000", 'bits)
+MakeBinaryFromHex("00000000000400000000000000020008E800000017000000", 'bits)
+[MakeBinaryFromHex("0000000000040000000000000004000400000000600000004000000000000000", 'bits), MakeBinaryFromHex("0000000000040000000000000004000400000000600000004000000000000000", 'mask)]
+MakeBinaryFromHex("0000000000040000000000000004000400000000600000006000000000000000", 'mask)
+nil
+MakeBinaryFromHex("000000000004000000000000000300083C00000000000000FF000000", 'mask)
+MakeBinaryFromHex("000000000004000000000000000300083C00000000000000FF000000", 'mask)
+MakeBinaryFromHex("00000000000400000000000000030008FF000000FF000000FF000000", 'mask)
+MakeBinaryFromHex("0000000000040000000000000004000400000000600000004000000000000000", 'mask)
+nil
+"MakeIconFromPNG: mask must be 'none, 'picture or 'calculate (NTK's No Mask, Use Picture, Calculate Mask)"
+{errorCode: -1000001, value: "$DIR/png_images.ns (Image not of any known type, or corrupt)"}
+{errorCode: -1000002, value: "MakeBitmapFromPNG: depth must be 1 or 4 (Newtons show at most 16 grays)"}
+    File "png_images.ns"; Line 31 !!! Exception: -43, File not found: png_data/nothere.png (looked in $DIR)
+newtc: ERROR: -script: "png_images.ns" stopped at the error above.
+
+--- exit code 255 ---
