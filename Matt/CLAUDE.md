@@ -841,18 +841,28 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       now nil or true. Reads Apple's "Newton 2.1" (2,056 constants) in about
       0.1 s. Test: case read_stream_file (read_stream_file_data/sample.nsof,
       made with newtc -onsof).
-- [ ] 4.3 newtc's built-in 2.1 platform. A source in the repo (e.g.
-      `Platform/Newton21.ns`): one readable line per constant
-      (`protoFloatNGo: @180`, `vjParentCenterH: 16`, ...), embedded in
-      newtc and loaded at startup as global compile-time constants (always
-      defined, as in NTK). Generated once by a script from the ROM's magic
-      pointer names and newtc's headers (view flags, justification, fonts,
-      ...), then maintained by hand. The few build-time functions of
-      platformFunctions that matter (PackRGB, ButtonBounds, fxColumns, ...)
-      rewritten in NewtonScript. No Apple data in it: Apple's file is only
-      compared against once (which names are missing, which values differ),
-      by a script in the scratchpad, never in the repo. VSNewt can get the
-      names for completions from newtc (e.g. `newtc -list-constants`).
+- [ ] 4.3 newtc's built-in 2.1 platform.
+  - [x] 4.3a The constants (2026-10-14). `Matt/Platform/Newton21.ns`, one
+        line each (`constant protoFloatNGo := @180;`): 831 magic pointers by
+        number, 1,103 numbers, strings, characters, symbols by name (inf,
+        -inf, nan through DefineGlobalConstant: no literal for them), and a
+        comment listing the 122 constants NTK's file has as objects (protos,
+        functions, bitmaps; not here). Names from NTK's "Newton 2.1" (Matt,
+        2026-10-14: a text list of API names and simple values is fine,
+        never the file itself), made by `Matt/tools/make_platform.py
+        <platform file>` (newtc -nsof -print, the platformConstants frame),
+        the magic pointers checked against the ROM's own names (RSData.s;
+        10 have none there); edited by hand from now on. Embedded
+        (gPlatformScript) and run at the end of init(): always defined, as
+        in NTK. Found on the way: B45 (negative real constants), B46 (the
+        compiler leaked 9 RefHandles per function: 2,000 statements took
+        3.8 s, newtc's start went from 0.5 to 1.0 s with the platform; now
+        0.08 s with it). Test: case platform_constants.
+  - [ ] 4.3b The platform's 32 build-time functions (platformFunctions:
+        vfShadow(x), fxColumns, PackRGB, ButtonBounds, DefineUnit, ...;
+        NTK's "constant functions", evaluated while compiling) and
+        platformWeakFunctions (DefConst, XORPixels, MakeExtrasIcons): written
+        in NewtonScript, in Newton21.ns or Build.ns (4.4).
 - [ ] 4.4 NTK's build functions on the desktop (an embedded Build.ns):
       AddStepForm(parent, child) (child to parent.stepChildren),
       StepDeclare(parent, child, 'sym) (parent.stepAllocateContext, so the
@@ -906,6 +916,24 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B46 The compiler leaked every function's CFunctionState (found
+  2026-10-14: 2,000 top-level statements took 3.8 s in the debug build).
+  Its RefStructs held 9 RefHandles, never given back; every 32 more grow
+  the handle table, and each growth is a full GC over all of them, so the
+  time per statement grew with the number compiled so far. The original
+  deletes the state in endFunction; newtc's didn't (since the first
+  commit), likely because the destructor deletes fNext, which is the
+  enclosing state, still in use. Fixed (Frames/Compiler/Compiler.cc):
+  fNext cleared, then deleted. Handles in use stay at 28 instead of +9 per
+  statement; newtc starts in 0.08 s with the platform (1.0 s before).
+  NSDebugTools.ns's local `breakPoints` is now `breakpoints`: with the leak
+  gone, the symbol 'breakpoints was collected and NSDT's spelling won,
+  and DAP answered with "breakPoints" (symbols keep the first spelling).
+- [x] B45 `constant k := -0.5` gave garbage (found 2026-10-14 with the
+  platform's kNegativeZero): evaluateConstantExpr negated with
+  `MAKEINT(0) - value`, which works only for an integer's Ref; a real's
+  Ref is a pointer. Now an integer or a real is negated by value. Test:
+  case constant_negative_real.
 - [x] B44 Magic pointers @42, @273, @274 weren't objects in newtc
   (found 2026-10-14 while walking "Newton 2.1"'s platformConstants:
   ROM_capslockLight is @42). In the ROM these three entries are bare

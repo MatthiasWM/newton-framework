@@ -802,8 +802,8 @@ DefineGlobalConstant('kNSDTools, {
   // Replace the breakpoint frame and return the previous one. Passing nil
   // and then the result back is how the tools read the current frame:
   // {programCounter: [breakpoint, ...]}, or nil if there are none.
-  InstallBreakPoints: func(breakPoints)
-    NSDInstallBreakPoints(breakPoints),
+  InstallBreakPoints: func(breakpoints)
+    NSDInstallBreakPoints(breakpoints),
 
   // The newest NewtonScript function on the stack at frame `frame` or older
   // (native functions are skipped): {function:, programCounter:}, or nil.
@@ -828,16 +828,16 @@ DefineGlobalConstant('kNSDTools, {
     begin
       if IsInstance(pc, 'int) then
       begin
-        local breakPoints := self:InstallBreakPoints(nil);
-        self:InstallBreakPoints(breakPoints);
+        local breakpoints := self:InstallBreakPoints(nil);
+        self:InstallBreakPoints(breakpoints);
         local breakPoint := {instructions: fn.instructions, programCounter: pc,
                              temporary: true};
-        if breakPoints then
+        if breakpoints then
         begin
-          if breakPoints.programCounter then
-            AddArraySlot(breakPoints.programCounter, breakPoint)
+          if breakpoints.programCounter then
+            AddArraySlot(breakpoints.programCounter, breakPoint)
           else
-            breakPoints.programCounter := [breakPoint];
+            breakpoints.programCounter := [breakPoint];
         end
         else
           self:InstallBreakPoints({programCounter: [breakPoint]});
@@ -1201,23 +1201,23 @@ DefineGlobalConstant('kNSDTools, {
       begin
         if IsInstance(pc, 'int) then
         begin
-          local breakPoints := self:InstallBreakPoints(nil);
-          self:InstallBreakPoints(breakPoints);
+          local breakpoints := self:InstallBreakPoints(nil);
+          self:InstallBreakPoints(breakpoints);
           breakPoint := {instructions: fn.instructions, programCounter: pc};
-          if breakPoints then
+          if breakpoints then
           begin
-            if breakPoints.programCounter then
+            if breakpoints.programCounter then
             begin
               local samePlace := func(new, old)
                 HasPath(old, 'instructions) and new.instructions = old.instructions
                 and HasPath(old, 'programCounter) and new.programCounter = old.programCounter
                 and not old.temporary;
-              if ArrayPos(breakPoints.programCounter, breakPoint, 0, samePlace) then
+              if ArrayPos(breakpoints.programCounter, breakPoint, 0, samePlace) then
                 Write("WARNING: Breakpoint already exists!\n");
-              AddArraySlot(breakPoints.programCounter, breakPoint);
+              AddArraySlot(breakpoints.programCounter, breakPoint);
             end
             else
-              breakPoints.programCounter := [breakPoint];
+              breakpoints.programCounter := [breakPoint];
           end
           else
             self:InstallBreakPoints({programCounter: [breakPoint]});
@@ -1242,10 +1242,10 @@ DefineGlobalConstant('kNSDTools, {
     func(breakPoint)
     begin
       local oldTrace := call kNSDSetTrace with (nil);
-      local breakPoints := self:InstallBreakPoints(nil);
-      self:InstallBreakPoints(breakPoints);
-      if not (breakPoints and breakPoints.programCounter
-              and SetRemove(breakPoints.programCounter, breakPoint)) then
+      local breakpoints := self:InstallBreakPoints(nil);
+      self:InstallBreakPoints(breakpoints);
+      if not (breakpoints and breakpoints.programCounter
+              and SetRemove(breakpoints.programCounter, breakPoint)) then
         Print("No such breakpoint exists");
       call kNSDSetTrace with (oldTrace);
       return nil;
@@ -1266,10 +1266,10 @@ DefineGlobalConstant('kNSDTools, {
     func()
     begin
       local oldTrace := call kNSDSetTrace with (nil);
-      local breakPoints := self:InstallBreakPoints(nil);
-      self:InstallBreakPoints(breakPoints);
+      local breakpoints := self:InstallBreakPoints(nil);
+      self:InstallBreakPoints(breakpoints);
       call kNSDSetTrace with (oldTrace);
-      return breakPoints;
+      return breakpoints;
     end,
 
   // EnableBreakPoint(breakPoint, enableMode): enable the breakpoint if

@@ -1,0 +1,7 @@
+[@180, @157, @218, @51]
+[16, 0, 576, @88, 10242, $\n]
+["suba", 'InAndOut, inf, -0.00000, true]
+{_proto: @180, 
+ viewJustify: vjLeftH+vjTopV+vjParentCenterH+vjParentTopV, 
+ viewBounds: {left: 0, top: 30, right: 180, bottom: 220}}
+[true, nil]

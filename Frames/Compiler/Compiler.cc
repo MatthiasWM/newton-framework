@@ -1643,6 +1643,12 @@ CCompiler::endFunction(void)
 	CFunctionState * theFunc = func;
 	RefVar	codeblock(theFunc->makeCodeBlock());
 	func = theFunc->context();
+	// as the original: the finished state goes (B46: it stayed, and its
+	// RefStructs kept 9 RefHandles per function compiled; every 32 more
+	// grow the handle table with a full GC). Not in the original: its fNext
+	// is the enclosing state, still in use, which its destructor deletes.
+	theFunc->setNext(NULL);
+	delete theFunc;
 	return codeblock;
 }
 
@@ -3059,7 +3065,17 @@ CCompiler::evaluateConstantExpr(RefArg inGraph)
 	else if (tokenType == TOKENsymbol)
 		result = func->getConstantValue(tokenValue, NULL);
 	else if (tokenType == TOKENuMinus)
-		result = MAKEINT(0) - evaluateConstantExpr(tokenValue);
+	{
+		// not in ROM (B45): MAKEINT(0) - value negates only an integer's Ref;
+		// a real's Ref is a pointer (constant k := -0.5 was garbage)
+		RefVar value(evaluateConstantExpr(tokenValue));
+		if (ISINT(value))
+			result = MAKEINT(-RINT(value));
+		else if (IsReal(value))
+			result = MakeReal(-CDouble(value));
+		else
+			ThrowBadTypeWithFrameData(kNSErrNotANumber, value);
+	}
 	else
 		result = NILREF;
 

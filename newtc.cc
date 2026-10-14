@@ -185,6 +185,8 @@ static void installNSDebugToolsNatives()
 /**
  \brief Initialize the newtc tool and the NewtonScript toolkit.
  */
+extern const EmbeddedScript gPlatformScript;       // Matt/Platform/Newton21.ns
+
 bool init()
 {
   std::setlocale(LC_ALL, "C");
@@ -275,6 +277,11 @@ bool init()
   defGlobalCFunction("TestPixel", (void*)FTestPixel, 3);
   defGlobalCFunction("TestSnapshot", (void*)FTestSnapshot, 2);
 #endif
+
+  // the NewtonOS 2.1 platform's constants (protoFloatNGo, vjParentCenterH,
+  // ...), as NTK has them from its platform file (plan 4.3)
+  if (!RunEmbeddedScript(gPlatformScript))
+    return false;
 
   return true;
 }

@@ -1,0 +1,9 @@
+// The built-in NewtonOS 2.1 platform (plan 4.3, Matt/Platform/Newton21.ns):
+// NTK's constants without NTK's file: magic pointers, flags, characters,
+// strings, symbols, the values without a literal (inf, nan).
+Print([protoFloatNGo, protoApp, protoStaticText, ROM_click]);
+Print([vjParentCenterH, vjParentTopV, vClickable + vFloating, ROM_fontSystem10Bold, simpleFont10, kReturnKey]);
+Print([kSubArrayOption, kDataExchange, kInfinity, kNegativeZero, kPropagateUp]);
+Print({_proto: protoFloatNGo, viewJustify: vjParentCenterH + vjParentTopV,
+       viewBounds: {left: 0, top: 30, right: 180, bottom: 220}});
+Print([IsGlobalConstant('protoFloatNGo), IsGlobalConstant('protoMailTransport)]);

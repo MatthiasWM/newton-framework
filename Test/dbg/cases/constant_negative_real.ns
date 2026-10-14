@@ -1,0 +1,8 @@
+// B45: a constant initialized with a negative real (constant k := -0.5)
+// was garbage (the compiler negated the real's Ref as if it were an integer).
+constant kHalf := -0.5;
+constant kInt := -7;
+begin
+  constant kLocal := -2.5;
+  Print([kHalf, kInt, kLocal, -kHalf]);
+end;
