@@ -65,10 +65,12 @@ private:
   std::vector<uint8_t> mJunk;
 };
 
-/** NSOF in memory. inWithProtos: write _proto slots, as the desktop sends
-    code to a Newton (a literal template keeps its proto); without them as
-    the Newton writes what it sends to the desktop (the ROM's). */
-std::vector<uint8_t> NTKFlatten(RefArg inObject, bool inWithProtos = false);
+/** NSOF in memory. inAsDesktop: as the desktop sends code to a Newton,
+    with _proto slots (a literal template keeps its proto) and integers a
+    Newton can't hold refused; else as a Newton (-ntk-device) writes what it
+    sends to the desktop: without _proto slots (the ROM's), integers to 30
+    bits (B51: newtc's 64-bit addresses, e.g. viewCObject). */
+std::vector<uint8_t> NTKFlatten(RefArg inObject, bool inAsDesktop = false);
 Ref NTKUnflatten(const uint8_t *inData, size_t inSize);
 
 class NTKInspector

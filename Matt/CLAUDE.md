@@ -1007,6 +1007,22 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B51 On newtc's fake Newton (-ntk-device), a stop in an app's script
+  while the app opens ended a moment later: the app closed ("Goodbye"),
+  continue said "isn't stopped", and the Debug Console "The Newton is
+  running the program" (found by VSNewt, 2026-10-14). VS Code asks for the
+  stack, scopes, and variables after a stop; the agent's description of
+  self (the view) held viewCObject, newtc's 64-bit address of the view, and
+  writing the reply threw "doesn't fit a Newton" (B14's check) outside the
+  'code' handler's try: the exception unwound the break loop and Open(), the
+  app closed, and the call that opened it never answered (DAPRemote busy
+  for good). StackTrace() on the fake Newton ('fstk') died the same way.
+  Fixed: newtc as a Newton writes integers that don't fit as their low 30
+  bits (CObjectWriter setWrapIntegers; NTKFlatten(object, asDesktop); the
+  desktop side still refuses them), and the 'code' reply is written inside
+  the try. A real Newton's addresses fit: not an Einstein problem. Test:
+  Test/ntk/test_dap_app_stop.py (fails without the fix: the app closes,
+  continue fails, a timeout).
 - [x] B50 A literal template in code newtc sends to a Newton (remote runs,
   evaluate, the agent's calls) lost its `_proto`: `'{_proto: @180, a: 1}` or
   a constant's frame (DefConst, an NTK platform's object constants) arrived

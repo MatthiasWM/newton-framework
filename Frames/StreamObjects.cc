@@ -947,6 +947,7 @@ CObjectWriter::CObjectWriter(RefArg inObj, CPipe & inPipe, bool inFollowProtos)
 	fObjSize = 0;
 	fFollowProtos = inFollowProtos;
 	fCompressLB = false;
+	fWrapIntegers = false;
 	if (gPrecedentsForWritingUsed)
 	{
 		if ((fPrecedents = new CPrecedentsForWriting) == NULL)
@@ -1092,7 +1093,33 @@ CObjectWriter::prescan(void)
 		fObjSize = 1 + ((RIMMEDVALUE(fObj) < 256) ? sizeof(char) : sizeof(UniChar));
 
 	else							// immediate
-		fObjSize = 1 + longToSize(fObj);
+		fObjSize = 1 + longToSize(wrapInteger(fObj));
+}
+
+
+/*------------------------------------------------------------------------------
+	Not in ROM (B51): newtc as a Newton (-ntk-device) writes integers that
+	don't fit a Newton's 30 bits (a view's viewCObject: a 64-bit address) as
+	their low 30 bits, as a Newton has them: an opaque number for the desktop.
+	Else they are refused (CheckNewtonInteger), as for packages.
+------------------------------------------------------------------------------*/
+
+void
+CObjectWriter::setWrapIntegers(void)
+{
+	fWrapIntegers = true;
+}
+
+Ref
+CObjectWriter::wrapInteger(Ref inRef) const
+{
+	if (fWrapIntegers && ISINT(inRef))
+	{
+		long value = RVALUE(inRef);
+		long low = (long)((unsigned long)value << (sizeof(long) * 8 - 30)) >> (sizeof(long) * 8 - 30);
+		return MAKEINT(low);
+	}
+	return inRef;
 }
 
 
@@ -1290,9 +1317,10 @@ CObjectWriter::scan(void)
 
 	else								// immediate
 	{
-		CheckNewtonInteger(fObj);
+		Ref value = wrapInteger(fObj);
+		CheckNewtonInteger(value);
 		fPipe << (unsigned char) kNSImmediate;
-		longToPipe(fObj);
+		longToPipe(value);
 	}
 }
 

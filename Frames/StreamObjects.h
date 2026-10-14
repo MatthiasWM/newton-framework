@@ -93,6 +93,7 @@ public:
 					~CObjectWriter();
 
 	void			setCompressLargeBinaries(void);
+	void			setWrapIntegers(void);	// newtc: see wrapInteger
 	ArrayIndex	size(void);
 	void			write(void);
 
@@ -105,6 +106,7 @@ private:
 	void			scan(RefArg inObj);
 	void			writeLargeBinary(void);
 	void			longToPipe(int inValue);
+	Ref			wrapInteger(Ref inRef) const;
 
 	CPrecedentsForWriting *	fPrecedents;	// +00
 	RefStack		fStack;				// +04
@@ -113,6 +115,7 @@ private:
 	ArrayIndex	fObjSize;			// +1C
 	bool			fFollowProtos;		// +20
 	bool			fCompressLB;		// +24
+	bool			fWrapIntegers;		// newtc
 };
 
 inline ArrayIndex	CObjectWriter::longToSize(long inValue) const

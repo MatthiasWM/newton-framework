@@ -176,7 +176,7 @@ void Nub::doCommand(const NTKPacket &inPacket)
     }
     RefVar block;
     RefVar result;
-    bool ok = true;
+    volatile bool ok = true;    // volatile: changed in newton_catch (longjmp)
     newton_try
     {
       block = NTKUnflatten(d.data() + 4, d.size() - 4);
@@ -191,10 +191,14 @@ void Nub::doCommand(const NTKPacket &inPacket)
       return;
     }
     sendResult(0);
+    std::vector<uint8_t> nsof;
     newton_try
     {
       RefVar context(gREPContext);
       result = InterpretBlock(block, context);
+      // the reply inside the try (B51): an exception here unwound a break
+      // loop the call ran in (the stopped program went on)
+      nsof = NTKFlatten(result);
     }
     newton_catch_all
     {
@@ -205,7 +209,6 @@ void Nub::doCommand(const NTKPacket &inPacket)
       shutdown("an exception in a 'code' block ends the connection (as on a Newton)");
       return;
     }
-    std::vector<uint8_t> nsof = NTKFlatten(result);
     std::vector<uint8_t> data = U32((uint32_t)nsof.size());
     data.insert(data.end(), nsof.begin(), nsof.end());
     send(NTKCommand("code"), data, (long)inPacket.length);
