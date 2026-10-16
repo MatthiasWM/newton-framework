@@ -1260,7 +1260,7 @@ CObjectHeap::expandObjectTable(RefHandle * inRefHandle)
 	GC();
 	// if size hasn't changed then there wasn't enough memory
 	if ((refHBlock->size - originalSize) / sizeof(RefHandle) == 0) {
-		refHIndex = - (long)(&refHBlock->data[0]) / sizeof(RefHandle);	// sic -- but pointless since we WILL crash hard
+		refHIndex = - (intptr_t)(&refHBlock->data[0]) / sizeof(RefHandle);	// sic -- but pointless since we WILL crash hard
 		OutOfMemory();
 	}
 	if (gGC.verbose) {
@@ -2698,7 +2698,7 @@ if (objSize > 32000)
 	fprintf(f, "binaries %lu(%u), symbols %lu\n",
 					binarySize, binaryCount, symbolSize);
 
-	heapSize = (long) heapLimit - (long) heapBase;
+	heapSize = (intptr_t) heapLimit - (intptr_t) heapBase;
 	if (heapSize != totalSize)
 		fprintf(f, "*** total size should be %lu\n", heapSize);
 

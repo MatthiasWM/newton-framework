@@ -11,6 +11,8 @@
 #ifndef __MACTYPES__
 #define __MACTYPES__
 
+#include "NewtonArch.h"
+
 #if PRAGMA_ONCE
 #pragma once
 #endif
@@ -82,7 +84,7 @@ typedef signed char                     SInt8;
 typedef unsigned short                  UInt16;
 typedef signed short                    SInt16;
 
-#if __LP64__
+#if NEWT_64BIT
 typedef unsigned int                    UInt32;
 typedef signed int                      SInt32;
 #else

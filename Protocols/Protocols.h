@@ -255,7 +255,7 @@ public:
 	**
 	**	This structure is relocatable.  Please keep it that way.
 	*/
-#if __LP64__
+#if NEWT_64BIT
 	int32_t			fReserved1;					// (reserved for future use, zero for now)
   const char *fName = nullptr;
 //	int32_t			fNameDelta;					// SRO (Self-Relative-Offset) to asciz implementation name
@@ -312,7 +312,7 @@ enum
 	intel assembler glue.
 ------------------------------------------------------------------------------- */
 
-#if __LP64__
+#if NEWT_64BIT
 #define CLASSINFO_BEGIN " leaq 0f(%rip), %rax\n leave\n ret\n .align 2\n0:"
 #define CLASSINFO_END "5: \n6: movl 0, %eax\n ret\n"
 #else

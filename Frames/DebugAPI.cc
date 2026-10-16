@@ -17,6 +17,8 @@
 #include "Opcodes.h"
 #include "ROMResources.h"
 
+#include <cinttypes>
+
 
 /* -----------------------------------------------------------------------------
 	D a t a
@@ -136,7 +138,7 @@ Ref
 FNSDRefToHexString(RefArg rcvr, RefArg inObj)
 {
 	char str[32];
-	snprintf(str, sizeof(str), "#%lX", (unsigned long)inObj.h->ref);
+	snprintf(str, sizeof(str), "#%" PRIXPTR, (uintptr_t)inObj.h->ref);
 	return MakeStringFromCString(str);
 }
 

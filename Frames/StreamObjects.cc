@@ -204,7 +204,7 @@ static const unsigned kRefTopBit = sizeof(Ref) * 8 - 1;
 
 static inline bool RefBit(Ref inRef, unsigned inBit)
 {
-	return (((unsigned long)inRef >> inBit) & 1) != 0;
+	return (((uintptr_t)inRef >> inBit) & 1) != 0;
 }
 
 
@@ -296,7 +296,7 @@ CPrecedentsForWriting::generateLinks(ArrayIndex index)
 	ArrayIndex	r1 = search(sp00);
 	Ref		r8 = sp00;
 	// the highest bit in which it differs from the Ref the search found
-	unsigned long	diff = (unsigned long)(get(r1)->ref ^ r8);
+	uintptr_t	diff = (uintptr_t)(get(r1)->ref ^ r8);
 	int		r7 = kRefTopBit;
 	for ( ; diff != 0 && ((diff >> kRefTopBit) & 1) == 0; diff <<= 1)
 		r7--;
@@ -1115,8 +1115,8 @@ CObjectWriter::wrapInteger(Ref inRef) const
 {
 	if (fWrapIntegers && ISINT(inRef))
 	{
-		long value = RVALUE(inRef);
-		long low = (long)((unsigned long)value << (sizeof(long) * 8 - 30)) >> (sizeof(long) * 8 - 30);
+		intptr_t value = RVALUE(inRef);
+		intptr_t low = (intptr_t)((uintptr_t)value << (sizeof(Ref) * 8 - 30)) >> (sizeof(Ref) * 8 - 30);
 		return MAKEINT(low);
 	}
 	return inRef;
@@ -1333,7 +1333,7 @@ CheckNewtonInteger(Ref inRef)
 	{
 		static char message[160];		// ThrowMsg keeps the pointer
 		snprintf(message, sizeof(message),
-			"The integer %ld doesn't fit a Newton (30 bits: -536870912 to 536870911)", (long)RVALUE(inRef));
+			"The integer %lld doesn't fit a Newton (30 bits: -536870912 to 536870911)", (long long)RVALUE(inRef));
 		ThrowMsg(message);
 	}
 }

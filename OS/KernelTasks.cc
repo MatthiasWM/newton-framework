@@ -91,7 +91,7 @@ InitializeExceptionGlobals(ExceptionGlobals * inGlobals)
 void
 TaskKillSelf(void)
 {
-#if __LP64__
+#if NEWT_64BIT
 //	we RETURN into this function so we need to adjust the stack
 //	we will never return from this anyway
 __asm__ (
@@ -441,7 +441,7 @@ CTask::init(TaskProcPtr inProc, size_t inStackSize, ObjectId inTaskId, ObjectId 
 		stackSize = LONGALIGN(inStackSize);
 		taskDataSize = sizeof(TaskGlobals) + LONGALIGN(dataSize);
 #if !defined(correct)
-#if __LP64__
+#if NEWT_64BIT
 		stackSize *= 2;
 #endif
 		stackSize += sizeof(long)*16*KByte;	// add stack buffer since we don't grow the stack automatically; idle task has zero stack size!

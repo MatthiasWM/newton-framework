@@ -43,7 +43,7 @@ struct ObjHeader
 
 #pragma pack(pop)
 
-#if __LP64__
+#if NEWT_64BIT
 static_assert(sizeof(ObjHeader) == 2*8);
 #else
 static_assert(sizeof(ObjHeader) == 2*4);

@@ -8,7 +8,8 @@
 		.data
 		.align	8
 
-#if __LP64__
+#include "../../NewtonArch.h"
+#if NEWT_64BIT
 /* Refs are 64-bit */
 #define Ref .quad
 #else

@@ -17,6 +17,7 @@
 #include "ROMResources.h"
 
 #include <string>
+#include <cinttypes>
 
 extern "C" const char * GetMagicPointerString(int inMP);
 
@@ -838,7 +839,7 @@ PrintWellKnownObject(Ref obj, int indent)
 			REPprintf("(%s)", BinaryData(ASCIIString(name)));
 		else
 		{
-			int count = REPprintf("(#%lX) ", (unsigned long)obj);
+			int count = REPprintf("(#%" PRIXPTR ") ", (uintptr_t)obj);
 			PrintObject(obj, indent + count);
 		}
 	}

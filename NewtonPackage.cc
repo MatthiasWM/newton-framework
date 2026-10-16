@@ -20,7 +20,7 @@
 #include <cassert>
 #include <arpa/inet.h>
 
-#if __LP64__
+#if NEWT_64BIT
 /* -----------------------------------------------------------------------------
 	T Y P E S
 ----------------------------------------------------------------------------- */
@@ -346,7 +346,7 @@ NewtonPackage::partRef(ArrayIndex inPartNo)
 	// adjust any relocation info
 	if (pkgRelo.relocationSize != 0)
 	{
-		long  delta = (long)partData - pkgRelo.baseAddress;
+		intptr_t  delta = (intptr_t)partData - pkgRelo.baseAddress;
 		RelocationEntry *	set = (RelocationEntry *)relocationData;
 #if 0
 		for (ArrayIndex setNum = 0; setNum < pkgRelo.numEntries; ++setNum) {
@@ -365,7 +365,7 @@ NewtonPackage::partRef(ArrayIndex inPartNo)
 
 	// locate the part frame
 	ArrayObject32 * pkgRoot = (ArrayObject32 *)partData;
-#if __LP64__
+#if NEWT_64BIT
 /*
 	So, now:
 		partData = address of part data read from pkg file
@@ -552,7 +552,7 @@ Ref NewtonPackage::packageRef()
 
 #pragma mark -
 
-#if __LP64__
+#if NEWT_64BIT
 /* -----------------------------------------------------------------------------
 	Pass 1: calculate space needed for 64-bit refs
 			  no modifications to Ref data
@@ -576,7 +576,7 @@ ScanRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ScanRefMap & io
 		}
 		ioMap.insert(ref);
 
-		ArrayObject32 * obj = (ArrayObject32 *)(inPartAddr + ((long)PTR(ref) - inPartOffset));
+		ArrayObject32 * obj = (ArrayObject32 *)(inPartAddr + ((intptr_t)PTR(ref) - inPartOffset));
 		size_t refSize = sizeof(ArrayObject);
 		// for frames, class is actually the map which needs fixing too; non-pointer refs may need byte-swapping anyway so we always need to do this
 		refSize += ScanRef(obj->objClass, inPartAddr, inPartOffset, ioMap);
@@ -641,7 +641,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 		std::pair<Ref32, Ref> mapping = std::make_pair(srcRef, ref);
 		ioMap.insert(mapping);
 
-		ArrayObject32 * srcPtr = (ArrayObject32 *)(inPartAddr + ((long)PTR(srcRef) - inPartOffset));	// might not actually be an ArrayObject, but header/class are common to all pointer objects
+		ArrayObject32 * srcPtr = (ArrayObject32 *)(inPartAddr + ((intptr_t)PTR(srcRef) - inPartOffset));	// might not actually be an ArrayObject, but header/class are common to all pointer objects
 		size_t srcSize = CANONICAL_SIZE(srcPtr->size);
 		ArrayIndex count;
 		size_t dstSize;
@@ -680,7 +680,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 				SymbolObject * sym = (SymbolObject *)dstPtr;
 				sym->hash = BYTE_SWAP_LONG(sym->hash);
 //NSLog(@"'%s", sym->name);
-			} else if (ISPTR(srcClass) && (sym = ((SymbolObject32 *)(inPartAddr + ((long)PTR(srcClass) - inPartOffset)))), sym->objClass == CANONICAL_LONG(kSymbolClass)) {
+			} else if (ISPTR(srcClass) && (sym = ((SymbolObject32 *)(inPartAddr + ((intptr_t)PTR(srcClass) - inPartOffset)))), sym->objClass == CANONICAL_LONG(kSymbolClass)) {
 				if (IsSymClass(sym, "string")) {
 					// string -- byte-swap UniChar characters
 					UniChar * s = (UniChar *)dstPtr->slot;

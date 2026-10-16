@@ -9,7 +9,7 @@
 
 #if 0
 
-#if __LP64__
+#if NEWT_64BIT
 /* ----------------------------------------------------------------
 	Firstly, for protocol dispatch.
 	In LP64 ABI

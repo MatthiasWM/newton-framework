@@ -16,7 +16,7 @@
 #include "ROMResources.h"
 
 // integer Ref limits
-#if __LP64__
+#if NEWT_64BIT
 #define kMaxUnsignedIntRef 0x4000000000000000
 #define kMaxSignedIntRef 0x2000000000000000
 #define kMinSignedIntRef -0x2000000000000000

@@ -10,7 +10,8 @@
 
 #define kFlagsBinary (0x40<<24)
 
-#if __LP64__
+#include "../../NewtonArch.h"
+#if NEWT_64BIT
 /* Refs are 64-bit, object header is long size|flags, quad gcStuff, quad class */
 #define Ref .quad
 #define kHeaderSize 20

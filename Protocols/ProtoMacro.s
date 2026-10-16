@@ -9,7 +9,8 @@
 
 #if 1
 
-#if __LP64__
+#include "../NewtonArch.h"
+#if NEWT_64BIT
 /* ----------------------------------------------------------------
 	Firstly, for protocol dispatch.
 	In LP64 ABI

@@ -10,6 +10,7 @@
 #define __NEWTONTYPES_H 1
 
 #include <stdint.h>
+#include "NewtonArch.h"
 
 /* Base types */
 
@@ -38,15 +39,19 @@ typedef int	NewtonErr;
 typedef uint32_t	ObjectId;
 typedef uint32_t	HammerIORef;
 
-/* Address types */
-typedef unsigned long	VAddr;
-typedef unsigned long	PAddr;
+/* Address types -- as wide as a pointer (not long: 32 bits on 64-bit Windows) */
+typedef uintptr_t	VAddr;
+typedef uintptr_t	PAddr;
 
-typedef unsigned long	OpaqueRef;
+typedef uintptr_t	OpaqueRef;
 
-/* Ref types */
+/* Ref types -- a Ref holds a pointer */
 
-typedef long Ref;
+typedef intptr_t Ref;
+
+#if defined(__cplusplus)
+static_assert(sizeof(Ref) == (NEWT_64BIT ? 8 : 4), "NEWT_64BIT must match the pointer size");
+#endif
 
 typedef struct
 {
@@ -65,7 +70,7 @@ typedef unsigned char                   UInt8;
 typedef signed char                     SInt8;
 typedef unsigned short                  UInt16;
 typedef signed short                    SInt16;
-#if __LP64__
+#if NEWT_64BIT
 typedef unsigned int                    UInt32;
 typedef signed int                      SInt32;
 #else

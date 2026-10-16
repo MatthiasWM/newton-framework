@@ -96,7 +96,7 @@ ArrayIndex  CClassInfoRegistry::getInstanceCount(const CClassInfo * classinfo) {
 		.text
 		.align	2
 
-#if __LP64__
+#if NEWT_64BIT
 
 /* ----------------------------------------------------------------
 	size_t

@@ -987,6 +987,45 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       written apps don't need it). What newtc sends to a Newton: B50. Test:
       Test/dbg/test_nsof.py.
 
+### 5. Ready for NCX (Matt, 2026-10-16)
+
+NCX (Newton Connection, `~/dev/newton-connection.FLTK.git`, branch
+`cross_platform`) is being ported to C++17 and FLTK for Windows, Linux and
+macOS on x86_64 and arm64. Its plan is `PORTING.md` there; Phase 0 happens
+here: NCX will link a static `newton_ncx` library (object system, NSOF,
+pipes, packages, compression, ROM data, QD drawing), fetched with
+FetchContent. Windows builds use clang-cl (the `.s` ROM data stays the
+source of truth; ResMaker's output no longer matches it).
+
+- [x] 0.1 Pointer-sized Refs (2026-10-16). `Ref` is `intptr_t`, `VAddr`,
+      `PAddr`, `OpaqueRef` are `uintptr_t` (`long` is 32 bits on 64-bit
+      Windows). `NewtonArch.h` (preprocessor only, so the `.s` files include
+      it too, by a relative path) defines `NEWT_64BIT` from the compiler
+      (`__LP64__`, `_WIN64`, `__SIZEOF_POINTER__`); it replaces every
+      `#if __LP64__` (C/C++, the ROM data `.s` files, ResMaker's templates)
+      and the `-D__LP64__=1` newtc was built with. NewtonTypes.h checks
+      `sizeof(Ref)` against it. The Ref macros in Frames/Objects.h use
+      `intptr_t`/`uintptr_t` (`~0UL` masks were 32 bits on Windows; arguments
+      now parenthesized), as do the bit tests of the NSOF writer's precedents
+      table and wrapInteger (StreamObjects.cc), a few pointer casts
+      (ObjectHeap.cc, NewtonPackage.cc), and the printing of Refs as hex
+      (`PRIXPTR`). On macOS and Linux `intptr_t` is `long`: nothing changes
+      there. Casts of pointers to `long` that remain elsewhere are errors in
+      clang-cl, so 0.4 finds them. Not touched: `ObjectSystem.h` (an older
+      copy of the Ref macros, included nowhere), `MPW Tools`, the copies in
+      ROMData/NTK.framework. MessagePad doesn't build on arm64 (x86 register
+      names in OS/SharedTypes.h), as before.
+- [ ] 0.2 The CMake file as a subproject (CMAKE_CURRENT_SOURCE_DIR,
+      sanitizers only when top level, Apple frameworks only on APPLE,
+      NEWTON_BUILD_TOOLS).
+- [ ] 0.3 The `newton_ncx` static library and a test that round-trips a
+      frame through FlattenRef/UnflattenRef.
+- [ ] 0.4 `newton_ncx` on Linux and Windows (clang-cl).
+- [ ] 0.5 A drawing back end interface for QDDrawing.cc (Quartz behind it on
+      macOS; NCX brings an FLTK one).
+- [ ] 0.6 MNP.cc, NTKTransport.cc, DES.c as a `newton_dock` library shared by
+      newtdump and NCX.
+
 ### Notes for later (Matt, 2026-10-15)
 - [ ] L1 package1 instead of package0 (we don't target NOS 1): check what
       package1 means first (Newton Formats: it may hold relocation info;

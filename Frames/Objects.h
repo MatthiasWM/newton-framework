@@ -34,16 +34,16 @@
 ------------------------------------------------------------------------------*/
 
 #define kRefTagBits		  2
-#if __LP64__
+#if NEWT_64BIT
 #define kRefValueBits	 62
 #else
 #define kRefValueBits	 30
 #endif
-#define kRefValueMask	(~0UL << kRefTagBits)
+#define kRefValueMask	(~(uintptr_t)0 << kRefTagBits)
 #define kRefTagMask		 ~kRefValueMask
 
 #define kRefImmedBits	 2
-#define kRefImmedMask	(~0UL << kRefImmedBits)
+#define kRefImmedMask	(~(uintptr_t)0 << kRefImmedBits)
 
 enum
 {
@@ -67,12 +67,12 @@ enum
 ------------------------------------------------------------------------------*/
 
 // CLANG: Shifting a negative signed value is undefined
-#define MAKEINT(i)          ((Ref)(((unsigned long)i)<<kRefTagBits))
-#define	MAKEIMMED(t, v)		((((((long) (v)) << kRefImmedBits) | ((long) (t))) << kRefTagBits) | kTagImmed)
+#define MAKEINT(i)          ((Ref)(((uintptr_t)(i))<<kRefTagBits))
+#define	MAKEIMMED(t, v)		((((((intptr_t) (v)) << kRefImmedBits) | ((intptr_t) (t))) << kRefTagBits) | kTagImmed)
 #define	MAKECHAR(c)				MAKEIMMED(kImmedChar, (unsigned) c)
 #define	MAKEBOOLEAN(b)			(b ? TRUEREF : FALSEREF)
-#define	MAKEPTR(p)				((Ref)( ((long)p) + 1 ))
-#define	MAKEMAGICPTR(index)	((Ref) (((long) (index)) << kRefTagBits) | kTagMagicPtr)
+#define	MAKEPTR(p)				((Ref)( ((intptr_t)(p)) + 1 ))
+#define	MAKEMAGICPTR(index)	((Ref) (((intptr_t) (index)) << kRefTagBits) | kTagMagicPtr)
 
 // constant values for comparison with a Ref
 #define	NILREF			MAKEIMMED(kImmedSpecial, 0)
@@ -99,7 +99,7 @@ enum
 #define	FUNCKIND(r)		(((unsigned) r) >> 8)
 
 #define	RTAG(r)			(((Ref) (r)) & kRefTagMask)
-#define RVALUE(r)           (((long)r)/(1<<kRefTagBits))
+#define RVALUE(r)           (((intptr_t)(r))/(1<<kRefTagBits))
 #define	RIMMEDTAG(r)	(RVALUE(r) & ~kRefImmedMask)
 #define	RIMMEDVALUE(r)	(RVALUE(r) >> kRefImmedBits)
 #define	ISINT(r)            (RTAG(r) == kTagInteger)
