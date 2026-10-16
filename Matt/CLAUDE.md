@@ -1295,6 +1295,18 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B73 CZippyStoreDecompressor and CZippyRelocStoreDecompressor read a
+  compressed page into a buffer of kSubPageSize, but a compressed page can
+  be bigger (34 bits a word at worst), and CZippyDecompressor::expandValue
+  peeks a few bytes past the end of the data (harmless on the ARM; ASan:
+  heap-buffer-overflow, NCX's Einstein fixture). Fixed 2026-10-16: a buffer
+  of 2*kSubPageSize, pages that don't fit refused, zeros after the data.
+- [x] B72 newton_ncx's IsString was false for the string classes ('company,
+  'phone, 'workPhone, ...: a Names card's company and phones), because only
+  InitScriptGlobals fills gInheritanceFrame (from SYS_classes) and
+  InitObjectSystemCore doesn't call it. Fixed 2026-10-16: it clones
+  SYS_classes too. Found with NCX's Einstein fixture (company cards had no
+  title). Test: newton_ncx_test.
 - [x] B71 MNPLink::pending() (any thread) read mInFlight's size under the
   lock, but the link's thread changed mInFlight without it (it is the link
   thread's own): a data race (ThreadSanitizer, NCX's package test: the dock

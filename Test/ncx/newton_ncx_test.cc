@@ -320,6 +320,15 @@ main(int argc, char * argv[])
 	RefVar backSamples(RoundTrip(samples, &size));
 	Check(Length(backSamples) == 100000 && ((unsigned char *)BinaryData(backSamples))[99999] == 0x55, "a 100 KB binary through NSOF");
 
+/*-- string classes: a Names card's company and phones are strings (B72) --*/
+	{
+		RefVar company(MakeStringFromCString("Newton Cafe"));
+		SetClass(company, MakeSymbol("company"));
+		RefVar phone(MakeStringFromCString("555-1000"));
+		SetClass(phone, MakeSymbol("workPhone"));
+		Check(IsString(company) && IsString(phone) && !IsString(MakeSymbol("company")), "string classes: company, workPhone");
+	}
+
 /*-- large binaries (VBOs) as a Newton sends them, read into plain binaries
      on the host (B70): NSOF kNSLargeBinary (12), the class, compressed?,
      the stream's size, the compander name's and parameters' sizes, 0, the

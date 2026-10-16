@@ -484,6 +484,13 @@ CZippyStoreDecompressor::destroy(void)
 }
 
 
+// A compressed page (up to 34 bits a word, so more than kSubPageSize), and
+// zeros after it: CZippyDecompressor::expandValue peeks a few bytes past the
+// end of the data (B73)
+static const size_t kZippyPeek = 8;
+static const size_t kZippyBufferSize = 2*kSubPageSize;
+
+
 NewtonErr
 CZippyStoreDecompressor::init(CStore * inStore, PSSId inParmsId, char * inLZWBuffer)
 {
@@ -492,7 +499,7 @@ CZippyStoreDecompressor::init(CStore * inStore, PSSId inParmsId, char * inLZWBuf
 	XTRY
 	{
 		fStore = inStore;
-		XFAILNOT(fBuffer = NewPtr(kSubPageSize), err = kOSErrNoMemory;)
+		XFAILNOT(fBuffer = NewPtr(kZippyBufferSize), err = kOSErrNoMemory;)
 		XFAILNOT(fDecompressor = (CZippyDecompressor *)MakeByName("CDecompressor", "CZippyDecompressor"), err = kOSErrNoMemory;)
 	}
 	XENDTRY;
@@ -516,7 +523,9 @@ CZippyStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen, VAd
 		objSize -= sizeof(relocHeader);
 
 		// read object into our buffer
+		XFAILIF(objSize > kZippyBufferSize - kZippyPeek, err = kOSErrBadObject;)
 		XFAIL(err = fStore->read(inObjId, sizeof(relocHeader), fBuffer, objSize))
+		memset(fBuffer + objSize, 0, kZippyPeek);
 
 		// decompress it into client buffer
 		// ignore inBufLen -- outBuf MUST be kSubPageSize in size
@@ -624,7 +633,7 @@ CZippyRelocStoreDecompressor::init(CStore * inStore, PSSId inParmsId, char * inL
 	XTRY
 	{
 		fStore = inStore;
-		XFAILNOT(fBuffer = NewPtr(kSubPageSize), err = kOSErrNoMemory;)
+		XFAILNOT(fBuffer = NewPtr(kZippyBufferSize), err = kOSErrNoMemory;)
 		XFAILNOT(fDecompressor = (CZippyDecompressor *)MakeByName("CDecompressor", "CZippyDecompressor"), err = kOSErrNoMemory;)
 	}
 	XENDTRY;
@@ -654,7 +663,9 @@ CZippyRelocStoreDecompressor::read(PSSId inObjId, char * outBuf, size_t inBufLen
 		objSize -= (sizeof(relocHeader) + relocInfoSize);
 
 		// read object into our buffer
+		XFAILIF(objSize > kZippyBufferSize - kZippyPeek, err = kOSErrBadObject;)
 		XFAIL(err = fStore->read(inObjId, relocInfoSize + sizeof(relocHeader), fBuffer, objSize))
+		memset(fBuffer + objSize, 0, kZippyPeek);
 
 		// decompress it into client buffer
 		// ignore inBufLen -- outBuf MUST be kSubPageSize in size

@@ -30,6 +30,7 @@
 #include "NewtWorld.h"
 #include "Iterators.h"
 #include "ROMResources.h"
+#include "MagicPointers.h"
 #include "Interpreter.h"
 #include "REP.h"
 
@@ -48,6 +49,7 @@ extern NewtonErr	InitPSSManager(ObjectId inEnvId, ObjectId inDomId);
 extern void			InitObjects(void);
 extern void			InitTranslators(void);
 extern Ref			InitUnicode(void);
+extern Ref			gInheritanceFrame;
 extern void			REPInitGlobals(void);
 extern void			InitExternal(void);
 extern PInTranslator *	gREPin;
@@ -158,6 +160,10 @@ InitObjectSystemCore(void)
 	InitPSSManager(0, 0);
 
 	InitObjects();
+	// the string classes (company, phone, workPhone, ...: subclasses of
+	// string, so IsString is true for them), as InitScriptGlobals sets them
+	// (B72)
+	gInheritanceFrame = Clone(SYS_classes);
 	InitTranslators();			// register flatten/unflatten etc
 
 	REPRegisterTranslators();	// the REP's translator protocols (was NTKInit)
