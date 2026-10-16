@@ -1,0 +1,7 @@
+// B53: the ROM's largest integer, 536870911 (Ref 0x7FFFFFFC), is that in
+// newtc's ROM data too; ResMaker took it for a negative number before
+// (-536870913). @253 is a frame of the ROM that holds it.
+foreach tag, value in @253 do
+	if IsInteger(value) and (value > 1000000 or value < -1000000) then
+		Print([tag, value]);
+Print(536870911 = @253.newStopDate);

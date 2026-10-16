@@ -1055,7 +1055,13 @@ assembler and Windows can build with MSVC or clang-cl.
       remain). Fixed in ResMaker on the way: two buffer overflows (C function
       names over 31 characters, .exp names of 127), an uninitialized flag in
       its pointer table, `SYMA(Real)` (only the old bootstrap had RSSYMReal),
-      the copies of Ustrlen and symcmp. Found: B52, B53 (kept as they were).
+      the copies of Ustrlen and symcmp. Found: B52, B53 (kept as they were,
+      then fixed in the next commit). Since then ResMaker names the objects
+      of NTKFunctions.newtonpkg in order (pkg_0000...), not after their heap
+      address, so both runs give the same files every time;
+      Test/romdata/test_resmaker.py regenerates both (when ResMaker is built)
+      and compares them with the repo: never edit the generated files, change
+      ResMaker.
 - [ ] 0.2 The CMake file as a subproject (CMAKE_CURRENT_SOURCE_DIR,
       sanitizers only when top level, Apple frameworks only on APPLE,
       NEWTON_BUILD_TOOLS).
@@ -1104,18 +1110,21 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
-- [ ] B53 The ROM's largest integer, 536870911 (Ref 0x7FFFFFFC), is
-  -536870913 in newtc's ROM data (44 slots in ROMData/forNewton, e.g. `kMaxInt`
-  style limits): ResMaker's FixPointerRef takes `n >= INT32_MAX>>2` (0x1FFFFFFF)
-  for negative, so it turns the largest positive 30-bit integer into one a
-  Newton can't even hold. Should be `n > INT32_MAX>>2`. Found 2026-10-16 while
-  moving the data to C (kept as it was, so the C matched the assembler
-  exactly). Fix: change the test, regenerate (ResMaker), check the 44 slots.
-- [ ] B52 RSspace, the string " " the ROM made at run time, is U+2000 in
-  newtc: ResMaker writes it as `CANONICAL_SHORT(' ')`, byte-swapped on a
+- [x] B53 The ROM's largest integer, 536870911 (Ref 0x7FFFFFFC), was
+  -536870913 in newtc's ROM data (44 slots in ROMData/forNewton, e.g. a
+  meeting slip's newStopDate, @253): ResMaker's FixPointerRef took
+  `n >= INT32_MAX>>2` (0x1FFFFFFF) for negative, so it turned the largest
+  positive 30-bit integer into one a Newton can't even hold. Found
+  2026-10-16 while moving the data to C (kept then, so the C matched the
+  assembler exactly). Fixed 2026-10-16: `n > INT32_MAX>>2`, regenerated;
+  exactly the 44 slots changed. Tests: case rom_max_integer,
+  Test/romdata/test_resmaker.py.
+- [x] B52 RSspace, the string " " the ROM made at run time, was U+2000 in
+  newtc: ResMaker wrote it as `CANONICAL_SHORT(' ')`, byte-swapped on a
   little-endian host, while PrintString expects host order. Only IA.cc uses
-  it (first and last name joined). Found 2026-10-16, kept as it was for the
-  move to C. Fix: `' '`, regenerate.
+  it (TagStringHelper: first and last name joined). Found 2026-10-16. Fixed
+  2026-10-16: `' '`, regenerated. Test: Test/romdata/test_resmaker.py (not
+  reachable from NewtonScript).
 - [x] B51 On newtc's fake Newton (-ntk-device), a stop in an app's script
   while the app opens ended a moment later: the app closed ("Goodbye"),
   continue said "isn't stopped", and the Debug Console "The Newton is

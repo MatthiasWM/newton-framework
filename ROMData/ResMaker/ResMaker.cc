@@ -63,6 +63,7 @@ The ROM has:
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 #include "SymbolTable.h"
 #include "Reporting.h"
@@ -516,9 +517,10 @@ FixPointerRef(Ref r)
 	if (ISREALPTR(r)) {
 		return (Ref)ROMdata + r;
 	} else if (ISINT(r)) {
-		// handle negative Refs
+		// handle negative Refs: a 30-bit integer is negative from 0x20000000 on;
+		// 0x1FFFFFFF (INT32_MAX>>2) is the largest positive one (B53)
 		long n = RVALUE(r);
-		if (n >= INT32_MAX>>2) {
+		if (n > INT32_MAX>>2) {
 			r = MAKEINT(n - (UINT32_MAX>>2) - 1);
 		}
 	}
@@ -588,6 +590,25 @@ PrintFrameMap(CSection & inSection, const char * inName, Ref inMap)
 	return fnCount;
 }
 
+/* -----------------------------------------------------------------------------
+	Label of an object from NTKFunctions.newtonpkg: numbered in the order the
+	objects are first named, not after their address in memory, so the output
+	is the same every run.
+----------------------------------------------------------------------------- */
+
+const char *
+PkgObjectLabel(Ref inObj)
+{
+	static std::map<Ref, int> labels;
+	static char name[32];
+	if (!ISREALPTR(inObj))
+		return "pkg_none";	// not an object: its value is used, not a label
+	int index = labels.emplace(inObj, (int)labels.size()).first->second;
+	snprintf(name, sizeof(name), "pkg_%04d", index);
+	return name;
+}
+
+
 void
 PrintPkgFrameMap(CSection & inSection, const char * inName, Ref inMap)
 {
@@ -602,7 +623,7 @@ PrintPkgFrameMap(CSection & inSection, const char * inName, Ref inMap)
 			ObjHeader * elem = (ObjHeader *)(map-1);
 			if (!FLAGTEST(elem->flags, kObjMarked)) {
 				FLAGSET(elem->flags, kObjMarked);
-				sprintf(nameStr, "obj_%08X", (ULong)supermapRef);
+				strcpy(nameStr, PkgObjectLabel(supermapRef));
 				PrintPkgFrameMap(inSection, nameStr, map);
 			}
 		}
@@ -611,7 +632,7 @@ PrintPkgFrameMap(CSection & inSection, const char * inName, Ref inMap)
 	Ref * p = &frMap->objClass;
 	for (ArrayIndex slotsRemaining = numOfSlots+1; slotsRemaining > 0; --slotsRemaining, ++p) {
 		Ref tag = *p;
-		sprintf(nameStr, "obj_%08X", (ULong)*p);
+		strcpy(nameStr, PkgObjectLabel(*p));
 		obj.words.push_back(CInit(PrintPkgObject(inSection, nameStr, tag, false, false)));
 	}
 	inSection.add(obj);
@@ -977,7 +998,7 @@ PrintPkgObject(CSection & inSection, const char * inName, Ref inObj, bool inDefi
 								ObjHeader * elem = (ObjHeader *)(val-1);
 								if (!FLAGTEST(elem->flags, kObjMarked)) {
 									FLAGSET(elem->flags, kObjMarked);
-									sprintf(nameStr, "obj_%08X", (ULong)*p);
+									strcpy(nameStr, PkgObjectLabel(*p));
 									PrintPkgObject(inSection, nameStr, val, true, false);
 								}
 							}
@@ -992,7 +1013,7 @@ PrintPkgObject(CSection & inSection, const char * inName, Ref inObj, bool inDefi
 						p = slotPtr;
 						for (i = 0; i < numOfSlots; ++i, ++p) {
 							val = *p;
-							sprintf(nameStr, "obj_%08X", (ULong)*p);
+							strcpy(nameStr, PkgObjectLabel(*p));
 							obj.words.push_back(CInit(PrintPkgObject(inSection, nameStr, val, false, false)));
 						}
 						inSection.add(obj);
@@ -1019,7 +1040,7 @@ PrintPkgObject(CSection & inSection, const char * inName, Ref inObj, bool inDefi
 								ObjHeader * elem = (ObjHeader *)(val-1);
 								if (!FLAGTEST(elem->flags, kObjMarked)) {
 									FLAGSET(elem->flags, kObjMarked);
-									sprintf(nameStr, "obj_%08X", (ULong)*p);
+									strcpy(nameStr, PkgObjectLabel(*p));
 									PrintPkgObject(inSection, nameStr, val, true, false);
 								}
 							}
@@ -1030,7 +1051,7 @@ PrintPkgObject(CSection & inSection, const char * inName, Ref inObj, bool inDefi
 						p = slotPtr;
 						for (i = 0; i < numOfSlots; ++i, ++p) {
 							val = *p;
-							sprintf(nameStr, "obj_%08X", (ULong)*p);
+							strcpy(nameStr, PkgObjectLabel(*p));
 							obj.words.push_back(CInit(PrintPkgObject(inSection, nameStr, val, false, false)));
 						}
 						inSection.add(obj);
@@ -1630,7 +1651,7 @@ main(int argc, const char * argv[])
 	}
 
 /*-- objects that the original created at runtime --*/
-	const UniChar STRspace[] = { CANONICAL_SHORT(' '), 0 };	// (sic: 0x2000 on a little-endian host, as before; see B52)
+	const UniChar STRspace[] = { ' ', 0 };	// in host order, as PrintString expects (B52)
 	PrintString(gDataSection, "space", Value::MakePointer("SYMstring"), STRspace);
 	PrintRefStar(gDataRefStars, "space", Value::MakePointer("space"));
 
