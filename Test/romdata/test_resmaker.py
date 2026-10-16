@@ -58,7 +58,7 @@ def main():
         check("NR_REF(0x7FFFFFFC)" in source and "0x80000004" not in source,
               "%s: 536870911 is 536870911, not -536870913 (B53)" % name)
 
-    resmaker = Path(args.resmaker)
+    resmaker = Path(args.resmaker).resolve()     # it runs in another folder
     if not resmaker.exists():
         print("skip    ResMaker isn't built (%s): output not compared" % resmaker)
         return 1 if failed else 0

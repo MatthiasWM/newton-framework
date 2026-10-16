@@ -67,9 +67,27 @@ options.
 - A CIS is looked for in attribute memory first, and then at the start of
   common memory (some ROM cards keep it there).
 
-The Mac side needs no Newton framework: NSOF.cc (a small NSOF reader and
-writer), DockLink.cc, the MNP link and transports (Matt/MNP.cc,
-Matt/NTKTransport.cc), DES.
+The desktop side doesn't use the object system (`newton_ncx`). It needs:
+- NSOF.cc, a small NSOF reader and writer;
+- DockLink.cc;
+- the `newton_dock` library: the MNP link and transports (Matt/MNP.cc,
+  Matt/NTKTransport.cc) and DES.
+
+## Building
+
+```
+cmake -S . -B build/Release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/Release --target newtdump newtdump-test-newton
+```
+
+newtdump is one of the tools (`NEWTON_BUILD_TOOLS`, on unless this is a
+subproject). The build compiles the extension with newtc, so newtc is built
+first. The natives' NewtonScript (Newton/PhysNatives.ns) is checked in, so the
+build needs no ARM tools. After a change to PhysNatives.s, run
+`Matt/tools/build_newtdump_natives.sh`, which needs `arm-none-eabi-as`.
+
+newtdump is built and tested on macOS. On Windows, `newton_dock`'s link and
+transports are still stubs, so newtdump can't connect there yet.
 
 ## Tests
 
@@ -83,6 +101,9 @@ password, and the extension's answers from image files. It covers:
 - an interrupted run and `--resume`;
 - a ROM card with its CIS in common memory;
 - a bus error.
+
+Run it with the build folder: `Test/newtdump/test_newtdump.py --build
+build/Release`.
 
 The Newton's side (the natives and the extension's NewtonScript) runs only
 on a Newton or in Einstein.
