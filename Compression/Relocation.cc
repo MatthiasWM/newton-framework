@@ -12,7 +12,9 @@
 #include "Relocation.h"
 #include "OSErrors.h"
 
+#if 0
 extern void	ResolveImportRef(Ref * ioRefPtr, void ** outArg2);
+#endif
 
 
 /*------------------------------------------------------------------------------
@@ -27,7 +29,9 @@ RelocateFramesInPage(FrameRelocationHeader * inHeader, char * inPage, VAddr inAd
 		return;
 
 // for now, don't even TRY to relocate
-	return;
+// (out of the build, not just unreachable: MSVC links unreachable code, and
+// ResolveImportRef isn't in newton_ncx (forFramework); B74)
+#if 0
 
 	Ref * refPtr;
 	ULong objOffset = inHeader->first10 <<2;	// r6
@@ -129,6 +133,8 @@ RelocateFramesInPage(FrameRelocationHeader * inHeader, char * inPage, VAddr inAd
 		ULong alignment = ((inHeader->flags & 0x40) != 0) ? 4 : 8;	// OS1 aligned on 4-bytes, OS2 aligned on 8-bytes
 		objOffset += ALIGN(objPtr->size, alignment);	// offset to next ref object
 	}
+#endif
+
 }
 
 

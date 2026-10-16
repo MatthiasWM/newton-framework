@@ -1295,6 +1295,12 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B74 RelocateFramesInPage (Compression/Relocation.cc) returns before
+  it relocates anything, but the code after the return calls
+  ResolveImportRef, which is in MagicPointers.cc's !forFramework part:
+  clang leaves out unreachable code, MSVC compiles it, so linking NCX on
+  Windows failed (LNK2019) once NCX used the decompressors (B70). Fixed
+  2026-10-16: the unreachable part is #if 0.
 - [x] B73 CZippyStoreDecompressor and CZippyRelocStoreDecompressor read a
   compressed page into a buffer of kSubPageSize, but a compressed page can
   be bigger (34 bits a word at worst), and CZippyDecompressor::expandValue
