@@ -107,7 +107,7 @@ ENTER_FUNC
 
 	int sp00 = 0;
 	ZAddr dirEntAddr = fRootDirEntAddr;	// r8
-	ArrayIndex objNo;
+	ArrayIndex objNo = 0;
 	if (outArg3 != NULL)
 	{
 		*outArg3 = -1;

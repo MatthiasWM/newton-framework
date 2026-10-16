@@ -901,7 +901,7 @@ BackupPackage(CPipe * inPipe, PSSId inId)
 		XFAIL(err = IdToVAddr(inId, &pkgAddr))
 
 		// fetch its uncompressed size
-		size_t pkgSize;
+		size_t pkgSize = 0;
 #if !defined(forFramework)
 		CPackageIterator iter((void *)pkgAddr);
 		XFAIL(err = iter.init())
@@ -1005,7 +1005,7 @@ BackupPackage(CPipe * inPipe, CStore * inStore, PSSId inId, CLOCallback * inCall
 		XFAIL(err = MapLargeObject(&pkgAddr, inStore, inId, false))
 
 		// fetch its uncompressed size
-		size_t pkgSize;
+		size_t pkgSize = 0;
 #if !defined(forFramework)
 		CPackageIterator iter((void *)pkgAddr);
 		XFAIL(err = iter.init())

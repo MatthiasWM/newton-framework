@@ -2161,7 +2161,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 		{
 		//	generate
 		//	expr1 expr1offset:branchIfFalse->noAction expr2 expr2offset:branch->noAction nil noAction:
-			ArrayIndex	expr1PC, expr2PC;
+			ArrayIndex	expr1PC, expr2PC = 0;
 			isArithmetic = true;
 			walkForCode(p1, false);
 			expr1PC = emitPlaceholder();
@@ -2190,7 +2190,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 		{
 		//	generate
 		//	expr1 expr1offset:branchIfTrue->noAction expr2 expr2offset:branch->noAction true noAction:
-			ArrayIndex	expr1PC, expr2PC;
+			ArrayIndex	expr1PC, expr2PC = 0;
 			isArithmetic = true;
 			walkForCode(p1, false);
 			expr1PC = emitPlaceholder();
@@ -2729,7 +2729,7 @@ CCompiler::walkForCode(RefArg inGraph, bool inFinalNode)
 			}
 
 			ArrayIndex	entryBranch = emitPlaceholder();
-			ArrayIndex	exitBranch;
+			ArrayIndex	exitBranch = 0;
 			ArrayIndex	loopStart = curPC();
 			func->beginLoop();
 			emitVarGet(iterVarSym);
@@ -3091,7 +3091,7 @@ CCompiler::evaluateConstantExpr(RefArg inGraph)
 {
 	int		tokenType = RINT(GetArraySlot(inGraph, 0));
 	RefVar	tokenValue(Length(inGraph) >= 2 ? GetArraySlot(inGraph, 1) : NILREF);
-	Ref		result;
+	Ref		result = NILREF;
 
 #if 1
 	if (tokenType == TOKENconst)

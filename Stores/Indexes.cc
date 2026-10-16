@@ -952,8 +952,8 @@ CSoupIndex::findNextDupDataAddr(DupNodeHeader ** ioDupNode, void * inData, bool 
 void *
 CSoupIndex::findPriorDupDataAddr(DupNodeHeader ** ioDupNode, void * inData, bool * outFound)
 {
-	DupNodeHeader * priorDupNode;
-	void * priorData;
+	DupNodeHeader * priorDupNode = NULL;
+	void * priorData = NULL;
 	PSSId dupId;
 	void * dupDataAddr;
 	while (findDupDataAddr(*ioDupNode, inData, &dupDataAddr) == 0)
@@ -1534,7 +1534,7 @@ CSoupIndex::deleteTheKey(NodeHeader * ioNode, int inSlot, KeyField * inField)
 	//sp-08
 	PSSId dupId;
 	int cmp = 1;	// r9
-	int sp00;
+	int sp00 = 0;
 	changeNode(ioNode);
 	void * r10 = kfFirstDataAddr(inField);
 	void * sp04 = NULL;
@@ -2132,7 +2132,7 @@ CSoupIndex::searchNextDup(KeyField * ioKeyField, NodeHeader ** ioNode, int * ioS
 		if ((dupId = kfNextDupId(ioKeyField)) == 0)
 			return (theId == 0) ? -1 : 0;
 
-		bool huh;
+		bool huh = false;
 		*ioDupNode = readADupNode(dupId);
 		if (sp00 != NULL)
 			sp00 = firstDupDataAddr(*ioDupNode);
@@ -2214,7 +2214,7 @@ CSoupIndex::findNextKey(KeyField * ioField, NodeHeader ** ioNode, int * ioSlot)
 		return 0;
 	}
 
-	KeyField * r8;
+	KeyField * r8 = NULL;
 	(*ioSlot)++;
 	ULong nodeNo = leftNodeNo(*ioNode, *ioSlot);
 	if (nodeNo != 0)
@@ -2250,7 +2250,7 @@ CSoupIndex::findNextKey(KeyField * ioField, NodeHeader ** ioNode, int * ioSlot)
 int
 CSoupIndex::findPriorKey(KeyField * inField, NodeHeader ** ioNode, int * ioSlot)
 {
-	KeyField * kf;
+	KeyField * kf = NULL;
 	NodeHeader * node = *ioNode;
 	ULong nodeNo = leftNodeNo(node, *ioSlot);
 	if (*ioSlot != 0 && nodeNo == 0)
@@ -3696,7 +3696,7 @@ IndexDescToIndexInfo(RefArg indexDesc, IndexInfo * outInfo)
 	outInfo->x19 = 0;
 	outInfo->x1A = 0;
 
-	ULong theType;
+	ULong theType = 0;
 	RefVar indexType(GetFrameSlot(indexDesc, SYMA(type)));
 	RefVar indexOrder(GetFrameSlot(indexDesc, SYMA(order)));
 	int count;

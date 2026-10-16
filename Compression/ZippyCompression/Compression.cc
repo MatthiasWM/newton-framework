@@ -224,9 +224,9 @@ CZippyDecompressor::expandValue(unsigned char ** ioSrc, ArrayIndex * ioBitIndex,
 	};
 
 	LongBytes bits;		// sp00
-	ArrayIndex index;
+	ArrayIndex index = 0;
 	unsigned char * src = *ioSrc;
-	int tag, selector;	// r3, r5
+	int tag = 0, selector;	// r3, r5
 	if (src >= inSrcLimit)
 	{
 		ArrayIndex bitIndex = *ioBitIndex;

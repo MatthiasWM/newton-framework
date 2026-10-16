@@ -243,7 +243,7 @@ CFlashRange::isVirgin(VAddr inAddr, size_t inLength)
 {
 	startReadingArray();
 	VAddr addr = fReadVAddr + (inAddr - fRangeAddr);
-	size_t longLen;
+	size_t longLen = 0;
 	size_t byteLen = inLength;
 	bool isSo = true;
 	// check bytes up to 32-bit alignment

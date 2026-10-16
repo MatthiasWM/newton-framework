@@ -451,10 +451,10 @@ DoRichString(CRichString & inStr, ULong inStart, size_t inLength, StyleRecord * 
 
 	else
 	{
-		Ptr *				runData, * runDataPtr;			// r6, r8
+		Ptr *				runData = NULL, * runDataPtr;			// r6, r8
 		short *			runLengths = NULL;							// r7
 		StyleRecord **	stylePtrs, ** stylePtrPtr;		// r5, r10
-		StyleRecord *	styleRecs,  * styleRecPtr;		// sp24r, r4
+		StyleRecord *	styleRecs = NULL,  * styleRecPtr;		// sp24r, r4
 		//sp-04
 		ArrayIndex		numOfInkWords = inStr.numInkWordsInRange(inStart, inLength);		// sp00r
 		if (numOfInkWords != 0)

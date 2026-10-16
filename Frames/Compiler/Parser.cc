@@ -194,7 +194,7 @@ CCompiler::parse(void)
 	consumeChar();
 	consumeToken();
 
-	ExprAST * ast;
+	ExprAST * ast = NULL;
 	for (bool isEOF = false; !isEOF; )
 	{
 		switch (theToken.id)
@@ -469,8 +469,8 @@ CCompiler::parseOperRHS(int inPrecedence, ExprAST * ioLHS)
 					std::string msg = SymbolName(theToken.value.ref);
 					consumeToken();	// symbol
 
-					if (theToken.id != '(' && oper == ':')
-						return parseOperRHS(operPrecedence+1, new FuncAccessExprAST(ioLHS, msg));
+					if (theToken.id != '(' && oper == ':')	// (operPrecedence isn't set here: carry on as the other accessors do)
+						return parseOperRHS(inPrecedence, new FuncAccessExprAST(ioLHS, msg));
 
 					FAILNOT(theToken.id == '(', error("expected (");)
 					consumeToken();	// (

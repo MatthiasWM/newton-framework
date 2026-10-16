@@ -931,7 +931,7 @@ extern int	GetStringFormat(RefArg inStr);
 NewtonErr
 CRichString::verify(void)
 {
-	NewtonErr err;
+	NewtonErr err = noErr;
 	const UniChar * strPtr = grabPtr();
 	const UniChar * strEnd = (const UniChar *)((Ptr)strPtr + (fOffsetToInk ? fOffsetToInk : fSize));
 

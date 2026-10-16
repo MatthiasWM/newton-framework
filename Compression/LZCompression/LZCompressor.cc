@@ -55,13 +55,13 @@ TreeSearch(unsigned char * inSrcBuf, unsigned char * inSrcPtr, size_t inSrcLen, 
 	size_t	srcUsed = inSrcPtr - inSrcBuf;		// r8
 	size_t	srcRemaining = inSrcLen - srcUsed;	// r0
 	size_t	level = MIN(srcRemaining, 0x40);		// sp00	assume the most
-	TTNode *	lr;
+	TTNode *	lr = NULL;
 	if (!inCompressor->fFreeze)
 		lr = inCompressor->talloc();
 	TTNode *	r12 = inThisNode->child;
 	TTNode *	r2;
 	unsigned char * srcEnd = inSrcBuf + inSrcLen;	// r1
-	int len;
+	int len = 0;
 
 	while (state == 0)
 	{
@@ -584,7 +584,7 @@ CLZCompressor::compressBlock(size_t * outSize, void * inDstBuf, size_t inDstLen,
 	unsigned char *	srcBuf = (unsigned char *)inSrcBuf;	// r10
 	unsigned char *	srcPtr = (unsigned char *)inSrcBuf;	// r7
 	size_t	copyLen;				// sp04
-	long		offset;				// sp00
+	long		offset = 0;				// sp00
 	size_t	literalLen = 0;	// r5
 	size_t	length = 0;			// r6
 

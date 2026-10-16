@@ -1988,7 +1988,7 @@ CObjectHeap::mark(Ref ref)
 
 	Ref	marker = NILREF;
 	Ref	link;
-	SlottedObject *	obj;
+	SlottedObject *	obj = NULL;
 	ArrayIndex	index;
 #if debugLevel > 1
 bool isIntroduced = false;

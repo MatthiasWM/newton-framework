@@ -556,7 +556,7 @@ StoreErase(RefArg inRcvr)
 		ThrowOSErr(err);
 	// reregister it
 	RefVar storeRef(RegisterStore(store));
-	ArrayIndex storeIndex;
+	ArrayIndex storeIndex = 0;
 	if (originalStoreIndex != kIndexNotFound && (storeIndex = ArrayPosition(gStores, storeRef, 0, RA(NILREF))) != kIndexNotFound)
 	{
 		if (storeIndex != originalStoreIndex)

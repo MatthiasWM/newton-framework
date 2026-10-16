@@ -419,8 +419,8 @@ FindWordBreaks(const UniChar * inStr, ArrayIndex inStrLen, ULong inOffset, bool 
 	{
 		CDataPtr breakTable(inBreakTable);
 		UByte * breakTablePtr = (UByte *)(char *)breakTable;	// r0
-		const UniChar * wordStart;		// r5
-		const UniChar * wordEnd;		// r10
+		const UniChar * wordStart = NULL;		// r5
+		const UniChar * wordEnd = NULL;		// r10
 		const UniChar * strEnd = inStr + inStrLen;
 		int offset = inOffset;	// r6
 		// if not the leading edge, start with the previous char
@@ -476,7 +476,7 @@ FindWordBreaks(const UniChar * inStr, ArrayIndex inStrLen, ULong inOffset, bool 
 				wordStart = inStr;
 
 			// look forwards for end of word
-			const UniChar * mark, * here;
+			const UniChar * mark = NULL, * here;
 			state = 2;
 			for (p = wordStart; p <= strEnd; )
 			{
@@ -582,7 +582,7 @@ CDictionary::parseString(void * inContext, const UniChar * inStr, ArrayIndex * o
 //	r8 = inStrLen
 
 	NewtonErr err = noErr;
-	ArrayIndex parsedLen;
+	ArrayIndex parsedLen = 0;
 
 	XTRY
 	{
@@ -1076,10 +1076,10 @@ void
 CDate::longDateString(ULong inStrSpec, UniChar * outStr, ArrayIndex inStrSize)
 {
 	bool hasDay;
-	bool hasDayOfWeek;
+	bool hasDayOfWeek = false;
 	bool hasMonth;
 	bool hasYear;
-	ULong dayFormat, dayOfWeekFormat, monthFormat, yearFormat;
+	ULong dayFormat = 0, dayOfWeekFormat = 0, monthFormat = 0, yearFormat = 0;
 	UStr31 elementStr;
 	int numOfElements = 0;
 

@@ -149,10 +149,10 @@ NewtonErr
 FillChunkArray(CStore * inStore, PSSId inObjId, PSSId inChunksId, CPipe * inPipe, size_t inSize, const char * inCompanderName, PSSId inCompanderParmsId, CLOCallback * inCallback)
 {
 	NewtonErr	err;
-	size_t		chunkIndex, numOfChunks;
+	size_t		chunkIndex, numOfChunks = 0;
 	size_t		chunkSize;
 	char *		chunk;
-	CStoreCompander * compander;
+	CStoreCompander * compander = NULL;
 
 	XTRY
 	{
@@ -245,7 +245,7 @@ NewtonErr
 FillChunkArrayCompressed(CStore * inStore, PSSId inChunksId, CPipe * inPipe, size_t inSize, CLOCallback * inCallback)
 {
 	NewtonErr	err;
-	size_t		chunkIndex, numOfChunks;
+	size_t		chunkIndex, numOfChunks = 0;
 	size_t		chunkSize;
 	char *		chunk;
 
@@ -943,7 +943,7 @@ NewtonErr
 LODefaultBackup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed, CLOCallback * inCallback)
 {
 	NewtonErr	err = noErr;	// sp20
-	VAddr			addr;				// sp1C
+	VAddr			addr = 0;				// sp1C
 	size_t		objSize;			// sp18
 	bool			isMapped = false;	// sp14
 	char *		chunk;

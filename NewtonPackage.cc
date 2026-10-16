@@ -642,7 +642,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 
 		ArrayObject32 * srcPtr = (ArrayObject32 *)(inPartAddr + ((intptr_t)PTR(srcRef) - inPartOffset));	// might not actually be an ArrayObject, but header/class are common to all pointer objects
 		size_t srcSize = CANONICAL_SIZE(srcPtr->size);
-		ArrayIndex count;
+		ArrayIndex count = 0;
 		size_t dstSize;
 		if ((srcPtr->flags & kObjSlotted)) {
 			//	work out size for 64-bit Ref slots

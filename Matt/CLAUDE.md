@@ -1295,6 +1295,15 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B75 Variables read before they were set (MSVC's Debug run-time check,
+  /RTC1: "'err' used without being initialized", InitROMDomainManager,
+  so every NCX test that starts the object system stopped on Windows).
+  clang -Wuninitialized -Wsometimes-uninitialized
+  -Wconditional-uninitialized found 49 in newton_ncx and newton_dock. Real
+  bugs among them: IA.cc's two lexicon loops (`for (ArrayIndex i, count =
+  ...)`: i never 0) and the compiler's `obj:msg` without parentheses
+  (Parser.cc: an operPrecedence never set). The rest get a first value.
+  Fixed 2026-10-16; none of the warnings left.
 - [x] B74 RelocateFramesInPage (Compression/Relocation.cc) returns before
   it relocates anything, but the code after the return calls
   ResolveImportRef, which is in MagicPointers.cc's !forFramework part:

@@ -1633,7 +1633,7 @@ MakePhrasalLexEntry(RefArg inTemplate)
 		if (NOTNIL(GetFrameSlot(templ8, SYMA(isa)))
 		&&  NOTNIL(lexicon = GetFrameSlot(templ8, SYMA(lexicon))))
 		{
-			for (ArrayIndex i, count = Length(lexicon); i < count; ++i)
+			for (ArrayIndex i = 0, count = Length(lexicon); i < count; ++i)
 			{
 				word = GetArraySlot(lexicon, i);
 				TrieAdd(GetUString(word), gDynaTrie, templ8);
@@ -1673,7 +1673,7 @@ RemovePhrasalLexEntry(RefArg inTemplate)
 		RefVar	lexicon;
 		if (NOTNIL(lexicon = GetFrameSlot(templ8, SYMA(lexicon))))
 		{
-			for (ArrayIndex i, count = Length(lexicon); i < count; ++i)
+			for (ArrayIndex i = 0, count = Length(lexicon); i < count; ++i)
 			{
 				word = GetArraySlot(lexicon, i);
 				if (IsArray(word))

@@ -250,7 +250,7 @@ PackageChunk::PackageChunk(CStore * inStore, PSSId inObjId)
 NewtonErr
 InitROMDomainManager(void)
 {
-	NewtonErr err;
+	NewtonErr err = noErr;
 	XTRY
 	{
 		ULong envId, domId;

@@ -3085,7 +3085,7 @@ CFlashStore::chooseWorkingBlock(size_t inMinSize, ZAddr inAddr)
 	NewtonErr err = noErr;
 	size_t reqdSize = LONGALIGN(inMinSize) + fBucketSize*sizeof(SDirEnt) + 16;
 	CFlashBlock * block;
-	ZAddr blockAddr;
+	ZAddr blockAddr = 0;
 	ULong r8;
 	ZAddr unusedBlock;
 PRINTF(("CFlashStore::chooseWorkingBlock(minSize=%lu, addr=%08X)\n", inMinSize,inAddr));

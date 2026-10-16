@@ -199,7 +199,7 @@ bool
 MakeStringObject(RefArg obj, UniChar * str, ArrayIndex * outLength, ArrayIndex inMaxLength)
 {
 	UniChar		buf[64];
-	UniChar *	src;
+	UniChar *	src = NULL;
 	ArrayIndex	length;
 	bool			result = true;
 	RefVar		op;
