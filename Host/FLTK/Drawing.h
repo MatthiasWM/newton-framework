@@ -66,6 +66,11 @@ void DrawPixels(Fl_Image * inImage, int x, int y);
     the difference blend mode (macOS; see Drawing.cc). */
 void BlendInvert(bool inOn);
 
+/** BlendInvert() on X11 and Windows (InvertMode.cc): the GC's or the DC's
+ raster operation inverts what lies under what is drawn (GXinvert, R2_NOT).
+ Untested there; does nothing elsewhere (Wayland). */
+void SetInvertMode(bool inOn);
+
 /** Invert what inDraw draws in x, y, w, h (called with the area's top left,
     in black): for text, which the blend mode doesn't reach (CoreText). */
 void DrawInverted(int x, int y, int w, int h, const std::function<void(int, int)> & inDraw);

@@ -86,8 +86,9 @@ first. The natives' NewtonScript (Newton/PhysNatives.ns) is checked in, so the
 build needs no ARM tools. After a change to PhysNatives.s, run
 `Matt/tools/build_newtdump_natives.sh`, which needs `arm-none-eabi-as`.
 
-newtdump is built and tested on macOS. On Windows, `newton_dock`'s link and
-transports are still stubs, so newtdump can't connect there yet.
+newtdump is built and tested on macOS and Linux (`.github/workflows/tools.yml`
+builds it for both, Intel and ARM). On Windows it builds, but `newton_dock`'s
+link and transports are still stubs, so it can't connect there yet.
 
 ## Tests
 

@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <thread>
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -624,7 +625,7 @@ int NTKInspectorREPL(const std::string &inTarget)
     }
     fflush(stdout);
   }
-  usleep(300000);                     // let the Newton's LD arrive
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));   // let the Newton's LD arrive
   inspector.handleEvents(terminal);
   inspector.stop();
   printf("ntk: done\n");

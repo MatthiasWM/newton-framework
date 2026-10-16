@@ -165,8 +165,10 @@ FExtractLong(RefArg rcvr, RefArg inObj, RefArg inOffset)
 
 	char * p = BinaryData(inObj);
 	int32_t v = (int32_t)Get32(inObj, p + offset);
-	uint32_t vMask = (uint32_t)kRefValueMask >> kRefTagBits;
-	if ((v & ~vMask) != 0)
+	// as in ROM: fits a 30-bit integer if the top two bits are the same
+	// (0x00315B9C; negative values too)
+	uint32_t top = (uint32_t)v & 0xC0000000;
+	if (top != 0 && top != 0xC0000000)
 		ThrowErr(exFrames, kNSErrLongOutOfRange);
 	return MAKEINT(v);
 }

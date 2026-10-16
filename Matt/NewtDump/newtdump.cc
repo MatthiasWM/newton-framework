@@ -30,10 +30,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
+#include <thread>
 #include <vector>
 
 extern const unsigned char kNewtDumpExtension[];   // Extension.ns as NSOF (CMake)
@@ -613,8 +615,7 @@ bool Download(Session &ioSession, const Options &inOptions, const std::string &i
     done += length;
     progress.add(length, uniform);
     if (inOptions.pauseMs > 0) {
-      struct timespec ts = { inOptions.pauseMs / 1000, (inOptions.pauseMs % 1000) * 1000000 };
-      nanosleep(&ts, nullptr);
+      std::this_thread::sleep_for(std::chrono::milliseconds(inOptions.pauseMs));
     }
   }
   fclose(f);
@@ -776,10 +777,12 @@ int main(int argc, char **argv)
     fprintf(stderr, "newtdump: unknown command %s (--help)\n", cmd.c_str());
     return 1;
   }
-  mkdir(options.output.c_str(), 0755);
+  { std::error_code err; std::filesystem::create_directories(options.output, err); }
 
   signal(SIGINT, OnInterrupt);
+#if defined(SIGPIPE)
   signal(SIGPIPE, SIG_IGN);
+#endif
   Session session(options);
   int result = 0;
   try {

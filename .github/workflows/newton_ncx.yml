@@ -5,7 +5,7 @@
 # fetched), whose image surface the test draws into and checks; on Linux
 # under Xvfb (X11 only: FLTK_BACKEND_WAYLAND off, fewer packages). One job
 # without FLTK, where drawing does nothing.
-# The tools (newtc, ...) aren't built here: they need macOS for now.
+# The tools (newtc, newtdump) are built by tools.yml.
 name: newton_ncx
 
 on:

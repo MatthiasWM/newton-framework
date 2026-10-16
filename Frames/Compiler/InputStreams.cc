@@ -91,11 +91,14 @@ CStdioInputStream::CStdioInputStream(FILE * inFile, const char * inFilename)
 UniChar
 CStdioInputStream::getch(void)
 {
-	char		c = getc(fRef);
+	// an int: EOF isn't a char (where char is unsigned, as on ARM Linux, it
+	// never matched; where it is signed, a byte 0xFF ended the file)
+	int		inCh = getc(fRef);
 //	original handles two-byte character encoding - maybe we should handle UTF-8?
-	if (c == EOF)
+	if (inCh == EOF)
 		return EOF;
 
+	char		c = (char)inCh;
 	UniChar	ch[2]; // ch[0] is the converted character. ch[1] will be kEndOfString
 	ConvertToUnicode(&c, ch, 1);
 	return ch[0];

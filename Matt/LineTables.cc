@@ -5,6 +5,7 @@
  */
 
 #include "Matt/LineTables.h"
+#include "Utilities/HostCompat.h"
 #include "Matt/JSON.h"
 
 #include "Frames/Frames.h"
@@ -81,10 +82,7 @@ long EntryLine(RefArg table, ArrayIndex i) { return RINT(GetArraySlot(table, 2 +
 // file names in line tables with those a debugger client sends.
 std::string CanonicalPath(const std::string &path)
 {
-  char resolved[PATH_MAX];
-  if (!path.empty() && realpath(path.c_str(), resolved) != nullptr)
-    return resolved;
-  return path;
+  return HostCanonicalPath(path);
 }
 
 /*------------------------------------------------------------------------------

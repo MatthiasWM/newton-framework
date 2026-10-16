@@ -3,6 +3,11 @@ nil
 nil
 
 --- stderr ---
-newtc: 2 of <total> stubs called:
+newtc: 7 of <total> stubs called:
          2  Fsin                             <file:line>
+         2  FStrCompare                      <file:line>
+         2  CSSetDefaultConfig               <file:line>
+         2  CSInstantiate                    <file:line>
+         2  CSDispose                        <file:line>
+         1  FSetInkerPenSize                 <file:line>
          1  FBatteryLevel                    <file:line>

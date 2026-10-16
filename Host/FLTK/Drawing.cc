@@ -291,9 +291,9 @@ void BlendInvert(bool inOn)
   if (CGContextRef gc = (CGContextRef)fl_graphics_driver->gc())
     CGContextSetBlendMode(gc, inOn ? kCGBlendModeDifference : kCGBlendModeNormal);
 #else
-  // FLTK has no blend mode (an issue is open at github.com/fltk/fltk): until
-  // it does, XOR (transferMode 2) is macOS only
-#error "BlendInvert(): XOR drawing needs a difference blend mode in FLTK"
+  // FLTK has no blend mode (an issue is open at github.com/fltk/fltk): the
+  // system's raster operation instead (InvertMode.cc)
+  SetInvertMode(inOn);
 #endif
 }
 

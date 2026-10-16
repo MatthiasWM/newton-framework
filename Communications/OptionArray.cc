@@ -80,7 +80,7 @@ COption::copyDataFrom(COption * inOption)
 	else if (length() > optLen)
 		// this option is longer than required
 		err = -8;
-	memmove(fData, inOption->fData, optLen);
+	memmove(data(), inOption->data(), optLen);
 	return err;
 }
 

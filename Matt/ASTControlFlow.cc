@@ -15,6 +15,7 @@
 
 #include "Matt/Decompiler.h"
 #include "Matt/ObjectPrinter.h"
+#include "Utilities/HostCompat.h"   // strcasecmp
 
 using namespace ast;
 

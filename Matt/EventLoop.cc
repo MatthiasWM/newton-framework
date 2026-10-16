@@ -7,7 +7,11 @@
 #if NEWTC_USES_FLTK
 // FLTK first: the framework's headers #define names FLTK uses (OVERRIDE, ...)
 #include <FL/Fl.H>
-#include <FL/platform.H>   // fl_open_display()
+// fl_open_display(); on X11 it includes Xlib.h, whose type GC would clash
+// with the Newton's GC() (Frames/Objects.h)
+#define GC XlibGC
+#include <FL/platform.H>
+#undef GC
 #endif
 
 #include "Matt/EventLoop.h"

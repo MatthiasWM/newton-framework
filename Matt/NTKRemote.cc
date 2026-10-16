@@ -19,6 +19,7 @@
 #include "Frames/Compiler/Compiler.h"
 #include "Frames/DebugAPI.h"
 #include "Frames/Interpreter.h"
+#include "Utilities/HostCompat.h"
 
 #include <chrono>
 #include <cstdio>
@@ -768,7 +769,7 @@ Ref FNTKCompileFile(RefArg rcvr, RefArg inPath)
   fclose(file);
   text += "\nend onexception |evt.ex| do |dap result| := {|DAP error|: CurrentException()}; "
           "|dap result| end";
-  FILE *fd = fmemopen((void *)text.data(), text.size(), "r");
+  FILE *fd = HostTextFile(text);
   if (!fd)
     Fail("NTKCompileFile: out of memory");
   RefVar blocks(MakeArray(0));

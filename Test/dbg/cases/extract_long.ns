@@ -1,0 +1,10 @@
+// B62: ExtractLong takes a long that fits a 30-bit integer, negative ones
+// too (the ROM: the top two bits the same); others are "Long out of range".
+// The ROM's init scripts read the serial number with it.
+b := MakeBinaryFromHex("1FFFFFFFE0000000FFFFFFFEEC00000040000000BFFFFFFF", 'data);
+Print(ExtractLong(b, 0));
+Print(ExtractLong(b, 4));
+Print(ExtractLong(b, 8));
+Print(ExtractLong(b, 12));
+try ExtractLong(b, 16) onexception |evt.ex| do Print(CurrentException().error);
+try ExtractLong(b, 20) onexception |evt.ex| do Print(CurrentException().error);

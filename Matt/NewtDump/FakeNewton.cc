@@ -21,12 +21,13 @@
 #include "Matt/NewtDump/DockLink.h"
 #include "Matt/NewtDump/NSOF.h"
 
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -250,7 +251,7 @@ bool Session(Fake &ioFake)
       link.sendLong(DockCommand("dres"), 0);
     } else if (p.command == DockCommand("NDmp")) {
       if (ioFake.delayMs > 0)
-        usleep((useconds_t)ioFake.delayMs * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(ioFake.delayMs));
       nsof::Ref request = nsof::Read(p.data.data(), p.data.size());
       nsof::Ref result = Answer(ioFake, request);
       if (ioFake.cancelAfter > 0 && ioFake.reads >= ioFake.cancelAfter) {
@@ -331,12 +332,12 @@ int main(int argc, char **argv)
           break;
       } catch (std::exception &e) {
         if (fake.dropped && attempt < 19) {   // newtdump may not be listening yet
-          usleep(200000);
+          std::this_thread::sleep_for(std::chrono::milliseconds(200));
           continue;
         }
         throw;
       }
-      usleep(300000);                         // dropped: connect again
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));   // dropped: connect again
     }
   } catch (std::exception &e) {
     fprintf(stderr, "newtdump-test-newton: %s\n", e.what());

@@ -4,7 +4,7 @@ Print(tickIndex);
 Print(api:Receiver(tickIndex) = obj);
 Print(api:Implementor(tickIndex) = base);
 Print(api:Implementor(tickIndex) = obj);
-theSelf := api:Receiver(tickIndex);
+theSelf := api:Receiver(tickIndex); nil;
 theSelf.count := 10;
 api := nil;
 ExitBreakLoop();

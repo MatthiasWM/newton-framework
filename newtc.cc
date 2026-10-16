@@ -32,6 +32,7 @@
 #include "Frames/Compiler/InputStreams.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
+#include "Utilities/HostCompat.h"
 #if defined(NEWTC_NEWTPLAY)
 #include "Matt/NewtPlay.h"
 #include <vector>
@@ -1096,8 +1097,7 @@ void handleArgODecompile(const std::string &filename)
     p.debugMap_ = &functions;
     p.Decompile(ref0);
   }
-  char resolved[PATH_MAX];
-  std::string sourcePath = realpath(filename.c_str(), resolved) ? resolved : filename;
+  std::string sourcePath = HostCanonicalPath(filename);
   std::string mapPath = filename;
   size_t dot = mapPath.rfind('.');
   size_t slash = mapPath.rfind('/');

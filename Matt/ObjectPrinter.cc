@@ -64,6 +64,8 @@
 #include <iostream>
 #include <sstream>
 #include <cctype>
+#include <cmath>
+#include <functional>
 
 /**
  \brief A function object (a frame). The ROM's IsFunction() only looks at the

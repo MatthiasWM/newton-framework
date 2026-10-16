@@ -1216,6 +1216,30 @@ assembler and Windows can build with MSVC or clang-cl.
       links newton_dock too. CI builds and runs it everywhere (first build
       of MNP.cc and NTKTransport.cc on Linux). Found and fixed B61.
 
+- [x] 0.7 newtc and newtdump on all systems, released by GitHub Actions
+      (2026-10-16, Matt: for VSNewt eventually). `.github/workflows/tools.yml`:
+      Release builds with FLTK, no sanitizers, for darwin-arm64, darwin-x64
+      (built on Apple silicon, tried under Rosetta), linux-x64, linux-arm64
+      (Ubuntu 22.04: an older glibc), win32-x64, win32-arm64 (MSVC); each tried
+      (a script prints 42, newtdump --help), newtdump's test on macOS and Linux,
+      packed as newtc-<platform>-<arch> (Node's names, for VSNewt); a tag
+      tools-v<version> makes a GitHub release. What it took:
+      - Linux (tried in Docker, Ubuntu 24.04 arm64; copy the tracked files in:
+        a bind mount from macOS is case-insensitive, and <strings.h> found
+        Frames/Strings.h): missing includes (<vector>, <functional>, <cmath>,
+        <cstdarg>), __builtin_debugtrap (clang only), Xlib's type GC against
+        the Newton's GC() (renamed around FL/platform.H), XOR drawing without
+        Quartz (Host/FLTK/InvertMode.cc: GXinvert, R2_NOT; untested), B62,
+        B63, B64, B65. Tests there: newtc 123 of 128 (B66: FLTK drawing),
+        newtdump 16 of 16.
+      - Windows: Utilities/HostCompat.h (strcasecmp, HostToBig16/32 for
+        htons/htonl, HostCanonicalPath for realpath, HostTextFile for
+        fmemopen), std::this_thread::sleep_for for usleep/nanosleep,
+        std::filesystem for mkdir, COption's zero-sized fData (MSVC: not in a
+        base class) now data(), NOMINMAX and _USE_MATH_DEFINES, a lambda that
+        returned long for a Ref. newtc runs scripts there; its tests haven't
+        run on Windows yet; no -dap-server, no Newton link (newton_dock).
+
 ### Notes for later (Matt, 2026-10-15)
 - [ ] L1 package1 instead of package0 (we don't target NOS 1): check what
       package1 means first (Newton Formats: it may hold relocation info;
@@ -1253,6 +1277,38 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [ ] B66 newtc's FLTK views draw differently on Linux (X11; found
+  2026-10-16 with run_dbg_tests.py under Xvfb, 5 cases): fltk_bitmaps (1-bit
+  bitmaps: patterns come out solid, a part of a bitmap and a framed view's
+  bitmap wrong or missing), fltk_drawing (an icon's 1 bit gray 30, not 0;
+  XOR text on white and XOR on the canvas don't invert, though
+  SetInvertMode, Host/FLTK/InvertMode.cc, sets the GC's GXinvert: cause not
+  looked at yet), fltk_popup (the highlighted popup's paper
+  not black), fltk_view_format (pen and shadow edges one pixel off). And
+  fltk_fonts: other fonts, other widths (expected; that case is macOS
+  only). Windows not tried yet.
+- [x] B65 FTestPixel and TestSnapshot (Matt/TestWindow.cc) crashed on X11:
+  FLTK reads a double window's offscreen buffer, which exists only once the
+  window was exposed and drawn; right after show() it is null. Fixed
+  2026-10-16: wait_for_expose() first.
+- [x] B64 CCompiler::syntaxError passed 511 as the size to every snprintf
+  while moving through its buffer (glibc's fortify: "buffer overflow
+  detected", the syntax error tests aborted on Linux; the texts fit, so no
+  harm on macOS). Fixed 2026-10-16: each piece gets what is left.
+- [x] B63 CStdioInputStream::getch kept getc()'s result in a char: where
+  char is unsigned (ARM Linux) EOF was never seen, so every -script and
+  Load ended in "unrecognized token"; where it is signed, a byte 0xFF ended
+  the file. Fixed 2026-10-16 (an int).
+- [x] B62 ExtractLong threw "Long out of range" for every negative long; the
+  ROM (0x00315B9C) takes any whose top two bits are the same. The ROM's init
+  scripts read the serial number with it, and newtc's serial from the Mac's
+  (SerialNumber.cc) has 0xEC.. there: on macOS RunInitScripts stopped at
+  that call (its exception swallowed) and the rest of the init scripts
+  never ran; on Linux without /etc/machine-id they did (found by the stub
+  report differing). Fixed 2026-10-16. Now the init scripts run to the end
+  on macOS too and call five more stubs (FStrCompare, CSInstantiate,
+  CSDispose, CSSetDefaultConfig, FSetInkerPenSize): dap_stubs and
+  stubs_report updated. Test: case extract_long.
 - [x] B61 DES decoding (Communications/DES.c) ran the 16 round keys
   forwards, as encoding does, so DESDecode and DESDecodeNonce encrypted
   again; DESCBCDecode also read the first block for every block

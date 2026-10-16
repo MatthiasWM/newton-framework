@@ -137,7 +137,10 @@ protected:
 	ULong		fFlags;			// flag bits
 	size_t	fLength;			// length of data following, excluding header (i.e., fLabel, fFlags, fLength)
 
-	UChar		fData[0];		// variable amount of data follows, derived classes specify
+	// variable amount of data follows, derived classes specify: right after
+	// the header (was a member fData[0]; MSVC allows no zero-sized arrays in
+	// a base class)
+	UChar *	data(void) { return reinterpret_cast<UChar *>(this + 1); }
 };
 
 inline bool			COption::isProcessed() const			{ return ( (fFlags & kProcessedFlagMask) == kProcessedFlagMask ); }

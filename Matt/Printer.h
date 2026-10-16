@@ -13,6 +13,8 @@
 #include "Newton.h"
 
 #include <ostream>
+#include <utility>
+#include <vector>
 
 
 class Printer {

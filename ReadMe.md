@@ -26,14 +26,16 @@ What CMake builds:
 |---|---|---|
 | `newton_ncx` | Static library for NCX (Newton Connection): objects, NewtonScript (interpreter, compiler, decompiler), NSOF, stores, compression, packages, the ROM's data, QuickDraw drawing. Started with `InitObjectSystemCore()`. | Linux, Windows, macOS |
 | `newton_dock` | Static library: the MNP link, serial and TCP transports, DES. On Windows the link and transports are stubs; framing, CRC and DES work. | Linux, Windows, macOS |
-| `newtc` | NewtonScript compiler, interpreter and debugger (VS Code through DAP; also on a Newton or Einstein over the Toolkit protocol). Writes packages. `newtc -h` lists its options. | macOS |
-| `newtdump` | Reads a Newton's ROM and PCMCIA cards over the Docking Protocol (Matt/NewtDump/README.md). `newtdump-test-newton` plays the Newton for its tests. | macOS |
+| `newtc` | NewtonScript compiler, interpreter and debugger (VS Code through DAP; also on a Newton or Einstein over the Toolkit protocol). Writes packages. `newtc -h` lists its options. | macOS, Linux, Windows (see below) |
+| `newtdump` | Reads a Newton's ROM and PCMCIA cards over the Docking Protocol (Matt/NewtDump/README.md). `newtdump-test-newton` plays the Newton for its tests. | macOS, Linux; Windows builds it, but it can't connect yet |
 | `NewtPlay` | Runs Newton packages as a Mac app. Needs `-DNEWTC_USES_FLTK=ON`; `Matt/tools/build_newtplay.sh` builds the release. Not built by default. | macOS |
 | `ResMaker` | Makes the ROM data (C) from a ROM image (see ROM Data below). Not built by default. | macOS |
 | `newton_ncx_test`, `newton_dock_test` | The libraries' tests (`ctest`). | Linux, Windows, macOS |
 | `MessagePad` | Simon's MP2100 on the Mac. It doesn't link at the moment; Intel Macs only. | — |
 
-The libraries are always built. GitHub Actions builds and tests them on Linux (x64, arm64; gcc), Windows (x64, arm64; MSVC) and macOS (universal); see `.github/workflows/newton_ncx.yml`. The tools are built and tested on macOS; other systems haven't been tried yet.
+The libraries are always built. GitHub Actions builds and tests them on Linux (x64, arm64; gcc), Windows (x64, arm64; MSVC) and macOS (universal); see `.github/workflows/newton_ncx.yml`.
+
+newtc and newtdump are developed and fully tested on macOS. `.github/workflows/tools.yml` builds them for macOS, Linux and Windows, each on Intel and ARM, and tries them there. On Linux (tested in Docker, Ubuntu 24.04 on arm64) all of newtc's tests pass except five that check how Newton views draw in FLTK windows (B66 in Matt/CLAUDE.md), and newtdump's test passes. On Windows, newtc compiles and runs scripts, but its tests haven't been run there yet; `-dap-server` and the connection to a Newton (`-ntk...`) aren't there yet, because `newton_dock`'s link is a stub on Windows.
 
 Options:
 
@@ -70,6 +72,10 @@ target_link_libraries (myapp PRIVATE newton_ncx newton_dock)
 `-DFETCHCONTENT_SOURCE_DIR_NEWTON=<path>` uses a local checkout instead of downloading one. `Test/cmake/test_subproject.py` tests this setup.
 
 `cmake -G Xcode` makes an Xcode project. `Newton.xcodeproj` is the original Xcode project; it isn't maintained.
+
+
+## RELEASES
+Each run of `.github/workflows/tools.yml` keeps an archive per system as an artifact of the run: `newtc-darwin-arm64.tar.gz`, `newtc-darwin-x64.tar.gz`, `newtc-linux-x64.tar.gz`, `newtc-linux-arm64.tar.gz`, `newtc-win32-x64.zip` and `newtc-win32-arm64.zip`. Each archive holds newtc and newtdump. The names are Node's `process.platform` and `process.arch`, so VSNewt can pick the right one. Pushing a tag `tools-v<version>` (for example `tools-v0.1`) also publishes a GitHub release with these archives. On Linux, newtc needs X11's libraries (libX11, libXft, fontconfig), which any desktop has. The macOS binaries are signed ad hoc only, and need macOS 13 or later.
 
 
 ## TESTS

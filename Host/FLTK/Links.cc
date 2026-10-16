@@ -10,7 +10,11 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
-#include <FL/platform.H>   // fl_open_display()
+// fl_open_display(); on X11 it includes Xlib.h, whose type GC would clash
+// with the Newton's GC() (Frames/Objects.h)
+#define GC XlibGC
+#include <FL/platform.H>
+#undef GC
 
 #include "Host/FLTK/Links.h"
 #include "Host/FLTK/FloatNGo.h"

@@ -24,18 +24,18 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
-#include <arpa/inet.h>
+#include "Utilities/HostCompat.h"
 
 
 class BinaryOutStream: public std::ostringstream {
 public:
   BinaryOutStream& operator<<(const uint32_t& v) {
-    uint32_t vn = htonl(v);
+    uint32_t vn = HostToBig32(v);
     write((const char*)(&vn), 4);
     return *this;
   }
   BinaryOutStream& operator<<(const uint16_t& v) {
-    uint16_t vn = htons(v);
+    uint16_t vn = HostToBig16(v);
     write((const char*)(&vn), 2);
     return *this;
   }

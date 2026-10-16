@@ -11,7 +11,11 @@
 #include <chrono>
 #include <cstring>
 #include <random>
+#if defined(_WIN32)
+#include <thread>
+#else
 #include <sys/select.h>
+#endif
 
 namespace {
 
@@ -149,6 +153,11 @@ bool DockLink::receive(DockPacket &outPacket, double inSeconds)
 // Wait up to inSeconds for MNP events and take them: data into the buffer
 bool DockLink::pump(double inSeconds)
 {
+#if defined(_WIN32)
+  // no link on Windows yet (newton_dock: start() refuses)
+  std::this_thread::sleep_for(std::chrono::duration<double>(inSeconds));
+  return false;
+#else
   int fd = mLink.notifyFd();
   fd_set readable;
   FD_ZERO(&readable);
@@ -158,6 +167,7 @@ bool DockLink::pump(double inSeconds)
   tv.tv_usec = (long)((inSeconds - (double)tv.tv_sec) * 1e6);
   if (select(fd + 1, &readable, nullptr, nullptr, &tv) <= 0)
     return false;
+#endif
   MNPLink::Event event;
   while (mLink.nextEvent(event)) {
     switch (event.kind) {

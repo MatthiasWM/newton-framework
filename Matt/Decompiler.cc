@@ -348,7 +348,7 @@ void Decompiler::decompile(Ref ref)
     locals_.clear();
     // Make the list of names of the locals
     MapSlots(argFrame,
-             [](RefArg tag, RefArg, uintptr_t user_data)->long {
+             [](RefArg tag, RefArg, uintptr_t user_data)->Ref {
       Decompiler *self = (Decompiler*)user_data;
       Decompiler::Local l = { tag, Local::Use::undefined };
       self->locals_.push_back(l);
@@ -524,7 +524,13 @@ void Decompiler::decompile(Ref ref)
     printAST("Initial AST");
   }
   if (!p.DebugTrap().empty() && (p.RefPath() == p.DebugTrap())) {
+#if defined(__clang__)
     __builtin_debugtrap();
+#elif defined(_MSC_VER)
+    __debugbreak();
+#else
+    __builtin_trap();
+#endif
   }
   solve();
   if (p.DebugAST()) printASTRoot();

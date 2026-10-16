@@ -3445,7 +3445,16 @@ CCompiler::syntaxError(const char * msg)
 			snprintf(offender, 63, "%#g", CDouble(theToken.value.ref));
 		else
 			offender[0] = 0;
-		s += snprintf(s, 511, "%s -- read %s %s, but wanted ", msg, what, offender);
+		// each piece gets what is left of str (a long list is cut, not overrun)
+		auto append = [&](const char * inText) {
+			size_t left = sizeof(str) - (s - str);
+			int n = snprintf(s, left, "%s", inText);
+			if (n > 0)
+				s += ((size_t)n < left) ? n : left - 1;
+		};
+		s += snprintf(s, sizeof(str), "%s -- read %s %s, but wanted ", msg, what, offender);
+		if (s >= str + sizeof(str))
+			s = str + sizeof(str) - 1;
 
 		int r0, expectedCount = 0;
 		for (ArrayIndex i = 0; i <= YYMAXTOKEN; ++i)
@@ -3458,8 +3467,8 @@ CCompiler::syntaxError(const char * msg)
 			   && i == yycheck[r0]))
 			{
 				if (expectedCount++ > 0)
-					s += snprintf(s, 511, ", ");
-				s += snprintf(s, 511, "%s", yyname[i]);
+					append(", ");
+				append(yyname[i]);
 			}
 		}
 		*s = 0;

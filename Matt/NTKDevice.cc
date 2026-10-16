@@ -26,6 +26,8 @@
 #include <algorithm>
 #include <deque>
 #include <string>
+#include <chrono>
+#include <thread>
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -132,7 +134,7 @@ struct Nub {
     fprintf(stderr, "ntk-device: %s\n", inWhy);
     send(NTKCommand("term"));
     for (int i = 0; i < 30 && link.pending() > 0 && link.isUp(); i++)
-      usleep(100000);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     link.disconnect();
     ended = true;
   }
@@ -646,7 +648,7 @@ static int RunDeviceSession(Nub &nub, const std::string &inTarget)
     if (!started && error.compare(0, 14, "can't connect ") != 0)
       break;                            // not a refused connection: give up
     if (!started)
-      usleep(200000);
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
   if (!started) {
     fprintf(stderr, "newtc: -ntk-device: %s\n", error.c_str());
@@ -695,7 +697,7 @@ static int RunDeviceSession(Nub &nub, const std::string &inTarget)
   gREPout = savedOut;
 
   for (int i = 0; i < 20 && nub.link.pending() > 0 && nub.link.isUp(); i++)
-    usleep(100000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   nub.link.stop();
   return 0;
 }
@@ -729,7 +731,7 @@ int NTKDeviceRun(const std::string &inTarget)
     // handshake is tried again, for half a minute
     fprintf(stderr, "ntk-device: waiting for the next session\n");
     for (int attempt = 0; attempt < 30; attempt++) {
-      usleep(1000000);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       nub.linkUp = false;
       nub.ended = false;
       nub.packets.clear();

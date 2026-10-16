@@ -16,7 +16,9 @@
 #include "Frames/Interpreter.h"
 #include "Frames/Compiler/Compiler.h"
 #include "REPTranslators.h"
+#include "Utilities/HostCompat.h"   // strncasecmp
 
+#include <cstdarg>
 #include <cstdio>
 #include <cerrno>
 #include <cstdlib>

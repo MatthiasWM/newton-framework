@@ -989,6 +989,11 @@ if (APPLE)
   )
 endif ()
 
+# MSVC: M_PI and friends; no min/max macros from windows.h (FLTK includes it)
+if (MSVC)
+  target_compile_definitions (newtc PRIVATE _USE_MATH_DEFINES NOMINMAX)
+endif ()
+
 # Line editing and history in the break loop, if the system has libedit
 # (macOS always has it; Linux if installed). Without it, newtc reads plain
 # lines from stdin. Not a required dependency.
@@ -1020,7 +1025,7 @@ if (NEWTC_USES_FLTK)
     Host/FLTK/Links.cc Host/FLTK/Links.h
     Host/FLTK/FloatNGo.cc Host/FLTK/FloatNGo.h
     Host/FLTK/Widgets.cc Host/FLTK/Widgets.h Host/FLTK/Pen.cc Host/FLTK/Pen.h
-    Host/FLTK/Drawing.cc Host/FLTK/Drawing.h Host/FLTK/Popup.cc Host/FLTK/Popup.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h Host/FLTK/Fonts.cc Host/FLTK/Fonts.h
+    Host/FLTK/Drawing.cc Host/FLTK/Drawing.h Host/FLTK/InvertMode.cc Host/FLTK/Popup.cc Host/FLTK/Popup.h Host/FLTK/Boxtypes.cc Host/FLTK/Boxtypes.h Host/FLTK/Fonts.cc Host/FLTK/Fonts.h
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
   # the ROM's graphics, lifted into PNGs (Host/FLTK/Images), compiled in

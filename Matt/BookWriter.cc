@@ -87,7 +87,7 @@
 #include "Matt/PDFGen/pdfgen.h"
 
 #include <string.h>
-#include <arpa/inet.h>
+#include "Utilities/HostCompat.h"
 
 #include <vector>
 
@@ -477,18 +477,18 @@ void set_font(RefArg r, int* font, int* height) {
 struct PictRect {
   uint16_t top, left, bottom, right;
   void read(uint16_t* d) {
-    top = htons(d[0]);
-    left = htons(d[1]);
-    bottom = htons(d[2]);
-    right = htons(d[3]);
+    top = HostToBig16(d[0]);
+    left = HostToBig16(d[1]);
+    bottom = HostToBig16(d[2]);
+    right = HostToBig16(d[3]);
   }
 };
 
 struct PictLoc {
   uint16_t v, h;
   void read(uint16_t* d) {
-    v = htons(d[0]);
-    h = htons(d[1]);
+    v = HostToBig16(d[0]);
+    h = HostToBig16(d[1]);
   }
 };
 
@@ -526,20 +526,20 @@ int pictToPdf(struct pdf_doc *pdf, const PictRect& br, RefArg block, RefArg data
 
   if ((pict[11]==0x11) && (pict[12]==0x01)) { // 0x00 0x11 0x01
     fprintf(stderr, "Data is in PICT format version 1\n");
-  } else if ((htons(pictw[5])==0x0011) && (htons(pictw[6])==0x02ff)) { // 0x0011 0x02ff
+  } else if ((HostToBig16(pictw[5])==0x0011) && (HostToBig16(pictw[6])==0x02ff)) { // 0x0011 0x02ff
     fprintf(stderr, "Data is in PICT format version 2\n");
     // $0C00
     // 24 byte header subversion, reserved, hres(2), vres(2), src_rect(4), reserved
     int ix = 7+12;
     while (ix < pict_size/2) {
-      uint16_t op = htons(pictw[ix]);
+      uint16_t op = HostToBig16(pictw[ix]);
       uint16_t sz = 0;
       fprintf(stderr, "Op: 0x%04x: ", op);
       switch (op) {
         case 0x0000: fprintf(stderr, "nop\n"); ix++; break; // nop
         case 0x0001: // clipping region
           fprintf(stderr, "clip region ");
-          sz = htons(pictw[ix+1]);
+          sz = HostToBig16(pictw[ix+1]);
           r.read(pictw+ix+2);
           fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
           ix += 1+sz/2;
@@ -550,7 +550,7 @@ int pictToPdf(struct pdf_doc *pdf, const PictRect& br, RefArg block, RefArg data
         case 0x0009: fprintf(stderr, "PenPattern\n"); ix += 5; break; // Pen Pattern, 8 bytes
         case 0x000a: fprintf(stderr, "FillPattern\n"); ix += 5; break; // Fill Pattern, 8 bytes
         case 0x000d: fprintf(stderr, "TextSize\n");
-          txSize = htons(pictw[ix+1]);
+          txSize = HostToBig16(pictw[ix+1]);
           ix += 2; break; // Text Size, 2 bytes
         case 0x0015: fprintf(stderr, "PnLocHFrac\n");
           // actual_h = pnLoc.h + (PnLocHFrac / 65536.0)
@@ -606,8 +606,8 @@ int pictToPdf(struct pdf_doc *pdf, const PictRect& br, RefArg block, RefArg data
           pdf_add_text(pdf, nullptr, buf, txSize, br.left+txLoc.h, br.top-txLoc.v, PDF_BLACK);
           ix += 3 + sz/2;
           } break;
-        case 0x002c: fprintf(stderr, "SetFont\n"); sz = htons(pictw[ix+1]); ix += 3+sz/2; break; // Set Font, 5 + name length
-        case 0x002e: fprintf(stderr, "GlyphStats\n"); sz = htons(pictw[ix+1]); ix += 2+sz/2; break; // Glyph Stats, 8 bytes
+        case 0x002c: fprintf(stderr, "SetFont\n"); sz = HostToBig16(pictw[ix+1]); ix += 3+sz/2; break; // Set Font, 5 + name length
+        case 0x002e: fprintf(stderr, "GlyphStats\n"); sz = HostToBig16(pictw[ix+1]); ix += 2+sz/2; break; // Glyph Stats, 8 bytes
         case 0x0030: fprintf(stderr, "FrameRect ");
           r.read(pictw+1);
           fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
@@ -619,21 +619,21 @@ int pictToPdf(struct pdf_doc *pdf, const PictRect& br, RefArg block, RefArg data
           pdf_add_filled_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, 0xcccccc, PDF_BLACK);
           ix += 5; break; // Fill Rect, 8 bytes
         case 0x0081: fprintf(stderr, "paintRegion "); // paintRegion
-          sz = htons(pictw[ix+1]);
+          sz = HostToBig16(pictw[ix+1]);
           r.read(pictw+ix+2);
           fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
           pdf_add_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, PDF_GREEN);
           ix += 1+sz/2;
           break;
         case 0x0084: fprintf(stderr, "fillRegion "); // fillRegion
-          sz = htons(pictw[ix+1]);
+          sz = HostToBig16(pictw[ix+1]);
           r.read(pictw+ix+2);
           fprintf(stderr, " @%d, %d, w:%d, h:%d\n", r.left, r.top, r.right-r.left, r.bottom-r.top);
           pdf_add_rectangle(pdf, nullptr, br.left+r.left, br.top-r.bottom, r.right-r.left, r.bottom-r.top, 1.0f, 0x888800);
           ix += 1+sz/2;
           break;
-        case 0x00a1: fprintf(stderr, "LongComment %d\n", htons(pictw[ix+1])); sz = htons(pictw[ix+2]); ix += 3+sz/2; break; // long comment (kind, size, data...)
-        case 0x00a0: fprintf(stderr, "ShortComment %d\n", htons(pictw[ix+1])); ix+=2; break; // short comment
+        case 0x00a1: fprintf(stderr, "LongComment %d\n", HostToBig16(pictw[ix+1])); sz = HostToBig16(pictw[ix+2]); ix += 3+sz/2; break; // long comment (kind, size, data...)
+        case 0x00a0: fprintf(stderr, "ShortComment %d\n", HostToBig16(pictw[ix+1])); ix+=2; break; // short comment
         case 0x00ff: fprintf(stderr, "END\n"); // end of format
           ix = 0x7fffffff; break;
         default: fprintf(stderr, "Unknown op code\n");

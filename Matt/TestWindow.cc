@@ -160,6 +160,7 @@ void TakeSnapshot(void * data)
     delete snapshot;
     return;
   }
+  window->wait_for_expose();   // X11: see FTestPixel
   Fl::flush();   // drawn as it is now
   window->make_current();
   Fl_RGB_Image * image = fl_capture_window(window, 0, 0, window->w(), window->h());
@@ -365,6 +366,9 @@ Ref FTestPixel(RefArg rcvr, RefArg inView, RefArg inX, RefArg inY)
     return NILREF;
   int x = (widget == window ? 0 : widget->x()) + link->Outset() + int(RINT(inX));
   int y = (widget == window ? 0 : widget->y()) + link->Outset() + int(RINT(inY));
+  // X11: a double window's offscreen buffer exists only once it was exposed
+  // and drawn; capturing before that dereferences null in FLTK
+  window->wait_for_expose();
   std::unique_ptr<Fl_RGB_Image> image;
   for (int tries = 0; tries < 40 && !image; ++tries) {   // until the window is on the screen
     if (tries)
