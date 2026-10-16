@@ -168,6 +168,7 @@ private:
   double mRetransmitAt = 0;
   double mLastSent = 0;
   double mLRRetryAt = 0;          // Newton role: resend the LR then
+  double mReopenAt = 0;           // a serial port that went away: open it again then
   int mLRTries = 0;
 };
 

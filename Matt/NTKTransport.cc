@@ -7,6 +7,7 @@
 #include "NTKTransport.h"
 
 #include <cerrno>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -62,6 +63,17 @@ bool WriteAll(int inFd, const uint8_t *inData, size_t inSize)
 
 
 // Read what is there: kData, kNothing (would block), or kDisconnected.
+// A pseudo terminal's slave (macOS /dev/ttys..., Linux /dev/pts/...),
+// e.g. what /tmp/pty.BasiliskII points to
+bool IsPseudoTerminal(const std::string &inDevice)
+{
+  char resolved[PATH_MAX];
+  if (!realpath(inDevice.c_str(), resolved))
+    return false;
+  return strncmp(resolved, "/dev/ttys", 9) == 0 || strncmp(resolved, "/dev/pts/", 9) == 0;
+}
+
+
 NTKTransport::Event ReadSome(int inFd, std::vector<uint8_t> &outData)
 {
   uint8_t buffer[4096];
@@ -307,10 +319,17 @@ public:
       disconnect();
       return false;
     }
-    tcflush(mPort, TCIOFLUSH);
+    // throw away what an earlier connection left, but not on a pseudo
+    // terminal: Einstein's BasiliskII serial port (/tmp/pty.BasiliskII)
+    // takes a second flush for a hung client and makes a new PTY, and our
+    // fd would be dead (the next start flushes again)
+    if (!IsPseudoTerminal(mDevice))
+      tcflush(mPort, TCIOFLUSH);
     mAnnounced = false;
     return true;
   }
+
+  bool reopenable() const override { return true; }
 
   int fd() const override { return mPort; }
 

@@ -69,6 +69,11 @@ public:
 
   /** The peer, once connected: "127.0.0.1:61031" (TCP), else describe(). */
   virtual std::string peer() const { return describe(); }
+
+  /** A serial port may be opened again (start()) after it went away: an
+      adapter unplugged and plugged in, Einstein's PTY made anew. A TCP
+      transport listens again by itself. */
+  virtual bool reopenable() const { return false; }
 };
 
 /** Wait until one of inCount file descriptors is readable (an fd < 0 is

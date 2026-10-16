@@ -1,0 +1,85 @@
+// Extension.ns: newtdump's protocol extension, the Newton's side. newtc
+// compiles it (`newtc -script Extension.ns -onsof Extension.nsof`, a CMake
+// step) into the function the desktop installs with the Docking Protocol's
+// kDRegProtocolExtension ('pext', command 'NDmp'): no package on the Newton.
+//
+// The desktop sends 'NDmp' with a request frame (NSOF); the Newton calls
+// this function with its endpoint, which reads the request
+// (ep:ReadCommandData()) and answers 'NDrs' with a result (NSOF). Requests:
+//
+//   {op: 'hello}                      -> {version, maps}
+//   {op: 'map, page, pages}           -> {map} (an index), or {error}
+//       physical memory from page * 4096, pages of 4 KB, mapped read only
+//       and not cached; a window mapped once stays mapped (in a global)
+//       until the Newton restarts: licensee addresses are never given back
+//   {op: 'read, map, offset, length, bytes}  -> the bytes (a binary; read as
+//       32-bit words, or with bytes: true as bytes), or the byte
+//       (an integer) if all of them are the same, or {error}; WriteCommand
+//       sends an integer as a 4-byte long, not as NSOF (ROM 0x00095B64)
+//   {op: 'power, socket, on}          -> {result} (VccOn's, or 0 for off)
+//
+// An exception (e.g. a bus error on an empty socket) becomes {error, name}
+// instead of ending the session. The natives are in PhysNatives.s.
+
+Load("PhysNatives.ns");
+
+// the extension: called with the dock endpoint; returns nil (non-nil would
+// tell the Newton the operation is done)
+func(ep)
+begin
+  local request := ep:ReadCommandData();
+  local answer;
+  try
+  begin
+    if not GlobalVarExists('|newtdump:maps|) then
+      DefGlobalVar('|newtdump:maps|, []);
+    local maps := GetGlobalVar('|newtdump:maps|);   // [[page, pages, state], ...]
+    local op := if IsFrame(request) then request.op;
+    if op = 'hello then
+      answer := {version: 1, maps: Length(maps)}
+    else if op = 'map then
+    begin
+      local index := nil;
+      for i := 0 to Length(maps) - 1 do
+        if maps[i][0] = request.page and maps[i][1] = request.pages then
+          index := i;
+      if index then
+        answer := {map: index}
+      else
+      begin
+        local state := MakeBinary(32, 'physMap);
+        local err := call kPhysMap with (state, request.page, request.pages);
+        if err = 0 then
+        begin
+          AddArraySlot(maps, [request.page, request.pages, state]);
+          answer := {map: Length(maps) - 1};
+        end
+        else
+          answer := {error: err};
+      end;
+    end
+    else if op = 'read then
+    begin
+      local entry := maps[request.map];
+      answer := if request.bytes then
+                  call kPhysReadBytes with (entry[2], request.offset, MakeBinary(request.length, 'data),
+                                            request.length)
+                else
+                  call kPhysRead with (entry[2], request.offset, MakeBinary(request.length, 'data),
+                                       request.length);
+    end
+    else if op = 'power then
+      answer := {result: call kCardPower with (request.socket, request.on)}
+    else
+      answer := {error: -1, name: "unknown request"};
+  end
+  onexception |evt.ex| do
+  begin
+    local ex := CurrentException();
+    answer := {error: if IsFrame(ex.data) and IsInteger(ex.data.errorCode) then ex.data.errorCode
+                      else if IsInteger(ex.error) then ex.error else -1,
+               name: SPrintObject(ex.name)};
+  end;
+  ep:WriteCommand("NDrs", answer, true);
+  nil;
+end;

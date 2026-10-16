@@ -786,6 +786,36 @@ if (NEWTC_USES_FLTK AND APPLE)
   )
 endif ()
 
+# newtdump (Matt/NewtDump): reads a Newton's ROM and PCMCIA cards over the
+# Docking Protocol. Small: no Newton framework, only the MNP link, the
+# transports, DES, and its own NSOF. Its protocol extension (Newton code) is
+# compiled by newtc while building (cmake/NewtDumpExtension.cmake).
+# newtdump-test-newton plays the Newton for its tests (Test/newtdump).
+set (newtdump_extension "${CMAKE_BINARY_DIR}/generated/NewtDumpExtension.cc")
+add_custom_command (
+  OUTPUT "${newtdump_extension}"
+  COMMAND ${CMAKE_COMMAND} -DNEWTC=$<TARGET_FILE:newtc>
+          -DIN=${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns
+          -DNSOF=${CMAKE_BINARY_DIR}/generated/NewtDumpExtension.nsof
+          -DOUT=${newtdump_extension} -P ${CMAKE_SOURCE_DIR}/cmake/NewtDumpExtension.cmake
+  DEPENDS newtc "${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns"
+          "${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/PhysNatives.ns"
+          "${CMAKE_SOURCE_DIR}/cmake/NewtDumpExtension.cmake"
+  COMMENT "Compiling newtdump's protocol extension with newtc"
+)
+set (newtdump_common Matt/NewtDump/NSOF.cc Matt/NewtDump/NSOF.h Matt/NewtDump/DockLink.cc
+     Matt/NewtDump/DockLink.h Matt/MNP.cc Matt/MNP.h Matt/NTKTransport.cc Matt/NTKTransport.h
+     Communications/DES.c Communications/DES.h)
+add_executable (newtdump Matt/NewtDump/newtdump.cc Matt/NewtDump/CIS.cc Matt/NewtDump/CIS.h
+                ${newtdump_common} "${newtdump_extension}")
+add_executable (newtdump-test-newton Matt/NewtDump/FakeNewton.cc ${newtdump_common})
+foreach (target newtdump newtdump-test-newton)
+  target_include_directories (${target} PRIVATE ${CMAKE_SOURCE_DIR})
+  set_target_properties (${target} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+  find_package (Threads REQUIRED)
+  target_link_libraries (${target} PRIVATE Threads::Threads)
+endforeach ()
+
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
   Views/Application.cc

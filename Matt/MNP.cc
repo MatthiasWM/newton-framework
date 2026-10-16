@@ -523,6 +523,15 @@ void MNPLink::run()
     if (disconnectRequested)
       linkDown("disconnected by newtc", true, false);
 
+    // a serial port that went away (unplugged, Einstein's PTY made anew):
+    // open it again, once a second (the path may lead to a new device)
+    if (!mTransport->isConnected() && mTransport->reopenable() && now() >= mReopenAt) {
+      std::string error;
+      mReopenAt = now() + 1.0;
+      if (mTransport->start(error) && mTrace)
+        fprintf(mTrace, "-- %s opened again\n", mTransport->describe().c_str());
+    }
+
     sendNextLT();
 
     // the next deadline: a retransmission or a keep-alive

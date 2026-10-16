@@ -987,6 +987,23 @@ Steps (each testable in newtc; a package on Einstein by Matt):
       written apps don't need it). What newtc sends to a Newton: B50. Test:
       Test/dbg/test_nsof.py.
 
+### Notes for later (Matt, 2026-10-15)
+- [ ] L1 package1 instead of package0 (we don't target NOS 1): check what
+      package1 means first (Newton Formats: it may hold relocation info;
+      what the 1.x and 2.x ROMs do with each) and what NTK 1.6 writes.
+- [ ] L2 Package flags: a sane default in -build (today `flags: {}`), only
+      replaced when the script sets `newtAppFlags` (e.g. noCompression,
+      autoRemove, copyProtect; what NTK's project settings default to).
+- [ ] L3 Matt tests on Einstein: the highlighted icon (iconPro hilited, the
+      B&W icon's XOR mask), a minimal 1-bit image, alpha masks.
+- [ ] L4 Matt tests picture buttons (protoPictureButton & co.) with
+      imported PNGs.
+- [ ] L5 Sounds from files, as images from PNGs (e.g. MakeSoundFromWAV:
+      a sound frame {sndFrameType: 'simpleSound, samples, samplingRate,
+      dataType, compressionType}; 8 bit, 11 or 22 kHz as the ROM's).
+- [ ] L6 Not newtc: learn soups, write a simple game and publish it (Matt
+      likes Lingo: https://stepanpicek.itch.io/lingo).
+
 ## Answers (Matt, 2026-10-04)
 - Einstein runs the 717006 ROM (2.1). Its serial port defaults to a TCP
   client to 127.0.0.1:3679 (newtc listens there). If that is buggy, Matt
