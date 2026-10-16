@@ -146,7 +146,7 @@ static uint32_t DESfrk(uint32_t Khi, uint32_t Klo, uint32_t R);
 
 void DESPermute(const unsigned char * inPermuteTable, uint32_t inKeyHi, uint32_t inKeyLo, SNewtNonce * outKey)
 {
-	uint32_t permutedHi, permutedLo;
+	uint32_t permutedHi, permutedLo = 0;		// (the first swap reads it, the second throws it away)
 	uint32_t srcBits;
 	unsigned int bitPos;
 
@@ -163,7 +163,7 @@ void DESPermute(const unsigned char * inPermuteTable, uint32_t inKeyHi, uint32_t
 				srcBits = inKeyHi;
 				bitPos -= 32;
 			}
-			if (srcBits & (1 << bitPos))
+			if (srcBits & (1u << bitPos))	// 1 << 31 overflows an int
 				permutedHi |= 1;
 		}
 		// swap high <-> low	

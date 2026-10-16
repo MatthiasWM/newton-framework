@@ -99,6 +99,12 @@ public:
       False and an error message if the target can't be used. */
   bool start(const std::string &inTarget, std::string &outError);
 
+  /** Run the link on a transport that is already started; the link owns it
+      from now on. It may be connected already, and inFirstBytes what was
+      read from it (NCX's listener looks at the first bytes to tell MNP
+      from a Newton docking over the network). */
+  bool start(NTKTransport *inTransport, const std::vector<uint8_t> &inFirstBytes, std::string &outError);
+
   /** End the link (an LD if it is up) and the thread. */
   void stop();
 
@@ -142,7 +148,10 @@ private:
   void trace(const char *inDirection, const std::vector<uint8_t> &inFrame);
   static double now();
 
+  bool startThread(std::string &outError);
+
   NTKTransport *mTransport = nullptr;
+  std::vector<uint8_t> mFirstBytes; // for start(transport, bytes)
   std::thread mThread;
   int mNotify[2] = { -1, -1 };    // events for the main thread
   int mWake[2] = { -1, -1 };      // wakes the link's thread (send, stop)

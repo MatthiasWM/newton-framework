@@ -186,59 +186,62 @@ std::string MNPLink::describe() const
 
 bool MNPLink::start(const std::string &inTarget, std::string &outError)
 {
-#if defined(_WIN32)
-  outError = "-ntk is not supported on Windows yet";
-  return false;
-#else
   mTransport = NTKTransport::Create(inTarget, outError);
   if (!mTransport || !mTransport->start(outError)) {
     delete mTransport;
     mTransport = nullptr;
     return false;
   }
-  if (pipe(mNotify) < 0 || pipe(mWake) < 0) {
-    outError = std::string("can't create a pipe: ") + strerror(errno);
+  return startThread(outError);
+}
+
+
+bool MNPLink::start(NTKTransport *inTransport, const std::vector<uint8_t> &inFirstBytes, std::string &outError)
+{
+  mTransport = inTransport;
+  mFirstBytes = inFirstBytes;
+  return startThread(outError);
+}
+
+
+bool MNPLink::startThread(std::string &outError)
+{
+  if (!NTKMakeWakePair(mNotify) || !NTKMakeWakePair(mWake)) {
+    outError = "can't make the link's wake-up pipes";
     return false;
   }
-  for (int fd : { mNotify[0], mNotify[1], mWake[0], mWake[1] })
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
   mStopping = false;
   mThread = std::thread([this] { run(); });
   return true;
-#endif
 }
 
 
 void MNPLink::stop()
 {
-#if !defined(_WIN32)
   if (mThread.joinable()) {
     {
       std::lock_guard<std::mutex> lock(mLock);
       mStopping = true;
     }
     uint8_t b = 's';
-    (void)!write(mWake[1], &b, 1);
+    NTKWakeWrite(mWake[1], &b, 1);
     mThread.join();
   }
   delete mTransport;
   mTransport = nullptr;
   for (int *fd : { &mNotify[0], &mNotify[1], &mWake[0], &mWake[1] }) {
     if (*fd >= 0)
-      close(*fd);
+      NTKWakeClose(*fd);
     *fd = -1;
   }
-#endif
 }
 
 
 bool MNPLink::nextEvent(Event &outEvent)
 {
-#if !defined(_WIN32)
   uint8_t buffer[64];
-  while (read(mNotify[0], buffer, sizeof(buffer)) > 0)
+  while (NTKWakeRead(mNotify[0], buffer, sizeof(buffer)) > 0)
     ;                           // drain first, then take: no wake-up is lost
-#endif
   std::lock_guard<std::mutex> lock(mLock);
   if (mEvents.empty())
     return false;
@@ -254,10 +257,8 @@ void MNPLink::send(const uint8_t *inData, size_t inSize)
     std::lock_guard<std::mutex> lock(mLock);
     mOutgoing.insert(mOutgoing.end(), inData, inData + inSize);
   }
-#if !defined(_WIN32)
   uint8_t b = 'd';
-  (void)!write(mWake[1], &b, 1);
-#endif
+  NTKWakeWrite(mWake[1], &b, 1);
 }
 
 
@@ -274,10 +275,8 @@ void MNPLink::disconnect()
     std::lock_guard<std::mutex> lock(mLock);
     mDisconnectRequested = true;
   }
-#if !defined(_WIN32)
   uint8_t b = 'x';
-  (void)!write(mWake[1], &b, 1);
-#endif
+  NTKWakeWrite(mWake[1], &b, 1);
 }
 
 
@@ -294,10 +293,8 @@ void MNPLink::post(Event::Kind inKind, const std::vector<uint8_t> &inData, const
     std::lock_guard<std::mutex> lock(mLock);
     mEvents.push_back(Event{ inKind, inData, inText });
   }
-#if !defined(_WIN32)
   uint8_t b = 'e';
-  (void)!write(mNotify[1], &b, 1);
-#endif
+  NTKWakeWrite(mNotify[1], &b, 1);
 }
 
 
@@ -340,23 +337,23 @@ void MNPLink::sendFrame(const std::vector<uint8_t> &inHeader, const uint8_t *inD
 // inactivity), although LAs and pings kept coming (2026-10-05; Toolkit
 // Protocol.md 5.4). Settable for experiments: NEWTC_MNP_CREDIT, and the
 // keep-alive interval NEWTC_MNP_KEEPALIVE (seconds).
+// (Read once, by whichever link's thread comes first: a static's
+// initializer runs once, safely, however many links start at the same time.)
 static uint8_t LACredit()
 {
-  static int credit = -1;
-  if (credit < 0) {
+  static const int credit = [] {
     const char *env = getenv("NEWTC_MNP_CREDIT");
-    credit = (env && atoi(env) > 0) ? atoi(env) : 8;
-  }
+    return (env && atoi(env) > 0) ? atoi(env) : 8;
+  }();
   return (uint8_t)credit;
 }
 
 static double KeepAliveInterval()
 {
-  static double interval = -1;
-  if (interval < 0) {
+  static const double interval = [] {
     const char *env = getenv("NEWTC_MNP_KEEPALIVE");
-    interval = (env && atof(env) > 0) ? atof(env) : kKeepAlive;
-  }
+    return (env && atof(env) > 0) ? atof(env) : kKeepAlive;
+  }();
   return interval;
 }
 
@@ -507,10 +504,14 @@ void MNPLink::connected()
 
 void MNPLink::run()
 {
-#if !defined(_WIN32)
   std::vector<uint8_t> data;
   if (mTransport->isConnected())        // a TCP client is connected from the start
     connected();
+  for (uint8_t b : mFirstBytes) {       // read already by whoever opened the transport
+    if (mDecoder.feed(b) == MNPDecoder::kFrame)
+      handleFrame(mDecoder.frame());
+  }
+  mFirstBytes.clear();
   for (;;) {
     bool disconnectRequested;
     {
@@ -553,7 +554,7 @@ void MNPLink::run()
       break;
     if (ready[0]) {
       uint8_t buffer[64];
-      while (read(mWake[0], buffer, sizeof(buffer)) > 0)
+      while (NTKWakeRead(mWake[0], buffer, sizeof(buffer)) > 0)
         ;
     }
     if (ready[1]) {
@@ -608,7 +609,6 @@ void MNPLink::run()
   }
   if (isUp())
     linkDown("newtc stopped", true, false);
-#endif
 }
 
 

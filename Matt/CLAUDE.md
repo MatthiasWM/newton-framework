@@ -1239,6 +1239,24 @@ assembler and Windows can build with MSVC or clang-cl.
         base class) now data(), NOMINMAX and _USE_MATH_DEFINES, a lambda that
         returned long for a Ref. newtc runs scripts there; its tests haven't
         run on Windows yet; no -dap-server, no Newton link (newton_dock).
+- [x] 0.8 `newton_dock` on Windows, for NCX's comms layer (NCX 3.1,
+      2026-10-16). Matt: two kinds of TCP docking, Einstein's serial port
+      over TCP (MNP) and a Newton with the Internet Enabler (the Docking
+      Protocol on plain TCP, no MNP); NCX's listener tells them apart on
+      port 3679 by the first byte. Here: `tcp-all:<port>` (all interfaces;
+      `tcp:` stays this machine only) and `MNPLink::start(transport,
+      firstBytes)` (MNP on a transport someone else opened and read from).
+      Windows keeps the descriptor model: TCP server and client on Winsock
+      (sockets work with select()), a serial port opened overlapped
+      (`\\.\COMn`, 8N1, no flow control) with a reader thread that passes
+      its bytes through a loopback socket pair, which is its fd() and closes
+      when the port goes away; NTKWaitReadable selects on sockets; MNP's
+      wake-up pipes are socket pairs (NTKMakeWakePair, NTKWakeRead/Write/
+      Close: a pipe on POSIX). newton_dock links ws2_32. newton_dock_test
+      runs its link test on Windows now (CI green on all six); NCX's comms
+      tests and `ncx-cli info` against its fake Newton pass on Windows x64
+      and arm64. Not tested: Windows serial ports (none on CI), newtc's
+      -ntk-* and -dap-server and newtdump on Windows. Found B67, B68.
 
 ### Notes for later (Matt, 2026-10-15)
 - [ ] L1 package1 instead of package0 (we don't target NOS 1): check what
@@ -1277,6 +1295,14 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B68 MNP.cc's LACredit() and KeepAliveInterval() read their settings
+  once into a static on first use, without a lock: two links starting at
+  once (NCX's test: a fake Newton and the desktop) raced (ThreadSanitizer).
+  Fixed 2026-10-16: a static's initializer (C++11: once, thread safe).
+- [x] B67 DESPermute (Communications/DES.c) tested `srcBits & (1 << bitPos)`
+  with bitPos up to 31: 1 << 31 overflows an int (UBSan); it read
+  permutedLo before setting it (the value was thrown away). Fixed
+  2026-10-16: 1u, and permutedLo starts at 0.
 - [ ] B66 newtc's FLTK views draw differently on Linux (X11; found
   2026-10-16 with run_dbg_tests.py under Xvfb, 5 cases): fltk_bitmaps (1-bit
   bitmaps: patterns come out solid, a part of a bitmap and a framed view's

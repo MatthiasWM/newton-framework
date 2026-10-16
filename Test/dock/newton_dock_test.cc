@@ -5,8 +5,7 @@
 					NCX): MNP's CRC and framing, the Dock's DES, and two MNP links
 					talking over TCP on this machine, one playing the Newton (as
 					Einstein does) and one the desktop: link up, data both ways in
-					many frames, disconnect. On Windows the link isn't there yet
-					(NCX 3.1): it says so, and the rest is tested.
+					many frames, disconnect. On every system NCX runs on.
 					Built as C++17, as NCX is. Prints "ok <what>" per check.
 
 	Usage:	newton_dock_test
@@ -22,7 +21,10 @@
 #include <string>
 #include <vector>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <process.h>
+#define getpid _getpid
+#else
 #include <unistd.h>
 #endif
 
@@ -186,10 +188,6 @@ TestLink(void)
 {
 	Side desktop, newton;
 	std::string error;
-#if defined(_WIN32)
-	Check(!desktop.link.start("tcp:3679", error) && !error.empty(), "MNPLink: not on Windows yet, and says so");
-	return;
-#else
 	std::string port = std::to_string(20000 + getpid() % 20000);
 	bool started = desktop.link.start("tcp:" + port, error);
 	Check(started, ("MNPLink: the desktop listens (tcp:" + port + ") " + error).c_str());
@@ -223,7 +221,6 @@ TestLink(void)
 	newton.link.stop();
 	desktop.link.stop();
 	Check(true, "MNPLink: both stop");
-#endif
 }
 
 

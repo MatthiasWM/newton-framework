@@ -835,9 +835,8 @@ endif ()
 #   0.6): the transports (Matt/NTKTransport.h: TCP server and client,
 #   serial), MNP (Matt/MNP.h: framing, CRC, the link in a thread of its
 #   own), and the Dock's DES (Communications/DES.h). No framework headers,
-#   C++17. Headers by their path from here ("Matt/MNP.h"). POSIX: on
-#   Windows the link and the transports are stubs that say so (NCX 3.1),
-#   the framing, CRC, and DES work.
+#   C++17. Headers by their path from here ("Matt/MNP.h"). POSIX and
+#   Windows (Winsock; a serial port through a reader thread: NCX 3.1).
 #------------------------------------------------------------------------------
 add_library (newton_dock STATIC
   Matt/MNP.cc Matt/MNP.h Matt/NTKTransport.cc Matt/NTKTransport.h
@@ -846,6 +845,9 @@ target_include_directories (newton_dock PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties (newton_dock PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 find_package (Threads REQUIRED)
 target_link_libraries (newton_dock PUBLIC Threads::Threads)
+if (WIN32)
+  target_link_libraries (newton_dock PUBLIC ws2_32)    # Winsock (Matt/NTKTransport.cc)
+endif ()
 if (MSVC)
   target_compile_options (newton_dock PRIVATE /we4311 /we4302)
   target_compile_definitions (newton_dock PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)

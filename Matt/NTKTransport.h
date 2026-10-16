@@ -12,11 +12,15 @@
  Targets (newtc -ntk-dump <target>):
    tcp                    listen on 127.0.0.1:3679 (Einstein's default)
    tcp:<port>             listen on 127.0.0.1:<port>
+   tcp-all:<port>         listen on <port> on all interfaces (a Newton
+                          docking over the network: NCX)
    serial:<device>        a serial port at 38400 bps (NTK's speed)
    serial:<device>@<bps>  ... at another speed, e.g. @57600
    tcp-client:<port>      connect to 127.0.0.1:<port>, like Einstein does
                           (for newtc playing the Newton, -ntk-device)
- POSIX only for now (like -dap-server).
+ On Windows the descriptors are sockets (select() waits only on those): TCP
+ is Winsock, a serial port has a reader thread that passes its bytes on
+ through a socket pair (NCX 3.1).
  */
 
 #ifndef MATT_NTKTRANSPORT_H
@@ -82,6 +86,15 @@ public:
     error. Uses select(), not poll(): on macOS poll() "does not support
     devices" (serial ports) and misses the end of a FIFO. */
 int NTKWaitReadable(const int *inFds, int inCount, int inTimeoutMs, bool *outReady);
+
+/** A pair of connected descriptors to wake a thread that waits with
+    NTKWaitReadable (POSIX: a pipe; Windows: two loopback sockets), both not
+    blocking: [0] is read, [1] written. False if it can't be made. */
+bool NTKMakeWakePair(int outFds[2]);
+/** Read and write them (as read() and write()), and close one. */
+long NTKWakeRead(int inFd, void *outData, size_t inSize);
+long NTKWakeWrite(int inFd, const void *inData, size_t inSize);
+void NTKWakeClose(int inFd);
 
 /** newtc -ntk-dump <target>: wait for a Newton, print what arrives in hex,
     and wait again after a disconnect, until interrupted. For trying out a
