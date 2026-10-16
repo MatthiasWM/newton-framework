@@ -10,15 +10,15 @@
 #define __ROMOBJECTS_H 1
 
 #include <stdint.h>
+#include <stddef.h>
 
-/* A Ref-sized word of an object: a Ref (integer, immediate), a pointer Ref
-   (an object's address + 1), or a C function's address. Initialized with
-   address constants, so the data needs no code to set it up. */
+/* A Ref-sized word of an object: a Ref (integer, immediate) or a pointer Ref
+   (an object's address + 1). Initialized with address constants, so the data
+   needs no code to set it up. */
 typedef union ROMRef
 {
 	intptr_t		i;
 	char *		p;
-	void			(*f)(void);
 } ROMRef;
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
@@ -44,6 +44,10 @@ _Static_assert(sizeof(ROMRef) == sizeof(void *), "a Ref is as wide as a pointer"
 #define NR_MAGIC(_n)		{ .i = ((intptr_t)(_n) << 2) + 3 }
 #define NR_SYM(_label)		{ .p = (char *)&gROMSymbols._label + 1 }
 #define NR_OBJ(_label)		{ .p = (char *)&gROMData._label + 1 }
-#define NR_FUNC(_name)		{ .f = _name }
+/* A plain C function's address (the funcPtr of a ROM function frame): 0 here;
+   InstallROMFunctions() (ROMFunctions.c) writes the functions in, so the data
+   doesn't need them to link (a program that runs no ROM code, as NCX, leaves
+   ROMFunctions.c out and gets none of them). */
+#define NR_CFUNC(_name)		{ .i = 0 }
 
 #endif	/* __ROMOBJECTS_H */

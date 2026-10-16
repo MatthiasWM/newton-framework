@@ -24,7 +24,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 ROMDATA = REPO / "ROMData"
-FILES = ["ROMObjects.h", "ROMSymbols.h", "ROMSymbols.c", "ROMData.c"]
+FILES = ["ROMObjects.h", "ROMSymbols.h", "ROMSymbols.c", "ROMData.c", "ROMFunctions.c"]
 RUNS = {
     "forNewton": [],
     "forNTK": ["-via", "../Toolkit.exp", "-via", "../Editor.exp"],

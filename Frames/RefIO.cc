@@ -43,8 +43,8 @@ InitTranslators(void)
 long
 FlattenRefSize(RefArg inRef)
 {
-	CPipe *	nilPipe = NULL;
-	CObjectWriter	writer(inRef, *nilPipe, true);
+	CPtrPipe			sizingPipe;	// never read or written: the writer only counts (was *NULL, B54)
+	CObjectWriter	writer(inRef, sizingPipe, true);
 	writer.setCompressLargeBinaries();
 	return writer.size();
 }

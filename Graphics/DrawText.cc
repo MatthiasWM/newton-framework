@@ -596,4 +596,45 @@ DrawSimpleParagraph(CRichString & inStr, RefArg inFont, Rect * ioRect, ULong inJ
 	// return path.size.height -> ioRect.bottom
 }
 
+
+/* -----------------------------------------------------------------------------
+	Truncate a rich string to a width, with an ellipsis.
+	(Was in Frames/Strings.cc: it measures text, so it is graphics, and the
+	object system doesn't need graphics.)
+----------------------------------------------------------------------------- */
+
+const UniChar gEllipsis[] = { 0x2026, 0 };
+
+extern "C" Ref
+FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont)
+{
+	CRichString str(inStr);
+	StyleRecord style;
+	CreateTextStyleRecord(inFont, &style);
+	float txWd = RINT(inWidth);
+	TextOptions options;
+	options.transferMode = modeOr;
+	options.width = txWd;
+	TextBoundsInfo boundsInfo;
+	// find how much of the string fits in the given width
+	ArrayIndex strLen = str.length();
+	ArrayIndex fitLen = MeasureRichString(str, 0, strLen, &style, gZeroFPoint, &options, &boundsInfo);
+	if (fitLen < strLen)
+	{
+		// doesn't fit -- truncate string and append ellipsis
+		// measure width of ellipsis char
+		StyleRecord * stylePtr = &style;
+		MeasureTextOnce((void *)gEllipsis, 1, &stylePtr, NULL, gZeroFPoint, &options, &boundsInfo);
+		// reduce box width by that amount
+		options.width = txWd - boundsInfo.width;
+		ArrayIndex truncStrEnd = MeasureRichString(str, 0, str.length(), &style, gZeroFPoint, &options, &boundsInfo) + 1;
+		// truncate the str to fit the box
+		str.deleteRange(truncStrEnd, str.length() - truncStrEnd);
+		// append ellipsis
+		str.setChar(truncStrEnd-1, gEllipsis[0]);
+	}
+
+	return inStr;
+}
+
 #endif /* __APPLE__ */

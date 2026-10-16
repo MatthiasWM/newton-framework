@@ -260,6 +260,22 @@ REPInit(void)
 	if (gREPin == NULL)
 		ThrowErr(exCompiler, kNSErrNoREP);
 
+// Matt:	gREPout->print("\nWelcome to NewtonScript!\n\n");
+	gREPout->prompt(gREPLevel);
+	gREPout->flush();
+}
+
+
+/*------------------------------------------------------------------------------
+	The REP's globals (vars, functions, the print settings): what PrintObject
+	and the compiler need. Called by InitObjectSystemCore(), before REPInit().
+	Args:		--
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+REPInitGlobals(void)
+{
 	DefGlobalVar(SYMA(vars), RA(gVarFrame));
 	DefGlobalVar(SYMA(functions), RA(gFunctionFrame));
 
@@ -270,10 +286,6 @@ REPInit(void)
 	gREPContext = gVarFrame;
 	AddGCRoot(&gREPContext);
 	gREPLevel = 0;
-
-// Matt:	gREPout->print("\nWelcome to NewtonScript!\n\n");
-	gREPout->prompt(gREPLevel);
-	gREPout->flush();
 }
 
 
@@ -430,7 +442,10 @@ REPprintf(const char * inFormat, ...)
 	int		result = 0;
 	va_list	args;
 	va_start(args, inFormat);
-	result = gREPout->vprint(inFormat, args);
+	if (gREPout != NULL)
+		result = gREPout->vprint(inFormat, args);
+	else
+		result = vprintf(inFormat, args);	// before InitObjectSystemCore: nothing to lose
 	va_end(args);
 	return result;
 }
@@ -438,7 +453,10 @@ REPprintf(const char * inFormat, ...)
 void
 REPflush(void)
 {
-	gREPout->flush();
+	if (gREPout != NULL)
+		gREPout->flush();
+	else
+		fflush(stdout);
 }
 
 

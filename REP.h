@@ -19,6 +19,7 @@ PInTranslator *	InitREPIn(void);
 POutTranslator *	InitREPOut(void);
 void					ResetREPIdler(void);
 void					REPInit(void);
+void					REPInitGlobals(void);
 void					REPBreakLoop(void);
 void					REPIdle(void);
 Timeout				REPTime(void);

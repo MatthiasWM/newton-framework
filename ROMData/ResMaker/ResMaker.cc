@@ -229,15 +229,14 @@ const char * kGeneratedBy =
 const char * kObjectsHeader =
 "#if !defined(__ROMOBJECTS_H)\n"
 "#define __ROMOBJECTS_H 1\n\n"
-"#include <stdint.h>\n\n"
-"/* A Ref-sized word of an object: a Ref (integer, immediate), a pointer Ref\n"
-"   (an object's address + 1), or a C function's address. Initialized with\n"
-"   address constants, so the data needs no code to set it up. */\n"
+"#include <stdint.h>\n#include <stddef.h>\n\n"
+"/* A Ref-sized word of an object: a Ref (integer, immediate) or a pointer Ref\n"
+"   (an object's address + 1). Initialized with address constants, so the data\n"
+"   needs no code to set it up. */\n"
 "typedef union ROMRef\n"
 "{\n"
 "	intptr_t		i;\n"
 "	char *		p;\n"
-"	void			(*f)(void);\n"
 "} ROMRef;\n\n"
 "#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L\n"
 "_Static_assert(sizeof(ROMRef) == sizeof(void *), \"a Ref is as wide as a pointer\");\n"
@@ -259,7 +258,11 @@ const char * kObjectsHeader =
 "#define NR_MAGIC(_n)		{ .i = ((intptr_t)(_n) << 2) + 3 }\n"
 "#define NR_SYM(_label)		{ .p = (char *)&gROMSymbols._label + 1 }\n"
 "#define NR_OBJ(_label)		{ .p = (char *)&gROMData._label + 1 }\n"
-"#define NR_FUNC(_name)		{ .f = _name }\n\n"
+"/* A plain C function's address (the funcPtr of a ROM function frame): 0 here;\n"
+"   InstallROMFunctions() (ROMFunctions.c) writes the functions in, so the data\n"
+"   doesn't need them to link (a program that runs no ROM code, as NCX, leaves\n"
+"   ROMFunctions.c out and gets none of them). */\n"
+"#define NR_CFUNC(_name)		{ .i = 0 }\n\n"
 "#endif	/* __ROMOBJECTS_H */\n";
 
 
@@ -334,7 +337,7 @@ CInit(const Value & inValue)
 		return Format("NR_MAGIC(%ld)", (long)inValue.ref);
 	case Value::kFunction:
 		gFunctions.insert(inValue.label);
-		return "NR_FUNC(" + inValue.label + ")";
+		return "NR_CFUNC(" + inValue.label + ")";
 	case Value::kNone:
 		break;
 	}
@@ -1249,10 +1252,7 @@ WriteCSource(void)
 	fp = OpenOutput("ROMData.c");
 	fprintf(fp, kGeneratedBy, "ROMData.c", "data");
 	fprintf(fp, "#include \"ROMSymbols.h\"\n\n");
-	fprintf(fp, "/* the C functions in the data (their real types don't matter here) */\n");
-	for (const std::string & fn : gFunctions)
-		fprintf(fp, "extern void %s(void);\n", fn.c_str());
-	fprintf(fp, "\nstruct ROMData {\n");
+	fprintf(fp, "struct ROMData {\n");
 	WriteSectionType(fp, gDataSection);
 	fprintf(fp, "\t/* the magic pointers' objects */\n");
 	WriteSectionType(fp, gMagicSection);
@@ -1268,6 +1268,52 @@ WriteCSource(void)
 	WriteWords(fp, gMagicTable, 0, "\t");
 	fprintf(fp, "}};\n\n");
 	WriteRefStars(fp, "gDataRefs", gDataRefStars);
+
+	// the C function slots (NR_CFUNC), in the order of ROMFunctions.c
+	std::vector<std::string> slots, slotFunctions;
+	for (const CSection * section : { &gDataSection, &gMagicSection }) {
+		for (const CObject & obj : section->objects) {
+			for (size_t i = 0; i < obj.words.size(); ++i) {
+				const std::string & word = obj.words[i];
+				if (word.compare(0, 9, "NR_CFUNC(") == 0) {
+					slots.push_back(Format("&gROMData.%s.r[%zu].i", obj.label.c_str(), i));
+					slotFunctions.push_back(word.substr(9, word.size() - 10));
+				}
+			}
+		}
+	}
+	fprintf(fp, "\n/* where InstallROMFunctions() (ROMFunctions.c) puts the C functions */\n");
+	fprintf(fp, "const size_t gROMFunctionSlotCount = %zu;\n", slots.size());
+	fprintf(fp, "intptr_t * const gROMFunctionSlots[%zu] = {", slots.size());
+	for (size_t i = 0; i < slots.size(); ++i)
+		fprintf(fp, "%s%s", (i % 4) == 0 ? "\n\t" : " ", (slots[i] + ((i < slots.size()-1) ? "," : "")).c_str());
+	fprintf(fp, "\n};\n");
+	fclose(fp);
+
+/*-- the C functions --*/
+	fp = OpenOutput("ROMFunctions.c");
+	fprintf(fp, kGeneratedBy, "ROMFunctions.c", "C functions");
+	fprintf(fp, "/* The plain C functions of the ROM's function frames, written into their\n"
+					"   funcPtr slots (gROMFunctionSlots, ROMData.c) by InstallROMFunctions().\n"
+					"   Only a program that runs ROM code links this file (and so every one of\n"
+					"   these functions). */\n\n");
+	fprintf(fp, "#include <stdint.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n");
+	fprintf(fp, "/* their real types don't matter here */\n");
+	for (const std::string & fn : gFunctions)
+		fprintf(fp, "extern void %s(void);\n", fn.c_str());
+	fprintf(fp, "\nextern const size_t gROMFunctionSlotCount;\n");
+	fprintf(fp, "extern intptr_t * const gROMFunctionSlots[];\n\n");
+	fprintf(fp, "static void (* const gROMFunctions[%zu])(void) = {", slotFunctions.size());
+	for (size_t i = 0; i < slotFunctions.size(); ++i)
+		fprintf(fp, "%s%s%s", (i % 8) == 0 ? "\n\t" : " ", slotFunctions[i].c_str(), (i < slotFunctions.size()-1) ? "," : "");
+	fprintf(fp, "\n};\n\n");
+	fprintf(fp, "void\nInstallROMFunctions(void)\n{\n"
+					"	size_t i;\n"
+					"	if (gROMFunctionSlotCount != sizeof(gROMFunctions) / sizeof(gROMFunctions[0]))\n"
+					"		abort();	/* ROMData.c and ROMFunctions.c come from different ResMaker runs */\n"
+					"	for (i = 0; i < gROMFunctionSlotCount; ++i)\n"
+					"		*gROMFunctionSlots[i] = (intptr_t)gROMFunctions[i];\n"
+					"}\n");
 	fclose(fp);
 }
 

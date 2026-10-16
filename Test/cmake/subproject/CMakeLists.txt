@@ -16,3 +16,8 @@ FetchContent_Declare (newton
   GIT_TAG dap_to_toolbox
 )
 FetchContent_MakeAvailable (newton)
+
+# what NCX does with it
+add_executable (uses_newton_ncx main.cc)
+target_link_libraries (uses_newton_ncx PRIVATE newton_ncx)
+set_target_properties (uses_newton_ncx PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)

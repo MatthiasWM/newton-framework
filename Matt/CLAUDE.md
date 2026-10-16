@@ -1079,8 +1079,45 @@ assembler and Windows can build with MSVC or clang-cl.
       builds, has none of the tools' targets, fetches nothing; with the
       parent's NEWTON_BUILD_TOOLS ON it has them; --build-tools builds
       newtc and newtdump there and runs newtc).
-- [ ] 0.3 The `newton_ncx` static library and a test that round-trips a
-      frame through FlattenRef/UnflattenRef.
+- [x] 0.3 The `newton_ncx` static library (2026-10-16). Built always (also as
+      a subproject): 108 sources, what a program that uses everything NCX
+      called of the old framework (outside drawing) links, measured with the
+      linker (an archive of newtc's objects, `-why_load`): objects,
+      NewtonScript (interpreter, compiler, decompiler), NSOF, stores,
+      compression, packages, dates, Unicode, REP printing, the ROM data.
+      Public include dirs and definitions (the headers need forNTK etc.);
+      no libedit (REP.cc reads plain lines then), no FLTK, no Apple
+      framework but CoreFoundation/IOKit (SerialNumber.cc).
+      What had to change for it:
+      - The ROM data's 1349 C function slots (1325 functions: views,
+        graphics, dictionaries, sound, ...) pulled every native into any
+        program with the ROM data. Now they are 0 in ROMData.c
+        (`NR_CFUNC(name)`, the name kept) plus `gROMFunctionSlots`; ResMaker
+        also writes ROMFunctions.c (the functions in slot order,
+        `InstallROMFunctions()`), which newtc links and calls first in
+        InitObjectSystem. Checked with the dumper: after the install the
+        data is the committed data, all 51502 objects.
+      - ObjectSystem.cc split: ObjectSystemCore.cc has the globals and
+        stubs and `InitObjectSystemCore()`, the old init's first part in
+        the old order: task globals, protocols, ROM domain, PSS, InitObjects,
+        translators, NTKInit (the REP translator protocols), REP streams,
+        the REP's globals (`REPInitGlobals()`, split from REPInit, which
+        now only prompts), InitUnicode, InitExternal (precedents, the
+        internal store, large objects). InitObjectSystem = install the ROM
+        functions + the core + REPInit, graphics, script globals, init
+        scripts. NCX calls only InitObjectSystemCore.
+      - FStyledStrTruncate (text measuring) moved from Frames/Strings.cc
+        to Graphics/DrawText.cc: it was the one edge from the object system
+        into graphics.
+      - REPprintf/REPflush write to stdout while there is no REP stream.
+      Found B54 (fixed), B55 (open). Tests: Test/ncx/newton_ncx_test.cc
+      (target newton_ncx_test, C++17, links only newton_ncx; ctest and
+      Test/ncx/test_newton_ncx.py: 26 checks: frames, arrays, classes,
+      clones, strings, binaries, FDate, iterators, CList, exceptions,
+      printing, the internal store, NSOF both ways, a package);
+      Test/cmake/test_subproject.py now builds a parent program that links
+      newton_ncx and round-trips a frame. NEWTON_BUILD_TESTS (default: top
+      level) builds the test.
 - [ ] 0.4 `newton_ncx` on Linux and Windows (MSVC or clang-cl).
 - [ ] 0.5 A drawing back end interface for QDDrawing.cc (Quartz behind it on
       macOS; NCX brings an FLTK one).
@@ -1124,6 +1161,19 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [ ] B55 Compressed large binaries (FLBAllocCompressed, what NCX's MP3 and
+  Works imports make) don't work in newtc: they need a store whose class has
+  the 'LOBJ' capability for its ephemeral tracker (SetupEphemeralTracker),
+  and the internal store newtc and newton_ncx register (gMuxInRAMStore /
+  NEWTC_HOST_STORE) has none, so the store wrapper has no tracker and
+  FLBAllocCompressed throws kNSErrOldStoreFormat (-48002). Found 2026-10-16
+  (Test/ncx/newton_ncx_test.cc); the same with newtc's full init. For NCX's
+  import steps (its PORTING.md 6.5).
+- [x] B54 FlattenRefSize bound a reference to a null pointer (`*nilPipe`)
+  for its size-only writer: undefined behavior (UBSan: "reference binding to
+  null pointer of type 'CPipe'"), harmless in practice since sizing never
+  touches the pipe. NCX calls it a lot. Fixed 2026-10-16: an unused
+  CPtrPipe. Test: Test/ncx/newton_ncx_test.cc (no UBSan report).
 - [x] B53 The ROM's largest integer, 536870911 (Ref 0x7FFFFFFC), was
   -536870913 in newtc's ROM data (44 slots in ROMData/forNewton, e.g. a
   meeting slip's newStopDate, @253): ResMaker's FixPointerRef took

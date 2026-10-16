@@ -1,10 +1,11 @@
 #
 # cmake -B build/Xcode  -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
 #
+# Always: the newton_ncx library (the object system, for NCX).
 # As the top-level project: newtc and the other tools (NEWTON_BUILD_TOOLS),
-# AddressSanitizer in Debug builds (NEWTON_SANITIZE), MessagePad on an Intel
-# Mac (NEWTON_BUILD_MESSAGEPAD).
-# As a subproject (add_subdirectory, FetchContent; e.g. NCX): all three off
+# the tests (NEWTON_BUILD_TESTS), AddressSanitizer in Debug builds
+# (NEWTON_SANITIZE), MessagePad on an Intel Mac (NEWTON_BUILD_MESSAGEPAD).
+# As a subproject (add_subdirectory, FetchContent; e.g. NCX): all of these off
 # unless the parent sets them, so nothing but what the parent asks for is
 # built or fetched.
 #
@@ -56,6 +57,7 @@ set ( SRCFILES
   NTKStubs.cc
   NewtonPackage.cc
   ObjectSystem.cc
+  ObjectSystemCore.cc
   Power.cc
   Preference.cc
   REP.cc
@@ -150,6 +152,7 @@ set ( SRCFILES
 #  Protocols/ProtocolProto.s
   Protocols/Protocols.cc
   ROMData/forNewton/ROMData.c
+  ROMData/forNewton/ROMFunctions.c
   ROMData/forNewton/ROMSymbols.c
   Recognition/Array.cc
   Recognition/InkGeometry.cc
@@ -461,6 +464,7 @@ SET ( UNUSED_SRC_FILES
   ROMData/ResMaker/SymbolTable.cc
   ROMData/ResMaker/UnRelocate.cc
   ROMData/forNTK/ROMData.c
+  ROMData/forNTK/ROMFunctions.c
   ROMData/forNTK/ROMSymbols.c
   Recognition/Arbiter.cc
   Recognition/ClickRecognizer.cc
@@ -592,6 +596,173 @@ function (embed_newtonscript target nsfile name)
   target_sources (${target} PRIVATE "${out}" "${nsfile}")
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
+
+#------------------------------------------------------------------------------
+#   newton_ncx: the object system as a static library, for NCX (Newton
+#   Connection): objects, NewtonScript (interpreter, compiler), NSOF, stores,
+#   compression, packages, Unicode, the ROM's data. Initialized with
+#   InitObjectSystemCore() (ObjectSystemCore.cc). No ROM functions
+#   (ROMFunctions.c: views, graphics, sound, ...), no graphics yet (NCX 0.5),
+#   no NTK protocol, no debugger, no FLTK. The sources are what a program
+#   that uses all of this links (measured with the linker, NCX 0.3); a file
+#   added here must build on Windows, Linux and macOS.
+#------------------------------------------------------------------------------
+set ( NEWTON_NCX_SRCFILES
+  Compression/ArithmeticCompression/Compression.cc
+  Compression/Compression.cc
+  Compression/CompressionProto.cc
+  Compression/LZCompression/CopyOffset_bin.cc
+  Compression/LZCompression/LZCompressionData-j.cc
+  Compression/LZCompression/LZCompressor.cc
+  Compression/LZCompression/LZDecompressor.cc
+  Compression/LZCompression/LZStoreCompander.cc
+  Compression/LZCompression/PushPopBits.cc
+  Compression/Relocation.cc
+  Compression/SimpleStoreCompander.cc
+  Compression/StoreCompanderWrapper.cc
+  Compression/UnicodeCompression/Compression.cc
+  Compression/ZippyCompression/Compression.cc
+  Dates.cc
+  Dictionaries.cc
+  ErrorString.cc
+  Frames/Arrays.cc
+  Frames/CObjectBinaries.cc
+  Frames/Compiler/Codegen.cc
+  Frames/Compiler/Compiler.cc
+  Frames/Compiler/CompilerSupport.cc
+  Frames/Compiler/InputStreams.cc
+  Frames/Compiler/Lexer.cc
+  Frames/Compiler/Parser.cc
+  Frames/Compiler/y.tab.c
+  Frames/DebugAPI.cc
+  Frames/Decompiler.cc
+  Frames/Exceptions.cc
+  Frames/Frames.cc
+  Frames/Globals.cc
+  Frames/Interpreter.cc
+  Frames/Iterators.cc
+  Frames/LargeBinaries.cc
+  Frames/Lookup.cc
+  Frames/MagicPointers.cc
+  Frames/NewtonScript.cc
+  Frames/ObjectHeap.cc
+  Frames/ObjectPrinter.cc
+  Frames/Objects.cc
+  Frames/Pipes.cc
+  Frames/RefIO.cc
+  Frames/RefMemory.cc
+  Frames/RefVar.cc
+  Frames/RichStrings.cc
+  Frames/ScriptInit.cc
+  Frames/StreamObjects.cc
+  Frames/Strings.cc
+  Frames/Symbols.cc
+  IA.cc
+  Locales.cc
+  "Memory Manager/FakePointers.cc"
+  NTK/NTK.cc
+  NTK/TranslatorProto.cc
+  NewtonPackage.cc
+  OS/PhysicalMemory.cc
+  OS/ROMDomainManager.cc
+  OS/Timers.cc
+  ObjectSystemCore.cc
+  Packages/Packages.cc
+  Preference.cc
+  Protocols/ProtocolProto.cc
+  Protocols/Protocols.cc
+  REP.cc
+  ROMData/forNewton/ROMData.c
+  ROMData/forNewton/ROMSymbols.c
+  Recognition/Array.cc
+  Recognition/RecObject.cc
+  SerialNumber.cc
+  Stores/CachedReadStore.cc
+  Stores/Cursors.cc
+  Stores/Entries.cc
+  Stores/FaultBlocks.cc
+  Stores/Flash.cc
+  Stores/FlashBlock.cc
+  Stores/FlashCache.cc
+  Stores/FlashDriver.cc
+  Stores/FlashIterator.cc
+  Stores/FlashRange.cc
+  Stores/FlashStore.cc
+  Stores/FlashTracker.cc
+  Stores/Hints.cc
+  Stores/HostStore.cc
+  Stores/Indexes.cc
+  Stores/LargeObjectStore.cc
+  Stores/LargeObjects.cc
+  Stores/MuxStore.cc
+  Stores/NodeCache.cc
+  Stores/PSSManager.cc
+  Stores/PackageStore.cc
+  Stores/PlainSoup.cc
+  Stores/Soups.cc
+  Stores/StoreDriver.cc
+  Stores/StoreMonitorProto.cc
+  Stores/StoreObjRef.cc
+  Stores/StoreProto.cc
+  Stores/StoreStreamObjects.cc
+  Stores/StoreWrapper.cc
+  Stores/Stores.cc
+  Stores/Tags.cc
+  Stores/UnionSoup.cc
+  Toolbox/Maths.cc
+  Utilities/UStringUtils.c
+  Utilities/Unicode.cc
+  Utilities/Unimplemented.cc
+  UtilityClasses/DynamicArray.cc
+  UtilityClasses/List.cc
+  UtilityClasses/NArray.cc
+)
+add_library (newton_ncx STATIC ${NEWTON_NCX_SRCFILES})
+target_include_directories (newton_ncx PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames
+  ${CMAKE_CURRENT_SOURCE_DIR}/UtilityClasses
+  ${CMAKE_CURRENT_SOURCE_DIR}/OS
+  ${CMAKE_CURRENT_SOURCE_DIR}/NTK
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommAPI
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames/Compiler
+  ${CMAKE_CURRENT_SOURCE_DIR}/Views
+  ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
+  ${CMAKE_CURRENT_SOURCE_DIR}/Protocols
+  ${CMAKE_CURRENT_SOURCE_DIR}/Stores
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/Recognition
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cards
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound/Codecs
+  ${CMAKE_CURRENT_SOURCE_DIR}/Toolbox
+  ${CMAKE_CURRENT_SOURCE_DIR}/Packages
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression
+  "${CMAKE_CURRENT_SOURCE_DIR}/Memory Manager"
+  ${CMAKE_CURRENT_SOURCE_DIR}/Communications
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/LZCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/ZippyCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/UnicodeCompression
+)
+# the headers depend on these, so NCX compiles with them too
+target_compile_definitions (newton_ncx PUBLIC
+  forNTK forMac forFramework hasGlobalConstantFunctions=1 hasPureFunctionSupport=1
+  NEWTC_HOST_STORE=1)
+if (APPLE)
+  target_link_libraries (newton_ncx PUBLIC "-framework CoreFoundation" "-framework IOKit")   # SerialNumber.cc
+endif ()
+
+# The library's test: links only newton_ncx, built as C++17 like NCX
+# (Test/ncx/newton_ncx_test.cc; run by Test/ncx/test_newton_ncx.py and ctest).
+option (NEWTON_BUILD_TESTS "Build the framework's tests" ${NEWTON_TOP_LEVEL})
+if (NEWTON_BUILD_TESTS)
+  enable_testing ()
+  add_executable (newton_ncx_test Test/ncx/newton_ncx_test.cc)
+  target_link_libraries (newton_ncx_test PRIVATE newton_ncx)
+  set_target_properties (newton_ncx_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+  add_test (NAME newton_ncx COMMAND newton_ncx_test ${CMAKE_CURRENT_SOURCE_DIR}/ROMData/NTKFunctions.newtonpkg)
+endif ()
+
 
 # A target with newtc's sources and settings (for NewtPlay below), plus
 # more sources.
@@ -1021,6 +1192,7 @@ set ( MP_SRC_FILES
   Graphics/InkCompr.c
   Views/SplashScreen.cc
   ObjectSystem.cc
+  ObjectSystemCore.cc
   Memory\ Manager/Heap.cc
   Memory\ Manager/SafeHeap.cc
   Stores/FlashBlock.cc
@@ -1069,6 +1241,7 @@ set ( MP_SRC_FILES
   Stores/StoreDriver.cc
   Stores/StoreProto.s
   ROMData/forNewton/ROMData.c
+  ROMData/forNewton/ROMFunctions.c
   Stores/StoreStreamObjects.cc
   Recognition/Stroker.cc
   Recognition/TabletBuffer.cc

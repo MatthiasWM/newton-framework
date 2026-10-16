@@ -2,9 +2,10 @@
 """
 newton-framework as a subproject (NCX's step 0.2): Test/cmake/subproject
 pulls this checkout in with FetchContent, as NCX does.
-  - by default the tools, the sanitizer and MessagePad are off: the project
-    configures and builds, defines none of the tools' targets, fetches
-    nothing (no FLTK)
+  - by default the tools, the tests, the sanitizer and MessagePad are off:
+    the project configures and builds, defines none of the tools' targets,
+    fetches nothing (no FLTK)
+  - its program links newton_ncx (C++17) and round-trips a frame (0.3)
   - a parent that sets NEWTON_BUILD_TOOLS ON (a normal variable) gets them;
     with --build-tools they are built there too (minutes: newtc, newtdump,
     whose protocol extension newtc compiles while building)
@@ -21,7 +22,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 PARENT = REPO / "Test" / "cmake" / "subproject"
-TOOLS = ["newtc", "newtdump", "newtdump-test-newton", "ResMaker", "MessagePad"]
+TOOLS = ["newtc", "newtdump", "newtdump-test-newton", "ResMaker", "MessagePad", "newton_ncx_test"]
 
 failed = 0
 
@@ -79,8 +80,14 @@ def main():
             check(not any(t in names for t in TOOLS), "none of the tools' targets",
                   " ".join(sorted(names)))
             check(not (build / "_deps" / "fltk-src").exists(), "nothing fetched (no FLTK)")
+            check("newton_ncx" in names, "has the newton_ncx library")
             run = subprocess.run(["cmake", "--build", str(build)], capture_output=True, text=True, timeout=1800)
             check(run.returncode == 0, "builds", run.stdout + run.stderr)
+            program = next(build.rglob("uses_newton_ncx"), None) if run.returncode == 0 else None
+            if program:
+                run = subprocess.run([str(program)], capture_output=True, text=True, timeout=60)
+                check(run.returncode == 0 and "round trip ok" in run.stdout,
+                      "a program linked with newton_ncx round-trips a frame", run.stdout + run.stderr)
 
         build = Path(tmp) / "tools"
         run = configure(build, args.generator, "-DTEST_TOOLS=ON")

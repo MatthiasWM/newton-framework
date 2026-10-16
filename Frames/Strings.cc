@@ -1283,43 +1283,7 @@ FUpcase(RefArg inRcvr, RefArg ioStr)
 }
 
 
-#include "DrawText.h"
-#include "ViewFlags.h"
-extern int		MeasureTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRuns, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * outBoundsInfo);
-
-const UniChar gEllipsis[] = { 0x2026, 0 };
-
-Ref
-FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont)
-{
-	CRichString str(inStr);
-	StyleRecord style;
-	CreateTextStyleRecord(inFont, &style);
-	float txWd = RINT(inWidth);
-	TextOptions options;
-	options.transferMode = modeOr;
-	options.width = txWd;
-	TextBoundsInfo boundsInfo;
-	// find how much of the string fits in the given width
-	ArrayIndex strLen = str.length();
-	ArrayIndex fitLen = MeasureRichString(str, 0, strLen, &style, gZeroFPoint, &options, &boundsInfo);
-	if (fitLen < strLen)
-	{
-		// doesn't fit -- truncate string and append ellipsis
-		// measure width of ellipsis char
-		StyleRecord * stylePtr = &style;
-		MeasureTextOnce((void *)gEllipsis, 1, &stylePtr, NULL, gZeroFPoint, &options, &boundsInfo);
-		// reduce box width by that amount
-		options.width = txWd - boundsInfo.width;
-		ArrayIndex truncStrEnd = MeasureRichString(str, 0, str.length(), &style, gZeroFPoint, &options, &boundsInfo) + 1;
-		// truncate the str to fit the box
-		str.deleteRange(truncStrEnd, str.length() - truncStrEnd);
-		// append ellipsis
-		str.setChar(truncStrEnd-1, gEllipsis[0]);
-	}
-
-	return inStr;
-}
+// FStyledStrTruncate measures text: Graphics/DrawText.cc
 
 
 #pragma mark -
