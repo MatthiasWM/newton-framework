@@ -1295,6 +1295,32 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B71 MNPLink::pending() (any thread) read mInFlight's size under the
+  lock, but the link's thread changed mInFlight without it (it is the link
+  thread's own): a data race (ThreadSanitizer, NCX's package test: the dock
+  thread waits for pending() to drain while LAs arrive). Fixed 2026-10-16:
+  mInFlightCount, under the lock, set where the data moves from mOutgoing
+  (so pending() never sees 0 while it is in flight) and cleared by
+  clearInFlight().
+- [x] B70 A large binary in NSOF (kNSLargeBinary: compressed text, ink,
+  a package's pkgRef in a soup entry, as a Newton sends them and NCX keeps
+  them) crashed or failed on the host: CObjectReader::readLargeBinary made
+  the large object on the internal store and then mapped it
+  (MapLargeObject: the ROM domain manager, virtual memory the host doesn't
+  have; packages: kOSErrBadObject), and WrapLargeObject needed the store's
+  ephemeral tracker, which it hasn't (B55): a null pointer. Fixed
+  2026-10-16 (forFramework): the object is read into a plain binary,
+  decompressed (ReadLargeObject, LargeObjects.cc: the root's compander or
+  decompressor, page by page, as the ROM domain manager pages it in), and
+  deleted from the store. Written again it is a plain binary. Found with
+  NCX's backups (all of their entries read now). Test: newton_ncx_test.
+- [x] B69 CLOPackageStore's capabilities (LargeObjectStore.cc), the
+  decompressors it reads packages with, lacked the empty value after each
+  name (the original: `.asciz "name", ""`), so getCapability took every
+  other name for a value: CZippyStoreDecompressor, CLZStoreDecompressor and
+  CSimpleStoreDecompressor weren't found, and CreateLargeObject failed with
+  kOSErrNoMemory for a package compressed with them. Fixed 2026-10-16.
+  Test: newton_ncx_test (a package in NSOF).
 - [x] B68 MNP.cc's LACredit() and KeepAliveInterval() read their settings
   once into a static on first use, without a lock: two links starting at
   once (NCX's test: a fake Newton and the desktop) raced (ThreadSanitizer).
@@ -1370,7 +1396,7 @@ to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
   NEWTC_HOST_STORE) has none, so the store wrapper has no tracker and
   FLBAllocCompressed throws kNSErrOldStoreFormat (-48002). Found 2026-10-16
   (Test/ncx/newton_ncx_test.cc); the same with newtc's full init. For NCX's
-  import steps (its PORTING.md 6.5).
+  import steps (its PORTING.md 6.5). Reading them from NSOF works (B70).
 - [x] B54 FlattenRefSize bound a reference to a null pointer (`*nilPipe`)
   for its size-only writer: undefined behavior (UBSan: "reference binding to
   null pointer of type 'CPipe'"), harmless in practice since sizing never

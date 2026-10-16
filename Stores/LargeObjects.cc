@@ -19,6 +19,9 @@ inline			CUMonitor::CUMonitor(ObjectId id)  { }
 inline			CUMonitor::operator ObjectId()	const  { return 0; }
 
 #include "LargeObjects.h"
+#include "StoreCompander.h"
+#include "StoreRootObjects.h"
+#include <cstring>
 #include "Unimplemented.h"
 #include "LargeBinaries.h"
 #include "PackageManager.h"
@@ -145,6 +148,83 @@ MapLargeObject(VAddr * outAddr, CStore * inStore, PSSId inId, bool inReadOnly)
 	parms.fRO = inReadOnly;
 	if ((err = um.invokeRoutine(kRDM_MapLargeObject, &parms)) == noErr)
 		*outAddr = parms.fAddr;
+	return err;
+}
+
+
+/* -----------------------------------------------------------------------------
+	Not in ROM (NCX): read a large object into memory, decompressed, as the
+	ROM domain manager pages it in (CROMDomainManager1K::addPackage) but
+	without mapping it: the host has no virtual memory to page into. A
+	package root gets a decompressor (in a CStoreCompanderWrapper), a large
+	object root its compander. Frames aren't relocated (base address 0; the
+	decompressors don't relocate them anyway).
+	Args:		inStore		store for the object
+				inId			id of the object on store
+				outBuf		inSize bytes (LargeObjectSize)
+	Return:	error code
+----------------------------------------------------------------------------- */
+
+NewtonErr
+LargeObjectSize(CStore * inStore, PSSId inId, size_t * outSize)
+{
+	LargeObjectRoot	root;
+	NewtonErr err = inStore->read(inId, 0, &root, sizeof(root));
+	*outSize = (err == noErr) ? root.fActualSize : 0;
+	return err;
+}
+
+
+NewtonErr
+ReadLargeObject(CStore * inStore, PSSId inId, char * outBuf, size_t inSize)
+{
+	NewtonErr			err;
+	LargeObjectRoot	root;
+	char *				companderName = NULL;
+	char *				lzBuffer = NULL;
+	CStoreCompander *	compander = NULL;
+
+	XTRY
+	{
+		XFAIL(err = inStore->read(inId, 0, &root, sizeof(root)))
+		size_t nameLen;
+		XFAIL(err = inStore->getObjectSize(root.fCompanderNameId, &nameLen))
+		companderName = new char[nameLen+1];
+		XFAIL(err = inStore->read(root.fCompanderNameId, 0, companderName, nameLen))
+		companderName[nameLen] = 0;
+
+		if ((root.flags & 0xFFFF) == 1)	// a package
+		{
+			XFAILNOT(compander = (CStoreCompander *)MakeByName("CStoreCompander", "CStoreCompanderWrapper"), err = kOSErrBadParameters;)
+			// LZ decompressors need a buffer for a compressed page
+			if (strcmp(companderName, "CLZStoreDecompressor") == 0
+			||  strcmp(companderName, "CLZRelocStoreDecompressor") == 0)
+				lzBuffer = new char[2*kSubPageSize];
+			XFAIL(err = ((CStoreCompanderWrapper *)compander)->init(inStore, companderName, inId, root.fCompanderParmsId, lzBuffer))
+		}
+		else if ((root.flags & 0xFFFF) == 2)	// a large object
+		{
+			XFAILNOT(compander = (CStoreCompander *)MakeByName("CStoreCompander", companderName), err = kOSErrBadParameters;)
+			XFAIL(err = compander->init(inStore, inId, root.fCompanderParmsId, true, true))
+		}
+		else
+			XFAIL(err = kOSErrBadParameters)
+
+		// page by page: companders read whole pages
+		char page[kSubPageSize];
+		for (size_t offset = 0; offset < inSize; offset += kSubPageSize)
+		{
+			XFAIL(err = compander->read(offset, page, kSubPageSize, 0))
+			size_t count = inSize - offset;
+			memcpy(outBuf + offset, page, count < kSubPageSize ? count : kSubPageSize);
+		}
+	}
+	XENDTRY;
+
+	if (compander != NULL)
+		compander->destroy();
+	delete[] lzBuffer;
+	delete[] companderName;
 	return err;
 }
 

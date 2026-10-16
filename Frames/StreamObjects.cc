@@ -861,6 +861,21 @@ CObjectReader::readLargeBinary(void)
 	if (err != noErr)
 		ThrowErr(exFrames, err);
 
+#if defined(forFramework)
+	// Not in ROM (NCX): the host can't map a large object (no virtual memory
+	// to page it into), so it becomes a plain binary, decompressed. Written
+	// again it is a plain binary too.
+	size_t size;
+	err = LargeObjectSize(fStore, id, &size);
+	if (err == noErr)
+	{
+		largeBinary = AllocateBinary(lbClass, size);
+		err = ReadLargeObject(fStore, id, (char *)BinaryData(largeBinary), size);
+	}
+	DeleteLargeObject(fStore, id);
+	if (err != noErr)
+		ThrowErr(exFrames, err);
+#else
 	err = MapLargeObject(&addr, fStore, id, false);
 	if (err != noErr)
 	{
@@ -869,6 +884,7 @@ CObjectReader::readLargeBinary(void)
 	}
 
 	largeBinary = WrapLargeObject(fStore, id, lbClass, addr);
+#endif
 	fPrecedents->replace(index, largeBinary);
 
 	return largeBinary;

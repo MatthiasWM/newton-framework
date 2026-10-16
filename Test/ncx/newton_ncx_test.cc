@@ -9,7 +9,8 @@
 					package; and drawing (shapes, bitmaps, a screenshot's bits,
 					text): with FLTK (NEWTON_QD_FLTK) into an image whose pixels
 					are checked, without it the same calls, which draw nothing.
-					(Not yet: compressed large binaries, B55.)
+					Large binaries from NSOF (B69, B70). (Not yet: making
+					compressed large binaries, B55.)
 					Built as C++17, as NCX is. Prints "ok <what>" per check.
 
 	Usage:	newton_ncx_test <package file>
@@ -318,6 +319,68 @@ main(int argc, char * argv[])
 		&& memcmp(BinaryData(GetFrameSlot(back, MakeSymbol("data"))), "abcd", 4) == 0, "FlattenRef, UnflattenRef");
 	RefVar backSamples(RoundTrip(samples, &size));
 	Check(Length(backSamples) == 100000 && ((unsigned char *)BinaryData(backSamples))[99999] == 0x55, "a 100 KB binary through NSOF");
+
+/*-- large binaries (VBOs) as a Newton sends them, read into plain binaries
+     on the host (B70): NSOF kNSLargeBinary (12), the class, compressed?,
+     the stream's size, the compander name's and parameters' sizes, 0, the
+     name (a T for its C), the stream. A large object (a compander), then a
+     package in two compressed chunks (a decompressor, B69). --*/
+	{
+		std::vector<unsigned char> nsof = { 0x02, 0x0C, 0x07,0x04,'b','l','o','b', 0 };
+		const char * compander = "TSimpleStoreCompander";
+		const ULong header[] = { 64, (ULong)strlen(compander), 0, 0 };
+		for (ULong w : header)
+			for (int i = 24; i >= 0; i -= 8)
+				nsof.push_back((unsigned char)(w >> i));
+		nsof.insert(nsof.end(), compander, compander + strlen(compander));
+		for (int i = 0; i < 64; ++i)
+			nsof.push_back((unsigned char)(i * 3));
+		CPtrPipe in;
+		in.init(nsof.data(), nsof.size(), false, NULL);
+		RefVar blob(UnflattenRef(in));
+		Check(IsBinary(blob) && Length(blob) == 64 && EQRef(ClassOf(blob), MakeSymbol("blob"))
+			&& ((unsigned char *)BinaryData(blob))[63] == 189, "a large binary from NSOF, as a binary");
+	}
+	{
+		const size_t pkgSize = 1500;
+		std::vector<unsigned char> pkg(pkgSize);
+		for (size_t i = 0; i < pkgSize; ++i)
+			pkg[i] = (unsigned char)(i % 251);
+		memcpy(pkg.data(), "package0", 8);
+		std::vector<unsigned char> stream;
+		auto put = [](std::vector<unsigned char> & v, ULong w) { for (int i = 24; i >= 0; i -= 8) v.push_back((unsigned char)(w >> i)); };
+		put(stream, 1);							// root flags: a package
+		put(stream, pkgSize);
+		for (size_t offset = 0; offset < pkgSize; offset += 1024)
+		{
+			size_t count = pkgSize - offset < 1024 ? pkgSize - offset : 1024;
+			put(stream, 4 + count);				// a chunk: its relocation header (none), its bytes
+			put(stream, 0);
+			stream.insert(stream.end(), pkg.begin() + offset, pkg.begin() + offset + count);
+		}
+		std::vector<unsigned char> nsof = { 0x02, 0x0C, 0x07,0x07,'p','a','c','k','a','g','e', 1 };
+		const char * decompressor = "TSimpleStoreDecompressor";
+		put(nsof, stream.size());
+		put(nsof, strlen(decompressor));
+		put(nsof, 0);
+		put(nsof, 0);
+		nsof.insert(nsof.end(), decompressor, decompressor + strlen(decompressor));
+		nsof.insert(nsof.end(), stream.begin(), stream.end());
+		CPtrPipe in;
+		in.init(nsof.data(), nsof.size(), false, NULL);
+		RefVar package;
+		newton_try
+		{
+			package = UnflattenRef(in);
+		}
+		newton_catch_all
+		{
+			package = NILREF;
+		}
+		end_try;
+		Check(IsBinary(package) && Length(package) == pkgSize
+			&& memcmp(BinaryData(package), pkg.data(), pkgSize) == 0, "a compressed package from NSOF, decompressed");
+	}
 
 /*-- the bytes: NSOF is big-endian on every host (a round trip alone
      wouldn't see a host that doesn't swap: it reads what it wrote) --*/

@@ -24,6 +24,9 @@ NewtonErr	CreateLargeObject(PSSId * outId, CStore * inStore, CPipe * inPipe, siz
 NewtonErr	DuplicateLargeObject(PSSId * outId, CStore * inStore, PSSId inId, CStore * intoStore);
 NewtonErr	ResizeLargeObject(VAddr * outAddr, VAddr inAddr, size_t inLength, long inArg4);
 NewtonErr	MapLargeObject(VAddr * outAddr, CStore * inStore, PSSId inId, bool inReadOnly);
+// Not in ROM (NCX): a large object's bytes, decompressed, without mapping it
+NewtonErr	LargeObjectSize(CStore * inStore, PSSId inId, size_t * outSize);
+NewtonErr	ReadLargeObject(CStore * inStore, PSSId inId, char * outBuf, size_t inSize);
 NewtonErr	UnmapLargeObject(CStore ** outStore, PSSId * outId, VAddr inAddr);
 NewtonErr	UnmapLargeObject(VAddr inAddr);
 NewtonErr	AbortObject(CStore * inStore, PSSId inId);

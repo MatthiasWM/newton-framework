@@ -1066,12 +1066,15 @@ CLOPackageStore::classInfo(void)
     static CClassInfo _classInfo = {
         .fName = "CLOPackageStore",
         .fInterface = "CLrgObjStore",
-        .fSignature =   "CZippyRelocStoreDecompressor\0"
-                        "CZippyStoreDecompressor\0"
-                        "CLZRelocStoreDecompressor\0"
-                        "CLZStoreDecompressor\0"
-                        "CSimpleRelocStoreDecompressor\0"
-                        "CSimpleStoreDecompressor\0\0",
+        // capabilities are name and value pairs: each name has a value ""
+        // (as the original's .asciz "name", ""), else every other name was
+        // taken for a value (B69)
+        .fSignature =   "CZippyRelocStoreDecompressor\0\0"
+                        "CZippyStoreDecompressor\0\0"
+                        "CLZRelocStoreDecompressor\0\0"
+                        "CLZStoreDecompressor\0\0"
+                        "CSimpleRelocStoreDecompressor\0\0"
+                        "CSimpleStoreDecompressor\0\0\0",
         .fSizeofProc = []()->size_t { return sizeof(CLOPackageStore); },
         .fAllocProc = []()->CProtocol* { return new CLOPackageStore(); },
         .fFreeProc = [](CProtocol* p)->void { delete p; },

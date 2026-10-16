@@ -265,7 +265,7 @@ void MNPLink::send(const uint8_t *inData, size_t inSize)
 size_t MNPLink::pending()
 {
   std::lock_guard<std::mutex> lock(mLock);
-  return mOutgoing.size() + mInFlight.size();
+  return mOutgoing.size() + mInFlightCount;
 }
 
 
@@ -363,6 +363,16 @@ void MNPLink::sendLA()
 }
 
 
+// The link's thread: the LT data is acknowledged, or the link restarts.
+// pending() (any thread) sees the count under the lock (B71).
+void MNPLink::clearInFlight()
+{
+  mInFlight.clear();
+  std::lock_guard<std::mutex> lock(mLock);
+  mInFlightCount = 0;
+}
+
+
 void MNPLink::sendNextLT()
 {
   if (!mInFlight.empty() || mCredit == 0)
@@ -374,6 +384,7 @@ void MNPLink::sendNextLT()
     size_t count = mOutgoing.size() < kMaxLTData ? mOutgoing.size() : kMaxLTData;
     mInFlight.assign(mOutgoing.begin(), mOutgoing.begin() + (long)count);
     mOutgoing.erase(mOutgoing.begin(), mOutgoing.begin() + (long)count);
+    mInFlightCount = count;
   }
   mSendSeq = (uint8_t)(mSendSeq + 1);
   mRetries = 0;
@@ -393,7 +404,7 @@ void MNPLink::linkDown(const std::string &inReason, bool inSendLD, bool inDropCo
   }
   if (inSendLD && mTransport->isConnected())
     sendFrame({ 0x04, kMNPLinkDisconnect, 0x01, 0x01, 0xFF });  // reason: user
-  mInFlight.clear();
+  clearInFlight();
   mDecoder.reset();
   if (inDropConnection && mTransport->isConnected())
     mTransport->disconnect();
@@ -419,7 +430,7 @@ void MNPLink::handleFrame(const std::vector<uint8_t> &inFrame)
         mReceiveSeq = 0;
         mSendSeq = 0;
         mCredit = 1;
-        mInFlight.clear();
+        clearInFlight();
         sendFrame({ 0x03, kMNPLinkAcknowledge, 0, 1 });
         if (negotiating)
           post(Event::kLinkUp);
@@ -435,7 +446,7 @@ void MNPLink::handleFrame(const std::vector<uint8_t> &inFrame)
       mReceiveSeq = 0;
       mSendSeq = 0;
       mCredit = 1;
-      mInFlight.clear();
+      clearInFlight();
       sendFrame(kDesktopLR);
       break;
     }
@@ -458,7 +469,7 @@ void MNPLink::handleFrame(const std::vector<uint8_t> &inFrame)
       }
       mCredit = credit;
       if (!mInFlight.empty() && seq == mSendSeq)
-        mInFlight.clear();                  // acknowledged
+        clearInFlight();                    // acknowledged
       else if (!mInFlight.empty())
         mRetransmitAt = 0;                  // an LA for the one before: resend now
       break;

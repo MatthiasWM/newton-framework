@@ -149,6 +149,7 @@ private:
   static double now();
 
   bool startThread(std::string &outError);
+  void clearInFlight();
 
   NTKTransport *mTransport = nullptr;
   std::vector<uint8_t> mFirstBytes; // for start(transport, bytes)
@@ -166,6 +167,7 @@ private:
   bool mStopping = false;
   bool mDisconnectRequested = false;
   State mState = kWaiting;
+  size_t mInFlightCount = 0;      // mInFlight's size, for pending() (B71)
 
   // the link's thread only
   MNPDecoder mDecoder;
