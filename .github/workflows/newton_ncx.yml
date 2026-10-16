@@ -1,6 +1,7 @@
-# The newton_ncx library (the object system and the QuickDraw functions, for
-# NCX) on every system NCX runs on: build it and its test
-# (Test/ncx/newton_ncx_test.cc), run ctest. With FLTK (NEWTON_NCX_FLTK,
+# The libraries for NCX on every system NCX runs on: newton_ncx (the object
+# system and the QuickDraw functions) and newton_dock (MNP, the transports,
+# DES): build them and their tests (Test/ncx/newton_ncx_test.cc,
+# Test/dock/newton_dock_test.cc), run ctest. With FLTK (NEWTON_NCX_FLTK,
 # fetched), whose image surface the test draws into and checks; on Linux
 # under Xvfb (X11 only: FLTK_BACKEND_WAYLAND off, fewer packages). One job
 # without FLTK, where drawing does nothing.
@@ -44,7 +45,7 @@ jobs:
       # the framework's files at once (twice on macOS: universal), which
       # swaps a 3-core runner to a standstill
       - name: Build
-        run: cmake --build build --config RelWithDebInfo --target newton_ncx_test --parallel 4 ${{ matrix.build_args }}
+        run: cmake --build build --config RelWithDebInfo --target newton_ncx_test newton_dock_test --parallel 4 ${{ matrix.build_args }}
 
       - name: Test
         if: runner.os != 'Linux' || matrix.fltk != 'ON'
@@ -56,7 +57,9 @@ jobs:
 
       - name: Test the x86_64 slice (Rosetta)
         if: matrix.name == 'macos-universal'
-        run: arch -x86_64 build/newton_ncx_test ROMData/NTKFunctions.newtonpkg
+        run: |
+          arch -x86_64 build/newton_ncx_test ROMData/NTKFunctions.newtonpkg
+          arch -x86_64 build/newton_dock_test
 
       - name: Stack of a crash (Windows)
         if: failure() && runner.os == 'Windows'

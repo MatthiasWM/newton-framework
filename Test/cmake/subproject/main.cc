@@ -1,8 +1,10 @@
-// A program that uses newton_ncx as NCX will (C++17, the library's include
-// directories and definitions from its target): initialize the object
-// system, round-trip a frame through NSOF.
+// A program that uses newton_ncx and newton_dock as NCX will (C++17, the
+// libraries' include directories and definitions from their targets):
+// initialize the object system, round-trip a frame through NSOF, frame a
+// message for MNP.
 #include "Objects.h"
 #include "Pipes.h"
+#include "Matt/MNP.h"
 #include <cstdio>
 #include <vector>
 
@@ -27,5 +29,7 @@ main()
 	RefVar back(UnflattenRef(in));
 	bool ok = RINT(GetFrameSlot(back, MakeSymbol("answer"))) == 42;
 	printf("round trip %s\n", ok ? "ok" : "FAILED");
-	return ok ? 0 : 1;
+	bool crc = MNPCrc((const uint8_t *)"123456789", 9) == 0xBB3D;
+	printf("MNP %s\n", crc ? "ok" : "FAILED");
+	return ok && crc ? 0 : 1;
 }

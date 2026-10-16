@@ -400,6 +400,7 @@ void DESCBCEncode(SNewtNonce * keys, int byteCount, SNewtNonce ** memPtr, SNewtN
 			keyLo ^= DESfrk(kPtr->hi, kPtr->lo, keyHi);	kPtr++;
 		}
 		DESPermute(DESIPInvTbl, keyLo, keyHi, &permutedData);
+		*a4 = permutedData;		// chain on the ciphertext, as DESCBCDecode does (B61)
 		*keyPtr++ = permutedData;
 	}
 	*memPtr = keyPtr;
@@ -431,14 +432,14 @@ void DESDecode(SNewtNonce * keys, int byteCount, SNewtNonce ** memPtr)
 
 	while ((byteCount -= sizeof(SNewtNonce)) >= 0)
 	{
-		kPtr = keys;
+		kPtr = keys + 15;		// the round keys backwards (they ran forwards: B61)
 		DESip(keyPtr->hi, keyPtr->lo, &permutedData);
 		keyHi = permutedData.hi;
 		keyLo = permutedData.lo;
 		for (i = 0; i < 8; ++i)
 		{
-			keyHi ^= DESfrk(kPtr->hi, kPtr->lo, keyLo);	kPtr++;
-			keyLo ^= DESfrk(kPtr->hi, kPtr->lo, keyHi);	kPtr++;
+			keyHi ^= DESfrk(kPtr->hi, kPtr->lo, keyLo);	kPtr--;
+			keyLo ^= DESfrk(kPtr->hi, kPtr->lo, keyHi);	kPtr--;
 		}
 		DESPermute(DESIPInvTbl, keyLo, keyHi, keyPtr++);
 	}
@@ -456,15 +457,15 @@ void DESCBCDecode(SNewtNonce * keys, int byteCount, SNewtNonce ** memPtr, SNewtN
 
 	while ((byteCount -= sizeof(SNewtNonce)) >= 0)
 	{
-		kPtr = keys;
-		huh = **memPtr;
+		kPtr = keys + 15;		// the round keys backwards (B61)
+		huh = *keyPtr;			// was **memPtr: always the first block
 		DESip(huh.hi, huh.lo, &permutedData);
 		dataHi = permutedData.hi;
 		dataLo = permutedData.lo;
 		for (i = 0; i < 8; ++i)
 		{
-			dataHi ^= DESfrk(kPtr->hi, kPtr->lo, dataLo);	kPtr++;
-			dataLo ^= DESfrk(kPtr->hi, kPtr->lo, dataHi);	kPtr++;
+			dataHi ^= DESfrk(kPtr->hi, kPtr->lo, dataLo);	kPtr--;
+			dataLo ^= DESfrk(kPtr->hi, kPtr->lo, dataHi);	kPtr--;
 		}
 		DESPermute(DESIPInvTbl, dataLo, dataHi, &permutedData);
 		dataHi = permutedData.hi ^ a4->hi;

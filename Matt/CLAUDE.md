@@ -1197,8 +1197,24 @@ assembler and Windows can build with MSVC or clang-cl.
       linked Carbon's NewHandle through FLTK's Cocoa on macOS, and nothing
       elsewhere. MessagePad (its views use Quartz.h, which stays) doesn't
       link any more. Found and fixed B58, B59, B60.
-- [ ] 0.6 MNP.cc, NTKTransport.cc, DES.c as a `newton_dock` library shared by
-      newtdump and NCX.
+- [x] 0.6 `newton_dock` (2026-10-16): Matt/MNP.cc, Matt/NTKTransport.cc,
+      Communications/DES.c as a static library (C++17, no framework
+      headers, headers by path: "Matt/MNP.h"), linked by newtc (and so
+      NewtPlay, ResMaker), newtdump, newtdump-test-newton, and NCX. Always
+      built (not a tool). POSIX: on Windows the link and the transports are
+      the stubs they had ("not supported on Windows yet"; NCX 3.1 brings
+      Winsock and Win32 serial), framing, CRC and DES work. DockLink and
+      newtdump's NSOF stay in newtdump (NCX has the framework's NSOF).
+      Test/dock/newton_dock_test.cc (Test/dock/test_newton_dock.py, ctest):
+      CRC-16/ARC's check value, a frame with DLEs encoded and decoded, a CRC
+      error; DES against the textbook vector (key shifted right a bit, as
+      the Newton's key schedule wants), decode, CBC both ways, golden keys
+      for no password and "secret"; two MNPLinks on this machine, one the
+      Newton (tcp-client, as Einstein), one the desktop: link up, 5000 and
+      3000 bytes both ways at once, all acknowledged, LD seen, stop. On
+      Windows: the link says it isn't there. The subproject test's program
+      links newton_dock too. CI builds and runs it everywhere (first build
+      of MNP.cc and NTKTransport.cc on Linux). Found and fixed B61.
 
 ### Notes for later (Matt, 2026-10-15)
 - [ ] L1 package1 instead of package0 (we don't target NOS 1): check what
@@ -1237,6 +1253,13 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B61 DES decoding (Communications/DES.c) ran the 16 round keys
+  forwards, as encoding does, so DESDecode and DESDecodeNonce encrypted
+  again; DESCBCDecode also read the first block for every block
+  (`**memPtr`), and DESCBCEncode chained on plaintext ^ previous instead of
+  the ciphertext. Nothing called them (newtdump and the old NCX only
+  encode). Fixed 2026-10-16: keys backwards, each block, standard CBC;
+  DESCBCEncode declared in DES.h. Test: newton_dock_test.
 - [x] B60 newtdump's extension (cmake/NewtDumpExtension.cmake) failed in
   a build without FLTK: newtc couldn't write into `generated/`, which only
   the FLTK build made. Fixed 2026-10-16: the script makes it.

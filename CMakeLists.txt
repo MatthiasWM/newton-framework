@@ -830,6 +830,36 @@ if (NEWTON_BUILD_TESTS)
   add_test (NAME newton_ncx COMMAND newton_ncx_test ${CMAKE_CURRENT_SOURCE_DIR}/ROMData/NTKFunctions.newtonpkg)
 endif ()
 
+#------------------------------------------------------------------------------
+#   newton_dock: the wire to a Newton, for NCX, newtc, and newtdump (NCX
+#   0.6): the transports (Matt/NTKTransport.h: TCP server and client,
+#   serial), MNP (Matt/MNP.h: framing, CRC, the link in a thread of its
+#   own), and the Dock's DES (Communications/DES.h). No framework headers,
+#   C++17. Headers by their path from here ("Matt/MNP.h"). POSIX: on
+#   Windows the link and the transports are stubs that say so (NCX 3.1),
+#   the framing, CRC, and DES work.
+#------------------------------------------------------------------------------
+add_library (newton_dock STATIC
+  Matt/MNP.cc Matt/MNP.h Matt/NTKTransport.cc Matt/NTKTransport.h
+  Communications/DES.c Communications/DES.h)
+target_include_directories (newton_dock PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties (newton_dock PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+find_package (Threads REQUIRED)
+target_link_libraries (newton_dock PUBLIC Threads::Threads)
+if (MSVC)
+  target_compile_options (newton_dock PRIVATE /we4311 /we4302)
+  target_compile_definitions (newton_dock PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
+endif ()
+
+# Its test (Test/dock/newton_dock_test.cc; Test/dock/test_newton_dock.py
+# and ctest): framing, CRC, DES, and two links talking over TCP.
+if (NEWTON_BUILD_TESTS)
+  add_executable (newton_dock_test Test/dock/newton_dock_test.cc)
+  target_link_libraries (newton_dock_test PRIVATE newton_dock)
+  set_target_properties (newton_dock_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+  add_test (NAME newton_dock COMMAND newton_dock_test)
+endif ()
+
 
 # A target with newtc's sources and settings (for NewtPlay below), plus
 # more sources.
@@ -853,7 +883,8 @@ if (NEWTON_BUILD_TOOLS)
 
 add_executable (newtc ${SRCFILES} ${HEADERFILES})
 
-target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/PNG.cc Matt/PNG.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/NTKTransport.cc Matt/NTKTransport.h Matt/MNP.cc Matt/MNP.h Matt/NTKInspector.cc Matt/NTKInspector.h Matt/NTKDevice.cc Matt/NTKDevice.h Matt/NTKRemote.cc Matt/NTKRemote.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
+target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/PNG.cc Matt/PNG.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/NTKInspector.cc Matt/NTKInspector.h Matt/NTKDevice.cc Matt/NTKDevice.h Matt/NTKRemote.cc Matt/NTKRemote.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
+target_link_libraries (newtc PRIVATE newton_dock)   # MNP and the transports (-ntk-*, -dap-server)
 embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
 embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDebugToolsInstall.ns gNSDebugToolsInstallScript)
 embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
@@ -1052,16 +1083,14 @@ add_custom_command (
   COMMENT "Compiling newtdump's protocol extension with newtc"
 )
 set (newtdump_common Matt/NewtDump/NSOF.cc Matt/NewtDump/NSOF.h Matt/NewtDump/DockLink.cc
-     Matt/NewtDump/DockLink.h Matt/MNP.cc Matt/MNP.h Matt/NTKTransport.cc Matt/NTKTransport.h
-     Communications/DES.c Communications/DES.h)
+     Matt/NewtDump/DockLink.h)
 add_executable (newtdump Matt/NewtDump/newtdump.cc Matt/NewtDump/CIS.cc Matt/NewtDump/CIS.h
                 ${newtdump_common} "${newtdump_extension}")
 add_executable (newtdump-test-newton Matt/NewtDump/FakeNewton.cc ${newtdump_common})
 foreach (target newtdump newtdump-test-newton)
   target_include_directories (${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   set_target_properties (${target} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
-  find_package (Threads REQUIRED)
-  target_link_libraries (${target} PRIVATE Threads::Threads)
+  target_link_libraries (${target} PRIVATE newton_dock)   # MNP, the transports, DES
 endforeach ()
 
 # ResMaker (ROMData/ResMaker): reads the ROM's NewtonScript objects out of
