@@ -1,0 +1,48 @@
+# The newton_ncx library (the object system, for NCX) on every system NCX
+# runs on: build it and its test (Test/ncx/newton_ncx_test.cc), run ctest.
+# The tools (newtc, ...) aren't built here: they need macOS for now.
+name: newton_ncx
+
+on:
+  push:
+    branches: [dap_to_toolbox, 'ncx-*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64,       os: ubuntu-24.04,     build_args: "-- -k" }
+          - { name: linux-arm64,     os: ubuntu-24.04-arm, build_args: "-- -k" }
+          - { name: windows-x64,     os: windows-2022,     cmake_args: "-A x64",   dbgarch: x64 }
+          - { name: windows-arm64,   os: windows-11-arm,   cmake_args: "-A ARM64", dbgarch: arm64 }
+          - { name: macos-universal, os: macos-15,         cmake_args: "\"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64\"", build_args: "-- -k" }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNEWTON_BUILD_TOOLS=OFF -DNEWTON_BUILD_TESTS=ON ${{ matrix.cmake_args }}
+
+      - name: Build
+        run: cmake --build build --config RelWithDebInfo --target newton_ncx_test --parallel ${{ matrix.build_args }}
+
+      - name: Test
+        run: ctest --test-dir build -C RelWithDebInfo --output-on-failure
+
+      - name: Test the x86_64 slice (Rosetta)
+        if: matrix.name == 'macos-universal'
+        run: arch -x86_64 build/newton_ncx_test ROMData/NTKFunctions.newtonpkg
+
+      - name: Stack of a crash (Windows)
+        if: failure() && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $cdb = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Debuggers\${{ matrix.dbgarch }}" -Recurse -Filter cdb.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($cdb) {
+            & $cdb.FullName -g -lines -c ".lines -e; .ecxr; kv 40; q" build\RelWithDebInfo\newton_ncx_test.exe ROMData\NTKFunctions.newtonpkg
+          } else { Write-Output "no cdb" }

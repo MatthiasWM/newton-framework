@@ -1429,7 +1429,7 @@ main(int argc, const char * argv[])
 	InitObjectSystem();		// for NTKFunctions.newtonpkg
 
 	gImageFilename = argv[1];
-	FILE * fp = fopen(gImageFilename, "r");
+	FILE * fp = fopen(gImageFilename, "rb");
 	if (fp == NULL)
 		ExitWithMessage("can't open ROM image file \"%s\"", gImageFilename);
 
@@ -1484,7 +1484,7 @@ main(int argc, const char * argv[])
 				pkgSize = CANONICAL_LONG(pkg->size);
 				char pkgName[16];
 				sprintf(pkgName, "Package-%d.newtonpkg", pkgi);
-				FILE * pkgFile = fopen(pkgName, "w");
+				FILE * pkgFile = fopen(pkgName, "wb");
 				fwrite(pkg, pkgSize, 1, pkgFile);
 				fclose(pkgFile);
 				pkg = (PackageDirectory *)((Ptr)pkg + ALIGN(pkgSize,4));

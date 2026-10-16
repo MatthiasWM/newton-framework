@@ -346,7 +346,7 @@ HandleRunScriptEvent(CRunScriptEvent * ioEvent)
 	}
 	newton_catch_all
 	{
-		ioEvent->fError = (NewtonErr)(long)CurrentException()->data;
+		ioEvent->fError = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 }

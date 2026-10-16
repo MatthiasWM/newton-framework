@@ -16,8 +16,6 @@
 #include "Flash.h"
 #include "OSErrors.h"
 
-#include <sys/fcntl.h>
-#include <sys/mman.h>
 #include <cassert>
 
 extern void			PowerOffAndReboot(NewtonErr inError);
@@ -1186,7 +1184,7 @@ CNewInternalFlash::getVendorInfo(void)
 
 int
 CNewInternalFlash::getSocketNumber(void)
-{}
+{ return 0; }
 
 ULong
 CNewInternalFlash::vppStatus(void)

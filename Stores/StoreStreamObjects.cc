@@ -175,7 +175,7 @@ CStoreReadPipe::setPSSID(PSSId inObjectId)
 ------------------------------------------------------------------------------*/
 
 void
-CStoreReadPipe::setPosition(fpos_t inPos)
+CStoreReadPipe::setPosition(off_t inPos)
 {
 	fSizeRemaining += fOffset - inPos;
 	fOffset = inPos;
@@ -470,7 +470,7 @@ CStoreWritePipe::operator<<(int inValue)
 ------------------------------------------------------------------------------*/
 
 void
-CStoreWritePipe::setPosition(fpos_t inPos)
+CStoreWritePipe::setPosition(off_t inPos)
 {
 	fOffset = inPos;
 	if (f22C)
@@ -483,7 +483,7 @@ CStoreWritePipe::setPosition(fpos_t inPos)
 ------------------------------------------------------------------------------*/
 
 void *
-CStoreWritePipe::getDataPtr(fpos_t inOffset)
+CStoreWritePipe::getDataPtr(off_t inOffset)
 {
 	return f22C ? fBufPtr + inOffset : NULL;
 }
@@ -895,7 +895,7 @@ CStoreObjectReader::eachLargeObjectDo(VBOProcPtr inProc, void * inParms)
 			unsigned char value;
 			fPipe >> value;
 			if (value == 0xFF)
-				fPipe.skip(sizeof(long));
+				fPipe.skip(4);		// an xlong is 4 bytes (was sizeof(long): 8 on 64-bit hosts, B56)
 		}
 		break;
 
@@ -959,7 +959,7 @@ CStoreObjectReader::eachLargeObjectDo(VBOProcPtr inProc, void * inParms)
 		break;
 
 	case kNSSmallRect:
-		fPipe.skip(sizeof(long));
+		fPipe.skip(4);			// 4 bytes: top, left, bottom, right (was sizeof(long), B56)
 		break;
 
 	case kNSLargeBinary:

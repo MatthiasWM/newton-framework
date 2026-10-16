@@ -259,7 +259,10 @@
 //--------------------------------------------------------------------------------
 //	Build for intel
 //--------------------------------------------------------------------------------
-#if __LITTLE_ENDIAN__
+// clang defines __LITTLE_ENDIAN__, gcc __BYTE_ORDER__, MSVC neither (Windows
+// is little-endian everywhere it runs): without this, gcc and MSVC builds
+// wouldn't swap the Newton's big-endian data
+#if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || defined(_WIN32)
 	#define hasByteSwapping				1
 #endif
 

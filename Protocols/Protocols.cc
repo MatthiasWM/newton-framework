@@ -832,7 +832,7 @@ CClassInfo::destroy(CProtocol * instance) const
 
 CodeProcPtr
 CClassInfo::selector(void) const
-{}
+{ return NULL; }
 
 const char *
 CClassInfo::getCapability(const char * inKey) const

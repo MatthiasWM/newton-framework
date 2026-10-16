@@ -105,6 +105,10 @@ struct StringObject32
 #define CANONICAL_SIZE(n) (n)
 #endif
 
+static_assert(sizeof(ObjHeader32) == 8, "ObjHeader32: size|flags, gc");
+static_assert(sizeof(BinaryObject32) == 12 && sizeof(ArrayObject32) == 12, "32-bit object headers");
+static_assert(sizeof(SymbolObject32) == 16 && sizeof(FrameMapObject32) == 16, "32-bit symbol, frame map headers");
+
 #define SIZEOF_BINARY32OBJECT (sizeof(ObjHeader32) + sizeof(Ref32))
 #define SIZEOF_ARRAY32OBJECT (sizeof(ObjHeader32) + sizeof(Ref32))
 #define SIZEOF_FRAMEMAP32OBJECT (sizeof(ObjHeader32) + sizeof(Ref32) + sizeof(Ref32))

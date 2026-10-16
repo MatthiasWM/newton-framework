@@ -76,6 +76,7 @@ RoundTrip(RefArg inObj, long * outSize)
 int
 main(int argc, char * argv[])
 {
+	setvbuf(stdout, NULL, _IONBF, 0);	// a crash keeps what was printed
 	InitObjectSystemCore();
 	Check(true, "InitObjectSystemCore");
 
@@ -196,12 +197,39 @@ main(int argc, char * argv[])
 	RefVar backSamples(RoundTrip(samples, &size));
 	Check(Length(backSamples) == 100000 && ((unsigned char *)BinaryData(backSamples))[99999] == 0x55, "a 100 KB binary through NSOF");
 
-/*-- a package --*/
+/*-- the bytes: NSOF is big-endian on every host (a round trip alone
+     wouldn't see a host that doesn't swap: it reads what it wrote) --*/
+	{
+		RefVar golden(MakeArray(0));
+		AddArraySlot(golden, MAKEINT(0x1234567));
+		AddArraySlot(golden, MakeStringFromCString("AB"));
+		AddArraySlot(golden, MakeSymbol("sym"));
+		AddArraySlot(golden, MakeReal(1.5));
+		const unsigned char expected[] = {
+			0x02, 0x05,0x04,										// version 2, plain array of 4
+			0x00,0xFF,0x04,0x8D,0x15,0x9C,					// immediate 0x048D159C (Ref of 0x1234567)
+			0x08,0x06,0x00,0x41,0x00,0x42,0x00,0x00,		// string "AB": UTF-16BE
+			0x07,0x03,0x73,0x79,0x6D,							// symbol 'sym
+			0x03,0x08,0x07,0x04,0x72,0x65,0x61,0x6C,		// binary of 8, class 'real
+			0x3F,0xF8,0x00,0x00,0x00,0x00,0x00,0x00 };	// 1.5, big-endian
+		long len = FlattenRefSize(golden);
+		std::vector<unsigned char> bytes(len);
+		CPtrPipe out;
+		out.init(bytes.data(), len, false, NULL);
+		FlattenRef(golden, out);
+		Check(len == (long)sizeof(expected) && memcmp(bytes.data(), expected, sizeof(expected)) == 0, "NSOF bytes (big-endian)");
+	}
+
+/*-- a package: its parts are big-endian too --*/
 	if (argc > 1)
 	{
 		NewtonPackage pkg(argv[1]);
 		RefVar part(pkg.partRef(0));
-		Check(pkg.directory() != NULL && NOTNIL(part), "NewtonPackage");
+		// NTKFunctions' part: {externalFunctions: {..., DefPureFn: 'FDefPureFn, ...}, ...}
+		RefVar fns(IsFrame(part) ? GetFrameSlot(part, MakeSymbol("externalFunctions")) : (Ref)NILREF);
+		RefVar fn(IsFrame(fns) ? GetFrameSlot(fns, MakeSymbol("DefPureFn")) : (Ref)NILREF);
+		Check(pkg.directory() != NULL && IsSymbol(fn) && strcmp(SymbolName(fn), "FDefPureFn") == 0,
+				"NewtonPackage (NTKFunctions: externalFunctions.DefPureFn = 'FDefPureFn)");
 	}
 
 	printf("%s\n", gFailed ? "FAILED" : "all ok");

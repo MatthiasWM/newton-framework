@@ -643,6 +643,7 @@ CountCustomDictionaries(CView * inView)
 {
 #if defined(forNTK)
   assert(0);
+  return 0;
 #else
 	ULong recFlags = inView->viewFlags & vRecognitionAllowed;
 	if ((recFlags & vAnythingAllowed) == vAnythingAllowed

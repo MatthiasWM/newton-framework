@@ -152,7 +152,7 @@ public:
 	RefVar &	operator=(Ref r);
 	RefVar &	operator=(const RefVar & o);
 
-	operator	long() const;
+	operator	Ref() const;	// (was long: 32 bits on 64-bit Windows, a Ref holds a pointer)
 
 	RefHandle *	h;
 };
@@ -175,7 +175,7 @@ inline	RefVar &	RefVar::operator=(Ref r)
 inline	RefVar &	RefVar::operator=(const RefVar & o)
 { h->ref = o.h->ref; return *this; }
 
-inline				RefVar::operator	long() const
+inline				RefVar::operator	Ref() const
 { return h->ref; }
 
 //______________________________________________________________________________

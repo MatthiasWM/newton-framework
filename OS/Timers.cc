@@ -5,11 +5,9 @@
 
 	Written by:	Newton Research Group.
 */
-#include <mach/mach.h>
-#include <mach/clock.h>
-#include <mach/mach_error.h>
 #include <stdio.h>
 #include <time.h>
+#include <chrono>
 
 #include "Objects.h"
 #include "KernelGlobals.h"
@@ -1420,15 +1418,12 @@ GetClock(void)
 	return now;
 
 #else
-	kern_return_t ret;
-	clock_serv_t theClock;
-	mach_timespec_t theTime;
-
-	ret = host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &theClock);
-	ret = clock_get_time(theClock, &theTime);
-
-	CTime now(theTime.tv_sec, kSeconds);
-	CTime plus(theTime.tv_nsec/1000, kMicroseconds);
+	// the calendar clock: seconds and microseconds since 1970 (was mach's
+	// CALENDAR_CLOCK; std::chrono works everywhere)
+	using namespace std::chrono;
+	int64_t usecs = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+	CTime now((ULong)(usecs / 1000000), kSeconds);
+	CTime plus((ULong)(usecs % 1000000), kMicroseconds);
 	return now + plus;
 #endif
 }

@@ -304,7 +304,7 @@ CEzEndpointPipe::init(ConnectionType inType, Handle inArg2, Timeout inTimeout)
 	newton_catch(exPipe)
 	{
 		tearDown();
-		fError = (NewtonErr)(long)CurrentException()->data;
+		fError = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	cleanup
 	{

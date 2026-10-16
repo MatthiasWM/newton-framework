@@ -1460,7 +1460,7 @@ CPackageIterator::init(void)
 				}
 				newton_catch(exPipe)
 				{
-					err = (NewtonErr)(long)CurrentException()->data;
+					err = (NewtonErr)(intptr_t)CurrentException()->data;
 				}
 				end_try;
 				XFAIL(err)
@@ -1482,7 +1482,7 @@ CPackageIterator::init(void)
 	}
 	newton_catch(exRootException)	// would not newton_catch_all be better?
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	if (err)
@@ -1510,7 +1510,7 @@ CPackageIterator::computeSizeOfEntriesAndData(ULong& inPartEntryInfoSize, ULong&
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 			XFAIL(err)
@@ -1523,7 +1523,7 @@ CPackageIterator::computeSizeOfEntriesAndData(ULong& inPartEntryInfoSize, ULong&
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 		}
@@ -1552,7 +1552,7 @@ CPackageIterator::setupRelocationData(ULong inOtherInfoSize, ULong * outRelocati
 				}
 				newton_catch(exPipe)
 				{
-					err = (NewtonErr)(long)CurrentException()->data;
+					err = (NewtonErr)(intptr_t)CurrentException()->data;
 				}
 				end_try;
 				XFAILNOT(fPrivateIter.fReloc->reserved == 0, *outRelocationInfoSize = 0; err = kOSErrBadPackage;)
@@ -1587,7 +1587,7 @@ CPackageIterator::getRelocationChunkInfo(void)
 				}
 				newton_catch(exPipe)
 				{
-					err = (NewtonErr)(long)CurrentException()->data;
+					err = (NewtonErr)(intptr_t)CurrentException()->data;
 				}
 				end_try;
 			}
@@ -1908,7 +1908,7 @@ CPackageLoader::load(void)
 				}
 				newton_catch(exPipe)
 				{
-					err = (NewtonErr)(long)CurrentException()->data;
+					err = (NewtonErr)(intptr_t)CurrentException()->data;
 				}
 				end_try;
 				XFAIL(err)
@@ -1959,7 +1959,7 @@ CPackageLoader::done(bool * outArg1, bool * outArg2)
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 		if (fEvtHandler)

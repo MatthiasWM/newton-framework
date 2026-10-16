@@ -3436,7 +3436,7 @@ CInterpreter::translateException(Exception * x)
 	}
 	else
 	{
-		arg = MAKEINT((long)x->data);
+		arg = MAKEINT((intptr_t)x->data);
 		SetFrameSlot(fr, SYMA(error), arg);
 	}
 

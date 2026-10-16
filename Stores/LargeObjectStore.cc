@@ -189,7 +189,7 @@ FillChunkArray(CStore * inStore, PSSId inObjId, PSSId inChunksId, CPipe * inPipe
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;;
 			}
 			end_try;
 			XFAIL(err)
@@ -284,7 +284,7 @@ DumpHex(chunk, chunkSize);
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 			XFAIL(err)
@@ -747,7 +747,7 @@ LODefaultCreateFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, s
 	NewtonErr			err = noErr;
 	LargeObjectRoot	root;
 	PSSId					rootId = 0;
-	unsigned long		flags;
+	size_t				flags;		// (4 bytes in the pipe, as the writer's ULong)
 	size_t				fullSize;	// decompressed
 
 	XTRY
@@ -760,7 +760,7 @@ LODefaultCreateFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPipe, s
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 		XFAIL(err)
@@ -973,7 +973,7 @@ LODefaultBackup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed,
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 			XFAIL(err)
@@ -1002,7 +1002,7 @@ LODefaultBackup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed,
 					}
 					newton_catch(exPipe)
 					{
-						err = (NewtonErr)(long)CurrentException()->data;
+						err = (NewtonErr)(intptr_t)CurrentException()->data;
 					}
 					end_try;
 					XFAIL(err)
@@ -1027,7 +1027,7 @@ LODefaultBackup(CPipe * inPipe, CStore * inStore, PSSId inId, bool inCompressed,
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 		}

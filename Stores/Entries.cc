@@ -30,7 +30,7 @@ extern Ref	gUnionSoups;
 extern void	CheckWriteProtect(CStore * inStore);
 extern void	AbortLargeBinaries(RefArg inEntry);
 
-extern ULong	RealClock(void);
+extern unsigned long	RealClock(void);	// as NewtonTime.h
 
 /*------------------------------------------------------------------------------
 	P l a i n   C   F u n c t i o n   I n t e r f a c e

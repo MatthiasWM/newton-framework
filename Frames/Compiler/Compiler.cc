@@ -24,6 +24,9 @@
 #include "Funcs.h"
 #include "ROMResources.h"
 
+#include <filesystem>
+#include <string>
+
 #include "Compiler.h"
 #include <algorithm>
 #include <filesystem>
@@ -93,6 +96,7 @@ int			gCompilerIsInitialized = false;		// 0C1052C8
 #define YYSTYPE Ref
 #define YYERRCODE 256
 
+extern "C" {	// y.tab.c is C
 extern short yylhs[];
 extern short yylen[];
 extern short yydefred[];
@@ -106,6 +110,7 @@ extern char *yyname[];	// should be only for YYDEBUG, but we use 'em for reporti
 #if YYDEBUG
 extern char *yyrule[];
 #endif
+}
 
 #define YYTABLESIZE 4392
 #define YYFINAL 31
@@ -579,11 +584,18 @@ CCompiler::lineFile(void)
 	if (ISNIL(fLineFile))
 	{
 		const char * name = stream->fileName();
-		char path[PATH_MAX];
+		std::string path;
 		if (name == NULL || name[0] == 0)
 			name = "<unknown>";
-		else if (name[0] != '/' && realpath(name, path) != NULL)
-			name = path;
+		else if (!std::filesystem::path(name).is_absolute()) {
+			// as realpath: the file must exist, symbolic links resolved
+			std::error_code err;
+			std::filesystem::path full = std::filesystem::canonical(name, err);
+			if (!err) {
+				path = full.string();
+				name = path.c_str();
+			}
+		}
 		fLineFile = MakeStringFromCString(name);
 	}
 	return fLineFile;

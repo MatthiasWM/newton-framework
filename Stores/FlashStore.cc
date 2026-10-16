@@ -455,7 +455,7 @@ We create an array of physical block objects and point each logical block object
 		if (fIsStoreRemovable)
 		{
 			fE5 = false;
-			fD8 = (long)storeInfo->f10;
+			fD8 = (intptr_t)storeInfo->f10;
 			fE4 = false;
 			fE8 = fSocketNo;
 		}

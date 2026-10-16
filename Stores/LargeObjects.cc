@@ -880,7 +880,7 @@ BackupPackage(CPipe * inPipe, PSSId inId)
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;;
 			}
 			end_try;
 			XFAIL(err)
@@ -978,7 +978,7 @@ BackupPackage(CPipe * inPipe, CStore * inStore, PSSId inId, CLOCallback * inCall
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;;
 			}
 			end_try;
 			XFAIL(err)
@@ -1094,7 +1094,7 @@ WrapPackage(CStore * inStore, PSSId inId)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;;
 		}
 		end_try;
 	}

@@ -320,10 +320,7 @@ ROMDomainManagerFreePageCount(void)
 #define kDomainSize (4*MByte)
 
 #if defined(forFramework)
-#include <sys/mman.h>
-#ifdef __APPLE__
-#include <mach/vm_statistics.h>
-#endif
+#include "HostMemory.h"
 static VAddr baseAddr = 0;
 #endif
 
@@ -332,11 +329,7 @@ ROMDomainBase(void)
 {
 #if defined(forFramework)
 	if (baseAddr == 0)
-#ifdef __APPLE__
-		baseAddr = (VAddr)mmap(NULL, kDomainSize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, VM_MAKE_TAG(VM_MEMORY_APPLICATION_SPECIFIC_1), 0);
-#else
-		baseAddr = (VAddr)mmap(NULL, kDomainSize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, 0, 0);
-#endif
+		baseAddr = (VAddr)HostMapAnonymous(kDomainSize);
 	return baseAddr;
 
 #else
@@ -1311,6 +1304,7 @@ CROMDomainManager1K::setPackageId(CStore * inStore, PSSId inObjId, PSSId inPkgId
 		chunk = (PackageChunk *)fPackageTable->elementPtrAt(index);
 		chunk->fPkgId = inPkgId;
 	}
+	return err;
 }
 
 
@@ -1674,7 +1668,7 @@ CROMDomainManager1K::XIPMapInPackageSection(VAddr inAddr)
 
 NewtonErr
 CROMDomainManager1K::XIPAllocatePackageEntry(PackageChunk * outChunk, long*)
-{}
+{ return noErr; }
 
 
 NewtonErr

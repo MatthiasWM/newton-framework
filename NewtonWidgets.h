@@ -134,17 +134,17 @@ void ByteSwap(void * p, int count, int swapSize);
 //	PAGEALIGN(amount)			ditto, for 4K and 1K (ARM)
 //	SUBPAGEALIGN(amount)
 
-#define TRUNC(N,B)			(((long)(N)) & ~((long)(B)-1L))
-#define ALIGN(N,B)			((((long)(N))+(long)(B)-1)&~((long)(B)-1L))
+#define TRUNC(N,B)			(((intptr_t)(N)) & ~((intptr_t)(B)-1))
+#define ALIGN(N,B)			((((intptr_t)(N))+(intptr_t)(B)-1)&~((intptr_t)(B)-1))
 #define WORDALIGN(n)			ALIGN((n),2L)
 #define LONGALIGN(n)      ALIGN((n),4L)
 #define MEMALIGN(n)       ALIGN((n),8L)
 #define PAGEALIGN(n)			ALIGN((n),kPageSize)
 #define SUBPAGEALIGN(n)		ALIGN((n),kSubPageSize)
-#define ALIGNED(n,B)			(((long)(n)) == ALIGN(((long)(n)),(long)(B)))
-#define MISALIGNED(n)		(((long)(n) & 3L) != 0)
+#define ALIGNED(n,B)			(((intptr_t)(n)) == ALIGN(((intptr_t)(n)),(intptr_t)(B)))
+#define MISALIGNED(n)		(((intptr_t)(n) & 3) != 0)
 
-#define PAGEOFFSET(n)		((long)(n) & (kPageSize-1))
+#define PAGEOFFSET(n)		((intptr_t)(n) & (kPageSize-1))
 
 
 #endif	/* __NEWTONWIDGETS_H */

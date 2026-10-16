@@ -570,7 +570,7 @@ PNTKDeviceOutTranslator::exceptionNotify(Exception * inException)
     data.insert(data.end(), nsof.begin(), nsof.end());
     gNub->send(NTKCommand("eref"), data, (long)(nameBytes.size() + nsof.size()));
   } else {
-    std::vector<uint8_t> error = U32((uint32_t)(long)inException->data);
+    std::vector<uint8_t> error = U32((uint32_t)(intptr_t)inException->data);
     data.insert(data.end(), error.begin(), error.end());
     gNub->send(NTKCommand("eerr"), data, (long)(nameBytes.size() + 4));
   }

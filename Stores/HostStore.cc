@@ -13,8 +13,17 @@
 
 #include <cstdio>
 #include <ctime>
+#if defined(_WIN32)
+#include <io.h>
+#define fsync		_commit
+#define access		_access
+#define unlink		_unlink
+#define F_OK		0
+#else
 #include <unistd.h>
+#endif
 #include <cstdlib>
+#include <filesystem>
 #include <cstring>
 
 // The store's root object (as CFlashStore's); new objects are numbered
@@ -486,7 +495,7 @@ CHostStore::save(void)
 		if (access(gHostStoreFile.c_str(), F_OK) == 0) {
 			std::string backup = gHostStoreFile + ".bak";
 			rename(backup.c_str(), (backup + "2").c_str());
-			link(gHostStoreFile.c_str(), backup.c_str());		// the old file stays there
+			{ std::error_code err; std::filesystem::create_hard_link(gHostStoreFile, backup, err); }		// the old file stays there
 		}
 	}
 	ok = ok && rename(temp.c_str(), gHostStoreFile.c_str()) == 0;

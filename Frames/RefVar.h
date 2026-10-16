@@ -30,7 +30,7 @@ public:
 	RefVar &	operator=(const Ref r)				{ h->ref = r; return *this; }
 
 	operator RefVar() const							{ return h; }
-	operator long() const							{ return h->ref; }
+	operator Ref() const								{ return h->ref; }
 
 private:
 	RefHandle * h;

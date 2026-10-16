@@ -639,7 +639,7 @@ CLOHackStore::createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPi
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 
@@ -743,7 +743,7 @@ CLOHackStore::createFromCompressed(PSSId * outId, CStore * inStore, CPipe * inPi
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 
@@ -900,7 +900,7 @@ REPprintf("Decompress: %s\n", companderName);
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 
@@ -938,7 +938,7 @@ REPprintf("Decompress: %s\n", companderName);
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 
@@ -973,7 +973,7 @@ REPprintf("Decompress: %s\n", companderName);
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 
@@ -1017,7 +1017,7 @@ REPprintf("Decompress: %s\n", companderName);
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 		decompressor->destroy();
@@ -1154,7 +1154,7 @@ REPprintf("Decompress: %s\n", companderName);
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 

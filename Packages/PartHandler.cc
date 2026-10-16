@@ -334,7 +334,7 @@ CPipeApp::mainConstructor(void)
 		}
 		newton_catch(exPipe)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -668,7 +668,7 @@ CPartHandler::expand(void * outData, CPipe * inPipe, PartInfo * info)
 	}
 	newton_catch(exPipe)
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	return err;
@@ -761,7 +761,7 @@ CPartHandler::install(CPkPartInstallEvent * installEvent)
 	}
 	newton_catch_all	// original says newton_catch(0)
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	if (!fReplied)
@@ -929,7 +929,7 @@ CFramePartHandler::expand(void * outData, CPipe * inPipe, PartInfo * info)
 	}
 	newton_catch(exPipe)
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	return err;

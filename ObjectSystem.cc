@@ -108,7 +108,7 @@ InitObjectSystem(void)
 	// the plain C functions of the ROM's function frames (ROMData/forNewton/ROMFunctions.c)
 		InstallROMFunctions();
 	// task globals, protocols, ROM domain, stores, objects, translators,
-	// NTK's translator protocols, REP streams, Unicode, the internal store
+	// the REP's translator protocols and streams, Unicode, the internal store
 	// (ObjectSystemCore.cc)
 		InitObjectSystemCore();
 

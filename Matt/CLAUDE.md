@@ -1118,7 +1118,44 @@ assembler and Windows can build with MSVC or clang-cl.
       Test/cmake/test_subproject.py now builds a parent program that links
       newton_ncx and round-trips a frame. NEWTON_BUILD_TESTS (default: top
       level) builds the test.
-- [ ] 0.4 `newton_ncx` on Linux and Windows (MSVC or clang-cl).
+- [x] 0.4 `newton_ncx` on Linux and Windows (2026-10-16). GitHub Actions
+      (`.github/workflows/newton_ncx.yml`): newton_ncx and newton_ncx_test,
+      tools off, RelWithDebInfo, ctest, on linux x64 and arm64 (gcc), windows
+      x64 and arm64 (MSVC), macOS universal (both slices; x86_64 under
+      Rosetta); a crash on Windows prints its stack (cdb). All green. MSVC
+      builds the library with pointer truncation as errors (/we4311
+      /we4302) and C11 (the ROM data's initializers). What it took:
+      - Byte order: hasByteSwapping only followed clang's __LITTLE_ENDIAN__;
+        gcc and MSVC builds read every package and NSOF stream unswapped
+        (a round trip doesn't notice). Now also __BYTE_ORDER__ and _WIN32;
+        newton_ncx_test compares NSOF bytes with a golden copy and reads a
+        symbol out of a package.
+      - RefVar converted to `long`, so on Windows every Ref through a RefVar
+        lost its top 32 bits (pointers sign-extended): now `operator Ref()`.
+      - Pointer-sized casts: the ALIGN/TRUNC/MISALIGNED macros, 77
+        `(long)...->data` exception codes, FlashStore's fD8.
+      - Symbols MSVC links by type (Itanium doesn't): the LZ tables were
+        const in their header but not in their definitions (the .cc didn't
+        include it); RealClock declared ULong in two files and unsigned
+        long elsewhere; DefaultSortTableId long vs int; y.tab.c's tables,
+        gASCIIBreakTable, RSsymbolTable needed C linkage.
+      - Files: packages, stream files, dictionaries opened "r" (text mode
+        on Windows: CR LF, ^Z) now "rb"; ResMaker's ROM image too.
+      - No mach (Timers.cc: std::chrono), no mmap on Windows
+        (Utilities/HostMemory.cc: HostMapAnonymous, HostMapFile, HostUnmap
+        for the ROM domain and the flash store), no realpath/PATH_MAX
+        (std::filesystem), fpos_t as an integer (off_t), arpa/inet's htonl
+        (CANONICAL_LONG), unistd.h and link() in HostStore.cc (io.h,
+        std::filesystem::create_hard_link), sys/cdefs.h, ErrorString.cc's
+        include through a symlink (case and Windows), SerialNumber.cc
+        (Apple only: now the Mac's serial, /etc/machine-id, or none),
+        missing return values (9 stubs), zero-sized arrays (kNumOfRegisters
+        is 1 where there are no tasks), div() of intptr_t.
+      - NTK.cc out of the library: the REP's six translator protocols
+        (all defined in REP.cc) are registered by REPRegisterTranslators(),
+        which NTKInit and InitObjectSystemCore call.
+      Found and fixed B56, B57; newton_ncx_test checks layouts with
+      static_asserts in ObjHeader.h and Ref32.h.
 - [ ] 0.5 A drawing back end interface for QDDrawing.cc (Quartz behind it on
       macOS; NCX brings an FLTK one).
 - [ ] 0.6 MNP.cc, NTKTransport.cc, DES.c as a `newton_dock` library shared by
@@ -1161,6 +1198,17 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B57 The package reader (NewtonPackage.cc CopyRef) tested a binary's
+  class as `ISPTR(c) && (sym = ...), sym->objClass == ...`: the comma
+  dropped the test, so a class that isn't a pointer read an uninitialized
+  `sym`; and ISPTR is true for magic pointers too, whose "offset" points
+  anywhere. IsObjClass did ISPTR + PTR on a Ref the same way. Harmless on
+  macOS by luck (readable garbage), a crash on Windows. Fixed 2026-10-16:
+  ISREALPTR and a real `&&`; IsObjClass uses IsSymbol. Test:
+  newton_ncx_test (a package, on Windows).
+- [x] B56 CStoreObjectReader::eachLargeObjectDo skipped `sizeof(long)`
+  bytes for an NSOF xlong and a small rect, 8 on 64-bit macOS and Linux
+  instead of 4. Fixed 2026-10-16 (skip 4). Found while porting to Windows.
 - [ ] B55 Compressed large binaries (FLBAllocCompressed, what NCX's MP3 and
   Works imports make) don't work in newtc: they need a store whose class has
   the 'LOBJ' capability for its ephemeral tracker (SetupEphemeralTracker),

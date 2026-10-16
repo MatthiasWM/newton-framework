@@ -10,10 +10,16 @@
 #if !defined(__UNICODEPRIVATE_H)
 #define __UNICODEPRIVATE_H 1
 
+#ifdef __cplusplus
+extern "C" {	// UStringUtils.c uses them too
+#endif
 extern bool					gHasUnicode;				// 0C104EDC
 extern bool					gUnicodeInited;			// 0C104EE0
 extern const UniChar *	gASCIItoUnicodeTable;	// 0C104EE4
 extern const char *		gASCIIBreakTable;			// 0C104EE8
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct
 {

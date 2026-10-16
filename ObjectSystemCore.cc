@@ -4,8 +4,8 @@
 	Contains:	The Newton object system on its own: its globals, the stubs the
 					framework needs instead of an OS, and InitObjectSystemCore(), the
 					first part of InitObjectSystem() (ObjectSystem.cc): task globals,
-					protocols, ROM domain, stores, objects, translators, NTK's
-					translator protocols, the REP's streams, Unicode, the internal
+					protocols, ROM domain, stores, objects, translators, the REP's
+					translator protocols and streams, Unicode, the internal
 					store. No REP context, graphics or ROM scripts, and no ROM
 					functions (ROMFunctions.c).
 					This is what the newton_ncx library initializes (NCX).
@@ -48,7 +48,6 @@ extern NewtonErr	InitPSSManager(ObjectId inEnvId, ObjectId inDomId);
 extern void			InitObjects(void);
 extern void			InitTranslators(void);
 extern Ref			InitUnicode(void);
-extern void			NTKInit(void);
 extern void			REPInitGlobals(void);
 extern void			InitExternal(void);
 extern PInTranslator *	gREPin;
@@ -161,7 +160,7 @@ InitObjectSystemCore(void)
 	InitObjects();
 	InitTranslators();			// register flatten/unflatten etc
 
-	NTKInit();						// the REP's translators (null, stdio)
+	REPRegisterTranslators();	// the REP's translator protocols (was NTKInit)
 	gREPin = InitREPIn();
 	gREPout = InitREPOut();
 	REPInitGlobals();				// vars, functions, printDepth (InitObjectSystem's REPInit prompts)
@@ -188,7 +187,7 @@ MakeROMResources(void)
 	const char * dictStr = CFStringGetCStringPtr(dictPath, kCFStringEncodingMacRoman);
 	size_t dictSize;
 
-	FILE * fp = fopen(dictStr, "r");
+	FILE * fp = fopen(dictStr, "rb");
 
 	CFRelease(dictPath);
 	CFRelease(url);

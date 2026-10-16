@@ -80,12 +80,7 @@ CNTKNub *	gNTKNub;
 void
 NTKInit(void)
 {
-	PHammerInTranslator::classInfo()->registerProtocol();
-	PHammerOutTranslator::classInfo()->registerProtocol();
-	PNullInTranslator::classInfo()->registerProtocol();
-	PNullOutTranslator::classInfo()->registerProtocol();
-	PStdioInTranslator::classInfo()->registerProtocol();
-	PStdioOutTranslator::classInfo()->registerProtocol();
+	REPRegisterTranslators();	// REP.cc (InitObjectSystemCore calls it, not this)
 #if 0
 	PSerialInTranslator::classInfo()->registerProtocol();
 	PSerialOutTranslator::classInfo()->registerProtocol();
@@ -493,7 +488,7 @@ PNTKInTranslator::idle(void)
 	}
 	newton_catch_all
 	{
-		NTKShutdown((NewtonErr)(long)CurrentException()->data);
+		NTKShutdown((NewtonErr)(intptr_t)CurrentException()->data);
 	}
 	end_try;
 
@@ -1347,7 +1342,7 @@ CNTKNub::downloadPackage(void)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1393,7 +1388,7 @@ CNTKNub::startListener(void)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1422,7 +1417,7 @@ CNTKNub::stopListener(void)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1461,7 +1456,7 @@ CNTKNub::readCommand(EventType * outCmd, size_t * outLength)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1550,7 +1545,7 @@ CNTKNub::handleCodeBlock(size_t inLength)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1607,7 +1602,7 @@ CNTKNub::sendTextHeader(size_t inLength)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1634,7 +1629,7 @@ CNTKNub::sendResult(NewtonErr inResult)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1660,7 +1655,7 @@ CNTKNub::sendEOM(void)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1687,7 +1682,7 @@ CNTKNub::sendRef(EventType inCmd, RefArg inRef)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1713,7 +1708,7 @@ CNTKNub::enterBreakLoop(int inLevel)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1739,7 +1734,7 @@ CNTKNub::exitBreakLoop(void)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1762,7 +1757,7 @@ CNTKNub::exceptionNotify(Exception * inException)
 		return sendExceptionData(inException->name, (char *)inException->data);
 	else if (Subexception(inException->name, exRefException))
 		;//return sendExceptionData(inException->name, (RefVar) inException->data);
-	return sendExceptionData(inException->name, (NewtonErr)(long)inException->data);
+	return sendExceptionData(inException->name, (NewtonErr)(intptr_t)inException->data);
 }
 
 
@@ -1797,7 +1792,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, char * inMessage)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1829,7 +1824,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, RefArg inData)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1866,7 +1861,7 @@ CNTKNub::sendExceptionData(const char * inExceptionName, NewtonErr inError)
 		}
 		newton_catch_all
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1892,7 +1887,7 @@ CNTKNub::sendExceptionHeader(EventType inCmd)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 

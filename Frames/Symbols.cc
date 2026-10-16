@@ -47,7 +47,7 @@ const ArrayIndex kBuiltInSymbolTableShift = 32 - 9;
 	D a t a
 ----------------------------------------------------------------------*/
 
-extern Ref * RSsymbolTable;
+extern "C" Ref * RSsymbolTable;	// ROMData (C), as RSData.h
 
 Ref			gSymbolTable;
 ArrayIndex	gSymbolTableSize;

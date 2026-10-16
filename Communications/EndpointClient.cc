@@ -780,7 +780,7 @@ CNewScriptEndpointClient::parseInput(FormType inType, long inArg2, long inArg3, 
 		}
 		newton_catch(exTranslator)
 		{
-			*outErr = (NewtonErr)(long)CurrentException()->data;
+			*outErr = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1179,7 +1179,7 @@ CNewScriptEndpointClient::addProxyArrayElement(RefArg inArray, RefArg inElement)
 	}
 	newton_catch(exOutOfMemory)
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 
@@ -1617,7 +1617,7 @@ CNewScriptEndpointClient::convertToOptionArray(RefArg inOptions, COptionArray * 
 		}
 		newton_catch(exTranslator)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1647,7 +1647,7 @@ CNewScriptEndpointClient::convertFromOptionArray(RefArg outOptions, COptionArray
 		}
 		newton_catch(exTranslator)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 	}
@@ -1949,7 +1949,7 @@ CNewScriptEndpointClient::outputFrame(RefArg inData, bool inSync, ULong inFlags,
 		}
 		newton_catch(exTranslator)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 		XFAIL(err)
@@ -1990,7 +1990,7 @@ CNewScriptEndpointClient::outputData(RefArg inData, FormType inForm, bool inSync
 		}
 		newton_catch(exTranslator)
 		{
-			err = (NewtonErr)(long)CurrentException()->data;
+			err = (NewtonErr)(intptr_t)CurrentException()->data;
 		}
 		end_try;
 		XFAIL(err)

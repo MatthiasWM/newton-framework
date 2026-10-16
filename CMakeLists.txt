@@ -206,6 +206,7 @@ set ( SRCFILES
   Toolbox/Maths.cc
   Utilities/DataStuffing.cc
   Utilities/Unimplemented.cc
+  Utilities/HostMemory.cc
   Utilities/UStringUtils.c
   Utilities/Unicode.cc
   UtilityClasses/DynamicArray.cc
@@ -334,6 +335,7 @@ set ( HEADERFILES
   Toolbox/Maths.h
   Utilities/DataStuffing.h
   Utilities/Unimplemented.h
+  Utilities/HostMemory.h
   Utilities/UStringUtils.h
   Utilities/Unicode.h
   UtilityClasses/DynamicArray.h
@@ -660,7 +662,6 @@ set ( NEWTON_NCX_SRCFILES
   IA.cc
   Locales.cc
   "Memory Manager/FakePointers.cc"
-  NTK/NTK.cc
   NTK/TranslatorProto.cc
   NewtonPackage.cc
   OS/PhysicalMemory.cc
@@ -710,6 +711,7 @@ set ( NEWTON_NCX_SRCFILES
   Stores/Tags.cc
   Stores/UnionSoup.cc
   Toolbox/Maths.cc
+  Utilities/HostMemory.cc
   Utilities/UStringUtils.c
   Utilities/Unicode.cc
   Utilities/Unimplemented.cc
@@ -750,6 +752,14 @@ target_compile_definitions (newton_ncx PUBLIC
   NEWTC_HOST_STORE=1)
 if (APPLE)
   target_link_libraries (newton_ncx PUBLIC "-framework CoreFoundation" "-framework IOKit")   # SerialNumber.cc
+endif ()
+# the ROM data (ROMData.c) uses C99 designated initializers
+set_target_properties (newton_ncx PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
+if (MSVC)
+  # a pointer cast to a smaller integer (long is 32 bits on 64-bit Windows)
+  # is an error, not a warning that truncates silently
+  target_compile_options (newton_ncx PRIVATE /we4311 /we4302 /bigobj)
+  target_compile_definitions (newton_ncx PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 endif ()
 
 # The library's test: links only newton_ncx, built as C++17 like NCX
@@ -1117,6 +1127,7 @@ set ( MP_SRC_FILES
   OS/UserPorts.cc
   OS/UserSharedMem.cc
   OS/UserTasks.cc
+  Utilities/HostMemory.cc
   Utilities/UStringUtils.c
   Views/View.cc
   Views/ViewObject.cc
@@ -1461,6 +1472,7 @@ set ( MP_HEADER_FILES
   Utilities/UnicodePrivate.h
   Utilities/Unicode.h
   Utilities/Sorting.h
+  Utilities/HostMemory.h
   Utilities/UStringUtils.h
   Testing/CommServer.h
   Testing/TestAgent.h

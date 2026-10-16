@@ -241,7 +241,7 @@ GetExceptionErr(Exception * inException)
 	}
 	else if (!Subexception(inException->name, exMessage))
 	{
-		err = (NewtonErr)(long)inException->data;
+		err = (NewtonErr)(intptr_t)inException->data;
 	}
 
 	return err;
@@ -639,6 +639,6 @@ FramesException(Exception * inException)
 			err = RINT(GetFrameSlot(excData, SYMA(errorCode)));
 	}
 	else
-		err = (NewtonErr)(long)inException->data;
+		err = (NewtonErr)(intptr_t)inException->data;
 	return err;
 }

@@ -83,7 +83,7 @@ UnflattenFile(const char * inFilename)
 	RefVar	obj;
 	if (inFilename != NULL)
 	{
-		CStdIOPipe		pipe(inFilename, "r");
+		CStdIOPipe		pipe(inFilename, "rb");	// NSOF: binary
 
 		CObjectReader	reader(pipe);
 		obj = reader.read();
@@ -110,7 +110,7 @@ FLoadDataFile(RefArg inRcvr, RefArg inFilename, RefArg inClass)
 		ConvertFromUnicode(GetUString(inFilename), filename, 255);
 
 		FILE * fd;
-		if ((fd = fopen(filename, "r")) == NULL) {
+		if ((fd = fopen(filename, "rb")) == NULL) {	// binary
 			ThrowErr(exPipe, -1);
 		}
 		fseek(fd, 0, SEEK_END);

@@ -156,7 +156,7 @@ enum TaskRegisters
 
 enum TaskRegisters
 {
-  kNumOfRegisters    = 0,
+  kNumOfRegisters    = 1,		// no task switching here; 0 would be a zero-sized array (MSVC refuses one in a class)
 };
 
 #endif

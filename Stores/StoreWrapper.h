@@ -66,7 +66,7 @@ Ref	StoreRestoreSegmentedPackage(RefArg inRcvr, RefArg inArg2);
 bool	IsRichString(RefArg inObj);
 bool	IsValidStore(const CStore * inStore);
 void	CheckWriteProtect(RefArg inRcvr);
-long	DefaultSortTableId(void);
+int	DefaultSortTableId(void);	// (Utilities/Unicode.cc)
 
 typedef uint32_t StoreRef;	// hi word = index into table for PSSId, lo word = offset into block read
 

@@ -9,6 +9,8 @@
 #if !defined(__STORESTREAMS_H)
 #define __STORESTREAMS_H 1
 
+#include <sys/types.h>	// off_t
+
 #include "DynamicArray.h"
 #include "UnicodeCompression.h"
 #include "StreamObjects.h"
@@ -59,7 +61,7 @@ public:
 	const CStoreReadPipe &	operator>>(int&);
 
 	void			setPSSID(PSSId inId);
-	void			setPosition(fpos_t inPos);
+	void			setPosition(off_t inPos);
 	void			read(char * ioBuf, size_t inSize);
 	size_t		readFromStore(char * ioBuf, size_t inSize);
 	void			fillBuffer(void);
@@ -97,8 +99,8 @@ public:
 	operator PSSId() const;
 
 	void			init(CStoreWrapper * inWrapper, PSSId inObjectId, size_t inObjectSize, CompressionType inCompression);
-	void			setPosition(fpos_t inPos);
-	void *		getDataPtr(fpos_t inPos);
+	void			setPosition(off_t inPos);
+	void *		getDataPtr(off_t inPos);
 	void			write(char * ioBuf, size_t inSize);
 	void			writeToStore(char * ioBuf, size_t inSize);
 	void			bufferToObject(char * ioBuf, size_t inSize);

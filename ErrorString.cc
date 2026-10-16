@@ -128,7 +128,7 @@ StoreBackingFile(const char * inStoreName)
 }
 
 
-#include "ROMData/NTK.Framework/Headers/NewtonErrors.h"
+#include "NewtonErrors.h"
 
 const std::map<int, std::string> error_LUT =
 {

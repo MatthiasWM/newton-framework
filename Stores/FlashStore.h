@@ -227,7 +227,7 @@ private:
 	long					fA0 { 0 };
 	CStoreDriver		fA4 { 0 };
 	int					fLockROCount { 0 };		// +D4
-	long					fD8 { 0 };					// +D8	actually CStore *?
+	intptr_t				fD8 { 0 };					// +D8	actually CStore *?
 	bool					fE4 { false };
 	bool					fE5 { false };
 	ArrayIndex			fE8 { 0 };

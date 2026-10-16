@@ -17,7 +17,7 @@
 #include "PlainSoup.h"
 #include "Cursors.h"
 
-extern ULong	RealClock(void);
+extern unsigned long	RealClock(void);	// as NewtonTime.h
 extern void		CheckWriteProtect(CStore * inStore);
 extern Ref		SafeEntryAdd(RefArg inRcvr, RefArg inFrame, RefArg inId, unsigned char inFlags);
 

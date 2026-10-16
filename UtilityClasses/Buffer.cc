@@ -520,7 +520,7 @@ CRingBuffer::copyIn(CPipe * inPipe, size_t & ioLength)
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 			if (err)
@@ -541,7 +541,7 @@ CRingBuffer::copyIn(CPipe * inPipe, size_t & ioLength)
 			}
 			newton_catch(exPipe)
 			{
-				err = (NewtonErr)(long)CurrentException()->data;
+				err = (NewtonErr)(intptr_t)CurrentException()->data;
 			}
 			end_try;
 			if (err)

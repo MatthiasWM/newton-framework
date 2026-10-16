@@ -210,6 +210,26 @@ InitREPIn(void)
 
 
 /*------------------------------------------------------------------------------
+	Register the REP's translator protocols (hammer, null, stdio: all here).
+	Was in NTKInit (NTK/NTK.cc), which now calls this; InitObjectSystemCore
+	calls it directly, so the object system doesn't need NTK.cc.
+	Args:		--
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+REPRegisterTranslators(void)
+{
+	PHammerInTranslator::classInfo()->registerProtocol();
+	PHammerOutTranslator::classInfo()->registerProtocol();
+	PNullInTranslator::classInfo()->registerProtocol();
+	PNullOutTranslator::classInfo()->registerProtocol();
+	PStdioInTranslator::classInfo()->registerProtocol();
+	PStdioOutTranslator::classInfo()->registerProtocol();
+}
+
+
+/*------------------------------------------------------------------------------
 	Initialize the REP output stream.
 	Args:		--
 	Return:	output translator
@@ -534,11 +554,11 @@ REPExceptionNotify(Exception * inException)
 		}
 	}
 
-	else if ((str = GetFramesErrorString((NewtonErr)(long)inException->data)) != NULL)
+	else if ((str = GetFramesErrorString((NewtonErr)(intptr_t)inException->data)) != NULL)
 		gREPout->print(kExceptionErrorStr, str);
 
 	else
-		gREPout->print(kExceptionErrorCodeStr, (char *)inException->name, (NewtonErr)(long)inException->data);
+		gREPout->print(kExceptionErrorCodeStr, (char *)inException->name, (NewtonErr)(intptr_t)inException->data);
 }
 
 #pragma mark -

@@ -11,6 +11,7 @@
 
 #if !defined(__NEWTONTYPES_H)
 #include "NewtonTypes.h"
+#include <stddef.h>	// offsetof
 #endif
 
 /*----------------------------------------------------------------------
@@ -135,6 +136,13 @@ struct ArrayObject
 }; //__attribute__((packed)); // NOTE: no need to pack this as all members are (and must be) native word aligned
 
 #define SIZEOF_ARRAYOBJECT(_n) (sizeof(ObjHeader) + sizeof(Ref) + _n*sizeof(Ref))
+
+// the layouts the object system and the package reader count on, on every
+// compiler (bitfields, unions, zero-length arrays)
+static_assert(sizeof(BinaryObject) == sizeof(ObjHeader) + sizeof(Ref), "BinaryObject: header + class");
+static_assert(sizeof(ArrayObject) == sizeof(ObjHeader) + sizeof(Ref), "ArrayObject: header + class");
+static_assert(offsetof(ArrayObject, slot) == sizeof(ArrayObject), "ArrayObject: slots follow the class");
+static_assert(offsetof(BinaryObject, data) == sizeof(BinaryObject), "BinaryObject: data follow the class");
 
 #define kMaxSlottedObjSize (size_t)(kMaxObjSize / sizeof(Ref))
 

@@ -49,7 +49,7 @@ CFlashDriver::resetBlockStatus(CFlashRange& inRange, ULong)
 
 NewtonErr
 CFlashDriver::startErase(CFlashRange& inRange, PAddr inBlockAddr)
-{}
+{ return noErr; }
 
 bool
 CFlashDriver::isEraseComplete(CFlashRange& inRange, ULong, long&)

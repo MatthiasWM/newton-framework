@@ -2518,7 +2518,7 @@ CSoupIndex::add(SKey * inKey, SKey * inData)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	if (err == noErr)
@@ -2552,7 +2552,7 @@ CSoupIndex::Delete(SKey * inKey, SKey * inData)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	if (err == noErr)
@@ -2641,7 +2641,7 @@ CSoupIndex::find(SKey * inKey, SKey * outKey, SKey * outData, bool inArg4)
 	{
 		failed = true;
 		fCache->abort(this);
-		status = (long)CurrentException()->data;;
+		status = (intptr_t)CurrentException()->data;;
 	}
 	end_try;
 
@@ -2684,7 +2684,7 @@ CSoupIndex::first(SKey * outKey, SKey * outData)
 	{
 		failed = true;
 		fCache->abort(this);
-		status = (long)CurrentException()->data;;
+		status = (intptr_t)CurrentException()->data;;
 	}
 	end_try;
 
@@ -2721,7 +2721,7 @@ CSoupIndex::last(SKey * outKey, SKey * outData)
 	{
 		failed = true;
 		fCache->abort(this);
-		status = (long)CurrentException()->data;;
+		status = (intptr_t)CurrentException()->data;;
 	}
 	end_try;
 
@@ -2753,7 +2753,7 @@ CSoupIndex::next(SKey * inKey, SKey * inData, int inArg3, SKey * outKey, SKey * 
 	{
 		failed = true;
 		fCache->abort(this);
-		status = (long)CurrentException()->data;;
+		status = (intptr_t)CurrentException()->data;;
 	}
 	end_try;
 
@@ -2785,7 +2785,7 @@ CSoupIndex::prior(SKey * inKey, SKey * inData, int inArg3, SKey * outKey, SKey *
 	{
 		failed = true;
 		fCache->abort(this);
-		status = (long)CurrentException()->data;;
+		status = (intptr_t)CurrentException()->data;;
 	}
 	end_try;
 
@@ -3108,7 +3108,7 @@ CUnionSoupIndex::currentSoupGone(SKey * inKey, SKey * outKey, SKey * outData)
 	}
 	newton_catch_all
 	{
-		status = (NewtonErr)(long)CurrentException()->data;
+		status = (NewtonErr)(intptr_t)CurrentException()->data;
 	}
 	end_try;
 	return status;

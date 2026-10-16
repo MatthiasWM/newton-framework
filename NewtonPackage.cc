@@ -18,7 +18,6 @@
 #include "Symbols.h"
 
 #include <cassert>
-#include <arpa/inet.h>
 
 #if NEWT_64BIT
 /* -----------------------------------------------------------------------------
@@ -71,7 +70,7 @@ const UShort kFromMacRomanLUT[] =
 
 NewtonPackage::NewtonPackage(const char * inPkgPath)
 {
-	pkgFile = fopen(inPkgPath, "r");
+	pkgFile = fopen(inPkgPath, "rb");	// binary: "r" is text mode on Windows (CR LF, ^Z)
 	pkgMem = NULL;
 	pkgDir = NULL;
 	relocationData = NULL;
@@ -412,11 +411,11 @@ NewtonPackage::partRef(ArrayIndex inPartNo)
 static void SetFrameSlotFourCC(RefArg frame, RefArg symbol, ULong fourcc) {
 	if ( (isprint(fourcc&0xff)) && (isprint((fourcc>>8)&0xff)) && (isprint((fourcc>>16)&0xff)) && (isprint((fourcc>>24)&0xff)) ) {
 		union { ULong id; char idChars[5]; } idBuffer;
-		idBuffer.id = htonl(fourcc);
+		idBuffer.id = CANONICAL_LONG(fourcc);
 		idBuffer.idChars[4] = '\0';	// null-terminate
 		SetFrameSlot(frame, symbol, MakeStringFromCString(idBuffer.idChars));
 	} else {
-		ULong idValue = htonl(fourcc);
+		ULong idValue = CANONICAL_LONG(fourcc);
 		Ref bin = AllocateBinary(SYMA(binary), 4);
 		memcpy(BinaryData(bin), &idValue, 4);
 		SetFrameSlot(frame, symbol, bin);
@@ -680,7 +679,12 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 				SymbolObject * sym = (SymbolObject *)dstPtr;
 				sym->hash = BYTE_SWAP_LONG(sym->hash);
 //NSLog(@"'%s", sym->name);
-			} else if (ISPTR(srcClass) && (sym = ((SymbolObject32 *)(inPartAddr + ((intptr_t)PTR(srcClass) - inPartOffset)))), sym->objClass == CANONICAL_LONG(kSymbolClass)) {
+			} else if (ISREALPTR(srcClass)
+					 && (sym = ((SymbolObject32 *)(inPartAddr + ((intptr_t)PTR(srcClass) - inPartOffset))))->objClass == CANONICAL_LONG(kSymbolClass)) {
+				// (was "ISPTR(...) && (sym = ...), sym->objClass == ...": the comma
+				// dropped the test, so a class that isn't a pointer read an
+				// uninitialized sym; and ISPTR is true for a magic pointer too,
+				// whose "offset" points anywhere, B57)
 				if (IsSymClass(sym, "string")) {
 					// string -- byte-swap UniChar characters
 					UniChar * s = (UniChar *)dstPtr->slot;
@@ -742,7 +746,7 @@ CopyRef(Ref32 inRef, const char * inPartAddr, long inPartOffset, ArrayObject * &
 bool
 IsObjClass(Ref obj, const char * inClassName)
 {
-	if (ISPTR(obj) && ((SymbolObject *)PTR(obj))->objClass == kSymbolClass) {
+	if (IsSymbol(obj)) {	// (was ISPTR && PTR(obj): a magic pointer isn't an address, B57)
 		const char * subName = SymbolName(obj);
 		for ( ; *subName && *inClassName; subName++, inClassName++) {
 			if (tolower(*subName) != tolower(*inClassName)) {

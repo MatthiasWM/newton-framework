@@ -11,9 +11,7 @@
 #include "FlashDriver.h"
 #include "OSErrors.h"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
+#include "HostMemory.h"
 extern "C" const char * StoreBackingFile(const char * inStoreName);
 
 #pragma mark -
@@ -138,18 +136,13 @@ CFlashRange::CFlashRange(CFlashDriver * inDriver, VAddr inFlashAddr, VAddr inRea
 	const char * fpath = StoreBackingFile("Internal");
 	// might want to delete this if it already exists so we always start from scratch
 	bool isNew = false;
-	fd = open(fpath, O_RDWR);
-	if (fd < 0) {
-		// create new backing file EINVAL
-		fd = open(fpath, O_RDWR|O_CREAT|O_TRUNC, S_IRWXU|S_IRWXG);
-		if (fd < 0) {
-			printf("FAILED TO CREATE STORE BACKING FILE!\n");
-			exit(1);
-		}
-		ftruncate(fd, fRangeSize);
-		isNew = true;
+	void * addr = HostMapFile(fpath, fRangeSize, &isNew);
+	if (addr == NULL) {
+		printf("FAILED TO CREATE STORE BACKING FILE!\n");
+		exit(1);
 	}
-	fReadVAddr = fWriteVAddr = (VAddr)mmap(NULL, fRangeSize, PROT_READ|PROT_WRITE, MAP_FILE|MAP_SHARED, fd, 0);
+	fd = 0;	// mapped (dlete unmaps it)
+	fReadVAddr = fWriteVAddr = (VAddr)addr;
 //	DEBUG: always start with a virgin store
 #if !defined(forNTK)
 	isNew = true;
@@ -157,7 +150,6 @@ CFlashRange::CFlashRange(CFlashDriver * inDriver, VAddr inFlashAddr, VAddr inRea
 	if (isNew) {
 		memset((void *)fWriteVAddr, 0xFF, fRangeSize);	// set virgin bits
 	}
-	close(fd);
 #endif
 }
 
@@ -174,7 +166,7 @@ CFlashRange::dlete(CMemoryAllocator & inAllocator)
 #if !defined(correct)
 	//unmap disk file
 	if (fd != -1)
-		munmap((void *)fReadVAddr, fRangeSize);
+		HostUnmap((void *)fReadVAddr, fRangeSize);
 #endif
 }
 

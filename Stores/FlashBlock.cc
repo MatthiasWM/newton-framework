@@ -773,11 +773,11 @@ CFlashBlock::nextObject(ZAddr inAddr, ZAddr * outAddr, bool inAllObjects)
 // can compact SRAM but not flash
 NewtonErr
 CFlashBlock::compactInto(ULong)
-{}
+{ return noErr; }
 
 NewtonErr
 CFlashBlock::compactInto(CFlashBlock*)
-{}
+{ return noErr; }
 
 NewtonErr
 CFlashBlock::compactInPlace(void)
@@ -844,7 +844,7 @@ CFlashBlock::continueCompact(SCompactState * ioState)
 
 NewtonErr
 CFlashBlock::realContinueCompact(SCompactState * ioState)
-{}
+{ return noErr; }
 
 
 bool

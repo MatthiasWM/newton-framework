@@ -77,7 +77,7 @@ CCommServer::connectToTestServer(CEzEndpointPipe ** outPipe)
 		}
 		newton_catch(exPipe)
 		{
-			testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+			testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 		}
 		end_try;
 	}
@@ -101,7 +101,7 @@ CCommServer::disconnectFromTestServer(void)
 		}
 		newton_catch(exPipe)
 		{
-			testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+			testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 		}
 		end_try;
 
@@ -159,7 +159,7 @@ CCommServer::readChunk(void * inBuf, size_t inLength, bool inDone)
 	}
 	newton_catch(exPipe)
 	{
-		testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+		testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 	}
 	end_try;
 
@@ -211,7 +211,7 @@ CCommServer::flushPadding(size_t inLength)
 		}
 		newton_catch(exPipe)
 		{
-			testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+			testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 		}
 		end_try;
 	}
@@ -236,7 +236,7 @@ CCommServer::sendChunk(void * inBuf, size_t inLength, bool inDone)
 	}
 	newton_catch(exPipe)
 	{
-		testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+		testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 	}
 	end_try;
 	pad(inLength);
@@ -248,7 +248,7 @@ CCommServer::sendChunk(void * inBuf, size_t inLength, bool inDone)
 		}
 		newton_catch(exPipe)
 		{
-			testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+			testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 		}
 		end_try;
 	}
@@ -274,7 +274,7 @@ CCommServer::pad(size_t inLength)
 		}
 		newton_catch(exPipe)
 		{
-			testPipeExceptionHandler((NewtonErr)(long)CurrentException()->data);
+			testPipeExceptionHandler((NewtonErr)(intptr_t)CurrentException()->data);
 		}
 		end_try;
 	}

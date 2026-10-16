@@ -270,7 +270,7 @@ NewPackage(CPipe * inPipe, RefArg inStore, RefArg inCallback, size_t inFreq)
 	}
 	newton_catch_all
 	{
-		err = (NewtonErr)(long)CurrentException()->data;;
+		err = (NewtonErr)(intptr_t)CurrentException()->data;;
 	}
 	end_try;
 	return err;
