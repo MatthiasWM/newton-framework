@@ -1062,9 +1062,23 @@ assembler and Windows can build with MSVC or clang-cl.
       Test/romdata/test_resmaker.py regenerates both (when ResMaker is built)
       and compares them with the repo: never edit the generated files, change
       ResMaker.
-- [ ] 0.2 The CMake file as a subproject (CMAKE_CURRENT_SOURCE_DIR,
-      sanitizers only when top level, Apple frameworks only on APPLE,
-      NEWTON_BUILD_TOOLS).
+- [x] 0.2 The CMake file as a subproject (2026-10-16). Options, defaulting to
+      whether this is the top-level project: NEWTON_BUILD_TOOLS (newtc,
+      newtdump, ResMaker, NewtPlay), NEWTON_SANITIZE (ASan in Debug; a parent
+      that turns it on links its programs with it too). NEWTON_BUILD_MESSAGEPAD
+      is on only for a top-level build on an Intel Mac (its kernel and
+      protocols are x86 assembler; ASM is enabled only for it), so the
+      default build on Apple silicon builds without errors now. Paths are
+      CMAKE_CURRENT_SOURCE_DIR/BINARY_DIR (the same at the top), the
+      `execute_process(ls build/Xcode/...)` is gone, Apple frameworks only
+      on APPLE, UBSan and ASan not with MSVC. cmake_minimum_required 3.15:
+      option() keeps a value a parent set as a normal variable (CMP0077).
+      Top-level builds are unchanged (ninja rebuilt nothing). Test:
+      Test/cmake/test_subproject.py (Test/cmake/subproject pulls this
+      checkout in with FetchContent as NCX will: by default it configures,
+      builds, has none of the tools' targets, fetches nothing; with the
+      parent's NEWTON_BUILD_TOOLS ON it has them; --build-tools builds
+      newtc and newtdump there and runs newtc).
 - [ ] 0.3 The `newton_ncx` static library and a test that round-trips a
       frame through FlattenRef/UnflattenRef.
 - [ ] 0.4 `newton_ncx` on Linux and Windows (MSVC or clang-cl).

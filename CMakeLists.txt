@@ -1,23 +1,50 @@
 #
 # cmake -B build/Xcode  -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
 #
+# As the top-level project: newtc and the other tools (NEWTON_BUILD_TOOLS),
+# AddressSanitizer in Debug builds (NEWTON_SANITIZE), MessagePad on an Intel
+# Mac (NEWTON_BUILD_MESSAGEPAD).
+# As a subproject (add_subdirectory, FetchContent; e.g. NCX): all three off
+# unless the parent sets them, so nothing but what the parent asks for is
+# built or fetched.
+#
 
-cmake_minimum_required (VERSION 3.12.0 FATAL_ERROR)
+# 3.15: option() keeps a value the parent project set as a normal variable
+# (CMP0077); FLTK needs 3.15 too.
+cmake_minimum_required (VERSION 3.15)
 
 project (Newton
-  LANGUAGES C CXX ASM
+  LANGUAGES C CXX
   VERSION 2.1
 )
+
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set (NEWTON_TOP_LEVEL ON)
+else ()
+  set (NEWTON_TOP_LEVEL OFF)
+endif ()
+if (APPLE AND NEWTON_TOP_LEVEL AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  set (newton_messagepad_default ON)
+else ()
+  set (newton_messagepad_default OFF)   # its kernel and protocols are x86 assembler
+endif ()
+option (NEWTON_BUILD_TOOLS "Build newtc, newtdump, ResMaker, NewtPlay" ${NEWTON_TOP_LEVEL})
+option (NEWTON_SANITIZE "AddressSanitizer in Debug builds of the framework's targets" ${NEWTON_TOP_LEVEL})
+option (NEWTON_BUILD_MESSAGEPAD "Build MessagePad (Intel Macs only)" ${newton_messagepad_default})
 
 set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
 
-# AddressSanitizer in all Debug builds (all targets): reports use-after-free,
-# out-of-bounds access and similar memory bugs where they happen.
-set (ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
-set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${ASAN_FLAGS}")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${ASAN_FLAGS}")
-set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+# AddressSanitizer in all Debug builds (all targets of this directory):
+# reports use-after-free, out-of-bounds access and similar memory bugs where
+# they happen. A parent project that turns it on must link its programs with
+# -fsanitize=address too.
+if (NEWTON_SANITIZE AND NOT MSVC)
+  set (ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+  set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${ASAN_FLAGS}")
+  set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${ASAN_FLAGS}")
+  set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+endif ()
 
 set ( SRCFILES
   newtc.cc
@@ -550,10 +577,6 @@ source_group(
 )
 
 
-execute_process(COMMAND ls -asl build/Xcode/Newton.xcodeproj/)
-
-add_executable (newtc ${SRCFILES} ${HEADERFILES})
-
 # Build a NewtonScript source file into a target (see Matt/EmbeddedScript.h):
 # the .ns file becomes a C++ file that defines `const EmbeddedScript <name>`,
 # regenerated whenever the .ns file changes.
@@ -562,29 +585,51 @@ function (embed_newtonscript target nsfile name)
   add_custom_command (
     OUTPUT "${out}"
     COMMAND ${CMAKE_COMMAND} -DIN=${nsfile} -DOUT=${out} -DNAME=${name}
-            -P ${CMAKE_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake
-    DEPENDS "${nsfile}" "${CMAKE_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake
+    DEPENDS "${nsfile}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedNewtonScript.cmake"
     COMMENT "Embedding NewtonScript ${nsfile}"
   )
   target_sources (${target} PRIVATE "${out}" "${nsfile}")
   set_source_files_properties ("${nsfile}" PROPERTIES HEADER_FILE_ONLY TRUE)
 endfunction ()
 
+# A target with newtc's sources and settings (for NewtPlay below), plus
+# more sources.
+function (newtc_like target)
+  get_target_property (sources newtc SOURCES)
+  add_executable (${target} MACOSX_BUNDLE EXCLUDE_FROM_ALL ${sources} ${ARGN})
+  foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPILE_FEATURES
+                    LINK_LIBRARIES LINK_OPTIONS CXX_STANDARD CXX_STANDARD_REQUIRED CXX_EXTENSIONS)
+    get_target_property (value newtc ${property})
+    if (value)
+      set_property (TARGET ${target} PROPERTY ${property} "${value}")
+    endif ()
+  endforeach ()
+endfunction ()
+
+
+#------------------------------------------------------------------------------
+#   The tools: newtc, NewtPlay, newtdump, ResMaker (NEWTON_BUILD_TOOLS)
+#------------------------------------------------------------------------------
+if (NEWTON_BUILD_TOOLS)
+
+add_executable (newtc ${SRCFILES} ${HEADERFILES})
+
 target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/PNG.cc Matt/PNG.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/NTKTransport.cc Matt/NTKTransport.h Matt/MNP.cc Matt/MNP.h Matt/NTKInspector.cc Matt/NTKInspector.h Matt/NTKDevice.cc Matt/NTKDevice.h Matt/NTKRemote.cc Matt/NTKRemote.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDebugToolsInstall.ns gNSDebugToolsInstallScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DAPRemote.ns gDAPRemoteScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Agent.ns gAgentScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Remote.ns gRemoteScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/Connect.ns gConnectScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/AgentNatives.ns gAgentNativesScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Debugger/DebugToolsPackage.ns gDebugToolsPackageScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/Newton21.ns gPlatformScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/NTKBuild.ns gNTKBuildScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/NewtApp.ns gNewtAppScript)
-embed_newtonscript (newtc ${CMAKE_SOURCE_DIR}/Matt/Platform/PlatformFile.ns gPlatformFileScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDebugTools.ns gNSDebugToolsScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDebugToolsInstall.ns gNSDebugToolsInstallScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/NSDShortCuts.ns gNSDShortCutsScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/DAP.ns gDAPScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/DAPRemote.ns gDAPRemoteScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/Agent.ns gAgentScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/Remote.ns gRemoteScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/Connect.ns gConnectScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/AgentNatives.ns gAgentNativesScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Debugger/DebugToolsPackage.ns gDebugToolsPackageScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Platform/Newton21.ns gPlatformScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Platform/NTKBuild.ns gNTKBuildScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Platform/NewtApp.ns gNewtAppScript)
+embed_newtonscript (newtc ${CMAKE_CURRENT_SOURCE_DIR}/Matt/Platform/PlatformFile.ns gPlatformFileScript)
 
 # Testing is decompiling and recompiling builds the same object tree
 # ./testdec '/Users/matt/dev/Einstein/Sample Code/Application Design/Altered States-6/Using NTK Layout/Altered States.pkg'
@@ -634,44 +679,46 @@ target_compile_definitions(newtc PRIVATE NEWTC_HOST_STORE=1)
 # only runs where that library is: the binary bundled with VSNewt is built
 # with -DNEWTC_UBSAN=OFF (Matt/tools/build_vsnewt_newtc.sh).
 option(NEWTC_UBSAN "Build newtc with the undefined behavior sanitizer" ON)
-if (NEWTC_UBSAN)
+if (NEWTC_UBSAN AND NOT MSVC)
   target_compile_options(newtc PUBLIC -fsanitize=undefined)
   target_link_options(newtc PUBLIC -fsanitize=undefined)
 endif()
 target_include_directories (newtc PRIVATE
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/Frames
-  ${CMAKE_SOURCE_DIR}/UtilityClasses
-  ${CMAKE_SOURCE_DIR}/OS
-  ${CMAKE_SOURCE_DIR}/NTK
-  ${CMAKE_SOURCE_DIR}/CommAPI
-  ${CMAKE_SOURCE_DIR}/Frames/Compiler
-  ${CMAKE_SOURCE_DIR}/Views
-  ${CMAKE_SOURCE_DIR}/Graphics
-  ${CMAKE_SOURCE_DIR}/Protocols
-  ${CMAKE_SOURCE_DIR}/Stores
-  ${CMAKE_SOURCE_DIR}/Utilities
-  ${CMAKE_SOURCE_DIR}/Recognition
-  ${CMAKE_SOURCE_DIR}/Cards
-  ${CMAKE_SOURCE_DIR}/Sound
-  ${CMAKE_SOURCE_DIR}/Sound/Codecs
-  ${CMAKE_SOURCE_DIR}/Toolbox
-  ${CMAKE_SOURCE_DIR}/Packages
-  ${CMAKE_SOURCE_DIR}/Compression
-  ${CMAKE_SOURCE_DIR}/Memory\ Manager
-  ${CMAKE_SOURCE_DIR}/Communications
-  ${CMAKE_SOURCE_DIR}/Compression/LZCompression
-  ${CMAKE_SOURCE_DIR}/Compression/ZippyCompression
-  ${CMAKE_SOURCE_DIR}/Compression/UnicodeCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames
+  ${CMAKE_CURRENT_SOURCE_DIR}/UtilityClasses
+  ${CMAKE_CURRENT_SOURCE_DIR}/OS
+  ${CMAKE_CURRENT_SOURCE_DIR}/NTK
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommAPI
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames/Compiler
+  ${CMAKE_CURRENT_SOURCE_DIR}/Views
+  ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
+  ${CMAKE_CURRENT_SOURCE_DIR}/Protocols
+  ${CMAKE_CURRENT_SOURCE_DIR}/Stores
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/Recognition
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cards
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound/Codecs
+  ${CMAKE_CURRENT_SOURCE_DIR}/Toolbox
+  ${CMAKE_CURRENT_SOURCE_DIR}/Packages
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Memory\ Manager
+  ${CMAKE_CURRENT_SOURCE_DIR}/Communications
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/LZCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/ZippyCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/UnicodeCompression
 )
 
-target_link_libraries (newtc PRIVATE
-  "-framework Cocoa"
-  "-framework CoreServices"
-  "-framework ApplicationServices"
-  "-framework AudioUnit"
-  "-framework IOKit"
-)
+if (APPLE)
+  target_link_libraries (newtc PRIVATE
+    "-framework Cocoa"
+    "-framework CoreServices"
+    "-framework ApplicationServices"
+    "-framework AudioUnit"
+    "-framework IOKit"
+  )
+endif ()
 
 # Line editing and history in the break loop, if the system has libedit
 # (macOS always has it; Linux if installed). Without it, newtc reads plain
@@ -724,51 +771,37 @@ if (NEWTC_USES_FLTK)
   )
   target_link_libraries (newtc PRIVATE fltk::fltk fltk::images)
   # the ROM's graphics, lifted into PNGs (Host/FLTK/Images), compiled in
-  file (GLOB rom_images CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Host/FLTK/Images/rom_*.png")
-  set (rom_images_cc "${CMAKE_BINARY_DIR}/generated/RomImageData.cc")
+  file (GLOB rom_images CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Host/FLTK/Images/rom_*.png")
+  set (rom_images_cc "${CMAKE_CURRENT_BINARY_DIR}/generated/RomImageData.cc")
   add_custom_command (
     OUTPUT "${rom_images_cc}"
-    COMMAND ${CMAKE_COMMAND} -DDIR=${CMAKE_SOURCE_DIR}/Host/FLTK/Images -DOUT=${rom_images_cc}
-            -P ${CMAKE_SOURCE_DIR}/cmake/EmbedImages.cmake
-    DEPENDS ${rom_images} "${CMAKE_SOURCE_DIR}/cmake/EmbedImages.cmake"
+    COMMAND ${CMAKE_COMMAND} -DDIR=${CMAKE_CURRENT_SOURCE_DIR}/Host/FLTK/Images -DOUT=${rom_images_cc}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedImages.cmake
+    DEPENDS ${rom_images} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedImages.cmake"
     COMMENT "Embedding the ROM's images"
   )
   target_sources (newtc PRIVATE Host/FLTK/RomImages.cc Host/FLTK/RomImages.h "${rom_images_cc}")
 endif ()
-
-# A target with newtc's sources and settings (for NewtPlay below), plus
-# more sources.
-function (newtc_like target)
-  get_target_property (sources newtc SOURCES)
-  add_executable (${target} MACOSX_BUNDLE EXCLUDE_FROM_ALL ${sources} ${ARGN})
-  foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPILE_FEATURES
-                    LINK_LIBRARIES LINK_OPTIONS CXX_STANDARD CXX_STANDARD_REQUIRED CXX_EXTENSIONS)
-    get_target_property (value newtc ${property})
-    if (value)
-      set_property (TARGET ${target} PROPERTY ${property} "${value}")
-    endif ()
-  endforeach ()
-endfunction ()
 
 # NewtPlay (Phase 11, Matt/NewtPlay.h): newtc as a Mac app that runs Newton
 # packages, NewtPlay.app. Built with FLTK on macOS, not by default:
 #   cmake --build <build> --target NewtPlay   (Matt/tools/build_newtplay.sh)
 set (NEWTPLAY_VERSION "0.1" CACHE STRING "NewtPlay's version")
 if (NEWTC_USES_FLTK AND APPLE)
-  set (newtplay_icns "${CMAKE_BINARY_DIR}/generated/NewtPlay.icns")
+  set (newtplay_icns "${CMAKE_CURRENT_BINARY_DIR}/generated/NewtPlay.icns")
   add_custom_command (
     OUTPUT "${newtplay_icns}"
-    COMMAND ${CMAKE_COMMAND} -DIN=${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png -DOUT=${newtplay_icns}
-            -DWORK=${CMAKE_BINARY_DIR}/generated/NewtPlayIcon -P ${CMAKE_SOURCE_DIR}/cmake/MakeIcns.cmake
-    DEPENDS "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png" "${CMAKE_SOURCE_DIR}/cmake/MakeIcns.cmake"
+    COMMAND ${CMAKE_COMMAND} -DIN=${CMAKE_CURRENT_SOURCE_DIR}/Resources/NewtPlay.png -DOUT=${newtplay_icns}
+            -DWORK=${CMAKE_CURRENT_BINARY_DIR}/generated/NewtPlayIcon -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeIcns.cmake
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/NewtPlay.png" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeIcns.cmake"
     COMMENT "NewtPlay's icon"
   )
-  set_source_files_properties ("${newtplay_icns}" "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png"
+  set_source_files_properties ("${newtplay_icns}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/NewtPlay.png"
                                PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-  newtc_like (NewtPlay Matt/NewtPlay.cc Matt/NewtPlayMake.cc Matt/NewtPlay.h "${newtplay_icns}" "${CMAKE_SOURCE_DIR}/Resources/NewtPlay.png")
+  newtc_like (NewtPlay Matt/NewtPlay.cc Matt/NewtPlayMake.cc Matt/NewtPlay.h "${newtplay_icns}" "${CMAKE_CURRENT_SOURCE_DIR}/Resources/NewtPlay.png")
   target_compile_definitions (NewtPlay PRIVATE NEWTC_NEWTPLAY=1 NEWTPLAY_VERSION="${NEWTPLAY_VERSION}")
   set_target_properties (NewtPlay PROPERTIES
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/NewtPlayInfo.plist.in"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NewtPlayInfo.plist.in"
     MACOSX_BUNDLE_GUI_IDENTIFIER "org.newton-framework.NewtPlay"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${NEWTPLAY_VERSION}"
     MACOSX_BUNDLE_BUNDLE_VERSION "${NEWTPLAY_VERSION}"
@@ -784,16 +817,16 @@ endif ()
 # transports, DES, and its own NSOF. Its protocol extension (Newton code) is
 # compiled by newtc while building (cmake/NewtDumpExtension.cmake).
 # newtdump-test-newton plays the Newton for its tests (Test/newtdump).
-set (newtdump_extension "${CMAKE_BINARY_DIR}/generated/NewtDumpExtension.cc")
+set (newtdump_extension "${CMAKE_CURRENT_BINARY_DIR}/generated/NewtDumpExtension.cc")
 add_custom_command (
   OUTPUT "${newtdump_extension}"
   COMMAND ${CMAKE_COMMAND} -DNEWTC=$<TARGET_FILE:newtc>
-          -DIN=${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns
-          -DNSOF=${CMAKE_BINARY_DIR}/generated/NewtDumpExtension.nsof
-          -DOUT=${newtdump_extension} -P ${CMAKE_SOURCE_DIR}/cmake/NewtDumpExtension.cmake
-  DEPENDS newtc "${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns"
-          "${CMAKE_SOURCE_DIR}/Matt/NewtDump/Newton/PhysNatives.ns"
-          "${CMAKE_SOURCE_DIR}/cmake/NewtDumpExtension.cmake"
+          -DIN=${CMAKE_CURRENT_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns
+          -DNSOF=${CMAKE_CURRENT_BINARY_DIR}/generated/NewtDumpExtension.nsof
+          -DOUT=${newtdump_extension} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/NewtDumpExtension.cmake
+  DEPENDS newtc "${CMAKE_CURRENT_SOURCE_DIR}/Matt/NewtDump/Newton/Extension.ns"
+          "${CMAKE_CURRENT_SOURCE_DIR}/Matt/NewtDump/Newton/PhysNatives.ns"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NewtDumpExtension.cmake"
   COMMENT "Compiling newtdump's protocol extension with newtc"
 )
 set (newtdump_common Matt/NewtDump/NSOF.cc Matt/NewtDump/NSOF.h Matt/NewtDump/DockLink.cc
@@ -803,7 +836,7 @@ add_executable (newtdump Matt/NewtDump/newtdump.cc Matt/NewtDump/CIS.cc Matt/New
                 ${newtdump_common} "${newtdump_extension}")
 add_executable (newtdump-test-newton Matt/NewtDump/FakeNewton.cc ${newtdump_common})
 foreach (target newtdump newtdump-test-newton)
-  target_include_directories (${target} PRIVATE ${CMAKE_SOURCE_DIR})
+  target_include_directories (${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   set_target_properties (${target} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
   find_package (Threads REQUIRED)
   target_link_libraries (${target} PRIVATE Threads::Threads)
@@ -829,6 +862,8 @@ foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPIL
     set_property (TARGET ResMaker PROPERTY ${property} "${value}")
   endif ()
 endforeach ()
+
+endif ()   # NEWTON_BUILD_TOOLS
 
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
@@ -1472,36 +1507,43 @@ set ( MP_HEADER_FILES
   ROMData/ResMaker/SymbolTable.h
 )
 
+#------------------------------------------------------------------------------
+#   MessagePad (NEWTON_BUILD_MESSAGEPAD): its kernel and protocols are x86
+#   assembler, so it builds on Intel Macs only.
+#------------------------------------------------------------------------------
+if (NEWTON_BUILD_MESSAGEPAD)
+
+enable_language (ASM)
 add_executable ( MessagePad ${MP_SRC_FILES} ${MP_HEADER_FILES})
 target_compile_definitions( MessagePad PRIVATE forMac forDarkStar )
 target_include_directories ( MessagePad PRIVATE
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/Frames
-  ${CMAKE_SOURCE_DIR}/UtilityClasses
-  ${CMAKE_SOURCE_DIR}/OS
-  ${CMAKE_SOURCE_DIR}/NTK
-  ${CMAKE_SOURCE_DIR}/CommAPI
-  ${CMAKE_SOURCE_DIR}/Frames/Compiler
-  ${CMAKE_SOURCE_DIR}/Views
-  ${CMAKE_SOURCE_DIR}/Graphics
-  ${CMAKE_SOURCE_DIR}/Protocols
-  ${CMAKE_SOURCE_DIR}/Stores
-  ${CMAKE_SOURCE_DIR}/Utilities
-  ${CMAKE_SOURCE_DIR}/Recognition
-  ${CMAKE_SOURCE_DIR}/Cards
-  ${CMAKE_SOURCE_DIR}/Sound
-  ${CMAKE_SOURCE_DIR}/Platform
-  ${CMAKE_SOURCE_DIR}/Sound/Codecs
-  ${CMAKE_SOURCE_DIR}/Toolbox
-  ${CMAKE_SOURCE_DIR}/Testing
-  ${CMAKE_SOURCE_DIR}/Packages
-  ${CMAKE_SOURCE_DIR}/Compression
-  ${CMAKE_SOURCE_DIR}/Memory\ Manager
-  ${CMAKE_SOURCE_DIR}/Communications
-  ${CMAKE_SOURCE_DIR}/Compression/LZCompression
-  ${CMAKE_SOURCE_DIR}/Compression/ZippyCompression
-  ${CMAKE_SOURCE_DIR}/Compression/UnicodeCompression
-  ${CMAKE_SOURCE_DIR}/Sound/Codecs/gsm-1.0-pl12/inc/
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames
+  ${CMAKE_CURRENT_SOURCE_DIR}/UtilityClasses
+  ${CMAKE_CURRENT_SOURCE_DIR}/OS
+  ${CMAKE_CURRENT_SOURCE_DIR}/NTK
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommAPI
+  ${CMAKE_CURRENT_SOURCE_DIR}/Frames/Compiler
+  ${CMAKE_CURRENT_SOURCE_DIR}/Views
+  ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
+  ${CMAKE_CURRENT_SOURCE_DIR}/Protocols
+  ${CMAKE_CURRENT_SOURCE_DIR}/Stores
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/Recognition
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cards
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound
+  ${CMAKE_CURRENT_SOURCE_DIR}/Platform
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound/Codecs
+  ${CMAKE_CURRENT_SOURCE_DIR}/Toolbox
+  ${CMAKE_CURRENT_SOURCE_DIR}/Testing
+  ${CMAKE_CURRENT_SOURCE_DIR}/Packages
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Memory\ Manager
+  ${CMAKE_CURRENT_SOURCE_DIR}/Communications
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/LZCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/ZippyCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Compression/UnicodeCompression
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sound/Codecs/gsm-1.0-pl12/inc/
 )
 
 target_link_libraries ( MessagePad PRIVATE
@@ -1511,3 +1553,5 @@ target_link_libraries ( MessagePad PRIVATE
   "-framework AudioUnit"
   "-framework IOKit"
 )
+
+endif ()   # NEWTON_BUILD_MESSAGEPAD
