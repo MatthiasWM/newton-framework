@@ -1156,8 +1156,47 @@ assembler and Windows can build with MSVC or clang-cl.
         which NTKInit and InitObjectSystemCore call.
       Found and fixed B56, B57; newton_ncx_test checks layouts with
       static_asserts in ObjHeader.h and Ref32.h.
-- [ ] 0.5 A drawing back end interface for QDDrawing.cc (Quartz behind it on
-      macOS; NCX brings an FLTK one).
+- [x] 0.5 QuickDraw on FLTK, no Quartz (2026-10-16). Matt: no Cocoa or
+      Quartz calls (MessagePad won't be implemented: newton-re emulates the
+      Newton); FLTK calls if FLTK is linked. Graphics/QDHost.h: a few
+      primitives (colours, pen width, lines, rects, round rects, ovals,
+      arcs, polylines, polygons, RGBA images, PNGs, text in UTF-8; Newton
+      coordinates, QuickDraw's edges and inside pen). QDHost.cc draws them
+      on FLTK's current surface (a window in draw(), an Fl_Image_Surface)
+      with NEWTON_QD_FLTK, else nothing (newtc has no FLTK drawing there:
+      its views draw through Host/FLTK). QDDrawing.cc, DrawShape.cc,
+      DrawImage.cc, DrawText.cc, DrawInk.cc, Ink.cc, Screen.cc,
+      ScreenDriver.cc draw through it: no __APPLE__ guards, no y flip,
+      patterns are QDColor (an 8 by 8 pattern: its share of black as gray),
+      no CoreText (text in the style's family, size, bold, italic; measured
+      for real: it was Helvetica 10 and 16 pixels wide). New: DrawPixels
+      (1/2/4/8-bit pixels, gray tables, transfer modes copy, or, bic, notCopy,
+      notOr -> RGBA; DrawBitmap, DrawBits, the screen driver's blit),
+      PICTs of bitmaps through Host/Pict.cc (DrawPicture, PictureBounds),
+      wedges, ink drawn again under forNTK. Images are scaled by QDHost to
+      the surface's pixels, nearest neighbour (Quartz smooths what it
+      scales). `newton_ncx` has the graphics (and Host/Pict.cc) and, with
+      NEWTON_NCX_FLTK (default: if the parent has fltk::fltk, or
+      NEWTC_USES_FLTK), links fltk::fltk and fltk::images; FLTK is the
+      parent's, else fetched (newton_use_fltk(), shared with newtc).
+      newton_ncx_test draws shapes, bitmaps (1:1 and 2:1), a screenshot's
+      bits, NCX's ink polygon and text into an Fl_Image_Surface and checks
+      the pixels (38 checks); without FLTK it makes the same calls. CI:
+      FLTK on all five (Linux: X11 under Xvfb, FLTK_BACKEND_WAYLAND off),
+      plus linux-x64-no-fltk; all green. It builds with `--parallel 4`:
+      `--parallel` alone is an unlimited make -j, and all of FLTK at once
+      (twice: universal) swapped the 3-core macOS runner to a standstill.
+      gcc and MSVC wanted: no struct whose only member is a flexible array
+      (CSStrokeHeader), no arrays of structs ending in one (Paths.h), no C
+      compound literals (`(Point){0,0}` -> `Point{0,0}`), C linkage for the
+      ink code tables (InkCompr.c).
+      Also: gScreenConstants moved to QDDrawing.cc, InitGraf to Screen.cc,
+      gZeroFPoint to Geometry.cc (const, as DrawText.h declares it: MSVC
+      would not link it); the ink expansion's point storing (Memory
+      Manager handles, whose callers were #if 0) is #if 0 too: newton_ncx
+      linked Carbon's NewHandle through FLTK's Cocoa on macOS, and nothing
+      elsewhere. MessagePad (its views use Quartz.h, which stays) doesn't
+      link any more. Found and fixed B58, B59, B60.
 - [ ] 0.6 MNP.cc, NTKTransport.cc, DES.c as a `newton_dock` library shared by
       newtdump and NCX.
 
@@ -1198,6 +1237,16 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [x] B60 newtdump's extension (cmake/NewtDumpExtension.cmake) failed in
+  a build without FLTK: newtc couldn't write into `generated/`, which only
+  the FLTK build made. Fixed 2026-10-16: the script makes it.
+- [x] B59 GetFontFamilySym (DrawShape.cc) gave RINT of a font frame's
+  family (a symbol) instead of the symbol. Fixed 2026-10-16.
+- [x] B58 GetStdPattern (QDDrawing.cc) took whitePat ... blackPat (0 to 4)
+  but switched on vfWhite ... vfBlack (1 to 5): black came out dark gray,
+  dark gray gray, ..., white nothing (an uninitialized colour). Fixed
+  2026-10-16 (whitePat ... blackPat). Test: newton_ncx_test (a black
+  rectangle's pixels).
 - [x] B57 The package reader (NewtonPackage.cc CopyRef) tested a binary's
   class as `ISPTR(c) && (sym = ...), sym->objClass == ...`: the comma
   dropped the test, so a class that isn't a pointer read an uninitialized

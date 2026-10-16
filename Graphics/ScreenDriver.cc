@@ -6,14 +6,12 @@
 	Written by:	Newton Research Group.
 */
 
-#ifdef __APPLE__
-
-#include "Quartz.h"
 #include "Geometry.h"
 
 #include "ScreenDriver.h"
 #include "ViewFlags.h"
 #include "QDDrawing.h"
+#include "DrawShape.h"
 #include "NewtonGestalt.h"
 
 #include <cassert>
@@ -260,47 +258,15 @@ CMainDisplayDriver::powerOff(void)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
-static const unsigned char colorTable1bit[] = { 0xFF, 0x00 };
-static const unsigned char colorTable2bit[] = { 0xFF, 0xAA, 0x55, 0x00 };
-static const unsigned char colorTable4bit[] = { 0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88,
-																0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
-static const unsigned char * colorTable[5] = { NULL, colorTable1bit, colorTable2bit, NULL, colorTable4bit };
-
 void
 CMainDisplayDriver::blit(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * inDstBounds, int inTransferMode)	// 007A5EA4
 {
-	size_t	pixmapWidth = RectGetWidth(inPixmap->bounds);
-	size_t	pixmapHeight = RectGetHeight(inPixmap->bounds);
-	size_t	pixmapDepth = PixelDepth(inPixmap);
+	int	pixmapWidth = RectGetWidth(inPixmap->bounds);
+	int	pixmapHeight = RectGetHeight(inPixmap->bounds);
 
-	CGImageRef			image = NULL;
-	CGColorSpaceRef	baseColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
-	CGColorSpaceRef	colorSpace = CGColorSpaceCreateIndexed(baseColorSpace, (1 << pixmapDepth)-1, colorTable[pixmapDepth]);
-	CGDataProviderRef source = CGDataProviderCreateWithData(NULL, PixelMapBits(inPixmap), pixmapHeight * inPixmap->rowBytes, NULL);
-	if (source != NULL) {
-		image = CGImageCreate(pixmapWidth, pixmapHeight, pixmapDepth, pixmapDepth, inPixmap->rowBytes,
-									colorSpace, kCGImageAlphaNone, source, NULL, false, kCGRenderingIntentDefault);
-		CGDataProviderRelease(source);
-	}
-	CGColorSpaceRelease(colorSpace);
-	CGColorSpaceRelease(baseColorSpace);
-
-printf("CMainDisplayDriver::blit(pixmap={w:%lu,h:%lu}, srcBounds={t:%d,l:%d,b:%d,r:%d}, dstBounds={t:%d,l:%d,b:%d,r:%d}, mode=%d)\n", pixmapWidth,pixmapHeight, inSrcBounds->top,inSrcBounds->left,inSrcBounds->bottom,inSrcBounds->right, inDstBounds->top,inDstBounds->left,inDstBounds->bottom,inDstBounds->right, inTransferMode);
-	if (image) {
-		CGRect imageRect = MakeCGRect(*inDstBounds);
-		if (inTransferMode == 0) {
-			CGContextDrawImage(quartz, imageRect, image);
-		} else {
-			// we should mask the image
-			const CGFloat maskingColors[2] = {0,0};
-			CGImageRef colorMaskedImage = CGImageCreateWithMaskingColors(image, maskingColors);
-			CGContextDrawImage(quartz, imageRect, colorMaskedImage);
-			CGImageRelease(colorMaskedImage);
-		}
-		CGImageRelease(image);
-	} else {
-printf("image=NULL -- ");
-	}
+	// mode 0: all of it; else what isn't white (the original masks)
+	DrawPixels(PixelMapBits(inPixmap), pixmapWidth, pixmapHeight, inPixmap->rowBytes, PixelDepth(inPixmap), NULL,
+				  inDstBounds, (inTransferMode == 0) ? modeCopy : modeOr);
 
 
 #if defined(correct)
@@ -605,5 +571,3 @@ CMainDisplayDriver::enterIdleMode(void)
 void
 CMainDisplayDriver::exitIdleMode(void)
 {	/* this really does nothing */	}
-
-#endif /* __APPLE__ */

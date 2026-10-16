@@ -9,29 +9,11 @@
 	all drawing is done into the screen's GrafPort (bitmap)
 	which is blitted to the LCD bitmap @ ~33fps (actually only dirty rect is blitted)
 
-	Quartz
-	all drawing is done into a window's quartz context (presumably off-screen bitmap)
-	the quartz compositor blends this context onto the display
-so...
-	we'll just draw into the window's quartz context
-	at some point we could create a quartz context for each child view of the root, making app views more manageable
-alternatively...
-	create a CGLayer and draw into its context
-		NSGraphicsContext * windowContext = window.graphicsContext;
-		CGLayerRef qLayer = CGLayerCreateWithContext((CGContextRef)windowContext.graphicsPort, window.contentView.frame.size, NULL);
-		CGContextRef qContext = CGLayerGetContext(qLayer);
-		//draw into qContext
-	screen task should blit that into window's context
-		void CGContextDrawLayerAtPoint(windowContext, CGPointZero, qLayer);
-	although in reality we should probably
-		StopDrawing() -> set needsDisplay on the contentView
-		contentView:drawRect -> blit layer
-	forFramework, must continue to draw into bitmap context
+	Here
+	the QuickDraw functions draw on the host's graphics (QDHost.h: FLTK's
+	current surface, or nothing); MessagePad drew into a Quartz context, which
+	is gone (MessagePad isn't maintained: newton-re emulates the Newton)
 */
-
-#ifdef __APPLE__
-
-#include "Quartz.h"
 
 #include "Objects.h"
 #include "NewtonGestalt.h"
@@ -67,12 +49,7 @@ Ref	FLockScreen(RefArg inRcvr, RefArg inDoIt);
 	Definition of the display: its PixelMap
 ------------------------------------------------------------------------------*/
 
-const ScreenParams gScreenConstants =		// was qdConstants 00380BCC
-{	{ 0, 5, 4, 0, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	// xShift[bitsPerPixel]
-	{ 0, 3, 2, 0, 1 },	// depthShift
-	{ 0x00000000, 0x00000001, 0x00000003, 0x0000000F, 0x000000FF, 0x0000FFFF, 0xFFFFFFFF },	// pixelMask
-	{ 0, 0x1F, 0x0F, 0, 0x07, 0, 0, 0, 0x03, 0, 0, 0, 0, 0, 0, 0, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	// xMask
-	{ 0, 1, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0 } };	// maskIndex[bitsPerPixel]
+// gScreenConstants: QDDrawing.cc
 
 NativePixelMap	gScreenPixelMap;				// was qd.pixmap
 
@@ -80,8 +57,6 @@ NativePixelMap	gScreenPixelMap;				// was qd.pixmap
 /* -----------------------------------------------------------------------------
 	D a t a
 ----------------------------------------------------------------------------- */
-
-CGContextRef	quartz;
 
 int				gScreenWidth;			// 0C104C58
 int				gScreenHeight;			// 0C104C5C
@@ -135,32 +110,19 @@ void	BlitToScreens(NativePixelMap * inPixmap, Rect * inSrcBounds, Rect * inDstBo
 
 #pragma mark -
 /*------------------------------------------------------------------------------
-	Set up the Quartz graphics system.
+	Initialize the graphics system.
 	Args:		--
 	Return:  --
 ------------------------------------------------------------------------------*/
+extern void	InitQDCompression(void);
+void			InitScreen(void);
 
-extern "C" void
-SetupQuartzContext(CGContextRef inContext)
-{
-	quartz = inContext;
-#if 1
-	CGContextTranslateCTM(quartz, 10.0, 20.0);
-#else
-	CGContextTranslateCTM(quartz, 10.0, 20.0+480.0);	// gScreenHeight
-	CGContextScaleCTM(quartz, 1.0, -1.0);
-#endif
-}
-
-
-#if defined(forFramework)
 void
-InitDrawing(CGContextRef inContext, int inScreenHeight)
+InitGraf(void)
 {
-	quartz = inContext;
-	gScreenHeight = inScreenHeight;
+	InitScreen();
+	InitQDCompression();
 }
-#endif
 
 
 #pragma mark -
@@ -770,5 +732,3 @@ FLockScreen(RefArg inRcvr, RefArg inDoIt)
 		StopDrawing(NULL, NULL);
 	return NILREF;
 }
-
-#endif /* __APPLE__ */

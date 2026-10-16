@@ -10,7 +10,11 @@
 #if !defined(__QDPATTERNS_H)
 #define __QDPATTERNS_H 1
 
-#include "Quartz.h"
+#include "QDTypes.h"
+#include "QDHost.h"
+
+class RefVar;
+typedef const RefVar& RefArg;		// as Objects.h
 
 typedef	PixelMap **	PatternHandle;						// patterns expressed as handle to PixelMap
 
@@ -29,18 +33,11 @@ typedef unsigned char GetPatSelector;
 #define	kExpPatArraySize		16						// number of longs in expanded pattern array
 #define	kExpPatArrayMask		kExpPatArraySize - 1
 
-// Pattern -> Color
-//extern CGColorRef		GetStdPattern(int inPatNo);
-//extern bool				GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDefault);
+// Pattern -> Color (QDDrawing.cc)
 extern bool				SetPattern(int inPatNo);
+extern QDColor			GetStdPattern(int inPatNo);
+extern bool				GetPattern(RefArg inPatNo, bool * ioHasPattern, QDColor * ioPat, bool inDefault);
 
 extern ULong			RGBtoGray(ULong inR, ULong inG, ULong inB, int inNumOfBits, int inDepth);
-
-#ifdef __APPLE__
-
-extern CGColorRef		GetStdPattern(int inPatNo);
-extern bool				GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDefault);
-
-#endif
 
 #endif	/* __QDPATTERNS_H */

@@ -6,9 +6,8 @@
 	Written by:	Newton Research Group, 2007.
 */
 
-#ifdef __APPLE__
-
-#include "Quartz.h"
+#include "QDHost.h"
+#include "Host/Pict.h"
 #include "Unimplemented.h"
 #include "Objects.h"
 #include "QDPatterns.h"
@@ -20,9 +19,7 @@
 #include "RSSymbols.h"
 #include "OSErrors.h"
 
-extern "C" OSErr	PtrToHand(const void * srcPtr, Handle * dstHndl, long size);
-
-extern int gScreenHeight;
+#include <vector>
 /*------------------------------------------------------------------------------
 	F u n c t i o n   P r o t o t y p e s
 ------------------------------------------------------------------------------*/
@@ -103,84 +100,25 @@ DrawPicture(RefArg inIcon, const Rect * inFrame, ULong inJustify, int inTransfer
 
 
 /*------------------------------------------------------------------------------
-	Draw a PNG picture.
-	Pictures are always PNGs in Newton 3.0.
-	NOTE	Might be able to use the QuickTime function GraphicsImportCreateCGImage
-			declared in ImageCompression.h to draw PICTs.
-			http://developer.apple.com/technotes/tn/tn1195.html
+	Draw a picture: a PNG, or a QuickDraw picture (PICT) of bitmaps, as the
+	ROM's and packages' are (Host/Pict.h decodes those); others: nothing.
 	Args:		inPicture
 				inPictureSize
 				inRect
 	Return:	--
 ------------------------------------------------------------------------------*/
-//#include <QuickTime/QuickTime.h>
-// QuickTime is not available to 64-bit clients
 
 void
 DrawPicture(char * inPicture, size_t inPictureSize, const Rect * inRect)
 {
-#if defined(forFramework) && 0 // !defined(forNTK)
-	// draw legacy PICTs
-	Handle						dataRef;
-	ComponentInstance			dataRefHandler = NULL;
-	GraphicsImportComponent	gi;
-	OSErr							err;
-	ComponentResult			result;
-	CGImageRef					image;
-
-	// prefix PICT data w/ 512 byte header
-	size_t pictSize = 512 + inPictureSize;
-	Ptr pictPtr = NewPtr(pictSize);		// where is the FreePtr()?
-	memmove(pictPtr + 512, inPicture, inPictureSize);
-
-	// create dataRef from pointer
-	PointerDataRefRecord		dataRec;
-	dataRec.data = pictPtr;
-	dataRec.dataLength = pictSize;
-	err = PtrToHand(&dataRec, &dataRef, sizeof(PointerDataRefRecord));
-
-	// create data handler
-	err = OpenADataHandler(
-			dataRef,							/* data reference */
-			PointerDataHandlerSubType,	/* data ref. type */
-			NULL,								/* anchor data ref. */
-			(OSType)0,						/* anchor data ref. type */
-			NULL,								/* time base for data handler */
-			kDataHCanRead,					/* flag for data handler usage */
-			&dataRefHandler);				/* returns the data handler */
-
-	// set data ref extensions to describe the data
-	Handle						extension;
-	// set the data ref extension for no filename
-	unsigned char				filename = 0;
-	err = PtrToHand(&filename, &extension, sizeof(filename));
-	err = DataHSetDataRefExtension(dataRefHandler, extension, kDataRefExtensionFileName);
-	FreeHandle(extension);
-
-	// set the data ref extension for the data handler
-	OSType						picType = EndianU32_NtoB('PICT');
-	err = PtrToHand(&picType, &extension, sizeof(picType));
-	err = DataHSetDataRefExtension(dataRefHandler, extension, kDataRefExtensionMacOSFileType);
-	FreeHandle(extension);
-
-	// dispose old data ref handle because it does not contain our new changes
-	FreeHandle(dataRef);
-	dataRef = NULL;
-	// re-acquire data reference from the data handler to get the new changes
-	err = DataHGetDataRef(dataRefHandler, &dataRef);
-	CloseComponent(dataRefHandler);
-
-	err = GetGraphicsImporterForDataRef(dataRef, PointerDataHandlerSubType, &gi);
-	result = GraphicsImportCreateCGImage(gi, &image, kGraphicsImportCreateCGImageUsingCurrentSettings);
-	FreeHandle(dataRef);
-	CloseComponent(gi);
-#else
-	// draw PNG
-	CGDataProviderRef source = CGDataProviderCreateWithData(NULL, inPicture, inPictureSize, NULL);
-	CGImageRef  image = CGImageCreateWithPNGDataProvider(source, NULL, true, kCGRenderingIntentDefault);
-#endif
-	CGContextDrawImage(quartz, MakeCGRect(*inRect), image);
-	CGImageRelease(image);
+	// a PNG
+	if (QDHostDrawPNG((const uint8_t *)inPicture, inPictureSize, inRect->left, inRect->top, inRect->right, inRect->bottom))
+		return;
+	// a QuickDraw picture of bitmaps (Host/Pict.h)
+	int width, height, rowBytes;
+	std::vector<unsigned char> bits;
+	if (pict::Decode((const unsigned char *)inPicture, inPictureSize, &width, &height, &rowBytes, &bits))
+		DrawPixels((const char *)bits.data(), width, height, rowBytes, 1, NULL, inRect, modeOr);
 }
 
 
@@ -212,7 +150,14 @@ Rect *
 PictureBounds(const unsigned char * inData, Rect * outRect)
 {
 	if (memcmp(inData, "\x89PNG", 4) != 0)
-		ThrowMsg("picture is not PNG");
+	{
+		// a QuickDraw picture: its frame (12 bytes are enough to tell)
+		int top, left, bottom, right;
+		if (!pict::Frame(inData, 12, &top, &left, &bottom, &right))
+			ThrowMsg("picture is neither PNG nor PICT");
+		SetRect(outRect, 0, 0, right - left, bottom - top);
+		return outRect;
+	}
 
 	ULong	chunkLength;
 	for (inData += 8; (chunkLength = PNGgetULong(inData)) != 0; inData += chunkLength)
@@ -419,7 +364,7 @@ CPixelObj::getFramBitmap(void)
 		GetPort(&thePort);
 		int	portDepth = PixelDepth(&thePort->portBits);
 #endif
-		int	portDepth = 8; // for CG grayscale
+		int	portDepth = 8; // the host draws grays
 		if (IsArray(colorData)) {
 		// find colorData that matches display most closely
 			int	depth;
@@ -499,7 +444,6 @@ CPixelObj::pixMapToPixMap(const PixelMap * inPixmap)
 	fPixPtr->deviceRes.v = CANONICAL_SHORT(inPixmap->deviceRes.v);
 
 	fPixPtr->grayTable = 0;	//(UChar *)CANONICAL_LONG(inPixmap->grayTable);
-printf("CPixelObj::pixMapToPixMap() PixelMap bounds=%d,%d, %d,%d", fPixPtr->bounds.top,fPixPtr->bounds.left, fPixPtr->bounds.bottom,fPixPtr->bounds.right);
 	// our native pixmap baseAddr is ALWAYS a Ptr
 	if ((fPixPtr->pixMapFlags & kPixMapStorage) == kPixMapOffset) {
 		uint32_t offset = CANONICAL_LONG(inPixmap->baseAddr);
@@ -580,12 +524,6 @@ CPixelObj::framMaskToPixMap(const FramBitmap * inBitmap)
 	Return:	--
 ------------------------------------------------------------------------------*/
 
-static const unsigned char colorTable1bit[] = { 0xFF, 0x00 };
-static const unsigned char colorTable2bit[] = { 0xFF, 0xAA, 0x55, 0x00 };
-static const unsigned char colorTable4bit[] = { 0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88,
-																0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
-static const unsigned char * colorTable[5] = { NULL, colorTable1bit, colorTable2bit, NULL, colorTable4bit };
-
 void
 DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 {
@@ -594,56 +532,18 @@ DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 	{
 		pix.init(inBitmap);
 
-		size_t	pixmapWidth = RectGetWidth(pix.pixMap()->bounds);
-		size_t	pixmapHeight = RectGetHeight(pix.pixMap()->bounds);
+		const NativePixelMap * pixmap = pix.pixMap();
+		int	pixmapWidth = RectGetWidth(pixmap->bounds);
+		int	pixmapHeight = RectGetHeight(pixmap->bounds);
 
-		CGRect	imageRect = MakeCGRect(*inRect);
+		Rect	imageRect = *inRect;
 		if (RectGetWidth(*inRect) == 0)
 		{
-			imageRect.size.width = pixmapWidth;
-			imageRect.size.height = pixmapHeight;
+			imageRect.right = imageRect.left + pixmapWidth;
+			imageRect.bottom = imageRect.top + pixmapHeight;
 		}
-
-		CGImageRef			image = NULL;
-		CGColorSpaceRef	baseColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
-		CGColorSpaceRef	colorSpace = CGColorSpaceCreateIndexed(baseColorSpace, (1 << pix.bitDepth())-1, colorTable[pix.bitDepth()]);
-		CGDataProviderRef source = CGDataProviderCreateWithData(NULL, PixelMapBits(pix.pixMap()), pixmapHeight * pix.pixMap()->rowBytes, NULL);
-		if (source)
-		{
-			// create entire image
-			image = CGImageCreate(pixmapWidth, pixmapHeight, pix.bitDepth(), pix.bitDepth(), pix.pixMap()->rowBytes,
-										colorSpace, kCGImageAlphaNone, source,
-										NULL, false, kCGRenderingIntentSaturation);
-			CGDataProviderRelease(source);
-
-			if (pix.mask() != NULL) {
-				// image is masked
-				CGDataProviderRef maskSource;
-				if ((maskSource = CGDataProviderCreateWithData(NULL, PixelMapBits(pix.mask()), pixmapHeight * pix.mask()->rowBytes, NULL)) != NULL) {
-					CGImageRef	fullImage = image;
-					CGColorSpaceRef maskColorSpace = CGColorSpaceCreateDeviceGray();
-					CGImageRef	mask = CGImageCreate(pixmapWidth, pixmapHeight, 1, 1, pix.mask()->rowBytes,
-																maskColorSpace, kCGImageAlphaNone, maskSource,
-																NULL, false, kCGRenderingIntentDefault);
-					CGColorSpaceRelease(maskColorSpace);
-					CGDataProviderRelease(maskSource);
-					if (mask) {
-						// recreate image using original full image with mask
-						image = CGImageCreateWithMask(fullImage, mask);
-						CGImageRelease(fullImage);
-						CGImageRelease(mask);
-					}
-				}
-			}
-		}
-		CGColorSpaceRelease(colorSpace);
-		CGColorSpaceRelease(baseColorSpace);
-
-		if (image)
-		{
-			CGContextDrawImage(quartz, imageRect, image);
-			CGImageRelease(image);
-		}
+		DrawPixels(PixelMapBits(pixmap), pixmapWidth, pixmapHeight, pixmap->rowBytes, pix.bitDepth(),
+					  (pixmap->pixMapFlags & kPixMapGrayTable) ? pixmap->grayTable : NULL, &imageRect, inTransferMode);
 	}
 	newton_catch_all
 	{
@@ -653,11 +553,82 @@ DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 }
 
 
+/*------------------------------------------------------------------------------
+	Draw pixels: of 1, 2, 4 or 8 bits, row after row of inRowBytes, the
+	leftmost pixel in the high bits. 0 is white, the highest value black,
+	the others grays between (or, with a gray table, the table's value for
+	the pixel's: a PixelMap's grayTable). Scaled into inRect.
+	Not original: the Newton blits into its screen's PixelMap.
+	Args:		inBits			the pixels
+				inWidth			number of pixels in a row
+				inHeight			number of rows
+				inRowBytes		row offset
+				inDepth			number of bits per pixel
+				inGrayTable		gray for each pixel value, or NULL
+				inRect			where to draw them
+				inTransferMode	modeCopy: all of them; modeOr: what isn't
+									white (the others transparent); modeBic: what
+									is black, in white; modeNotCopy, modeNotOr:
+									inverted; others: as modeOr (modeXor: the
+									host can't)
+	Return:	--
+------------------------------------------------------------------------------*/
+
+void
+DrawPixels(const char * inBits, int inWidth, int inHeight, int inRowBytes, int inDepth, const UChar * inGrayTable, const Rect * inRect, int inTransferMode)
+{
+	if (inBits == NULL || inWidth <= 0 || inHeight <= 0
+	|| (inDepth != 1 && inDepth != 2 && inDepth != 4 && inDepth != 8)
+	|| !QDHostCanDraw())
+		return;
+
+	int maxValue = (1 << inDepth) - 1;
+	std::vector<uint8_t> rgba((size_t)inWidth * inHeight * 4);
+	uint8_t * p = rgba.data();
+	for (int y = 0; y < inHeight; ++y)
+	{
+		const UChar * row = (const UChar *)inBits + (size_t)y * inRowBytes;
+		for (int x = 0; x < inWidth; ++x)
+		{
+			int bitOffset = x * inDepth;
+			int value = (row[bitOffset >> 3] >> (8 - inDepth - (bitOffset & 7))) & maxValue;
+			if (inGrayTable)
+				value = inGrayTable[value] & maxValue;
+			uint8_t gray = 255 - value * 255 / maxValue;
+			uint8_t alpha = 255;
+			switch (inTransferMode)
+			{
+			case modeCopy:
+				break;
+			case modeNotCopy:
+				gray = 255 - gray;
+				break;
+			case modeBic:
+				alpha = (value == maxValue) ? 255 : 0;
+				gray = 255;
+				break;
+			case modeNotOr:
+				alpha = (value != maxValue) ? 255 : 0;
+				gray = 255 - gray;
+				break;
+			default:
+				alpha = (value != 0) ? 255 : 0;
+				break;
+			}
+			*p++ = gray;
+			*p++ = gray;
+			*p++ = gray;
+			*p++ = alpha;
+		}
+	}
+	QDHostDrawImage(rgba.data(), inWidth, inHeight, inRect->left, inRect->top, inRect->right, inRect->bottom);
+}
+
 
 /*------------------------------------------------------------------------------
 	Draw a bitmap.
 	Not part of the original Newton suite, but required by NCX to draw
-	screenshots.
+	screenshots: at 0,0, 1:1.
 	Args:		inBits			bitmap data
 				inHeight			height of bitmap
 				inWidth			width of bitmap
@@ -669,26 +640,9 @@ DrawBitmap(RefArg inBitmap, const Rect * inRect, int inTransferMode)
 void
 DrawBits(const char * inBits, unsigned inHeight, unsigned inWidth, unsigned inRowBytes, unsigned inDepth)
 {
-	CGImageRef			image = NULL;
-	CGColorSpaceRef	baseColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
-	CGColorSpaceRef	colorSpace = CGColorSpaceCreateIndexed(baseColorSpace, (1 << inDepth)-1, colorTable[inDepth]);
-	CGDataProviderRef source = CGDataProviderCreateWithData(NULL, inBits, inHeight * inRowBytes, NULL);
-	if (source)
-	{
-		image = CGImageCreate(inWidth, inHeight, inDepth, inDepth, inRowBytes,
-									colorSpace, kCGImageAlphaNone, source,
-									NULL, false, kCGRenderingIntentDefault);
-		CGDataProviderRelease(source);
-	}
-	CGColorSpaceRelease(colorSpace);
-	CGColorSpaceRelease(baseColorSpace);
-
-	if (image)
-	{
-		CGRect	imageRect = CGRectMake(0.0, 0.0, inWidth, inHeight);
-		CGContextDrawImage(quartz, imageRect, image);
-		CGImageRelease(image);
-	}
+	Rect rect;
+	SetRect(&rect, 0, 0, inWidth, inHeight);
+	DrawPixels(inBits, inWidth, inHeight, inRowBytes, inDepth, NULL, &rect, modeCopy);
 }
 
 
@@ -700,8 +654,8 @@ DrawBits(const char * inBits, unsigned inHeight, unsigned inWidth, unsigned inRo
 				inTransferMode
 	Return:	NILREF
 ------------------------------------------------------------------------------*/
-#include "View.h"
 #if !defined(forFramework)
+#include "View.h"
 extern CView *	FailGetView(RefArg inContext);
 #endif
 
@@ -818,6 +772,3 @@ FPtInPicture(RefArg inRcvr, RefArg inX, RefArg inY, RefArg inPicture)
 {
 	return PtInPicture(inX, inY, inPicture, false);
 }
-
-#endif
-

@@ -34,7 +34,7 @@ struct path
 struct paths
 {
 	long		contours;
-	path		contour[];
+	char		contour[];		// the paths, each of its own size (an array of paths, which end in an array, is C only)
 };
 typedef paths * pathsPtr, ** pathsHandle;
 

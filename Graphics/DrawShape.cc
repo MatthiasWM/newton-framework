@@ -6,11 +6,10 @@
 	Written by:	Newton Research Group, 2007.
 */
 
-#ifdef __APPLE__
-
 #include "Newton.h"
 
-#include "Quartz.h"
+#include "QDHost.h"
+#include "QDPatterns.h"
 #include "Geometry.h"
 #include "Objects.h"
 #include "DrawText.h"
@@ -175,7 +174,7 @@ GetFontFamilySym(RefArg inFontSpec)
 		fontFamily = FamilyNumToSym(RVALUE(inFontSpec) & tsFamilyMask);
 
 	else if (IsFrame(inFontSpec))
-		fontFamily = RINT(GetFrameSlot(inFontSpec, SYMA(family)));
+		fontFamily = GetFrameSlot(inFontSpec, SYMA(family));
 
 	else
 		fontFamily = NILREF;
@@ -263,21 +262,18 @@ public:
 						~CPattern();
 
 	bool				getFillPattern(RefArg inPatNo, bool inDoDefault);
-	CGColorRef		color(void) const;
+	QDColor			color(void) const;
 	void				setf05(bool inValue);
 
 private:
-#if 0
-	PatternHandle  fPattern;			// +00
-#else
-	CGColorRef		fPattern;			// +00
-#endif
-	bool				fPatternIsOurs;	// +04
+	QDColor			fPattern;			// +00 was PatternHandle
+	bool				fHasPattern;		// +04 was fPatternIsOurs
 	bool				f05;					// +05
 };
 
-inline	CGColorRef		CPattern::color(void) const
-{ return fPattern; }
+// no pattern: black
+inline	QDColor			CPattern::color(void) const
+{ return fHasPattern ? fPattern : GetStdPattern(blackPat); }
 
 inline	void				CPattern::setf05(bool inValue)
 { f05 = inValue; }
@@ -367,32 +363,12 @@ inline	Ref	CSaveStyle::getStyle(void)	const
 
 inline	void	CSaveStyle::setFillPattern(void)
 {
-#if 0
-	PatternHandle  ptn = fFillPattern.pattern();
-	if (ptn == NULL)
-		ptn = GetStdPattern(blackPat);
-	SetFgPattern(ptn);
-#else
-	CGColorRef  clr = fFillPattern.color();
-	if (clr == NULL)
-		clr = GetStdPattern(blackPat);					// GetStdPattern must return CGColorRef
-	CGContextSetFillColorWithColor(quartz, clr);
-#endif
+	QDHostSetFillColor(fFillPattern.color());
 }
 
 inline	void	CSaveStyle::setStrokePattern(void)
 {
-#if 0
-	PatternHandle  ptn = fStrokePattern.pattern();
-	if (ptn == NULL)
-		ptn = GetStdPattern(blackPat);
-	SetFgPattern(ptn);
-#else
-	CGColorRef  clr = fStrokePattern.color();
-	if (clr == NULL)
-		clr = GetStdPattern(blackPat);					// GetStdPattern must return CGColorRef
-	CGContextSetStrokeColorWithColor(quartz, clr);
-#endif
+	QDHostSetStrokeColor(fStrokePattern.color());
 }
 
 #pragma mark -
@@ -402,23 +378,12 @@ inline	void	CSaveStyle::setStrokePattern(void)
 ------------------------------------------------------------------------------*/
 
 CPattern::CPattern()
-	:	fPattern(NULL), fPatternIsOurs(false), f05(true)
+	:	fPattern(kQDBlack), fHasPattern(false), f05(true)
 { }
 
 
 CPattern::~CPattern()
-{
-	if (fPatternIsOurs)
-	{
-#if 0
-		if (f05 && fPattern == GetFgPattern())
-			SetFgPattern(GetStdPattern(blackPat));
-		DisposePattern(fPattern);
-#else
-//		CFRelease(fPattern);
-#endif
-	}
-}
+{ }
 
 
 bool
@@ -426,7 +391,7 @@ CPattern::getFillPattern(RefArg inPatNo, bool inDoDefault)
 {
 	bool  result = inDoDefault;
 	if (NOTNIL(inPatNo))
-		result = GetPattern(inPatNo, &fPatternIsOurs, &fPattern, inDoDefault);
+		result = GetPattern(inPatNo, &fHasPattern, &fPattern, inDoDefault);
 	return result;
 }
 
@@ -450,7 +415,7 @@ SaveLevel::init(SaveLevel * inLevel)
 CSaveStyle::CSaveStyle()
 {
 //	GetPort(&fThePort);
-	CGContextSaveGState(quartz);
+	QDHostSaveState();
 	fLineWidth = LineWidth();
 
 	fCurrentStyle = MAKEINT(-1);
@@ -467,7 +432,7 @@ CSaveStyle::~CSaveStyle()
 {
 	endLevel();
 	SetLineWidth(fLineWidth);
-	CGContextRestoreGState(quartz);
+	QDHostRestoreState();
 }
 
 
@@ -1367,18 +1332,16 @@ DrawOneShape(RefArg inShape, CSaveStyle * inStyle, Point inOffset)
 
 		if (inStyle->f48 == 0)
 			OffsetRect(&wedge.rect, inOffset.h, inOffset.v);
-#if 0
-		WedgeBox(&shapeBounds, wedge.arc1, wedge.arc2);
+//		WedgeBox(&shapeBounds, wedge.arc1, wedge.arc2);
 
 		if (inStyle->fDoFill)
-			FillArc(&wedge.rect, wedge.arc1, wedge.arc2);
+			FillArc(&wedge, wedge.arc1, wedge.arc2);
 
 		if (inStyle->fDoStroke)
 		{
 			inStyle->setStrokePattern();
-			StrokeArc(&wedge.rect, wedge.arc1, wedge.arc2);
+			StrokeArc(&wedge, wedge.arc1, wedge.arc2);
 		}
-#endif
 	}
 
 //000E02EC
@@ -1558,8 +1521,8 @@ commondraw:
 			location.y = boundsRect.bottom;
 
 			TextOptions options;
-			options.alignment = inStyle->fAlignment;
-			options.justification = inStyle->fJustification;
+			options.alignment = (float)inStyle->fAlignment / fract1;		// TextOptions: 0.0 ... 1.0
+			options.justification = (float)inStyle->fJustification / fract1;
 			options.width = RectGetWidth(boundsRect);
 		/*	options.x0C = 0;
 			options.transferMode = (inStyle->fTransferMode == patCopy) ? srcOr : inStyle->fTransferMode;
@@ -1628,5 +1591,3 @@ commondraw:
 	}
 #endif
 }
-
-#endif /* __APPLE__ */

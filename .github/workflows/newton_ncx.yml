@@ -1,5 +1,9 @@
-# The newton_ncx library (the object system, for NCX) on every system NCX
-# runs on: build it and its test (Test/ncx/newton_ncx_test.cc), run ctest.
+# The newton_ncx library (the object system and the QuickDraw functions, for
+# NCX) on every system NCX runs on: build it and its test
+# (Test/ncx/newton_ncx_test.cc), run ctest. With FLTK (NEWTON_NCX_FLTK,
+# fetched), whose image surface the test draws into and checks; on Linux
+# under Xvfb (X11 only: FLTK_BACKEND_WAYLAND off, fewer packages). One job
+# without FLTK, where drawing does nothing.
 # The tools (newtc, ...) aren't built here: they need macOS for now.
 name: newton_ncx
 
@@ -17,22 +21,38 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: linux-x64,       os: ubuntu-24.04,     build_args: "-- -k" }
-          - { name: linux-arm64,     os: ubuntu-24.04-arm, build_args: "-- -k" }
-          - { name: windows-x64,     os: windows-2022,     cmake_args: "-A x64",   dbgarch: x64 }
-          - { name: windows-arm64,   os: windows-11-arm,   cmake_args: "-A ARM64", dbgarch: arm64 }
-          - { name: macos-universal, os: macos-15,         cmake_args: "\"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64\"", build_args: "-- -k" }
+          - { name: linux-x64,         os: ubuntu-24.04,     fltk: "ON",  cmake_args: "-DFLTK_BACKEND_WAYLAND=OFF", build_args: "-- -k" }
+          - { name: linux-arm64,       os: ubuntu-24.04-arm, fltk: "ON",  cmake_args: "-DFLTK_BACKEND_WAYLAND=OFF", build_args: "-- -k" }
+          - { name: linux-x64-no-fltk, os: ubuntu-24.04,     fltk: "OFF", build_args: "-- -k" }
+          - { name: windows-x64,       os: windows-2022,     fltk: "ON",  cmake_args: "-A x64",   dbgarch: x64 }
+          - { name: windows-arm64,     os: windows-11-arm,   fltk: "ON",  cmake_args: "-A ARM64", dbgarch: arm64 }
+          - { name: macos-universal,   os: macos-15,         fltk: "ON",  cmake_args: "\"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64\"", build_args: "-- -k" }
     steps:
       - uses: actions/checkout@v5
 
-      - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNEWTON_BUILD_TOOLS=OFF -DNEWTON_BUILD_TESTS=ON ${{ matrix.cmake_args }}
+      - name: X11 for FLTK (Linux)
+        if: runner.os == 'Linux' && matrix.fltk == 'ON'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libx11-dev libxext-dev libxft-dev \
+            libxinerama-dev libxcursor-dev libxrender-dev libxfixes-dev libxi-dev libfontconfig1-dev
 
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNEWTON_BUILD_TOOLS=OFF -DNEWTON_BUILD_TESTS=ON -DNEWTON_NCX_FLTK=${{ matrix.fltk }} ${{ matrix.cmake_args }}
+
+      # 4 jobs: --parallel alone is an unlimited make -j, all of FLTK's and
+      # the framework's files at once (twice on macOS: universal), which
+      # swaps a 3-core runner to a standstill
       - name: Build
-        run: cmake --build build --config RelWithDebInfo --target newton_ncx_test --parallel ${{ matrix.build_args }}
+        run: cmake --build build --config RelWithDebInfo --target newton_ncx_test --parallel 4 ${{ matrix.build_args }}
 
       - name: Test
+        if: runner.os != 'Linux' || matrix.fltk != 'ON'
         run: ctest --test-dir build -C RelWithDebInfo --output-on-failure
+
+      - name: Test (Linux, under Xvfb)
+        if: runner.os == 'Linux' && matrix.fltk == 'ON'
+        run: xvfb-run -a ctest --test-dir build -C RelWithDebInfo --output-on-failure
 
       - name: Test the x86_64 slice (Rosetta)
         if: matrix.name == 'macos-universal'

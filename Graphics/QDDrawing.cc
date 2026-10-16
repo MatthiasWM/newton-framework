@@ -1,14 +1,13 @@
 /*
 	File:		QDDrawing.cc
 
-	Contains:	QD implementation using Quartz Core Graphics interface for Newton.
+	Contains:	QD implementation for Newton, on the host's graphics
+					(QDHost.h: FLTK, or nothing).
 
 	Written by:	Newton Research Group.
 */
 
-#ifdef __APPLE__
-
-#include "Quartz.h"
+#include "QDHost.h"
 #include "Objects.h"
 #include "QDPatterns.h"
 #include "QDDrawing.h"
@@ -17,164 +16,23 @@
 #include "ViewFlags.h"
 #include "RSSymbols.h"
 
-extern void	InitScreen(void);
-extern void	InitQDCompression(void);
+#include "Screen.h"
 
 
 /*------------------------------------------------------------------------------
 	D a t a
-------------------------------------------------------------------------------*/
-extern int		gScreenHeight;
-
-CGFloat			gLineWidth;
-
-CGColorRef		gBlackColor;
-CGColorRef		gDarkGrayColor;
-CGColorRef		gGrayColor;
-CGColorRef		gLightGrayColor;
-CGColorRef		gWhiteColor;
-
-
-/*------------------------------------------------------------------------------
-	Initialize the graphics system.
-	quartz must be already set up
-	Args:		--
-	Return:  --
+	Definition of the display's pixels (was in Screen.cc)
 ------------------------------------------------------------------------------*/
 
-void
-InitGraf(void)
-{
-	InitScreen();
-	InitQDCompression();
-
-	// draw in RGB color space
-	CGColorSpaceRef	rgbSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-
-	// set up common colors
-	const CGFloat	whiteRGBA[4] = { 1.0, 1.0, 1.0, 1.0 };
-	const CGFloat	ltGrayRGBA[4] = { 0.75, 0.75, 0.75, 1.0 };
-	const CGFloat	grayRGBA[4] = { 0.5, 0.5, 0.5, 1.0 };
-	const CGFloat	dkGrayRGBA[4] = { 0.25, 0.25, 0.25, 1.0 };
-	const CGFloat	blackRGBA[4] = { 0.0, 0.0, 0.0, 1.0 };
-
-	gBlackColor = CGColorCreate(rgbSpace, blackRGBA);
-	gDarkGrayColor = CGColorCreate(rgbSpace, dkGrayRGBA);
-	gGrayColor = CGColorCreate(rgbSpace, grayRGBA);
-	gLightGrayColor = CGColorCreate(rgbSpace, ltGrayRGBA);
-	gWhiteColor = CGColorCreate(rgbSpace, whiteRGBA);
-
-	CGColorSpaceRelease(rgbSpace);
-}
+const ScreenParams gScreenConstants =		// was qdConstants 00380BCC
+{	{ 0, 5, 4, 0, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	// xShift[bitsPerPixel]
+	{ 0, 3, 2, 0, 1 },	// depthShift
+	{ 0x00000000, 0x00000001, 0x00000003, 0x0000000F, 0x000000FF, 0x0000FFFF, 0xFFFFFFFF },	// pixelMask
+	{ 0, 0x1F, 0x0F, 0, 0x07, 0, 0, 0, 0x03, 0, 0, 0, 0, 0, 0, 0, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	// xMask
+	{ 0, 1, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0 } };	// maskIndex[bitsPerPixel]
 
 
 #pragma mark -
-/*------------------------------------------------------------------------------
-	U t i l i t i e s
-------------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------------
-	Make a CGRect from a Newton Rect, flipping the vertical axis.
-	Args:		inRect
-	Return:	CGRect
-------------------------------------------------------------------------------*/
-
-CGPoint
-MakeCGPoint(Point inPt)
-{
-	CGPoint pt;
-	pt.x = inPt.h;
-	pt.y = gScreenHeight - inPt.v;
-	return pt;
-}
-
-
-CGRect
-MakeCGRect(Rect inRect)
-{
-	CGRect qr;
-	qr.origin.x = inRect.left;
-	qr.origin.y = gScreenHeight - inRect.bottom;
-	qr.size.width = RectGetWidth(inRect);
-	qr.size.height = RectGetHeight(inRect);
-	return qr;
-}
-
-
-CGRect
-MakeCGRectFrame(Rect inRect, float inLineWd)
-{
-	CGRect r = MakeCGRect(inRect);
-	float  inset = inLineWd / 2.0;
-	return CGRectInset(r, inset, inset);
-}
-
-
-/*------------------------------------------------------------------------------
-	Justify a rect within a frame.
-	Args:		inRect
-				inFrame
-				inJustify
-	Return:	justified CGRect
-------------------------------------------------------------------------------*/
-
-CGRect
-CGRectJustify(CGRect inRect, CGRect inFrame, ULong inJustify)
-{
-	CGRect  frame = inFrame;
-	CGPoint rectOrigin = inFrame.origin;
-	CGSize  rectSize = inRect.size;
-	float  offset;
-
-	if (CGRectGetWidth(frame) == 0
-	&&  CGRectGetHeight(frame) == 0)
-	{
-		frame.size.width = CGRectGetWidth(inRect);
-		frame.size.height = CGRectGetHeight(inRect);
-	}
-
-	switch (inJustify & vjVMask)
-	{
-	case vjTopV:
-		offset = CGRectGetHeight(frame) - rectSize.height;
-		rectOrigin.y += offset;
-		break;
-	case vjCenterV:
-		offset = (CGRectGetHeight(frame) - rectSize.height) / 2;
-		if (offset > 0)
-			rectOrigin.y += offset;
-		break;
-	case vjBottomV:
-	// no need to do anything
-		break;
-	case vjFullV:
-		rectSize.height = CGRectGetHeight(frame);
-		break;
-	}
-
-	switch (inJustify & vjHMask)
-	{
-	case vjLeftH:
-	// no need to do anything
-		break;
-	case vjRightH:
-		offset = CGRectGetWidth(frame) - rectSize.width;
-		rectOrigin.x += offset;
-		break;
-	case vjCenterH:
-		offset = (CGRectGetWidth(frame) - rectSize.width) / 2;
-		if (offset > 0)
-			rectOrigin.x += offset;
-		break;
-	case vjFullH:
-		rectSize.width = CGRectGetWidth(frame);
-		break;
-	}
-
-	return CGRectMake(rectOrigin.x, rectOrigin.y, rectSize.width, rectSize.height);
-}
-
-
 /*------------------------------------------------------------------------------
 	Justify a rect within a frame.
 	Args:		ioRect
@@ -258,35 +116,28 @@ void
 LineNormal(void)
 {
 	SetLineWidth(1);
-	CGContextSetStrokeColorWithColor(quartz, gBlackColor);
+	QDHostSetStrokeColor(kQDBlack);
 }
 
 
 void
 SetLineWidth(short inWidth)
 {
-	gLineWidth = (float) inWidth;
-	CGContextSetLineWidth(quartz, gLineWidth);
+	QDHostSetLineWidth(inWidth);
 }
 
 
 short
 LineWidth(void)
 {
-	return (short) gLineWidth;
+	return (short) QDHostLineWidth();
 }
 
 
 void
 StrokeLine(Point inFrom, Point inTo)
 {
-	CGPoint pt;
-	CGContextBeginPath(quartz);
-	pt = MakeCGPoint(inFrom);
-	CGContextMoveToPoint(quartz, pt.x, pt.y);
-	pt = MakeCGPoint(inTo);
-	CGContextAddLineToPoint(quartz, pt.x, pt.y);
-	CGContextStrokePath(quartz);
+	QDHostStrokeLine(inFrom.h, inFrom.v, inTo.h, inTo.v);
 }
 
 
@@ -303,9 +154,7 @@ StrokeRect(const Rect * inBox)
 void
 StrokeRect(Rect inBox)
 {
-	CGFloat  inset = gLineWidth / 2.0;
-	CGRect r = MakeCGRect(inBox);
-	CGContextStrokeRect(quartz, CGRectInset(r, inset, inset));
+	QDHostStrokeRect(inBox.left, inBox.top, inBox.right, inBox.bottom);
 }
 
 
@@ -318,58 +167,24 @@ FillRect(const Rect * inBox)
 void
 FillRect(Rect inBox)
 {
-	CGContextFillRect(quartz, MakeCGRect(inBox));
+	QDHostFillRect(inBox.left, inBox.top, inBox.right, inBox.bottom);
 }
 
 
 /*------------------------------------------------------------------------------
 	R o u n d R e c t
 ------------------------------------------------------------------------------*/
-static void		AddRoundedRectToPath(CGContextRef inContext, CGRect inRect, CGFloat ovalWidth, CGFloat ovalHeight);
-
 void
 StrokeRoundRect(Rect inBox, short inOvalWd, short inOvalHt)
 {
-	CGFloat  inset = gLineWidth / 2.0;
-	CGRect r = MakeCGRect(inBox);
-	CGContextBeginPath(quartz);
-	AddRoundedRectToPath(quartz, CGRectInset(r, inset, inset), (CGFloat) inOvalWd, (CGFloat) inOvalHt);
-	CGContextStrokePath(quartz);
+	QDHostStrokeRoundRect(inBox.left, inBox.top, inBox.right, inBox.bottom, inOvalWd, inOvalHt);
 }
 
 
 void
 FillRoundRect(Rect inBox, short inOvalWd, short inOvalHt)
 {
-	CGContextBeginPath(quartz);
-	AddRoundedRectToPath(quartz, MakeCGRect(inBox), (CGFloat) inOvalWd, (CGFloat) inOvalHt);
-	CGContextFillPath(quartz);
-}
-
-
-static void
-AddRoundedRectToPath(CGContextRef inContext, CGRect inRect, CGFloat ovalWidth, CGFloat ovalHeight)
-{
-	if (ovalWidth == 0 || ovalHeight == 0)
-		CGContextAddRect(inContext, inRect);
-
-	else
-	{
-		CGFloat fw, fh;
-
-		CGContextSaveGState(inContext);
-		CGContextTranslateCTM(inContext, CGRectGetMinX(inRect), CGRectGetMinY(inRect));
-		CGContextScaleCTM(inContext, ovalWidth, ovalHeight);
-		fw = CGRectGetWidth(inRect) / ovalWidth;
-		fh = CGRectGetHeight(inRect) / ovalHeight;
-		CGContextMoveToPoint(inContext, fw, fh/2);
-		CGContextAddArcToPoint(inContext, fw, fh, fw/2, fh, 1);
-		CGContextAddArcToPoint(inContext, 0, fh, 0, fh/2, 1);
-		CGContextAddArcToPoint(inContext, 0, 0, fw/2, 0, 1);
-		CGContextAddArcToPoint(inContext, fw, 0, fw, fh/2, 1);
-		CGContextClosePath(inContext);
-		CGContextRestoreGState(inContext);
-	}
+	QDHostFillRoundRect(inBox.left, inBox.top, inBox.right, inBox.bottom, inOvalWd, inOvalHt);
 }
 
 
@@ -380,16 +195,14 @@ AddRoundedRectToPath(CGContextRef inContext, CGRect inRect, CGFloat ovalWidth, C
 void
 StrokeOval(const Rect * inBox)
 {
-	CGFloat  inset = gLineWidth / 2.0;
-	CGRect r = MakeCGRect(*inBox);
-	CGContextStrokeEllipseInRect(quartz, CGRectInset(r, inset, inset));
+	QDHostStrokeOval(inBox->left, inBox->top, inBox->right, inBox->bottom);
 }
 
 
 void
 FillOval(const Rect * inBox)
 {
-	CGContextFillEllipseInRect(quartz, MakeCGRect(*inBox));
+	QDHostFillOval(inBox->left, inBox->top, inBox->right, inBox->bottom);
 }
 
 
@@ -398,11 +211,11 @@ FillOval(const Rect * inBox)
 ------------------------------------------------------------------------------*/
 
 // hack for NCX
-// inData is a PolygonShape
+// inData: a 16-bit 0, the number of points, then the points (v, h), all
+// big-endian; drawn at inX, inY with a pen 2 wide
 void
 DrawPolygon(char * inData, short inX, short inY)
 {
-	Point pt;
 	short sh, * p = (short *)inData;
 	sh = *p++;	// unused
 	sh = *p++;
@@ -411,24 +224,42 @@ DrawPolygon(char * inData, short inX, short inY)
 	if (count < 2)
 		return;
 
-	CGContextSetLineWidth(quartz, 2);
-	CGContextBeginPath(quartz);
-
-	sh = *p++;
-	pt.v = CANONICAL_SHORT(sh);
-	sh = *p++;
-	pt.h = CANONICAL_SHORT(sh);
-	CGContextMoveToPoint(quartz, inX + pt.h, gScreenHeight - (inY + pt.v));
-
-	for (ArrayIndex i = 1; i < count; ++i)
+	float * xy = new float[2 * count];
+	for (ArrayIndex i = 0; i < count; ++i)
 	{
 		sh = *p++;
-		pt.v = CANONICAL_SHORT(sh);
+		xy[2*i+1] = inY + CANONICAL_SHORT(sh);
 		sh = *p++;
-		pt.h = CANONICAL_SHORT(sh);
-		CGContextAddLineToPoint(quartz, inX + pt.h, gScreenHeight - (inY + pt.v));
+		xy[2*i] = inX + CANONICAL_SHORT(sh);
 	}
-	CGContextStrokePath(quartz);
+	QDHostSaveState();
+	QDHostSetLineWidth(2);
+	QDHostStrokePolyline(xy, count, false);
+	QDHostRestoreState();
+	delete[] xy;
+}
+
+
+/*------------------------------------------------------------------------------
+	A polygon's points as x, y floats (for QDHost); the caller deletes[]
+	them.
+------------------------------------------------------------------------------*/
+
+static float *
+PolyPoints(PolygonShape * inShape, int * outCount)
+{
+	Point * p = inShape->points;
+	int count = (inShape->size - 12) / sizeof(Point);
+	if (count < 0)
+		count = 0;
+	float * xy = new float[2 * count + 2];
+	for (int i = 0; i < count; ++i, ++p)
+	{
+		xy[2*i] = p->h;
+		xy[2*i+1] = p->v;
+	}
+	*outCount = count;
+	return xy;
 }
 
 
@@ -457,30 +288,20 @@ OffsetPoly(PolygonShape * inShape, short dx, short dy)
 void
 StrokePoly(PolygonShape * inShape)
 {
-	Point * p = inShape->points;
-	int i, count = (inShape->size - 12) / sizeof(Point);
-	CGContextBeginPath(quartz);
-	CGContextMoveToPoint(quartz, p->h, gScreenHeight - p->v);
-	for (i = 1, p++; i < count; i++, p++)
-	{
-		CGContextAddLineToPoint(quartz, p->h, gScreenHeight - p->v);
-	}
-	CGContextStrokePath(quartz);
+	int count;
+	float * xy = PolyPoints(inShape, &count);
+	QDHostStrokePolyline(xy, count, false);
+	delete[] xy;
 }
 
 
 void
 FillPoly(PolygonShape * inShape)
 {
-	Point * p = inShape->points;
-	int i, count = (inShape->size - 12) / sizeof(Point);
-	CGContextBeginPath(quartz);
-	CGContextMoveToPoint(quartz, p->h, gScreenHeight - p->v);
-	for (i = 1, p++; i < count; i++, p++)
-	{
-		CGContextAddLineToPoint(quartz, p->h, gScreenHeight - p->v);
-	}
-	CGContextFillPath(quartz);
+	int count;
+	float * xy = PolyPoints(inShape, &count);
+	QDHostFillPolygon(xy, count);
+	delete[] xy;
 }
 
 
@@ -507,11 +328,17 @@ FillRgn(RegionShape * inShape)
 
 void
 StrokeArc(WedgeShape * inShape, short inArc1, short inArc2)
-{}
+{
+	const Rect & r = inShape->rect;
+	QDHostStrokeArc(r.left, r.top, r.right, r.bottom, inArc1, inArc2);
+}
 
 void
 FillArc(WedgeShape * inShape, short inArc1, short inArc2)
-{}
+{
+	const Rect & r = inShape->rect;
+	QDHostFillArc(r.left, r.top, r.right, r.bottom, inArc1, inArc2);
+}
 
 #pragma mark -
 /*------------------------------------------------------------------------------
@@ -528,10 +355,10 @@ PixelMapBits(const PixelMap * inPixmap)
 		return (Ptr)inPixmap + inPixmap->baseAddr;
 	} else if (storage == kPixMapHandle) {
 printf("PixelMapBits() using baseAddr as Handle!\n");
-		return *(Handle)inPixmap->baseAddr;
+		return *(Handle)(uintptr_t)inPixmap->baseAddr;
 	} else if (storage == kPixMapPtr) {
 printf("PixelMapBits() using baseAddr as Ptr!\n");
-		return (Ptr)inPixmap->baseAddr;
+		return (Ptr)(uintptr_t)inPixmap->baseAddr;
 	}
 	return NULL;
 }
@@ -545,7 +372,7 @@ PixelMapBits(const NativePixelMap * inPixmap)
 		return (Ptr)inPixmap->baseAddr;
 	// shouldn't really be anything else
 	} else if (storage == kPixMapOffset) {
-		return (Ptr)inPixmap + (unsigned long)inPixmap->baseAddr;
+		return (Ptr)inPixmap + (uintptr_t)inPixmap->baseAddr;
 	}
 	return NULL;
 }
@@ -555,7 +382,6 @@ PixelMapBits(const NativePixelMap * inPixmap)
 /* -----------------------------------------------------------------------------
 	PixelMap hit testing.
 ----------------------------------------------------------------------------- */
-#include "Screen.h"
 
 bool
 PtInPixelMap(const NativePixelMap * inPixmap, int inX, int inY)
@@ -764,33 +590,21 @@ MakeSimplePattern(long inBits0, long inBits1, long inBits2, long inBits3, long i
 }
 #endif
 
-CGColorRef
+/*------------------------------------------------------------------------------
+	An 8 by 8 pattern (8 bytes, a row each, 1 black) as its gray: the share of
+	its pixels that are black.
+------------------------------------------------------------------------------*/
+
+QDColor
 MakeSimplePattern(const char * inBits)
 {
-#if 0
-	PatternHandle  pat = (PatternHandle) NewHandle(sizeof(SimplePattern));	// NOTE NewHandle deprecated
-	if (pat)
-	{
-		PixelMap *  pixmap = *pat;
-		pixmap->baseAddr = offsetof(SimplePattern, pat);	// actually an offset, obviously
-		pixmap->rowBytes = 1;
-		SetRect(&pixmap->bounds, 0, 0, 8, 8);
-		pixmap->pixMapFlags = kPixMapOffset + kOneBitDepth;
-		pixmap->deviceRes.h =
-		pixmap->deviceRes.v = kDefaultDPI;
-		pixmap->grayTable = NULL;
-		memmove(&((SimplePattern*)pixmap)->pat, inBits, 8);
-	}
-#else
-	CGColorRef pat = NULL;
-#endif
-	return pat;
+	int black = 0;
+	for (ArrayIndex i = 0; i < kPatternDataSize; ++i)
+		for (UChar bits = inBits[i]; bits != 0; bits >>= 1)
+			black += bits & 1;
+	ULong gray = 255 - (black * 255 + 32) / 64;
+	return (gray << 16) | (gray << 8) | gray;
 }
-
-
-CGColorRef
-MakeGrayPattern(RefArg inPat)
-{ return NULL; }
 
 
 /*------------------------------------------------------------------------------
@@ -804,32 +618,32 @@ MakeGrayPattern(RefArg inPat)
 bool
 SetPattern(int inPatNo)
 {
-	bool			isSet = true;
-	CGColorRef	ptn;
+	bool		isSet = true;
+	QDColor	ptn = kQDBlack;
 
 	switch (inPatNo)
 	{
 	case vfWhite:
-		ptn = gWhiteColor;
+		ptn = kQDWhite;
 		break;
 	case vfLtGray:
-		ptn = gLightGrayColor;
+		ptn = kQDLightGray;
 		break;
 	case vfGray:
-		ptn = gGrayColor;
+		ptn = kQDGray;
 		break;
 	case vfDkGray:
-		ptn = gDarkGrayColor;
+		ptn = kQDDarkGray;
 		break;
 	case vfBlack:
-		ptn = gBlackColor;
+		ptn = kQDBlack;
 		break;
 	case 12:
-		ptn = gBlackColor;
+		ptn = kQDBlack;
 		break;
 	case vfDragger:
 	case vfMatte:
-		ptn = gGrayColor;
+		ptn = kQDGray;
 		break;
 	case vfCustom:
 		break;
@@ -838,97 +652,61 @@ SetPattern(int inPatNo)
 	}
 	if (isSet)
 	{
-		CGContextSetStrokeColorWithColor(quartz, ptn);
-		CGContextSetFillColorWithColor(quartz, ptn);
+		QDHostSetStrokeColor(ptn);
+		QDHostSetFillColor(ptn);
 	}
 
 	return isSet;
 }
 
 
-CGColorRef
+/*------------------------------------------------------------------------------
+	A standard pattern: whitePat ... blackPat (not vfWhite ... vfBlack, which
+	are one more).
+------------------------------------------------------------------------------*/
+
+QDColor
 GetStdPattern(int inPatNo)
 {
-	CGColorRef	ptn;
-
-	if (inPatNo > blackPat)
-		inPatNo = blackPat;
 	switch (inPatNo)
 	{
-	case vfWhite:
-		ptn = gWhiteColor;
-		break;
-	case vfLtGray:
-		ptn = gLightGrayColor;
-		break;
-	case vfGray:
-		ptn = gGrayColor;
-		break;
-	case vfDkGray:
-		ptn = gDarkGrayColor;
-		break;
-	case vfBlack:
-		ptn = gBlackColor;
-		break;
+	case whitePat:
+		return kQDWhite;
+	case ltGrayPat:
+		return kQDLightGray;
+	case grayPat:
+		return kQDGray;
+	case dkGrayPat:
+		return kQDDarkGray;
 	}
-
-	return ptn;
+	return kQDBlack;
 }
 
 
-CGColorRef
+/*------------------------------------------------------------------------------
+	A colour, 16 bits per component.
+------------------------------------------------------------------------------*/
+
+QDColor
 GetStdGrayPattern(ULong inR, ULong inG, ULong inB)
 {
-#if 0
-	GrafPtr			thePort = GetCurrentPort();
-	PixelMap *		pix = IsPrinterPort(thePort) ? &gScreenPixelMap : &thePort->portBits;
-	long				depth = PixelDepth(pix);
-	long				numOfBytes = 8 * depth;
-	PatternHandle  thePattern = (PatternHandle) NewHandle(sizeof(PixelMap) + numOfBytes);	// NOTE NewHandle deprecated
-	if (thePattern)
-	{
-		long				gray = RGBtoGray(inR, inG, inB, 16, depth);
-		unsigned char  grayByte;
-		Ptr				grayPtr;
-		pix->baseAddr = sizeof(PixelMap);	// offset to gray data
-		pix->rowBytes = numOfBytes / 8;				// 8 rows (of 8 pixels) in a std pattern
-		SetRect(&pix->bounds, 0, 0, 8, 8);
-		pix->pixMapFlags = kPixMapOffset + depth;
-		pix->deviceRes.h =
-		pix->deviceRes.h = kDefaultDPI;
-		pix->grayTable = NULL;
-		grayPtr = (Ptr)pix + sizeof(PixelMap);		// data follows immediately
-
-		switch (depth)
-		{
-		case 1:
-			grayByte = gray ? 0xFF : 0;
-			break;
-		case 2:
-			grayByte = (gray << 6) | (gray << 4) | (gray << 2) | gray;
-			break;
-		case 4:
-			grayByte = (gray << 4) | gray;
-			break;
-		}
-
-		for ( ; numOfBytes > 0; numOfBytes--)
-			*grayPtr++ = grayByte;
-	}
-#else
-	CGColorRef thePattern;
-	CGColorSpaceRef	rgbSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-	CGContextSetFillColorSpace(quartz, rgbSpace);
-  CGFloat colorComponents[4] = { static_cast<CGFloat>(inR), static_cast<CGFloat>(inG), static_cast<CGFloat>(inB), 1.0 };
-	thePattern = CGColorCreate(rgbSpace, colorComponents);
-	CGColorSpaceRelease(rgbSpace);
-#endif
-	return thePattern;
+	return ((inR & 0xFF00) << 8) | (inG & 0xFF00) | ((inB & 0xFF00) >> 8);
 }
 
 
+/*------------------------------------------------------------------------------
+	A pattern (a fillPattern, penPattern, ... in a style) as a colour: a
+	standard pattern's number (vfWhite ... vfBlack), an RGB value (PackRGB),
+	an 8 by 8 pattern (a binary), a ditherPattern frame (its foreground).
+	Args:		inPatNo
+				ioHasPattern	set if a pattern was found
+				ioPat				the colour
+				inDefault		the result if no pattern was found
+	Return:	true if there's something to draw with
+------------------------------------------------------------------------------*/
+
 bool
-GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDefault)
+GetPattern(RefArg inPatNo, bool * ioHasPattern, QDColor * ioPat, bool inDefault)
 {
 	bool	gotPattern = inDefault;
 
@@ -938,8 +716,6 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 		bool isOpaque = (patNo > 0);
 		if (isOpaque)
 		{
-			if (*ioTakeOwnership)
-				CGColorRelease(*ioPat);
 			if ((patNo & 0x10000000) != 0)	// it's not actually an index but an RGB value
 			{
 				ULong	r;
@@ -952,11 +728,8 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 			{
 				*ioPat = GetStdPattern((patNo & 0xFF) - 1);
 			}
-			if (*ioPat != NULL)
-			{
-				*ioTakeOwnership = true;
-				gotPattern = true;
-			}
+			*ioHasPattern = true;
+			gotPattern = true;
 		}
 	}
 
@@ -964,101 +737,24 @@ GetPattern(RefArg inPatNo, bool * ioTakeOwnership, CGColorRef * ioPat, bool inDe
 	{
 		if (EQ(ClassOf(inPatNo), SYMA(ditherPattern)))
 		{
-#if 0
-			ULong	r, g, b;
-			ULong	fgColor;
-			ULong	bgColor;
-			int	pixDepth;
-			GetGrafInfo(kGrafPixelDepth, &pixDepth);
-
-			RefVar item(GetFrameSlot(inPatNo, SYMforeground));
-			if (NOTNIL(item) && ISINT(item))
-			{
+			// its foreground (white if none), not dithered
+			ULong	r = 0xFFFF, g = 0xFFFF, b = 0xFFFF;
+			RefVar item(GetFrameSlot(inPatNo, SYMA(foreground)));
+			if (ISINT(item))
 				UnpackRGBvalues(RINT(item), &r, &g, &b);
-				fgColor = RGBtoGray(r,g,b, pixDepth, pixDepth);
-			}
-			else
-				fgColor = 0xFFFFFFFF >> (32-pixDepth);	// white
-
-			item = GetFrameSlot(inPatNo, SYMbackground);
-			if (NOTNIL(item) && ISINT(item))
-			{
-				UnpackRGBvalues(RINT(item), &r, &g, &b);
-				bgColor = RGBtoGray(r,g,b, pixDepth, pixDepth);
-			}
-			else
-				bgColor = 0;									// black
-
-			item = GetFrameSlot(inPatNo, SYMpattern);
-			if (NOTNIL(item))
-			{
-				CGColorRef	ptn;
-				if (ISINT(item))
-				{
-					if (item >= 1
-					&&  item <= 5)
-						item--;
-					else
-						item = blackPat;
-					ptn = GetStdPattern(item);
-				}
-				else
-				{
-					CDataPtr	patData(item);
-					ptn = MakeSimplePattern(patData);
-				}
-				if (ptn != NULL)
-				{
-					if (*ioTakeOwnership)
-						CGColorRelease(*ioPat);
-					HLock(ptn);
-					*ioPat = MakeSimpleGrayPattern(PixelMapBits(*ptn), fgColor, bgColor);
-					HUnlock(ptn);
-					DisposePattern(ptn);
-				}
-			}
-			else	// no pattern specified; use foreground
-			{
-				if (*ioTakeOwnership)
-					CGColorRelease(*ioPat);
-				UnpackRGBvalues(fgColor, &r, &g, &b);
-				*ioPat = GetStdGrayPattern(r,g,b);
-			}
-			if (*ioPat != NULL)
-			{
-				*ioTakeOwnership = true;
-				gotPattern = true;
-			}
-#endif
-		}
-	}
-
-	else if (EQ(ClassOf(inPatNo), SYMA(grayPattern)))
-	{
-		if (*ioTakeOwnership)
-			CGColorRelease(*ioPat);
-		*ioPat = MakeGrayPattern(inPatNo);
-		if (*ioPat != NULL)
-		{
-			*ioTakeOwnership = true;
+			*ioPat = GetStdGrayPattern(r,g,b);
+			*ioHasPattern = true;
 			gotPattern = true;
 		}
 	}
 
-	else if (IsArray(inPatNo))
+	else if (IsBinary(inPatNo) && Length(inPatNo) >= kPatternDataSize)
 	{
-		if (*ioTakeOwnership)
-			CGColorRelease(*ioPat);
 		CDataPtr	patData(inPatNo);
 		*ioPat = MakeSimplePattern(patData);
-		if (*ioPat != NULL)
-		{
-			*ioTakeOwnership = true;
-			gotPattern = true;
-		}
+		*ioHasPattern = true;
+		gotPattern = true;
 	}
 
 	return gotPattern;
 }
-
-#endif /* __APPLE__ */

@@ -5,6 +5,10 @@
 #   cmake -DNEWTC=<newtc> -DIN=<Extension.ns> -DNSOF=<Extension.nsof>
 #         -DOUT=<Extension.cc> -P NewtDumpExtension.cmake
 
+# the directory: nothing else may have made it (a build without FLTK)
+get_filename_component (nsof_dir "${NSOF}" DIRECTORY)
+file (MAKE_DIRECTORY "${nsof_dir}")
+
 execute_process (
   COMMAND "${NEWTC}" -script "${IN}" -onsof "${NSOF}"
   INPUT_FILE /dev/null

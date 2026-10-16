@@ -46,10 +46,7 @@ TextBounds(CRichString & inStr, RefArg inFont, Rect * ioRect, long inJustifyH)
 
 #endif
 
-#ifdef __APPLE__
-
-#include "Quartz.h"
-#include <CoreText/CoreText.h>
+#include "QDHost.h"
 #include "Geometry.h"
 #include "Objects.h"
 #include "DrawText.h"
@@ -68,11 +65,131 @@ TextBounds(CRichString & inStr, RefArg inFont, Rect * ioRect, long inJustifyH)
 #include "Preference.h"
 #include "UStringUtils.h"
 
+#include <string>
+#include <vector>
+
 
 void			DrawSimpleParagraph(CRichString & inStr, RefArg inFont, Rect * ioRect, ULong inJustifyH, bool inDoDraw /*, long inTransferMode*/);
 ArrayIndex	DoRichString(CRichString & inStr, ULong inStart, size_t inCount, StyleRecord * inStyle, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * inBoundsInfo, bool inDoDraw);
 ArrayIndex	DoTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRuns, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * outBoundsInfo, bool inDoDraw);
 ArrayIndex	MeasureTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRuns, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * outBoundsInfo);
+
+extern Ref	GetFontFamilySym(RefArg inFontSpec);
+extern ULong	GetFontFace(RefArg inFontSpec);
+extern ULong	GetFontSize(RefArg inFontSpec);
+
+
+#pragma mark -
+#pragma mark Host
+/*------------------------------------------------------------------------------
+	H o s t
+	Text for QDHost: UTF-8, and the font as a family number, size, face.
+------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------
+	UTF-16 to UTF-8.
+	Args:		inStr			the text
+				inLength		number of UniChars
+				outOffsets	if not NULL: for each UniChar (and the end), its
+								offset in the UTF-8
+	Return:	the UTF-8
+------------------------------------------------------------------------------*/
+
+static std::string
+UTF8FromUniChars(const UniChar * inStr, size_t inLength, std::vector<size_t> * outOffsets = NULL)
+{
+	std::string utf8;
+	utf8.reserve(inLength);
+	if (outOffsets)
+		outOffsets->assign(inLength + 1, 0);
+	for (size_t i = 0; i < inLength; ++i)
+	{
+		if (outOffsets)
+			(*outOffsets)[i] = utf8.size();
+		ULong c = inStr[i];
+		if (c >= 0xD800 && c < 0xDC00 && i + 1 < inLength && inStr[i+1] >= 0xDC00 && inStr[i+1] < 0xE000)
+		{
+			c = 0x10000 + ((c - 0xD800) << 10) + (inStr[i+1] - 0xDC00);
+			++i;
+			if (outOffsets)
+				(*outOffsets)[i] = utf8.size();
+		}
+		if (c < 0x80) {
+			utf8 += (char)c;
+		} else if (c < 0x800) {
+			utf8 += (char)(0xC0 | (c >> 6));
+			utf8 += (char)(0x80 | (c & 0x3F));
+		} else if (c < 0x10000) {
+			utf8 += (char)(0xE0 | (c >> 12));
+			utf8 += (char)(0x80 | ((c >> 6) & 0x3F));
+			utf8 += (char)(0x80 | (c & 0x3F));
+		} else {
+			utf8 += (char)(0xF0 | (c >> 18));
+			utf8 += (char)(0x80 | ((c >> 12) & 0x3F));
+			utf8 += (char)(0x80 | ((c >> 6) & 0x3F));
+			utf8 += (char)(0x80 | (c & 0x3F));
+		}
+	}
+	if (outOffsets)
+		(*outOffsets)[inLength] = utf8.size();
+	return utf8;
+}
+
+
+/*------------------------------------------------------------------------------
+	The family of a font: a symbol ('newYork, ...), or the font itself (from
+	the fonts global, or SYS_fonts) -> tsSystem, tsFancy, tsSimple or
+	tsHandwriting.
+------------------------------------------------------------------------------*/
+
+static bool
+IsFontOf(RefArg inFamily, int inFamilyNum, RefArg inSymbol)
+{
+	if (ISNIL(inFamily))
+		return false;
+	if (EQ(inFamily, inSymbol))
+		return true;
+	RefVar sysFonts(SYS_fonts);
+	if (IsArray(sysFonts) && Length(sysFonts) > (ArrayIndex)inFamilyNum && EQ(inFamily, GetArraySlot(sysFonts, inFamilyNum)))
+		return true;
+	RefVar fonts(GetGlobalVar(SYMA(fonts)));
+	return IsFrame(fonts) && EQ(inFamily, GetProtoVariable(fonts, inSymbol));
+}
+
+static int
+HostFontFamily(RefArg inFamily)
+{
+	if (IsFontOf(inFamily, tsFancy, SYMA(newYork)))
+		return tsFancy;
+	if (IsFontOf(inFamily, tsSimple, SYMA(geneva)))
+		return tsSimple;
+	if (IsFontOf(inFamily, 3, SYMA(handwriting)))
+		return 3;
+	return tsSystem;
+}
+
+
+static QDHostFont
+HostFont(const StyleRecord * inStyle)
+{
+	QDHostFont font;
+	font.family = HostFontFamily(inStyle->fontFamily);
+	font.size = (int)(inStyle->fontSize + 0.5);
+	font.face = inStyle->fontFace;
+	return font;
+}
+
+
+static QDHostFont
+HostFont(RefArg inFontSpec)
+{
+	QDHostFont font;
+	RefVar family(GetFontFamilySym(inFontSpec));
+	font.family = HostFontFamily(family);
+	font.size = GetFontSize(inFontSpec);
+	font.face = GetFontFace(inFontSpec);
+	return font;
+}
 
 
 #pragma mark -
@@ -201,10 +318,12 @@ GetStyleFontInfo(StyleRecord * inStyle, FontInfo * outFontInfo)
 		outFontInfo->widMax = info.x0C;
 
 #else
-	outFontInfo->ascent = 8;
-	outFontInfo->descent = 2;
-	outFontInfo->leading = 3;
-	outFontInfo->widMax = 10;
+	QDHostFontInfo info;
+	QDHostGetFontInfo(HostFont(inStyle), &info);
+	outFontInfo->ascent = info.ascent;
+	outFontInfo->descent = info.descent;
+	outFontInfo->leading = info.leading;
+	outFontInfo->widMax = info.widMax;
 #endif
 }
 
@@ -383,148 +502,60 @@ DoRichString(CRichString & inStr, ULong inStart, size_t inLength, StyleRecord * 
 	return strLen;
 }
 
-void
-DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect * inBox, CGColorRef inColor, ULong inJustify);	// SRB
+/*------------------------------------------------------------------------------
+	Draw or measure a line of text (the host's). All of it in the first
+	style (ink words' runs: not yet).
+	Args:		inText				array of UniChar
+				inLength				number of UniChars
+				inStyles				array of pointers to style records
+				inRuns				array of run lengths matching styles
+				inPt					*baseline* of text, its left end
+				inOptions			width: the line's (for justification, and what
+										fits); justification: 0.0 left, 0.5 centre,
+										1.0 right
+				outBoundsInfo		width: the text's
+				inDoDraw				false => do measure
+	Return:	number of UniChars that fit the options' width (all of them if
+				there's no width)
+------------------------------------------------------------------------------*/
 
 ArrayIndex
 DoTextOnce(void * inText, size_t inLength, StyleRecord ** inStyles, short * inRuns, FPoint inPt, TextOptions * inOptions, TextBoundsInfo * outBoundsInfo, bool inDoDraw)
 {
+	const UniChar * text = (const UniChar *)inText;
+	QDHostFont font = HostFont(inStyles[0]);
+	std::vector<size_t> offsets;
+	std::string utf8 = UTF8FromUniChars(text, inLength, &offsets);
+	float width = QDHostTextWidth(utf8.data(), utf8.size(), font);
+
 	if (inDoDraw)
 	{
-#if 1
-		Rect box;
-		box.top = inPt.y-10;
-		box.left = inPt.x;
-		box.bottom = inPt.y;
-		box.right = inPt.x + inOptions->width;
-
-		ULong	justifyH = vjLeftH;
-		if (inOptions->justification == fract1/2)
-			justifyH = vjCenterH;
-		else if (inOptions->justification == fract1)
-			justifyH = vjRightH;
-
-		DrawUnicodeText((const UniChar *)inText, inLength, &box, gBlackColor, justifyH);
-#else
-		char str[256];
-		int strLen = MIN(inLength, 255);
-		ConvertFromUnicode((const UniChar *)inText, str, strLen);
-
-		StyleRecord * defaultStyle = inStyles[0];
-
-//		CGContextSetGrayStrokeColor(quartz, 0.7, 1.0);
-		CGContextSelectFont(quartz, "Helvetica", 0.8, kCGEncodingMacRoman);
-		CGContextShowTextAtPoint(quartz, inPt.x, gScreenHeight-inPt.y, str, inLength);
-		CGContextFlush(quartz);
-#if 1
-		printf("%s @ %f,%f\n", str, inPt.x, gScreenHeight-inPt.y);
-#endif
-#endif
+		float x = inPt.x;
+		if (inOptions && inOptions->width > width)
+			x += (inOptions->width - width) * inOptions->justification;
+		QDHostDrawText(utf8.data(), utf8.size(), x, inPt.y, font, kQDBlack);
 	}
 
 	if (outBoundsInfo)
-		outBoundsInfo->width = 16.0;	// gotta return something
+		outBoundsInfo->width = width;
 //		DispatchCalcBounds(textRef, outBoundsInfo);
 
-	return 0;
-}
-
-
-void
-DrawUnicodeText(const UniChar * inStr, size_t inLength, /* inFont,*/ const Rect * inBox, CGColorRef inColor, ULong inJustify)	// SRB
-{
-
-	CGRect box = MakeCGRect(*inBox);
-	if (box.size.width < 0.0)
-		box.size.width = -box.size.width;
-//printf("[%.1f,%.1f, %.1f,%.1f]-%d ",box.origin.x,box.origin.y,box.size.width,box.size.height, inJustify & vjHMask);
-
-//	box.size.width += 40;
-	box.origin.y -= 8;
-	box.size.height += 8;
-
-//	fill the text box so we can see where it is
-#if 0
-	CGContextSaveGState(quartz);
-	CGContextSetFillColorWithColor(quartz, CGColorCreateGenericRGB(1.0, 0.85, 0.85, 1.0));
-	CGContextFillRect(quartz, box);
-	CGContextRestoreGState(quartz);
-#endif
-
-	CGContextSetTextMatrix(quartz, CGAffineTransformIdentity);
-	CGContextSetTextDrawingMode(quartz, kCGTextStroke);
-
-
-//	CGContextSetAllowsAntialiasing(quartz, false);
-
-//	CGContextSetAllowsFontSmoothing(quartz, true);
-//	CGContextSetShouldSmoothFonts(quartz, false);	//improves draw quality of text
-
-//	CGContextSetAllowsFontSubpixelPositioning(quartz, true);
-//	CGContextSetShouldSubpixelPositionFonts(quartz, true);
-
-//	CGContextSetAllowsFontSubpixelQuantization(quartz, true);
-//	CGContextSetShouldSubpixelQuantizeFonts(quartz, true);
-
-
-//	CGContextSelectFont(quartz, "Helvetica", 10.0, kCGEncodingMacRoman);
-
-	// create font -- fixed for now
-	CTFontRef font = CTFontCreateWithName(CFSTR("Helvetica"), 10.0, NULL);	// CTFontCreateUIFontForLanguage(kCTFontMiniSystemFontType, 0.0, NULL);
-
-	//	inJustifyH -> CTParagraphStyleSetting
-	//    create paragraph style and assign text alignment to it
-	CTTextAlignment alignment = (CTTextAlignment)(inJustify & vjHMask);
-	CTParagraphStyleSetting _settings[] = { { kCTParagraphStyleSpecifierAlignment, sizeof(alignment), &alignment } };
-	CTParagraphStyleRef paraStyle = CTParagraphStyleCreate(_settings, sizeof(_settings) / sizeof(_settings[0]));
-
-	CFStringRef keys[] = { kCTFontAttributeName, kCTStrokeColorAttributeName, kCTParagraphStyleAttributeName };
-	CFTypeRef values[] = { font, inColor, paraStyle };
-	CFDictionaryRef attributes = CFDictionaryCreate(kCFAllocatorDefault, (const void **)&keys, (const void **)&values, sizeof(keys) / sizeof(keys[0]), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-
-	// Initialize an attributed string.
-	CFStringRef string = CFStringCreateWithCharacters(kCFAllocatorDefault, inStr, inLength);
-	CFAttributedStringRef attrStr = CFAttributedStringCreate(kCFAllocatorDefault, string, attributes);
-	CFRelease(string);
-	CFRelease(attributes);
-	CFRelease(paraStyle);
-	CFRelease(font);
-
-#if 0
-	CGContextSetTextPosition(quartz, box.origin.x, box.origin.y);
-
-	char str[256];
-	int strLen = MIN(inLength, 255);
-	ConvertFromUnicode((const UniChar *)inStr, str, strLen);
-	CGContextShowTextAtPoint(quartz, box.origin.x, box.origin.y, str, strLen);
-/*
-	CTLineRef line = CTLineCreateWithAttributedString(attrStr);
-	CTLineDraw(line, quartz);
-	CFRelease(line);
-*/
-#else
-	CGMutablePathRef path = CGPathCreateMutable();
-	CGPathAddRect(path, NULL, box);
-
-	CGContextSetStrokeColorWithColor(quartz, inColor);
-
-	// Create the framesetter with the attributed string.
-	CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(attrStr);
-	CFRelease(attrStr);
-
-	// Create the frame and draw it into the graphics context
-	CTFrameRef frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, NULL);
-	CTFrameDraw(frame, quartz);
-	CFRelease(frame);
-
-	CFRelease(framesetter);
-	CGPathRelease(path);
-#endif
-
-/*	char str[256];
-	int strLen = MIN(inLength, 255);
-	ConvertFromUnicode((const UniChar *)inStr, str, strLen);
-	printf("%s @ %d,%d\n", str, inBox->left, inBox->bottom); */
+	// how much fits: the longest start that isn't wider
+	ArrayIndex fit = inLength;
+	if (inOptions && inOptions->width > 0 && width > inOptions->width)
+	{
+		ArrayIndex lo = 0, hi = inLength;
+		while (lo < hi)
+		{
+			ArrayIndex mid = (lo + hi + 1) / 2;
+			if (QDHostTextWidth(utf8.data(), offsets[mid], font) <= inOptions->width)
+				lo = mid;
+			else
+				hi = mid - 1;
+		}
+		fit = lo;
+	}
+	return fit;
 }
 
 
@@ -578,22 +609,33 @@ TextBounds(CRichString & inStr, RefArg inFont, Rect * ioRect, long inJustifyH)
 
 
 #pragma mark -
-#pragma mark CoreText
+#pragma mark Paragraphs
 /*------------------------------------------------------------------------------
-	CoreText interface.
+	Draw or measure text wrapped into a box (the host's).
+	Args:		inStr					a rich string
+				inFont				font spec
+				ioRect				the box; measuring: its bottom is set to the
+										text's
+				inJustifyH			vjLeftH, vjCenterH, vjRightH
+				inDoDraw				false => do measure
+	Return:	--
 ------------------------------------------------------------------------------*/
 
 void
 DrawSimpleParagraph(CRichString & inStr, RefArg inFont, Rect * ioRect, ULong inJustifyH, bool inDoDraw /*, long inTransferMode*/)
 {
-	// Initialize an attributed string.
-	size_t strLen = inStr.length();
-	CFStringRef string = CFStringCreateWithCharacters(kCFAllocatorDefault, inStr.grabPtr(), strLen);
-
-
-	DrawUnicodeText(inStr.grabPtr(), strLen, /* inFont,*/ ioRect, gBlackColor, inJustifyH);
-
-	// return path.size.height -> ioRect.bottom
+	std::string utf8 = UTF8FromUniChars(inStr.grabPtr(), inStr.length());
+	inStr.releasePtr();
+	int justify = 0;
+	switch (inJustifyH & vjHMask)
+	{
+	case vjCenterH:	justify = 1; break;
+	case vjRightH:		justify = 2; break;
+	}
+	int height = QDHostTextBox(utf8.data(), utf8.size(), ioRect->left, ioRect->top, ioRect->right, ioRect->bottom,
+										HostFont(inFont), kQDBlack, justify, inDoDraw);
+	if (!inDoDraw)
+		ioRect->bottom = ioRect->top + height;
 }
 
 
@@ -636,5 +678,3 @@ FStyledStrTruncate(RefArg inRcvr, RefArg inStr, RefArg inWidth, RefArg inFont)
 
 	return inStr;
 }
-
-#endif /* __APPLE__ */

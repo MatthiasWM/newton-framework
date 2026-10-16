@@ -11,7 +11,7 @@
 #include <math.h>
 
 
-FPoint	gZeroFPoint = { 0.0, 0.0 };
+// gZeroFPoint: Graphics/Geometry.cc
 
 
 #pragma mark Conversion

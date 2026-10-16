@@ -134,6 +134,7 @@ set ( SRCFILES
   Graphics/Ink.cc
   Graphics/InkCompr.c
   Graphics/QDDrawing.cc
+  Graphics/QDHost.cc
   Graphics/Screen.cc
   Graphics/ScreenDriver.cc
   Graphics/ScreenDriverProto.cc
@@ -284,6 +285,7 @@ set ( HEADERFILES
   Graphics/Geometry.h
   Graphics/Ink.h
   Graphics/QDDrawing.h
+  Graphics/QDHost.h
   Graphics/Screen.h
   Graphics/ScreenDriver.h
   Memory\ Manager/MemMgr.h
@@ -600,14 +602,51 @@ function (embed_newtonscript target nsfile name)
 endfunction ()
 
 #------------------------------------------------------------------------------
+#   FLTK, for newton_ncx's drawing (NEWTON_NCX_FLTK) and newtc
+#   (NEWTC_USES_FLTK): the parent project's if it has added FLTK (fltk::fltk),
+#   else fetched from GitHub (master) and built here, as static libraries:
+#   only the libraries, no FLUID, tools, tests, examples, or docs.
+#------------------------------------------------------------------------------
+macro (newton_use_fltk)
+  if (NOT TARGET fltk::fltk)
+    include (FetchContent)
+    set (FLTK_BUILD_SHARED_LIBS OFF)
+    set (FLTK_BUILD_FLUID OFF)
+    set (FLTK_BUILD_FLTK_OPTIONS OFF)
+    set (FLTK_BUILD_TEST OFF)
+    set (FLTK_BUILD_EXAMPLES OFF)
+    set (FLTK_BUILD_FORMS OFF)
+    set (FLTK_BUILD_GL OFF)
+    set (FLTK_BUILD_HTML_DOCS OFF)
+    set (FLTK_BUILD_PDF_DOCS OFF)
+    FetchContent_Declare (fltk
+      GIT_REPOSITORY https://github.com/fltk/fltk.git
+      GIT_TAG master
+      GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable (fltk)
+    message (STATUS "Newton: FLTK from ${fltk_SOURCE_DIR}")
+  endif ()
+endmacro ()
+
+if (TARGET fltk::fltk OR NEWTC_USES_FLTK)
+  set (newton_ncx_fltk_default ON)
+else ()
+  set (newton_ncx_fltk_default OFF)
+endif ()
+option (NEWTON_NCX_FLTK "newton_ncx draws with FLTK (Graphics/QDHost.cc); FLTK: the parent project's, else fetched" ${newton_ncx_fltk_default})
+
+#------------------------------------------------------------------------------
 #   newton_ncx: the object system as a static library, for NCX (Newton
 #   Connection): objects, NewtonScript (interpreter, compiler), NSOF, stores,
-#   compression, packages, Unicode, the ROM's data. Initialized with
-#   InitObjectSystemCore() (ObjectSystemCore.cc). No ROM functions
-#   (ROMFunctions.c: views, graphics, sound, ...), no graphics yet (NCX 0.5),
-#   no NTK protocol, no debugger, no FLTK. The sources are what a program
-#   that uses all of this links (measured with the linker, NCX 0.3); a file
-#   added here must build on Windows, Linux and macOS.
+#   compression, packages, Unicode, the ROM's data; and the QuickDraw
+#   functions NCX draws with (shapes, bitmaps, pictures, text, ink:
+#   Graphics/), on FLTK's current surface with NEWTON_NCX_FLTK, else drawing
+#   nothing. Initialized with InitObjectSystemCore() (ObjectSystemCore.cc).
+#   No ROM functions (ROMFunctions.c: views, sound, ...), no NTK protocol, no
+#   debugger. The sources are what a program that uses all of this links
+#   (measured with the linker, NCX 0.3, 0.5); a file added here must build
+#   on Windows, Linux and macOS.
 #------------------------------------------------------------------------------
 set ( NEWTON_NCX_SRCFILES
   Compression/ArithmeticCompression/Compression.cc
@@ -659,6 +698,16 @@ set ( NEWTON_NCX_SRCFILES
   Frames/StreamObjects.cc
   Frames/Strings.cc
   Frames/Symbols.cc
+  Graphics/DrawImage.cc
+  Graphics/DrawInk.cc
+  Graphics/DrawShape.cc
+  Graphics/DrawText.cc
+  Graphics/Geometry.cc
+  Graphics/Ink.cc
+  Graphics/InkCompr.c
+  Graphics/QDDrawing.cc
+  Graphics/QDHost.cc
+  Host/Pict.cc
   IA.cc
   Locales.cc
   "Memory Manager/FakePointers.cc"
@@ -753,6 +802,11 @@ target_compile_definitions (newton_ncx PUBLIC
 if (APPLE)
   target_link_libraries (newton_ncx PUBLIC "-framework CoreFoundation" "-framework IOKit")   # SerialNumber.cc
 endif ()
+if (NEWTON_NCX_FLTK)
+  newton_use_fltk ()
+  target_compile_definitions (newton_ncx PRIVATE NEWTON_QD_FLTK=1)
+  target_link_libraries (newton_ncx PUBLIC fltk::fltk fltk::images)
+endif ()
 # the ROM data (ROMData.c) uses C99 designated initializers
 set_target_properties (newton_ncx PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
 if (MSVC)
@@ -769,6 +823,9 @@ if (NEWTON_BUILD_TESTS)
   enable_testing ()
   add_executable (newton_ncx_test Test/ncx/newton_ncx_test.cc)
   target_link_libraries (newton_ncx_test PRIVATE newton_ncx)
+  if (NEWTON_NCX_FLTK)
+    target_compile_definitions (newton_ncx_test PRIVATE NEWTON_QD_FLTK=1)   # checks the pixels
+  endif ()
   set_target_properties (newton_ncx_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
   add_test (NAME newton_ncx COMMAND newton_ncx_test ${CMAKE_CURRENT_SOURCE_DIR}/ROMData/NTKFunctions.newtonpkg)
 endif ()
@@ -924,24 +981,8 @@ if (NEWTC_USES_FLTK)
   if (CMAKE_VERSION VERSION_LESS 3.15)
     message (FATAL_ERROR "NEWTC_USES_FLTK needs CMake 3.15 or later (FLTK)")
   endif ()
-  include (FetchContent)
-  # only the libraries: no FLUID, tools, tests, examples, or docs
-  set (FLTK_BUILD_SHARED_LIBS OFF)
-  set (FLTK_BUILD_FLUID OFF)
-  set (FLTK_BUILD_FLTK_OPTIONS OFF)
-  set (FLTK_BUILD_TEST OFF)
-  set (FLTK_BUILD_EXAMPLES OFF)
-  set (FLTK_BUILD_FORMS OFF)
-  set (FLTK_BUILD_GL OFF)
-  set (FLTK_BUILD_HTML_DOCS OFF)
-  set (FLTK_BUILD_PDF_DOCS OFF)
-  FetchContent_Declare (fltk
-    GIT_REPOSITORY https://github.com/fltk/fltk.git
-    GIT_TAG master
-    GIT_SHALLOW TRUE
-  )
-  FetchContent_MakeAvailable (fltk)
-  message (STATUS "newtc: with FLTK (${fltk_SOURCE_DIR})")
+  newton_use_fltk ()
+  message (STATUS "newtc: with FLTK")
   target_compile_definitions (newtc PRIVATE NEWTC_USES_FLTK=1)
   # the Newton views on FLTK (Host/FLTK/, namespace nfl)
   target_sources (newtc PRIVATE

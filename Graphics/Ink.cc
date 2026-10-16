@@ -6,26 +6,24 @@
 	Written by:	Newton Research Group, 2009.
 */
 
-#ifdef __APPLE__
-
 #include "Ink.h"
 #include "Geometry.h"
-#include "CoreGraphics/CGGeometry.h"
+#include "QDTypes.h"
 #include "RSSymbols.h"
 
 
 // from DrawInk.cc
 struct CSStrokeHeader
 {
-	char	stream[];		// bit stream?
+	char	stream[1];		// bit stream? (and more: the binary; a flexible array member alone is C only)
 };
 Ptr		CSCompress(CRecStroke ** inStrokes, int inArg2);
 void		CSExpandGroup(CSStrokeHeader * inData, ULong inArg2, float inArg3, float inArg4);
 void		CSRawExpandGroup(CSStrokeHeader * inData, ULong inArg2, float inArg3, float inArg4, float inArg5, float inArg6);
 void		CSMakePathsGroup(CSStrokeHeader * inData, float inX, float inY);
-void		CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, CGRect inRect);
-void		CSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, bool inLive);
-void		CSDrawInRect(CSStrokeHeader * inData, float inPenSize, CGSize inOriginalSize, CGRect inDisplayRect, bool inLive);
+void		CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, FRect inRect);
+void		CSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, bool inLive);
+void		CSDrawInRect(CSStrokeHeader * inData, float inPenSize, FPoint inOriginalSize, FRect inDisplayRect, bool inLive);
 
 
 extern "C" {
@@ -361,19 +359,17 @@ InkMakePaths(RefArg inkObj, long inX, long inY)
 void
 InkDraw(RefArg inkObj, size_t inPenSize, long inX, long inY, bool inLive)
 {
-#if !defined(forNTK)
-	CSDraw((CSStrokeHeader *)BinaryData(inkObj), inPenSize, CGPointMake(inX, inY), inLive);
-#endif
+	FPoint location = { (float)inX, (float)inY };
+	CSDraw((CSStrokeHeader *)BinaryData(inkObj), inPenSize, location, inLive);
 }
 
-extern CGRect MakeCGRect(Rect inRect);
 
 void
 InkDrawInRect(RefArg inkObj, size_t inPenSize, Rect * inOriginalBounds, Rect * inBounds, bool inLive)
 {
-#if !defined(forNTK)
-	CSDrawInRect((CSStrokeHeader *)BinaryData(inkObj), inPenSize, CGSizeMake(RectGetWidth(*inOriginalBounds), RectGetHeight(*inOriginalBounds)), MakeCGRect(*inBounds), inLive);
-#endif
+	FPoint originalSize = { (float)RectGetWidth(*inOriginalBounds), (float)RectGetHeight(*inOriginalBounds) };
+	FRect bounds = { (float)inBounds->left, (float)inBounds->top, (float)inBounds->right, (float)inBounds->bottom };
+	CSDrawInRect((CSStrokeHeader *)BinaryData(inkObj), inPenSize, originalSize, bounds, inLive);
 }
 
 
@@ -684,5 +680,3 @@ FInkConvert(RefArg rcvr, RefArg inObj, RefArg inType)
 }
 
 #endif
-
-#endif /* __APPLE__ */

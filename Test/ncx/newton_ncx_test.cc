@@ -4,14 +4,23 @@
 	Contains:	A test of the newton_ncx library (what NCX uses of the framework):
 					it links only newton_ncx, initializes the object system with
 					InitObjectSystemCore(), and exercises the framework functions
-					the old NCX called, outside drawing: objects, strings, dates,
-					iterators, lists, exceptions, printing, the internal store,
-					NSOF both ways, a package. (Not yet: compressed large binaries,
-					B55.)
+					the old NCX called: objects, strings, dates, iterators, lists,
+					exceptions, printing, the internal store, NSOF both ways, a
+					package; and drawing (shapes, bitmaps, a screenshot's bits,
+					text): with FLTK (NEWTON_QD_FLTK) into an image whose pixels
+					are checked, without it the same calls, which draw nothing.
+					(Not yet: compressed large binaries, B55.)
 					Built as C++17, as NCX is. Prints "ok <what>" per check.
 
 	Usage:	newton_ncx_test <package file>
 */
+
+#if NEWTON_QD_FLTK
+// FLTK first: the framework's headers #define names FLTK uses
+#include <FL/Fl.H>
+#include <FL/Fl_Image_Surface.H>
+#include <FL/fl_draw.H>
+#endif
 
 #include "Objects.h"
 #include "Iterators.h"
@@ -23,8 +32,12 @@
 #include "NewtonPackage.h"
 #include "UtilityClasses/List.h"
 #include "UtilityClasses/ListIterator.h"
+#include "DrawShape.h"
+#include "QDHost.h"
+#include "ViewFlags.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 
@@ -72,6 +85,115 @@ RoundTrip(RefArg inObj, long * outSize)
 	*outSize = size;
 	return UnflattenRef(in);
 }
+
+/*------------------------------------------------------------------------------
+	D r a w i n g
+------------------------------------------------------------------------------*/
+
+static Ref
+RectShape(RefArg inClass, short inLeft, short inTop, short inRight, short inBottom)
+{
+	RefVar shape(AllocateBinary(inClass, sizeof(Rect)));
+	Rect * r = (Rect *)BinaryData(shape);	// shapes are native once read (MungeBounds)
+	r->left = inLeft; r->top = inTop; r->right = inRight; r->bottom = inBottom;
+	return shape;
+}
+
+static Ref
+MakeStyle(RefArg inSlot1, RefArg inValue1, RefArg inSlot2 = RA(NILREF), RefArg inValue2 = RA(NILREF))
+{
+	RefVar style(AllocateFrame());
+	SetFrameSlot(style, inSlot1, inValue1);
+	if (NOTNIL(inSlot2))
+		SetFrameSlot(style, inSlot2, inValue2);
+	return style;
+}
+
+static void
+Draw(void)
+{
+	Point zero = { 0, 0 };
+	// a screenshot's bits (at 0, 0): 4 bits deep, 0 white, 15 black
+	const char bits[] = { 0x0F, (char)0xF0, 0x0F, (char)0xF0 };
+	DrawBits(bits, 2, 4, 2, 4);
+	// a black rectangle, a gray oval, a frame 2 wide, a line
+	DrawShape(RectShape(SYMA(rectangle), 10, 10, 30, 30), MakeStyle(SYMA(fillPattern), MAKEINT(vfBlack)), zero);
+	DrawShape(RectShape(SYMA(oval), 40, 10, 60, 30), MakeStyle(SYMA(fillPattern), MAKEINT(vfGray), SYMA(penSize), MAKEINT(0)), zero);
+	DrawShape(RectShape(SYMA(rectangle), 70, 10, 90, 30), MakeStyle(SYMA(penSize), MAKEINT(2)), zero);
+	DrawShape(RectShape(SYMA(line), 100, 10, 100, 30), RA(NILREF), zero);	// its Rect: y1, x1, y2, x2
+	// an icon: 8 by 8, 1 bit, its left half black; 1:1 and scaled 2:1
+	const unsigned char header[] = { 0,0,0,0, 0,2, 0,0, 0,0, 0,0, 0,8, 0,8 };	// big-endian: rowBytes 2, bounds 0,0,8,8
+	RefVar iconBits(AllocateBinary(SYMA(bits), sizeof(header) + 16));
+	memcpy(BinaryData(iconBits), header, sizeof(header));
+	for (int i = 0; i < 8; ++i) {
+		((unsigned char *)BinaryData(iconBits))[sizeof(header) + 2*i] = 0xF0;
+		((unsigned char *)BinaryData(iconBits))[sizeof(header) + 2*i + 1] = 0x00;
+	}
+	RefVar icon(AllocateFrame());
+	SetFrameSlot(icon, SYMA(bits), iconBits);
+	Rect r;
+	r.left = 10; r.top = 40; r.right = 18; r.bottom = 48;
+	DrawBitmap(icon, &r, modeCopy);
+	r.left = 30; r.top = 40; r.right = 46; r.bottom = 56;
+	DrawBitmap(icon, &r, modeCopy);
+	// NCX's ink polygon: 0, the number of points, the points (v, h); big-endian
+	const unsigned char poly[] = { 0,0, 0,3, 0,60, 0,10, 0,60, 0,30, 0,80, 0,30 };
+	DrawPolygon((char *)poly, 100, 0);
+	// text: a line on its baseline (the bounds' bottom), a box wrapped from its top
+	RefVar text(AllocateFrame());
+	SetClass(text, SYMA(text));
+	SetFrameSlot(text, SYMA(bounds), RectShape(SYMA(boundsRect), 10, 70, 100, 90));
+	SetFrameSlot(text, SYMA(data), MakeStringFromCString("Hello NCX"));
+	DrawShape(text, MakeStyle(SYMA(font), MAKEINT(tsSimple + tsSize(12))), zero);
+}
+
+static void
+TestDrawing(void)
+{
+	RefVar rect(RectShape(SYMA(rectangle), 10, 20, 30, 40));
+	Rect bounds;
+	ShapeBounds(rect, &bounds);
+	Check(bounds.left == 10 && bounds.top == 20 && bounds.right == 30 && bounds.bottom == 40, "ShapeBounds");
+	Rect a = { 0, 0, 10, 10 }, b = { 5, 5, 20, 30 }, u;	// top, left, bottom, right
+	UnionRect(&a, &b, &u);
+	Check(u.top == 0 && u.left == 0 && u.bottom == 20 && u.right == 30, "UnionRect");
+
+#if NEWTON_QD_FLTK
+	const int W = 160, H = 120;
+	Fl_Image_Surface surface(W, H);
+	Fl_Surface_Device::push_current(&surface);
+	fl_color(FL_WHITE);
+	fl_rectf(0, 0, W, H);
+	Draw();
+	Fl_RGB_Image * image = surface.image();
+	Fl_Surface_Device::pop_current();
+	Check(QDHostCanDraw() && image != NULL && image->data_w() == W && image->data_h() == H, "QDHost: FLTK, an image surface");
+	if (image == NULL)
+		return;
+	const unsigned char * px = (const unsigned char *)image->data()[0];
+	int d = image->d(), ld = image->ld() ? image->ld() : W * d;
+	auto gray = [&](int x, int y) { return (int)px[y * ld + x * d]; };
+	auto dark = [&](int x, int y) { return gray(x, y) < 64; };
+	auto white = [&](int x, int y) { return gray(x, y) > 224; };
+	auto anyDark = [&](int l, int t, int r, int b) {
+		for (int y = t; y < b; ++y) for (int x = l; x < r; ++x) if (dark(x, y)) return true;
+		return false; };
+	Check(white(0, 0) && dark(1, 0) && dark(2, 1) && white(3, 1), "DrawBits (a screenshot's 4-bit pixels)");
+	Check(dark(10, 10) && dark(20, 20) && dark(29, 29) && white(30, 20) && white(20, 30) && white(9, 20), "DrawShape: a filled rectangle, QuickDraw's edges");
+	Check(abs(gray(50, 20) - 0x80) < 16 && white(41, 11) && white(59, 29), "DrawShape: an oval, gray (vfGray)");
+	Check(dark(70, 20) && dark(71, 20) && white(72, 20) && white(80, 20) && dark(88, 20) && dark(89, 20) && white(90, 20), "DrawShape: a frame, the pen 2 wide inside");
+	Check(dark(100, 20), "DrawShape: a line");
+	Check(dark(10, 40) && dark(13, 47) && white(14, 40) && white(17, 47) && white(18, 44), "DrawBitmap: 1:1");
+	Check(dark(30, 40) && dark(37, 55) && white(38, 40) && white(45, 55), "DrawBitmap: scaled 2:1");
+	Check(dark(120, 60) && dark(130, 70) && white(120, 75), "DrawPolygon (NCX's ink)");
+	Check(anyDark(10, 74, 100, 90) && !anyDark(10, 91, 100, 100), "DrawShape: text");
+	delete image;
+#else
+	Draw();
+	Check(!QDHostCanDraw(), "QDHost: no FLTK, drawing does nothing");
+#endif
+}
+
 
 int
 main(int argc, char * argv[])
@@ -231,6 +353,9 @@ main(int argc, char * argv[])
 		Check(pkg.directory() != NULL && IsSymbol(fn) && strcmp(SymbolName(fn), "FDefPureFn") == 0,
 				"NewtonPackage (NTKFunctions: externalFunctions.DefPureFn = 'FDefPureFn)");
 	}
+
+/*-- drawing --*/
+	TestDrawing();
 
 	printf("%s\n", gFailed ? "FAILED" : "all ok");
 	return gFailed ? 1 : 0;

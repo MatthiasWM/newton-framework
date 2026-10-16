@@ -7,11 +7,14 @@
 */
 
 #include "Geometry.h"
+#include "QDTypes.h"
 #include "NewtonWidgets.h"
 #include <stdarg.h>
 
 
 const Point	gZeroPoint = { 0, 0 };
+extern const FPoint	gZeroFPoint;		// declared in DrawText.h (was in InkGeometry.cc)
+const FPoint	gZeroFPoint = { 0.0, 0.0 };
 const Rect	gZeroRect = { 0, 0, 0, 0 };
 
 

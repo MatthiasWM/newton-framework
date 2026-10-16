@@ -3,15 +3,14 @@
 
 	Contains:	Ink drawing functions.
 
-	Changes to the original:	Fixed -> float type since we now have the hardware efficiently to handle that,
-										and Quartz likes it.
+	Changes to the original:	Fixed -> float type since we now have the hardware efficiently to handle that.
+										Drawn on the host's graphics (QDHost.h).
 
 	Written by:	Newton Research Group, 2007.
 */
 
-#ifdef __APPLE__
-
-#include "Quartz.h"
+#include "QDHost.h"
+#include "QDTypes.h"
 #include "Paths.h"
 #include "Objects.h"
 #include "DrawShape.h"
@@ -74,7 +73,7 @@ struct _LPOINT
 
 struct CSStrokeHeader
 {
-	char	stream[];		// bit stream?
+	char	stream[1];		// bit stream? (and more: the binary; a flexible array member alone is C only)
 };
 typedef OpaqueRef CSStrokeRef;
 
@@ -99,8 +98,8 @@ struct tag_SKP
 struct _DISPLAY
 {
 	float			penSize;			// +00 was short
-	CGPoint		location;		// +04 was FixedPoint
-	CGPoint		scale;			// +0C was FixedPoint
+	FPoint		location;		// +04 was FixedPoint
+	FPoint		scale;			// +0C was FixedPoint
 	int			isLive;			// +14
 };
 
@@ -119,8 +118,8 @@ struct _DPINST					// display points instance data
 
 struct _EXPAND
 {
-	CGPoint		location;		// +00 was FixedPoint
-	CGPoint		scale;			// +08 was FixedPoint
+	FPoint		location;		// +00 was FixedPoint
+	FPoint		scale;			// +08 was FixedPoint
 	float			x0C;
 	Handle		x10;				// points array
 	int			x14;
@@ -203,7 +202,7 @@ typedef OpaqueRef CSParmsRef;
 	D a t a
 ------------------------------------------------------------------------------*/
 
-extern _CODETABLE kCompr1, kCompr2;
+extern "C" _CODETABLE kCompr1, kCompr2;		// InkCompr.c
 
 static FPoint	gTabScale = { kTabScale, kTabScale };
 
@@ -231,16 +230,16 @@ Ptr		CSCompress(CRecStroke ** inStrokes, int inArg2);
 void		CSExpandGroup(CSStrokeHeader * inData, ULong inArg2, float inArg3, float inArg4);
 void		CSRawExpandGroup(CSStrokeHeader * inData, ULong inArg2, float inArg3, float inArg4, float inArg5, float inArg6);
 void		CSMakePathsGroup(CSStrokeHeader * inData, float inX, float inY);
-void		CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, CGRect inRect);
-void		CSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, bool inLive);
-void		CSDrawInRect(CSStrokeHeader * inData, float inPenSize, CGSize inOriginalSize, CGRect inDisplayRect, bool inLive);
+void		CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, FRect inRect);
+void		CSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, bool inLive);
+void		CSDrawInRect(CSStrokeHeader * inData, float inPenSize, FPoint inOriginalSize, FRect inDisplayRect, bool inLive);
 
 // internal functions use float parms
 Ptr		GenericCSCompress(CRecStroke ** inStrokes, uint16_t inArg2);
 Ptr		GenericCSExpandGroup(CSStrokeHeader * inData, ULong inArg2, float inArg3, float inArg4, float inArg5, float inArg6, bool inArg7);
 pathsHandle *	GenericCSMakePathsGroup(CSStrokeHeader * inData, float inX, float inY, float inScaleX, float inScaleY);
-void		GenericCSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation,  bool inLive);
-void		GenericCSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, float inScaleX, float inScaleY, bool inLive);
+void		GenericCSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation,  bool inLive);
+void		GenericCSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, float inScaleX, float inScaleY, bool inLive);
 
 void		Decode(CSStrokeHeader * inData, uint16_t, void * inParms, CSDecodeProc);
 _DCC *	DecoderOpen(UShort inArg1, CSStrokeRef inStroke, UShort inArg3, CSParmsRef inParms, UShort inArg5);
@@ -286,16 +285,8 @@ DrawStrokeBundle(RefArg inStroke, Rect * inSrcRect, Rect * inDstRect)
 		CDataPtr ptsData(pts);
 		FPoint * srcPtr = (FPoint *)(char *)ptsData;
 
-		CGPoint pt;
-		CGContextBeginPath(quartz);
-//		pt = xform.scale(*srcPtr);		// original does TPoint::Scale(const TTransform&)
-		CGContextMoveToPoint(quartz, pt.x, pt.y);
-		for (ArrayIndex j = 1, numOfPts = Length(pts) / sizeof(Point); j < numOfPts; ++j) {
-			++srcPtr;
-//			pt = xform.scale(*srcPtr);
-			CGContextAddLineToPoint(quartz, pt.x, pt.y);
-		}
-		CGContextStrokePath(quartz);
+		// not scaled: the original does TPoint::Scale(const TTransform&)
+		QDHostStrokePolyline((const float *)srcPtr, Length(pts) / sizeof(FPoint), false);
 	}
 }
 
@@ -314,9 +305,9 @@ CSMakePathsGroup(CSStrokeHeader * inData, float inX, float inY)	// float <- Fixe
 }
 
 void
-CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, CGRect inRect)	// float <- Fixed
+CSMakePathsGroupInRect(CSStrokeHeader * inData, float inX, float inY, FRect inRect)	// float <- Fixed
 {
-	GenericCSMakePathsGroup(inData, inX, inY, CGRectGetWidth(inRect)/inX, CGRectGetHeight(inRect)/inY);
+	GenericCSMakePathsGroup(inData, inX, inY, (inRect.right - inRect.left)/inX, (inRect.bottom - inRect.top)/inY);
 }
 
 pathsHandle *
@@ -503,14 +494,14 @@ GenericCSExpandGuts(CSStrokeHeader * inData, void ** inArg1, ULong inArg2, float
 ------------------------------------------------------------------------------*/
 
 void
-CSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, bool inLive)
+CSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, bool inLive)
 {
 	GenericCSDraw(inData, inPenSize, inLocation, inLive);
 }
 
 
 void
-GenericCSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, bool inLive)
+GenericCSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, bool inLive)
 {
 	_DISPLAY parms;
 	parms.penSize = inPenSize;
@@ -524,17 +515,19 @@ GenericCSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, bool
 
 /*------------------------------------------------------------------------------
 	Draw scaled to fit rect.
+	inOriginalSize: x is the width, y the height.
 ------------------------------------------------------------------------------*/
 
 void
-CSDrawInRect(CSStrokeHeader * inData, float inPenSize, CGSize inOriginalSize, CGRect inDisplayRect, bool inLive)
+CSDrawInRect(CSStrokeHeader * inData, float inPenSize, FPoint inOriginalSize, FRect inDisplayRect, bool inLive)
 {
-	GenericCSDraw(inData, inPenSize, CGPointMake(inDisplayRect.origin.x, inDisplayRect.origin.y+inDisplayRect.size.height), CGRectGetWidth(inDisplayRect)/inOriginalSize.width, CGRectGetHeight(inDisplayRect)/inOriginalSize.height, inLive);
+	FPoint location = { inDisplayRect.left, inDisplayRect.top };
+	GenericCSDraw(inData, inPenSize, location, (inDisplayRect.right - inDisplayRect.left)/inOriginalSize.x, (inDisplayRect.bottom - inDisplayRect.top)/inOriginalSize.y, inLive);
 }
 
 
 void
-GenericCSDraw(CSStrokeHeader * inData, float inPenSize, CGPoint inLocation, float inScaleX, float inScaleY, bool inLive)
+GenericCSDraw(CSStrokeHeader * inData, float inPenSize, FPoint inLocation, float inScaleX, float inScaleY, bool inLive)
 {
 	_DISPLAY parms;
 	parms.penSize = inPenSize;
@@ -600,7 +593,7 @@ DecoderOpen(UShort inArg1, CSStrokeRef inStroke, UShort inArg3, CSParmsRef inPar
 		context->x2C = 0;
 		context->x30 = 0;
 		context->x34 = 0;
-		context->penLocation = (_LPOINT){0,0};
+		context->penLocation = _LPOINT{0,0};
 
 		XFAIL(inArg3 == 0 || inParms == 0)
 		context->parms = (void *)inParms;
@@ -1191,7 +1184,7 @@ DecodeLongStroke(_DCC * inContext)
 		RestoreSegment(inContext->vertX, &inContext->x184);
 		RestoreSegment(inContext->vertY, &inContext->x194);
 
-		sp08 = (_POINT){-1000,-1000};
+		sp08 = _POINT{-1000,-1000};
 
 		for (ArrayIndex i = 0; i < 16; ++i)
 		{
@@ -1289,6 +1282,14 @@ StorePointProcDefault(short inSelector, _POINT * inPt, _DCC * inParms)
 
 
 #pragma mark -
+
+#if 0
+/*------------------------------------------------------------------------------
+	Storing points: expanding ink into strokes (for the recognizer), into
+	the Memory Manager's handles. Its callers (GenericCSExpandGuts) are #if 0
+	above, and the framework's builds have no Memory Manager handles of
+	their own (Memory Manager/Handles.cc: the Mac's).
+------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------
 	Decode proc for storing point data in decode context.
@@ -1484,6 +1485,7 @@ AddStrokePoint(_EXPAND * ioData, int inX, int inY)	// might be Fixed
 	}
 	XENDTRY;
 }
+#endif
 
 
 /*------------------------------------------------------------------------------
@@ -1514,11 +1516,10 @@ PGCDrawPointProc(short inSelector, _POINT * inPt, _DCC * inContext)
 		inContext->instanceData = instanceData;
 		if (instanceData != NULL)
 		{
-			CGContextSetLineJoin(quartz, kCGLineJoinBevel);
 			instanceData->f00 = 1;
 			instanceData->f04 = 0;
 			instanceData->displayParms = (_DISPLAY *)inContext->parms;
-			instanceData->lastPtOut = (Point){0,0};
+			instanceData->lastPtOut = Point{0,0};
 			instanceData->numOfPts = 0;
 			result = 1;
 		}
@@ -1547,15 +1548,15 @@ PGCDrawPointProc(short inSelector, _POINT * inPt, _DCC * inContext)
 				ordinate = inPt->y;
 				if (ordinate < 0)
 					ordinate = 0;
-				ordinate = display->location.y - (ordinate / gTabScale.y) * display->scale.y + 0.5;
+				ordinate = display->location.y + (ordinate / gTabScale.y) * display->scale.y + 0.5;	// y down
 				thePoint.v = ordinate;
 
 				if (instanceData->f00)
 				{
 					instanceData->f00 = 0;
 //					MoveTo(thePoint.h, thePoint.v);
-					instanceData->lastPtOut = (Point){-1,-1};
-					instanceData->lastPtIn = (Point){-1,-1};
+					instanceData->lastPtOut = Point{-1,-1};
+					instanceData->lastPtIn = Point{-1,-1};
 				}
 				if (instanceData->lastPtIn.h != thePoint.h
 				||  instanceData->lastPtIn.v != thePoint.v)
@@ -1626,9 +1627,10 @@ DrawBufferedPoints(_DPINST * inPoints)
 			PenSize(pnSize.h, pnSize.v);
 */		SetLineWidth(display->penSize);
 
-		CGContextBeginPath(quartz);
-		CGContextMoveToPoint(quartz, thisPt->h, thisPt->v);
-//printf("new path from %d, %d\n", thisPt->h, thisPt->v);
+		float		xy[2 * (20 + 1)];
+		size_t	count = 0;
+		xy[count++] = thisPt->h;
+		xy[count++] = thisPt->v;
 
 		for ( ; index < inPoints->numOfPts; ++index, ++nextPt)
 		{
@@ -1639,12 +1641,11 @@ DrawBufferedPoints(_DPINST * inPoints)
 			}
 			else
 				LineTo(nextPt->h, nextPt->v);
-*/			CGContextAddLineToPoint(quartz, nextPt->h, nextPt->v);
-//printf("drawing to %d, %d\n", nextPt->h, nextPt->v);
+*/			xy[count++] = nextPt->h;
+			xy[count++] = nextPt->v;
 			thisPt = nextPt;
 		}
-//printf("path done\n");
-		CGContextStrokePath(quartz);
+		QDHostStrokePolyline(xy, count / 2, false);
 		inPoints->lastPtOut = *thisPt;
 		inPoints->numOfPts = 0;
 	}
@@ -1823,5 +1824,3 @@ HWRMemoryFree(void * p)
 	return true;
 }
 #endif
-
-#endif /* __APPLE__ */
