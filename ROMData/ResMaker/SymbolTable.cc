@@ -174,7 +174,7 @@ FillSymbolTable(CSymbolTable * inTable, CSymbol ** outFunctionNames, CSymbol ** 
 	int		lineLen;
 	int		argCount;
 	char		line[300];
-	char		name[128];
+	char		name[1+128];	// '_' + up to 127 characters + NUL
 	char *	fname;
 	int		expFileIndex;
 

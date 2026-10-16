@@ -6,6 +6,10 @@
 	Written by:	Newton Research Group, 2016.
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern Ref* RSSYMphoneIndex;
 extern Ref* RSSYMtemplateArray;
 extern Ref* RSSYMbuttonTemplateDefault;
@@ -8653,3 +8657,7 @@ extern Ref* RSSYMbeforeScript;
 extern Ref* RSSYMafterScript;
 extern Ref* RSSYMprotoEditor;
 extern Ref* RSSYMprotoProtoEditor;
+
+#ifdef __cplusplus
+}
+#endif

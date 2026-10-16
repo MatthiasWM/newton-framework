@@ -122,10 +122,8 @@ set ( SRCFILES
   Protocols/ProtocolProto.cc
 #  Protocols/ProtocolProto.s
   Protocols/Protocols.cc
-  ROMData/forNewton/RSData.s
-  ROMData/forNewton/RSSymbols.s
-  ROMData/forNewton/RefData.s
-  ROMData/forNewton/RefSymbols.s
+  ROMData/forNewton/ROMData.c
+  ROMData/forNewton/ROMSymbols.c
   Recognition/Array.cc
   Recognition/InkGeometry.cc
   Recognition/RecArea.cc
@@ -187,6 +185,8 @@ set ( SRCFILES
 )
 
 set ( HEADERFILES
+  ROMData/forNewton/ROMObjects.h
+  ROMData/forNewton/ROMSymbols.h
   NewtConfig.h
   Newton.h
   NewtonDebug.h
@@ -340,7 +340,6 @@ SET ( UNUSED_SRC_FILES
 #  Frames/Compiler/Compiler (original).cc
 #  Frames/Compiler/CompilerSupport (original).cc
   Frames/Funcs.cc
-#  Frames/MagicPointers.s
   Graphics/NewtQD.cc
   Graphics/Quartz.cc
   Graphics/Regions.cc
@@ -429,18 +428,13 @@ SET ( UNUSED_SRC_FILES
   Protocols/ProtocolImpl.s
   QD/Quartz.cc
   ROMData/32bitObjectPrinter.cc
-  ROMData/RefStar.s
   ROMData/ResMaker/32bitObjects.cc
   ROMData/ResMaker/Reporting.cc
   ROMData/ResMaker/ResMaker.cc
   ROMData/ResMaker/SymbolTable.cc
   ROMData/ResMaker/UnRelocate.cc
-  ROMData/forNTK/MagicPointers.s
-  ROMData/forNTK/RSData.s
-  ROMData/forNTK/RSSymbols.s
-  ROMData/forNTK/RefData.s
-  ROMData/forNTK/RefSymbols.s
-  ROMData/forNewton/MagicPointers.s
+  ROMData/forNTK/ROMData.c
+  ROMData/forNTK/ROMSymbols.c
   Recognition/Arbiter.cc
   Recognition/ClickRecognizer.cc
   Recognition/Controller.cc
@@ -815,6 +809,27 @@ foreach (target newtdump newtdump-test-newton)
   target_link_libraries (${target} PRIVATE Threads::Threads)
 endforeach ()
 
+# ResMaker (ROMData/ResMaker): reads the ROM's NewtonScript objects out of
+# ROMData/rom.image and writes them as source for the object system
+# (ROMData/forNewton, ROMData/forNTK). A tool, not built by default:
+#   cmake --build <build> --target ResMaker
+# It links newtc's object system (for NTKFunctions.newtonpkg), so it runs
+# with the ROM data the repo has and writes new data.
+get_target_property (resmaker_sources newtc SOURCES)
+list (FILTER resmaker_sources EXCLUDE REGEX "(^|/)newtc\\.cc$")
+add_executable (ResMaker EXCLUDE_FROM_ALL ${resmaker_sources}
+  ROMData/ResMaker/ResMaker.cc ROMData/ResMaker/32bitObjects.cc
+  ROMData/ResMaker/SymbolTable.cc ROMData/ResMaker/SymbolTable.h
+  ROMData/ResMaker/Reporting.cc ROMData/ResMaker/Reporting.h
+  ROMData/ResMaker/UnRelocate.cc ROMData/ResMaker/NewtcStubs.cc)
+foreach (property INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS COMPILE_FEATURES
+                  LINK_LIBRARIES LINK_OPTIONS CXX_STANDARD CXX_STANDARD_REQUIRED CXX_EXTENSIONS)
+  get_target_property (value newtc ${property})
+  if (value)
+    set_property (TARGET ResMaker PROPERTY ${property} "${value}")
+  endif ()
+endforeach ()
+
 set ( MP_SRC_FILES
   Views/DragAndDrop.cc
   Views/Application.cc
@@ -982,7 +997,7 @@ set ( MP_SRC_FILES
   Communications/DockerDynArray.cc
   UtilityClasses/Buffer.cc
   UtilityClasses/BufferList.cc
-  ROMData/forNewton/RSSymbols.s
+  ROMData/forNewton/ROMSymbols.c
   UtilityClasses/BufferPipe.cc
   Stores/FlashStore.cc
   UtilityClasses/BufferSegment.cc
@@ -998,7 +1013,6 @@ set ( MP_SRC_FILES
   ErrorString.cc
   Stores/Hints.cc
   IA.cc
-  ROMData/forNewton/RefSymbols.s
   Stubs.cc
   Stores/Indexes.cc
   Graphics/Ink.cc
@@ -1019,7 +1033,7 @@ set ( MP_SRC_FILES
   Stores/Soups.cc
   Stores/StoreDriver.cc
   Stores/StoreProto.s
-  ROMData/forNewton/RSData.s
+  ROMData/forNewton/ROMData.c
   Stores/StoreStreamObjects.cc
   Recognition/Stroker.cc
   Recognition/TabletBuffer.cc
@@ -1052,7 +1066,6 @@ set ( MP_SRC_FILES
   Views/KeyboardView.cc
   Views/ParagraphView.cc
   Views/GaugeView.cc
-  ROMData/forNewton/RefData.s
   Power.cc
   Frames/SortedArrays.cc
   Platform/Voyager.cc

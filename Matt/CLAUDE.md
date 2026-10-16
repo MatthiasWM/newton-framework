@@ -994,8 +994,8 @@ NCX (Newton Connection, `~/dev/newton-connection.FLTK.git`, branch
 macOS on x86_64 and arm64. Its plan is `PORTING.md` there; Phase 0 happens
 here: NCX will link a static `newton_ncx` library (object system, NSOF,
 pipes, packages, compression, ROM data, QD drawing), fetched with
-FetchContent. Windows builds use clang-cl (the `.s` ROM data stays the
-source of truth; ResMaker's output no longer matches it).
+FetchContent. The ROM data is C made by ResMaker (0.1b), so newtc needs no
+assembler and Windows can build with MSVC or clang-cl.
 
 - [x] 0.1 Pointer-sized Refs (2026-10-16). `Ref` is `intptr_t`, `VAddr`,
       `PAddr`, `OpaqueRef` are `uintptr_t` (`long` is 32 bits on 64-bit
@@ -1015,12 +1015,53 @@ source of truth; ResMaker's output no longer matches it).
       copy of the Ref macros, included nowhere), `MPW Tools`, the copies in
       ROMData/NTK.framework. MessagePad doesn't build on arm64 (x86 register
       names in OS/SharedTypes.h), as before.
+- [x] 0.1b The ROM data as C, made by ResMaker (Matt, 2026-10-16: no
+      assembler files if ResMaker can make the same data as C; MessagePad
+      doesn't count). ResMaker is a CMake target now (`ResMaker`, not built by
+      default; newtc's sources without newtc.cc, plus NewtcStubs.cc for the two
+      newtc globals other files use; it reads NTKFunctions.newtonpkg with the
+      object system, `InitObjectSystem()`). Run in ROMData:
+      `ResMaker rom.image -s RefStarSource.txt -sym 717006.cfunctions -o forNewton`,
+      for NTK add `-via ../Toolkit.exp -via ../Editor.exp` and `-o forNTK`
+      (NTK mode is now that option, not `#define forNTK`; the commands were in
+      ResMaker.xcodeproj's scheme). Before the C, ResMaker's assembler output
+      (templates brought up to forNewton's format: Ref-sized header word,
+      `.align 8`) was checked against the repo: forNewton identical except two
+      hand edits without data (comments in RefData.s, a trailing `.align 16` in
+      RefSymbols.s); forNTK, still in the old 32-bit-header format, identical
+      after normalizing it, except 9 labels of NTKFunctions.newtonpkg objects
+      (named after heap addresses). So ResMaker is what made the data, and the
+      C loses nothing.
+      The C (ROMData/forNewton and forNTK: ROMObjects.h, ROMSymbols.h,
+      ROMSymbols.c, ROMData.c; Frames/RSData.h, RSSymbols.h): one struct
+      `gROMData` holds the RS objects and those they hold, then the magic
+      pointers' objects (what lay between the labels before), so
+      `gROMDataStart`/`gROMDataEnd` (now variables) are its bounds and ISINROM
+      means what it did; `gROMSymbols` the symbols (outside, as before);
+      `gROMMagicPointerTable`; RS<name> as `intptr_t *` to the R<name> words.
+      A slot is a `union ROMRef` (intptr_t, char *, function pointer),
+      initialized with address constants (`(char *)&gROMData.x + 1`), so it is
+      plain C99 for any compiler, no code runs at start (no initializers in the
+      object file), and Refs are pointer-wide on 32 and 64 bits. The RS headers
+      and the C++ declarations of the table and bounds have C linkage (MSVC
+      mangles C++ variables). ROMData.c is 16 MB, 17 s to compile.
+      Checked: a dumper linked once with the assembler data and once with the
+      C prints every object reachable from all 9729 RS roots and the 873 magic
+      pointers (header, flags, class, slots as visit numbers, C functions by
+      name, binary bytes, in ISINROM or not): identical, 51502 objects
+      (forNTK: 9751 roots, 51669 objects, identical). Gone: ROMData/forNewton,
+      forNTK *.s, Frames/MagicPointers.s (a third copy), ROMData/RefStar.s (an
+      older bootstrap). newtc needs no assembler now (MessagePad's .s files
+      remain). Fixed in ResMaker on the way: two buffer overflows (C function
+      names over 31 characters, .exp names of 127), an uninitialized flag in
+      its pointer table, `SYMA(Real)` (only the old bootstrap had RSSYMReal),
+      the copies of Ustrlen and symcmp. Found: B52, B53 (kept as they were).
 - [ ] 0.2 The CMake file as a subproject (CMAKE_CURRENT_SOURCE_DIR,
       sanitizers only when top level, Apple frameworks only on APPLE,
       NEWTON_BUILD_TOOLS).
 - [ ] 0.3 The `newton_ncx` static library and a test that round-trips a
       frame through FlattenRef/UnflattenRef.
-- [ ] 0.4 `newton_ncx` on Linux and Windows (clang-cl).
+- [ ] 0.4 `newton_ncx` on Linux and Windows (MSVC or clang-cl).
 - [ ] 0.5 A drawing back end interface for QDDrawing.cc (Quartz behind it on
       macOS; NCX brings an FLTK one).
 - [ ] 0.6 MNP.cc, NTKTransport.cc, DES.c as a `newton_dock` library shared by
@@ -1063,6 +1104,18 @@ Every bug found goes here until it is fixed; then check it off and move it
 to HISTORY.md ("Bugs fixed"). The ones still open from before (B3, B15,
 ...) are in `Matt/CLAUDE-bak.md`.
 
+- [ ] B53 The ROM's largest integer, 536870911 (Ref 0x7FFFFFFC), is
+  -536870913 in newtc's ROM data (44 slots in ROMData/forNewton, e.g. `kMaxInt`
+  style limits): ResMaker's FixPointerRef takes `n >= INT32_MAX>>2` (0x1FFFFFFF)
+  for negative, so it turns the largest positive 30-bit integer into one a
+  Newton can't even hold. Should be `n > INT32_MAX>>2`. Found 2026-10-16 while
+  moving the data to C (kept as it was, so the C matched the assembler
+  exactly). Fix: change the test, regenerate (ResMaker), check the 44 slots.
+- [ ] B52 RSspace, the string " " the ROM made at run time, is U+2000 in
+  newtc: ResMaker writes it as `CANONICAL_SHORT(' ')`, byte-swapped on a
+  little-endian host, while PrintString expects host order. Only IA.cc uses
+  it (first and last name joined). Found 2026-10-16, kept as it was for the
+  move to C. Fix: `' '`, regenerate.
 - [x] B51 On newtc's fake Newton (-ntk-device), a stop in an app's script
   while the app opens ended a moment later: the app closed ("Goodbye"),
   continue said "isn't stopped", and the Debug Console "The Newton is

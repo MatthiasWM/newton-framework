@@ -22,8 +22,9 @@
 #define ISINROM(_r) (ULong(Ref(_r)) < 0x03800000)
 #define ISINPACKAGE(_r) (ULong(Ref(_r)) >= 0x60000000 && ULong(Ref(_r)) < 0x68000000)
 #else
-extern void * gROMDataStart, * gROMDataEnd;
-#define ISINROM(_r) ((void *)(_r) > &gROMDataStart && (void *)(_r) < &gROMDataEnd)
+// the bounds of the struct that holds the ROM's objects (ROMData/forNewton/ROMData.c)
+extern "C" void * gROMDataStart, * gROMDataEnd;
+#define ISINROM(_r) ((void *)(_r) > gROMDataStart && (void *)(_r) < gROMDataEnd)
 #define ISINPACKAGE(_r) false
 #endif
 #define ISRO(_r) (ISINROM(_r) || ISINPACKAGE(_r))

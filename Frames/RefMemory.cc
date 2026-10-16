@@ -31,7 +31,7 @@ typedef struct MagicPointerTable
 	Ref			magicPointer[872];
 } MagicPointerTable;
 
-extern MagicPointerTable gROMMagicPointerTable;
+extern "C" MagicPointerTable gROMMagicPointerTable;	// ROMData/forNewton/ROMData.c
 
 #define kMPTableShift	12
 #define kMPTableMask		0x3FFFF000

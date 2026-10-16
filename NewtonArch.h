@@ -1,8 +1,8 @@
 /*
 	File:		NewtonArch.h
 
-	Contains:	The host's pointer size, for C, C++ and the assembler (.s)
-					files: preprocessor definitions only.
+	Contains:	The host's pointer size, for C, C++ and assembler (.s) files
+					(MessagePad's): preprocessor definitions only.
 
 	NEWT_64BIT is 1 when pointers are 64 bits wide, 0 otherwise. Refs are as
 	wide as pointers. Tested instead of __LP64__, which only LP64 systems

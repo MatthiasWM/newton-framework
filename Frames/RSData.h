@@ -6,6 +6,10 @@
 	Written by:	Newton Research Group, 2016.
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern Ref* RSbootInitNSGlobals;
 extern Ref* RSbootRunInitScripts;
 extern Ref* RSbootScriptWannabes;
@@ -1114,3 +1118,7 @@ extern Ref* RSconstantFunctions;
 extern Ref* RSformInstallScript;
 extern Ref* RSformRemoveScript;
 extern Ref* RSautoInstallScript;
+
+#ifdef __cplusplus
+}
+#endif

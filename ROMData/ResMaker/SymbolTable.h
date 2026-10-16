@@ -95,7 +95,7 @@ public:
 class CPointerTable : public CHashTable
 {
 public:
-								CPointerTable(int inSize)	:  CHashTable(inSize)  { }
+								CPointerTable(int inSize)	:  CHashTable(inSize), fFindName(false)  { }
 
 	virtual unsigned		hash(CHashTableEntry * inEntry);
 	virtual int				compare(CHashTableEntry * inEntry1, CHashTableEntry * inEntry2);
