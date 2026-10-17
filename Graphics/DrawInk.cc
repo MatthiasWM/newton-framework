@@ -202,7 +202,8 @@ typedef OpaqueRef CSParmsRef;
 	D a t a
 ------------------------------------------------------------------------------*/
 
-extern "C" _CODETABLE kCompr1, kCompr2;		// InkCompr.c
+extern "C" _CODETABLE * const kCodeBook1[8];		// InkCompr.c
+extern "C" _CODETABLE * const kCodeBook2[8];
 
 static FPoint	gTabScale = { kTabScale, kTabScale };
 
@@ -723,13 +724,13 @@ GetNBit(_DCC * inContext, uint16_t inNumOfBits)
 int
 DecoderSelectCodeBook(_DCC * inContext)
 {
-	_CODETABLE *	table = NULL;
+	_CODETABLE * const *	tables = NULL;
 
 	XTRY
 	{
 		if (inContext->x74 == 1)
 		{
-			table = &kCompr1;	// original says LockCodeBook(1);
+			tables = kCodeBook1;	// original says LockCodeBook(1);
 			inContext->scaleMultiplier = 1024;
 			inContext->scaleDivisor = 1;
 			inContext->x44 = 0x08CC;	// 2252
@@ -739,7 +740,7 @@ DecoderSelectCodeBook(_DCC * inContext)
 		}
 		else if (inContext->x74 == 2 || inContext->x74 == 3)
 		{
-			table = &kCompr2;	// original says LockCodeBook(2);
+			tables = kCodeBook2;	// original says LockCodeBook(2);
 			inContext->scaleMultiplier = 1024;
 			inContext->scaleDivisor = 1;
 			inContext->x44 = 0x1D50;	// 7504
@@ -747,23 +748,18 @@ DecoderSelectCodeBook(_DCC * inContext)
 			inContext->x4C = 0x2000;	// 8192
 			inContext->x50 = 0x2000;	// 8192
 		}
-		XFAIL(table == NULL)
+		XFAIL(tables == NULL)
 
-		inContext->x54 = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x58 = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x5C = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x60 = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x64 = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x68 = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x6C = table;
-		table = (_CODETABLE *)((char *)table + table->size);
-		inContext->x70 = table;
+		// the book's tables (the original went from one to the next by
+		// their sizes: they followed one another in the ROM)
+		inContext->x54 = tables[0];
+		inContext->x58 = tables[1];
+		inContext->x5C = tables[2];
+		inContext->x60 = tables[3];
+		inContext->x64 = tables[4];
+		inContext->x68 = tables[5];
+		inContext->x6C = tables[6];
+		inContext->x70 = tables[7];
 
 		return 1;
 	}

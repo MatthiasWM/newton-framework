@@ -3902,3 +3902,14 @@ _CODETABLE kCompr2_7 = {
 		{	0xFFED, 17, 0x00010405 },
 		{	0x0012, 17, 0x00000405 } }
 };
+
+
+/* The tables of each code book, in the order the decoder takes them (far
+   dx, far dy, near dx, near dy, x2, y2, x3, y3). In the ROM they followed
+   one another, and the decoder went from one to the next by its size; C
+   doesn't keep separate globals together (ASan puts space between them, a
+   linker may reorder them). */
+_CODETABLE * const kCodeBook1[8] = { &kCompr1, &kCompr1_1, &kCompr1_2, &kCompr1_3,
+                                     &kCompr1_4, &kCompr1_5, &kCompr1_6, &kCompr1_7 };
+_CODETABLE * const kCodeBook2[8] = { &kCompr2, &kCompr2_1, &kCompr2_2, &kCompr2_3,
+                                     &kCompr2_4, &kCompr2_5, &kCompr2_6, &kCompr2_7 };
