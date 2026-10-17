@@ -239,6 +239,20 @@ CISInfo Parse(const std::vector<uint8_t> &inRaw, size_t inStart, size_t inStep, 
   return info;
 }
 
+// The tuples of a chain whose codes the standard knows. Read the wrong way
+// (every byte where only the even ones count, the odd ones 0), a CIS is a
+// longer chain than read the right way, but of codes nobody knows; and a
+// real one may have a stray tuple (Einstein's VERS_1 link is 3 bytes short:
+// its last letter is read as a code).
+size_t KnownTuples(const CISInfo &inInfo)
+{
+  size_t known = 0;
+  for (const CISTuple &t : inInfo.tuples)
+    if (TupleName(t.code)[0] != '?')
+      known++;
+  return known;
+}
+
 } // namespace
 
 
@@ -246,7 +260,7 @@ CISInfo ParseCIS(const std::vector<uint8_t> &inRaw, bool inEveryByteOnly)
 {
   // where the CIS bytes are depends on the bus (attribute memory: 8 bits on
   // a 16-bit bus; the Newton's byte order within a word): every way is
-  // tried, the longest valid chain wins
+  // tried, the valid chain with the most known tuples wins
   struct Layout { size_t start, step; const char *name; };
   static const Layout kAttribute[] = { { 0, 2, "even bytes" }, { 1, 2, "odd bytes" }, { 0, 1, "every byte" } };
   static const Layout kCommon[] = { { 0, 1, "every byte" } };
@@ -259,7 +273,7 @@ CISInfo ParseCIS(const std::vector<uint8_t> &inRaw, bool inEveryByteOnly)
       std::string name = std::string(layout.name) + swap.name;
       CISInfo info = Parse(inRaw, layout.start, layout.step, swap.mask, "");
       info.layout = name;
-      if (info.valid && info.tuples.size() > best.tuples.size())
+      if (info.valid && KnownTuples(info) > KnownTuples(best))
         best = info;
     }
   }
