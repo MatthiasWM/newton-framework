@@ -883,7 +883,12 @@ endfunction ()
 #------------------------------------------------------------------------------
 if (NEWTON_BUILD_TOOLS)
 
+# newtc's and newtdump's version: a tag v<version> releases them
+# (.github/workflows/tools.yml checks that the two agree)
+set (NEWTON_TOOLS_VERSION "0.4.0")
+
 add_executable (newtc ${SRCFILES} ${HEADERFILES})
+target_compile_definitions (newtc PRIVATE NEWTON_TOOLS_VERSION="${NEWTON_TOOLS_VERSION}")
 
 target_sources (newtc PRIVATE Matt/EmbeddedScript.cc Matt/EmbeddedScript.h Matt/PNG.cc Matt/PNG.h Matt/JSON.cc Matt/JSON.h Matt/DAP.cc Matt/DAP.h Matt/NTKInspector.cc Matt/NTKInspector.h Matt/NTKDevice.cc Matt/NTKDevice.h Matt/NTKRemote.cc Matt/NTKRemote.h Matt/LineTables.cc Matt/LineTables.h Matt/EventLoop.cc Matt/EventLoop.h Matt/TestWindow.cc Matt/TestWindow.h Host/Root.cc Host/Root.h Host/Views.cc Host/Views.h Host/ViewMethods.cc Host/ViewMethods.h Host/Graphics.cc Host/Graphics.h Host/Pen.cc Host/Pen.h Host/Shapes.cc Host/Shapes.h Host/Pict.cc Host/Pict.h Host/Timers.cc Host/Timers.h)
 target_link_libraries (newtc PRIVATE newton_dock)   # MNP and the transports (-ntk-*, -dap-server)
@@ -1093,6 +1098,7 @@ set (newtdump_common Matt/NewtDump/NSOF.cc Matt/NewtDump/NSOF.h Matt/NewtDump/Do
      Matt/NewtDump/DockLink.h)
 add_executable (newtdump Matt/NewtDump/newtdump.cc Matt/NewtDump/CIS.cc Matt/NewtDump/CIS.h
                 ${newtdump_common} "${newtdump_extension}")
+target_compile_definitions (newtdump PRIVATE NEWTON_TOOLS_VERSION="${NEWTON_TOOLS_VERSION}")
 add_executable (newtdump-test-newton Matt/NewtDump/FakeNewton.cc ${newtdump_common})
 foreach (target newtdump newtdump-test-newton)
   target_include_directories (${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

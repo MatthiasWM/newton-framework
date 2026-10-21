@@ -1,22 +1,26 @@
-# newtc and newtdump for macOS, Windows and Linux, on Intel and ARM: built
-# as release binaries (with FLTK, without sanitizers), tried, and packed as
-# one archive per system, named as Node names them (process.platform-
-# process.arch: darwin-arm64, linux-x64, win32-arm64, ...), so VSNewt can
-# take the one it runs on.
+# newtc and newtdump for macOS (one universal binary: Apple silicon and
+# Intel), Linux (Intel and ARM) and Windows (Intel and ARM): built as release
+# binaries (with FLTK, without sanitizers), tried, and packed as one archive
+# per system: newtc-darwin-universal, newtc-linux-x64, newtc-linux-arm64,
+# newtc-win32-x64, newtc-win32-arm64 (Node's process.platform and
+# process.arch, so VSNewt can take the one it runs on).
 #
-# Every run keeps the archives as the run's artifacts. A tag "tools-v<version>"
-# (e.g. tools-v0.1) also makes a GitHub release with them.
+# Every run keeps the archives as the run's artifacts. A tag "v<version>"
+# (e.g. v0.4.0) also makes a GitHub release of the macOS and Linux archives,
+# with the notes in Matt/Releases/v<version>.md; the tag must be the version
+# in CMakeLists.txt (NEWTON_TOOLS_VERSION), which the build checks. Windows
+# isn't released yet: newtc can't connect to a Newton there.
 #
 # Linux: built on Ubuntu 22.04 (an older glibc, so the binaries run on more
 # systems). newtc needs X11's libraries (libX11, libXft, fontconfig, ...),
-# as any desktop has them. macOS: 13 (Ventura) and later; the Intel build is
-# made on Apple silicon and tried under Rosetta. Not signed (ad hoc only).
+# as any desktop has them. macOS: 13 (Ventura) and later; the Intel half is
+# tried under Rosetta. Not signed (ad hoc only).
 name: tools
 
 on:
   push:
     branches: [dap_to_toolbox, 'tools-*']
-    tags: ['tools-v*']
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -30,8 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: darwin-arm64, os: macos-15,         cmake_args: "-G Ninja -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" }
-          - { name: darwin-x64,   os: macos-15,         cmake_args: "-G Ninja -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0", run: "arch -x86_64" }
+          - { name: darwin-universal, os: macos-15,     cmake_args: "-G Ninja \"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64\" -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" }
           - { name: linux-x64,    os: ubuntu-22.04,     cmake_args: "-G Ninja -DFLTK_BACKEND_WAYLAND=OFF" }
           - { name: linux-arm64,  os: ubuntu-22.04-arm, cmake_args: "-G Ninja -DFLTK_BACKEND_WAYLAND=OFF" }
           - { name: win32-x64,    os: windows-2022,     cmake_args: "-A x64",   exe: ".exe" }
@@ -79,14 +82,35 @@ jobs:
           d=dist/newtc-${{ matrix.name }}
           cd "$RUNNER_TEMP"
           printf 'x := {a: 6};\nPrint(x.a * 7);\n' > try.ns
-          out=$(${{ matrix.run }} "$GITHUB_WORKSPACE/$d/newtc${{ matrix.exe }}" -script try.ns < /dev/null)
+          out=$("$GITHUB_WORKSPACE/$d/newtc${{ matrix.exe }}" -script try.ns < /dev/null)
           echo "$out"
           [ "$(echo "$out" | tr -d '\r')" = "42" ]
-          ${{ matrix.run }} "$GITHUB_WORKSPACE/$d/newtc${{ matrix.exe }}" -s 'Print("hello");' < /dev/null
-          ${{ matrix.run }} "$GITHUB_WORKSPACE/$d/newtdump${{ matrix.exe }}" --help > /dev/null
+          "$GITHUB_WORKSPACE/$d/newtc${{ matrix.exe }}" -s 'Print("hello");' < /dev/null
+          "$GITHUB_WORKSPACE/$d/newtdump${{ matrix.exe }}" --help > /dev/null
+
+      - name: Try the Intel half (macOS, Rosetta)
+        if: runner.os == 'macOS'
+        run: |
+          d=dist/newtc-${{ matrix.name }}
+          for p in newtc newtdump; do lipo "$d/$p" -verify_arch arm64 x86_64; done
+          cd "$RUNNER_TEMP"
+          [ "$(arch -x86_64 "$GITHUB_WORKSPACE/$d/newtc" -script try.ns < /dev/null)" = "42" ]
+          arch -x86_64 "$GITHUB_WORKSPACE/$d/newtdump" --help > /dev/null
+
+      - name: The version is the tag's
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          d=dist/newtc-${{ matrix.name }}
+          want="${GITHUB_REF_NAME#v}"
+          for p in newtc newtdump; do
+            got=$("$d/$p${{ matrix.exe }}" $([ $p = newtc ] && echo -version || echo --version) < /dev/null | tr -d '\r')
+            echo "$got"
+            [ "$got" = "$p $want" ] || { echo "::error::$p says '$got', the tag is $GITHUB_REF_NAME (NEWTON_TOOLS_VERSION in CMakeLists.txt)"; exit 1; }
+          done
 
       - name: newtdump's test (macOS, Linux)
-        if: runner.os != 'Windows' && matrix.name != 'darwin-x64'
+        if: runner.os != 'Windows'
         run: |
           mkdir -p dist/test && cp dist/newtc-${{ matrix.name }}/newtdump dist/newtdump-test-newton dist/test/
           python3 Test/newtdump/test_newtdump.py --build dist/test
@@ -107,10 +131,11 @@ jobs:
           path: dist/newtc-${{ matrix.name }}.*
 
   release:
-    if: startsWith(github.ref, 'refs/tags/tools-v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -119,6 +144,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" dist/* --repo "${{ github.repository }}" \
-            --title "newtc and newtdump ${GITHUB_REF_NAME#tools-v}" \
-            --notes "newtc (NewtonScript compiler, interpreter, debugger) and newtdump (reads a Newton's ROM and PCMCIA cards) for macOS, Windows and Linux. Built from ${{ github.sha }}."
+          notes="Matt/Releases/${GITHUB_REF_NAME}.md"
+          [ -f "$notes" ] || { echo "::error::$notes is missing"; exit 1; }
+          rm -f dist/newtc-win32-*
+          (cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "${{ github.repository }}" \
+            --title "newtc and newtdump ${GITHUB_REF_NAME#v}" --notes-file "$notes"

@@ -1346,6 +1346,10 @@ int handleArgPkgList(const std::string &filename, int argc, char **argv)
   return ret;
 }
 
+#ifndef NEWTON_TOOLS_VERSION
+#define NEWTON_TOOLS_VERSION "unknown"   // CMakeLists.txt sets it
+#endif
+
 /**
  \brief Output a help message.
  Print a short description of all command line options.
@@ -1392,6 +1396,7 @@ the commands in the given order.
                           (<name>.nsdbg: decompiled source lines for the functions)
   -stats                  Print some package statistics about the object
   -help                   This help text
+  -version                Print newtc's version
 
   Control
   -clear                  Delete all object in the hold
@@ -1592,6 +1597,8 @@ int handleArgs(int argc, char **argv)
         handleArgStats();
       } else if ((cmd == "-help") || (cmd == "-h")) {
         handleArgHelp(argv[0]);
+      } else if (cmd == "-version") {
+        std::cout << "newtc " << NEWTON_TOOLS_VERSION << std::endl;
       } else {
         throw(std::runtime_error("Unknown command line argument: \"" + cmd + "\"."));
       }

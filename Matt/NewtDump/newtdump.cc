@@ -43,7 +43,7 @@ extern const size_t kNewtDumpExtensionSize;
 
 namespace {
 
-const char *kVersion = "1.0";
+const char *kVersion = NEWTON_TOOLS_VERSION;   // CMakeLists.txt
 
 /*--- Machines ---*/
 
@@ -128,6 +128,7 @@ void Usage()
 "  --machine <m>         mp2x00 or emate (default: what the Newton says it is)\n"
 "  --socket-base <n>=<addr>  socket n's physical base (default 0x30000000 + n * 0x10000000)\n"
 "  -v, --verbose         every request and answer\n"
+"  --version             newtdump's version\n"
 "\n"
 "Sizes and addresses: decimal, 0x hex, or with K or M (e.g. 2M).\n", kVersion);
 }
@@ -866,6 +867,7 @@ int main(int argc, char **argv)
         return argv[++i];
       };
       if (a == "-h" || a == "--help") { Usage(); return 0; }
+      else if (a == "--version") { printf("newtdump %s\n", kVersion); return 0; }
       else if (a == "-t" || a == "--target") options.target = value("--target");
       else if (a == "-b" || a == "--baud") options.baud = (long)ParseNumber(value("--baud"), "--baud");
       else if (a == "-o" || a == "--output") options.output = value("--output");

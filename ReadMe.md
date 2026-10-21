@@ -35,7 +35,7 @@ What CMake builds:
 
 The libraries are always built. GitHub Actions builds and tests them on Linux (x64, arm64; gcc), Windows (x64, arm64; MSVC) and macOS (universal); see `.github/workflows/newton_ncx.yml`.
 
-newtc and newtdump are developed and fully tested on macOS. `.github/workflows/tools.yml` builds them for macOS, Linux and Windows, each on Intel and ARM, and tries them there. On Linux (tested in Docker, Ubuntu 24.04 on arm64) all of newtc's tests pass except five that check how Newton views draw in FLTK windows (B66 in Matt/CLAUDE.md), and newtdump's test passes. On Windows, newtc compiles and runs scripts, but its tests haven't been run there yet; `-dap-server` and the connection to a Newton (`-ntk...`) aren't there yet, because `newton_dock`'s link is a stub on Windows.
+newtc and newtdump are developed and fully tested on macOS. `.github/workflows/tools.yml` builds them for macOS (universal), Linux and Windows (each on Intel and ARM), and tries them there. On Linux (tested in Docker, Ubuntu 24.04 on arm64) all of newtc's tests pass except five that check how Newton views draw in FLTK windows (B66 in Matt/CLAUDE.md), and newtdump's test passes. On Windows, newtc compiles and runs scripts, but its tests haven't been run there yet; `-dap-server` and the connection to a Newton (`-ntk...`) aren't there yet, because `newton_dock`'s link is a stub on Windows.
 
 Options:
 
@@ -75,7 +75,7 @@ target_link_libraries (myapp PRIVATE newton_ncx newton_dock)
 
 
 ## RELEASES
-Each run of `.github/workflows/tools.yml` keeps an archive per system as an artifact of the run: `newtc-darwin-arm64.tar.gz`, `newtc-darwin-x64.tar.gz`, `newtc-linux-x64.tar.gz`, `newtc-linux-arm64.tar.gz`, `newtc-win32-x64.zip` and `newtc-win32-arm64.zip`. Each archive holds newtc and newtdump. The names are Node's `process.platform` and `process.arch`, so VSNewt can pick the right one. Pushing a tag `tools-v<version>` (for example `tools-v0.1`) also publishes a GitHub release with these archives. On Linux, newtc needs X11's libraries (libX11, libXft, fontconfig), which any desktop has. The macOS binaries are signed ad hoc only, and need macOS 13 or later.
+Each run of `.github/workflows/tools.yml` keeps an archive per system as an artifact of the run: `newtc-darwin-universal.tar.gz` (Apple silicon and Intel in one binary), `newtc-linux-x64.tar.gz`, `newtc-linux-arm64.tar.gz`, `newtc-win32-x64.zip` and `newtc-win32-arm64.zip`. Each archive holds newtc and newtdump. The names are Node's `process.platform` and `process.arch`, so VSNewt can pick the right one. Pushing a tag `v<version>` (for example `v0.4.0`) also publishes a GitHub release of the macOS and Linux archives with the notes in `Matt/Releases/v<version>.md`. The tag must match `NEWTON_TOOLS_VERSION` in CMakeLists.txt (`newtc -version`, `newtdump --version`); the workflow checks this. On Linux, newtc needs X11's libraries (libX11, libXft, fontconfig), which any desktop has. The macOS binaries are signed ad hoc only, and need macOS 13 or later.
 
 
 ## TESTS
