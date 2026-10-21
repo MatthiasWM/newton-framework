@@ -167,6 +167,7 @@ CISInfo Parse(const std::vector<uint8_t> &inRaw, size_t inStart, size_t inStep, 
     uint8_t code = bytes[i++];
     if (code == 0xFF) {
       info.valid = !info.tuples.empty();
+      info.bytes.assign(bytes.begin(), bytes.begin() + (long)i);
       break;
     }
     CISTuple tuple;
@@ -177,6 +178,7 @@ CISInfo Parse(const std::vector<uint8_t> &inRaw, size_t inStart, size_t inStep, 
       uint8_t link = bytes[i++];
       if (link == 0xFF) {                   // a link of 0xFF ends the chain too
         info.valid = !info.tuples.empty();
+        info.bytes.assign(bytes.begin(), bytes.begin() + (long)i);
         break;
       }
       if (i + link > bytes.size())

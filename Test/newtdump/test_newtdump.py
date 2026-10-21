@@ -12,6 +12,8 @@ requests answered from image files). Checks:
     goes on; the files are complete
   - an interrupted run (Ctrl-C) and --resume: the file is complete
   - a ROM card with its CIS at the start of common memory
+  - Einstein's card image (.pccard): --pccard while reading a card, and the
+    pccard command from the files of an earlier run (no Newton)
   - a card smaller than --size: a bus error, reported, no crash
 
 The Newton's side (the ARM natives, the extension's NewtonScript) runs only
@@ -68,6 +70,15 @@ def attribute_image(cis, size=8192):
     for i, b in enumerate(cis):
         data[2 * i] = b
     return bytes(data)
+
+
+def pccard_image(data, cis, name, card_type):
+    """Einstein's .pccard (TLinearCard::ImageInfo): data, CIS, name, and ten
+    big-endian words plus "TLinearCard\\0" at the end."""
+    name = name.encode() + b"\x00"
+    info = [len(name), len(data) + len(cis), 0, len(data) + len(cis), len(cis), len(data), len(data), 0,
+            card_type, 1]
+    return data + cis + name + b"".join(w.to_bytes(4, "big") for w in info) + b"TLinearCard\x00"
 
 
 class Run:
@@ -160,6 +171,14 @@ def main():
               "Socket 0 (0x30000000): a card" in stdout and "Socket 1 (0x40000000): no card" in stdout, log)
         check("... the Newton described", "Test Newton: MessagePad 2000/2100" in stdout, log)
 
+        # the pccard command: Einstein's image from the files above, no Newton
+        result = subprocess.run([str(build / "newtdump"), "-o", str(out), "pccard"], capture_output=True,
+                                text=True, stdin=subprocess.DEVNULL, timeout=30)
+        image = (out / "card0.pccard").read_bytes() if (out / "card0.pccard").exists() else b""
+        check("pccard: card0.pccard from the files (data, the CIS in order, the CIS's name, SRAM)",
+              result.returncode == 0 and image == pccard_image(bytes(common), cis, "Apple Test SRAM 64K", 6),
+              result.stdout + result.stderr)
+
         # the password
         out = tmp / "password"
         code, stdout, stderr, newton = Run(build, out, ["--rom-size", "16K", "--password", "secret", "rom"],
@@ -229,13 +248,18 @@ def main():
         flash = bytes(random.Random(3).getrandbits(8) for _ in range(256 * 1024))
         (tmp / "einstein-common.img").write_bytes(flash)
         out = tmp / "einstein"
-        code, stdout, stderr, newton = Run(build, out, ["--size", "256K", "card", "0"],
+        code, stdout, stderr, newton = Run(build, out, ["--size", "256K", "--pccard", "--name", "Flash",
+                                                         "card", "0"],
                                            ["--attribute0", str(tmp / "einstein-attr.img"),
                                             "--common0", str(tmp / "einstein-common.img")]).wait()
         check("Einstein's card: its CIS found (word-swapped even bytes), 2 MB flash, Intel",
               code == 0 and "even bytes, bytes reversed in words" in stdout and "flash, 2 MB" in stdout
               and "JEDEC: manufacturer 0x89" in stdout and (out / "card0-common.bin").read_bytes() == flash,
               stdout + stderr + newton)
+        # its image: the CIS as Einstein keeps it (the chain up to its end), the flash type
+        image = (out / "card0.pccard").read_bytes() if (out / "card0.pccard").exists() else b""
+        check("... --pccard: the card as Einstein had it",
+              image == pccard_image(flash, einstein_cis[:-1], "Flash", 5), stdout + stderr + newton)
 
         # --size beyond the card: a bus error, reported
         out = tmp / "buserror"

@@ -9,6 +9,8 @@ newtdump --target serial:/dev/cu.usbserial-0001 --baud 38400 all
 newtdump --target tcp rom                  # Einstein, network client (127.0.0.1:3679)
 newtdump --target pty card 0               # Einstein, serial port "BasiliskII"
 newtdump info                              # the Newton and its sockets, reads nothing
+newtdump --pccard card 0                   # also card0.pccard, the card for Einstein
+newtdump pccard                            # card<n>.pccard from an earlier run's files
 ```
 
 newtdump waits for the Newton. On the Newton, start a connection: Dock (or
@@ -25,6 +27,7 @@ Files (in `-o <dir>`, default the current directory):
 | `card<n>-cis.txt` | the card's CIS, decoded (devices and size, name, maker, function) |
 | `card<n>-attribute.bin` | the first 8 KB of attribute memory, as read (the CIS is in one byte of two) |
 | `card<n>-common.bin` | the common memory, as big as the CIS says (`--size` if it says nothing) |
+| `card<n>.pccard` | `--pccard` or the `pccard` command: the card for Einstein (below) |
 | `phys-<address>.bin` | `phys <address> <size>`: any physical memory |
 
 If the connection drops or hangs, newtdump waits until the Newton connects
@@ -33,6 +36,24 @@ acknowledges the cancel (`opca` -> `ocaa`; the Newton waits for that),
 lets the card go, and ends. A run that ends early (Disconnect, Ctrl-C, a
 Newton that has to be reset) goes on with `--resume`. `newtdump --help` lists all
 options.
+
+## Cards for Einstein
+
+Einstein inserts a `.pccard` file as a linear card (Einstein's
+`Emulator/PCMCIA/TLinearCard.h`, `ImageInfo`). newtdump writes one with
+`--pccard` after reading a card, or with the `pccard [<socket>]` command
+from `card<n>-attribute.bin` and `card<n>-common.bin` in `-o` (no Newton
+needed). The file holds:
+- the common memory as read (Einstein serves it in that order);
+- the CIS as a chain of tuples in order, up to its end (Einstein's attribute
+  memory gives the byte at A as CIS[(A / 2) ^ 1], so the Newton reads it as
+  on the real card);
+- the name (`--name`, else the card's VERS_1 or VERS_2 strings);
+- at the end: ten 32-bit big-endian words (name, icon, CIS, data: size and
+  start each; the card's device type; version 1) and `TLinearCard\0`.
+
+A `card<n>-common.bin` that isn't complete gives a smaller image (newtdump
+says so): `--resume` reads the rest first.
 
 ## How it works
 

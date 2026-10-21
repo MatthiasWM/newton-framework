@@ -83,6 +83,8 @@ struct Options
   std::string machine;                              // "", mp2x00, emate
   std::map<int, uint32_t> socketBases;
   bool verbose = false;
+  bool pccard = false;                              // also write card<n>.pccard (Einstein)
+  std::string cardName;                             // its name ("": from the CIS)
   std::vector<std::string> command;
 };
 
@@ -103,6 +105,8 @@ void Usage()
 "  phys <addr> <size>    physical memory (multiples of 4 KB; 0x... or decimal)\n"
 "                        -> phys-<addr>.bin\n"
 "  info                  the Newton and its sockets; reads nothing\n"
+"  pccard [<socket>]     Einstein's card image card<n>.pccard from the files an\n"
+"                        earlier card read wrote (in -o); no Newton needed\n"
 "\n"
 "On the Newton, start a connection (Dock or Connection, \"Connect\") after\n"
 "newtdump says it is waiting. Nothing has to be installed on the Newton.\n"
@@ -118,6 +122,8 @@ void Usage()
 "  --resume              go on with files an earlier run didn't finish\n"
 "  --password <p>        the Newton's password, if it has one\n"
 "  --size <bytes>        a card's common memory size, if its CIS doesn't say\n"
+"  --pccard              card: also write card<n>.pccard, the card for Einstein\n"
+"  --name <text>         the name in a .pccard (default: the card's, from its CIS)\n"
 "  --rom-size <bytes>    the ROM's size (default 8 MB)\n"
 "  --machine <m>         mp2x00 or emate (default: what the Newton says it is)\n"
 "  --socket-base <n>=<addr>  socket n's physical base (default 0x30000000 + n * 0x10000000)\n"
@@ -645,6 +651,131 @@ std::string DescribePins(uint32_t inPins)
   return s;
 }
 
+/*--- Einstein's card images ---*/
+
+/** The card's name from its CIS: the strings of VERS_1 (maker, product,
+    ...), else those of VERS_2 (vendor, info). "" if it has neither. */
+std::string CardName(const CISInfo &inCIS)
+{
+  for (uint8_t code : { 0x15, 0x40 }) {
+    for (const CISTuple &t : inCIS.tuples) {
+      if (t.code != code)
+        continue;
+      std::string name, text;
+      for (size_t i = code == 0x15 ? 2 : 9; i <= t.data.size(); i++) {
+        if (i == t.data.size() || t.data[i] == 0 || t.data[i] == 0xFF) {
+          if (!text.empty())
+            name += (name.empty() ? "" : " ") + text;
+          text.clear();
+          if (i == t.data.size() || t.data[i] == 0xFF)
+            break;
+        } else {
+          text += (t.data[i] >= 32 && t.data[i] < 127) ? (char)t.data[i] : '?';
+        }
+      }
+      if (!name.empty())
+        return name;
+    }
+  }
+  return "";
+}
+
+/** Einstein's image of a linear card (Einstein.git
+    Emulator/PCMCIA/TLinearCard.h, ImageInfo; TLinearCard::Init reads it):
+    the common memory as the Newton reads it (Einstein's ReadMem gives the
+    bytes in this order), the CIS in order (its ReadAttrB gives the byte at
+    A as CIS[(A / 2) ^ 1], so the Newton finds the CIS as on the card), the
+    name as a C string, and at the end the ImageInfo: ten 32-bit words,
+    big-endian (name, icon, CIS, data: size and start each; the card's
+    type, the format's version 1), then "TLinearCard" and its NUL. */
+void WritePCCard(const std::string &inPath, const std::vector<uint8_t> &inCommon, const CISInfo &inCIS,
+                 const std::string &inName)
+{
+  std::vector<uint8_t> image(inCommon);
+  uint32_t dataStart = 0, dataSize = (uint32_t)inCommon.size();
+  uint32_t cisStart = (uint32_t)image.size(), cisSize = (uint32_t)inCIS.bytes.size();
+  image.insert(image.end(), inCIS.bytes.begin(), inCIS.bytes.end());
+  uint32_t iconStart = (uint32_t)image.size(), iconSize = 0;
+  uint32_t nameStart = (uint32_t)image.size(), nameSize = (uint32_t)inName.size() + 1;
+  image.insert(image.end(), inName.begin(), inName.end());
+  image.push_back(0);
+  // the type, as Einstein's ComposeImageFile takes it: the first device's
+  // (CISTPL_DEVICE, the top 4 bits of its first byte)
+  uint32_t type = 0;
+  for (const CISTuple &t : inCIS.tuples)
+    if (t.code == 0x01 && !t.data.empty()) {
+      type = t.data[0] >> 4;
+      break;
+    }
+  for (uint32_t word : { nameSize, nameStart, iconSize, iconStart, cisSize, cisStart, dataSize, dataStart, type,
+                         (uint32_t)1 })
+    for (int shift = 24; shift >= 0; shift -= 8)
+      image.push_back((uint8_t)(word >> shift));
+  static const char kIdent[12] = "TLinearCard";
+  image.insert(image.end(), kIdent, kIdent + sizeof(kIdent));
+
+  FILE *f = fopen(inPath.c_str(), "wb");
+  if (!f)
+    throw std::runtime_error("can't write " + inPath);
+  bool written = fwrite(image.data(), 1, image.size(), f) == image.size();
+  if (fclose(f) != 0 || !written)
+    throw std::runtime_error("can't write " + inPath);
+}
+
+/** card<n>.pccard from card<n>-common.bin and the card's CIS. */
+void MakePCCard(const Options &inOptions, int inSocket, const CISInfo &inCIS)
+{
+  std::string prefix = "card" + std::to_string(inSocket);
+  if (!inCIS.valid)
+    throw std::runtime_error(prefix + ".pccard: the card has no CIS (Einstein needs one)");
+  std::string commonPath = OutputPath(inOptions, prefix + "-common.bin");
+  std::vector<uint8_t> common;
+  if (FILE *f = fopen(commonPath.c_str(), "rb")) {
+    uint8_t buffer[65536];
+    size_t n;
+    while ((n = fread(buffer, 1, sizeof(buffer), f)) > 0)
+      common.insert(common.end(), buffer, buffer + n);
+    fclose(f);
+  } else {
+    throw std::runtime_error("can't read " + commonPath);
+  }
+  if (common.empty())
+    throw std::runtime_error(commonPath + " is empty");
+  uint64_t size = inOptions.cardSize ? inOptions.cardSize : inCIS.commonSize;
+  if (size && common.size() < size)
+    fprintf(stderr, "%s has %s of the card's %s: the image has only those (read the rest with --resume).\n",
+            commonPath.c_str(), SizeText((double)common.size()).c_str(), SizeText((double)size).c_str());
+  std::string name = !inOptions.cardName.empty() ? inOptions.cardName : CardName(inCIS);
+  if (name.empty())
+    name = prefix;
+  std::string path = OutputPath(inOptions, prefix + ".pccard");
+  WritePCCard(path, common, inCIS, name);
+  printf("%s: the card for Einstein (%s, \"%s\")\n", path.c_str(), SizeText((double)common.size()).c_str(),
+         name.c_str());
+  fflush(stdout);
+}
+
+/** The pccard command: the CIS from card<n>-attribute.bin, else from the
+    start of card<n>-common.bin (a ROM card), then MakePCCard. */
+void PCCardFromFiles(const Options &inOptions, int inSocket)
+{
+  std::string prefix = "card" + std::to_string(inSocket);
+  auto readFile = [](const std::string &inPath, size_t inMax) {
+    std::vector<uint8_t> data(inMax);
+    if (FILE *f = fopen(inPath.c_str(), "rb")) {
+      data.resize(fread(data.data(), 1, data.size(), f));
+      fclose(f);
+    } else {
+      data.clear();
+    }
+    return data;
+  };
+  CISInfo cis = ParseCIS(readFile(OutputPath(inOptions, prefix + "-attribute.bin"), 8192));
+  if (!cis.valid)
+    cis = ParseCIS(readFile(OutputPath(inOptions, prefix + "-common.bin"), 4096), true);
+  MakePCCard(inOptions, inSocket, cis);
+}
+
 void ReadCard(Session &ioSession, const Options &inOptions, int inSocket, bool inOnlyInfo)
 {
   uint32_t base = ioSession.socketBase(inSocket);
@@ -707,8 +838,10 @@ void ReadCard(Session &ioSession, const Options &inOptions, int inSocket, bool i
       throw std::runtime_error("the card's size is unknown (no CIS device entry): give it with --size");
     if (size > 64 << 20)
       throw std::runtime_error("the card says it has " + SizeText((double)size) + ", more than a socket's 64 MB");
-    Download(ioSession, inOptions, prefix + " mem", base + kCommonOffset, size,
-             OutputPath(inOptions, prefix + "-common.bin"));
+    if (Download(ioSession, inOptions, prefix + " mem", base + kCommonOffset, size,
+                 OutputPath(inOptions, prefix + "-common.bin"))
+        && inOptions.pccard)
+      MakePCCard(inOptions, inSocket, cis);
   } catch (...) {
     // let the card go (VccOff), unless the Newton has ended the session
     if (!ioSession.disconnectedByNewton())
@@ -755,6 +888,8 @@ int main(int argc, char **argv)
         options.socketBases[(int)ParseNumber(v.substr(0, eq), "--socket-base")] =
           (uint32_t)ParseNumber(v.substr(eq + 1), "--socket-base");
       }
+      else if (a == "--pccard") options.pccard = true;
+      else if (a == "--name") options.cardName = value("--name");
       else if (a == "-v" || a == "--verbose") options.verbose = true;
       else if (!a.empty() && a[0] == '-') throw std::runtime_error("unknown option " + a + " (--help)");
       else options.command.push_back(a);
@@ -773,9 +908,30 @@ int main(int argc, char **argv)
   }
 
   const std::string &cmd = options.command[0];
-  if (cmd != "rom" && cmd != "card" && cmd != "all" && cmd != "phys" && cmd != "info") {
+  if (cmd != "rom" && cmd != "card" && cmd != "all" && cmd != "phys" && cmd != "info" && cmd != "pccard") {
     fprintf(stderr, "newtdump: unknown command %s (--help)\n", cmd.c_str());
     return 1;
+  }
+  if (cmd == "pccard") {
+    // from the files of an earlier run: one socket, or each with a card<n>-common.bin
+    try {
+      std::vector<int> sockets;
+      if (options.command.size() > 1) {
+        sockets.push_back((int)ParseNumber(options.command[1], "pccard"));
+      } else {
+        for (int s = 0; s < 4; s++)
+          if (std::filesystem::exists(OutputPath(options, "card" + std::to_string(s) + "-common.bin")))
+            sockets.push_back(s);
+        if (sockets.empty())
+          throw std::runtime_error("pccard: no card<n>-common.bin in " + options.output + " (-o)");
+      }
+      for (int s : sockets)
+        PCCardFromFiles(options, s);
+    } catch (std::exception &e) {
+      fprintf(stderr, "newtdump: %s\n", e.what());
+      return 1;
+    }
+    return 0;
   }
   { std::error_code err; std::filesystem::create_directories(options.output, err); }
 

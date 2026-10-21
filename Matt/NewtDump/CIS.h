@@ -26,6 +26,7 @@ struct CISInfo
   bool valid = false;               // a tuple chain that ends properly
   std::string layout;               // where the bytes were: "even bytes", "odd bytes", "every byte"
   std::vector<CISTuple> tuples;
+  std::vector<uint8_t> bytes;       // the chain in order, up to and with its end (as Einstein keeps a CIS)
   uint64_t commonSize = 0;          // the devices of CISTPL_DEVICE, all together (0: unknown)
   std::vector<std::string> report;  // a line per tuple, for people
 };
